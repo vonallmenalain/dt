@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DreamTeam Meta initialisieren</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f8fb;
+            margin: 0;
+            padding: 40px 20px;
+            color: #222;
+        }
+
+        .box {
+            max-width: 760px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        p {
+            line-height: 1.5;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 22px 0 24px 0;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111827;
+            word-break: break-word;
+        }
+
+        .row {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            overflow-x: auto;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .ok {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #a5d6a7;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #b71c1c;
+            border: 1px solid #ef9a9a;
+        }
+
+        .hint {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            color: #7c5700;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 700px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .box {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1 id="page-title">⚙️ DreamTeam Meta-Dokument anlegen</h1>
+        <p id="page-intro">
+            Diese Seite legt das passende Firestore-Meta-Dokument für das aktuell aktive Turnier an.
+        </p>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">Aktives Turnier</div>
+                <div class="info-value" id="active-tournament">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Meta-Dokument</div>
+                <div class="info-value" id="meta-doc-path">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Teams Collection</div>
+                <div class="info-value" id="teams-collection">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Punkte Collection</div>
+                <div class="info-value" id="points-collection">-</div>
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="teamsVersion">Startwert Teams-Version</label>
+            <input id="teamsVersion" type="number" value="1" min="1" />
+        </div>
+
+        <div class="row">
+            <label for="pointsVersion">Startwert Punkte-Version</label>
+            <input id="pointsVersion" type="number" value="1" min="1" />
+        </div>
+
+        <button id="create-btn">Meta-Dokument anlegen / aktualisieren</button>
+
+        <div id="status"></div>
+
+        <div class="hint">
+            Solange in <strong>tournament-config.js</strong> das aktive Turnier auf <strong>wm2022</strong> steht,
+            wird hier auch nur das Meta-Dokument für <strong>WM 2022</strong> angelegt.  
+            Wenn du später auf <strong>em2024</strong> oder <strong>wm2026</strong> wechselst, diese Seite einfach nochmals ausführen.
+        </div>
+
+        <h3>Es wird dieses Dokument gespeichert:</h3>
+        <pre id="preview"></pre>
+    </div>
+
+    <script src="tournament-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const APP = window.APP_CONFIG;
+
+        if (!APP) {
+            throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor init-meta.html.");
+        }
+
+        document.title = `${APP.pageTitlePrefix || "DreamTeam"} - Meta initialisieren`;
+
+        const db = APP.getDb();
+
+        const tournament = APP.activeTournament;
+        const metaCollection = APP.firestore.metaCollection || "app_meta";
+        const metaDocId = APP.firestore.metaDocId();
+        const teamsCollection = APP.firestore.teamsCollection();
+        const pointsCollection = APP.firestore.pointsCollection();
+
+        const pageTitleEl = document.getElementById("page-title");
+        const pageIntroEl = document.getElementById("page-intro");
+        const activeTournamentEl = document.getElementById("active-tournament");
+        const metaDocPathEl = document.getElementById("meta-doc-path");
+        const teamsCollectionEl = document.getElementById("teams-collection");
+        const pointsCollectionEl = document.getElementById("points-collection");
+
+        const teamsVersionEl = document.getElementById("teamsVersion");
+        const pointsVersionEl = document.getElementById("pointsVersion");
+        const previewEl = document.getElementById("preview");
+        const statusEl = document.getElementById("status");
+        const btn = document.getElementById("create-btn");
+
+        if (pageTitleEl) {
+            pageTitleEl.textContent = `⚙️ Meta-Dokument anlegen – ${tournament.shortLabel}`;
+        }
+
+        if (pageIntroEl) {
+            pageIntroEl.textContent = `Diese Seite legt das passende Firestore-Meta-Dokument für ${tournament.name} an. Danach funktionieren Cache-System und Versionsprüfung für dieses Turnier sauber.`;
+        }
+
+        if (activeTournamentEl) {
+            activeTournamentEl.textContent = `${tournament.shortLabel} (${tournament.key})`;
+        }
+
+        if (metaDocPathEl) {
+            metaDocPathEl.textContent = `${metaCollection} / ${metaDocId}`;
+        }
+
+        if (teamsCollectionEl) {
+            teamsCollectionEl.textContent = teamsCollection;
+        }
+
+        if (pointsCollectionEl) {
+            pointsCollectionEl.textContent = pointsCollection;
+        }
+
+        function buildPayload() {
+            const teamsVersion = Number(teamsVersionEl.value);
+            const pointsVersion = Number(pointsVersionEl.value);
+            const timestamp = Date.now();
+
+            return {
+                docId: metaDocId,
+                payload: {
+                    tournamentKey: tournament.key,
+                    tournamentType: tournament.type,
+                    tournamentYear: tournament.year,
+                    tournamentLabel: tournament.shortLabel,
+                    year: tournament.year,
+                    teamsVersion,
+                    pointsVersion,
+                    teamsUpdatedAt: timestamp,
+                    pointsUpdatedAt: timestamp
+                }
+            };
+        }
+
+        function updatePreview() {
+            const { docId, payload } = buildPayload();
+
+            previewEl.textContent = JSON.stringify({
+                collection: metaCollection,
+                documentId: docId,
+                data: payload
+            }, null, 2);
+        }
+
+        function showStatus(message, isError = false) {
+            statusEl.style.display = "block";
+            statusEl.className = isError ? "error" : "ok";
+            statusEl.textContent = message;
+        }
+
+        teamsVersionEl.addEventListener("input", updatePreview);
+        pointsVersionEl.addEventListener("input", updatePreview);
+
+        updatePreview();
+
+        btn.addEventListener("click", async () => {
+            try {
+                btn.disabled = true;
+                btn.textContent = "Speichere...";
+
+                const { docId, payload } = buildPayload();
+
+                await db.collection(metaCollection).doc(docId).set(payload, { merge: true });
+
+                showStatus(`✅ Erfolgreich gespeichert: ${metaCollection} / ${docId}`);
+            } catch (err) {
+                console.error(err);
+                showStatus(`❌ Fehler beim Speichern: ${err.message}`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Meta-Dokument anlegen / aktualisieren";
+            }
+        });
+    </script>
+</body>
+</html>

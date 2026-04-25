@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamTeam - Builder</title>
+    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#28a745">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DreamTeam">
+    <meta name="description" content="DreamTeam als installierbare Webapp für dein Smartphone.">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        body {
+            padding-top: 100px;
+            padding-bottom: 20px;
+        }
+
+        body.mobile-picker-open {
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px;
+            margin-top: 0;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .action-header {
+            text-align: center;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .builder-notice {
+            max-width: 1200px;
+            margin: 0 auto 18px auto;
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            color: #9a3412;
+            padding: 14px 16px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.45;
+            display: none;
+        }
+
+        .builder-notice.visible {
+            display: block;
+        }
+
+        .clear-btn {
+            padding: 10px 20px;
+            background-color: #ffffff;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .clear-btn:hover {
+            background-color: #fff5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .builder-layout {
+            max-width: 1760px;
+            margin: 0 auto;
+            display: flex;
+            gap: 22px;
+            align-items: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .team-builder-shell {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            min-width: 0;
+        }
+
+        .pitch-container {
+            flex: 1;
+            background: linear-gradient(#2e7d32, #1b5e20);
+            border-radius: 15px;
+            padding: 30px 20px;
+            border: 3px solid #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            min-width: 850px;
+            box-sizing: border-box;
+        }
+
+        .pitch-row {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .bench-container {
+            flex: none;
+            width: 260px;
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bench-container h3 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .bench-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .picker-host {
+            flex: none;
+            width: 360px;
+            min-width: 360px;
+            position: relative;
+        }
+
+        .picker-panel {
+            width: 100%;
+            min-width: 360px;
+        }
+
+        .picker-card {
+            width: 100%;
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .picker-header {
+            margin-bottom: 14px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .picker-header-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .picker-title {
+            margin: 0;
+            font-size: 1.55em;
+            color: #111;
+        }
+
+        .picker-subtitle {
+            margin: 8px 0 0 0;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .picker-close-btn {
+            display: none;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: #eef2f7;
+            color: #334155;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+
+        .picker-close-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .picker-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .picker-search-wrap {
+            position: relative;
+        }
+
+        .picker-search {
+            width: 100%;
+            padding: 12px 42px 12px 12px;
+            border-radius: 10px;
+            border: 1px solid #d7dee6;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .picker-search:focus,
+        .picker-select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.12);
+        }
+
+        .picker-select {
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 10px;
+            border: 1px solid #d7dee6;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .clear-input-btn {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            background: #eef2f7;
+            color: #64748b;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .clear-input-btn.visible {
+            display: inline-flex;
+        }
+
+        .clear-input-btn:hover {
+            background: #e2e8f0;
+            color: #111827;
+        }
+
+        .picker-clear-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .picker-clear-btn:hover {
+            background: #fff5f5;
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .picker-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .picker-empty-state {
+            display: none;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 20px 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .picker-results {
+            min-height: 0;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .picker-results::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .picker-results::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+
+        .picker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .picker-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 10px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .picker-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: #28a745;
+        }
+
+        .picker-row.disabled {
+            opacity: 0.45;
+            filter: grayscale(100%);
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+            border-color: #e5e7eb !important;
+        }
+
+        .picker-avatar-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .picker-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .picker-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .picker-name {
+            font-weight: bold;
+            color: #111;
+            font-size: 13px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .picker-meta {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #64748b;
+            flex-wrap: wrap;
+        }
+
+        .picker-meta img {
+            width: 16px;
+            height: 12px;
+            object-fit: cover;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+        }
+
+        .picker-meta img.club {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+            box-shadow: none;
+        }
+
+        .picker-meta .dot {
+            opacity: 0.45;
+        }
+
+        .picker-choose-btn {
+            flex-shrink: 0;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: #28a745;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .picker-choose-btn:hover {
+            background: #218838;
+        }
+
+        .picker-row.disabled .picker-choose-btn {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .slot-wrapper {
+            width: 180px;
+            height: 260px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .slot-wrapper.is-active .empty-slot,
+        .slot-wrapper.is-active .builder-player-card {
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.42), 0 0 0 6px rgba(255,255,255,0.16);
+        }
+
+        .empty-slot {
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.08);
+            border: 2px dashed rgba(255,255,255,0.5);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.25s;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .bench-container .empty-slot {
+            background: #f8f9fa;
+            border-color: #ccc;
+            color: #666;
+        }
+
+        .empty-slot:hover {
+            background: rgba(255,255,255,0.16);
+            border-color: #fff;
+            transform: translateY(-5px);
+        }
+
+        .empty-slot .add-icon {
+            font-size: 30px;
+            margin-bottom: 8px;
+            line-height: 1;
+            color: #8b5cf6;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            border: 1px solid #eee;
+            box-sizing: border-box;
+            justify-content: flex-start;
+            padding-top: 15px;
+            cursor: pointer;
+            color: inherit;
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1);
+            transform-style: preserve-3d;
+            transform-origin: center center;
+            transition: transform 0.18s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .builder-player-card.is-captain {
+            background: linear-gradient(135deg, #fffdf0, #fff2a8);
+            border: 2px solid #ffc107;
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        .js-tilt-glare {
+            border-radius: 12px;
+        }
+
+        .builder-captain-btn,
+        .builder-remove-btn {
+            position: absolute;
+            top: 8px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            z-index: 30;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: translateZ(30px);
+            transition: transform 0.3s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .builder-captain-btn {
+            left: 8px;
+            background: #fff;
+            color: #b0b7c3;
+            border-color: #d4d8de;
+            font-size: 12px;
+        }
+
+        .builder-captain-btn:hover {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .builder-captain-btn.active {
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #000;
+            border-color: #fff;
+        }
+
+        .builder-remove-btn {
+            right: 8px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .avatar-wrapper {
+            width: 85px;
+            height: 85px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            transform: translateZ(20px);
+            transition: transform 0.3s ease;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .card-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .card-info {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 5px;
+            box-sizing: border-box;
+            transform: translateZ(15px);
+            transition: transform 0.3s ease;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .card-name {
+            font-weight: bold;
+            font-size: 13px;
+            line-height: 1.2;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            color: #111;
+            margin-bottom: 6px;
+        }
+
+        .card-sub-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: transparent;
+            padding: 2px 0;
+            font-size: 11px;
+            width: 100%;
+            margin: 0 auto 4px auto;
+            border: none;
+            font-weight: bold;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        .small-icon {
+            width: 22px;
+            height: 16px;
+            object-fit: cover;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .small-icon.club {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            box-shadow: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .builder-player-card:hover {
+                box-shadow: 0 25px 50px rgba(0,0,0,0.4) !important;
+                border-color: #ffd700;
+            }
+
+            .builder-player-card:hover .avatar-wrapper {
+                transform: translateZ(50px);
+            }
+
+            .builder-player-card:hover .card-info {
+                transform: translateZ(40px);
+            }
+
+            .builder-player-card:hover .builder-captain-btn,
+            .builder-player-card:hover .builder-remove-btn {
+                transform: translateZ(60px) scale(1.06);
+            }
+
+            .builder-player-card:hover .card-avatar {
+                transform: scale(1.15);
+            }
+        }
+
+        .submit-section {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: calc(100% - 40px);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .submit-section input {
+            padding: 15px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .submit-btn {
+            padding: 15px 30px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 350px;
+            transition: 0.3s;
+        }
+
+        .submit-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #counter {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .form-warning {
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+            font-weight: bold;
+        }
+
+        #name-warning,
+        #duplicate-warning {
+            color: #dc3545;
+        }
+
+        #captain-warning {
+            color: #fd7e14;
+        }
+
+        .mobile-feedback {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(17,24,39,0.94);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            z-index: 5000;
+            white-space: nowrap;
+            max-width: calc(100vw - 24px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mobile-feedback.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 1400px) {
+            .builder-layout {
+                flex-direction: column;
+            }
+
+            .picker-host {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .picker-panel {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .picker-card {
+                height: auto !important;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .team-builder-shell {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 8px;
+            }
+
+            .team-builder-shell::-webkit-scrollbar {
+                display: none;
+            }
+
+            .pitch-container {
+                min-width: 680px;
+            }
+
+            .bench-container {
+                width: 180px;
+                min-width: 180px;
+                height: auto !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding-top: 85px;
+            }
+
+            .builder-layout {
+                padding: 0 12px;
+                gap: 16px;
+            }
+
+            .pitch-container {
+                min-width: 500px;
+                padding: 20px 10px;
+            }
+
+            .bench-container {
+                min-width: 140px;
+                width: 140px;
+                padding: 15px 10px;
+            }
+
+            .pitch-row {
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+
+            .bench-slots {
+                gap: 10px;
+            }
+
+            .slot-wrapper {
+                width: 110px;
+                height: 165px;
+            }
+
+            .empty-slot {
+                font-size: 10px;
+            }
+
+            .empty-slot .add-icon {
+                font-size: 22px;
+            }
+
+            .avatar-wrapper {
+                width: 55px;
+                height: 55px;
+                margin-top: 2px;
+                margin-bottom: 5px;
+            }
+
+            .card-name {
+                font-size: 11px;
+                min-height: 26px;
+                margin-bottom: 3px;
+                line-height: 1.1;
+            }
+
+            .card-sub-info {
+                font-size: 9px;
+                padding: 3px 0;
+                gap: 4px;
+                margin-bottom: 3px;
+            }
+
+            .small-icon {
+                width: 16px;
+                height: 11px;
+            }
+
+            .small-icon.club {
+                width: 14px;
+                height: 14px;
+            }
+
+            .builder-captain-btn,
+            .builder-remove-btn {
+                width: 22px;
+                height: 22px;
+                top: 4px;
+                font-size: 10px;
+            }
+
+            .builder-captain-btn {
+                left: 4px;
+            }
+
+            .builder-remove-btn {
+                right: 4px;
+                font-size: 11px;
+            }
+
+            .builder-player-card {
+                transform-style: flat;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            }
+
+            .avatar-wrapper,
+            .card-info,
+            .builder-remove-btn,
+            .builder-captain-btn {
+                transform: none !important;
+                transition: none !important;
+            }
+
+            .builder-player-card:active {
+                transform: scale(0.96);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                border-color: #28a745;
+            }
+
+            .submit-btn,
+            .submit-section input {
+                width: 100%;
+                max-width: 350px;
+            }
+
+            .picker-host {
+                position: fixed;
+                inset: 0;
+                width: auto;
+                min-width: 0;
+                background: rgba(15, 23, 42, 0.52);
+                backdrop-filter: blur(3px);
+                -webkit-backdrop-filter: blur(3px);
+                padding: 12px;
+                display: none;
+                align-items: flex-end;
+                justify-content: center;
+                z-index: 4000;
+            }
+
+            .picker-host.mobile-open {
+                display: flex;
+            }
+
+            .picker-panel {
+                width: 100%;
+                max-width: 560px;
+                min-width: 0;
+            }
+
+            .picker-card {
+                padding: 16px 14px;
+                border-radius: 18px;
+                max-height: 84vh;
+                height: auto !important;
+                box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+            }
+
+            .picker-header {
+                margin-bottom: 12px;
+                padding-bottom: 10px;
+            }
+
+            .picker-close-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .picker-title {
+                font-size: 1.28em;
+            }
+
+            .picker-subtitle {
+                font-size: 12px;
+            }
+
+            .picker-row {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .picker-avatar-wrap {
+                width: 42px;
+                height: 42px;
+            }
+
+            .picker-name {
+                font-size: 12px;
+            }
+
+            .picker-meta {
+                font-size: 10px;
+            }
+
+            .picker-choose-btn {
+                padding: 7px 10px;
+                font-size: 10px;
+            }
+
+            .picker-results {
+                min-height: 200px;
+            }
+
+            .mobile-feedback {
+                bottom: 14px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="page-title">🏆 DreamTeam Builder</h1>
+    <p class="intro" id="page-intro">Wähle dein Team. Max. 1 Spieler pro Nation!</p>
+
+    <div class="action-header">
+        <button id="clear-team-btn" class="clear-btn">🗑️ Komplettes Team leeren</button>
+    </div>
+
+    <div id="builder-notice" class="builder-notice"></div>
+
+    <div class="builder-layout">
+        <div class="team-builder-shell">
+            <div class="pitch-container" id="pitch-container">
+                <div class="pitch-row" id="row-GOALKEEPER"></div>
+                <div class="pitch-row" id="row-DEFENDER"></div>
+                <div class="pitch-row" id="row-MIDFIELDER"></div>
+                <div class="pitch-row" id="row-ATTACKER"></div>
+            </div>
+
+            <div class="bench-container" id="bench-container">
+                <h3>Ersatzbank</h3>
+                <div class="bench-slots" id="bench-slots"></div>
+            </div>
+        </div>
+
+        <div class="picker-host" id="picker-host">
+            <aside class="picker-panel" id="picker-panel">
+                <div class="picker-card" id="picker-card">
+                    <div class="picker-header">
+                        <div class="picker-header-top">
+                            <div>
+                                <h2 class="picker-title" id="picker-title">Spieler wählen</h2>
+                                <p class="picker-subtitle" id="picker-subtitle">Klicke auf ein Feld im Spielfeld oder auf der Bank, um einen Spieler zuzuweisen.</p>
+                            </div>
+                            <button type="button" id="picker-close-btn" class="picker-close-btn" aria-label="Auswahl schliessen">×</button>
+                        </div>
+                    </div>
+
+                    <div class="picker-controls">
+                        <div class="picker-search-wrap">
+                            <input type="text" id="picker-search" class="picker-search" placeholder="🔍 Spieler, Club oder Land...">
+                            <button type="button" id="clear-picker-search" class="clear-input-btn" aria-label="Suche löschen">&times;</button>
+                        </div>
+
+                        <select id="picker-nation-filter" class="picker-select">
+                            <option value="ALL">Alle Länder</option>
+                        </select>
+
+                        <button type="button" id="clear-picker-filters" class="picker-clear-btn">Filter löschen</button>
+                    </div>
+
+                    <div class="picker-summary">
+                        <span id="picker-result-count">0 Spieler</span>
+                    </div>
+
+                    <div id="picker-empty-state" class="picker-empty-state">
+                        Keine Spieler für diese Auswahl gefunden.
+                    </div>
+
+                    <div class="picker-results" id="picker-results">
+                        <div class="picker-list" id="picker-list"></div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="submit-section">
+        <span id="counter">Nationen gewählt: 0 / 15</span>
+
+        <div style="width: 350px; max-width: 100%; text-align: left;">
+            <input type="text" id="manager-name" placeholder="👤 Dein Vor- und Nachname" required>
+
+            <div id="name-warning" class="form-warning">
+                ⚠️ Bitte gib deinen Vor- UND Nachnamen ein.
+            </div>
+
+            <div id="duplicate-warning" class="form-warning">
+                ⚠️ Dieser Managername ist bereits vergeben.
+            </div>
+
+            <div id="captain-warning" class="form-warning">
+                ⚠️ Wähle noch deinen Captain! (Klicke auf das "C")
+            </div>
+        </div>
+
+        <button id="submit-btn" class="submit-btn" disabled>Team abschicken</button>
+    </div>
+
+    <div id="mobile-feedback" class="mobile-feedback"></div>
+
+    <script src="tournament-config.js"></script>
+    <script src="nav.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <script src="data.js"></script>
+    <script src="cache.js"></script>
+
+<script>
+    const APP = window.APP_CONFIG;
+
+    if (!APP) {
+        throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor team-builder.html.");
+    }
+
+    const sourcePlayers =
+        (typeof playersData !== 'undefined' && Array.isArray(playersData))
+            ? playersData
+            : [];
+
+    if (!sourcePlayers.length) {
+        throw new Error("playersData fehlt oder ist leer. Prüfe data.js.");
+    }
+
+    const TOURNAMENT_YEAR = APP.year;
+    const TOURNAMENT_LABEL = APP.tournamentLabel;
+    const PAGE_TITLE_PREFIX = APP.pageTitlePrefix;
+    const TEAMS_COLLECTION = APP.firestore.teamsCollection();
+    const META_COLLECTION = APP.firestore.metaCollection || "app_meta";
+    const META_DOC_ID = APP.firestore.metaDocId();
+    const BUILDER_CACHE_KEY = APP.storage.builderCacheKey();
+    const LEGACY_BUILDER_CACHE_KEY = "dreamCache" + String(TOURNAMENT_YEAR).substring(2);
+    const SESSION_DATA_CACHE_KEY = APP.storage.key("data_cache");
+    const LEGACY_SESSION_DATA_CACHE_KEY = "dreamteam_data_cache_" + TOURNAMENT_YEAR;
+    const CARD_BASE_TRANSFORM = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    const PICKER_BATCH_SIZE = 20;
+
+    const db = APP.getDb();
+
+    document.title = `${PAGE_TITLE_PREFIX} - Builder`;
+
+    const pageTitleEl = document.getElementById('page-title');
+    const pageIntroEl = document.getElementById('page-intro');
+
+    if (pageTitleEl) {
+        pageTitleEl.textContent = `🏆 DreamTeam Builder`;
+    }
+
+    if (pageIntroEl) {
+        pageIntroEl.textContent = `Wähle dein DreamTeam. Max. 1 Spieler pro Nation!`;
+    }
+
+    const finalSlots = [
+        { id: '0', pos: 'GOALKEEPER', cont: 'row-GOALKEEPER', label: 'Tor' },
+        { id: '1', pos: 'DEFENDER', cont: 'row-DEFENDER', label: 'Verteidigung' },
+        { id: '2', pos: 'DEFENDER', cont: 'row-DEFENDER', label: 'Verteidigung' },
+        { id: '3', pos: 'DEFENDER', cont: 'row-DEFENDER', label: 'Verteidigung' },
+        { id: '4', pos: 'MIDFIELDER', cont: 'row-MIDFIELDER', label: 'Mittelfeld' },
+        { id: '5', pos: 'MIDFIELDER', cont: 'row-MIDFIELDER', label: 'Mittelfeld' },
+        { id: '6', pos: 'MIDFIELDER', cont: 'row-MIDFIELDER', label: 'Mittelfeld' },
+        { id: '7', pos: 'MIDFIELDER', cont: 'row-MIDFIELDER', label: 'Mittelfeld' },
+        { id: '8', pos: 'ATTACKER', cont: 'row-ATTACKER', label: 'Sturm' },
+        { id: '9', pos: 'ATTACKER', cont: 'row-ATTACKER', label: 'Sturm' },
+        { id: '10', pos: 'ATTACKER', cont: 'row-ATTACKER', label: 'Sturm' },
+        { id: '11', pos: 'GOALKEEPER', cont: 'bench-slots', label: 'Tor' },
+        { id: '12', pos: 'DEFENDER', cont: 'bench-slots', label: 'Verteidigung' },
+        { id: '13', pos: 'MIDFIELDER', cont: 'bench-slots', label: 'Mittelfeld' },
+        { id: '14', pos: 'ATTACKER', cont: 'bench-slots', label: 'Sturm' }
+    ];
+
+    const POSITION_LABELS = {
+        GOALKEEPER: 'Tor',
+        DEFENDER: 'Verteidigung',
+        MIDFIELDER: 'Mittelfeld',
+        ATTACKER: 'Sturm'
+    };
+
+    const dom = {
+        clearTeamBtn: document.getElementById('clear-team-btn'),
+        managerName: document.getElementById('manager-name'),
+        submitBtn: document.getElementById('submit-btn'),
+        counter: document.getElementById('counter'),
+        nameWarning: document.getElementById('name-warning'),
+        duplicateWarning: document.getElementById('duplicate-warning'),
+        captainWarning: document.getElementById('captain-warning'),
+        builderNotice: document.getElementById('builder-notice'),
+
+        pickerHost: document.getElementById('picker-host'),
+        pickerPanel: document.getElementById('picker-panel'),
+        pickerCard: document.getElementById('picker-card'),
+        pickerTitle: document.getElementById('picker-title'),
+        pickerSubtitle: document.getElementById('picker-subtitle'),
+        pickerSearch: document.getElementById('picker-search'),
+        clearPickerSearch: document.getElementById('clear-picker-search'),
+        pickerNationFilter: document.getElementById('picker-nation-filter'),
+        clearPickerFilters: document.getElementById('clear-picker-filters'),
+        pickerResultCount: document.getElementById('picker-result-count'),
+        pickerEmptyState: document.getElementById('picker-empty-state'),
+        pickerResults: document.getElementById('picker-results'),
+        pickerList: document.getElementById('picker-list'),
+        pickerCloseBtn: document.getElementById('picker-close-btn'),
+
+        pitchContainer: document.getElementById('pitch-container'),
+        benchContainer: document.getElementById('bench-container'),
+        mobileFeedback: document.getElementById('mobile-feedback')
+    };
+
+    function normalizePosition(pos) {
+        const upper = String(pos || '').trim().toUpperCase();
+        if (!upper) return '';
+        if (upper === 'FORWARD' || upper === 'FW' || upper === 'STÜRMER' || upper === 'STUERMER') return 'ATTACKER';
+        if (upper === 'GOALKEEPER' || upper === 'GK' || upper === 'TORWART') return 'GOALKEEPER';
+        if (upper === 'DEFENDER' || upper === 'DF' || upper === 'VERTEIDIGER') return 'DEFENDER';
+        if (upper === 'MIDFIELDER' || upper === 'MF' || upper === 'MITTELFELD') return 'MIDFIELDER';
+        return upper;
+    }
+
+    const preparedPlayers = sourcePlayers.map((p, idx) => ({
+        raw: p,
+        id: String(p['player.id']),
+        name: p.Spielername || 'Unbekannt',
+        photo: p.Spielerfoto || 'https://via.placeholder.com/100',
+        position: normalizePosition(p.Position),
+        nation: p['Nationalteam.name'] || '?',
+        flag: p['Nationalteam.logo'] || '',
+        club: p['Club.name'] || 'Vereinslos',
+        clubLogo: p['Club.logo'] || '',
+        sortKey: `${p['Nationalteam.name'] || ''} ${p.Spielername || ''}`.toLowerCase(),
+        searchKey: `${p.Spielername || ''} ${p['Nationalteam.name'] || ''} ${p['Club.name'] || ''}`.toLowerCase(),
+        _idx: idx
+    }));
+
+    const playerById = new Map(preparedPlayers.map(p => [p.id, p]));
+    const allNations = [...new Set(preparedPlayers.map(p => p.nation).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de'));
+
+    let selectedTeam = {};
+    let selectedCaptainId = null;
+    let currentEditingSlotId = null;
+
+    let pickerFilteredPlayers = [];
+    let pickerRenderedCount = 0;
+    let isSubmitting = false;
+    let feedbackTimer = null;
+    let pendingBuilderNotice = '';
+
+    function isMobileView() {
+        return window.innerWidth <= 900;
+    }
+
+    function isValidSlotId(slotId) {
+        return finalSlots.some(slot => String(slot.id) === String(slotId));
+    }
+
+    function openMobilePicker() {
+        if (!isMobileView()) return;
+        dom.pickerHost.classList.add('mobile-open');
+        document.body.classList.add('mobile-picker-open');
+    }
+
+    function closeMobilePicker() {
+        dom.pickerHost.classList.remove('mobile-open');
+        document.body.classList.remove('mobile-picker-open');
+    }
+
+    function showMobileFeedback(message) {
+        if (!message) return;
+        clearTimeout(feedbackTimer);
+        dom.mobileFeedback.textContent = message;
+        dom.mobileFeedback.classList.add('visible');
+
+        feedbackTimer = setTimeout(() => {
+            dom.mobileFeedback.classList.remove('visible');
+        }, 1800);
+    }
+
+    function showBuilderNotice(message) {
+        if (!message) {
+            dom.builderNotice.textContent = '';
+            dom.builderNotice.classList.remove('visible');
+            return;
+        }
+        dom.builderNotice.textContent = message;
+        dom.builderNotice.classList.add('visible');
+    }
+
+    function hideBuilderNotice() {
+        dom.builderNotice.textContent = '';
+        dom.builderNotice.classList.remove('visible');
+    }
+
+    function scrollSlotIntoView(slotId) {
+        const el = document.querySelector(`.slot-wrapper[data-slot-id="${String(slotId)}"]`);
+        if (!el) return;
+
+        requestAnimationFrame(() => {
+            el.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center'
+            });
+        });
+    }
+
+    function getSlotConfig(slotId) {
+        return finalSlots.find(slot => slot.id === String(slotId));
+    }
+
+    function getPlayerById(playerId) {
+        return playerById.get(String(playerId)) || null;
+    }
+
+    function getSlotPlayerId(slotId) {
+        return selectedTeam[String(slotId)] ? String(selectedTeam[String(slotId)]) : null;
+    }
+
+    function getSelectedNationNames(excludeSlotId = null) {
+        const nations = new Set();
+
+        Object.entries(selectedTeam).forEach(([slotId, playerId]) => {
+            if (excludeSlotId !== null && String(slotId) === String(excludeSlotId)) return;
+            const player = getPlayerById(playerId);
+            if (player && player.nation) nations.add(player.nation);
+        });
+
+        return nations;
+    }
+
+    function isNationTakenByOtherSlot(nation, excludeSlotId = null) {
+        return getSelectedNationNames(excludeSlotId).has(nation);
+    }
+
+    function isPlayerSelectedElsewhere(playerId, excludeSlotId = null) {
+        return Object.entries(selectedTeam).some(([slotId, selectedPlayerId]) => {
+            if (excludeSlotId !== null && String(slotId) === String(excludeSlotId)) return false;
+            return String(selectedPlayerId) === String(playerId);
+        });
+    }
+
+    function getFirstAvailableSlotId() {
+        const firstEmpty = finalSlots.find(slot => !selectedTeam[slot.id]);
+        return firstEmpty ? firstEmpty.id : finalSlots[0].id;
+    }
+
+    function getRequiredPositionForCurrentSlot() {
+        const slot = getSlotConfig(currentEditingSlotId);
+        return slot ? slot.pos : null;
+    }
+
+    function updateSearchClearButton() {
+        if (dom.pickerSearch.value.trim()) {
+            dom.clearPickerSearch.classList.add('visible');
+        } else {
+            dom.clearPickerSearch.classList.remove('visible');
+        }
+    }
+
+    function renderNationFilterOptions() {
+        const currentValue = dom.pickerNationFilter.value || 'ALL';
+        const selectedNations = getSelectedNationNames();
+
+        dom.pickerNationFilter.innerHTML = '<option value="ALL">Alle Länder</option>' +
+            allNations.map(nation => {
+                const prefix = selectedNations.has(nation) ? '🔴 ' : '';
+                return `<option value="${escapeHtml(nation)}">${prefix}${escapeHtml(nation)}</option>`;
+            }).join('');
+
+        const hasCurrent = Array.from(dom.pickerNationFilter.options).some(opt => opt.value === currentValue);
+        dom.pickerNationFilter.value = hasCurrent ? currentValue : 'ALL';
+    }
+
+    function translatePosition(pos) {
+        return POSITION_LABELS[normalizePosition(pos)] || pos || 'Spieler';
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function hardResetCard(card) {
+        if (!card) return;
+        try {
+            if (card.vanillaTilt) {
+                card.vanillaTilt.reset();
+            }
+        } catch (e) {}
+
+        requestAnimationFrame(() => {
+            card.style.transform = CARD_BASE_TRANSFORM;
+        });
+
+        setTimeout(() => {
+            card.style.transform = CARD_BASE_TRANSFORM;
+        }, 220);
+    }
+
+    function initCardTilt() {
+        const cards = document.querySelectorAll('.builder-player-card');
+
+        cards.forEach(card => {
+            if (card.vanillaTilt) {
+                card.vanillaTilt.destroy();
+            }
+            card.style.transform = CARD_BASE_TRANSFORM;
+
+            if (!card.dataset.tiltBound) {
+                card.addEventListener('mouseleave', () => hardResetCard(card));
+                card.addEventListener('blur', () => hardResetCard(card));
+                card.dataset.tiltBound = '1';
+            }
+        });
+
+        if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+            return;
+        }
+
+        if (!cards.length) return;
+
+        VanillaTilt.init(cards, {
+            max: 15,
+            speed: 280,
+            glare: true,
+            "max-glare": 0.35,
+            scale: 1,
+            transition: true,
+            reset: true,
+            "reset-to-start": true,
+            gyroscope: false
+        });
+    }
+
+    function syncPanelHeights() {
+        if (window.innerWidth <= 1400 || isMobileView()) {
+            dom.benchContainer.style.height = '';
+            dom.pickerCard.style.height = '';
+            return;
+        }
+
+        dom.benchContainer.style.height = '';
+        dom.pickerCard.style.height = '';
+
+        requestAnimationFrame(() => {
+            const pitchHeight = Math.ceil(dom.pitchContainer.getBoundingClientRect().height);
+            if (pitchHeight > 0) {
+                dom.benchContainer.style.height = pitchHeight + 'px';
+                dom.pickerCard.style.height = pitchHeight + 'px';
+            }
+        });
+    }
+
+    function buildSelectedCardHTML(slot, player) {
+        const isCaptain = String(player.id) === String(selectedCaptainId);
+        const captainClass = isCaptain ? 'active' : '';
+        const cardClass = isCaptain ? 'is-captain' : '';
+
+        return `
+            <div class="slot-wrapper ${String(slot.id) === String(currentEditingSlotId) ? 'is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
+                <div class="player-card builder-player-card ${cardClass}">
+                    <button type="button" class="builder-captain-btn ${captainClass}" title="${isCaptain ? 'Das ist dein Captain!' : 'Zum Captain ernennen'}" data-action="set-captain" data-player-id="${escapeHtml(player.id)}">C</button>
+                    <button type="button" class="builder-remove-btn" title="Spieler entfernen" data-action="remove-player" data-slot-id="${escapeHtml(slot.id)}">✖</button>
+
+                    <div class="avatar-wrapper">
+                        <img src="${escapeHtml(player.photo)}" class="card-avatar" alt="${escapeHtml(player.name)}">
+                    </div>
+
+                    <div class="card-info">
+                        <div class="card-name">${escapeHtml(player.name)}</div>
+                        <div class="card-sub-info">
+                            <img src="${escapeHtml(player.flag)}" class="small-icon" alt="${escapeHtml(player.nation)}">
+                            <span>${escapeHtml(player.nation)}</span>
+                        </div>
+                        <div class="card-sub-info">
+                            <img src="${escapeHtml(player.clubLogo)}" class="small-icon club" alt="${escapeHtml(player.club)}">
+                            <span>${escapeHtml(player.club)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function buildEmptySlotHTML(slot) {
+        return `
+            <div class="slot-wrapper ${String(slot.id) === String(currentEditingSlotId) ? 'is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
+                <div class="empty-slot">
+                    <div class="add-icon">➕</div>
+                    ${escapeHtml(slot.label)}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderAllSlots() {
+        ['row-GOALKEEPER', 'row-DEFENDER', 'row-MIDFIELDER', 'row-ATTACKER', 'bench-slots'].forEach(id => {
+            document.getElementById(id).innerHTML = '';
+        });
+
+        finalSlots.forEach(slot => {
+            const playerId = getSlotPlayerId(slot.id);
+            const player = playerId ? getPlayerById(playerId) : null;
+            const html = player ? buildSelectedCardHTML(slot, player) : buildEmptySlotHTML(slot);
+            document.getElementById(slot.cont).insertAdjacentHTML('beforeend', html);
+        });
+
+        renderNationFilterOptions();
+        updateNationsRule();
+        validateForm();
+        saveStateToLocal();
+        initCardTilt();
+        syncPanelHeights();
+    }
+
+    function updatePickerHeader() {
+        const slot = getSlotConfig(currentEditingSlotId);
+
+        if (!slot) {
+            dom.pickerTitle.textContent = 'Spieler wählen';
+            dom.pickerSubtitle.textContent = 'Klicke auf ein Feld im Spielfeld oder auf der Bank, um einen Spieler zuzuweisen.';
+            return;
+        }
+
+        const currentPlayerId = getSlotPlayerId(slot.id);
+        const currentPlayer = currentPlayerId ? getPlayerById(currentPlayerId) : null;
+
+        dom.pickerTitle.textContent = `${slot.label} wählen`;
+        dom.pickerSubtitle.textContent = currentPlayer
+            ? `Slot ${parseInt(slot.id, 10) + 1}: aktuell ${currentPlayer.name}`
+            : `Slot ${parseInt(slot.id, 10) + 1}: noch leer`;
+    }
+
+    function getFilteredPickerPlayers() {
+        const requiredPos = getRequiredPositionForCurrentSlot();
+        if (!requiredPos) return [];
+
+        const searchTerm = dom.pickerSearch.value.trim().toLowerCase();
+        const nationFilter = dom.pickerNationFilter.value;
+
+        return preparedPlayers
+            .filter(player => player.position === requiredPos)
+            .filter(player => nationFilter === 'ALL' || player.nation === nationFilter)
+            .filter(player => !searchTerm || player.searchKey.includes(searchTerm))
+            .sort((a, b) => a.sortKey.localeCompare(b.sortKey, 'de'));
+    }
+
+    function appendNextPickerBatch() {
+        const nextBatch = pickerFilteredPlayers.slice(pickerRenderedCount, pickerRenderedCount + PICKER_BATCH_SIZE);
+        if (!nextBatch.length) return;
+
+        const currentSlotId = currentEditingSlotId;
+        const fragment = document.createDocumentFragment();
+
+        nextBatch.forEach(player => {
+            const isSamePlayerInCurrentSlot = String(getSlotPlayerId(currentSlotId)) === String(player.id);
+            const isPlayerBlocked = isPlayerSelectedElsewhere(player.id, currentSlotId);
+            const isNationBlocked = isNationTakenByOtherSlot(player.nation, currentSlotId);
+            const isDisabled = !isSamePlayerInCurrentSlot && (isPlayerBlocked || isNationBlocked);
+
+            const row = document.createElement('div');
+            row.className = `picker-row ${isDisabled ? 'disabled' : ''}`;
+
+            const buttonText = isSamePlayerInCurrentSlot
+                ? 'Gewählt'
+                : isDisabled
+                    ? 'Blockiert'
+                    : 'Wählen';
+
+            row.innerHTML = `
+                <div class="picker-avatar-wrap">
+                    <img src="${escapeHtml(player.photo)}" class="picker-avatar" alt="${escapeHtml(player.name)}">
+                </div>
+                <div class="picker-info">
+                    <div class="picker-name">${escapeHtml(player.name)}</div>
+                    <div class="picker-meta">
+                        <img src="${escapeHtml(player.flag)}" alt="${escapeHtml(player.nation)}">
+                        <span>${escapeHtml(player.nation)}</span>
+                        <span class="dot">•</span>
+                        <img src="${escapeHtml(player.clubLogo)}" class="club" alt="${escapeHtml(player.club)}">
+                        <span>${escapeHtml(player.club)}</span>
+                    </div>
+                </div>
+                <button type="button" class="picker-choose-btn">${buttonText}</button>
+            `;
+
+            if (!isDisabled) {
+                row.addEventListener('click', () => selectPlayer(player.id));
+                const btn = row.querySelector('.picker-choose-btn');
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectPlayer(player.id);
+                });
+            }
+
+            fragment.appendChild(row);
+        });
+
+        dom.pickerList.appendChild(fragment);
+        pickerRenderedCount += nextBatch.length;
+    }
+
+    function fillPickerUntilScrollable() {
+        if (!pickerFilteredPlayers.length) return;
+
+        let guard = 0;
+        while (
+            pickerRenderedCount < pickerFilteredPlayers.length &&
+            dom.pickerResults.scrollHeight <= dom.pickerResults.clientHeight + 8 &&
+            guard < 50
+        ) {
+            appendNextPickerBatch();
+            guard++;
+        }
+    }
+
+    function renderPickerPlayers(reset = true) {
+        if (reset) {
+            pickerFilteredPlayers = getFilteredPickerPlayers();
+            pickerRenderedCount = 0;
+            dom.pickerList.innerHTML = '';
+            dom.pickerResults.scrollTop = 0;
+
+            dom.pickerResultCount.textContent = `${pickerFilteredPlayers.length} Spieler`;
+            dom.pickerEmptyState.style.display = pickerFilteredPlayers.length ? 'none' : 'block';
+            dom.pickerEmptyState.textContent = 'Keine Spieler für diese Auswahl gefunden.';
+        }
+
+        if (!pickerFilteredPlayers.length) {
+            syncPanelHeights();
+            return;
+        }
+
+        appendNextPickerBatch();
+        fillPickerUntilScrollable();
+        syncPanelHeights();
+    }
+
+    function openSlotPicker(slotId) {
+        currentEditingSlotId = String(slotId);
+        updatePickerHeader();
+        renderAllSlots();
+        renderPickerPlayers(true);
+
+        if (isMobileView()) {
+            openMobilePicker();
+        }
+    }
+
+    window.openSlotPicker = openSlotPicker;
+
+    function applyPickerFilters() {
+        updateSearchClearButton();
+        renderPickerPlayers(true);
+    }
+
+    function selectPlayer(playerId) {
+        const slotId = currentEditingSlotId;
+        if (!slotId) return;
+
+        const slot = getSlotConfig(slotId);
+        const player = getPlayerById(playerId);
+
+        if (!slot || !player) return;
+
+        if (player.position !== slot.pos) {
+            alert(`Dieser Spieler gehört aktuell zur Position ${translatePosition(player.position)} und kann nicht in ${translatePosition(slot.pos)} gesetzt werden.`);
+            return;
+        }
+
+        const oldPlayerId = getSlotPlayerId(slotId);
+
+        if (oldPlayerId && String(oldPlayerId) !== String(playerId) && String(selectedCaptainId) === String(oldPlayerId)) {
+            selectedCaptainId = null;
+        }
+
+        selectedTeam[String(slotId)] = String(playerId);
+
+        renderAllSlots();
+        updatePickerHeader();
+        renderPickerPlayers(true);
+
+        if (isMobileView()) {
+            closeMobilePicker();
+            setTimeout(() => {
+                scrollSlotIntoView(slotId);
+            }, 60);
+
+            if (player && slot) {
+                showMobileFeedback(`${player.name} zu ${slot.label} hinzugefügt`);
+            } else {
+                showMobileFeedback('Spieler hinzugefügt');
+            }
+        }
+    }
+
+    window.selectPlayer = selectPlayer;
+
+    function removePlayer(slotId) {
+        const existingPlayerId = getSlotPlayerId(slotId);
+        if (existingPlayerId && String(existingPlayerId) === String(selectedCaptainId)) {
+            selectedCaptainId = null;
+        }
+
+        delete selectedTeam[String(slotId)];
+        currentEditingSlotId = String(slotId);
+
+        renderAllSlots();
+        updatePickerHeader();
+        renderPickerPlayers(true);
+
+        if (isMobileView()) {
+            scrollSlotIntoView(slotId);
+            showMobileFeedback('Spieler entfernt');
+        }
+    }
+
+    window.removePlayer = removePlayer;
+
+    function setCaptain(playerId) {
+        if (!Object.values(selectedTeam).map(String).includes(String(playerId))) {
+            return;
+        }
+
+        selectedCaptainId = String(playerId);
+        renderAllSlots();
+        validateForm();
+        saveStateToLocal();
+
+        if (isMobileView()) {
+            showMobileFeedback('Captain gesetzt');
+        }
+    }
+
+    window.setCaptain = setCaptain;
+
+    function clearTeam() {
+        selectedTeam = {};
+        selectedCaptainId = null;
+        currentEditingSlotId = getFirstAvailableSlotId();
+        hideBuilderNotice();
+
+        renderAllSlots();
+        updatePickerHeader();
+        renderPickerPlayers(true);
+
+        if (isMobileView()) {
+            closeMobilePicker();
+            showMobileFeedback('Team geleert');
+        }
+    }
+
+    function updateNationsRule() {
+        const count = Object.keys(selectedTeam).length;
+        dom.counter.innerText = `Nationen gewählt: ${count} / 15`;
+    }
+
+    function validateForm() {
+        const count = Object.keys(selectedTeam).length;
+        const nameInput = dom.managerName.value.trim();
+        const words = nameInput.split(' ').filter(w => w.length > 0);
+        const isFullName = words.length >= 2;
+
+        dom.nameWarning.style.display = nameInput.length > 0 && !isFullName ? 'block' : 'none';
+
+        const teamPlayerIds = Object.values(selectedTeam).map(String);
+        const hasValidCaptain = selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId));
+
+        dom.captainWarning.style.display = !hasValidCaptain && count === 15 ? 'block' : 'none';
+
+        const hasDuplicateWarning = dom.duplicateWarning.style.display === 'block';
+        dom.submitBtn.disabled = !(count === 15 && isFullName && hasValidCaptain) || isSubmitting || hasDuplicateWarning;
+    }
+
+    function saveStateToLocal() {
+        localStorage.setItem(BUILDER_CACHE_KEY, JSON.stringify({
+            manager: dom.managerName.value,
+            players: selectedTeam,
+            captain: selectedCaptainId,
+            currentSlotId: currentEditingSlotId,
+            pickerSearch: dom.pickerSearch.value,
+            pickerNation: dom.pickerNationFilter.value
+        }));
+    }
+
+    function getSavedBuilderStateRaw() {
+        return localStorage.getItem(BUILDER_CACHE_KEY) || localStorage.getItem(LEGACY_BUILDER_CACHE_KEY);
+    }
+
+    function sanitizeLoadedTeamState(rawTeam) {
+        const report = {
+            team: {},
+            removedCount: 0,
+            wrongPositionCount: 0,
+            missingPlayerCount: 0,
+            duplicatePlayerCount: 0,
+            nationConflictCount: 0,
+            invalidSlotCount: 0
+        };
+
+        const usedPlayers = new Set();
+        const usedNations = new Set();
+        const input = rawTeam && typeof rawTeam === 'object' ? rawTeam : {};
+
+        finalSlots.forEach(slot => {
+            if (!Object.prototype.hasOwnProperty.call(input, slot.id)) return;
+
+            const rawPlayerId = input[slot.id];
+            if (!rawPlayerId) return;
+
+            const playerId = String(rawPlayerId);
+            const player = getPlayerById(playerId);
+
+            if (!player) {
+                report.removedCount += 1;
+                report.missingPlayerCount += 1;
+                return;
+            }
+
+            if (player.position !== slot.pos) {
+                report.removedCount += 1;
+                report.wrongPositionCount += 1;
+                return;
+            }
+
+            if (usedPlayers.has(player.id)) {
+                report.removedCount += 1;
+                report.duplicatePlayerCount += 1;
+                return;
+            }
+
+            if (player.nation && usedNations.has(player.nation)) {
+                report.removedCount += 1;
+                report.nationConflictCount += 1;
+                return;
+            }
+
+            report.team[slot.id] = player.id;
+            usedPlayers.add(player.id);
+            if (player.nation) usedNations.add(player.nation);
+        });
+
+        Object.keys(input).forEach(slotId => {
+            if (!isValidSlotId(slotId)) {
+                report.removedCount += 1;
+                report.invalidSlotCount += 1;
+            }
+        });
+
+        return report;
+    }
+
+    function buildSanitizeNotice(report) {
+        if (!report || !report.removedCount) return '';
+
+        const parts = [];
+        if (report.wrongPositionCount) parts.push(`${report.wrongPositionCount} wegen Positionsänderung`);
+        if (report.missingPlayerCount) parts.push(`${report.missingPlayerCount} ungültige Spieler`);
+        if (report.duplicatePlayerCount) parts.push(`${report.duplicatePlayerCount} doppelte Spieler`);
+        if (report.nationConflictCount) parts.push(`${report.nationConflictCount} wegen Nationenregel`);
+        if (report.invalidSlotCount) parts.push(`${report.invalidSlotCount} ungültige Slots`);
+
+        const detail = parts.length ? ` (${parts.join(', ')})` : '';
+        return `Hinweis: ${report.removedCount} Spieler aus deinem lokal gespeicherten Entwurf wurden automatisch entfernt${detail}. Bitte prüfe dein Team neu.`;
+    }
+
+    function loadStateFromLocal() {
+        const saved = getSavedBuilderStateRaw();
+        if (!saved) return;
+
+        try {
+            const state = JSON.parse(saved);
+
+            dom.managerName.value = state.manager || "";
+            dom.pickerSearch.value = state.pickerSearch || '';
+
+            const report = sanitizeLoadedTeamState(state.players || {});
+            selectedTeam = report.team;
+
+            const teamPlayerIds = Object.values(selectedTeam).map(String);
+            selectedCaptainId = state.captain && teamPlayerIds.includes(String(state.captain))
+                ? String(state.captain)
+                : null;
+
+            currentEditingSlotId = isValidSlotId(state.currentSlotId)
+                ? String(state.currentSlotId)
+                : null;
+
+            if (report.removedCount > 0) {
+                pendingBuilderNotice = buildSanitizeNotice(report);
+            }
+
+        } catch (e) {
+            console.warn('Lokaler Builder-Status konnte nicht gelesen werden.', e);
+        }
+    }
+
+    function restoreSavedNationFilter() {
+        const saved = getSavedBuilderStateRaw();
+        if (!saved) return;
+
+        try {
+            const state = JSON.parse(saved);
+            const nation = state.pickerNation || 'ALL';
+            const exists = Array.from(dom.pickerNationFilter.options).some(opt => opt.value === nation);
+            dom.pickerNationFilter.value = exists ? nation : 'ALL';
+        } catch (e) {
+            dom.pickerNationFilter.value = 'ALL';
+        }
+    }
+
+    async function managerNameExists(name) {
+        const normalized = name.trim().toLowerCase();
+        if (!normalized) return false;
+
+        const normalizedSnapshot = await db.collection(TEAMS_COLLECTION)
+            .where('managerNormalized', '==', normalized)
+            .limit(1)
+            .get();
+
+        if (!normalizedSnapshot.empty) return true;
+
+        const fallbackSnapshot = await db.collection(TEAMS_COLLECTION)
+            .where('manager', '==', name.trim())
+            .limit(1)
+            .get();
+
+        return !fallbackSnapshot.empty;
+    }
+
+    function handleSlotInteraction(event) {
+        const trigger = event.target.closest('[data-action]');
+        if (!trigger) return;
+
+        const action = trigger.getAttribute('data-action');
+        if (!action) return;
+
+        if (action === 'set-captain') {
+            event.stopPropagation();
+            const playerId = trigger.getAttribute('data-player-id');
+            if (playerId) setCaptain(playerId);
+            return;
+        }
+
+        if (action === 'remove-player') {
+            event.stopPropagation();
+            const slotId = trigger.getAttribute('data-slot-id');
+            if (slotId) removePlayer(slotId);
+            return;
+        }
+
+        if (action === 'open-slot') {
+            const slotId = trigger.getAttribute('data-slot-id');
+            if (slotId) openSlotPicker(slotId);
+        }
+    }
+
+    async function submitTeam() {
+        if (isSubmitting) return;
+
+        dom.duplicateWarning.style.display = 'none';
+        validateForm();
+
+        const name = dom.managerName.value.trim();
+        const count = Object.keys(selectedTeam).length;
+        const words = name.split(' ').filter(w => w.length > 0);
+        const isFullName = words.length >= 2;
+        const teamPlayerIds = Object.values(selectedTeam).map(String);
+        const hasValidCaptain = selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId));
+
+        if (!(count === 15 && isFullName && hasValidCaptain)) {
+            validateForm();
+            return;
+        }
+
+        isSubmitting = true;
+        dom.submitBtn.disabled = true;
+        dom.submitBtn.innerText = "⏳ Speichere...";
+
+        try {
+            const duplicateExists = await managerNameExists(name);
+            if (duplicateExists) {
+                dom.duplicateWarning.style.display = 'block';
+                isSubmitting = false;
+                dom.submitBtn.innerText = "Team abschicken";
+                validateForm();
+                return;
+            }
+
+            const finalPlayers = Object.entries(selectedTeam).map(([slotId, playerId]) => {
+                const player = getPlayerById(playerId);
+                return {
+                    slot: 'slot-' + slotId,
+                    playerId: player.id,
+                    name: player.name,
+                    nation: player.nation,
+                    pos: player.position,
+                    isCaptain: String(player.id) === String(selectedCaptainId)
+                };
+            });
+
+            const batch = db.batch();
+            const FieldValue = firebase.firestore.FieldValue;
+
+            const teamRef = db.collection(TEAMS_COLLECTION).doc();
+            const metaRef = db.collection(META_COLLECTION).doc(META_DOC_ID);
+
+            batch.set(teamRef, {
+                manager: name,
+                managerNormalized: name.toLowerCase(),
+                players: finalPlayers,
+                timestamp: FieldValue.serverTimestamp()
+            });
+
+            batch.set(metaRef, {
+                year: TOURNAMENT_YEAR,
+                teamsVersion: FieldValue.increment(1),
+                teamsUpdatedAt: Date.now()
+            }, { merge: true });
+
+            await batch.commit();
+
+            localStorage.removeItem(BUILDER_CACHE_KEY);
+            localStorage.removeItem(LEGACY_BUILDER_CACHE_KEY);
+
+            try {
+                if (window.DreamTeamCache && typeof DreamTeamCache.clearCache === 'function') {
+                    DreamTeamCache.clearCache({
+                        db,
+                        year: TOURNAMENT_YEAR
+                    });
+                }
+            } catch (err) {
+                console.warn("DreamTeamCache konnte lokal nicht geleert werden:", err);
+            }
+
+            sessionStorage.removeItem(SESSION_DATA_CACHE_KEY);
+            sessionStorage.removeItem(LEGACY_SESSION_DATA_CACHE_KEY);
+
+            alert("Dein Team wurde erfolgreich gespeichert!");
+            window.location.href = "teams.html?manager=" + encodeURIComponent(name);
+
+        } catch (e) {
+            alert("Fehler beim Speichern des Teams! Bitte überprüfe deine Verbindung.");
+            console.error(e);
+            isSubmitting = false;
+            dom.submitBtn.innerText = "Team abschicken";
+            validateForm();
+        }
+    }
+
+    function setupUI() {
+        loadStateFromLocal();
+
+        if (!currentEditingSlotId) {
+            currentEditingSlotId = getFirstAvailableSlotId();
+        }
+
+        renderNationFilterOptions();
+        restoreSavedNationFilter();
+        updateSearchClearButton();
+
+        dom.clearTeamBtn.addEventListener('click', clearTeam);
+
+        dom.managerName.addEventListener('input', () => {
+            dom.duplicateWarning.style.display = 'none';
+            saveStateToLocal();
+            validateForm();
+        });
+
+        dom.submitBtn.addEventListener('click', submitTeam);
+        dom.pitchContainer.addEventListener('click', handleSlotInteraction);
+        dom.benchContainer.addEventListener('click', handleSlotInteraction);
+
+        dom.pickerSearch.addEventListener('input', () => {
+            saveStateToLocal();
+            applyPickerFilters();
+        });
+
+        dom.clearPickerSearch.addEventListener('click', () => {
+            dom.pickerSearch.value = '';
+            saveStateToLocal();
+            applyPickerFilters();
+            dom.pickerSearch.focus();
+        });
+
+        dom.pickerNationFilter.addEventListener('change', () => {
+            saveStateToLocal();
+            applyPickerFilters();
+        });
+
+        dom.clearPickerFilters.addEventListener('click', () => {
+            dom.pickerSearch.value = '';
+            dom.pickerNationFilter.value = 'ALL';
+            saveStateToLocal();
+            applyPickerFilters();
+        });
+
+        dom.pickerResults.addEventListener('scroll', () => {
+            if (dom.pickerResults.scrollTop + dom.pickerResults.clientHeight >= dom.pickerResults.scrollHeight - 80) {
+                appendNextPickerBatch();
+            }
+        });
+
+        dom.pickerCloseBtn.addEventListener('click', closeMobilePicker);
+
+        dom.pickerHost.addEventListener('click', (e) => {
+            if (!isMobileView()) return;
+            if (e.target === dom.pickerHost) {
+                closeMobilePicker();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (!isMobileView()) {
+                closeMobilePicker();
+            }
+            syncPanelHeights();
+            fillPickerUntilScrollable();
+        });
+
+        renderAllSlots();
+        updatePickerHeader();
+        renderPickerPlayers(true);
+        syncPanelHeights();
+
+        if (pendingBuilderNotice) {
+            showBuilderNotice(pendingBuilderNotice);
+        } else {
+            hideBuilderNotice();
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', setupUI);
+</script>
+</body>
+</html>

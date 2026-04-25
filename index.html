@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamTeam - Startseite</title>
+    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#28a745">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DreamTeam">
+    <meta name="description" content="DreamTeam als installierbare Webapp für dein Smartphone.">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        /* --- LAYOUT NUR FÜR STARTSEITE --- */
+        .main-container { 
+            max-width: 1200px;
+            margin: 40px auto;
+            display: flex;
+            gap: 30px;
+            padding: 0 20px;
+            align-items: flex-start;
+            box-sizing: border-box;
+        }
+
+        .hero { 
+            flex: 2;
+            background: white;
+            padding: 40px;
+            border-radius: 15px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .hero h1 {
+            color: #2e7d32;
+            font-size: 2.8em;
+            margin-top: 0;
+            margin-bottom: 10px;
+            line-height: 1.15;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .rules {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #2e7d32;
+            margin-bottom: 30px;
+        }
+
+        .rules ul {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+
+        .hero-btn { 
+            display: inline-block;
+            background: var(--primary);
+            color: white; 
+            padding: 18px 30px;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-decoration: none; 
+            border-radius: 8px;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .hero-btn:hover {
+            background: #218838;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40,167,69,0.4);
+        }
+
+        .side-menu { 
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 280px;
+        }
+
+        .menu-btn { 
+            background: white;
+            padding: 20px 20px;
+            border-radius: 15px;
+            text-decoration: none; 
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            border-left: 6px solid var(--dark);
+        }
+
+        .menu-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .menu-btn.orange { border-left-color: #fd7e14; }
+        .menu-btn.blue   { border-left-color: #007bff; }
+        .menu-btn.purple { border-left-color: #6f42c1; }
+        .menu-btn.gold   { border-left-color: #ffc107; }
+        .menu-btn.teal   { border-left-color: #17a2b8; }
+
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .side-menu {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="hero">
+            <h1 id="hero-title">🏆 DreamTeam</h1>
+            <p class="subtitle" id="hero-subtitle">
+                Erstelle dein persönliches DreamTeam und verfolge Punkte, Ranglisten und Analysen über das gesamte Turnier.
+            </p>
+           
+            <div class="rules">
+                <h3 id="rules-title" style="margin-top:0;">📜 Stelle dein DreamTeam zusammen!</h3>
+                <ul>
+                    <li>Ein Team besteht aus <strong>15 Spielern</strong></li>
+                    <li>Die Aufstellung besteht aus einer <strong>3-4-3 Formation</strong> plus <strong>4 Auswechselspieler</strong></li>
+                    <li>Du kannst maximal <strong>1 Spieler pro Nation</strong> wählen</li>
+                    <li>Du benennst einen <strong>Captain</strong>, der die <strong>doppelten</strong> Punkte erhält</li>
+                </ul>
+            </div>
+
+            <a href="team-builder.html" class="hero-btn" id="hero-btn">⚽ DreamTeam jetzt zusammenstellen ➔</a>
+        </div>
+
+        <div class="side-menu">
+            <a href="punktesystem.html" class="menu-btn orange">📊 Punktesystem</a>
+            <a href="teams.html" class="menu-btn blue">🛡️ Teams</a>
+            <a href="spieleranalyse.html" class="menu-btn purple">🔍 Spieler Detailanalyse</a>
+            <a href="rangliste.html" class="menu-btn gold">🏆 Rangliste</a>
+            <a href="dashboard.html" class="menu-btn teal">📈 Dashboard</a>
+        </div>
+    </div>
+
+    <script src="tournament-config.js"></script>
+    <script src="nav.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const APP = window.APP_CONFIG;
+
+            if (!APP) {
+                console.error("APP_CONFIG fehlt. tournament-config.js wird nicht korrekt geladen.");
+                return;
+            }
+
+            const brandName = APP.brandName || "DreamTeam";
+            const pageTitlePrefix = APP.pageTitlePrefix || brandName;
+            const shortLabel = APP.shortLabel || APP.tournamentLabel || "";
+            const tournamentName = APP.name || shortLabel || "das aktuelle Turnier";
+
+            document.title = `${pageTitlePrefix} - Startseite`;
+
+            const heroTitle = document.getElementById("hero-title");
+            const heroSubtitle = document.getElementById("hero-subtitle");
+            const rulesTitle = document.getElementById("rules-title");
+            const heroBtn = document.getElementById("hero-btn");
+
+            if (heroTitle) {
+                heroTitle.textContent = `🏆 ${brandName}`;
+            }
+
+            if (heroSubtitle) {
+                heroSubtitle.textContent = `Erstelle dein persönliches DreamTeam für ${tournamentName} und verfolge Punkte, Ranglisten und Analysen über das gesamte Turnier.`;
+            }
+
+            if (rulesTitle) {
+                rulesTitle.textContent = shortLabel
+                    ? `📜 Stelle dein DreamTeam für die ${shortLabel} zusammen!`
+                    : "📜 Stelle dein DreamTeam zusammen!";
+            }
+
+            if (heroBtn) {
+                heroBtn.textContent = shortLabel
+                    ? `⚽ DreamTeam für ${shortLabel} zusammenstellen ➔`
+                    : "⚽ DreamTeam jetzt zusammenstellen ➔";
+            }
+        });
+    </script>
+</body>
+</html>

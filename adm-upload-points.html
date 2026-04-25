@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Live Punkte Update (API)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+
+        .admin-container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #34495e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            color: #f1c40f;
+            margin-top: 0;
+            border-bottom: 2px solid #f1c40f;
+            padding-bottom: 10px;
+        }
+
+        p {
+            line-height: 1.5;
+        }
+
+        .setup-box {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+
+        .info-box {
+            background: #22313f;
+            border: 1px solid #4b6584;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 18px;
+        }
+
+        .info-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #95a5a6;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: #ecf0f1;
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+            background: #1a1a1a;
+            color: #f1c40f;
+            font-family: monospace;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+
+        .btn-start {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+        }
+
+        .btn-start:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: #3b4c5c;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b6075;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #a93226;
+            transform: translateY(-2px);
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .button-row button {
+            margin-top: 0;
+        }
+
+        .log-box {
+            background: #111;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            height: 350px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            font-size: 13px;
+        }
+
+        .log-error { color: #e74c3c; }
+        .log-success { color: #2ecc71; }
+        .log-warning { color: #f1c40f; }
+
+        .progress-container {
+            width: 100%;
+            background-color: #111;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            height: 25px;
+            border: 1px solid #444;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            transition: width 0.3s;
+        }
+
+        .hint {
+            margin-top: 14px;
+            color: #bdc3c7;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .storage-note {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #95a5a6;
+        }
+
+        @media (max-width: 700px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h1 id="page-title">📡 Punkte-Zentrale (API-Sports Fetcher)</h1>
+    <p id="page-intro">
+        Holt die Match-Daten des aktiven Turniers, ordnet sie den Player IDs aus der data.js zu
+        und schreibt die Ergebnisse inkl. Spiel-Historie in Firebase.
+    </p>
+
+    <div class="info-box">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Aktives Turnier</div>
+                <div class="info-value" id="active-tournament">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">API Wettbewerb</div>
+                <div class="info-value" id="api-competition">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Punkte Collection</div>
+                <div class="info-value" id="points-collection">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Meta Dokument</div>
+                <div class="info-value" id="meta-document">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="setup-box">
+        <label for="apiKey">RapidAPI-Key (Football v3):</label>
+        <input type="password" id="apiKey" placeholder="Hier deinen API-Key einfügen..." autocomplete="off">
+
+        <div class="button-row">
+            <button id="toggleKeyVisibilityBtn" type="button" class="btn-secondary">👁️ Key anzeigen</button>
+            <button id="clearSavedKeyBtn" type="button" class="btn-danger">🗑️ Gespeicherten Key löschen</button>
+        </div>
+
+        <button id="btnStart" class="btn-start">🚀 Live-Punkte von API berechnen & hochladen</button>
+
+        <div class="hint">
+            Dieses Script nutzt automatisch die Werte aus <strong>tournament-config.js</strong>.
+            Es berechnet und speichert die Punkte immer für das aktuell aktive Turnier.
+        </div>
+
+        <div class="storage-note">
+            Der API-Key wird nur für diese Browser-Session gespeichert und beim nächsten Öffnen des Tabs automatisch geladen.
+            Der API-Key wird lokal in diesem Browser auf diesem Gerät gespeichert und beim nächsten Öffnen automatisch geladen.
+        </div>
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="logBox" class="log-box">System bereit. Trage deinen API Key ein und starte den Prozess...</div>
+</div>
+
+<script src="tournament-config.js"></script>
+<script src="admin-api-key-storage.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="data.js"></script>
+
+<script>
+    const APP = window.APP_CONFIG;
+
+    if (!APP) {
+        throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor adm-upload-points.html.");
+    }
+
+    const TOURNAMENT = APP.activeTournament;
+    const TOURNAMENT_YEAR = APP.year;
+    const META_COLLECTION = APP.firestore.metaCollection || "app_meta";
+    const META_DOC_ID = APP.firestore.metaDocId();
+    const POINTS_COLLECTION = APP.firestore.pointsCollection();
+    const RULES = APP.rules || {};
+    const db = APP.getDb();
+
+    const API_KEY_STORAGE_KEY = "dreamteam_api_football_key";
+
+    document.title = `${APP.pageTitlePrefix || "DreamTeam"} - Punkte Upload`;
+
+    const pageTitleEl = document.getElementById('page-title');
+    const pageIntroEl = document.getElementById('page-intro');
+    const activeTournamentEl = document.getElementById('active-tournament');
+    const apiCompetitionEl = document.getElementById('api-competition');
+    const pointsCollectionEl = document.getElementById('points-collection');
+    const metaDocumentEl = document.getElementById('meta-document');
+
+    const apiKeyInput = document.getElementById('apiKey');
+    const toggleKeyVisibilityBtn = document.getElementById('toggleKeyVisibilityBtn');
+    const clearSavedKeyBtn = document.getElementById('clearSavedKeyBtn');
+    const logBox = document.getElementById('logBox');
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const btnStart = document.getElementById('btnStart');
+
+    if (pageTitleEl) {
+        pageTitleEl.textContent = `📡 Punkte-Zentrale (${TOURNAMENT.shortLabel})`;
+    }
+
+    if (pageIntroEl) {
+        pageIntroEl.textContent = `Holt die Match-Daten für ${TOURNAMENT.name}, ordnet sie den Player IDs aus der data.js zu und schreibt die Ergebnisse inkl. Spiel-Historie in Firebase.`;
+    }
+
+    if (activeTournamentEl) {
+        activeTournamentEl.textContent = `${TOURNAMENT.shortLabel} (${TOURNAMENT.key})`;
+    }
+
+    if (apiCompetitionEl) {
+        apiCompetitionEl.textContent = `${APP.api.competitionParam}=${APP.api.competitionId}, season=${APP.api.season}`;
+    }
+
+    if (pointsCollectionEl) {
+        pointsCollectionEl.textContent = POINTS_COLLECTION;
+    }
+
+    if (metaDocumentEl) {
+        metaDocumentEl.textContent = `${META_COLLECTION} / ${META_DOC_ID}`;
+    }
+
+    function log(msg, type = '') {
+        const now = new Date().toLocaleTimeString();
+        logBox.innerHTML += `<div class="${type}">[${now}] ${msg}</div>`;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    function loadSavedApiKey() {
+        apiKeyStore.hydrateInput(apiKeyInput);
+    }
+
+    function saveApiKey(key) {
+        apiKeyStore.save(key);
+    }
+
+    function clearSavedApiKey() {
+        const didClear = apiKeyStore.clear();
+        apiKeyInput.value = "";
+        apiKeyInput.type = "password";
+        toggleKeyVisibilityBtn.textContent = "👁️ Key anzeigen";
+
+        if (didClear) {
+            log("🗑️ Session-API-Key wurde gelöscht.", "log-warning");
+        }
+    }
+
+    const apiKeyStore = window.AdminApiKeyStorage.createApiKeySessionStore(API_KEY_STORAGE_KEY, { logger: log });
+
+    async function bumpPointsMetaVersion() {
+        const FieldValue = firebase.firestore.FieldValue;
+        const metaRef = db.collection(META_COLLECTION).doc(META_DOC_ID);
+
+        await metaRef.set({
+            tournamentKey: TOURNAMENT.key,
+            tournamentType: TOURNAMENT.type,
+            tournamentYear: TOURNAMENT.year,
+            tournamentLabel: TOURNAMENT.shortLabel,
+            year: TOURNAMENT_YEAR,
+            pointsVersion: FieldValue.increment(1),
+            pointsUpdatedAt: Date.now()
+        }, { merge: true });
+    }
+
+    function buildEmptyPlayerObject(player) {
+        const pObj = {
+            playerName: player.Spielername,
+            totalPoints: 0
+        };
+
+        Object.keys(RULES).forEach(ruleKey => {
+            pObj[ruleKey] = 0;
+        });
+
+        return pObj;
+    }
+
+    function normalizePosition(pos) {
+        const value = String(pos || '').toUpperCase();
+        if (value === 'FORWARD') return 'ATTACKER';
+        return value;
+    }
+
+    toggleKeyVisibilityBtn.addEventListener('click', () => {
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            toggleKeyVisibilityBtn.textContent = '🙈 Key verbergen';
+        } else {
+            apiKeyInput.type = 'password';
+            toggleKeyVisibilityBtn.textContent = '👁️ Key anzeigen';
+        }
+    });
+
+    clearSavedKeyBtn.addEventListener('click', clearSavedApiKey);
+
+    btnStart.addEventListener('click', async () => {
+        const API_KEY = apiKeyInput.value.trim();
+
+        if (!API_KEY) {
+            alert("Bitte API Key eingeben!");
+            return;
+        }
+
+        if (!APP.api || !APP.api.isConfigured || !APP.api.isConfigured()) {
+            alert("Für das aktive Turnier ist noch keine API-Competition konfiguriert.");
+            return;
+        }
+
+        saveApiKey(API_KEY);
+
+        btnStart.disabled = true;
+        logBox.innerHTML = "";
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+
+        const requestOptions = {
+            method: 'GET',
+            headers: {
+                "x-rapidapi-key": API_KEY,
+                "x-rapidapi-host": "v3.football.api-sports.io"
+            }
+        };
+
+        try {
+            let allPlayerPoints = {};
+
+            playersData.forEach(player => {
+                allPlayerPoints[String(player['player.id'])] = buildEmptyPlayerObject(player);
+            });
+
+            log(`✅ ${Object.keys(allPlayerPoints).length} Spieler aus data.js initialisiert.`);
+            log(`📌 Aktives Turnier: ${TOURNAMENT.shortLabel}`, "log-warning");
+            log(`📌 Ziel-Collection: ${POINTS_COLLECTION}`, "log-warning");
+
+            log(`📡 Lade alle Spiele von ${TOURNAMENT.shortLabel} von der API...`, "log-warning");
+            const fixRes = await fetch(APP.api.fixturesUrl(), requestOptions);
+            const fixData = await fixRes.json();
+
+            if (!fixData || !Array.isArray(fixData.response)) {
+                throw new Error("Die API hat keine gültigen Fixture-Daten zurückgegeben.");
+            }
+
+            const finishedGames = fixData.response.filter(f =>
+                ['FT', 'AET', 'PEN'].includes(f?.fixture?.status?.short)
+            );
+
+            log(`✅ ${finishedGames.length} beendete Spiele gefunden. Starte Detail-Analyse...\n`);
+
+            for (let i = 0; i < finishedGames.length; i++) {
+                const game = finishedGames[i];
+                const fixId = game.fixture.id;
+                const homeName = game.teams.home.name;
+                const awayName = game.teams.away.name;
+
+                const homeGoals = game.goals.home || 0;
+                const awayGoals = game.goals.away || 0;
+                const isDraw = game.teams.home.winner === null;
+                const homeWon = game.teams.home.winner === true;
+                const awayWon = game.teams.away.winner === true;
+                const resultString = `${homeName} ${homeGoals} : ${awayGoals} ${awayName}`;
+
+                try {
+                    const detailRes = await fetch(APP.api.fixtureDetailUrl(fixId), requestOptions);
+                    const detailData = await detailRes.json();
+
+                    if (detailData.response && detailData.response.length > 0) {
+                        const fixtureData = detailData.response[0];
+                        const events = fixtureData.events || [];
+                        const playersDataList = fixtureData.players || [];
+
+                        const subbedOutPlayerIds = events
+                            .filter(e => e.type && e.type.toLowerCase() === 'subst')
+                            .map(e => e.player.id);
+
+                        const ownGoalsMap = {};
+                        events.forEach(e => {
+                            if (e.type && e.type.toLowerCase() === 'goal' && e.detail && e.detail.toLowerCase() === 'own goal') {
+                                if (e.player && e.player.id) {
+                                    ownGoalsMap[e.player.id] = (ownGoalsMap[e.player.id] || 0) + 1;
+                                }
+                            }
+                        });
+
+                        playersDataList.forEach(teamStats => {
+                            const isHome = teamStats.team.id === game.teams.home.id;
+                            const opponentName = isHome ? awayName : homeName;
+
+                            const teamGoals = isHome ? homeGoals : awayGoals;
+                            const teamConceded = isHome ? awayGoals : homeGoals;
+
+                            const isWin = isHome ? homeWon : awayWon;
+                            const isLoss = !isDraw && !isWin;
+
+                            (teamStats.players || []).forEach(pStats => {
+                                const pid = String(pStats.player.id);
+
+                                if (!allPlayerPoints[pid]) return;
+
+                                const pObj = allPlayerPoints[pid];
+                                const stats = pStats.statistics?.[0];
+                                if (!stats) return;
+
+                                const minutes = stats.games?.minutes || 0;
+                                if (minutes <= 0) return;
+
+                                let detailPts = {};
+                                Object.keys(RULES).forEach(key => detailPts[key] = 0);
+
+                                const playerInfo = playersData.find(x => String(x['player.id']) === pid);
+                                const pos = normalizePosition(playerInfo?.Position || 'UNKNOWN');
+
+                                if (stats.games.substitute === false) {
+                                    detailPts.START = RULES.START;
+                                    pObj.START += RULES.START;
+                                } else {
+                                    detailPts.SUBBED_IN = RULES.SUBBED_IN;
+                                    pObj.SUBBED_IN += RULES.SUBBED_IN;
+                                }
+
+                                if (subbedOutPlayerIds.includes(pStats.player.id)) {
+                                    detailPts.SUBBED_OUT = RULES.SUBBED_OUT;
+                                    pObj.SUBBED_OUT += RULES.SUBBED_OUT;
+                                }
+
+                                const goals = stats.goals?.total || 0;
+                                if (goals > 0) {
+                                    if (pos === 'GOALKEEPER') {
+                                        detailPts.GOAL_GK = goals * RULES.GOAL_GK;
+                                        pObj.GOAL_GK += detailPts.GOAL_GK;
+                                    } else if (pos === 'DEFENDER') {
+                                        detailPts.GOAL_DEF = goals * RULES.GOAL_DEF;
+                                        pObj.GOAL_DEF += detailPts.GOAL_DEF;
+                                    } else if (pos === 'MIDFIELDER') {
+                                        detailPts.GOAL_MID = goals * RULES.GOAL_MID;
+                                        pObj.GOAL_MID += detailPts.GOAL_MID;
+                                    } else {
+                                        detailPts.GOAL_ATT = goals * RULES.GOAL_ATT;
+                                        pObj.GOAL_ATT += detailPts.GOAL_ATT;
+                                    }
+                                }
+
+                                const ownGoals = ownGoalsMap[pStats.player.id] || 0;
+                                if (ownGoals > 0) {
+                                    detailPts.OWN_GOAL = ownGoals * RULES.OWN_GOAL;
+                                    pObj.OWN_GOAL += detailPts.OWN_GOAL;
+                                }
+
+                                const assists = stats.goals?.assists || 0;
+                                if (assists > 0) {
+                                    if (pos === 'GOALKEEPER' || pos === 'DEFENDER') {
+                                        detailPts.ASSIST_GK_DEF = assists * RULES.ASSIST_GK_DEF;
+                                        pObj.ASSIST_GK_DEF += detailPts.ASSIST_GK_DEF;
+                                    } else if (pos === 'MIDFIELDER') {
+                                        detailPts.ASSIST_MID = assists * RULES.ASSIST_MID;
+                                        pObj.ASSIST_MID += detailPts.ASSIST_MID;
+                                    } else {
+                                        detailPts.ASSIST_ATT = assists * RULES.ASSIST_ATT;
+                                        pObj.ASSIST_ATT += detailPts.ASSIST_ATT;
+                                    }
+                                }
+
+                                if (pos === 'MIDFIELDER' || pos === 'ATTACKER') {
+                                    detailPts.TEAM_GOAL = teamGoals * RULES.TEAM_GOAL;
+                                    pObj.TEAM_GOAL += detailPts.TEAM_GOAL;
+                                }
+
+                                if (pos === 'GOALKEEPER' || pos === 'DEFENDER') {
+                                    detailPts.DEF_BASE_PTS = RULES.DEF_BASE_PTS;
+                                    pObj.DEF_BASE_PTS += RULES.DEF_BASE_PTS;
+
+                                    if (teamConceded > 0) {
+                                        detailPts.GEGENTOR_GK_DEF = teamConceded * RULES.GEGENTOR_GK_DEF;
+                                        pObj.GEGENTOR_GK_DEF += detailPts.GEGENTOR_GK_DEF;
+                                    }
+                                }
+
+                                const yellow = stats.cards?.yellow || 0;
+                                if (yellow > 0) {
+                                    detailPts.YELLOW_CARD = yellow * RULES.YELLOW_CARD;
+                                    pObj.YELLOW_CARD += detailPts.YELLOW_CARD;
+                                }
+
+                                const red = stats.cards?.red || 0;
+                                if (red > 0) {
+                                    detailPts.RED_CARD = red * RULES.RED_CARD;
+                                    pObj.RED_CARD += detailPts.RED_CARD;
+                                }
+
+                                const pMissed = stats.penalty?.missed || 0;
+                                const pCommited = stats.penalty?.commited || 0;
+                                const pSaved = stats.penalty?.saved || 0;
+                                const pWon = stats.penalty?.won || 0;
+
+                                if (pMissed > 0) {
+                                    detailPts.PEN_MISSED = pMissed * RULES.PEN_MISSED;
+                                    pObj.PEN_MISSED += detailPts.PEN_MISSED;
+                                }
+                                if (pCommited > 0) {
+                                    detailPts.PEN_COMMITED = pCommited * RULES.PEN_COMMITED;
+                                    pObj.PEN_COMMITED += detailPts.PEN_COMMITED;
+                                }
+                                if (pSaved > 0) {
+                                    detailPts.PEN_SAVED = pSaved * RULES.PEN_SAVED;
+                                    pObj.PEN_SAVED += detailPts.PEN_SAVED;
+                                }
+                                if (pWon > 0) {
+                                    detailPts.PEN_WON = pWon * RULES.PEN_WON;
+                                    pObj.PEN_WON += detailPts.PEN_WON;
+                                }
+
+                                if (isWin) {
+                                    detailPts.WIN = RULES.WIN;
+                                    pObj.WIN += RULES.WIN;
+                                } else if (isDraw) {
+                                    detailPts.DRAW = RULES.DRAW;
+                                    pObj.DRAW += RULES.DRAW;
+                                } else if (isLoss) {
+                                    detailPts.LOSS = RULES.LOSS;
+                                    pObj.LOSS += RULES.LOSS;
+                                }
+
+                                const matchPts = Object.values(detailPts).reduce((acc, val) => acc + val, 0);
+
+                                pObj[`Spiel_${fixId}`] = {
+                                    Titel: `Spiel vs ${opponentName}`,
+                                    MatchID: fixId,
+                                    Gegner: opponentName,
+                                    Resultat: resultString,
+                                    TotalPunkte: matchPts,
+                                    Aufstellung: detailPts
+                                };
+
+                                pObj.totalPoints += matchPts;
+                            });
+                        });
+                    }
+                } catch (err) {
+                    log(`Fehler bei Spiel-ID ${fixId}: ${err.message}`, "log-error");
+                }
+
+                const pct = Math.round(((i + 1) / finishedGames.length) * 100);
+                progressBar.style.width = pct + '%';
+
+                if ((i + 1) % 10 === 0 || i === finishedGames.length - 1) {
+                    log(`[${i + 1}/${finishedGames.length}] Spiele analysiert...`);
+                }
+
+                await delay(350);
+            }
+
+            log("\n🚀 Lade detaillierte Match-Objekte in Firebase hoch...", "log-warning");
+
+            let batch = db.batch();
+            let count = 0;
+            let writeSuccess = 0;
+
+            for (const pid in allPlayerPoints) {
+                if (allPlayerPoints[pid].START !== 0 || allPlayerPoints[pid].SUBBED_IN !== 0) {
+                    const docRef = db.collection(POINTS_COLLECTION).doc(String(pid));
+
+                    allPlayerPoints[pid].lastUpdated = firebase.firestore.FieldValue.serverTimestamp();
+
+                    batch.set(docRef, allPlayerPoints[pid], { merge: true });
+                    count++;
+                    writeSuccess++;
+
+                    if (count === 400) {
+                        await batch.commit();
+                        batch = db.batch();
+                        count = 0;
+                    }
+                }
+            }
+
+            if (count > 0) {
+                await batch.commit();
+            }
+
+            log(`✅ ${writeSuccess} Spieler-Dokumente erfolgreich geschrieben.`, "log-success");
+
+            if (writeSuccess > 0) {
+                await bumpPointsMetaVersion();
+                log(`✅ Meta-Dokument ${META_COLLECTION}/${META_DOC_ID} aktualisiert (pointsVersion erhöht).`, "log-success");
+            } else {
+                log(`⚠️ Keine Spieler mit Punkten gefunden. Meta-Version wurde nicht erhöht.`, "log-warning");
+            }
+
+            log(`\n🎉 FERTIG! ${writeSuccess} Spieler haben Punkte erhalten.`, "log-success");
+            alert(`Punkte-Upload abgeschlossen!\n${writeSuccess} Spieler wurden aktualisiert.\nDie pointsVersion wurde automatisch erhöht.`);
+
+        } catch (error) {
+            console.error(error);
+            log(`\n❌ KRITISCHER FEHLER: ${error.message}`, "log-error");
+            alert(`Fehler beim Upload:\n${error.message}`);
+        } finally {
+            btnStart.disabled = false;
+        }
+    });
+
+    loadSavedApiKey();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Positions Overrides</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --panel-2: #1f2937;
+            --panel-3: #0b1220;
+            --line: #334155;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --accent-2: #16a34a;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --info: #38bdf8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(180deg, #020617, #0f172a 220px);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #111827, #1e293b);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+            margin-bottom: 18px;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 2.1rem;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            max-width: 980px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .stats-grid {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(148,163,184,0.22);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .filters {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 18px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+            box-shadow: 0 12px 26px rgba(0,0,0,0.22);
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .field input,
+        .field select,
+        .position-select {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            padding: 12px 14px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(380px, 1.15fr) minmax(360px, 0.95fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 12px 26px rgba(0,0,0,0.22);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 1.15rem;
+        }
+
+        .panel-subtitle {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .player-list-wrap {
+            max-height: 72vh;
+            overflow: auto;
+            padding: 16px;
+        }
+
+        .group {
+            margin-bottom: 18px;
+        }
+
+        .group:last-child { margin-bottom: 0; }
+
+        .group-title {
+            position: sticky;
+            top: -1px;
+            z-index: 3;
+            background: linear-gradient(180deg, rgba(17,24,39,0.98), rgba(17,24,39,0.95));
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .player-card {
+            display: grid;
+            grid-template-columns: 52px 1fr auto;
+            gap: 12px;
+            align-items: center;
+            background: #0b1220;
+            border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.18s ease;
+        }
+
+        .player-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34,197,94,0.5);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.22);
+        }
+
+        .player-card.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.18);
+            background: rgba(34,197,94,0.08);
+        }
+
+        .player-photo {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1f2937;
+            border: 2px solid rgba(255,255,255,0.08);
+        }
+
+        .player-name {
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .player-meta {
+            color: var(--muted);
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid rgba(148,163,184,0.25);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .chip.override { background: rgba(245,158,11,0.16); border-color: rgba(245,158,11,0.42); color: #fde68a; }
+        .chip.original { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.34); color: #bae6fd; }
+        .chip.current { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.38); color: #bbf7d0; }
+
+        .empty {
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--muted);
+            border: 1px dashed rgba(148,163,184,0.28);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .detail-wrap {
+            display: grid;
+            gap: 18px;
+            padding: 16px;
+        }
+
+        .detail-card {
+            background: #0b1220;
+            border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .detail-empty {
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .detail-header {
+            display: grid;
+            grid-template-columns: 92px 1fr;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .detail-photo {
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1f2937;
+            border: 3px solid rgba(255,255,255,0.08);
+        }
+
+        .detail-name {
+            font-size: 1.45rem;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+        }
+
+        .detail-nation {
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .meta-box {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .meta-box .label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .meta-box .value {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .overrides-list {
+            display: grid;
+            gap: 10px;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .override-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(148,163,184,0.16);
+            border-radius: 12px;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .override-item-name {
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .override-item-meta {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .save-box {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 12px 26px rgba(0,0,0,0.22);
+            padding: 18px;
+            margin-top: 18px;
+        }
+
+        .save-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            border-radius: 16px;
+            border: 1px solid #475569;
+            background: #020617;
+            color: #e2e8f0;
+            padding: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            display: none;
+            font-weight: 700;
+        }
+
+        .status.ok { display: block; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #bbf7d0; }
+        .status.warn { display: block; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fde68a; }
+        .status.err { display: block; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fecaca; }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.18s ease;
+        }
+
+        button:hover { transform: translateY(-1px); }
+
+        .btn-primary { background: var(--accent); color: #04130a; }
+        .btn-primary:hover { background: var(--accent-2); color: white; }
+        .btn-secondary { background: #334155; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-danger { background: #7f1d1d; color: #fee2e2; }
+        .btn-danger:hover { background: #991b1b; }
+        .btn-warn { background: #92400e; color: #ffedd5; }
+        .btn-warn:hover { background: #b45309; }
+        .btn-ghost { background: rgba(255,255,255,0.06); color: white; border: 1px solid rgba(148,163,184,0.22); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+
+        .small-note {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+            margin-top: 8px;
+        }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 1100px) {
+            .layout { grid-template-columns: 1fr; }
+            .player-list-wrap { max-height: none; }
+        }
+
+        @media (max-width: 760px) {
+            .page { padding: 14px; }
+            .filters { grid-template-columns: 1fr; }
+            .hero-actions,
+            .save-actions,
+            .editor-actions { flex-direction: column; }
+            .meta-grid,
+            .editor-grid { grid-template-columns: 1fr; }
+            .player-card { grid-template-columns: 48px 1fr; }
+            .chips { grid-column: 1 / -1; justify-content: flex-start; }
+            .detail-header { grid-template-columns: 1fr; text-align: center; }
+            .detail-photo { margin: 0 auto; }
+            .override-item { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <section class="hero">
+        <div class="hero-top">
+            <div>
+                <h1 id="pageTitle">🛠️ Positions-Overrides verwalten</h1>
+                <p class="subtitle" id="pageIntro">
+                    Lädt das aktive Turnier aus <strong>tournament-config.js</strong>, zeigt alle Spieler aus <strong>data.js</strong>
+                    und verwaltet manuelle Positionsanpassungen aus <strong>position-overrides.js</strong>.
+                </p>
+            </div>
+            <div class="hero-actions">
+                <button class="btn-secondary" id="resetDraftBtn">↩️ Entwürfe verwerfen</button>
+                <button class="btn-primary" id="scrollToSaveBtn">💾 Zum Speichern</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Aktives Turnier</div>
+                <div class="stat-value" id="statTournament">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Spieler gesamt</div>
+                <div class="stat-value" id="statPlayers">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Manuelle Overrides</div>
+                <div class="stat-value" id="statOverrides">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Ungespeicherte Änderungen</div>
+                <div class="stat-value" id="statDraftDiff">-</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="filters">
+        <div class="field">
+            <label for="searchInput">Suche</label>
+            <input id="searchInput" type="text" placeholder="Suche nach Name, Land, Verein oder Position...">
+        </div>
+        <div class="field">
+            <label for="positionFilter">Position</label>
+            <select id="positionFilter"></select>
+        </div>
+        <div class="field">
+            <label for="nationFilter">Land</label>
+            <select id="nationFilter"></select>
+        </div>
+        <div class="field">
+            <button class="btn-ghost" id="resetFiltersBtn">Filter zurücksetzen</button>
+        </div>
+    </section>
+
+    <section class="layout">
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Spielerübersicht</h2>
+                    <div class="panel-subtitle">Nach aktueller effektiver Position gruppiert</div>
+                </div>
+                <div class="panel-subtitle" id="listCountLabel">-</div>
+            </div>
+            <div class="player-list-wrap" id="playerListWrap">
+                <div class="empty">Lade Spieler...</div>
+            </div>
+        </div>
+
+        <div class="detail-wrap">
+            <div class="panel detail-card" id="detailPanel">
+                <div class="detail-empty">Wähle links einen Spieler aus.</div>
+            </div>
+
+            <div class="panel detail-card">
+                <div class="panel-header" style="padding:0 0 14px 0; border-bottom:none;">
+                    <div>
+                        <h2 class="panel-title">Bereits manuell angepasst</h2>
+                        <div class="panel-subtitle">Klick auf einen Eintrag öffnet den Spieler</div>
+                    </div>
+                </div>
+                <div class="overrides-list" id="overrideList"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="save-box" id="saveBox">
+        <h2 class="panel-title" style="margin-top:0; margin-bottom:10px;">position-overrides.js aktualisieren</h2>
+        <div class="save-actions">
+            <button class="btn-primary" id="copyBtn">📋 Code kopieren</button>
+        </div>
+        <div class="small-note">
+            Kopiere den generierten Inhalt und füge ihn manuell in <strong>position-overrides.js</strong> ein.
+        </div>
+        <textarea id="outputBox" spellcheck="false" readonly></textarea>
+        <div class="status" id="statusBox"></div>
+    </section>
+</div>
+
+<script src="tournament-config.js"></script>
+<script src="data.js"></script>
+<script src="position-overrides.js"></script>
+<script>
+(() => {
+    const APP = window.APP_CONFIG;
+
+    const rawPlayers =
+        (typeof playersData !== 'undefined' && Array.isArray(playersData))
+            ? playersData
+            : [];
+
+    const loadedOverrides =
+        (typeof POSITION_OVERRIDES !== 'undefined' && POSITION_OVERRIDES && typeof POSITION_OVERRIDES === 'object')
+            ? JSON.parse(JSON.stringify(POSITION_OVERRIDES))
+            : {};
+
+    if (!APP) {
+        alert('APP_CONFIG fehlt. Bitte tournament-config.js prüfen.');
+        throw new Error('APP_CONFIG fehlt.');
+    }
+
+    if (!rawPlayers.length) {
+        alert('playersData aus data.js konnte nicht geladen werden oder ist leer.');
+        throw new Error('playersData fehlt.');
+    }
+
+    const TOURNAMENT = APP.activeTournament;
+    const TOURNAMENT_KEY = TOURNAMENT.key;
+    const KNOWN_TOURNAMENT_KEYS = Object.keys(APP.tournaments || {});
+    const POSITION_ORDER = ['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'ATTACKER'];
+    const POSITION_LABELS = {
+        GOALKEEPER: 'Torwart',
+        DEFENDER: 'Verteidiger',
+        MIDFIELDER: 'Mittelfeld',
+        ATTACKER: 'Stürmer'
+    };
+
+    const state = {
+        selectedPlayerId: null,
+        search: '',
+        positionFilter: 'ALL',
+        nationFilter: 'ALL',
+        initialOverrides: normalizeAllOverrides(loadedOverrides),
+        draftOverrides: normalizeAllOverrides(loadedOverrides)
+    };
+
+    const els = {
+        pageTitle: document.getElementById('pageTitle'),
+        pageIntro: document.getElementById('pageIntro'),
+        statTournament: document.getElementById('statTournament'),
+        statPlayers: document.getElementById('statPlayers'),
+        statOverrides: document.getElementById('statOverrides'),
+        statDraftDiff: document.getElementById('statDraftDiff'),
+        searchInput: document.getElementById('searchInput'),
+        positionFilter: document.getElementById('positionFilter'),
+        nationFilter: document.getElementById('nationFilter'),
+        resetFiltersBtn: document.getElementById('resetFiltersBtn'),
+        playerListWrap: document.getElementById('playerListWrap'),
+        listCountLabel: document.getElementById('listCountLabel'),
+        detailPanel: document.getElementById('detailPanel'),
+        overrideList: document.getElementById('overrideList'),
+        outputBox: document.getElementById('outputBox'),
+        statusBox: document.getElementById('statusBox'),
+        copyBtn: document.getElementById('copyBtn'),
+        scrollToSaveBtn: document.getElementById('scrollToSaveBtn'),
+        resetDraftBtn: document.getElementById('resetDraftBtn'),
+        saveBox: document.getElementById('saveBox')
+    };
+
+    const players = rawPlayers
+        .map(player => ({
+            ...player,
+            _id: String(player['player.id']),
+            _basePosition: normalizePosition(player.Position),
+            _nation: String(player['Nationalteam.name'] || '').trim(),
+            _club: String(player['Club.name'] || '').trim(),
+            _name: String(player.Spielername || '').trim()
+        }))
+        .sort((a, b) => {
+            const posCompare = safePositionIndex(a._basePosition) - safePositionIndex(b._basePosition);
+            if (posCompare !== 0) return posCompare;
+            const nationCompare = a._nation.localeCompare(b._nation, 'de');
+            if (nationCompare !== 0) return nationCompare;
+            return a._name.localeCompare(b._name, 'de');
+        });
+
+    init();
+
+    function init() {
+        if (els.pageTitle) {
+            els.pageTitle.textContent = `🛠️ Positions-Overrides ${TOURNAMENT.shortLabel}`;
+        }
+        if (els.pageIntro) {
+            els.pageIntro.innerHTML = `Lädt <strong>${TOURNAMENT.shortLabel}</strong> automatisch aus <strong>tournament-config.js</strong>, zeigt alle Spieler aus <strong>data.js</strong> und verwaltet manuelle Positionsanpassungen aus <strong>position-overrides.js</strong>.`;
+        }
+
+        els.statTournament.textContent = `${TOURNAMENT.shortLabel} (${TOURNAMENT_KEY})`;
+        els.statPlayers.textContent = String(players.length);
+
+        populatePositionFilter();
+        populateNationFilter();
+        bindEvents();
+
+        const firstOverridden = getCurrentOverrideEntries()[0];
+        state.selectedPlayerId = firstOverridden?.playerId || players[0]?._id || null;
+
+        renderAll();
+    }
+
+    function bindEvents() {
+        els.searchInput.addEventListener('input', () => {
+            state.search = els.searchInput.value.trim();
+            renderPlayerList();
+        });
+
+        els.positionFilter.addEventListener('change', () => {
+            state.positionFilter = els.positionFilter.value;
+            renderPlayerList();
+        });
+
+        els.nationFilter.addEventListener('change', () => {
+            state.nationFilter = els.nationFilter.value;
+            renderPlayerList();
+        });
+
+        els.resetFiltersBtn.addEventListener('click', () => {
+            state.search = '';
+            state.positionFilter = 'ALL';
+            state.nationFilter = 'ALL';
+            els.searchInput.value = '';
+            els.positionFilter.value = 'ALL';
+            els.nationFilter.value = 'ALL';
+            renderPlayerList();
+        });
+
+        els.copyBtn.addEventListener('click', copyOutput);
+
+        els.scrollToSaveBtn.addEventListener('click', () => {
+            els.saveBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        els.resetDraftBtn.addEventListener('click', () => {
+            state.draftOverrides = normalizeAllOverrides(state.initialOverrides);
+            showStatus('Entwurf verworfen. Die geladenen Overrides aus position-overrides.js wurden wiederhergestellt.', 'warn');
+            renderAll();
+        });
+    }
+
+    function normalizePosition(pos) {
+        const value = String(pos || '').trim().toUpperCase();
+        if (!value) return '';
+        if (value === 'GOALKEEPER' || value === 'GK' || value === 'TORWART') return 'GOALKEEPER';
+        if (value === 'DEFENDER' || value === 'DF' || value === 'VERTEIDIGER') return 'DEFENDER';
+        if (value === 'MIDFIELDER' || value === 'MF' || value === 'MITTELFELD') return 'MIDFIELDER';
+        if (value === 'FORWARD' || value === 'ATTACKER' || value === 'FW' || value === 'STÜRMER' || value === 'STUERMER') return 'ATTACKER';
+        return value;
+    }
+
+    function safePositionIndex(pos) {
+        const idx = POSITION_ORDER.indexOf(normalizePosition(pos));
+        return idx === -1 ? 999 : idx;
+    }
+
+    function translatePosition(pos) {
+        const key = normalizePosition(pos);
+        return POSITION_LABELS[key] || pos || '-';
+    }
+
+    function escapeHtml(text) {
+        return String(text ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function normalizeAllOverrides(source) {
+        const out = {};
+        const input = source && typeof source === 'object' ? source : {};
+
+        const keys = new Set([
+            ...KNOWN_TOURNAMENT_KEYS,
+            ...Object.keys(input)
+        ]);
+
+        keys.forEach(tKey => {
+            const raw = input[tKey] && typeof input[tKey] === 'object' ? input[tKey] : {};
+            out[tKey] = {};
+
+            Object.entries(raw).forEach(([playerId, position]) => {
+                const normalized = normalizePosition(position);
+                if (normalized) {
+                    out[tKey][String(playerId)] = normalized;
+                }
+            });
+        });
+
+        if (!out[TOURNAMENT_KEY]) {
+            out[TOURNAMENT_KEY] = {};
+        }
+
+        return out;
+    }
+
+    function getBasePosition(player) {
+        return normalizePosition(player?._basePosition || player?.Position || '');
+    }
+
+    function getDraftOverride(playerId) {
+        return state.draftOverrides?.[TOURNAMENT_KEY]?.[String(playerId)] || null;
+    }
+
+    function getInitialOverride(playerId) {
+        return state.initialOverrides?.[TOURNAMENT_KEY]?.[String(playerId)] || null;
+    }
+
+    function getEffectivePosition(player) {
+        return getDraftOverride(player._id) || getBasePosition(player);
+    }
+
+    function getSelectedPlayer() {
+        return players.find(p => p._id === state.selectedPlayerId) || null;
+    }
+
+    function getCurrentOverrideEntries() {
+        const entries = Object.entries(state.draftOverrides?.[TOURNAMENT_KEY] || {})
+            .map(([playerId, position]) => {
+                const player = players.find(p => p._id === String(playerId));
+                if (!player) return null;
+                return {
+                    playerId: String(playerId),
+                    position,
+                    player
+                };
+            })
+            .filter(Boolean)
+            .sort((a, b) => a.player._name.localeCompare(b.player._name, 'de'));
+
+        return entries;
+    }
+
+    function getDiffCount() {
+        const initial = state.initialOverrides?.[TOURNAMENT_KEY] || {};
+        const draft = state.draftOverrides?.[TOURNAMENT_KEY] || {};
+        const ids = new Set([...Object.keys(initial), ...Object.keys(draft)]);
+        let count = 0;
+        ids.forEach(id => {
+            if ((initial[id] || null) !== (draft[id] || null)) count += 1;
+        });
+        return count;
+    }
+
+    function populatePositionFilter() {
+        els.positionFilter.innerHTML = [
+            '<option value="ALL">Alle Positionen</option>',
+            ...POSITION_ORDER.map(pos => `<option value="${pos}">${translatePosition(pos)}</option>`)
+        ].join('');
+        els.positionFilter.value = 'ALL';
+    }
+
+    function populateNationFilter() {
+        const nations = Array.from(new Set(players.map(p => p._nation).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'de'));
+        els.nationFilter.innerHTML = [
+            '<option value="ALL">Alle Länder</option>',
+            ...nations.map(nation => `<option value="${escapeHtml(nation)}">${escapeHtml(nation)}</option>`)
+        ].join('');
+        els.nationFilter.value = 'ALL';
+    }
+
+    function buildSearchText(player) {
+        const effective = getEffectivePosition(player);
+        return [
+            player._name,
+            player._nation,
+            player._club,
+            player.Position,
+            getBasePosition(player),
+            translatePosition(getBasePosition(player)),
+            effective,
+            translatePosition(effective)
+        ].join(' ').toLowerCase();
+    }
+
+    function getFilteredPlayers() {
+        const term = state.search.toLowerCase();
+
+        return players.filter(player => {
+            const effectivePosition = getEffectivePosition(player);
+            if (state.positionFilter !== 'ALL' && effectivePosition !== state.positionFilter) return false;
+            if (state.nationFilter !== 'ALL' && player._nation !== state.nationFilter) return false;
+            if (term && !buildSearchText(player).includes(term)) return false;
+            return true;
+        });
+    }
+
+    function groupPlayersByPosition(filteredPlayers) {
+        const groups = new Map(POSITION_ORDER.map(pos => [pos, []]));
+        filteredPlayers.forEach(player => {
+            const effective = getEffectivePosition(player) || 'UNSORTED';
+            if (!groups.has(effective)) groups.set(effective, []);
+            groups.get(effective).push(player);
+        });
+
+        groups.forEach(group => {
+            group.sort((a, b) => {
+                const nationCompare = a._nation.localeCompare(b._nation, 'de');
+                if (nationCompare !== 0) return nationCompare;
+                return a._name.localeCompare(b._name, 'de');
+            });
+        });
+
+        return groups;
+    }
+
+    function selectPlayer(playerId) {
+        state.selectedPlayerId = String(playerId);
+        renderPlayerList();
+        renderDetailPanel();
+    }
+
+    function applyOverrideForSelected(newPosition) {
+        const player = getSelectedPlayer();
+        if (!player) return;
+
+        const normalized = normalizePosition(newPosition);
+        if (!normalized) return;
+
+        const base = getBasePosition(player);
+        if (!state.draftOverrides[TOURNAMENT_KEY]) {
+            state.draftOverrides[TOURNAMENT_KEY] = {};
+        }
+
+        if (normalized === base) {
+            delete state.draftOverrides[TOURNAMENT_KEY][player._id];
+            showStatus(`Override für ${player._name} entfernt. Spieler nutzt wieder die Original-Position ${translatePosition(base)}.`, 'ok');
+        } else {
+            state.draftOverrides[TOURNAMENT_KEY][player._id] = normalized;
+            showStatus(`Override gesetzt: ${player._name} → ${translatePosition(normalized)}.`, 'ok');
+        }
+
+        renderAll();
+    }
+
+    function resetOverrideForSelected() {
+        const player = getSelectedPlayer();
+        if (!player) return;
+        if (!state.draftOverrides[TOURNAMENT_KEY]) state.draftOverrides[TOURNAMENT_KEY] = {};
+
+        if (state.draftOverrides[TOURNAMENT_KEY][player._id]) {
+            delete state.draftOverrides[TOURNAMENT_KEY][player._id];
+            showStatus(`Manuelle Anpassung für ${player._name} wurde zurückgesetzt.`, 'warn');
+            renderAll();
+        }
+    }
+
+    function renderAll() {
+        renderStats();
+        renderPlayerList();
+        renderDetailPanel();
+        renderOverrideList();
+        renderOutput();
+    }
+
+    function renderStats() {
+        els.statOverrides.textContent = String(getCurrentOverrideEntries().length);
+        els.statDraftDiff.textContent = String(getDiffCount());
+    }
+
+    function renderPlayerList() {
+        const filtered = getFilteredPlayers();
+        const groups = groupPlayersByPosition(filtered);
+        els.listCountLabel.textContent = `${filtered.length} von ${players.length} Spielern sichtbar`;
+
+        if (!filtered.length) {
+            els.playerListWrap.innerHTML = '<div class="empty">Keine Spieler gefunden. Passe Suche oder Filter an.</div>';
+            return;
+        }
+
+        const sections = [];
+        POSITION_ORDER.forEach(positionKey => {
+            const group = groups.get(positionKey) || [];
+            if (!group.length) return;
+
+            const cards = group.map(player => {
+                const basePos = getBasePosition(player);
+                const effectivePos = getEffectivePosition(player);
+                const hasOverride = !!getDraftOverride(player._id);
+                const isActive = state.selectedPlayerId === player._id;
+
+                return `
+                    <div class="player-card ${isActive ? 'active' : ''}" data-player-id="${escapeHtml(player._id)}">
+                        <img class="player-photo" src="${escapeHtml(player.Spielerfoto || 'https://via.placeholder.com/80')}" alt="${escapeHtml(player._name)}">
+                        <div>
+                            <div class="player-name">${escapeHtml(player._name)}</div>
+                            <div class="player-meta">
+                                <span>${escapeHtml(player._nation || '-')}</span>
+                                <span>•</span>
+                                <span>${escapeHtml(player._club || 'Vereinslos')}</span>
+                            </div>
+                        </div>
+                        <div class="chips">
+                            <span class="chip original">Original: ${escapeHtml(translatePosition(basePos))}</span>
+                            <span class="chip current">Aktuell: ${escapeHtml(translatePosition(effectivePos))}</span>
+                            ${hasOverride ? '<span class="chip override">Manuell angepasst</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            sections.push(`
+                <section class="group">
+                    <div class="group-title">
+                        <span>${escapeHtml(translatePosition(positionKey))}</span>
+                        <span>${group.length}</span>
+                    </div>
+                    ${cards}
+                </section>
+            `);
+        });
+
+        els.playerListWrap.innerHTML = sections.join('');
+        els.playerListWrap.querySelectorAll('.player-card').forEach(card => {
+            card.addEventListener('click', () => selectPlayer(card.dataset.playerId));
+        });
+    }
+
+    function renderDetailPanel() {
+        const player = getSelectedPlayer();
+        if (!player) {
+            els.detailPanel.innerHTML = '<div class="detail-empty">Wähle links einen Spieler aus.</div>';
+            return;
+        }
+
+        const basePos = getBasePosition(player);
+        const currentOverride = getDraftOverride(player._id);
+        const currentPos = getEffectivePosition(player);
+        const hasOverride = !!currentOverride;
+
+        els.detailPanel.innerHTML = `
+            <div class="detail-header">
+                <img class="detail-photo" src="${escapeHtml(player.Spielerfoto || 'https://via.placeholder.com/150')}" alt="${escapeHtml(player._name)}">
+                <div>
+                    <h2 class="detail-name">${escapeHtml(player._name)}</h2>
+                    <p class="detail-nation">${escapeHtml(player._nation || '-')} • ${escapeHtml(player._club || 'Vereinslos')}</p>
+                    <div class="chips" style="justify-content:flex-start; margin-top:10px;">
+                        <span class="chip original">Original: ${escapeHtml(translatePosition(basePos))}</span>
+                        <span class="chip current">Aktuell: ${escapeHtml(translatePosition(currentPos))}</span>
+                        ${hasOverride ? '<span class="chip override">Manuell angepasst</span>' : ''}
+                    </div>
+                </div>
+            </div>
+
+            <div class="meta-grid">
+                <div class="meta-box">
+                    <div class="label">Land</div>
+                    <div class="value">${escapeHtml(player._nation || '-')}</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Verein</div>
+                    <div class="value">${escapeHtml(player._club || 'Vereinslos')}</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Original aus data.js</div>
+                    <div class="value">${escapeHtml(translatePosition(basePos))}</div>
+                </div>
+                <div class="meta-box">
+                    <div class="label">Aktueller Wert</div>
+                    <div class="value">${escapeHtml(translatePosition(currentPos))}</div>
+                </div>
+            </div>
+
+            <div class="editor-grid">
+                <div>
+                    <label for="selectedPosition" style="display:block; margin-bottom:8px; color:var(--muted); font-size:13px; font-weight:700;">Neue Position</label>
+                    <select id="selectedPosition" class="position-select">
+                        ${POSITION_ORDER.map(pos => `<option value="${pos}" ${pos === currentPos ? 'selected' : ''}>${escapeHtml(translatePosition(pos))}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:8px; color:var(--muted); font-size:13px; font-weight:700;">Override-Status</label>
+                    <div class="meta-box" style="height:48px; display:flex; align-items:center; margin:0;">
+                        <div class="value">${hasOverride ? 'Aktiv' : 'Nicht gesetzt'}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-actions">
+                <button class="btn-primary" id="applyOverrideBtn">✅ Änderung übernehmen</button>
+                <button class="btn-danger ${hasOverride ? '' : 'hidden'}" id="resetOverrideBtn">🗑️ Manuelle Anpassung zurücksetzen</button>
+            </div>
+
+            <div class="small-note">
+                Wenn die neue Position identisch zur Original-Position aus <strong>data.js</strong> ist, wird kein Override gespeichert.
+            </div>
+        `;
+
+        const selectedPositionEl = document.getElementById('selectedPosition');
+        const applyBtn = document.getElementById('applyOverrideBtn');
+        const resetBtn = document.getElementById('resetOverrideBtn');
+
+        applyBtn.addEventListener('click', () => {
+            applyOverrideForSelected(selectedPositionEl.value);
+        });
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', resetOverrideForSelected);
+        }
+    }
+
+    function renderOverrideList() {
+        const entries = getCurrentOverrideEntries();
+        if (!entries.length) {
+            els.overrideList.innerHTML = '<div class="empty">Für dieses Turnier gibt es aktuell keine manuellen Positionsanpassungen.</div>';
+            return;
+        }
+
+        els.overrideList.innerHTML = entries.map(({ playerId, position, player }) => {
+            const basePos = getBasePosition(player);
+            return `
+                <div class="override-item">
+                    <div>
+                        <div class="override-item-name">${escapeHtml(player._name)}</div>
+                        <div class="override-item-meta">
+                            ${escapeHtml(player._nation || '-')} • Original: ${escapeHtml(translatePosition(basePos))} → Neu: ${escapeHtml(translatePosition(position))}
+                        </div>
+                    </div>
+                    <div class="editor-actions" style="margin:0; justify-content:flex-end;">
+                        <button class="btn-ghost" data-jump-player="${escapeHtml(playerId)}">Anzeigen</button>
+                        <button class="btn-danger" data-remove-player="${escapeHtml(playerId)}">Rückgängig</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        els.overrideList.querySelectorAll('[data-jump-player]').forEach(btn => {
+            btn.addEventListener('click', () => selectPlayer(btn.dataset.jumpPlayer));
+        });
+
+        els.overrideList.querySelectorAll('[data-remove-player]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const playerId = String(btn.dataset.removePlayer);
+                if (!state.draftOverrides[TOURNAMENT_KEY]) {
+                    state.draftOverrides[TOURNAMENT_KEY] = {};
+                }
+                delete state.draftOverrides[TOURNAMENT_KEY][playerId];
+                showStatus('Manuelle Anpassung wurde zurückgesetzt.', 'warn');
+                renderAll();
+            });
+        });
+    }
+
+    function renderOutput() {
+        els.outputBox.value = buildOverridesFileContent();
+    }
+
+function buildOverridesFileContent() {
+    const allOverrides = normalizeAllOverrides(state.draftOverrides);
+    const orderedTournamentKeys = [
+        ...KNOWN_TOURNAMENT_KEYS,
+        ...Object.keys(allOverrides).filter(key => !KNOWN_TOURNAMENT_KEYS.includes(key))
+    ];
+
+    const blocks = orderedTournamentKeys.map(tKey => {
+        const tournamentOverrides = allOverrides[tKey] || {};
+        const sortedEntries = Object.entries(tournamentOverrides)
+            .sort((a, b) => {
+                const playerA = players.find(p => p._id === a[0]);
+                const playerB = players.find(p => p._id === b[0]);
+                const nameA = playerA?._name || a[0];
+                const nameB = playerB?._name || b[0];
+                return nameA.localeCompare(nameB, 'de');
+            });
+
+        if (!sortedEntries.length) {
+            return `    ${tKey}: {}`;
+        }
+
+        const body = sortedEntries.map(([playerId, pos], index) => {
+            const player = players.find(p => p._id === playerId);
+            const comment = player ? ` // ${player._name}` : '';
+            const comma = index < sortedEntries.length - 1 ? ',' : '';
+            return `        "${playerId}": "${pos}"${comma}${comment}`;
+        }).join('\n');
+
+        return `    ${tKey}: {\n${body}\n    }`;
+    });
+
+    return `// Positions-Overrides für DreamTeam
+// Generiert am: ${new Date().toLocaleString('de-DE')}
+// Aktives Turnier: ${TOURNAMENT.shortLabel} (${TOURNAMENT_KEY})
+
+window.POSITION_OVERRIDES = {
+${blocks.join(',\n\n')}
+};
+`;
+}
+    async function copyOutput() {
+        try {
+            await navigator.clipboard.writeText(els.outputBox.value);
+            showStatus('Code wurde in die Zwischenablage kopiert.', 'ok');
+        } catch (err) {
+            els.outputBox.removeAttribute('readonly');
+            els.outputBox.select();
+            document.execCommand('copy');
+            els.outputBox.setAttribute('readonly', 'readonly');
+            showStatus('Code wurde in die Zwischenablage kopiert.', 'ok');
+        }
+    }
+
+    function showStatus(message, type = 'ok') {
+        els.statusBox.className = `status ${type}`;
+        els.statusBox.textContent = message;
+    }
+})();
+</script>
+</body>
+</html>

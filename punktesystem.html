@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamTeam - Punktesystem</title>
+    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#28a745">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DreamTeam">
+    <meta name="description" content="DreamTeam als installierbare Webapp für dein Smartphone.">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        body {
+            padding-top: 100px;
+            padding-bottom: 50px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .intro {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .rule-card {
+            background: #fdfdfd;
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .rule-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .rule-card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #eef2f3;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #111;
+        }
+
+        .point-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .point-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 15px;
+        }
+
+        .point-list li:last-child {
+            border-bottom: none;
+        }
+
+        .point-label {
+            flex: 1;
+        }
+
+        .pts-pos {
+            background: #e6f4ea;
+            color: #1e8e3e;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 20px;
+            min-width: 48px;
+            text-align: center;
+        }
+
+        .pts-neg {
+            background: #fce8e6;
+            color: #d93025;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 20px;
+            min-width: 48px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .point-list li {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="page-title">Punktesystem</h1>
+    <p class="intro" id="page-intro">So sammeln deine Spieler Punkte für dein DreamTeam.</p>
+
+    <div class="rules-grid" id="rules-grid"></div>
+</div>
+
+<script src="tournament-config.js"></script>
+<script src="nav.js"></script>
+
+<script>
+    const APP = window.APP_CONFIG;
+
+    if (!APP) {
+        throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor punktesystem.html.");
+    }
+
+    const RULES = APP.rules || {};
+    const PAGE_TITLE_PREFIX = APP.pageTitlePrefix || "DreamTeam";
+    const TOURNAMENT_LABEL = APP.tournamentLabel || "";
+    const TOURNAMENT_NAME = APP.name || TOURNAMENT_LABEL || "das aktuelle Turnier";
+
+    document.title = `${PAGE_TITLE_PREFIX} - Punktesystem`;
+
+    const titleEl = document.getElementById("page-title");
+    const introEl = document.getElementById("page-intro");
+    const gridEl = document.getElementById("rules-grid");
+
+    if (titleEl) {
+        titleEl.textContent = TOURNAMENT_LABEL
+            ? `Punktesystem`
+            : "Punktesystem";
+    }
+
+    if (introEl) {
+        introEl.textContent = `So sammeln deine Spieler Punkte für dein DreamTeam.`;
+    }
+
+    function pointClass(value) {
+        return value >= 0 ? "pts-pos" : "pts-neg";
+    }
+
+    function pointText(value) {
+        return value > 0 ? `+${value}` : `${value}`;
+    }
+
+    function createRuleItem(label, value) {
+        return `
+            <li>
+                <div class="point-label">${label}</div>
+                <span class="${pointClass(value)}">${pointText(value)}</span>
+            </li>
+        `;
+    }
+
+    const ruleCards = [
+        {
+            title: "🌟 Allgemein (+ Punkte)",
+            items: [
+                { label: "Einsatz von Beginn weg", value: RULES.START },
+                { label: "Einwechslung", value: RULES.SUBBED_IN },
+                { label: "Sieg", value: RULES.WIN },
+                { label: "Unentschieden", value: RULES.DRAW },
+                { label: "Elfmeter herausgeholt", value: RULES.PEN_WON }
+            ]
+        },
+        {
+            title: "⚠️ Allgemein (- Punkte)",
+            items: [
+                { label: "Auswechslung", value: RULES.SUBBED_OUT },
+                { label: "Niederlage", value: RULES.LOSS },
+                { label: "Gelbe Karte", value: RULES.YELLOW_CARD },
+                { label: "Rote Karte", value: RULES.RED_CARD },
+                { label: "Eigentor", value: RULES.OWN_GOAL },
+                { label: "Verschossener Elfmeter", value: RULES.PEN_MISSED },
+                { label: "Verursachter Elfmeter", value: RULES.PEN_COMMITED }
+            ]
+        },
+        {
+            title: "🧤 Torhüter",
+            items: [
+                { label: "Kein Gegentor", value: RULES.DEF_BASE_PTS },
+                { label: "Pro Gegentor", value: RULES.GEGENTOR_GK_DEF },
+                { label: "Gehaltener Elfmeter", value: RULES.PEN_SAVED },
+                { label: "Assist", value: RULES.ASSIST_GK_DEF },
+                { label: "Tor", value: RULES.GOAL_GK }
+            ]
+        },
+        {
+            title: "🛡️ Verteidigung",
+            items: [
+                { label: "Kein Gegentor", value: RULES.DEF_BASE_PTS },
+                { label: "Pro Gegentor", value: RULES.GEGENTOR_GK_DEF },
+                { label: "Assist", value: RULES.ASSIST_GK_DEF },
+                { label: "Tor", value: RULES.GOAL_DEF }
+            ]
+        },
+        {
+            title: "👟 Mittelfeld",
+            items: [
+                { label: "Assist", value: RULES.ASSIST_MID },
+                { label: "Tor", value: RULES.GOAL_MID },
+                { label: "Pro Tor (Mannschaft)", value: RULES.TEAM_GOAL }
+            ]
+        },
+        {
+            title: "⚽ Sturm",
+            items: [
+                { label: "Assist", value: RULES.ASSIST_ATT },
+                { label: "Tor", value: RULES.GOAL_ATT },
+                { label: "Pro Tor (Mannschaft)", value: RULES.TEAM_GOAL }
+            ]
+        }
+    ];
+
+    gridEl.innerHTML = ruleCards.map(card => `
+        <div class="rule-card">
+            <h3>${card.title}</h3>
+            <ul class="point-list">
+                ${card.items.map(item => createRuleItem(item.label, item.value)).join("")}
+            </ul>
+        </div>
+    `).join("");
+</script>
+
+</body>
+</html>

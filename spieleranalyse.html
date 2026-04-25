@@ -1,0 +1,3122 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#28a745">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="DreamTeam">
+    <meta name="description" content="DreamTeam als installierbare Webapp für dein Smartphone.">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <title>DreamTeam - Spieler-Analyse</title>
+    
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        body {
+            padding-top: 100px;
+            padding-bottom: 20px;
+            color: #333;
+        }
+
+        .page-header {
+            max-width: 1400px;
+            margin: 0 auto 28px auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .header-title {
+            color: #2e7d32;
+            font-size: 2.5em;
+            margin: 0;
+            text-align: left;
+            line-height: 1.1;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #fff;
+            border-radius: 30px;
+            padding: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid #e2e8f0;
+            margin-left: auto;
+        }
+
+        .view-btn {
+            padding: 10px 22px;
+            border: none;
+            background: transparent;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .view-btn.active {
+            background: #28a745;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        /* --- LINKE SPALTE --- */
+        .sidebar {
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 100px;
+            overflow: hidden;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+        }
+
+        .sidebar.mobile-filter-highlight {
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.18), 0 10px 28px rgba(40,167,69,0.12);
+        }
+
+        .sidebar-view {
+            display: none;
+            flex-direction: column;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .sidebar-view.active {
+            display: flex;
+        }
+
+        .filter-section {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-box,
+        .filter-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            color: #888;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 12px;
+        }
+
+        .reset-btn:hover {
+            color: #dc3545;
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .sort-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .sort-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #eef2f3;
+            color: #555;
+            transition: 0.2s;
+        }
+
+        .sort-btn.active {
+            background: #28a745;
+            color: white;
+        }
+
+        .player-list,
+        .games-country-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+        }
+
+        .player-list::-webkit-scrollbar,
+        .games-country-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .player-list::-webkit-scrollbar-thumb,
+        .games-country-list::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .list-item:hover {
+            background: #e2e8f0;
+            transform: translateX(3px);
+        }
+
+        .list-item.active {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .list-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .list-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .list-name {
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .list-pos {
+            font-size: 11px;
+            color: #777;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-pts {
+            font-weight: bold;
+            font-size: 14px;
+            color: #28a745;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .list-pts.neg {
+            color: #dc3545;
+        }
+
+        .list-empty,
+        .sidebar-empty {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .sidebar-mini-title {
+            margin: 0 0 10px 0;
+            font-size: 1.05em;
+            color: #111;
+            font-weight: 800;
+        }
+
+        .games-country-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .games-country-item:hover {
+            background: #eef2f7;
+            transform: translateX(3px);
+        }
+
+        .games-country-item.active {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .games-country-left {
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .games-country-flag-small {
+            width: 30px;
+            height: 20px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        .games-country-name-small {
+            min-width: 0;
+            font-weight: 800;
+            color: #334155;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .games-country-total-small {
+            flex-shrink: 0;
+            font-size: 14px;
+            font-weight: 900;
+            color: #28a745;
+            text-align: right;
+        }
+
+        .games-country-total-small.neg {
+            color: #dc3545;
+        }
+
+        /* --- RECHTE SPALTE --- */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            padding: 5px 0 5px 5px;
+        }
+
+        .main-view {
+            display: none;
+        }
+
+        .main-view.active {
+            display: block;
+        }
+
+        #empty-state {
+            text-align: center;
+            color: #888;
+            font-size: 1.2em;
+            padding: 50px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        #detail-view {
+            display: none;
+            flex-direction: column;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 30px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .hover-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+            border-color: #d1d5db;
+        }
+
+        .dashboard-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.15em;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+        }
+
+        /* --- SPIELER PROFIL --- */
+        .detail-header {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-photo {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #f8f9fa;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .detail-title-section {
+            flex: 1;
+        }
+
+        .detail-name {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #111;
+            margin: 0 0 10px 0;
+        }
+
+        .detail-pts-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .detail-pts-badge.neg {
+            background: #dc3545;
+        }
+
+        .awards-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .award-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+            cursor: help;
+        }
+
+        .award-captain {
+            background: linear-gradient(135deg, #fffdf0, #fff2a8);
+            color: #b8860b;
+            border-color: #ffc107;
+            font-weight: 900;
+        }
+
+        .award-perfect {
+            background: #fff8e1;
+            color: #f57f17;
+            border-color: #ffecb3;
+        }
+
+        .award-goleador {
+            background: #fff3e0;
+            color: #c62828;
+            border-color: #ffcdd2;
+        }
+
+        .award-spielmacher {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-color: #bbdefb;
+        }
+
+        .award-joker {
+            background: #f3e5f5;
+            color: #6a1b9a;
+            border-color: #e1bee7;
+        }
+
+        .award-hitzkopf {
+            background: #ffebee;
+            color: #b71c1c;
+            border-color: #ffcdd2;
+        }
+
+        .award-pechvogel {
+            background: #fffde7;
+            color: #e65100;
+            border-color: #fff9c4;
+        }
+
+        .top-tiles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .big-tile {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            transition: 0.2s;
+        }
+
+        .big-tile img {
+            height: 35px;
+            margin-bottom: 8px;
+            object-fit: contain;
+        }
+
+        .big-tile-title {
+            font-size: 10px;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .big-tile-value {
+            font-size: 15px;
+            font-weight: bold;
+            color: #111;
+        }
+
+        .clickable-tile {
+            cursor: pointer;
+        }
+
+        .clickable-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-color: #28a745;
+            background: #fff;
+        }
+
+        .bottom-tiles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .small-tile {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .small-tile-title {
+            font-size: 10px;
+            color: #777;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .small-tile-value {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* --- MANAGER --- */
+        .manager-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .manager-badge {
+            background: #eef2f3;
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            color: #444;
+            text-decoration: none;
+            transition: 0.2s;
+            display: inline-block;
+        }
+
+        .manager-badge:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            transform: translateY(-2px);
+        }
+
+        /* --- PLUS / MINUS --- */
+        .taktik-header {
+            cursor: pointer;
+            transition: 0.2s;
+            opacity: 0.9;
+        }
+
+        .taktik-header:hover {
+            opacity: 1;
+            background: #fcfcfc !important;
+        }
+
+        .taktik-sum {
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .taktik-sum.pos {
+            color: #28a745;
+            background: #e8f5e9;
+        }
+
+        .taktik-sum.neg {
+            color: #dc3545;
+            background: #fdeaea;
+        }
+
+        .taktik-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stat-header-row {
+            display: flex;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: bold;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #444;
+            border-bottom: 1px dashed #f1f1f1;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .stat-name {
+            flex: 2;
+            font-weight: 500;
+            text-align: left;
+        }
+
+        .stat-count {
+            flex: 1;
+            text-align: center;
+            color: #666;
+            background: #f8f9fa;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .stat-total {
+            flex: 1;
+            text-align: right;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .stat-total.pos {
+            color: #28a745;
+        }
+
+        .stat-total.neg {
+            color: #dc3545;
+        }
+
+        .empty-cat {
+            color: #aaa;
+            font-style: italic;
+            font-size: 13px;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        /* --- SPIELER: GESPIELTE SPIELE --- */
+        .match-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .match-header {
+            padding: 15px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .match-header:hover {
+            background: #e2e8f0;
+        }
+
+        .match-duel {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 14px;
+            min-width: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .match-side {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 0 1 auto;
+        }
+
+        .match-side.right .match-side-name {
+            order: 1;
+        }
+
+        .match-side.right .match-flag {
+            order: 2;
+        }
+
+        .match-side-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .match-country-btn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            color: inherit;
+            font: inherit;
+            font-weight: inherit;
+            cursor: pointer;
+        }
+
+        .match-country-btn:hover {
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        .match-flag {
+            width: 22px;
+            height: 16px;
+            object-fit: cover;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        .match-score {
+            font-weight: 900;
+            font-size: 17px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            min-width: 86px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .match-score.win {
+            color: #1b5e20;
+            background: #e8f5e9;
+            border-color: #b7dfbc;
+        }
+
+        .match-score.loss {
+            color: #b71c1c;
+            background: #fdeaea;
+            border-color: #f3c2c2;
+        }
+
+        .match-score.draw {
+            color: #475569;
+            background: #eef2f7;
+            border-color: #d8dee7;
+        }
+
+        .match-summary-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .match-total {
+            font-weight: bold;
+            font-size: 16px;
+            color: #28a745;
+            background: #e8f5e9;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .match-total.neg {
+            color: #dc3545;
+            background: #fdeaea;
+        }
+
+        .match-details-content {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: white;
+        }
+
+        .game-detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            gap: 20px;
+        }
+
+        .game-detail-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        /* --- SPIELE VIEW --- */
+        .games-top-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px 22px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+            margin-bottom: 18px;
+        }
+
+        .games-country-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .games-country-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .games-country-flag-large {
+            width: 76px;
+            height: 52px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .games-country-placeholder {
+            width: 76px;
+            height: 52px;
+            border-radius: 10px;
+            border: 1px dashed #cbd5e1;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+
+        .games-country-text {
+            min-width: 0;
+        }
+
+        .games-country-label {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .games-country-name {
+            margin: 0;
+            font-size: 1.75em;
+            color: #111827;
+            line-height: 1.1;
+        }
+
+        .games-country-subtitle {
+            margin: 6px 0 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .games-country-points-box {
+            flex-shrink: 0;
+            text-align: right;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            min-width: 132px;
+            max-width: 180px;
+        }
+
+        .games-country-points-label {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .games-country-points-value {
+            font-size: 1.8em;
+            font-weight: 900;
+            color: #28a745;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .games-country-points-value.neg {
+            color: #dc3545;
+        }
+
+        .games-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .games-match-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+
+        .games-match-header {
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: background 0.2s;
+        }
+
+        .games-match-header:hover {
+            background: #eef2f7;
+        }
+
+        .games-match-number {
+            min-width: 68px;
+            font-size: 12px;
+            font-weight: 900;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .games-match-duel {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .games-team {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .games-team.right .games-team-name {
+            order: 1;
+        }
+
+        .games-team.right .match-flag {
+            order: 2;
+        }
+
+        .games-team-name {
+            font-weight: 800;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .games-score {
+            font-weight: 900;
+            font-size: 17px;
+            min-width: 84px;
+            text-align: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #eef2f7;
+            color: #475569;
+            border: 1px solid #d8dee7;
+        }
+
+        .games-score.win {
+            color: #1b5e20;
+            background: #e8f5e9;
+            border-color: #b7dfbc;
+        }
+
+        .games-score.loss {
+            color: #b71c1c;
+            background: #fdeaea;
+            border-color: #f3c2c2;
+        }
+
+        .games-score.draw {
+            color: #475569;
+            background: #eef2f7;
+            border-color: #d8dee7;
+        }
+
+        .games-match-toggle {
+            font-size: 18px;
+            color: #64748b;
+            flex-shrink: 0;
+        }
+
+        .games-match-body {
+            display: none;
+            padding: 18px;
+            border-top: 1px solid #e2e8f0;
+            background: white;
+        }
+
+        .games-teams-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .games-team-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .games-team-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 1em;
+            font-weight: 900;
+            color: #111827;
+        }
+
+        .games-player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .games-player-row {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+        }
+
+        .games-player-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+            border-color: #28a745;
+        }
+
+        .games-player-row.drafted {
+            background: linear-gradient(135deg, #f0fff4, #ffffff);
+            border-color: #86efac;
+        }
+
+        .games-player-left {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .games-player-name {
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .games-player-meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .games-player-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .games-picked-badge {
+            font-size: 11px;
+            font-weight: 900;
+            color: #15803d;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            padding: 4px 8px;
+            border-radius: 999px;
+        }
+
+        .games-player-points {
+            font-weight: 900;
+            color: #28a745;
+            min-width: 48px;
+            text-align: right;
+        }
+
+        .games-player-points.neg {
+            color: #dc3545;
+        }
+
+        .games-empty {
+            color: #888;
+            font-style: italic;
+            font-size: 13px;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 1000px) {
+            .page-header {
+                padding: 0 20px;
+                margin-bottom: 22px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-title {
+                text-align: center;
+                font-size: 2em;
+            }
+
+            .view-toggle {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .view-btn {
+                flex: 1;
+            }
+
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: static;
+                height: auto !important;
+                max-height: 45vh;
+                min-height: 320px;
+                padding: 15px;
+            }
+
+            .sidebar.mobile-filter-highlight {
+                animation: mobileFilterPulse 0.9s ease;
+            }
+
+            @keyframes mobileFilterPulse {
+                0% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(40,167,69,0.0); }
+                30% { transform: translateY(-4px); box-shadow: 0 0 0 4px rgba(40,167,69,0.12), 0 10px 24px rgba(40,167,69,0.12); }
+                100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(40,167,69,0.0); }
+            }
+
+            .filter-section {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+
+            .search-box {
+                grid-column: 1 / -1;
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            .filter-select {
+                padding: 6px;
+                font-size: 12px;
+                height: 34px;
+            }
+
+            .reset-btn {
+                padding: 6px;
+                font-size: 12px;
+                height: 34px;
+            }
+
+            .sort-section {
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                gap: 8px;
+            }
+
+            .sort-btn {
+                padding: 6px;
+                font-size: 13px;
+            }
+
+            .list-item {
+                padding: 8px 10px;
+                gap: 10px;
+            }
+
+            .list-avatar {
+                width: 35px;
+                height: 35px;
+                border-width: 1px;
+            }
+
+            .list-name {
+                font-size: 12px;
+            }
+
+            .list-pos {
+                font-size: 10px;
+            }
+
+            .list-pts {
+                font-size: 14px;
+            }
+
+            .games-country-name-small {
+                font-size: 12px;
+            }
+
+            .games-country-total-small {
+                font-size: 13px;
+            }
+
+            .detail-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .bottom-tiles {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .taktik-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .minus-header-col {
+                padding-left: 0 !important;
+                border-left: none !important;
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            .match-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .match-summary-right {
+                justify-content: space-between;
+                margin-left: 0;
+            }
+
+            .match-duel {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .match-side-name {
+                font-size: 12px;
+            }
+
+            .match-score {
+                font-size: 15px;
+                min-width: 72px;
+                padding: 6px 10px;
+            }
+
+            .games-country-summary {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .games-country-main {
+                align-items: flex-start;
+            }
+
+            .games-country-name {
+                font-size: 1.45em;
+            }
+
+            .games-country-points-box {
+                width: auto;
+                min-width: 0;
+                max-width: none;
+                align-self: flex-start;
+                text-align: left;
+                padding: 10px 14px;
+            }
+
+            .games-country-points-value {
+                font-size: 1.45em;
+            }
+
+            .games-match-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .games-match-duel {
+                flex-wrap: wrap;
+            }
+
+            .games-team-name {
+                font-size: 12px;
+            }
+
+            .games-score {
+                font-size: 15px;
+                min-width: 70px;
+                padding: 6px 10px;
+            }
+
+            .games-teams-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding-bottom: 90px;
+                padding-top: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1 id="analysis-title" class="header-title">🔍 Spieler-Analyse</h1>
+
+    <div class="view-toggle">
+        <button id="btn-view-players" class="view-btn active" type="button">Spieler</button>
+        <button id="btn-view-games" class="view-btn" type="button">Spiele</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="sidebar" id="sidebar">
+        <div id="sidebar-players" class="sidebar-view active">
+            <div class="filter-section">
+                <input type="text" id="search-input" class="search-box" placeholder="🔍 Name, Land oder Club...">
+                <select id="pos-filter" class="filter-select">
+                    <option value="ALL">Alle Positionen</option>
+                    <option value="Torwart">Torwart</option>
+                    <option value="Verteidiger">Verteidiger</option>
+                    <option value="Mittelfeldspieler">Mittelfeldspieler</option>
+                    <option value="Stürmer">Stürmer</option>
+                </select>
+                <select id="nation-filter" class="filter-select">
+                    <option value="ALL">Alle Länder</option>
+                </select>
+                <select id="club-filter" class="filter-select">
+                    <option value="ALL">Alle Vereine</option>
+                </select>
+                <button id="reset-filters" class="reset-btn">Filter löschen</button>
+            </div>
+
+            <div class="sort-section">
+                <button class="sort-btn" id="sort-name">A-Z</button>
+                <button class="sort-btn active" id="sort-pts">Punkte</button>
+            </div>
+
+            <div id="player-list" class="player-list">
+                <div class="list-empty">Lade Spieler... ⏳</div>
+            </div>
+        </div>
+
+        <div id="sidebar-games" class="sidebar-view">
+            <div class="filter-section">
+                <button id="games-reset-filters" class="reset-btn">Land zurücksetzen</button>
+            </div>
+
+            <div class="sort-section">
+                <button class="sort-btn" id="games-sort-name">A-Z</button>
+                <button class="sort-btn active" id="games-sort-pts">Punkte</button>
+            </div>
+
+            <h3 class="sidebar-mini-title">Länder</h3>
+            <div id="games-country-list" class="games-country-list">
+                <div class="sidebar-empty">Lade Länder... ⏳</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content" id="main-content">
+        <div id="view-players" class="main-view active">
+            <div id="empty-state">
+                👈 Wähle links einen Spieler aus, um seine Details zu sehen.
+            </div>
+
+            <div id="detail-view">
+                <div class="dashboard-card">
+                    <div class="detail-header">
+                        <img src="" id="detail-photo" class="detail-photo">
+                        <div class="detail-title-section">
+                            <h2 id="detail-name" class="detail-name">Spielername</h2>
+                            <div id="detail-total-pts" class="detail-pts-badge">0 Pkt.</div>
+                            <div id="award-section" class="awards-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="top-tiles">
+                        <div class="big-tile clickable-tile" id="tile-nation" title="Klicke, um alle Spieler dieses Landes anzuzeigen">
+                            <div class="big-tile-title">Nationalteam</div>
+                            <img id="detail-nation-flag" src="">
+                            <div class="big-tile-value" id="detail-nation-name"></div>
+                        </div>
+                        <div class="big-tile clickable-tile" id="tile-club" title="Klicke, um alle Spieler dieses Vereins anzuzeigen">
+                            <div class="big-tile-title">Verein</div>
+                            <img id="detail-club-logo" src="">
+                            <div class="big-tile-value" id="detail-club-name"></div>
+                        </div>
+                    </div>
+
+                    <div class="bottom-tiles">
+                        <div class="small-tile"><div class="small-tile-title">Position</div><div class="small-tile-value" id="detail-position"></div></div>
+                        <div class="small-tile"><div class="small-tile-title">Geburtsdatum</div><div class="small-tile-value" id="detail-dob"></div></div>
+                        <div class="small-tile"><div class="small-tile-title">Grösse</div><div class="small-tile-value" id="detail-height"></div></div>
+                        <div class="small-tile"><div class="small-tile-title">Gewicht</div><div class="small-tile-value" id="detail-weight"></div></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card hover-card">
+                    <h3 class="dashboard-title">👥 Gewählt von Manager(n)</h3>
+                    <div id="detail-managers" class="manager-badges"></div>
+                </div>
+
+                <div class="dashboard-card hover-card" id="card-points-container" style="padding: 0; overflow: hidden;"></div>
+
+                <div class="dashboard-card hover-card">
+                    <h3 class="dashboard-title">📅 Gespielte Spiele</h3>
+                    <div id="detail-points-games"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-games" class="main-view">
+            <div id="games-top-card" class="games-top-card"></div>
+
+            <div id="games-list" class="games-list">
+                <div class="games-empty">Lade Spiele... ⏳</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="tournament-config.js"></script>
+<script src="nav.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="data.js"></script>
+<script src="cache.js"></script>
+
+<script>
+    const APP = window.APP_CONFIG;
+
+    if (!APP) {
+        throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor spieleranalyse.html.");
+    }
+
+    const TOURNAMENT_YEAR = APP.year;
+    const TOURNAMENT_LABEL = APP.tournamentLabel;
+    const PAGE_TITLE_PREFIX = APP.pageTitlePrefix;
+    const PLAYER_BATCH_SIZE = 20;
+
+    document.title = `${PAGE_TITLE_PREFIX} - Spieler-Analyse`;
+
+    const pageTitleEl = document.getElementById('analysis-title');
+    if (pageTitleEl) {
+        pageTitleEl.textContent = `🔍 Spieler-Analyse`;
+    }
+
+    const db = APP.getDb();
+
+    let allTeams = [];
+    let pointsData = {};
+    let perfectTeamIds = new Set();
+    let currentSort = 'pts';
+    let currentGamesSort = 'pts';
+    let metaUnsubscribe = null;
+    let isMetaRefreshRunning = false;
+    let hasRenderedOnce = false;
+    let staticFiltersInitialized = false;
+
+    let filteredPlayersCache = [];
+    let renderedPlayerCount = 0;
+    let playerListScrollTop = 0;
+    let gamesCountryListScrollTop = 0;
+
+    let currentView = 'players';
+    let currentPlayerName = null;
+    let currentGameNationFilter = 'ALL';
+    let currentOpenGameNumber = null;
+
+    let matchCatalog = [];
+    let matchByNumber = new Map();
+    let playerSelectedMap = new Map();
+    let gamesCountryStats = [];
+    let gamesCountryStatsMap = new Map();
+
+    const CACHE_OPTIONS = {
+        db,
+        year: TOURNAMENT_YEAR,
+        allowEmptyPoints: true,
+        log: false
+    };
+
+    const RULES = APP.rules || {
+        START: 5, SUBBED_IN: 2, SUBBED_OUT: -2,
+        GOAL_GK: 10, GOAL_DEF: 7, GOAL_MID: 6, GOAL_ATT: 5,
+        OWN_GOAL: -5, ASSIST_GK_DEF: 5, ASSIST_MID: 4, ASSIST_ATT: 3,
+        TEAM_GOAL: 1, DEF_BASE_PTS: 6, GEGENTOR_GK_DEF: -2,
+        YELLOW_CARD: -3, RED_CARD: -7, PEN_SAVED: 7, PEN_MISSED: -7,
+        PEN_COMMITED: -5, PEN_WON: 3, WIN: 3, DRAW: 1, LOSS: -3
+    };
+
+    const RULE_NAMES = APP.ruleLabels || {
+        START: "Startaufstellung",
+        SUBBED_IN: "Eingewechselt",
+        SUBBED_OUT: "Ausgewechselt",
+        GOAL_GK: "Tore",
+        GOAL_DEF: "Tore",
+        GOAL_MID: "Tore",
+        GOAL_ATT: "Tore",
+        OWN_GOAL: "Eigentore",
+        ASSIST_GK_DEF: "Assists",
+        ASSIST_MID: "Assists",
+        ASSIST_ATT: "Assists",
+        TEAM_GOAL: "Tore (Mannschaft)",
+        GEGENTOR_GK_DEF: "Gegentore",
+        YELLOW_CARD: "Gelbe Karten",
+        RED_CARD: "Rote Karten",
+        PEN_SAVED: "Elfmeter gehalten",
+        PEN_MISSED: "Elfmeter verschossen",
+        PEN_COMMITED: "Elfmeter verursacht",
+        PEN_WON: "Elfmeter herausgeholt",
+        WIN: "Siege",
+        DRAW: "Unentschieden",
+        LOSS: "Niederlagen",
+        DEF_BASE_PTS: "Abwehr-Bonus"
+    };
+
+    const RULE_NAMES_MATCH = {
+        START: "Startaufstellung",
+        SUBBED_IN: "Eingewechselt",
+        SUBBED_OUT: "Ausgewechselt",
+        GOAL_GK: "Tor",
+        GOAL_DEF: "Tor",
+        GOAL_MID: "Tor",
+        GOAL_ATT: "Tor",
+        OWN_GOAL: "Eigentor",
+        ASSIST_GK_DEF: "Assist",
+        ASSIST_MID: "Assist",
+        ASSIST_ATT: "Assist",
+        TEAM_GOAL: "Tor (Mannschaft)",
+        GEGENTOR_GK_DEF: "Gegentore",
+        YELLOW_CARD: "Gelbe Karte",
+        RED_CARD: "Rote Karte",
+        PEN_SAVED: "Elfmeter gehalten",
+        PEN_MISSED: "Elfmeter verschossen",
+        PEN_COMMITED: "Elfmeter verursacht",
+        PEN_WON: "Elfmeter herausgeholt",
+        WIN: "Sieg",
+        DRAW: "Unentschieden",
+        LOSS: "Niederlage"
+    };
+
+    function translatePosition(pos) {
+        if (!pos) return 'K.A.';
+        const p = String(pos).toUpperCase();
+        if (p === 'GOALKEEPER') return 'Torwart';
+        if (p === 'DEFENDER') return 'Verteidiger';
+        if (p === 'MIDFIELDER') return 'Mittelfeldspieler';
+        if (p === 'ATTACKER' || p === 'FORWARD') return 'Stürmer';
+        return pos;
+    }
+
+    function escapeHtml(text) {
+        return String(text ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatPoints(value) {
+        const num = Number(value) || 0;
+        return `${num > 0 ? '+' : ''}${num}`;
+    }
+
+    function getPlayerById(playerId) {
+        return playersData.find(p => String(p['player.id']) === String(playerId)) || null;
+    }
+
+    function syncSidebarHeight() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+
+        if (window.innerWidth <= 1000) {
+            sidebar.style.height = '';
+            return;
+        }
+
+        sidebar.style.height = '';
+
+        requestAnimationFrame(() => {
+            const viewportMax = window.innerHeight - 130;
+            const mainHeight = Math.ceil(mainContent.getBoundingClientRect().height);
+            const target = Math.min(Math.max(mainHeight, 420), viewportMax);
+            sidebar.style.height = target + 'px';
+        });
+    }
+
+    function jumpToFiltersOnMobile() {
+        if (window.innerWidth > 1000) return;
+
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return;
+
+        sidebar.classList.remove('mobile-filter-highlight');
+        void sidebar.offsetWidth;
+        sidebar.classList.add('mobile-filter-highlight');
+
+        sidebar.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+
+        setTimeout(() => {
+            sidebar.classList.remove('mobile-filter-highlight');
+        }, 1100);
+    }
+
+    function getNationFlag(nationName) {
+        const player = playersData.find(p => p['Nationalteam.name'] === nationName);
+        return player ? (player['Nationalteam.logo'] || '') : '';
+    }
+
+    function parseResultString(resultString) {
+        const match = String(resultString || '').match(/^(.*?)\s+(\d+)\s*:\s*(\d+)\s+(.*?)$/);
+        if (!match) return null;
+
+        return {
+            homeName: match[1].trim(),
+            homeGoals: Number(match[2]),
+            awayGoals: Number(match[3]),
+            awayName: match[4].trim()
+        };
+    }
+
+    function getOutcomeFromMatchEvents(matchObj) {
+        const lineup = matchObj?.Aufstellung || {};
+
+        if (typeof lineup.WIN === 'number' && lineup.WIN !== 0) return 'win';
+        if (typeof lineup.LOSS === 'number' && lineup.LOSS !== 0) return 'loss';
+        if (typeof lineup.DRAW === 'number' && lineup.DRAW !== 0) return 'draw';
+
+        if (typeof matchObj?.WIN === 'number' && matchObj.WIN !== 0) return 'win';
+        if (typeof matchObj?.LOSS === 'number' && matchObj.LOSS !== 0) return 'loss';
+        if (typeof matchObj?.DRAW === 'number' && matchObj.DRAW !== 0) return 'draw';
+
+        return null;
+    }
+
+    function getMatchVisualData(matchObj, playerNation) {
+        const opponentNation = matchObj.Gegner || '';
+        const parsed = parseResultString(matchObj.Resultat || '');
+        const eventOutcome = getOutcomeFromMatchEvents(matchObj);
+
+        let leftName = opponentNation || '-';
+        let rightName = playerNation || '-';
+        let leftGoals = '-';
+        let rightGoals = '-';
+        let resultClass = eventOutcome || 'draw';
+
+        if (parsed) {
+            if (parsed.homeName === playerNation) {
+                leftName = opponentNation || parsed.awayName;
+                rightName = playerNation;
+                leftGoals = parsed.awayGoals;
+                rightGoals = parsed.homeGoals;
+            } else if (parsed.awayName === playerNation) {
+                leftName = opponentNation || parsed.homeName;
+                rightName = playerNation;
+                leftGoals = parsed.homeGoals;
+                rightGoals = parsed.awayGoals;
+            } else if (parsed.homeName === opponentNation) {
+                leftName = opponentNation;
+                rightName = parsed.awayName;
+                leftGoals = parsed.homeGoals;
+                rightGoals = parsed.awayGoals;
+            } else {
+                leftName = parsed.homeName;
+                rightName = parsed.awayName;
+                leftGoals = parsed.homeGoals;
+                rightGoals = parsed.awayGoals;
+            }
+
+            if (Number(rightGoals) > Number(leftGoals)) {
+                resultClass = 'win';
+            } else if (Number(rightGoals) < Number(leftGoals)) {
+                resultClass = 'loss';
+            } else {
+                resultClass = eventOutcome || 'draw';
+            }
+        }
+
+        return {
+            leftName,
+            rightName,
+            leftGoals,
+            rightGoals,
+            leftFlag: getNationFlag(leftName),
+            rightFlag: getNationFlag(rightName),
+            resultClass
+        };
+    }
+
+    function getNeutralMatchVisual(resultText, teamA, teamB) {
+        const parsed = parseResultString(resultText || '');
+        let leftName = teamA || '-';
+        let rightName = teamB || '-';
+        let leftGoals = '-';
+        let rightGoals = '-';
+
+        if (parsed) {
+            leftName = parsed.homeName || leftName;
+            rightName = parsed.awayName || rightName;
+            leftGoals = parsed.homeGoals;
+            rightGoals = parsed.awayGoals;
+        }
+
+        return {
+            leftName,
+            rightName,
+            leftGoals,
+            rightGoals,
+            leftFlag: getNationFlag(leftName),
+            rightFlag: getNationFlag(rightName)
+        };
+    }
+
+    function buildPlayerSelectedMap() {
+        playerSelectedMap = new Map();
+
+        allTeams.forEach(team => {
+            (team.players || []).forEach(tp => {
+                const key = String(tp.playerId);
+                playerSelectedMap.set(key, (playerSelectedMap.get(key) || 0) + 1);
+            });
+        });
+    }
+
+    function isPlayerDrafted(playerId) {
+        return (playerSelectedMap.get(String(playerId)) || 0) > 0;
+    }
+
+    function initStaticFilters() {
+        if (staticFiltersInitialized) return;
+
+        const nations = [...new Set(playersData.map(p => p['Nationalteam.name']))].filter(Boolean).sort();
+        const nationSelect = document.getElementById('nation-filter');
+
+        nations.forEach(n => {
+            nationSelect.innerHTML += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`;
+        });
+
+        const clubs = [...new Set(playersData.map(p => p['Club.name']))]
+            .filter(c => c && c !== "Vereinslos")
+            .sort();
+
+        const clubSelect = document.getElementById('club-filter');
+        clubs.forEach(c => {
+            clubSelect.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+        });
+
+        staticFiltersInitialized = true;
+    }
+
+    function calculatePerfectTeamIds() {
+        perfectTeamIds = new Set();
+
+        const allPlayersWithPts = playersData.map(p => {
+            const pData = pointsData[String(p['player.id'])];
+            return {
+                id: String(p['player.id']),
+                nation: p['Nationalteam.name'],
+                pos: p.Position ? p.Position.toUpperCase() : 'UNKNOWN',
+                pts: pData ? (pData.totalPoints || 0) : 0
+            };
+        });
+
+        const selectedNations = new Set();
+        const teamSlots = { GK: [], DEF: [], MID: [], ATT: [] };
+        const maxSlots = { GK: 2, DEF: 4, MID: 5, ATT: 4 };
+
+        const sortedAll = [...allPlayersWithPts].sort((a, b) => b.pts - a.pts);
+
+        for (const p of sortedAll) {
+            let slotKey = '';
+            if (p.pos === 'GOALKEEPER') slotKey = 'GK';
+            else if (p.pos === 'DEFENDER') slotKey = 'DEF';
+            else if (p.pos === 'MIDFIELDER') slotKey = 'MID';
+            else if (p.pos === 'ATTACKER' || p.pos === 'FORWARD') slotKey = 'ATT';
+
+            if (slotKey && !selectedNations.has(p.nation) && teamSlots[slotKey].length < maxSlots[slotKey]) {
+                teamSlots[slotKey].push(p);
+                selectedNations.add(p.nation);
+                perfectTeamIds.add(p.id);
+            }
+        }
+    }
+
+    function buildGamesCountryStats() {
+        const map = new Map();
+
+        playersData.forEach(player => {
+            const nation = player['Nationalteam.name'];
+            if (!nation) return;
+
+            const playerId = String(player['player.id']);
+            const totalPoints = pointsData[playerId]?.totalPoints || 0;
+
+            if (!map.has(nation)) {
+                map.set(nation, {
+                    nation,
+                    flag: player['Nationalteam.logo'] || '',
+                    totalPoints: 0,
+                    playerCount: 0
+                });
+            }
+
+            const entry = map.get(nation);
+            if (!entry.flag && player['Nationalteam.logo']) entry.flag = player['Nationalteam.logo'];
+            entry.totalPoints += totalPoints;
+            entry.playerCount += 1;
+        });
+
+        gamesCountryStats = Array.from(map.values());
+        gamesCountryStatsMap = new Map(gamesCountryStats.map(entry => [entry.nation, entry]));
+    }
+
+    function buildMatchCatalog() {
+        const rawMatchMap = new Map();
+
+        Object.entries(pointsData || {}).forEach(([playerId, docData]) => {
+            const fullP = getPlayerById(playerId);
+            if (!fullP) return;
+
+            const nation = fullP['Nationalteam.name'] || '?';
+            const club = fullP['Club.name'] || 'Vereinslos';
+
+            Object.entries(docData || {}).forEach(([key, val]) => {
+                if (!key.startsWith('Spiel_') || typeof val !== 'object' || !val) return;
+
+                const rawMatchId = Number(val.MatchID);
+                if (!Number.isFinite(rawMatchId)) return;
+
+                if (!rawMatchMap.has(rawMatchId)) {
+                    rawMatchMap.set(rawMatchId, {
+                        rawMatchId,
+                        number: null,
+                        resultText: val.Resultat || '',
+                        nations: new Set(),
+                        playersByNation: {},
+                        outcomeByNation: {}
+                    });
+                }
+
+                const match = rawMatchMap.get(rawMatchId);
+                match.resultText = match.resultText || val.Resultat || '';
+                match.nations.add(nation);
+                if (val.Gegner) match.nations.add(val.Gegner);
+
+                const outcome = getOutcomeFromMatchEvents(val);
+                if (outcome) {
+                    match.outcomeByNation[nation] = outcome;
+                }
+
+                if (!match.playersByNation[nation]) {
+                    match.playersByNation[nation] = [];
+                }
+
+                match.playersByNation[nation].push({
+                    playerId: String(fullP['player.id']),
+                    name: fullP.Spielername,
+                    nation,
+                    club,
+                    position: translatePosition(fullP.Position),
+                    photo: fullP.Spielerfoto || 'https://via.placeholder.com/40',
+                    totalPoints: typeof val.TotalPunkte === 'number' ? val.TotalPunkte : 0,
+                    drafted: isPlayerDrafted(fullP['player.id'])
+                });
+            });
+        });
+
+        const sortedMatchIds = Array.from(rawMatchMap.keys()).sort((a, b) => a - b);
+        const catalog = [];
+
+        sortedMatchIds.forEach((rawId, idx) => {
+            const match = rawMatchMap.get(rawId);
+            const parsed = parseResultString(match.resultText || '');
+            const teams = parsed
+                ? [parsed.homeName, parsed.awayName]
+                : Array.from(match.nations).sort((a, b) => a.localeCompare(b, 'de')).slice(0, 2);
+
+            const teamA = teams[0] || '-';
+            const teamB = teams[1] || '-';
+
+            Object.keys(match.playersByNation).forEach(nation => {
+                match.playersByNation[nation].sort((a, b) => {
+                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                    return a.name.localeCompare(b.name, 'de');
+                });
+            });
+
+            catalog.push({
+                rawMatchId: rawId,
+                number: idx + 1,
+                resultText: match.resultText || '',
+                teamA,
+                teamB,
+                playersByNation: match.playersByNation,
+                outcomeByNation: match.outcomeByNation || {}
+            });
+        });
+
+        matchCatalog = catalog;
+        matchByNumber = new Map(catalog.map(m => [String(m.number), m]));
+    }
+
+    function getCurrentSelectedPlayerName() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const playerFromUrl = urlParams.get('player');
+        if (playerFromUrl) return playerFromUrl;
+        return currentPlayerName;
+    }
+
+    function getStateFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            view: params.get('view') === 'games' ? 'games' : 'players',
+            player: params.get('player') || null,
+            club: params.get('club') || 'ALL',
+            gameNation: params.get('gameNation') || 'ALL',
+            openGame: params.get('openGame') || null,
+            gameSort: params.get('gameSort') === 'name' ? 'name' : 'pts'
+        };
+    }
+
+    function updateUrl(push = false) {
+        const params = new URLSearchParams();
+
+        if (currentView === 'games') {
+            params.set('view', 'games');
+            if (currentGameNationFilter && currentGameNationFilter !== 'ALL') {
+                params.set('gameNation', currentGameNationFilter);
+            }
+            if (currentOpenGameNumber) {
+                params.set('openGame', String(currentOpenGameNumber));
+            }
+            if (currentGamesSort !== 'pts') {
+                params.set('gameSort', currentGamesSort);
+            }
+        } else {
+            if (currentPlayerName) {
+                params.set('player', currentPlayerName);
+            }
+            const clubFilter = document.getElementById('club-filter').value;
+            if (clubFilter && clubFilter !== 'ALL') {
+                params.set('club', clubFilter);
+            }
+        }
+
+        const url = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+        const stateObj = {
+            view: currentView,
+            player: currentPlayerName,
+            gameNation: currentGameNationFilter,
+            openGame: currentOpenGameNumber,
+            gameSort: currentGamesSort
+        };
+
+        if (push) {
+            window.history.pushState(stateObj, '', url);
+        } else {
+            window.history.replaceState(stateObj, '', url);
+        }
+    }
+
+    function setView(viewName, push = false) {
+        currentView = viewName === 'games' ? 'games' : 'players';
+
+        document.getElementById('btn-view-players').classList.toggle('active', currentView === 'players');
+        document.getElementById('btn-view-games').classList.toggle('active', currentView === 'games');
+
+        document.getElementById('view-players').classList.toggle('active', currentView === 'players');
+        document.getElementById('view-games').classList.toggle('active', currentView === 'games');
+
+        document.getElementById('sidebar-players').classList.toggle('active', currentView === 'players');
+        document.getElementById('sidebar-games').classList.toggle('active', currentView === 'games');
+
+        syncSidebarHeight();
+        updateUrl(push);
+    }
+
+    function buildFilteredPlayers() {
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const posFilter = document.getElementById('pos-filter').value;
+        const natFilter = document.getElementById('nation-filter').value;
+        const clubFilter = document.getElementById('club-filter').value;
+
+        const filteredData = playersData.filter(p => {
+            const pName = (p.Spielername || "").toLowerCase();
+            const pNat = (p['Nationalteam.name'] || "").toLowerCase();
+            const pClub = (p['Club.name'] || "").toLowerCase();
+
+            const matchSearch = pName.includes(searchTerm) || pNat.includes(searchTerm) || pClub.includes(searchTerm);
+            const translatedPos = translatePosition(p.Position);
+            const matchPos = posFilter === 'ALL' || translatedPos === posFilter;
+            const matchNat = natFilter === 'ALL' || p['Nationalteam.name'] === natFilter;
+            const matchClub = clubFilter === 'ALL' || p['Club.name'] === clubFilter;
+
+            return matchSearch && matchPos && matchNat && matchClub;
+        });
+
+        if (currentSort === 'pts') {
+            filteredData.sort((a, b) => {
+                const ptsA = pointsData[String(a['player.id'])]?.totalPoints || 0;
+                const ptsB = pointsData[String(b['player.id'])]?.totalPoints || 0;
+                if (ptsB !== ptsA) return ptsB - ptsA;
+                return a.Spielername.localeCompare(b.Spielername, 'de');
+            });
+        } else {
+            filteredData.sort((a, b) => a.Spielername.localeCompare(b.Spielername, 'de'));
+        }
+
+        return filteredData;
+    }
+
+    function appendNextPlayerBatch() {
+        const list = document.getElementById('player-list');
+        const nextBatch = filteredPlayersCache.slice(renderedPlayerCount, renderedPlayerCount + PLAYER_BATCH_SIZE);
+
+        if (!nextBatch.length) return;
+
+        nextBatch.forEach(player => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+
+            if (player.Spielername === currentPlayerName) {
+                div.classList.add('active');
+            }
+
+            const ptsDoc = pointsData[String(player['player.id'])];
+            const pts = ptsDoc ? (ptsDoc.totalPoints || 0) : 0;
+            const isDrafted = isPlayerDrafted(player['player.id']);
+
+            div.innerHTML = `
+                <img src="${escapeHtml(player.Spielerfoto)}" class="list-avatar">
+                <div class="list-info">
+                    <div class="list-name">${escapeHtml(player.Spielername)}</div>
+                    <div class="list-pos">${escapeHtml(translatePosition(player.Position))} | ${escapeHtml(player['Nationalteam.name'])}</div>
+                </div>
+                ${isDrafted ? '<span class="games-picked-badge">Gewählt</span>' : ''}
+                <div class="list-pts ${pts < 0 ? 'neg' : ''}">${pts > 0 ? '+' : ''}${pts}</div>
+            `;
+
+            div.onclick = () => {
+                const preservedScrollTop = list.scrollTop;
+                playerListScrollTop = preservedScrollTop;
+
+                document.querySelectorAll('#player-list .list-item').forEach(el => el.classList.remove('active'));
+                div.classList.add('active');
+                currentPlayerName = player.Spielername;
+                showPlayerDetails(player);
+                updateUrl(false);
+
+                requestAnimationFrame(() => {
+                    const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
+                    list.scrollTop = Math.min(preservedScrollTop, maxScrollTop);
+                    playerListScrollTop = list.scrollTop;
+                });
+            };
+
+            list.appendChild(div);
+        });
+
+        renderedPlayerCount += nextBatch.length;
+    }
+
+    function fillPlayerListUntilScrollable(requiredScrollHeight = 0) {
+        const list = document.getElementById('player-list');
+        const minHeight = Math.max(list.clientHeight + 5, requiredScrollHeight);
+
+        let safety = 0;
+        while (renderedPlayerCount < filteredPlayersCache.length && list.scrollHeight <= minHeight && safety < 40) {
+            appendNextPlayerBatch();
+            safety++;
+        }
+    }
+
+    function restorePlayerListScroll(targetScrollTop = playerListScrollTop) {
+        const list = document.getElementById('player-list');
+        const desiredScrollTop = Math.max(0, Number(targetScrollTop) || 0);
+        const requiredScrollHeight = desiredScrollTop + list.clientHeight + 80;
+
+        fillPlayerListUntilScrollable(requiredScrollHeight);
+
+        const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
+        list.scrollTop = Math.min(desiredScrollTop, maxScrollTop);
+        playerListScrollTop = list.scrollTop;
+    }
+
+    function renderPlayerList(data, preserveScroll = true) {
+        const list = document.getElementById('player-list');
+        const preservedScrollTop = preserveScroll ? playerListScrollTop : 0;
+        list.innerHTML = '';
+
+        filteredPlayersCache = data;
+        renderedPlayerCount = 0;
+
+        if (!data.length) {
+            playerListScrollTop = 0;
+            list.innerHTML = '<div class="list-empty">Keine Spieler gefunden.</div>';
+            syncSidebarHeight();
+            return;
+        }
+
+        appendNextPlayerBatch();
+        restorePlayerListScroll(preservedScrollTop);
+        syncSidebarHeight();
+
+        requestAnimationFrame(() => {
+            restorePlayerListScroll(preservedScrollTop);
+        });
+    }
+
+    function applyFilters() {
+        const filteredData = buildFilteredPlayers();
+        renderPlayerList(filteredData);
+        return filteredData;
+    }
+
+    function showPlayerDetails(player) {
+        currentPlayerName = player.Spielername;
+
+        document.getElementById('empty-state').style.display = 'none';
+        document.getElementById('detail-view').style.display = 'flex';
+
+        document.getElementById('detail-photo').src = player.Spielerfoto || 'https://via.placeholder.com/150';
+        document.getElementById('detail-name').innerText = player.Spielername;
+        document.getElementById('detail-nation-flag').src = player['Nationalteam.logo'] || '';
+        document.getElementById('detail-nation-name').innerText = player['Nationalteam.name'] || '-';
+        document.getElementById('detail-club-logo').src = player['Club.logo'] || '';
+        document.getElementById('detail-club-name').innerText = player['Club.name'] || 'Vereinslos';
+        document.getElementById('detail-position').innerText = translatePosition(player.Position);
+
+        let dob = '-';
+        if (player.Geburtsdatum) {
+            const parts = player.Geburtsdatum.split('T')[0].split('-');
+            if (parts.length === 3) dob = `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+        document.getElementById('detail-dob').innerText = dob;
+        document.getElementById('detail-height').innerText = player.Groesse ? player.Groesse + ' cm' : 'K.A.';
+
+        let foundWeight = null;
+        for (let key in player) {
+            if (key.toLowerCase().includes('gewicht') || key.toLowerCase().includes('weight')) {
+                if (player[key]) {
+                    foundWeight = player[key];
+                    break;
+                }
+            }
+        }
+
+        if (foundWeight && foundWeight !== "0" && foundWeight !== "null" && foundWeight !== "-") {
+            let wStr = String(foundWeight).trim();
+            document.getElementById('detail-weight').innerText = wStr.toLowerCase().includes('kg') ? wStr : wStr + ' kg';
+        } else {
+            document.getElementById('detail-weight').innerText = 'K.A.';
+        }
+
+        const ptsDoc = pointsData[String(player['player.id'])];
+        const totalPts = ptsDoc ? (ptsDoc.totalPoints || 0) : 0;
+        const badge = document.getElementById('detail-total-pts');
+        badge.innerText = `${totalPts > 0 ? '+' : ''}${totalPts} Pkt.`;
+        badge.className = `detail-pts-badge ${totalPts < 0 ? 'neg' : ''}`;
+
+        const pickedBy = [];
+        const captainedBy = [];
+
+        allTeams.forEach(team => {
+            const teamPlayer = (team.players || []).find(tp => String(tp.playerId) === String(player['player.id']) || tp.name === player.Spielername);
+            if (teamPlayer) {
+                pickedBy.push(team.manager);
+                if (teamPlayer.isCaptain) captainedBy.push(team.manager);
+            }
+        });
+
+        const mgrBox = document.getElementById('detail-managers');
+        mgrBox.innerHTML = pickedBy.length > 0
+            ? pickedBy.map(m => `<a href="teams.html?manager=${encodeURIComponent(m)}" class="manager-badge">👤 ${escapeHtml(m)}</a>`).join('')
+            : '<div style="color:#888; font-size:13px; font-style:italic;">Noch nicht gedraftet.</div>';
+
+        const combinedPointsBox = document.getElementById('card-points-container');
+        const gameBox = document.getElementById('detail-points-games');
+        const awardBox = document.getElementById('award-section');
+
+        combinedPointsBox.innerHTML = '';
+        gameBox.innerHTML = '';
+        awardBox.innerHTML = '';
+
+        if (captainedBy.length > 0) {
+            awardBox.innerHTML += `<div class="award-badge award-captain" title="Als Captain gewählt von: ${escapeHtml(captainedBy.join(', '))}">👑 Captain</div>`;
+        }
+
+        if (perfectTeamIds.has(String(player['player.id']))) {
+            awardBox.innerHTML += `<a href="dashboard.html" class="award-badge award-perfect" style="text-decoration:none; cursor:pointer;" title="Dieser Spieler hat es ins theoretische PerfectTeam geschafft.">🏆 PerfectTeam</a>`;
+        }
+
+        if (ptsDoc) {
+            let gamesArray = [];
+            let countGoals = 0;
+            let countAssists = 0;
+            let countSubbedIn = 0;
+            let countYellow = 0;
+            let countRed = 0;
+            let countErrors = 0;
+
+            let plusEvents = [];
+            let minusEvents = [];
+
+            let defBasePts = ptsDoc.DEF_BASE_PTS || 0;
+            let gegenPts = ptsDoc.GEGENTOR_GK_DEF || 0;
+            let netGegenPts = defBasePts + gegenPts;
+            let countGegen = gegenPts !== 0 ? Math.round(gegenPts / RULES.GEGENTOR_GK_DEF) : 0;
+
+            if (defBasePts !== 0 || gegenPts !== 0) {
+                if (netGegenPts > 0) plusEvents.push({ name: 'Gegentore', count: countGegen, points: netGegenPts });
+                else if (netGegenPts < 0) minusEvents.push({ name: 'Gegentore', count: countGegen, points: netGegenPts });
+            }
+
+            Object.entries(ptsDoc).forEach(([key, val]) => {
+                if (['totalPoints', 'playerName', 'lastUpdated', 'DEF_BASE_PTS', 'GEGENTOR_GK_DEF'].includes(key)) return;
+
+                if (key.startsWith('Spiel_') && typeof val === 'object') {
+                    gamesArray.push(val);
+                } else if (typeof val === 'number' && val !== 0 && RULES[key]) {
+                    const count = Math.round(val / RULES[key]);
+                    const displayName = RULE_NAMES[key] || key;
+                    const points = val;
+
+                    if (points > 0) plusEvents.push({ name: displayName, count, points });
+                    else if (points < 0) minusEvents.push({ name: displayName, count, points });
+
+                    if (['GOAL_GK', 'GOAL_DEF', 'GOAL_MID', 'GOAL_ATT'].includes(key)) countGoals += count;
+                    if (['ASSIST_GK_DEF', 'ASSIST_MID', 'ASSIST_ATT'].includes(key)) countAssists += count;
+                    if (key === 'SUBBED_IN') countSubbedIn += count;
+                    if (key === 'YELLOW_CARD') countYellow += count;
+                    if (key === 'RED_CARD') countRed += count;
+                    if (['OWN_GOAL', 'PEN_MISSED', 'PEN_COMMITED'].includes(key)) countErrors += count;
+                }
+            });
+
+            plusEvents.sort((a, b) => b.points - a.points);
+            minusEvents.sort((a, b) => a.points - b.points);
+
+            const totalPlus = plusEvents.reduce((sum, e) => sum + e.points, 0);
+            const totalMinus = minusEvents.reduce((sum, e) => sum + e.points, 0);
+
+            const plusHTML = plusEvents.length > 0
+                ? `
+                    <div class="stat-header-row" style="border-bottom: 2px solid #e8f5e9; margin-bottom: 10px; padding-bottom: 8px;">
+                        <span style="flex: 2; text-align: left; color: #2e7d32; font-size: 11px;">Aktion</span>
+                        <span style="flex: 1; text-align: center; color: #2e7d32; font-size: 11px;">Anzahl</span>
+                        <span style="flex: 1; text-align: right; color: #2e7d32; font-size: 11px;">Punkte</span>
+                    </div>
+                ` + plusEvents.map(e => `
+                    <div class="stat-row">
+                        <span class="stat-name">${escapeHtml(e.name)}</span>
+                        <span class="stat-count">${e.count}x</span>
+                        <span class="stat-total pos">+${e.points}</span>
+                    </div>
+                `).join('')
+                : '<div class="empty-cat">Noch keine Pluspunkte gesammelt.</div>';
+
+            const minusHTML = minusEvents.length > 0
+                ? `
+                    <div class="stat-header-row" style="border-bottom: 2px solid #ffebee; margin-bottom: 10px; padding-bottom: 8px;">
+                        <span style="flex: 2; text-align: left; color: #c62828; font-size: 11px;">Aktion</span>
+                        <span style="flex: 1; text-align: center; color: #c62828; font-size: 11px;">Anzahl</span>
+                        <span style="flex: 1; text-align: right; color: #c62828; font-size: 11px;">Punkte</span>
+                    </div>
+                ` + minusEvents.map(e => `
+                    <div class="stat-row">
+                        <span class="stat-name">${escapeHtml(e.name)}</span>
+                        <span class="stat-count">${e.count}x</span>
+                        <span class="stat-total neg">${e.points}</span>
+                    </div>
+                `).join('')
+                : '<div class="empty-cat">Keine Minuspunkte! Vorbildlich.</div>';
+
+            combinedPointsBox.innerHTML = `
+                <div class="taktik-header" onclick="toggleDetails(this)" style="display:block; padding:25px 30px; background:#fff; cursor:pointer; transition:0.2s;">
+                    <div class="taktik-grid" style="margin:0; align-items:center;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding-right:10px;">
+                            <h4 style="margin:0; color:#2e7d32; font-size:18px; display:flex; align-items:center; gap:8px;">📈 Pluspunkte</h4>
+                            <span class="taktik-sum pos" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">+${totalPlus}</span>
+                        </div>
+                        <div class="minus-header-col" style="display:flex; justify-content:space-between; align-items:center; padding-left:20px; border-left:1px solid #eee;">
+                            <h4 style="margin:0; color:#c62828; font-size:18px; display:flex; align-items:center; gap:8px;">📉 Minuspunkte</h4>
+                            <div style="display:flex; align-items:center; gap:15px;">
+                                <span class="taktik-sum neg" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">${totalMinus}</span>
+                                <span class="toggle-icon" style="color:#888;">▼</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="taktik-content" style="display:none; padding:0 30px 25px 30px; background:#fff;">
+                    <div class="taktik-grid" style="margin-top:0; align-items:start;">
+                        <div class="card-plus" style="padding-right:10px;">
+                            ${plusHTML}
+                        </div>
+                        <div class="card-minus" style="padding-left:20px; border-left:1px solid transparent;">
+                            ${minusHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (countGoals >= 2) awardBox.innerHTML += `<div class="award-badge award-goleador" title="Wird ab 2 Toren im Turnier verliehen.">🔥 Goleador</div>`;
+            if (countAssists >= 2) awardBox.innerHTML += `<div class="award-badge award-spielmacher" title="Wird ab 2 Assists im Turnier verliehen.">🎯 Spielmacher</div>`;
+            if (countSubbedIn >= 2) awardBox.innerHTML += `<div class="award-badge award-joker" title="Wird ab 2 Einwechslungen als Joker verliehen.">🃏 Super-Joker</div>`;
+            if (countRed >= 1 || countYellow >= 2) awardBox.innerHTML += `<div class="award-badge award-hitzkopf" title="Wird bei einer Roten oder ab 2 Gelben Karten verliehen.">🛑 Hitzkopf</div>`;
+            if (countErrors >= 1) awardBox.innerHTML += `<div class="award-badge award-pechvogel" title="Wird bei Eigentoren oder verschossenen/verursachten Elfmetern verliehen.">🤕 Pechvogel</div>`;
+
+            if (gamesArray.length > 0) {
+                gamesArray.sort((a, b) => Number(a.MatchID) - Number(b.MatchID));
+
+                gamesArray.forEach(val => {
+                    const matchVisual = getMatchVisualData(val, player['Nationalteam.name']);
+                    const matchNumber = getMatchNumberByRawId(val.MatchID);
+
+                    let detailsHTML = '';
+                    if (val.Aufstellung) {
+                        let combinedGameDefPts = 0;
+                        let hasGameDefStats = false;
+
+                        Object.entries(val.Aufstellung).forEach(([k, v]) => {
+                            if (k === 'DEF_BASE_PTS' || k === 'GEGENTOR_GK_DEF') {
+                                combinedGameDefPts += v;
+                                if (k === 'DEF_BASE_PTS' && v > 0) hasGameDefStats = true;
+                            } else if (v !== 0) {
+                                const displayName = RULE_NAMES_MATCH[k] || k;
+                                detailsHTML += `<div class="game-detail-row"><span>${escapeHtml(displayName)}:</span><strong>${v > 0 ? '+' : ''}${v}</strong></div>`;
+                            }
+                        });
+
+                        if (hasGameDefStats && combinedGameDefPts !== 0) {
+                            detailsHTML += `<div class="game-detail-row"><span>Gegentore:</span><strong>${combinedGameDefPts > 0 ? '+' : ''}${combinedGameDefPts}</strong></div>`;
+                        }
+                    }
+
+                    if (detailsHTML === '') {
+                        detailsHTML = '<div style="color:#888; font-size:13px;">Keine Punkte-Ereignisse in diesem Spiel.</div>';
+                    }
+
+                    const leftFlagHtml = matchVisual.leftFlag
+                        ? `<img src="${matchVisual.leftFlag}" class="match-flag" alt="${escapeHtml(matchVisual.leftName)}">`
+                        : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+
+                    const rightFlagHtml = matchVisual.rightFlag
+                        ? `<img src="${matchVisual.rightFlag}" class="match-flag" alt="${escapeHtml(matchVisual.rightName)}">`
+                        : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+
+                    const leftNationEncoded = encodeURIComponent(matchVisual.leftName);
+                    const rightNationEncoded = encodeURIComponent(matchVisual.rightName);
+
+                    const card = document.createElement('div');
+                    card.className = 'match-card';
+                    card.innerHTML = `
+                        <div class="match-header" onclick="toggleDetails(this)">
+                            <div class="match-duel">
+                                <div class="match-side">
+                                    ${leftFlagHtml}
+                                    <button class="match-country-btn match-side-name" type="button" onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${leftNationEncoded}'), '${matchNumber || ''}')">${escapeHtml(matchVisual.leftName)}</button>
+                                </div>
+
+                                <div class="match-score ${matchVisual.resultClass}">
+                                    ${matchVisual.leftGoals} : ${matchVisual.rightGoals}
+                                </div>
+
+                                <div class="match-side right">
+                                    <button class="match-country-btn match-side-name" type="button" onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${rightNationEncoded}'), '${matchNumber || ''}')">${escapeHtml(matchVisual.rightName)}</button>
+                                    ${rightFlagHtml}
+                                </div>
+                            </div>
+
+                            <div class="match-summary-right">
+                                <div class="match-total ${val.TotalPunkte < 0 ? 'neg' : ''}">${val.TotalPunkte > 0 ? '+' : ''}${val.TotalPunkte} Pkt.</div>
+                                <span class="toggle-icon">▼</span>
+                            </div>
+                        </div>
+                        <div class="match-details-content">
+                            ${matchNumber ? `<div style="font-size:12px; font-weight:900; color:#64748b; margin-bottom:10px;">Spiel ${matchNumber}</div>` : ''}
+                            ${detailsHTML}
+                        </div>
+                    `;
+                    gameBox.appendChild(card);
+                });
+            } else {
+                gameBox.innerHTML = '<div style="color:#888; padding:10px; font-style:italic;">Noch keine Spiele absolviert.</div>';
+            }
+        } else {
+            combinedPointsBox.innerHTML = `
+                <div class="taktik-header" onclick="toggleDetails(this)" style="display:block; padding:25px 30px; background:#fff; cursor:pointer; transition:0.2s;">
+                    <div class="taktik-grid" style="margin:0; align-items:center;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding-right:10px;">
+                            <h4 style="margin:0; color:#2e7d32; font-size:18px; display:flex; align-items:center; gap:8px;">📈 Pluspunkte</h4>
+                            <span class="taktik-sum pos" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">+0</span>
+                        </div>
+                        <div class="minus-header-col" style="display:flex; justify-content:space-between; align-items:center; padding-left:20px; border-left:1px solid #eee;">
+                            <h4 style="margin:0; color:#c62828; font-size:18px; display:flex; align-items:center; gap:8px;">📉 Minuspunkte</h4>
+                            <div style="display:flex; align-items:center; gap:15px;">
+                                <span class="taktik-sum neg" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">0</span>
+                                <span class="toggle-icon" style="color:#888;">▼</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="taktik-content" style="display:none; padding:0 30px 25px 30px; background:#fff;">
+                    <div class="empty-cat">Keine Daten</div>
+                </div>
+            `;
+            gameBox.innerHTML = '<div style="color:#888; padding:10px; font-style:italic;">Noch keine Spiele absolviert.</div>';
+        }
+
+        document.querySelectorAll('.list-item').forEach(el => {
+            const nameEl = el.querySelector('.list-name');
+            el.classList.toggle('active', !!nameEl && nameEl.textContent === player.Spielername);
+        });
+
+        syncSidebarHeight();
+    }
+
+    function getMatchNumberByRawId(rawId) {
+        const num = Number(rawId);
+        const found = matchCatalog.find(m => Number(m.rawMatchId) === num);
+        return found ? found.number : null;
+    }
+
+    function getSelectedGamesCountryStats() {
+        if (currentGameNationFilter === 'ALL') return null;
+        return gamesCountryStatsMap.get(currentGameNationFilter) || null;
+    }
+
+    function getSortedGamesCountryStats() {
+        const items = [...gamesCountryStats];
+
+        if (currentGamesSort === 'name') {
+            items.sort((a, b) => a.nation.localeCompare(b.nation, 'de'));
+        } else {
+            items.sort((a, b) => {
+                if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                return a.nation.localeCompare(b.nation, 'de');
+            });
+        }
+
+        return items;
+    }
+
+    function getGamesScoreClass(match) {
+        if (currentGameNationFilter === 'ALL') return 'draw';
+
+        const outcome = match.outcomeByNation?.[currentGameNationFilter];
+        if (outcome === 'win') return 'win';
+        if (outcome === 'loss') return 'loss';
+        if (outcome === 'draw') return 'draw';
+
+        const parsed = parseResultString(match.resultText || '');
+        if (!parsed) return 'draw';
+
+        if (currentGameNationFilter === parsed.homeName) {
+            if (parsed.homeGoals > parsed.awayGoals) return 'win';
+            if (parsed.homeGoals < parsed.awayGoals) return 'loss';
+            return 'draw';
+        }
+
+        if (currentGameNationFilter === parsed.awayName) {
+            if (parsed.awayGoals > parsed.homeGoals) return 'win';
+            if (parsed.awayGoals < parsed.homeGoals) return 'loss';
+            return 'draw';
+        }
+
+        return 'draw';
+    }
+
+    function restoreGamesCountryListScroll(targetScrollTop = gamesCountryListScrollTop) {
+        const list = document.getElementById('games-country-list');
+        if (!list) return;
+
+        const desiredScrollTop = Math.max(0, Number(targetScrollTop) || 0);
+        const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
+        list.scrollTop = Math.min(desiredScrollTop, maxScrollTop);
+        gamesCountryListScrollTop = list.scrollTop;
+    }
+
+    function renderGamesCountryList(preserveScroll = true) {
+        const list = document.getElementById('games-country-list');
+        const countries = getSortedGamesCountryStats();
+        const preservedScrollTop = preserveScroll ? gamesCountryListScrollTop : 0;
+
+        if (!countries.length) {
+            gamesCountryListScrollTop = 0;
+            list.innerHTML = '<div class="sidebar-empty">Keine Länder gefunden.</div>';
+            return;
+        }
+
+        list.innerHTML = countries.map(entry => {
+            const nationEncoded = encodeURIComponent(entry.nation);
+            const flagHtml = entry.flag
+                ? `<img src="${entry.flag}" class="games-country-flag-small" alt="${escapeHtml(entry.nation)}">`
+                : `<span class="games-country-flag-small" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+
+            return `
+                <div class="games-country-item ${currentGameNationFilter === entry.nation ? 'active' : ''}" onclick="selectGamesNation(decodeURIComponent('${nationEncoded}'))">
+                    <div class="games-country-left">
+                        ${flagHtml}
+                        <div class="games-country-name-small">${escapeHtml(entry.nation)}</div>
+                    </div>
+                    <div class="games-country-total-small ${entry.totalPoints < 0 ? 'neg' : ''}">${formatPoints(entry.totalPoints)}</div>
+                </div>
+            `;
+        }).join('');
+
+        requestAnimationFrame(() => {
+            restoreGamesCountryListScroll(preservedScrollTop);
+        });
+    }
+
+    function renderGamesTopCard() {
+        const card = document.getElementById('games-top-card');
+        const stats = getSelectedGamesCountryStats();
+
+        if (!stats) {
+            card.innerHTML = `
+                <div class="games-country-summary">
+                    <div class="games-country-main">
+                        <div class="games-country-placeholder">🌍</div>
+                        <div class="games-country-text">
+                            <div class="games-country-label">Land</div>
+                            <h2 class="games-country-name">Kein Land ausgewählt</h2>
+                            <p class="games-country-subtitle">Links ein Land wählen oder unten alle Spiele des Turniers durchsuchen.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const flagHtml = stats.flag
+            ? `<img src="${stats.flag}" class="games-country-flag-large" alt="${escapeHtml(stats.nation)}">`
+            : `<div class="games-country-placeholder">🏳️</div>`;
+
+        card.innerHTML = `
+            <div class="games-country-summary">
+                <div class="games-country-main">
+                    ${flagHtml}
+                    <div class="games-country-text">
+                        <div class="games-country-label">Land</div>
+                        <h2 class="games-country-name">${escapeHtml(stats.nation)}</h2>
+                        <p class="games-country-subtitle">Alle Spiele und alle Spieler dieses Landes im Überblick.</p>
+                    </div>
+                </div>
+
+                <div class="games-country-points-box">
+                    <div class="games-country-points-label">Total Punkte</div>
+                    <div class="games-country-points-value ${stats.totalPoints < 0 ? 'neg' : ''}">${formatPoints(stats.totalPoints)}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function buildFilteredGames() {
+        return matchCatalog.filter(match => {
+            if (currentGameNationFilter === 'ALL') return true;
+            return match.teamA === currentGameNationFilter || match.teamB === currentGameNationFilter;
+        });
+    }
+
+    function renderGamesView() {
+        const list = document.getElementById('games-list');
+        let games = buildFilteredGames();
+
+        if (currentOpenGameNumber && !games.some(match => String(match.number) === String(currentOpenGameNumber))) {
+            currentOpenGameNumber = null;
+        }
+
+        renderGamesCountryList();
+        renderGamesTopCard();
+
+        if (!games.length) {
+            list.innerHTML = '<div class="games-empty">Keine Spiele für dieses Land gefunden.</div>';
+            syncSidebarHeight();
+            return;
+        }
+
+        list.innerHTML = games.map(match => {
+            const visual = getNeutralMatchVisual(match.resultText, match.teamA, match.teamB);
+            const scoreClass = getGamesScoreClass(match);
+
+            const leftFlagHtml = visual.leftFlag
+                ? `<img src="${visual.leftFlag}" class="match-flag" alt="${escapeHtml(visual.leftName)}">`
+                : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+            const rightFlagHtml = visual.rightFlag
+                ? `<img src="${visual.rightFlag}" class="match-flag" alt="${escapeHtml(visual.rightName)}">`
+                : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+
+            const bodyA = renderGamesTeamPlayers(match.teamA, match.playersByNation[match.teamA] || []);
+            const bodyB = renderGamesTeamPlayers(match.teamB, match.playersByNation[match.teamB] || []);
+
+            return `
+                <div class="games-match-card">
+                    <div class="games-match-header" onclick="openGameCard('${match.number}')">
+                        <div class="games-match-number">Spiel ${match.number}</div>
+
+                        <div class="games-match-duel">
+                            <div class="games-team">
+                                ${leftFlagHtml}
+                                <span class="games-team-name">${escapeHtml(visual.leftName)}</span>
+                            </div>
+
+                            <div class="games-score ${scoreClass}">
+                                ${visual.leftGoals} : ${visual.rightGoals}
+                            </div>
+
+                            <div class="games-team right">
+                                <span class="games-team-name">${escapeHtml(visual.rightName)}</span>
+                                ${rightFlagHtml}
+                            </div>
+                        </div>
+
+                        <div class="games-match-toggle">${String(currentOpenGameNumber) === String(match.number) ? '▲' : '▼'}</div>
+                    </div>
+
+                    <div class="games-match-body" style="display:${String(currentOpenGameNumber) === String(match.number) ? 'block' : 'none'};">
+                        <div class="games-teams-grid">
+                            <div class="games-team-card">
+                                <div class="games-team-card-header">
+                                    ${leftFlagHtml}
+                                    <span>${escapeHtml(match.teamA)}</span>
+                                </div>
+                                <div class="games-player-list">${bodyA}</div>
+                            </div>
+
+                            <div class="games-team-card">
+                                <div class="games-team-card-header">
+                                    ${rightFlagHtml}
+                                    <span>${escapeHtml(match.teamB)}</span>
+                                </div>
+                                <div class="games-player-list">${bodyB}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        syncSidebarHeight();
+    }
+
+    function renderGamesTeamPlayers(teamName, players) {
+        if (!players.length) {
+            return '<div class="games-empty">Keine Spieler-Daten vorhanden.</div>';
+        }
+
+        return players.map(player => {
+            const playerEncoded = encodeURIComponent(player.name);
+            return `
+                <button type="button" class="games-player-row ${player.drafted ? 'drafted' : ''}" onclick="openPlayerFromGames(decodeURIComponent('${playerEncoded}'))">
+                    <div class="games-player-left">
+                        <div class="games-player-name">${escapeHtml(player.name)}</div>
+                        <div class="games-player-meta">${escapeHtml(player.position)} • ${escapeHtml(player.club)}</div>
+                    </div>
+                    <div class="games-player-right">
+                        ${player.drafted ? `<span class="games-picked-badge">Gewählt</span>` : ''}
+                        <span class="games-player-points ${player.totalPoints < 0 ? 'neg' : ''}">${formatPoints(player.totalPoints)}</span>
+                    </div>
+                </button>
+            `;
+        }).join('');
+    }
+
+    function openGameCard(gameNumber, push = false) {
+        if (String(currentOpenGameNumber) === String(gameNumber)) {
+            currentOpenGameNumber = null;
+        } else {
+            currentOpenGameNumber = String(gameNumber);
+        }
+
+        renderGamesView();
+        if (currentView !== 'games') setView('games', false);
+        updateUrl(push);
+    }
+
+    window.openGameCard = openGameCard;
+
+    function selectGamesNation(nation, push = true) {
+        const countryList = document.getElementById('games-country-list');
+        if (countryList) {
+            gamesCountryListScrollTop = countryList.scrollTop;
+        }
+
+        currentGameNationFilter = nation || 'ALL';
+        currentOpenGameNumber = null;
+        renderGamesView();
+        if (currentView !== 'games') setView('games', false);
+        updateUrl(push);
+    }
+
+    window.selectGamesNation = selectGamesNation;
+
+    function openPlayerFromGames(playerName) {
+        const player = playersData.find(p => p.Spielername === playerName);
+        if (!player) return;
+
+        currentPlayerName = playerName;
+        setView('players', false);
+        showPlayerDetails(player);
+        updateUrl(true);
+    }
+
+    window.openPlayerFromGames = openPlayerFromGames;
+
+    function openGamesViewWithNation(nation, matchNumber = null) {
+        const countryList = document.getElementById('games-country-list');
+        if (countryList) {
+            gamesCountryListScrollTop = countryList.scrollTop;
+        }
+
+        currentGameNationFilter = nation || 'ALL';
+        currentOpenGameNumber = matchNumber || null;
+        setView('games', false);
+        renderGamesView();
+        updateUrl(true);
+    }
+
+    window.openGamesViewWithNation = openGamesViewWithNation;
+
+    function applyDataset(data, options = {}) {
+        const preserveCurrentPlayer = !!options.preserveCurrentPlayer;
+
+        pointsData = data.points || {};
+        allTeams = Array.isArray(data.teams) ? data.teams : [];
+
+        buildPlayerSelectedMap();
+        calculatePerfectTeamIds();
+        initStaticFilters();
+        buildGamesCountryStats();
+        buildMatchCatalog();
+
+        const state = getStateFromUrl();
+
+        currentView = state.view;
+        currentGameNationFilter = state.gameNation || 'ALL';
+        currentOpenGameNumber = state.openGame || null;
+        currentGamesSort = state.gameSort || 'pts';
+
+        if (currentGameNationFilter !== 'ALL' && !gamesCountryStatsMap.has(currentGameNationFilter)) {
+            currentGameNationFilter = 'ALL';
+        }
+
+        if (!preserveCurrentPlayer) {
+            currentPlayerName = state.player || null;
+        } else if (state.player) {
+            currentPlayerName = state.player;
+        }
+
+        if (state.club && Array.from(document.getElementById('club-filter').options).some(o => o.value === state.club)) {
+            document.getElementById('club-filter').value = state.club;
+        }
+
+        document.getElementById('games-sort-name').classList.toggle('active', currentGamesSort === 'name');
+        document.getElementById('games-sort-pts').classList.toggle('active', currentGamesSort === 'pts');
+
+        const filteredData = applyFilters();
+        renderGamesView();
+
+        let targetPlayer = null;
+        if (currentPlayerName) {
+            targetPlayer = playersData.find(p => p.Spielername === currentPlayerName);
+        }
+
+        if (!targetPlayer && filteredData.length > 0) {
+            targetPlayer = filteredData[0];
+            currentPlayerName = targetPlayer.Spielername;
+        }
+
+        if (targetPlayer) {
+            showPlayerDetails(targetPlayer);
+        } else {
+            document.getElementById('detail-view').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'block';
+            document.getElementById('empty-state').innerText = 'Keine Spieler für diese Filter gefunden.';
+        }
+
+        setView(currentView, false);
+        hasRenderedOnce = true;
+    }
+
+    window.toggleDetails = function(headerEl) {
+        const content = headerEl.nextElementSibling;
+        const icon = headerEl.querySelector('.toggle-icon');
+
+        if (content.style.display === 'block') {
+            content.style.display = 'none';
+            if (icon) icon.innerText = '▼';
+            headerEl.style.background = '#f8f9fa';
+        } else {
+            content.style.display = 'block';
+            if (icon) icon.innerText = '▲';
+            headerEl.style.background = '#eef2f7';
+        }
+
+        syncSidebarHeight();
+    };
+
+    document.getElementById('btn-view-players').addEventListener('click', () => {
+        setView('players', true);
+    });
+
+    document.getElementById('btn-view-games').addEventListener('click', () => {
+        setView('games', true);
+    });
+
+    document.getElementById('tile-nation').onclick = () => {
+        const nat = document.getElementById('detail-nation-name').innerText;
+        if (nat && nat !== '-') {
+            document.getElementById('search-input').value = '';
+            document.getElementById('pos-filter').value = 'ALL';
+            document.getElementById('club-filter').value = 'ALL';
+            document.getElementById('nation-filter').value = nat;
+            applyFilters();
+            jumpToFiltersOnMobile();
+            updateUrl(false);
+        }
+    };
+
+    document.getElementById('tile-club').onclick = () => {
+        const club = document.getElementById('detail-club-name').innerText;
+        if (club && club !== 'Vereinslos' && club !== '-') {
+            document.getElementById('search-input').value = '';
+            document.getElementById('pos-filter').value = 'ALL';
+            document.getElementById('nation-filter').value = 'ALL';
+            document.getElementById('club-filter').value = club;
+            applyFilters();
+            jumpToFiltersOnMobile();
+            updateUrl(false);
+        }
+    };
+
+    document.getElementById('search-input').oninput = () => {
+        applyFilters();
+        updateUrl(false);
+    };
+
+    document.getElementById('pos-filter').onchange = () => {
+        applyFilters();
+        updateUrl(false);
+    };
+
+    document.getElementById('nation-filter').onchange = () => {
+        applyFilters();
+        updateUrl(false);
+    };
+
+    document.getElementById('club-filter').onchange = () => {
+        applyFilters();
+        updateUrl(false);
+    };
+
+    document.getElementById('reset-filters').onclick = () => {
+        document.getElementById('search-input').value = '';
+        document.getElementById('pos-filter').value = 'ALL';
+        document.getElementById('nation-filter').value = 'ALL';
+        document.getElementById('club-filter').value = 'ALL';
+        applyFilters();
+        updateUrl(false);
+    };
+
+    document.getElementById('sort-name').onclick = () => {
+        currentSort = 'name';
+        document.getElementById('sort-name').classList.add('active');
+        document.getElementById('sort-pts').classList.remove('active');
+        applyFilters();
+        updateUrl(false);
+    };
+
+    document.getElementById('sort-pts').onclick = () => {
+        currentSort = 'pts';
+        document.getElementById('sort-pts').classList.add('active');
+        document.getElementById('sort-name').classList.remove('active');
+        applyFilters();
+        updateUrl(false);
+    };
+
+    document.getElementById('games-sort-name').onclick = () => {
+        currentGamesSort = 'name';
+        document.getElementById('games-sort-name').classList.add('active');
+        document.getElementById('games-sort-pts').classList.remove('active');
+        renderGamesView();
+        updateUrl(false);
+    };
+
+    document.getElementById('games-sort-pts').onclick = () => {
+        currentGamesSort = 'pts';
+        document.getElementById('games-sort-pts').classList.add('active');
+        document.getElementById('games-sort-name').classList.remove('active');
+        renderGamesView();
+        updateUrl(false);
+    };
+
+    document.getElementById('games-reset-filters').addEventListener('click', () => {
+        const countryList = document.getElementById('games-country-list');
+        if (countryList) {
+            gamesCountryListScrollTop = countryList.scrollTop;
+        }
+
+        currentGameNationFilter = 'ALL';
+        currentOpenGameNumber = null;
+        renderGamesView();
+        updateUrl(true);
+    });
+
+    document.getElementById('player-list').addEventListener('scroll', () => {
+        const list = document.getElementById('player-list');
+        playerListScrollTop = list.scrollTop;
+
+        if (list.scrollTop + list.clientHeight >= list.scrollHeight - 80) {
+            appendNextPlayerBatch();
+        }
+    });
+
+    document.getElementById('games-country-list').addEventListener('scroll', () => {
+        const list = document.getElementById('games-country-list');
+        gamesCountryListScrollTop = list.scrollTop;
+    });
+
+    window.addEventListener('resize', syncSidebarHeight);
+
+    window.addEventListener('popstate', () => {
+        if (!hasRenderedOnce) return;
+        applyDataset({ points: pointsData, teams: allTeams }, { preserveCurrentPlayer: false });
+    });
+
+    async function refreshFromMeta(remoteMeta) {
+        if (isMetaRefreshRunning) return;
+        isMetaRefreshRunning = true;
+
+        try {
+            const updated = await DreamTeamCache.loadBundle({
+                ...CACHE_OPTIONS,
+                remoteMetaOverride: remoteMeta
+            });
+            applyDataset(updated.data, { preserveCurrentPlayer: true });
+        } catch (err) {
+            console.error('Meta-Refresh fehlgeschlagen:', err);
+        } finally {
+            isMetaRefreshRunning = false;
+        }
+    }
+
+    async function init() {
+        try {
+            const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
+            if (cached.ok) {
+                applyDataset(cached.data, { preserveCurrentPlayer: false });
+            }
+
+            const fresh = await DreamTeamCache.loadBundle(CACHE_OPTIONS);
+            applyDataset(fresh.data, { preserveCurrentPlayer: true });
+
+            if (!metaUnsubscribe) {
+                metaUnsubscribe = DreamTeamCache.subscribeToMeta({
+                    ...CACHE_OPTIONS,
+                    onChange: async ({ remoteMeta }) => {
+                        await refreshFromMeta(remoteMeta);
+                    },
+                    onError: (err) => {
+                        console.error('Meta-Listener Fehler:', err);
+                    }
+                });
+            }
+
+        } catch (e) {
+            console.error(e);
+            if (!hasRenderedOnce) {
+                document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:red;">Fehler beim Laden.</div>';
+                document.getElementById('games-country-list').innerHTML = '<div class="sidebar-empty" style="color:red;">Fehler beim Laden.</div>';
+                document.getElementById('games-list').innerHTML = '<div class="games-empty" style="color:red;">Fehler beim Laden.</div>';
+            }
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+
+    window.addEventListener('beforeunload', () => {
+        if (typeof metaUnsubscribe === 'function') {
+            metaUnsubscribe();
+        }
+    });
+</script>
+</body>
+</html>
