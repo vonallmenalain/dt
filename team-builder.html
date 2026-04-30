@@ -2086,9 +2086,8 @@
     <header class="builder-hero">
         <div class="builder-hero-inner">
             <div class="builder-hero-title-area">
-                <div class="builder-hero-badge">⚽ Draft Command Center</div>
                 <h1 class="builder-hero-title">
-                    Baue dein <span class="gold-text" id="hero-tournament-label">DreamTeam</span>
+                    Baue dein <span class="gold-text" id="hero-tournament-label">EM 2024</span> <span class="accent">DreamTeam</span>
                 </h1>
                 <p class="builder-hero-subtitle">
                     15 Spieler &nbsp;·&nbsp; 1 Captain &nbsp;·&nbsp; Maximal 1 Spieler pro Nation
@@ -2108,7 +2107,6 @@
         <div class="dsb-inner">
             <div class="dsb-pill players" id="dsb-players-pill">0 / 15 gewählt</div>
             <div class="dsb-pill captain-missing" id="dsb-captain-pill">👑 Captain fehlt</div>
-            <div class="dsb-pill nations" id="dsb-nations-pill">🌍 Nationen-Regel aktiv</div>
             <div class="dsb-spacer"></div>
             <!-- Nations flags -->
             <div class="dsb-nations-flags" id="dsb-nations-flags" aria-label="Gewählte Nationen"></div>
@@ -2856,26 +2854,7 @@
 
         dom.mobileBuilder.innerHTML = html;
 
-        /* Bind toggle events */
-        dom.mobileBuilder.querySelectorAll('[data-toggle-pos]').forEach(el => {
-            el.addEventListener('click', (e) => {
-                const section = el.closest('.mobile-position-section');
-                if (!section) return;
-                section.classList.toggle('open');
-                el.setAttribute('aria-expanded', section.classList.contains('open') ? 'true' : 'false');
-            });
-            el.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
-            });
-        });
-
-        /* Bind slot interactions */
-        dom.mobileBuilder.addEventListener('click', handleSlotInteraction);
-        dom.mobileBuilder.querySelectorAll('[data-action="open-slot"]').forEach(el => {
-            el.addEventListener('keydown', e => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
-            });
-        });
+        /* Event listeners for mobile builder are set up once via delegation in setupUI() */
     }
 
     /* =========================================================
@@ -3560,6 +3539,31 @@
         const benchEl = document.getElementById('bench-slots');
         if (benchEl && benchEl !== dom.pitchContainer) {
             benchEl.addEventListener('click', handleSlotInteraction);
+        }
+
+        /* Mobile builder — single delegated click + keydown handler (set up once to avoid accumulation) */
+        if (dom.mobileBuilder) {
+            dom.mobileBuilder.addEventListener('click', (e) => {
+                /* Accordion toggle */
+                const toggleEl = e.target.closest('[data-toggle-pos]');
+                if (toggleEl) {
+                    const section = toggleEl.closest('.mobile-position-section');
+                    if (section) {
+                        section.classList.toggle('open');
+                        toggleEl.setAttribute('aria-expanded', section.classList.contains('open') ? 'true' : 'false');
+                    }
+                    return;
+                }
+                /* Slot interaction (open-slot, set-captain, remove-player) */
+                handleSlotInteraction(e);
+            });
+            dom.mobileBuilder.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const toggleEl = e.target.closest('[data-toggle-pos]');
+                if (toggleEl) { e.preventDefault(); toggleEl.click(); return; }
+                const slotEl = e.target.closest('[data-action="open-slot"]');
+                if (slotEl) { e.preventDefault(); slotEl.click(); }
+            });
         }
 
         /* Picker search & filters */
