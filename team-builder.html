@@ -1524,7 +1524,46 @@
 
         @media (max-width: 900px) {
             .mobile-feedback {
-                bottom: 74px;
+                bottom: 100px;
+            }
+        }
+
+        /* Next-slot action toast */
+        .next-slot-action {
+            position: fixed;
+            left: 50%;
+            bottom: 74px;
+            transform: translateX(-50%) translateY(14px);
+            background: rgba(34,197,94,0.18);
+            border: 1.5px solid rgba(74,222,128,0.45);
+            color: var(--green-light);
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(74,222,128,0.1);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            z-index: 4999;
+            white-space: nowrap;
+            max-width: calc(100vw - 32px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .next-slot-action.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        @media (min-width: 901px) {
+            .next-slot-action {
+                display: none !important;
             }
         }
 
@@ -1802,6 +1841,111 @@
         }
 
         /* =====================================================
+           FILTER CHIPS (Mobile Picker)
+           ===================================================== */
+        .picker-filter-chips {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+            flex-wrap: nowrap;
+        }
+
+        .picker-filter-chips::-webkit-scrollbar { display: none; }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1.5px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+            color: var(--text-muted);
+            transition: background 0.18s, border-color 0.18s, color 0.18s;
+            flex-shrink: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .filter-chip:active {
+            transform: scale(0.95);
+        }
+
+        .filter-chip.active {
+            background: rgba(34,197,94,0.18);
+            border-color: rgba(74,222,128,0.5);
+            color: var(--green-light);
+        }
+
+        .filter-chip.active-nation {
+            background: rgba(99,102,241,0.18);
+            border-color: rgba(99,102,241,0.5);
+            color: #a5b4fc;
+        }
+
+        .filter-chip.reset-chip {
+            background: rgba(239,68,68,0.08);
+            border-color: rgba(239,68,68,0.25);
+            color: #f87171;
+        }
+
+        .filter-chip.reset-chip:active {
+            background: rgba(239,68,68,0.2);
+        }
+
+        .picker-filter-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Nation select chip (styled select for desktop; hidden on mobile) */
+        .picker-nation-select-wrap {
+            position: relative;
+        }
+
+        /* Next slot suggestion bar */
+        .picker-next-slot-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(74,222,128,0.07);
+            border: 1px solid rgba(74,222,128,0.2);
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--green-light);
+            cursor: pointer;
+            transition: background 0.18s;
+            flex-shrink: 0;
+        }
+
+        .picker-next-slot-bar.visible {
+            display: flex;
+        }
+
+        .picker-next-slot-bar:active {
+            background: rgba(74,222,128,0.14);
+        }
+
+        .picker-next-slot-bar-label {
+            flex: 1;
+        }
+
+        .picker-next-slot-bar-arrow {
+            opacity: 0.7;
+        }
+
+        /* =====================================================
            MOBILE PICKER BOTTOM SHEET
            ===================================================== */
         @media (max-width: 900px) {
@@ -1860,9 +2004,9 @@
                 inset: 0;
                 width: auto;
                 min-width: 0;
-                background: rgba(5,10,14,0.7);
-                backdrop-filter: blur(6px);
-                -webkit-backdrop-filter: blur(6px);
+                background: rgba(5,10,14,0.75);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
                 padding: 0;
                 display: none;
                 align-items: flex-end;
@@ -1872,6 +2016,12 @@
 
             .picker-host.mobile-open {
                 display: flex;
+                animation: backdropFadeIn 0.22s ease both;
+            }
+
+            @keyframes backdropFadeIn {
+                from { opacity: 0; }
+                to   { opacity: 1; }
             }
 
             .picker-panel {
@@ -1879,19 +2029,39 @@
                 max-width: 640px;
                 min-width: 0;
                 max-height: 90svh;
+                max-height: 90vh;
                 display: flex;
                 flex-direction: column;
+                animation: sheetSlideUp 0.3s cubic-bezier(0.32,0.72,0,1) both;
+            }
+
+            @keyframes sheetSlideUp {
+                from { transform: translateY(100%); opacity: 0.7; }
+                to   { transform: translateY(0);    opacity: 1; }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .picker-panel {
+                    animation: none !important;
+                }
+                .picker-host.mobile-open {
+                    animation: none !important;
+                }
             }
 
             .picker-card {
                 border-radius: 20px 20px 0 0;
                 max-height: 90svh;
+                max-height: 90vh;
                 height: auto !important;
-                box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+                box-shadow: 0 -8px 40px rgba(0,0,0,0.6), 0 -1px 0 rgba(255,255,255,0.08);
                 padding: 0;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
+                background: rgba(22,27,34,0.98);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
             }
 
             /* Drag handle */
@@ -1900,26 +2070,48 @@
                 display: block;
                 width: 40px;
                 height: 4px;
-                background: rgba(255,255,255,0.15);
+                background: rgba(255,255,255,0.18);
                 border-radius: 2px;
-                margin: 12px auto 0;
+                margin: 14px auto 0;
                 flex-shrink: 0;
             }
 
             .picker-header {
-                padding: 12px 16px 12px;
+                padding: 10px 16px 12px;
                 margin-bottom: 0;
                 flex-shrink: 0;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
             }
 
             .picker-controls {
-                padding: 0 16px;
+                padding: 10px 16px 0;
                 margin-bottom: 0;
                 flex-shrink: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .picker-controls .picker-select {
+                display: none; /* Hidden on mobile – replaced by filter chips */
+            }
+
+            .picker-controls .picker-clear-btn {
+                display: none; /* Hidden on mobile – use reset chip instead */
+            }
+
+            .picker-filter-chips-wrap {
+                flex-shrink: 0;
+                padding: 0 16px 8px;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+
+            .picker-next-slot-bar {
+                margin: 0 16px;
             }
 
             .picker-summary {
-                padding: 0 16px;
+                padding: 8px 16px 4px;
                 flex-shrink: 0;
             }
 
@@ -1932,12 +2124,12 @@
                 padding: 0 16px;
                 flex: 1;
                 min-height: 200px;
-                /* Avoid keyboard overlap */
                 padding-bottom: env(safe-area-inset-bottom, 12px);
             }
 
             .picker-list {
                 padding-bottom: 16px;
+                gap: 10px;
             }
 
             .picker-close-btn {
@@ -1945,32 +2137,71 @@
             }
 
             .picker-title {
-                font-size: 1.2rem;
+                font-size: 1.15rem;
             }
 
             .picker-row {
-                padding: 10px;
-                min-height: 56px;
+                padding: 12px;
+                min-height: 64px;
+                border-radius: 12px;
+            }
+
+            .picker-row.disabled {
+                opacity: 0.55;
             }
 
             .picker-avatar-wrap {
-                width: 44px;
-                height: 44px;
+                width: 50px;
+                height: 50px;
+                border-radius: 10px;
             }
 
             .picker-name {
                 font-size: 14px;
+                font-weight: 800;
             }
 
             .picker-meta {
                 font-size: 11px;
+                gap: 4px;
             }
 
             .picker-choose-btn {
-                padding: 10px 14px;
+                padding: 10px 16px;
                 font-size: 12px;
-                min-width: 58px;
-                min-height: 36px;
+                min-width: 64px;
+                min-height: 38px;
+                border-radius: 100px;
+            }
+
+            .picker-disabled-reason {
+                font-size: 10.5px;
+                margin-top: 3px;
+            }
+
+            /* On mobile, show position badge in picker row */
+            .picker-pos-badge {
+                display: inline-flex;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 9px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                background: rgba(255,255,255,0.1);
+                color: var(--text-muted);
+                margin-left: 2px;
+                vertical-align: middle;
+            }
+        }
+
+        /* On desktop, hide the mobile filter chips wrap */
+        @media (min-width: 901px) {
+            .picker-filter-chips-wrap {
+                display: none;
+            }
+            .picker-next-slot-bar {
+                display: none !important;
             }
         }
 
@@ -2171,7 +2402,7 @@
         </div>
 
         <!-- Picker Panel -->
-        <div class="picker-host" id="picker-host">
+        <div class="picker-host" id="picker-host" role="dialog" aria-modal="true" aria-labelledby="picker-title">
             <aside class="picker-panel" id="picker-panel" aria-label="Spieler-Auswahl">
                 <div class="picker-card" id="picker-card">
                     <div class="picker-header">
@@ -2186,13 +2417,26 @@
 
                     <div class="picker-controls">
                         <div class="picker-search-wrap">
-                            <input type="text" id="picker-search" class="picker-search" placeholder="🔍 Spieler, Club oder Land suchen…" autocomplete="off" autocorrect="off" spellcheck="false">
+                            <input type="text" id="picker-search" class="picker-search" placeholder="🔍 Spieler, Club oder Land suchen…" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Spieler suchen">
                             <button type="button" id="clear-picker-search" class="clear-input-btn" aria-label="Suche löschen">×</button>
                         </div>
                         <select id="picker-nation-filter" class="picker-select" aria-label="Nach Nation filtern">
                             <option value="ALL">🌍 Alle Länder</option>
                         </select>
                         <button type="button" id="clear-picker-filters" class="picker-clear-btn">Filter zurücksetzen</button>
+                    </div>
+
+                    <!-- Mobile filter chips (only visible on mobile) -->
+                    <div class="picker-filter-chips-wrap" id="picker-filter-chips-wrap">
+                        <div class="picker-filter-chips" id="picker-filter-chips" role="group" aria-label="Schnellfilter">
+                            <!-- Chips rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Next-slot suggestion (mobile only) -->
+                    <div class="picker-next-slot-bar" id="picker-next-slot-bar" role="button" tabindex="0" aria-label="Nächsten freien Slot öffnen">
+                        <span class="picker-next-slot-bar-label" id="picker-next-slot-label">Nächsten Slot wählen</span>
+                        <span class="picker-next-slot-bar-arrow">→</span>
                     </div>
 
                     <div class="picker-summary">
@@ -2258,6 +2502,9 @@
 
 <!-- Toast feedback -->
 <div id="mobile-feedback" class="mobile-feedback" role="status" aria-live="polite"></div>
+
+<!-- Next-slot action toast (mobile only) -->
+<div id="next-slot-action" class="next-slot-action" role="button" tabindex="0" aria-label="Nächsten freien Slot öffnen" style="display:none;"></div>
 
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
@@ -2400,45 +2647,56 @@
     let feedbackTimer         = null;
     let pendingBuilderNotice  = '';
 
+    /* Mobile filter chip state */
+    let mobileFilterOnlyAvailable = false;
+    let mobileFilterHideInvalid   = false;
+    let mobileFilterNation        = 'ALL';
+
+    let nextSlotActionTimer = null;
+
     /* =========================================================
        DOM REFERENCES
        ========================================================= */
     const dom = {
-        clearTeamBtn:       document.getElementById('clear-team-btn'),
-        managerName:        document.getElementById('manager-name'),
-        submitBtn:          document.getElementById('submit-btn'),
-        submitCard:         document.getElementById('submit-card'),
-        nameWarning:        document.getElementById('name-warning'),
-        duplicateWarning:   document.getElementById('duplicate-warning'),
-        captainWarning:     document.getElementById('captain-warning'),
-        builderNotice:      document.getElementById('builder-notice'),
-        builderNoticeInner: document.getElementById('builder-notice-inner'),
-        pickerHost:         document.getElementById('picker-host'),
-        pickerCard:         document.getElementById('picker-card'),
-        pickerTitle:        document.getElementById('picker-title'),
-        pickerSubtitle:     document.getElementById('picker-subtitle'),
-        pickerSearch:       document.getElementById('picker-search'),
-        clearPickerSearch:  document.getElementById('clear-picker-search'),
-        pickerNationFilter: document.getElementById('picker-nation-filter'),
-        clearPickerFilters: document.getElementById('clear-picker-filters'),
-        pickerResultCount:  document.getElementById('picker-result-count'),
-        pickerEmptyState:   document.getElementById('picker-empty-state'),
-        pickerResults:      document.getElementById('picker-results'),
-        pickerList:         document.getElementById('picker-list'),
-        pickerCloseBtn:     document.getElementById('picker-close-btn'),
-        pitchContainer:     document.getElementById('pitch-container'),
-        benchContainer:     document.getElementById('bench-slots'),
-        mobileFeedback:     document.getElementById('mobile-feedback'),
-        mobileBuilder:      document.getElementById('mobile-builder'),
-        dsbPlayersPill:     document.getElementById('dsb-players-pill'),
-        dsbCaptainPill:     document.getElementById('dsb-captain-pill'),
-        dsbNationsPill:     document.getElementById('dsb-nations-pill'),
-        dsbNationsFlags:    document.getElementById('dsb-nations-flags'),
-        dsbProgressFill:    document.getElementById('dsb-progress-fill'),
-        dsbProgressLabel:   document.getElementById('dsb-progress-label'),
-        submitProgressFill: document.getElementById('submit-progress-fill'),
-        submitProgressLabel:document.getElementById('submit-progress-label'),
-        submitHints:        document.getElementById('submit-hints')
+        clearTeamBtn:         document.getElementById('clear-team-btn'),
+        managerName:          document.getElementById('manager-name'),
+        submitBtn:            document.getElementById('submit-btn'),
+        submitCard:           document.getElementById('submit-card'),
+        nameWarning:          document.getElementById('name-warning'),
+        duplicateWarning:     document.getElementById('duplicate-warning'),
+        captainWarning:       document.getElementById('captain-warning'),
+        builderNotice:        document.getElementById('builder-notice'),
+        builderNoticeInner:   document.getElementById('builder-notice-inner'),
+        pickerHost:           document.getElementById('picker-host'),
+        pickerCard:           document.getElementById('picker-card'),
+        pickerTitle:          document.getElementById('picker-title'),
+        pickerSubtitle:       document.getElementById('picker-subtitle'),
+        pickerSearch:         document.getElementById('picker-search'),
+        clearPickerSearch:    document.getElementById('clear-picker-search'),
+        pickerNationFilter:   document.getElementById('picker-nation-filter'),
+        clearPickerFilters:   document.getElementById('clear-picker-filters'),
+        pickerResultCount:    document.getElementById('picker-result-count'),
+        pickerEmptyState:     document.getElementById('picker-empty-state'),
+        pickerResults:        document.getElementById('picker-results'),
+        pickerList:           document.getElementById('picker-list'),
+        pickerCloseBtn:       document.getElementById('picker-close-btn'),
+        pickerFilterChips:    document.getElementById('picker-filter-chips'),
+        pickerNextSlotBar:    document.getElementById('picker-next-slot-bar'),
+        pickerNextSlotLabel:  document.getElementById('picker-next-slot-label'),
+        pitchContainer:       document.getElementById('pitch-container'),
+        benchContainer:       document.getElementById('bench-slots'),
+        mobileFeedback:       document.getElementById('mobile-feedback'),
+        mobileBuilder:        document.getElementById('mobile-builder'),
+        dsbPlayersPill:       document.getElementById('dsb-players-pill'),
+        dsbCaptainPill:       document.getElementById('dsb-captain-pill'),
+        dsbNationsPill:       document.getElementById('dsb-nations-pill'),
+        dsbNationsFlags:      document.getElementById('dsb-nations-flags'),
+        dsbProgressFill:      document.getElementById('dsb-progress-fill'),
+        dsbProgressLabel:     document.getElementById('dsb-progress-label'),
+        submitProgressFill:   document.getElementById('submit-progress-fill'),
+        submitProgressLabel:  document.getElementById('submit-progress-label'),
+        submitHints:          document.getElementById('submit-hints'),
+        nextSlotAction:       document.getElementById('next-slot-action')
     };
 
     /* =========================================================
@@ -2523,12 +2781,154 @@
         if (!isMobileView()) return;
         dom.pickerHost.classList.add('mobile-open');
         document.body.classList.add('mobile-picker-open');
-        /* On mobile, do not auto-focus search to avoid opening keyboard unexpectedly. */
+        /* Trap focus inside dialog when opened */
+        requestAnimationFrame(() => {
+            const firstFocusable = dom.pickerCard ? dom.pickerCard.querySelector('button, input, select, [tabindex="0"]') : null;
+            if (firstFocusable) firstFocusable.focus({ preventScroll: true });
+        });
     }
 
     function closeMobilePicker() {
         dom.pickerHost.classList.remove('mobile-open');
         document.body.classList.remove('mobile-picker-open');
+        /* Hide next-slot bar when closing */
+        if (dom.pickerNextSlotBar) dom.pickerNextSlotBar.classList.remove('visible');
+    }
+
+    /* =========================================================
+       MOBILE FILTER CHIPS
+       ========================================================= */
+    function getMobileFilterNationLabel() {
+        if (mobileFilterNation === 'ALL') return null;
+        return mobileFilterNation;
+    }
+
+    function renderMobileFilterChips() {
+        if (!dom.pickerFilterChips) return;
+
+        const selectedNations = getSelectedNationNames(currentEditingSlotId);
+        const nationChips = allNations.map(n => {
+            const isTaken = selectedNations.has(n);
+            const isActive = mobileFilterNation === n;
+            return {
+                id: 'nation:' + n,
+                label: (isTaken ? '🔴 ' : '') + n,
+                active: isActive,
+                cls: isActive ? 'active-nation' : ''
+            };
+        });
+
+        const chips = [
+            {
+                id: 'available',
+                label: mobileFilterOnlyAvailable ? '✓ Nur verfügbar' : 'Nur verfügbar',
+                active: mobileFilterOnlyAvailable,
+                cls: mobileFilterOnlyAvailable ? 'active' : ''
+            },
+            {
+                id: 'hideinvalid',
+                label: mobileFilterHideInvalid ? '✓ Ungültige aus.' : 'Ungültige ausbl.',
+                active: mobileFilterHideInvalid,
+                cls: mobileFilterHideInvalid ? 'active' : ''
+            },
+            ...nationChips
+        ];
+
+        /* Add reset chip at end if any filter is active */
+        const anyActive = mobileFilterOnlyAvailable || mobileFilterHideInvalid || mobileFilterNation !== 'ALL' || (dom.pickerSearch && dom.pickerSearch.value.trim());
+        if (anyActive) {
+            chips.push({ id: 'reset', label: '✖ Reset', active: false, cls: 'reset-chip' });
+        }
+
+        dom.pickerFilterChips.innerHTML = chips.map(c => {
+            return `<div class="filter-chip ${c.cls}" data-chip-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-pressed="${c.active}">${escapeHtml(c.label)}</div>`;
+        }).join('');
+    }
+
+    function handleMobileFilterChipClick(chipId) {
+        if (!chipId) return;
+
+        if (chipId === 'available') {
+            mobileFilterOnlyAvailable = !mobileFilterOnlyAvailable;
+        } else if (chipId === 'hideinvalid') {
+            mobileFilterHideInvalid = !mobileFilterHideInvalid;
+        } else if (chipId === 'reset') {
+            mobileFilterOnlyAvailable = false;
+            mobileFilterHideInvalid   = false;
+            mobileFilterNation        = 'ALL';
+            if (dom.pickerSearch) dom.pickerSearch.value = '';
+            updateSearchClearButton();
+        } else if (chipId.startsWith('nation:')) {
+            const nation = chipId.slice(7);
+            mobileFilterNation = (mobileFilterNation === nation) ? 'ALL' : nation;
+        }
+
+        renderMobileFilterChips();
+        renderPickerPlayers(true);
+    }
+
+    /* =========================================================
+       NEXT-SLOT SUGGESTION (Mobile)
+       ========================================================= */
+    function getNextFreeSlot(afterSlotId) {
+        const idx = finalSlots.findIndex(s => s.id === String(afterSlotId));
+        if (idx < 0) return null;
+        /* Search from next slot onwards, then wrap */
+        for (let i = 1; i < finalSlots.length; i++) {
+            const s = finalSlots[(idx + i) % finalSlots.length];
+            if (!selectedTeam[s.id]) return s;
+        }
+        return null;
+    }
+
+    function updateNextSlotBar(justFilledSlotId) {
+        if (!dom.pickerNextSlotBar || !dom.pickerNextSlotLabel) return;
+        if (!isMobileView()) return;
+
+        const nextSlot = getNextFreeSlot(justFilledSlotId);
+        if (!nextSlot) {
+            dom.pickerNextSlotBar.classList.remove('visible');
+            return;
+        }
+
+        const icon = POSITION_ICONS[nextSlot.pos] || '⚽';
+        const isBench = nextSlot.cont === 'bench-slots';
+        const label = {
+            GOALKEEPER: 'Torwart',
+            DEFENDER:   'Verteidiger',
+            MIDFIELDER: 'Mittelfeld',
+            ATTACKER:   'Stürmer'
+        }[nextSlot.pos] || nextSlot.label;
+
+        dom.pickerNextSlotLabel.textContent = `${icon} Nächster freier Slot: ${label}${isBench ? ' (Bank)' : ''}`;
+        dom.pickerNextSlotBar.dataset.nextSlotId = nextSlot.id;
+        dom.pickerNextSlotBar.classList.add('visible');
+    }
+
+    function showNextSlotAction(afterSlotId) {
+        if (!dom.nextSlotAction || !isMobileView()) return;
+        const nextSlot = getNextFreeSlot(afterSlotId);
+
+        clearTimeout(nextSlotActionTimer);
+        dom.nextSlotAction.classList.remove('visible');
+
+        if (!nextSlot) return;
+
+        const icon = POSITION_ICONS[nextSlot.pos] || '⚽';
+        const isBench = nextSlot.cont === 'bench-slots';
+        const label = { GOALKEEPER: 'Torwart', DEFENDER: 'Verteidiger', MIDFIELDER: 'Mittelfeld', ATTACKER: 'Stürmer' }[nextSlot.pos] || nextSlot.label;
+        dom.nextSlotAction.textContent = `${icon} Nächsten Slot wählen: ${label}${isBench ? ' (Bank)' : ''} →`;
+        dom.nextSlotAction.dataset.nextSlotId = nextSlot.id;
+        dom.nextSlotAction.style.display = '';
+
+        requestAnimationFrame(() => {
+            dom.nextSlotAction.classList.add('visible');
+        });
+
+        /* Auto-hide after 3.5 s */
+        nextSlotActionTimer = setTimeout(() => {
+            dom.nextSlotAction.classList.remove('visible');
+        }, 3500);
     }
 
     /* =========================================================
@@ -2922,20 +3322,83 @@
     }
 
     /* =========================================================
+       PLAYER ELIGIBILITY HELPER
+       ========================================================= */
+    function getPlayerEligibility(player, slotId) {
+        const isSamePlayer    = String(getSlotPlayerId(slotId)) === String(player.id);
+        const isPlayerBlocked = isPlayerSelectedElsewhere(player.id, slotId);
+        const isNationBlocked = isNationTakenByOtherSlot(player.nation, slotId);
+        const slot            = getSlotConfig(slotId);
+        const isWrongPos      = slot ? player.position !== slot.pos : false;
+
+        let reason = '';
+        if (!isSamePlayer) {
+            if (isWrongPos)      reason = 'Falsche Position';
+            else if (isNationBlocked) reason = 'Nation bereits gewählt';
+            else if (isPlayerBlocked) reason = 'Bereits im Team';
+        }
+
+        const isDisabled = !isSamePlayer && (isPlayerBlocked || isNationBlocked || isWrongPos);
+        return { isSamePlayer, isDisabled, reason };
+    }
+
+    /* =========================================================
        PICKER PLAYER LIST
        ========================================================= */
     function getFilteredPickerPlayers() {
         const requiredPos = getRequiredPositionForCurrentSlot();
         if (!requiredPos) return [];
 
-        const searchTerm   = dom.pickerSearch.value.trim().toLowerCase();
-        const nationFilter = dom.pickerNationFilter.value;
+        const searchTerm = (dom.pickerSearch ? dom.pickerSearch.value.trim().toLowerCase() : '');
 
-        return preparedPlayers
+        /* On mobile use chip filters; on desktop use the select */
+        const nationFilter = isMobileView()
+            ? mobileFilterNation
+            : (dom.pickerNationFilter ? dom.pickerNationFilter.value : 'ALL');
+
+        const slotId = currentEditingSlotId;
+
+        let players = preparedPlayers
             .filter(p => p.position === requiredPos)
             .filter(p => nationFilter === 'ALL' || p.nation === nationFilter)
-            .filter(p => !searchTerm || p.searchKey.includes(searchTerm))
-            .sort((a, b) => a.sortKey.localeCompare(b.sortKey, 'de'));
+            .filter(p => !searchTerm || p.searchKey.includes(searchTerm));
+
+        /* Mobile-only chip filters */
+        if (isMobileView()) {
+            if (mobileFilterHideInvalid) {
+                players = players.filter(p => {
+                    const { isDisabled } = getPlayerEligibility(p, slotId);
+                    return !isDisabled;
+                });
+            }
+            if (mobileFilterOnlyAvailable) {
+                players = players.filter(p => {
+                    const { isSamePlayer, isDisabled } = getPlayerEligibility(p, slotId);
+                    return isSamePlayer || !isDisabled;
+                });
+            }
+        }
+
+        /* Smart sort:
+           1. Currently selected player first
+           2. Available (not blocked) players
+           3. Alphabetical within each group */
+        players.sort((a, b) => {
+            const elig_a = getPlayerEligibility(a, slotId);
+            const elig_b = getPlayerEligibility(b, slotId);
+
+            if (elig_a.isSamePlayer && !elig_b.isSamePlayer) return -1;
+            if (!elig_a.isSamePlayer && elig_b.isSamePlayer) return 1;
+
+            const aOk = !elig_a.isDisabled;
+            const bOk = !elig_b.isDisabled;
+            if (aOk && !bOk) return -1;
+            if (!aOk && bOk) return 1;
+
+            return a.sortKey.localeCompare(b.sortKey, 'de');
+        });
+
+        return players;
     }
 
     function appendNextPickerBatch() {
@@ -2946,20 +3409,16 @@
         const fragment = document.createDocumentFragment();
 
         nextBatch.forEach(player => {
-            const isSamePlayer   = String(getSlotPlayerId(currentSlotId)) === String(player.id);
-            const isPlayerBlocked = isPlayerSelectedElsewhere(player.id, currentSlotId);
-            const isNationBlocked = isNationTakenByOtherSlot(player.nation, currentSlotId);
-            const isDisabled      = !isSamePlayer && (isPlayerBlocked || isNationBlocked);
+            const { isSamePlayer, isDisabled, reason } = getPlayerEligibility(player, currentSlotId);
 
             const row = document.createElement('div');
-            row.className = `picker-row ${isDisabled ? 'disabled' : ''} ${isSamePlayer ? 'is-selected' : ''}`;
+            row.className = `picker-row${isDisabled ? ' disabled' : ''}${isSamePlayer ? ' is-selected' : ''}`;
 
-            const btnText = isSamePlayer ? 'Gewählt ✓' : isDisabled ? 'Blockiert' : 'Wählen';
-            const disabledReason = !isSamePlayer && isNationBlocked
-                ? `<div class="picker-disabled-reason">Nation bereits gewählt</div>`
-                : (!isSamePlayer && isPlayerBlocked
-                    ? `<div class="picker-disabled-reason">Bereits im Team</div>`
-                    : '');
+            const btnText = isSamePlayer ? '✓ Gewählt' : isDisabled ? 'Blockiert' : 'Wählen';
+
+            const disabledReasonHtml = (!isSamePlayer && reason)
+                ? `<div class="picker-disabled-reason">⚠ ${escapeHtml(reason)}</div>`
+                : '';
 
             row.innerHTML = `
                 <div class="picker-avatar-wrap">
@@ -2974,9 +3433,9 @@
                         ${player.clubLogo ? `<img src="${escapeHtml(player.clubLogo)}" class="club" alt="${escapeHtml(player.club)}" loading="lazy">` : ''}
                         <span>${escapeHtml(player.club)}</span>
                     </div>
-                    ${disabledReason}
+                    ${disabledReasonHtml}
                 </div>
-                <button type="button" class="picker-choose-btn"${isDisabled ? ' disabled aria-disabled="true"' : ''} aria-label="${escapeHtml(player.name)} wählen">${btnText}</button>
+                <button type="button" class="picker-choose-btn"${isDisabled ? ' disabled aria-disabled="true"' : ''} aria-label="${escapeHtml(player.name)} wählen">${escapeHtml(btnText)}</button>
             `;
 
             if (!isDisabled) {
@@ -3041,9 +3500,23 @@
        ========================================================= */
     function openSlotPicker(slotId) {
         currentEditingSlotId = String(slotId);
+
+        /* On mobile, reset position/availability filters when switching slots so
+           the user sees relevant players immediately */
+        if (isMobileView()) {
+            mobileFilterOnlyAvailable = false;
+            mobileFilterHideInvalid   = false;
+            mobileFilterNation        = 'ALL';
+            if (dom.pickerSearch) dom.pickerSearch.value = '';
+            updateSearchClearButton();
+            /* Hide next-slot bar until player is chosen */
+            if (dom.pickerNextSlotBar) dom.pickerNextSlotBar.classList.remove('visible');
+        }
+
         updatePickerHeader();
         renderAllSlots();
         renderMobileBuilder();
+        renderMobileFilterChips();
         renderPickerPlayers(true);
 
         if (isMobileView()) {
@@ -3080,6 +3553,7 @@
         renderAllSlots();
         renderMobileBuilder();
         updatePickerHeader();
+        renderMobileFilterChips();
         renderPickerPlayers(true);
 
         glowSlot(slotId);
@@ -3087,7 +3561,12 @@
 
         if (isMobileView()) {
             closeMobilePicker();
-            setTimeout(() => scrollSlotIntoView(slotId), 80);
+            setTimeout(() => {
+                scrollSlotIntoView(slotId);
+                glowSlot(slotId);
+                /* Show next-slot shortcut */
+                showNextSlotAction(slotId);
+            }, 80);
         }
     }
 
@@ -3576,6 +4055,7 @@
         if (dom.pickerSearch) {
             dom.pickerSearch.addEventListener('input', () => {
                 saveStateToLocal();
+                if (isMobileView()) renderMobileFilterChips();
                 applyPickerFilters();
             });
         }
@@ -3584,6 +4064,7 @@
             dom.clearPickerSearch.addEventListener('click', () => {
                 if (dom.pickerSearch) dom.pickerSearch.value = '';
                 saveStateToLocal();
+                if (isMobileView()) renderMobileFilterChips();
                 applyPickerFilters();
                 if (dom.pickerSearch && !isMobileView()) dom.pickerSearch.focus();
             });
@@ -3602,6 +4083,31 @@
                 if (dom.pickerNationFilter) dom.pickerNationFilter.value = 'ALL';
                 saveStateToLocal();
                 applyPickerFilters();
+            });
+        }
+
+        /* Mobile filter chips – delegated click on chip wrap */
+        if (dom.pickerFilterChips) {
+            dom.pickerFilterChips.addEventListener('click', (e) => {
+                const chip = e.target.closest('[data-chip-id]');
+                if (chip) handleMobileFilterChipClick(chip.dataset.chipId);
+            });
+            dom.pickerFilterChips.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const chip = e.target.closest('[data-chip-id]');
+                if (chip) { e.preventDefault(); handleMobileFilterChipClick(chip.dataset.chipId); }
+            });
+        }
+
+        /* Next-slot bar */
+        if (dom.pickerNextSlotBar) {
+            const handleNextSlot = () => {
+                const nextSlotId = dom.pickerNextSlotBar.dataset.nextSlotId;
+                if (nextSlotId) openSlotPicker(nextSlotId);
+            };
+            dom.pickerNextSlotBar.addEventListener('click', handleNextSlot);
+            dom.pickerNextSlotBar.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNextSlot(); }
             });
         }
 
@@ -3624,6 +4130,28 @@
             });
         }
 
+        /* Escape key closes picker */
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && dom.pickerHost && dom.pickerHost.classList.contains('mobile-open')) {
+                closeMobilePicker();
+            }
+        });
+
+        /* Next-slot action button (mobile floating bar) */
+        if (dom.nextSlotAction) {
+            const handleNextSlotAction = () => {
+                const nextSlotId = dom.nextSlotAction.dataset.nextSlotId;
+                if (!nextSlotId) return;
+                clearTimeout(nextSlotActionTimer);
+                dom.nextSlotAction.classList.remove('visible');
+                openSlotPicker(nextSlotId);
+            };
+            dom.nextSlotAction.addEventListener('click', handleNextSlotAction);
+            dom.nextSlotAction.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNextSlotAction(); }
+            });
+        }
+
         /* Resize */
         window.addEventListener('resize', () => {
             if (!isMobileView()) closeMobilePicker();
@@ -3635,6 +4163,7 @@
         renderAllSlots();
         renderMobileBuilder();
         updatePickerHeader();
+        renderMobileFilterChips();
         renderPickerPlayers(true);
         syncPanelHeights();
 
