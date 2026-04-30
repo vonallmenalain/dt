@@ -2523,10 +2523,7 @@
         if (!isMobileView()) return;
         dom.pickerHost.classList.add('mobile-open');
         document.body.classList.add('mobile-picker-open');
-        /* Focus search for immediate input */
-        setTimeout(() => {
-            if (dom.pickerSearch) dom.pickerSearch.focus({ preventScroll: true });
-        }, 200);
+        /* On mobile, do not auto-focus search to avoid opening keyboard unexpectedly. */
     }
 
     function closeMobilePicker() {
@@ -3588,7 +3585,7 @@
                 if (dom.pickerSearch) dom.pickerSearch.value = '';
                 saveStateToLocal();
                 applyPickerFilters();
-                if (dom.pickerSearch) dom.pickerSearch.focus();
+                if (dom.pickerSearch && !isMobileView()) dom.pickerSearch.focus();
             });
         }
 
