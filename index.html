@@ -93,50 +93,40 @@
             <a href="team-builder.html" class="hero-btn" id="hero-btn">⚽ Dream Team für die EM 2024 zusammenstellen</a>
         </div>
 
-        <section class="overview">
-            <h1 id="overview-title">🏆 DreamTeam Dashboard</h1>
-            <ul>
-                <li>Baue ein Team aus 15 Spielern (3-4-3 + 4 Bankspieler).</li>
-                <li>Maximal 1 Spieler pro Nation.</li>
-                <li>Captain bringt doppelte Punkte.</li>
-                <li>Alle wichtigen Kennzahlen und Ranglisten auf einen Blick.</li>
-            </ul>
-        </section>
-
         <section class="tiles">
-            <a class="tile span-4" href="teams.html">
+            <a class="tile span-4" href="teams.html" id="tile-team-count">
                 <h3>👥 Anzahl erstellte Teams</h3>
-                <p>Direkt zu allen erstellten Teams und deren Aufstellungen.</p>
+                <p id="team-count-text">0 Teams erstellt</p>
             </a>
 
-            <a class="tile span-4" href="spieleranalyse.html">
+            <a class="tile span-4" href="spieleranalyse.html" id="tile-top-players">
                 <h3>⭐ Beste Spieler</h3>
-                <p>Top-Performer, Formkurve und Vergleich auf einen Klick.</p>
+                <ul id="top-players-list"></ul>
             </a>
 
-            <a class="tile span-4" href="spieleranalyse.html">
+            <a class="tile span-4" href="spieleranalyse.html?view=games" id="tile-top-nations">
                 <h3>🌍 Beste Länder</h3>
-                <p>Welche Nationen liefern aktuell die meisten Punkte.</p>
+                <ul id="top-nations-list"></ul>
             </a>
 
             <a class="tile span-6" href="rangliste.html">
-                <h3>🏅 Kurzrangliste (Top 5 Manager)</h3>
-                <p>Die aktuelle Spitze der Rangliste mit Fokus auf die Top 5.</p>
+                <h3>🏅 Top 5 Manager</h3>
+                <ul id="top-managers-list"></ul>
             </a>
 
             <a class="tile span-6" href="rangliste.html">
                 <h3>📈 Grösste Veränderungen</h3>
-                <ul>
-                    <li>Stärkste Aufholjagd</li>
-                    <li>Meiste Plätze verloren</li>
-                    <li>Höchster Punktesprung der Runde</li>
-                </ul>
+                <ul id="rank-jumps-list"></ul>
             </a>
         </section>
     </main>
 
     <script src="tournament-config.js"></script>
     <script src="nav.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="data.js"></script>
+    <script src="cache.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const APP = window.APP_CONFIG;
@@ -150,6 +140,143 @@
             if (heroBtn) {
                 heroBtn.textContent = `⚽ Dream Team für ${shortLabel} zusammenstellen`;
             }
+
+            const getPlayerById = (playerId) => playersData.find((p) => String(p["player.id"]) === String(playerId));
+            const createLi = (html) => {
+                const li = document.createElement("li");
+                li.innerHTML = html;
+                return li;
+            };
+            const escapeHtml = (value) => String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+
+            function computeRankingWithHistory(data) {
+                const pointsData = data.points || {};
+                const teams = Array.isArray(data.teams) ? data.teams : [];
+                const matchIds = new Set();
+                const playerMatchPoints = {};
+
+                Object.entries(pointsData).forEach(([playerId, doc]) => {
+                    const matches = doc?.matches || {};
+                    const perMatch = {};
+                    Object.entries(matches).forEach(([matchId, lineup]) => {
+                        const id = Number(matchId);
+                        if (!Number.isFinite(id)) return;
+                        matchIds.add(id);
+                        let sum = 0;
+                        Object.values(lineup || {}).forEach((v) => { if (typeof v === "number") sum += v; });
+                        perMatch[id] = sum;
+                    });
+                    playerMatchPoints[String(playerId)] = perMatch;
+                });
+
+                const orderedMatchIds = Array.from(matchIds).sort((a, b) => a - b);
+                const snapshots = Math.max(orderedMatchIds.length, 1);
+                const enriched = teams.map((team) => {
+                    const mergedPlayers = (team.players || []).map((tp) => {
+                        const full = getPlayerById(tp.playerId) || playersData.find((p) => p.Spielername === tp.name);
+                        const id = full ? String(full["player.id"]) : String(tp.playerId || "");
+                        return { id, isCaptain: !!tp.isCaptain };
+                    });
+                    return { manager: team.manager || "Unbekannt", mergedPlayers, total: 0, history: [] };
+                });
+
+                for (let i = 0; i < snapshots; i++) {
+                    const matchId = orderedMatchIds[i];
+                    enriched.forEach((team) => {
+                        const roundPts = matchId === undefined ? 0 : team.mergedPlayers.reduce((sum, p) => {
+                            const base = playerMatchPoints[p.id]?.[matchId] || 0;
+                            return sum + (p.isCaptain ? base * 2 : base);
+                        }, 0);
+                        team.total += roundPts;
+                    });
+                    const sorted = [...enriched].sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, "de"));
+                    sorted.forEach((team, idx) => team.history[i] = idx + 1);
+                }
+
+                const finalSorted = [...enriched].sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, "de"));
+                finalSorted.forEach((team, idx) => team.currentRank = idx + 1);
+                return { teams: finalSorted, snapshots };
+            }
+
+            async function initDashboardTiles() {
+                try {
+                    const data = await DreamTeamCache.loadBundle({
+                        db: APP.getDb(),
+                        year: APP.year,
+                        allowEmptyPoints: true,
+                        log: false
+                    }).then((bundle) => bundle.data);
+
+                    const teams = Array.isArray(data.teams) ? data.teams : [];
+                    const points = data.points || {};
+                    document.getElementById("team-count-text").textContent = `${teams.length} Teams erstellt`;
+
+                    const topPlayers = playersData.map((p) => {
+                        const total = points[String(p["player.id"])]?.totalPoints || 0;
+                        return { name: p.Spielername, total };
+                    }).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "de")).slice(0, 5);
+
+                    const playerList = document.getElementById("top-players-list");
+                    playerList.innerHTML = "";
+                    topPlayers.forEach((p) => {
+                        const li = createLi(`<a href="spieleranalyse.html?player=${encodeURIComponent(p.name)}">${escapeHtml(p.name)}</a> (${p.total > 0 ? "+" : ""}${p.total})`);
+                        li.querySelector("a").addEventListener("click", (e) => e.stopPropagation());
+                        playerList.appendChild(li);
+                    });
+
+                    const nationMap = new Map();
+                    playersData.forEach((p) => {
+                        const nation = p["Nationalteam.name"];
+                        if (!nation) return;
+                        const total = points[String(p["player.id"])]?.totalPoints || 0;
+                        nationMap.set(nation, (nationMap.get(nation) || 0) + total);
+                    });
+                    const topNations = Array.from(nationMap.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de")).slice(0, 5);
+                    const nationList = document.getElementById("top-nations-list");
+                    nationList.innerHTML = "";
+                    topNations.forEach(([nation, total]) => {
+                        const li = createLi(`<a href="spieleranalyse.html?view=games&gameNation=${encodeURIComponent(nation)}">${escapeHtml(nation)}</a> (${total > 0 ? "+" : ""}${total})`);
+                        li.querySelector("a").addEventListener("click", (e) => e.stopPropagation());
+                        nationList.appendChild(li);
+                    });
+
+                    const teamTotals = teams.map((t) => ({
+                        manager: t.manager || "Unbekannt",
+                        total: (t.players || []).reduce((sum, tp) => {
+                            const base = points[String(tp.playerId)]?.totalPoints || 0;
+                            return sum + (tp.isCaptain ? base * 2 : base);
+                        }, 0)
+                    })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, "de")).slice(0, 5);
+                    const topManagersList = document.getElementById("top-managers-list");
+                    topManagersList.innerHTML = "";
+                    teamTotals.forEach((t) => {
+                        const li = createLi(`<a href="teams.html?manager=${encodeURIComponent(t.manager)}">${escapeHtml(t.manager)}</a> (${t.total > 0 ? "+" : ""}${t.total})`);
+                        li.querySelector("a").addEventListener("click", (e) => e.stopPropagation());
+                        topManagersList.appendChild(li);
+                    });
+
+                    const ranking = computeRankingWithHistory(data);
+                    const jumps = ranking.teams.map((t) => {
+                        const prevRank = ranking.snapshots > 1 ? t.history[ranking.snapshots - 2] : t.currentRank;
+                        return { manager: t.manager, delta: prevRank - t.currentRank, currentRank: t.currentRank };
+                    }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta) || a.currentRank - b.currentRank).slice(0, 5);
+                    const jumpList = document.getElementById("rank-jumps-list");
+                    jumpList.innerHTML = "";
+                    jumps.forEach((j) => {
+                        const sign = j.delta > 0 ? "+" : "";
+                        jumpList.appendChild(createLi(`${escapeHtml(j.manager)} ${sign}${j.delta} Ränge`));
+                    });
+                } catch (err) {
+                    console.error("Dashboard-Kacheln konnten nicht geladen werden:", err);
+                }
+            }
+
+            initDashboardTiles();
         });
     </script>
 </body>
