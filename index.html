@@ -1236,12 +1236,19 @@
 
         .card-wrapper {
             width: 130px;
-            height: 185px;
             position: relative;
             z-index: 1;
             flex-shrink: 0;
             scroll-snap-align: start;
             animation: cardFlyIn 0.55s ease-out both;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-wrapper .player-card {
+            height: 185px;
+            width: 130px;
         }
 
         .card-wrapper:hover { z-index: 100; }
@@ -1394,19 +1401,13 @@
 
         .card-pts.neg { background: #ef4444; }
 
-        .card-pts.draft-pick {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(100,116,139,0.9);
-            color: white;
-            border-radius: 10px 10px 0 0;
-            padding: 6px 0;
+        .card-draft-label {
             font-size: 11px;
-            box-shadow: none;
-            right: auto;
-            transform: translateZ(28px);
+            font-weight: 800;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
         }
 
         .player-card.is-captain .card-pts {
@@ -1520,12 +1521,13 @@
     <div class="hero-content">
         <h1 class="hero-title">
             Baue dein<br>
-            <span class="gold-text" id="hero-title-label">EM 2024</span> <span class="accent" id="hero-title-accent">DreamTeam</span>
+            <span class="gold-text" id="hero-title-label">EM 2024</span><br>
+            <span class="accent" id="hero-title-accent">DreamTeam</span>
         </h1>
 
         <p class="hero-claim">
             15 Spieler. 1 Captain.<br>
-            Draft jetzt dein perfektes Fantasy-Team.
+            Drafte jetzt dein perfektes Fantasy-Team.
         </p>
 
         <!-- Live stats -->
@@ -1541,7 +1543,7 @@
             </div>
             <div class="hero-stat-divider" aria-hidden="true"></div>
             <div class="hero-stat">
-                <a class="hero-stat-value" id="hs-leader" aria-live="polite" href="teams.html" style="text-decoration:none;color:inherit;">–</a>
+                <a class="hero-stat-value" id="hs-leader" aria-live="polite" href="teams.html" style="text-decoration:none;">–</a>
                 <div class="hero-stat-label">Top-Manager</div>
             </div>
         </div>
@@ -2147,7 +2149,6 @@
         return `
             <div class="card-wrapper" data-delay="${delay}" style="animation-delay:${delay};" role="listitem">
                 <a href="${url}" class="player-card" aria-label="${escapeHtml(player.Spielername)}, ${pickCount}x gewählt">
-                    <div class="card-pts draft-pick">${pickCount}× gewählt</div>
                     <div class="avatar-wrapper">
                         <img src="${escapeHtml(player.Spielerfoto)}" class="card-avatar" alt="${escapeHtml(player.Spielername)}" loading="lazy">
                     </div>
@@ -2163,6 +2164,7 @@
                         </div>
                     </div>
                 </a>
+                <div class="card-draft-label">${pickCount}× gewählt</div>
             </div>
         `;
     }
