@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dreamteam-pwa-v2';
+const CACHE_NAME = 'dreamteam-pwa-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -13,9 +13,11 @@ const APP_SHELL = [
   './tournament-config.js',
   './data.js',
   './cache.js',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './Icons/site.webmanifest',
+  './Icons/favicon.ico',
+  './Icons/android-chrome-192x192.png',
+  './Icons/android-chrome-512x512.png',
+  './Icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {
