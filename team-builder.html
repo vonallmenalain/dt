@@ -1805,8 +1805,19 @@
            MOBILE PICKER BOTTOM SHEET
            ===================================================== */
         @media (max-width: 900px) {
-            .builder-layout {
+            /* Hide pitch + bench on mobile; keep builder-layout in the DOM (not display:none)
+               so the fixed-position picker-host inside it still renders as an overlay. */
+            .team-builder-shell {
                 display: none;
+            }
+
+            .builder-layout {
+                height: 0;
+                padding: 0;
+                margin: 0;
+                overflow: visible;
+                gap: 0;
+                min-height: 0;
             }
 
             .mobile-builder {
@@ -1964,9 +1975,9 @@
         }
 
         /* =====================================================
-           LAYOUT BREAKPOINTS (Desktop)
+           LAYOUT BREAKPOINTS (Desktop 901px – 1400px)
            ===================================================== */
-        @media (max-width: 1400px) {
+        @media (min-width: 901px) and (max-width: 1400px) {
             .builder-layout {
                 flex-direction: column;
             }
@@ -1991,9 +2002,7 @@
                 position: relative;
                 top: auto;
             }
-        }
 
-        @media (min-width: 901px) and (max-width: 1400px) {
             .team-builder-shell {
                 flex-wrap: nowrap;
                 overflow-x: auto;
