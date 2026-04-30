@@ -18,201 +18,137 @@
     <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
     <meta name="view-transition" content="same-origin">
-    <meta name="description" content="DreamTeam als installierbare Webapp für dein Smartphone.">
-    
+    <meta name="description" content="DreamTeam Dashboard für Teams, Spieler und Rangliste.">
     <link rel="stylesheet" href="styles.css">
-    
     <style>
-        /* --- LAYOUT NUR FÜR STARTSEITE --- */
-        .main-container { 
-            max-width: 1200px;
-            margin: 40px auto;
-            display: flex;
-            gap: 30px;
+        .dashboard-wrap {
+            max-width: 1280px;
+            margin: 26px auto;
             padding: 0 20px;
-            align-items: flex-start;
             box-sizing: border-box;
         }
 
-        .hero { 
-            flex: 2;
-            background: white;
-            padding: 40px;
-            border-radius: 15px; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        .hero-action {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 18px;
         }
 
-        .hero h1 {
-            color: #2e7d32;
-            font-size: 2.8em;
-            margin-top: 0;
-            margin-bottom: 10px;
-            line-height: 1.15;
-        }
-
-        .subtitle {
-            font-size: 1.2em;
-            color: #666;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-
-        .rules {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid #2e7d32;
-            margin-bottom: 30px;
-        }
-
-        .rules ul {
-            margin: 0;
-            padding-left: 20px;
-            line-height: 1.6;
-        }
-
-        .hero-btn { 
+        .hero-btn {
             display: inline-block;
             background: var(--primary);
-            color: white; 
-            padding: 18px 30px;
-            font-size: 1.3em;
-            font-weight: bold;
-            text-decoration: none; 
-            border-radius: 8px;
-            transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 5px 14px rgba(40,167,69,0.3);
         }
 
-        .hero-btn:hover {
-            background: #218838;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(40,167,69,0.4);
+        .hero-btn:hover { background: #218838; }
+
+        .overview {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
 
-        .side-menu { 
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            min-width: 280px;
+        .overview h1 { margin: 0 0 8px; color: #1f2937; }
+        .overview ul { margin: 0; padding-left: 20px; line-height: 1.5; color: #4b5563; }
+
+        .tiles {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 14px;
         }
 
-        .menu-btn { 
-            background: white;
-            padding: 20px 20px;
-            border-radius: 15px;
-            text-decoration: none; 
-            color: #333;
-            font-weight: bold;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 15px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: 0.3s;
-            border-left: 6px solid var(--dark);
+        .tile {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+            padding: 16px;
+            color: #111827;
+            text-decoration: none;
+            border: 1px solid #e5e7eb;
+            display: block;
         }
 
-        .menu-btn:hover {
-            transform: translateX(5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
+        .tile h3 { margin: 0 0 8px; font-size: 1.1rem; }
+        .tile p { margin: 0; color: #6b7280; font-size: 0.95rem; }
+        .tile ul { margin: 8px 0 0 0; padding-left: 18px; color: #4b5563; }
 
-        .menu-btn.orange { border-left-color: #fd7e14; }
-        .menu-btn.blue   { border-left-color: #007bff; }
-        .menu-btn.purple { border-left-color: #6f42c1; }
-        .menu-btn.gold   { border-left-color: #ffc107; }
-        .menu-btn.teal   { border-left-color: #17a2b8; }
+        .span-4 { grid-column: span 4; }
+        .span-6 { grid-column: span 6; }
 
         @media (max-width: 900px) {
-            .main-container {
-                flex-direction: column;
-            }
-
-            .side-menu {
-                min-width: 0;
-                width: 100%;
-            }
+            .span-4, .span-6 { grid-column: span 12; }
         }
     </style>
 </head>
 <body>
+    <main class="dashboard-wrap">
+        <div class="hero-action">
+            <a href="team-builder.html" class="hero-btn" id="hero-btn">⚽ Dream Team für die EM 2024 zusammenstellen</a>
+        </div>
 
-    <div class="main-container">
-        <div class="hero">
-            <h1 id="hero-title">🏆 DreamTeam</h1>
-            <p class="subtitle" id="hero-subtitle">
-                Erstelle dein persönliches DreamTeam und verfolge Punkte, Ranglisten und Analysen über das gesamte Turnier.
-            </p>
-           
-            <div class="rules">
-                <h3 id="rules-title" style="margin-top:0;">📜 Stelle dein DreamTeam zusammen!</h3>
+        <section class="overview">
+            <h1 id="overview-title">🏆 DreamTeam Dashboard</h1>
+            <ul>
+                <li>Baue ein Team aus 15 Spielern (3-4-3 + 4 Bankspieler).</li>
+                <li>Maximal 1 Spieler pro Nation.</li>
+                <li>Captain bringt doppelte Punkte.</li>
+                <li>Alle wichtigen Kennzahlen und Ranglisten auf einen Blick.</li>
+            </ul>
+        </section>
+
+        <section class="tiles">
+            <a class="tile span-4" href="teams.html">
+                <h3>👥 Anzahl erstellte Teams</h3>
+                <p>Direkt zu allen erstellten Teams und deren Aufstellungen.</p>
+            </a>
+
+            <a class="tile span-4" href="spieleranalyse.html">
+                <h3>⭐ Beste Spieler</h3>
+                <p>Top-Performer, Formkurve und Vergleich auf einen Klick.</p>
+            </a>
+
+            <a class="tile span-4" href="spieleranalyse.html">
+                <h3>🌍 Beste Länder</h3>
+                <p>Welche Nationen liefern aktuell die meisten Punkte.</p>
+            </a>
+
+            <a class="tile span-6" href="rangliste.html">
+                <h3>🏅 Kurzrangliste (Top 5 Manager)</h3>
+                <p>Die aktuelle Spitze der Rangliste mit Fokus auf die Top 5.</p>
+            </a>
+
+            <a class="tile span-6" href="rangliste.html">
+                <h3>📈 Grösste Veränderungen</h3>
                 <ul>
-                    <li>Ein Team besteht aus <strong>15 Spielern</strong></li>
-                    <li>Die Aufstellung besteht aus einer <strong>3-4-3 Formation</strong> plus <strong>4 Auswechselspieler</strong></li>
-                    <li>Du kannst maximal <strong>1 Spieler pro Nation</strong> wählen</li>
-                    <li>Du benennst einen <strong>Captain</strong>, der die <strong>doppelten</strong> Punkte erhält</li>
+                    <li>Stärkste Aufholjagd</li>
+                    <li>Meiste Plätze verloren</li>
+                    <li>Höchster Punktesprung der Runde</li>
                 </ul>
-            </div>
-
-            <a href="team-builder.html" class="hero-btn" id="hero-btn">⚽ DreamTeam jetzt zusammenstellen ➔</a>
-        </div>
-
-        <div class="side-menu">
-            <a href="punktesystem.html" class="menu-btn orange">📊 Punktesystem</a>
-            <a href="teams.html" class="menu-btn blue">🛡️ Teams</a>
-            <a href="spieleranalyse.html" class="menu-btn purple">🔍 Spieler Detailanalyse</a>
-            <a href="rangliste.html" class="menu-btn gold">🏆 Rangliste</a>
-            <a href="dashboard.html" class="menu-btn teal">📈 Dashboard</a>
-        </div>
-    </div>
+            </a>
+        </section>
+    </main>
 
     <script src="tournament-config.js"></script>
     <script src="nav.js"></script>
-
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const APP = window.APP_CONFIG;
+            if (!APP) return;
 
-            if (!APP) {
-                console.error("APP_CONFIG fehlt. tournament-config.js wird nicht korrekt geladen.");
-                return;
-            }
-
-            const brandName = APP.brandName || "DreamTeam";
-            const pageTitlePrefix = APP.pageTitlePrefix || brandName;
-            const shortLabel = APP.shortLabel || APP.tournamentLabel || "";
-            const tournamentName = APP.name || shortLabel || "das aktuelle Turnier";
-
+            const shortLabel = APP.shortLabel || "EM 2024";
+            const pageTitlePrefix = APP.pageTitlePrefix || APP.brandName || "DreamTeam";
             document.title = `${pageTitlePrefix} - Startseite`;
 
-            const heroTitle = document.getElementById("hero-title");
-            const heroSubtitle = document.getElementById("hero-subtitle");
-            const rulesTitle = document.getElementById("rules-title");
             const heroBtn = document.getElementById("hero-btn");
-
-            if (heroTitle) {
-                heroTitle.textContent = `🏆 ${brandName}`;
-            }
-
-            if (heroSubtitle) {
-                heroSubtitle.textContent = `Erstelle dein persönliches DreamTeam für ${tournamentName} und verfolge Punkte, Ranglisten und Analysen über das gesamte Turnier.`;
-            }
-
-            if (rulesTitle) {
-                rulesTitle.textContent = shortLabel
-                    ? `📜 Stelle dein DreamTeam für die ${shortLabel} zusammen!`
-                    : "📜 Stelle dein DreamTeam zusammen!";
-            }
-
             if (heroBtn) {
-                heroBtn.textContent = shortLabel
-                    ? `⚽ DreamTeam für ${shortLabel} zusammenstellen ➔`
-                    : "⚽ DreamTeam jetzt zusammenstellen ➔";
+                heroBtn.textContent = `⚽ Dream Team für ${shortLabel} zusammenstellen`;
             }
         });
     </script>

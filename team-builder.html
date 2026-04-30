@@ -47,6 +47,31 @@
             font-size: 1.1em;
         }
 
+
+        .builder-rules {
+            max-width: 980px;
+            margin: 0 auto 18px auto;
+            background: #f8f9fa;
+            border-left: 5px solid #2e7d32;
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: #2f3a3a;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .builder-rules h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.05em;
+            color: #1b5e20;
+        }
+
+        .builder-rules ul {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.5;
+            font-size: 0.95em;
+        }
+
         .action-header {
             text-align: center;
             margin-bottom: 18px;
@@ -1047,7 +1072,16 @@
 <body>
 
     <h1 id="page-title">🏆 DreamTeam Builder</h1>
-    <p class="intro" id="page-intro">Wähle dein Team. Max. 1 Spieler pro Nation!</p>
+    <p class="intro" id="page-intro">Wähle dein Team und bestimme deinen Captain.</p>
+
+    <section class="builder-rules" aria-label="Teamregeln">
+        <h3>📜 Kurzregeln für dein DreamTeam</h3>
+        <ul>
+            <li>15 Spieler insgesamt (3-4-3 + 4 Bankspieler)</li>
+            <li>Maximal 1 Spieler pro Nation</li>
+            <li>Der Captain erhält doppelte Punkte</li>
+        </ul>
+    </section>
 
     <div class="action-header">
         <button id="clear-team-btn" class="clear-btn">🗑️ Komplettes Team leeren</button>
