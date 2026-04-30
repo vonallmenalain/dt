@@ -79,29 +79,14 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(ellipse 80% 60% at 50% 110%, rgba(40,167,69,0.22) 0%, transparent 60%),
+                radial-gradient(ellipse 90% 70% at 50% 110%, rgba(40,167,69,0.45) 0%, transparent 65%),
+                radial-gradient(ellipse 70% 50% at 50% 80%, rgba(40,167,69,0.25) 0%, transparent 55%),
                 radial-gradient(ellipse 60% 40% at 20% 0%, rgba(255,215,0,0.07) 0%, transparent 50%),
-                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(40,167,69,0.1) 0%, transparent 50%),
-                linear-gradient(180deg, #050a0e 0%, #0d1117 40%, #0f1a12 100%);
+                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(40,167,69,0.18) 0%, transparent 50%),
+                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, #0d1f10 100%);
             z-index: 0;
         }
 
-        /* Subtle pitch lines */
-        .hero::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-image:
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 79px,
-                    rgba(255,255,255,0.018) 79px,
-                    rgba(255,255,255,0.018) 80px
-                );
-            z-index: 0;
-            pointer-events: none;
-        }
 
         .hero-content {
             position: relative;
@@ -195,6 +180,13 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
+        a.hero-stat-value {
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        a.hero-stat-value:hover { opacity: 0.8; }
 
         .hero-stat-divider {
             width: 1px;
@@ -326,7 +318,13 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .hero-card-slot:hover {
+            box-shadow: 0 24px 70px rgba(0,0,0,0.65), 0 0 0 1px rgba(74,222,128,0.3);
+            border-color: rgba(74,222,128,0.35);
         }
 
         .hero-card-slot:nth-child(1) {
@@ -1520,19 +1518,13 @@
      ===================================================== -->
 <section class="hero" id="hero">
     <div class="hero-content">
-        <div class="hero-badge">
-            <span>⚽</span>
-            <span id="hero-badge-text">Fantasy Football</span>
-        </div>
-
         <h1 class="hero-title">
             Baue dein<br>
-            <span class="accent" id="hero-title-accent">DreamTeam</span><br>
-            <span class="gold-text" id="hero-title-label">für das Turnier</span>
+            <span class="gold-text" id="hero-title-label">EM 2024</span> <span class="accent" id="hero-title-accent">DreamTeam</span>
         </h1>
 
         <p class="hero-claim">
-            15 Spieler. 1 Captain. Ein Turnier voller Punkte.<br>
+            15 Spieler. 1 Captain.<br>
             Draft jetzt dein perfektes Fantasy-Team.
         </p>
 
@@ -1549,7 +1541,7 @@
             </div>
             <div class="hero-stat-divider" aria-hidden="true"></div>
             <div class="hero-stat">
-                <div class="hero-stat-value" id="hs-leader" aria-live="polite">–</div>
+                <a class="hero-stat-value" id="hs-leader" aria-live="polite" href="teams.html" style="text-decoration:none;color:inherit;">–</a>
                 <div class="hero-stat-label">Top-Manager</div>
             </div>
         </div>
@@ -1570,18 +1562,18 @@
 
         <!-- Floating player cards preview -->
         <div class="hero-cards-preview" id="hero-cards-preview" aria-hidden="true">
-            <div class="hero-card-slot" id="hcs-0">
+            <a class="hero-card-slot" id="hcs-0" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
                 <div class="hcs-empty">👤</div>
                 <div class="hcs-name">–</div>
-            </div>
-            <div class="hero-card-slot" id="hcs-1">
+            </a>
+            <a class="hero-card-slot" id="hcs-1" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
                 <div class="hcs-empty">⭐</div>
                 <div class="hcs-name">–</div>
-            </div>
-            <div class="hero-card-slot" id="hcs-2">
+            </a>
+            <a class="hero-card-slot" id="hcs-2" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
                 <div class="hcs-empty">👤</div>
                 <div class="hcs-name">–</div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -2014,6 +2006,8 @@
             if (!slot) return;
             const pts = ptMap[String(p['player.id'])] || 0;
             const sign = pts > 0 ? '+' : '';
+            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            if (slot.tagName === 'A') slot.href = url;
             slot.innerHTML = `
                 ${pts !== 0 ? `<div class="hcs-pts">${sign}${pts}</div>` : ''}
                 <img class="hcs-photo" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">
@@ -2432,7 +2426,11 @@
 
         if (leaderEl) {
             const sorted = [...teams].sort((a, b) => getTeamTotal(b, ptMap) - getTeamTotal(a, ptMap));
-            leaderEl.textContent = sorted.length > 0 ? escapeHtml(sorted[0].manager) : '–';
+            const topManager = sorted.length > 0 ? sorted[0].manager : null;
+            leaderEl.textContent = topManager ? escapeHtml(topManager) : '–';
+            if (topManager && leaderEl.tagName === 'A') {
+                leaderEl.href = `teams.html?manager=${encodeURIComponent(topManager)}`;
+            }
         }
     }
 
@@ -2458,11 +2456,8 @@
 
     document.title = `${pageTitlePrefix} - Startseite`;
 
-    const badgeEl = $('hero-badge-text');
-    if (badgeEl) badgeEl.textContent = `Fantasy Football · ${shortLabel}`;
-
     const titleLabelEl = $('hero-title-label');
-    if (titleLabelEl) titleLabelEl.textContent = `für ${shortLabel}`;
+    if (titleLabelEl) titleLabelEl.textContent = shortLabel;
 
     const ctaBtn = $('hero-cta-btn');
     if (ctaBtn) ctaBtn.setAttribute('aria-label', `Team erstellen für ${shortLabel}`);
