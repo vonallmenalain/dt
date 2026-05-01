@@ -1510,13 +1510,68 @@
 
         .fade-in { animation: fadeIn 0.5s ease both; }
 
+        /* ===================================================
+           DEV-UMSCHALTER (nur für Entwicklung/Test)
+           Kleiner, unauffälliger Button oben links.
+           Verschiebt keine bestehenden Elemente.
+           =================================================== */
+        .dev-index-toggle {
+            position: fixed;
+            top: 8px;
+            left: 8px;
+            z-index: 9999;
+            font-size: 11px;
+            font-family: monospace;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.55);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            opacity: 0.55;
+            transition: opacity 0.2s ease, background 0.2s ease;
+            line-height: 1.4;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .dev-index-toggle:hover {
+            opacity: 0.9;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .dev-index-toggle[data-mode="pre"] {
+            border-color: rgba(251, 191, 36, 0.5);
+            color: rgba(251, 191, 36, 0.85);
+        }
+
+        .dev-index-toggle[data-mode="post"] {
+            border-color: rgba(74, 222, 128, 0.5);
+            color: rgba(74, 222, 128, 0.85);
+        }
+
     </style>
 </head>
 <body>
 
 <!-- =====================================================
-     HERO SECTION
+     DEV-UMSCHALTER (Pre/Post Spielstart)
+     Nur für Entwicklung & Test – für normale Nutzer
+     kaum sichtbar (opacity 0.55, fixed oben links).
+     Zyklusreihenfolge: auto → pre → post → auto …
+     localStorage-Key: dreamteamIndexViewMode
      ===================================================== -->
+<button class="dev-index-toggle" id="dev-index-toggle" title="DEV: Ansichtsmodus umschalten (auto / vor Start / nach Start)" aria-label="DEV: Ansichtsmodus umschalten">DEV: Auto</button>
+
+<!-- =====================================================
+     PRE START HOME: Startseite vor Spielstart
+     Inhalt identisch mit aktueller index.html.
+     Hier später eigene Pre-Start-Inhalte einbauen.
+     ===================================================== -->
+<div id="indexHomePreStart">
+
+<!-- HERO SECTION (Pre Start) -->
 <section class="hero" id="hero">
     <div class="hero-content">
         <h1 class="hero-title">
@@ -1768,6 +1823,268 @@
 
 </main>
 
+</div><!-- /#indexHomePreStart -->
+
+<!-- =====================================================
+     POST START HOME: Startseite nach Spielstart / Live-Phase
+     Inhalt identisch mit Pre-Start als Ausgangsbasis.
+     Hier später eigene Post-Start-Inhalte einbauen
+     (z. B. Ranglisten, Live-Punkte, andere Kacheln).
+     ===================================================== -->
+<div id="indexHomePostStart" style="display:none;">
+
+<!-- HERO SECTION (Post Start) -->
+<section class="hero" id="hero-post">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            Baue dein<br>
+            <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
+            <span class="accent" id="hero-post-title-accent">DreamTeam</span>
+        </h1>
+
+        <p class="hero-claim">
+            15 Spieler. 1 Captain.<br>
+            Drafte jetzt dein perfektes Fantasy-Team.
+        </p>
+
+        <!-- Live stats -->
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="hs-post-teams" aria-live="polite">–</div>
+                <div class="hero-stat-label">Teams erstellt</div>
+            </div>
+            <div class="hero-stat-divider" aria-hidden="true"></div>
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="hs-post-drafted" aria-live="polite">–</div>
+                <div class="hero-stat-label">Spieler gedraftet</div>
+            </div>
+            <div class="hero-stat-divider" aria-hidden="true"></div>
+            <div class="hero-stat">
+                <a class="hero-stat-value" id="hs-post-leader" aria-live="polite" href="teams.html" style="text-decoration:none;">–</a>
+                <div class="hero-stat-label">Top-Manager</div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="hero-cta-wrap">
+            <a href="team-builder.html" class="btn-primary-hero" id="hero-post-cta-btn" aria-label="Team erstellen für das Turnier">
+                ⚽ Team erstellen
+            </a>
+            <div class="hero-secondary-btns">
+                <a href="punktesystem.html" class="btn-pill">📊 Punktesystem</a>
+                <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
+                <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler-Analyse</a>
+                <a href="teams.html" class="btn-pill">🛡️ Teams</a>
+                <a href="dashboard.html" class="btn-pill">📈 Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Floating player cards preview -->
+        <div class="hero-cards-preview" id="hero-post-cards-preview" aria-hidden="true">
+            <a class="hero-card-slot" id="hcs-post-0" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
+                <div class="hcs-empty">👤</div>
+                <div class="hcs-name">–</div>
+            </a>
+            <a class="hero-card-slot" id="hcs-post-1" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
+                <div class="hcs-empty">⭐</div>
+                <div class="hcs-name">–</div>
+            </a>
+            <a class="hero-card-slot" id="hcs-post-2" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
+                <div class="hcs-empty">👤</div>
+                <div class="hcs-name">–</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="scroll-hint" aria-hidden="true">
+        <span>Live-Stats</span>
+        <div class="scroll-hint-arrow"></div>
+    </div>
+</section>
+
+<!-- DASHBOARD AREA (Post Start) -->
+<main class="dashboard-area" id="dashboard-post-area">
+
+    <!-- ── Row 1: Team count + Quick Access ──────────────── -->
+    <div class="tile-grid tile-grid-2 mb-section">
+
+        <!-- Team Count -->
+        <a class="gtile gtile-link" href="teams.html" aria-label="Alle Teams anzeigen">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="gtile-title-icon">👥</span> Erstellte Teams
+                </div>
+                <div class="gtile-arrow" aria-hidden="true">→</div>
+            </div>
+            <div class="team-count-big" id="tile-post-team-count">
+                <span class="skel" style="display:inline-block;width:60px;height:3.2rem;"></span>
+            </div>
+            <div class="team-count-sub" id="tile-post-team-sub">Teams nehmen am Turnier teil</div>
+            <div class="team-count-glow" aria-hidden="true"></div>
+        </a>
+
+        <!-- Quick Access -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="gtile-title-icon">🚀</span> Schnellzugriff
+                </div>
+            </div>
+            <nav class="quick-grid" aria-label="App-Bereiche">
+                <a href="team-builder.html" class="quick-tile" aria-label="Team erstellen">
+                    <span class="qt-icon">➕</span>
+                    <span class="qt-label">Team erstellen</span>
+                </a>
+                <a href="teams.html" class="quick-tile" aria-label="Teams anzeigen">
+                    <span class="qt-icon">🛡️</span>
+                    <span class="qt-label">Teams</span>
+                </a>
+                <a href="rangliste.html" class="quick-tile" aria-label="Rangliste anzeigen">
+                    <span class="qt-icon">🏆</span>
+                    <span class="qt-label">Rangliste</span>
+                </a>
+                <a href="spieleranalyse.html" class="quick-tile" aria-label="Spieler analysieren">
+                    <span class="qt-icon">🔍</span>
+                    <span class="qt-label">Spieler-Analyse</span>
+                </a>
+                <a href="punktesystem.html" class="quick-tile" aria-label="Punktesystem ansehen">
+                    <span class="qt-icon">📊</span>
+                    <span class="qt-label">Punktesystem</span>
+                </a>
+                <a href="dashboard.html" class="quick-tile" aria-label="Dashboard öffnen">
+                    <span class="qt-icon">📈</span>
+                    <span class="qt-label">Dashboard</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ── Row 2: Top Players + Top Nations ─────────────── -->
+    <div class="tile-grid tile-grid-2 mb-section">
+
+        <!-- Top Players -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">⭐</span> Beste Spieler
+                </div>
+                <a href="spieleranalyse.html" class="section-link" aria-label="Alle Spieler analysieren">Alle →</a>
+            </div>
+            <ul class="player-list" id="tile-post-top-players" aria-label="Top 5 Spieler nach Punkten">
+                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
+                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
+                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
+            </ul>
+        </div>
+
+        <!-- Top Nations -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🌍</span> Beste Länder
+                </div>
+                <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Länderspiele ansehen">Alle →</a>
+            </div>
+            <div id="tile-post-top-nations" aria-label="Top 5 Länder nach Punkten">
+                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 3: Top Managers + Rank Jumps ─────────────── -->
+    <div class="tile-grid tile-grid-2 mb-section">
+
+        <!-- Top Managers -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🏅</span> Top Manager
+                </div>
+                <a href="rangliste.html" class="section-link" aria-label="Vollständige Rangliste">Rangliste →</a>
+            </div>
+            <div id="tile-post-top-managers" aria-label="Top 5 Manager nach Punkten">
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
+        </div>
+
+        <!-- Rank Changes -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">📈</span> Grösste Veränderungen
+                </div>
+                <div class="rank-period-btns" role="group" aria-label="Zeitraum auswählen" id="period-post-btns"></div>
+            </div>
+            <div id="tile-post-rank-jumps" aria-live="polite" aria-label="Grösste Rangveränderungen">
+                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 4: Popular Picks (3D cards) + Captain Watch ─ -->
+    <div class="tile-grid tile-grid-2 mb-section">
+
+        <!-- Popular Picks -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🔥</span> Fan-Lieblinge
+                </div>
+                <a href="dashboard.html" class="section-link" aria-label="Dashboard öffnen">Dashboard →</a>
+            </div>
+            <div class="pop-picks-scroll" id="tile-post-popular-picks" aria-label="Meistgewählte Spieler">
+                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+            </div>
+        </div>
+
+        <!-- Captain Watch -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">👑</span> Captain Watch
+                </div>
+            </div>
+            <div id="tile-post-captain-watch" aria-label="Beliebteste Captains">
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 5: Next Matches (full width) ──────────────── -->
+    <div class="mb-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-title-accent" aria-hidden="true"></span>
+                📅 Spielplan / Nächste Spiele
+            </h2>
+            <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Alle Spiele ansehen">Alle Spiele →</a>
+        </div>
+        <div class="gtile" id="tile-post-matches" aria-label="Nächste Spiele im Turnier">
+            <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
+            <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
+        </div>
+    </div>
+
+</main>
+
+</div><!-- /#indexHomePostStart -->
+
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -1779,6 +2096,90 @@
 <script>
 (function () {
     'use strict';
+
+    /* =========================================================
+       PRE/POST SPIELSTART – MODUS-STEUERUNG
+       =========================================================
+       DREAMTEAM_START ist in tournament-config.js definiert.
+       localStorage-Key: dreamteamIndexViewMode
+       Werte: "auto" | "pre" | "post"
+       ========================================================= */
+
+    // Startzeitpunkt aus APP_CONFIG lesen (definiert in tournament-config.js)
+    // Fallback falls APP_CONFIG noch nicht geladen: Konstante direkt verwenden.
+    function getDreamteamStart() {
+        return (window.APP_CONFIG && window.APP_CONFIG.DREAMTEAM_START)
+            ? window.APP_CONFIG.DREAMTEAM_START
+            : new Date("2026-06-11T21:00:00+02:00");
+    }
+
+    const DEV_TOGGLE_KEY = "dreamteamIndexViewMode";
+    const DEV_MODES = ["auto", "pre", "post"];
+    const DEV_LABELS = { auto: "DEV: Auto", pre: "DEV: Vor Start", post: "DEV: Nach Start" };
+
+    /**
+     * Gibt den effektiven Anzeigemodus zurück:
+     * "pre"  → Vor-Spielstart-Ansicht anzeigen
+     * "post" → Nach-Spielstart-/Live-Ansicht anzeigen
+     */
+    function getEffectiveIndexViewMode() {
+        const override = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
+        if (override === "pre") return "pre";
+        if (override === "post") return "post";
+        return new Date() >= getDreamteamStart() ? "post" : "pre";
+    }
+
+    /**
+     * Aktualisiert die Beschriftung und das data-mode-Attribut des Dev-Umschalters.
+     */
+    function updateDevToggleLabel() {
+        const btn = document.getElementById("dev-index-toggle");
+        if (!btn) return;
+        const storedMode = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
+        btn.textContent = DEV_LABELS[storedMode] || DEV_LABELS.auto;
+        btn.dataset.mode = storedMode;
+    }
+
+    /**
+     * Zeigt die Pre-Start- oder Post-Start-Sektion an
+     * und versteckt die jeweils andere.
+     */
+    function applyIndexViewMode() {
+        const mode = getEffectiveIndexViewMode();
+        const pre = document.getElementById("indexHomePreStart");
+        const post = document.getElementById("indexHomePostStart");
+        if (!pre || !post) return;
+
+        if (mode === "post") {
+            pre.style.display = "none";
+            post.style.display = "";
+        } else {
+            pre.style.display = "";
+            post.style.display = "none";
+        }
+    }
+
+    /**
+     * Dev-Umschalter: Klick wechselt zyklisch durch auto → pre → post → auto …
+     * Speichert den Modus in localStorage und wendet ihn sofort an.
+     */
+    function initDevToggle() {
+        const btn = document.getElementById("dev-index-toggle");
+        if (!btn) return;
+
+        updateDevToggleLabel();
+
+        btn.addEventListener("click", () => {
+            const current = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
+            const nextIdx = (DEV_MODES.indexOf(current) + 1) % DEV_MODES.length;
+            const next = DEV_MODES[nextIdx];
+            localStorage.setItem(DEV_TOGGLE_KEY, next);
+            updateDevToggleLabel();
+            applyIndexViewMode();
+            // Re-trigger tilt for any newly visible cards
+            setTimeout(() => initCardTilt(), 80);
+        });
+    }
 
     /* =========================================================
        UTILITIES
@@ -1905,7 +2306,8 @@
        RANK JUMPS
        ========================================================= */
     let rankingHistoryCache = null;
-    let activePeriod = null;
+    // Track active period per section: { pre: number|null, post: number|null }
+    const activePeriods = { pre: null, post: null };
 
     function buildPeriodOptions(matchIds) {
         const n = matchIds.length;
@@ -1939,15 +2341,22 @@
         }).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta) || a.currentRank - b.currentRank);
     }
 
-    function renderJumps(period) {
-        activePeriod = period;
-        const container = $('tile-rank-jumps');
+    function renderJumps(period, prefix) {
+        // prefix: '' → Pre, 'post-' → Post
+        const sectionKey = (prefix === 'post-') ? 'post' : 'pre';
+        activePeriods[sectionKey] = period;
+
+        const container = $('tile-' + (prefix || '') + 'rank-jumps');
         if (!container || !rankingHistoryCache) return;
 
-        // update button states
-        document.querySelectorAll('.rp-btn').forEach((btn) => {
-            btn.classList.toggle('active', Number(btn.dataset.period) === period);
-        });
+        // Update button states only within the relevant period-btn group
+        const btnGroupId = (prefix === 'post-') ? 'period-post-btns' : 'period-btns';
+        const btnGroup = $(btnGroupId);
+        if (btnGroup) {
+            btnGroup.querySelectorAll('.rp-btn').forEach((btn) => {
+                btn.classList.toggle('active', Number(btn.dataset.period) === period);
+            });
+        }
 
         const jumps = computeJumpsForPeriod(rankingHistoryCache.teams, rankingHistoryCache.matchIds, period);
         const top5 = jumps.slice(0, 5);
@@ -1978,8 +2387,10 @@
     /* =========================================================
        PERIOD BUTTONS
        ========================================================= */
-    function renderPeriodButtons(matchIds) {
-        const container = $('period-btns');
+    function renderPeriodButtons(matchIds, prefix) {
+        // prefix: '' → Pre, 'post-' → Post
+        const btnGroupId = (prefix === 'post-') ? 'period-post-btns' : 'period-btns';
+        const container = $(btnGroupId);
         if (!container) return;
 
         const options = buildPeriodOptions(matchIds);
@@ -1990,19 +2401,24 @@
         `).join('');
 
         container.querySelectorAll('.rp-btn').forEach((btn) => {
-            btn.addEventListener('click', () => renderJumps(Number(btn.dataset.period)));
+            btn.addEventListener('click', () => renderJumps(Number(btn.dataset.period), prefix));
         });
 
         // default: last match
         const defaultPeriod = matchIds.length > 0 ? 1 : 0;
-        renderJumps(defaultPeriod);
+        renderJumps(defaultPeriod, prefix);
     }
 
     /* =========================================================
        HERO MINI-CARDS
        ========================================================= */
-    function renderHeroCards(topPlayers, ptMap) {
-        const slots = [$('hcs-0'), $('hcs-1'), $('hcs-2')];
+    function renderHeroCards(topPlayers, ptMap, heroPfx) {
+        // heroPfx: '' → Pre-Start IDs (hcs-0, hcs-1, hcs-2)
+        //          'hcs-post-' → Post-Start IDs (hcs-post-0, hcs-post-1, hcs-post-2)
+        const isPost = heroPfx === 'hcs-post-';
+        const slots = isPost
+            ? [$('hcs-post-0'), $('hcs-post-1'), $('hcs-post-2')]
+            : [$('hcs-0'), $('hcs-1'), $('hcs-2')];
         topPlayers.slice(0, 3).forEach((p, i) => {
             const slot = slots[i];
             if (!slot) return;
@@ -2022,8 +2438,9 @@
     /* =========================================================
        TOP PLAYERS TILE
        ========================================================= */
-    function renderTopPlayers(topPlayers, ptMap) {
-        const container = $('tile-top-players');
+    function renderTopPlayers(topPlayers, ptMap, prefix) {
+        // prefix: '' → tile-top-players (Pre), 'post-' → tile-post-top-players (Post)
+        const container = $('tile-' + (prefix || '') + 'top-players');
         if (!container) return;
 
         if (!topPlayers.length) {
@@ -2059,8 +2476,9 @@
     /* =========================================================
        TOP NATIONS TILE
        ========================================================= */
-    function renderTopNations(nations) {
-        const container = $('tile-top-nations');
+    function renderTopNations(nations, prefix) {
+        // prefix: '' → tile-top-nations (Pre), 'post-' → tile-post-top-nations (Post)
+        const container = $('tile-' + (prefix || '') + 'top-nations');
         if (!container) return;
 
         if (!nations.length) {
@@ -2091,8 +2509,9 @@
     /* =========================================================
        TOP MANAGERS TILE
        ========================================================= */
-    function renderTopManagers(teamTotals, ptMap, teams) {
-        const container = $('tile-top-managers');
+    function renderTopManagers(teamTotals, ptMap, teams, prefix) {
+        // prefix: '' → tile-top-managers (Pre), 'post-' → tile-post-top-managers (Post)
+        const container = $('tile-' + (prefix || '') + 'top-managers');
         if (!container) return;
 
         if (!teamTotals.length) {
@@ -2169,8 +2588,9 @@
         `;
     }
 
-    function renderPopularPicks(pickCounts) {
-        const container = $('tile-popular-picks');
+    function renderPopularPicks(pickCounts, prefix) {
+        // prefix: '' → tile-popular-picks (Pre), 'post-' → tile-post-popular-picks (Post)
+        const container = $('tile-' + (prefix || '') + 'popular-picks');
         if (!container) return;
 
         const ranked = Object.entries(pickCounts)
@@ -2230,8 +2650,9 @@
     /* =========================================================
        CAPTAIN WATCH
        ========================================================= */
-    function renderCaptainWatch(captainCounts, ptMap) {
-        const container = $('tile-captain-watch');
+    function renderCaptainWatch(captainCounts, ptMap, prefix) {
+        // prefix: '' → tile-captain-watch (Pre), 'post-' → tile-post-captain-watch (Post)
+        const container = $('tile-' + (prefix || '') + 'captain-watch');
         if (!container) return;
 
         const ranked = Object.entries(captainCounts)
@@ -2306,8 +2727,9 @@
         return Array.from(nations).filter(Boolean);
     }
 
-    function renderMatches(data, teams) {
-        const container = $('tile-matches');
+    function renderMatches(data, teams, prefix) {
+        // prefix: '' → tile-matches (Pre), 'post-' → tile-post-matches (Post)
+        const container = $('tile-' + (prefix || '') + 'matches');
         if (!container) return;
 
         const matchInfos = extractMatchInfo(data);
@@ -2409,10 +2831,13 @@
     /* =========================================================
        HERO STATS
        ========================================================= */
-    function renderHeroStats(teams, ptMap) {
-        const teamCountEl = $('hs-teams');
-        const draftedEl = $('hs-drafted');
-        const leaderEl = $('hs-leader');
+    function renderHeroStats(teams, ptMap, heroPfx) {
+        // heroPfx: '' → Pre-Start IDs (hs-teams, hs-drafted, hs-leader)
+        //          'hcs-post-' → Post-Start IDs (hs-post-teams, hs-post-drafted, hs-post-leader)
+        const isPost = heroPfx === 'hcs-post-';
+        const teamCountEl = isPost ? $('hs-post-teams') : $('hs-teams');
+        const draftedEl = isPost ? $('hs-post-drafted') : $('hs-drafted');
+        const leaderEl = isPost ? $('hs-post-leader') : $('hs-leader');
 
         // Count unique drafted player IDs
         const draftedIds = new Set();
@@ -2439,9 +2864,10 @@
     /* =========================================================
        TEAM COUNT TILE
        ========================================================= */
-    function renderTeamCount(count) {
-        const el = $('tile-team-count');
-        const sub = $('tile-team-sub');
+    function renderTeamCount(count, prefix) {
+        // prefix: '' → tile-team-count (Pre), 'post-' → tile-post-team-count (Post)
+        const el = $('tile-' + (prefix || '') + 'team-count');
+        const sub = $('tile-' + (prefix || '') + 'team-sub');
         if (el) animateCounter(el, count);
         if (sub) sub.textContent = count === 1 ? 'Team nimmt teil' : 'Teams nehmen teil';
     }
@@ -2452,27 +2878,45 @@
     const APP = window.APP_CONFIG;
     if (!APP) { console.error('APP_CONFIG fehlt'); return; }
 
-    // Set title and hero label
+    // Set title and hero label for both sections
     const shortLabel = APP.shortLabel || 'Turnier';
     const pageTitlePrefix = APP.pageTitlePrefix || APP.brandName || 'DreamTeam';
 
     document.title = `${pageTitlePrefix} - Startseite`;
 
+    // Pre-Start hero labels
     const titleLabelEl = $('hero-title-label');
     if (titleLabelEl) titleLabelEl.textContent = shortLabel;
 
     const ctaBtn = $('hero-cta-btn');
     if (ctaBtn) ctaBtn.setAttribute('aria-label', `Team erstellen für ${shortLabel}`);
 
-    function render(data) {
+    // Post-Start hero labels
+    const titleLabelPostEl = $('hero-post-title-label');
+    if (titleLabelPostEl) titleLabelPostEl.textContent = shortLabel;
+
+    const ctaBtnPost = $('hero-post-cta-btn');
+    if (ctaBtnPost) ctaBtnPost.setAttribute('aria-label', `Team erstellen für ${shortLabel}`);
+
+    /**
+     * Kernlogik: Rendert alle Dashboard-Kacheln in die DOM-Elemente
+     * der angegebenen Sektion.
+     *
+     * tilePfx: '' → Pre-Start (IDs: tile-top-players, tile-matches, …)
+     *          'post-' → Post-Start (IDs: tile-post-top-players, tile-post-matches, …)
+     *
+     * heroPfx: '' → Pre-Start Hero-Karten (IDs: hcs-0, hcs-1, hcs-2)
+     *          'hcs-post-' → Post-Start Hero-Karten (IDs: hcs-post-0, hcs-post-1, hcs-post-2)
+     */
+    function renderSectionData(data, tilePfx, heroPfx) {
         const teams = Array.isArray(data.teams) ? data.teams : [];
         const ptMap = computeTotalPoints(data.points);
 
-        // Hero
-        renderHeroStats(teams, ptMap);
+        // Hero stats (Teamanzahl, gedraftete Spieler, Top-Manager)
+        renderHeroStats(teams, ptMap, heroPfx);
 
         // Team count tile
-        renderTeamCount(teams.length);
+        renderTeamCount(teams.length, tilePfx);
 
         // Compute pick and captain counts
         const pickCounts = {};
@@ -2492,8 +2936,8 @@
             .map((p) => ({ ...p, _pts: ptMap[String(p['player.id'])] || 0 }))
             .sort((a, b) => b._pts - a._pts || a.Spielername.localeCompare(b.Spielername, 'de'));
 
-        renderHeroCards(topPlayers, ptMap);
-        renderTopPlayers(topPlayers, ptMap);
+        renderHeroCards(topPlayers, ptMap, heroPfx);
+        renderTopPlayers(topPlayers, ptMap, tilePfx);
 
         // Top nations
         const nationMap = new Map();
@@ -2505,7 +2949,7 @@
         });
         const topNations = Array.from(nationMap.entries())
             .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'));
-        renderTopNations(topNations);
+        renderTopNations(topNations, tilePfx);
 
         // Top managers
         const teamTotals = teams.map((t) => ({
@@ -2513,26 +2957,75 @@
             total: getTeamTotal(t, ptMap)
         })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
 
-        renderTopManagers(teamTotals, ptMap, teams);
+        renderTopManagers(teamTotals, ptMap, teams, tilePfx);
 
-        // Ranking history + jumps
+        // Ranking history + jumps (shared cache, rendered per section)
         rankingHistoryCache = computeRankingHistory(data);
-        renderPeriodButtons(rankingHistoryCache.matchIds);
+        renderPeriodButtons(rankingHistoryCache.matchIds, tilePfx);
 
         // Popular picks
-        renderPopularPicks(pickCounts);
+        renderPopularPicks(pickCounts, tilePfx);
 
         // Captain watch
-        renderCaptainWatch(captainCounts, ptMap);
+        renderCaptainWatch(captainCounts, ptMap, tilePfx);
 
         // Matches
-        renderMatches(data, teams);
+        renderMatches(data, teams, tilePfx);
+    }
+
+    /* =========================================================
+       PRE START HOME – Render-Funktion
+       Inhalt/Logik der Startseite vor Spielstart.
+       Hier später Pre-Start-spezifische Inhalte anpassen.
+       ========================================================= */
+    function renderPreStartHome(data) {
+        // tilePfx '' → IDs ohne 'post-' Infix (tile-top-players etc.)
+        // heroPfx '' → Hero-Karten ohne 'post-' Infix (hcs-0 etc.)
+        renderSectionData(data, '', '');
+    }
+
+    /* =========================================================
+       POST START HOME – Render-Funktion
+       Inhalt/Logik der Startseite nach Spielstart / Live-Phase.
+       Hier später Post-Start-spezifische Inhalte anpassen.
+       ========================================================= */
+    function renderPostStartHome(data) {
+        // tilePfx 'post-' → IDs mit 'post-' Infix (tile-post-top-players etc.)
+        // heroPfx 'hcs-post-' → Hero-Karten mit 'post-' Infix (hcs-post-0 etc.)
+        renderSectionData(data, 'post-', 'hcs-post-');
+    }
+
+    /**
+     * Haupteinstiegspunkt: Bestimmt den aktiven Modus,
+     * blendet die richtige Sektion ein und rendert deren Daten.
+     * Wird bei jedem Daten-Update aufgerufen.
+     */
+    function renderIndexHome(data) {
+        applyIndexViewMode();
+        updateDevToggleLabel();
+
+        const mode = getEffectiveIndexViewMode();
+        if (mode === 'post') {
+            renderPostStartHome(data);
+        } else {
+            renderPreStartHome(data);
+        }
+    }
+
+    // Alias für Legacy-Aufrufe innerhalb dieser Datei
+    function render(data) {
+        renderIndexHome(data);
     }
 
     /* =========================================================
        INIT
        ========================================================= */
     async function init() {
+        // Dev-Umschalter initialisieren und sofort korrekte Sektion einblenden
+        initDevToggle();
+        applyIndexViewMode();
+        updateDevToggleLabel();
+
         try {
             const CACHE_OPTS = {
                 db: APP.getDb(),
