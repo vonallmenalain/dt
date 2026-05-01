@@ -725,6 +725,7 @@
         .player-position-pill {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 5px;
             background: rgba(255,215,0,0.1);
             border: 1px solid rgba(255,215,0,0.3);
@@ -732,10 +733,12 @@
             font-size: 0.72rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            line-height: 1.2;
+            letter-spacing: 1.2px;
             padding: 4px 12px;
             border-radius: 999px;
             width: fit-content;
+            text-align: center;
         }
 
         #detail-name {
@@ -1781,6 +1784,26 @@
 
             #detail-name { font-size: clamp(1.5rem, 6vw, 2rem); }
 
+
+            #detail-total-pts,
+            .player-position-pill,
+            #detail-name {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            #detail-total-pts {
+                min-height: 44px;
+            }
+
+            .player-identity-top {
+                width: 100%;
+                align-items: center;
+            }
+
             .player-flag-club-row { justify-content: center; }
 
             .player-flag-card,
@@ -2223,7 +2246,7 @@
 
         if (window.innerWidth <= 860 && isOpen) {
             requestAnimationFrame(() => {
-                analysisSidebar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                scrollElementToTop(analysisSidebar, { smooth: true });
             });
         }
     });
@@ -2339,6 +2362,19 @@
         });
     }
 
+    function getNavigationOffset() {
+        const nav = document.querySelector('body > nav.navbar');
+        const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 0;
+        return navHeight + 8;
+    }
+
+    function scrollElementToTop(element, { smooth = true } = {}) {
+        if (!element) return;
+        const top = window.scrollY + element.getBoundingClientRect().top - getNavigationOffset();
+        const behavior = smooth && !prefersReducedMotion() ? 'smooth' : 'auto';
+        window.scrollTo({ top: Math.max(0, top), behavior });
+    }
+
     /* =========================================================
        MOBILE: scroll to hero after player select
        ========================================================= */
@@ -2347,8 +2383,15 @@
         const hero = document.getElementById('player-hero-card');
         if (!hero) return;
         setTimeout(() => {
-            hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            scrollElementToTop(hero, { smooth: true });
         }, 80);
+    }
+
+    function scrollToGamesCountrySectionOnMobile() {
+        if (window.innerWidth > 860) return;
+        const countryCard = document.getElementById('games-top-card');
+        if (!countryCard) return;
+        requestAnimationFrame(() => scrollElementToTop(countryCard, { smooth: true }));
     }
 
     function jumpToFiltersOnMobile() {
@@ -2362,7 +2405,7 @@
         sidebar.classList.remove('mobile-filter-highlight');
         void sidebar.offsetWidth;
         sidebar.classList.add('mobile-filter-highlight');
-        mobileFilterBtn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollElementToTop(mobileFilterBtn, { smooth: true });
         setTimeout(() => sidebar.classList.remove('mobile-filter-highlight'), 1100);
     }
 
@@ -3328,7 +3371,7 @@
     }
     window.openGameCard = openGameCard;
 
-    function selectGamesNation(nation, push = true) {
+    function selectGamesNation(nation, push = true, options = {}) {
         const countryList = document.getElementById('games-country-list');
         if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
         currentGameNationFilter = nation || 'ALL';
@@ -3337,6 +3380,8 @@
         if (currentView !== 'games') setView('games', false);
         updateUrl(push);
         updateMobileFilterButtonLabel();
+        if (options.closeFilter !== false) closeMobileFilter();
+        scrollToGamesCountrySectionOnMobile();
     }
     window.selectGamesNation = selectGamesNation;
 
@@ -3478,7 +3523,12 @@
 
     document.getElementById('search-input').addEventListener('input', () => { applyFilters(); updateUrl(false); });
     document.getElementById('pos-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
-    document.getElementById('nation-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
+    document.getElementById('nation-filter').addEventListener('change', () => {
+        applyFilters();
+        updateUrl(false);
+        closeMobileFilter();
+        scrollToHeroOnMobile();
+    });
     document.getElementById('club-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
 
     document.getElementById('reset-filters').addEventListener('click', () => {
