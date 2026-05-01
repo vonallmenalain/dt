@@ -1551,6 +1551,457 @@
             color: rgba(74, 222, 128, 0.85);
         }
 
+        /* ===================================================
+           MANAGER LIST (team count expanded)
+           =================================================== */
+        .manager-list-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-top: 10px;
+        }
+
+        .mgr-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .mgr-chip:last-child { border-bottom: none; }
+
+        .mgr-chip-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: 16px;
+        }
+
+        .mgr-chip-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ===================================================
+           BAROMETER / CLUB / AGE TILES (dark theme)
+           =================================================== */
+        .dark-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .dark-bar-row:last-child { border-bottom: none; }
+
+        .dark-bar-label {
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--text-main);
+            min-width: 120px;
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dark-bar-label a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .dark-bar-label a:hover { color: #4ade80; }
+
+        .dark-bar-track {
+            flex: 1;
+            background: rgba(255,255,255,0.06);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .dark-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.9s ease;
+        }
+
+        .dark-bar-val {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* Barometer subsection label */
+        .dark-sub-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 0 4px;
+            margin-bottom: 2px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .dark-sub-label.green { color: #4ade80; }
+        .dark-sub-label.red { color: #f87171; }
+        .dark-sub-label.muted { color: var(--text-muted); }
+
+        /* Club row */
+        .club-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-decoration: none;
+            color: inherit;
+            border-radius: 8px;
+            transition: background 0.15s ease, transform 0.15s ease;
+            cursor: pointer;
+        }
+
+        .club-row:last-child { border-bottom: none; }
+
+        @media (hover: hover) and (pointer: fine) {
+            .club-row:hover {
+                background: rgba(255,255,255,0.05);
+                transform: translateX(3px);
+            }
+        }
+
+        .club-logo-wrap {
+            width: 34px;
+            height: 34px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+
+        .club-logo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .club-name-text {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.86rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .club-count-badge {
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #38bdf8;
+            min-width: 28px;
+            text-align: right;
+        }
+
+        /* Age value badge */
+        .age-badge {
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .age-badge.old {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+
+        .age-badge.young {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        /* ===================================================
+           PICKS / FLOP TILES (Live Dashboard)
+           =================================================== */
+        .picks-list { list-style: none; margin: 0; padding: 0; }
+
+        .pick-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-decoration: none;
+            color: inherit;
+            border-radius: 8px;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .pick-item:last-child { border-bottom: none; }
+
+        @media (hover: hover) and (pointer: fine) {
+            .pick-item:hover {
+                background: rgba(255,255,255,0.05);
+                transform: translateX(3px);
+            }
+        }
+
+        .pick-rank {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            min-width: 16px;
+        }
+
+        .pick-rank.gold { color: var(--gold); }
+        .pick-rank.silver { color: #c0c0c0; }
+        .pick-rank.bronze { color: #cd7f32; }
+
+        .pick-avatar-wrap {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+        }
+
+        .pick-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: #2a3040;
+        }
+
+        .pick-flag {
+            position: absolute;
+            bottom: -2px;
+            right: -3px;
+            width: 16px;
+            height: 11px;
+            border-radius: 2px;
+            object-fit: cover;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        .pick-info { flex: 1; min-width: 0; }
+
+        .pick-name {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pick-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pick-pts {
+            font-weight: 800;
+            font-size: 0.95rem;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .pick-pts.pos { color: #4ade80; }
+        .pick-pts.neg { color: #f87171; }
+        .pick-pts.zero { color: var(--text-muted); }
+
+        /* ===================================================
+           COMPACT PERFECT TEAM
+           =================================================== */
+        .compact-pt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .compact-pt-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .compact-pt-stat-val {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #4ade80;
+            line-height: 1;
+        }
+
+        .compact-pt-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .compact-captain-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.25);
+            border-radius: 100px;
+            padding: 5px 12px 5px 5px;
+        }
+
+        .compact-captain-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,215,0,0.5);
+            background: #2a3040;
+        }
+
+        .compact-captain-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fbbf24;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        /* Compact pitch layout */
+        .compact-pitch {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .compact-pitch-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .compact-pos-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 28px;
+            flex-shrink: 0;
+        }
+
+        .compact-players {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .compact-player-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 100px;
+            padding: 4px 10px 4px 4px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            font-size: 0.8rem;
+        }
+
+        .compact-player-chip:hover {
+            background: rgba(74,222,128,0.08);
+            border-color: rgba(74,222,128,0.2);
+        }
+
+        .compact-player-chip.is-captain {
+            background: rgba(255,215,0,0.1);
+            border-color: rgba(255,215,0,0.3);
+        }
+
+        .compact-chip-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #2a3040;
+            flex-shrink: 0;
+        }
+
+        .compact-chip-name {
+            font-weight: 600;
+            max-width: 90px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .compact-chip-pts {
+            font-weight: 800;
+            font-size: 0.78rem;
+            margin-left: 2px;
+        }
+
+        .compact-chip-pts.pos { color: #4ade80; }
+        .compact-chip-pts.neg { color: #f87171; }
+        .compact-chip-pts.gold { color: #fbbf24; }
+
+        /* Bench separator */
+        .compact-bench-sep {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 4px 0 2px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+
+        /* ===================================================
+           TILE GRID ADDITIONAL
+           =================================================== */
+        .tile-grid-3-auto {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .tile-grid-3-auto { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 680px) {
+            .tile-grid-3-auto { grid-template-columns: 1fr; }
+        }
+
     </style>
 </head>
 <body>
@@ -1613,7 +2064,6 @@
                 <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
                 <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler-Analyse</a>
                 <a href="teams.html" class="btn-pill">🛡️ Teams</a>
-                <a href="dashboard.html" class="btn-pill">📈 Dashboard</a>
             </div>
         </div>
 
@@ -1641,153 +2091,30 @@
 </section>
 
 <!-- =====================================================
-     DASHBOARD AREA
+     PRE-START DASHBOARD AREA
      ===================================================== -->
 <main class="dashboard-area" id="dashboard-area">
 
-    <!-- ── Row 1: Team count + Quick Access ──────────────── -->
+    <!-- ── Row 1: Team count (with managers) + Captain Watch ─ -->
     <div class="tile-grid tile-grid-2 mb-section">
 
-        <!-- Team Count -->
-        <a class="gtile gtile-link" href="teams.html" aria-label="Alle Teams anzeigen">
+        <!-- Team Count + Manager List -->
+        <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
                     <span class="gtile-title-icon">👥</span> Erstellte Teams
                 </div>
-                <div class="gtile-arrow" aria-hidden="true">→</div>
+                <a href="teams.html" class="section-link" aria-label="Alle Teams anzeigen">Alle →</a>
             </div>
             <div class="team-count-big" id="tile-team-count">
                 <span class="skel" style="display:inline-block;width:60px;height:3.2rem;"></span>
             </div>
             <div class="team-count-sub" id="tile-team-sub">Teams nehmen am Turnier teil</div>
+            <div class="manager-list-compact" id="tile-manager-list" aria-label="Manager-Liste">
+                <div class="skel" style="height:28px;margin-bottom:4px;border-radius:6px;"></div>
+                <div class="skel" style="height:28px;margin-bottom:4px;border-radius:6px;"></div>
+            </div>
             <div class="team-count-glow" aria-hidden="true"></div>
-        </a>
-
-        <!-- Quick Access -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="gtile-title-icon">🚀</span> Schnellzugriff
-                </div>
-            </div>
-            <nav class="quick-grid" aria-label="App-Bereiche">
-                <a href="team-builder.html" class="quick-tile" aria-label="Team erstellen">
-                    <span class="qt-icon">➕</span>
-                    <span class="qt-label">Team erstellen</span>
-                </a>
-                <a href="teams.html" class="quick-tile" aria-label="Teams anzeigen">
-                    <span class="qt-icon">🛡️</span>
-                    <span class="qt-label">Teams</span>
-                </a>
-                <a href="rangliste.html" class="quick-tile" aria-label="Rangliste anzeigen">
-                    <span class="qt-icon">🏆</span>
-                    <span class="qt-label">Rangliste</span>
-                </a>
-                <a href="spieleranalyse.html" class="quick-tile" aria-label="Spieler analysieren">
-                    <span class="qt-icon">🔍</span>
-                    <span class="qt-label">Spieler-Analyse</span>
-                </a>
-                <a href="punktesystem.html" class="quick-tile" aria-label="Punktesystem ansehen">
-                    <span class="qt-icon">📊</span>
-                    <span class="qt-label">Punktesystem</span>
-                </a>
-                <a href="dashboard.html" class="quick-tile" aria-label="Dashboard öffnen">
-                    <span class="qt-icon">📈</span>
-                    <span class="qt-label">Dashboard</span>
-                </a>
-            </nav>
-        </div>
-    </div>
-
-    <!-- ── Row 2: Top Players + Top Nations ─────────────── -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Top Players -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">⭐</span> Beste Spieler
-                </div>
-                <a href="spieleranalyse.html" class="section-link" aria-label="Alle Spieler analysieren">Alle →</a>
-            </div>
-            <ul class="player-list" id="tile-top-players" aria-label="Top 5 Spieler nach Punkten">
-                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
-                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
-                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
-            </ul>
-        </div>
-
-        <!-- Top Nations -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🌍</span> Beste Länder
-                </div>
-                <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Länderspiele ansehen">Alle →</a>
-            </div>
-            <div id="tile-top-nations" aria-label="Top 5 Länder nach Punkten">
-                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Row 3: Top Managers + Rank Jumps ─────────────── -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Top Managers -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🏅</span> Top Manager
-                </div>
-                <a href="rangliste.html" class="section-link" aria-label="Vollständige Rangliste">Rangliste →</a>
-            </div>
-            <div id="tile-top-managers" aria-label="Top 5 Manager nach Punkten">
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
-        </div>
-
-        <!-- Rank Changes -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">📈</span> Grösste Veränderungen
-                </div>
-                <div class="rank-period-btns" role="group" aria-label="Zeitraum auswählen" id="period-btns"></div>
-            </div>
-            <div id="tile-rank-jumps" aria-live="polite" aria-label="Grösste Rangveränderungen">
-                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Row 4: Popular Picks (3D cards) + Captain Watch ─ -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Popular Picks -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🔥</span> Fan-Lieblinge
-                </div>
-                <a href="dashboard.html" class="section-link" aria-label="Dashboard öffnen">Dashboard →</a>
-            </div>
-            <div class="pop-picks-scroll" id="tile-popular-picks" aria-label="Meistgewählte Spieler">
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-            </div>
         </div>
 
         <!-- Captain Watch -->
@@ -1806,18 +2133,88 @@
         </div>
     </div>
 
-    <!-- ── Row 5: Next Matches (full width) ──────────────── -->
+    <!-- ── Row 2: Fan-Lieblinge (3D cards) full width ─────── -->
     <div class="mb-section">
-        <div class="section-header">
-            <h2 class="section-title">
-                <span class="section-title-accent" aria-hidden="true"></span>
-                📅 Spielplan / Nächste Spiele
-            </h2>
-            <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Alle Spiele ansehen">Alle Spiele →</a>
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🔥</span> Fan-Lieblinge
+                </div>
+            </div>
+            <div class="pop-picks-scroll" id="tile-popular-picks" aria-label="Meistgewählte Spieler">
+                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+            </div>
         </div>
+    </div>
+
+    <!-- ── Row 3: Beliebteste Vereine + Scouting Barometer ── -->
+    <div class="tile-grid tile-grid-2 mb-section">
+
+        <!-- Beliebteste Vereine -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🏢</span> Beliebteste Vereine
+                </div>
+            </div>
+            <div id="tile-top-clubs" aria-label="Meistgewählte Vereine">
+                <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
+        </div>
+
+        <!-- Scouting Barometer -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🔬</span> Scouting Barometer
+                </div>
+            </div>
+            <div id="tile-scouting-barometer" aria-label="Scouting Barometer">
+                <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 4: Team-Altersstruktur + Spielplan ───────── -->
+    <div class="tile-grid tile-grid-2 mb-section">
+
+        <!-- Team-Altersstruktur -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🎂</span> Team-Altersstruktur
+                </div>
+            </div>
+            <div id="tile-age-structure" aria-label="Team-Altersstruktur">
+                <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+            </div>
+        </div>
+
+        <!-- Spielplan -->
         <div class="gtile" id="tile-matches" aria-label="Nächste Spiele im Turnier">
-            <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
-            <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">📅</span> Spielplan
+                </div>
+                <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Alle Spiele ansehen">Alle →</a>
+            </div>
+            <div id="tile-matches-content">
+                <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
+                <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
+            </div>
         </div>
     </div>
 
@@ -1837,14 +2234,13 @@
 <section class="hero" id="hero-post">
     <div class="hero-content">
         <h1 class="hero-title">
-            Baue dein<br>
             <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
             <span class="accent" id="hero-post-title-accent">DreamTeam</span>
         </h1>
 
         <p class="hero-claim">
-            15 Spieler. 1 Captain.<br>
-            Drafte jetzt dein perfektes Fantasy-Team.
+            Live-Dashboard – Punkte, Rangliste,<br>
+            Top-Picks und mehr in Echtzeit.
         </p>
 
         <!-- Live stats -->
@@ -1875,7 +2271,6 @@
                 <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
                 <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler-Analyse</a>
                 <a href="teams.html" class="btn-pill">🛡️ Teams</a>
-                <a href="dashboard.html" class="btn-pill">📈 Dashboard</a>
             </div>
         </div>
 
@@ -1902,67 +2297,13 @@
     </div>
 </section>
 
-<!-- DASHBOARD AREA (Post Start) -->
+<!-- LIVE DASHBOARD AREA (Post Start) -->
 <main class="dashboard-area" id="dashboard-post-area">
 
-    <!-- ── Row 1: Team count + Quick Access ──────────────── -->
+    <!-- ── Row 1: Beste Spieler + Beste Länder ───────────── -->
     <div class="tile-grid tile-grid-2 mb-section">
 
-        <!-- Team Count -->
-        <a class="gtile gtile-link" href="teams.html" aria-label="Alle Teams anzeigen">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="gtile-title-icon">👥</span> Erstellte Teams
-                </div>
-                <div class="gtile-arrow" aria-hidden="true">→</div>
-            </div>
-            <div class="team-count-big" id="tile-post-team-count">
-                <span class="skel" style="display:inline-block;width:60px;height:3.2rem;"></span>
-            </div>
-            <div class="team-count-sub" id="tile-post-team-sub">Teams nehmen am Turnier teil</div>
-            <div class="team-count-glow" aria-hidden="true"></div>
-        </a>
-
-        <!-- Quick Access -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="gtile-title-icon">🚀</span> Schnellzugriff
-                </div>
-            </div>
-            <nav class="quick-grid" aria-label="App-Bereiche">
-                <a href="team-builder.html" class="quick-tile" aria-label="Team erstellen">
-                    <span class="qt-icon">➕</span>
-                    <span class="qt-label">Team erstellen</span>
-                </a>
-                <a href="teams.html" class="quick-tile" aria-label="Teams anzeigen">
-                    <span class="qt-icon">🛡️</span>
-                    <span class="qt-label">Teams</span>
-                </a>
-                <a href="rangliste.html" class="quick-tile" aria-label="Rangliste anzeigen">
-                    <span class="qt-icon">🏆</span>
-                    <span class="qt-label">Rangliste</span>
-                </a>
-                <a href="spieleranalyse.html" class="quick-tile" aria-label="Spieler analysieren">
-                    <span class="qt-icon">🔍</span>
-                    <span class="qt-label">Spieler-Analyse</span>
-                </a>
-                <a href="punktesystem.html" class="quick-tile" aria-label="Punktesystem ansehen">
-                    <span class="qt-icon">📊</span>
-                    <span class="qt-label">Punktesystem</span>
-                </a>
-                <a href="dashboard.html" class="quick-tile" aria-label="Dashboard öffnen">
-                    <span class="qt-icon">📈</span>
-                    <span class="qt-label">Dashboard</span>
-                </a>
-            </nav>
-        </div>
-    </div>
-
-    <!-- ── Row 2: Top Players + Top Nations ─────────────── -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Top Players -->
+        <!-- Beste Spieler -->
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -1978,7 +2319,7 @@
             </ul>
         </div>
 
-        <!-- Top Nations -->
+        <!-- Beste Länder -->
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -1995,10 +2336,10 @@
         </div>
     </div>
 
-    <!-- ── Row 3: Top Managers + Rank Jumps ─────────────── -->
+    <!-- ── Row 2: Top Manager + Grösste Veränderungen ────── -->
     <div class="tile-grid tile-grid-2 mb-section">
 
-        <!-- Top Managers -->
+        <!-- Top Manager -->
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -2014,7 +2355,7 @@
             </div>
         </div>
 
-        <!-- Rank Changes -->
+        <!-- Grösste Veränderungen -->
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -2031,53 +2372,55 @@
         </div>
     </div>
 
-    <!-- ── Row 4: Popular Picks (3D cards) + Captain Watch ─ -->
+    <!-- ── Row 3: Top Manager Picks + Flop Manager Picks ─── -->
     <div class="tile-grid tile-grid-2 mb-section">
 
-        <!-- Popular Picks -->
+        <!-- Top Manager Picks -->
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
                     <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🔥</span> Fan-Lieblinge
+                    <span class="gtile-title-icon">🌟</span> Top Manager Picks
                 </div>
-                <a href="dashboard.html" class="section-link" aria-label="Dashboard öffnen">Dashboard →</a>
             </div>
-            <div class="pop-picks-scroll" id="tile-post-popular-picks" aria-label="Meistgewählte Spieler">
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-            </div>
+            <ul class="picks-list" id="tile-post-top-picks" aria-label="Top 5 Picks der Manager">
+                <li><div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div></li>
+                <li><div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div></li>
+                <li><div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div></li>
+            </ul>
         </div>
 
-        <!-- Captain Watch -->
+        <!-- Flop Manager Picks -->
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
                     <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">👑</span> Captain Watch
+                    <span class="gtile-title-icon">📉</span> Flop Analyse
                 </div>
             </div>
-            <div id="tile-post-captain-watch" aria-label="Beliebteste Captains">
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
+            <ul class="picks-list" id="tile-post-flop-picks" aria-label="Flop 5 Picks der Manager">
+                <li><div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div></li>
+                <li><div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div></li>
+                <li><div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div></li>
+            </ul>
         </div>
     </div>
 
-    <!-- ── Row 5: Next Matches (full width) ──────────────── -->
+    <!-- ── Row 4: Perfect Team (compact) ─────────────────── -->
     <div class="mb-section">
-        <div class="section-header">
-            <h2 class="section-title">
-                <span class="section-title-accent" aria-hidden="true"></span>
-                📅 Spielplan / Nächste Spiele
-            </h2>
-            <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Alle Spiele ansehen">Alle Spiele →</a>
-        </div>
-        <div class="gtile" id="tile-post-matches" aria-label="Nächste Spiele im Turnier">
-            <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
-            <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🏆</span> Perfect Team
+                </div>
+                <div class="compact-pt-header" id="tile-post-perfect-meta" style="margin-bottom:0;"></div>
+            </div>
+            <div id="tile-post-perfect-team" aria-label="Perfect Team">
+                <div class="skel" style="height:36px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:36px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:36px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
         </div>
     </div>
 
@@ -2727,107 +3070,6 @@
         return Array.from(nations).filter(Boolean);
     }
 
-    function renderMatches(data, teams, prefix) {
-        // prefix: '' → tile-matches (Pre), 'post-' → tile-post-matches (Post)
-        const container = $('tile-' + (prefix || '') + 'matches');
-        if (!container) return;
-
-        const matchInfos = extractMatchInfo(data);
-
-        if (!matchInfos.length) {
-            container.innerHTML = `
-                <div class="match-empty">
-                    <div style="font-size:1.5rem;opacity:0.4;margin-bottom:8px;">📅</div>
-                    Noch keine kommenden Spiele gefunden. Spielplandaten werden hier angezeigt, sobald sie verfügbar sind.
-                </div>
-            `;
-            return;
-        }
-
-        // Collect player→matchId associations from points
-        const matchPlayerMap = {};
-        Object.entries(data.points || {}).forEach(([playerId, doc]) => {
-            Object.keys(doc?.matches || {}).forEach((mId) => {
-                const n = Number(mId);
-                if (!matchPlayerMap[n]) matchPlayerMap[n] = [];
-                const p = getPlayerById(playerId);
-                if (p) matchPlayerMap[n].push(p);
-            });
-        });
-
-        // Get drafted player IDs
-        const draftedIds = new Set();
-        (teams || []).forEach((t) => {
-            (t.players || []).forEach((tp) => {
-                const full = resolvePlayer(tp);
-                if (full) draftedIds.add(String(full['player.id']));
-            });
-        });
-
-        // Show last 3 matches with available data (not truly "future" without API)
-        const shown = matchInfos.slice(-5).reverse();
-
-        container.innerHTML = shown.map((match) => {
-            const id = match.gameNumber || match.matchId || match.id;
-            const url = `spieleranalyse.html?view=games&openGame=${encodeURIComponent(id)}`;
-
-            // Determine teams from match object or infer from player data
-            let teamA = match.teamA || match.home || match.homeTeam || '';
-            let teamB = match.teamB || match.away || match.awayTeam || '';
-            let teamAFlag = match.teamAFlag || match.homeLogo || '';
-            let teamBFlag = match.teamBFlag || match.awayLogo || '';
-            let dateStr = match.date || match.datetime || '';
-
-            // Fallback: infer nations from points data
-            if (!teamA || !teamB) {
-                const nations = getNationFromMatchGame(id, data);
-                teamA = nations[0] || '?';
-                teamB = nations[1] || '?';
-                if (!teamAFlag) {
-                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamA);
-                    if (p) teamAFlag = p['Nationalteam.logo'];
-                }
-                if (!teamBFlag) {
-                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamB);
-                    if (p) teamBFlag = p['Nationalteam.logo'];
-                }
-            }
-
-            // Players from drafted teams participating in this match
-            const playersInMatch = (matchPlayerMap[id] || [])
-                .filter((p) => draftedIds.has(String(p['player.id'])))
-                .slice(0, 5);
-
-            const avatarHtml = playersInMatch.length
-                ? `<div class="match-players-row" title="${playersInMatch.map((p) => escapeHtml(p.Spielername)).join(', ')}">` +
-                  playersInMatch.map((p) =>
-                      `<img class="match-player-avatar" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">`
-                  ).join('') +
-                  `</div>`
-                : '';
-
-            const dateLabel = dateStr ? new Date(dateStr).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' }) : `Spiel ${id}`;
-
-            return `
-                <a class="match-item" href="${url}" aria-label="${escapeHtml(teamA)} vs ${escapeHtml(teamB)}, Spiel ${id}">
-                    <div class="match-team">
-                        ${teamAFlag ? `<img class="match-team-flag" src="${escapeHtml(teamAFlag)}" alt="${escapeHtml(teamA)}" loading="lazy">` : `<div style="font-size:1.4rem;">🏳️</div>`}
-                        <div class="match-team-name">${escapeHtml(teamA)}</div>
-                    </div>
-                    <div class="match-vs">
-                        <div class="match-vs-text">VS</div>
-                        <div class="match-vs-date">${escapeHtml(dateLabel)}</div>
-                    </div>
-                    <div class="match-team">
-                        ${teamBFlag ? `<img class="match-team-flag" src="${escapeHtml(teamBFlag)}" alt="${escapeHtml(teamB)}" loading="lazy">` : `<div style="font-size:1.4rem;">🏳️</div>`}
-                        <div class="match-team-name">${escapeHtml(teamB)}</div>
-                    </div>
-                    ${avatarHtml}
-                </a>
-            `;
-        }).join('');
-    }
-
     /* =========================================================
        HERO STATS
        ========================================================= */
@@ -2873,6 +3115,462 @@
     }
 
     /* =========================================================
+       MANAGER LIST TILE (Pre-Tournament)
+       ========================================================= */
+    function renderManagerList(teams, prefix) {
+        const container = $('tile-' + (prefix || '') + 'manager-list');
+        if (!container) return;
+        if (!teams.length) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div>Noch keine Teams</div>';
+            return;
+        }
+        container.innerHTML = teams.slice(0, 10).map((t, i) => {
+            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+            return `
+                <a class="mgr-chip" href="${url}" aria-label="${escapeHtml(t.manager)}">
+                    <span class="mgr-chip-num">${i + 1}</span>
+                    <span class="mgr-chip-name">${escapeHtml(t.manager)}</span>
+                </a>
+            `;
+        }).join('');
+    }
+
+    /* =========================================================
+       TOP CLUBS TILE (Pre-Tournament)
+       ========================================================= */
+    function renderTopClubs(teams, prefix) {
+        const container = $('tile-' + (prefix || '') + 'top-clubs');
+        if (!container) return;
+
+        const clubCounts = {};
+        teams.forEach((t) => {
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (full && full['Club.name'] && full['Club.name'] !== 'Vereinslos') {
+                    clubCounts[full['Club.name']] = (clubCounts[full['Club.name']] || 0) + 1;
+                }
+            });
+        });
+
+        const topClubs = Object.entries(clubCounts)
+            .map(([name, count]) => {
+                const p = playersData.find((pl) => pl['Club.name'] === name);
+                return { name, logo: p ? p['Club.logo'] : '', count };
+            })
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
+        if (!topClubs.length) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏢</div>Noch keine Daten</div>';
+            return;
+        }
+
+        container.innerHTML = topClubs.map((c, i) => {
+            const url = `spieleranalyse.html?club=${encodeURIComponent(c.name)}`;
+            return `
+                <a class="club-row" href="${url}" aria-label="${escapeHtml(c.name)}, ${c.count}x gewählt">
+                    <span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);min-width:16px;">${i + 1}</span>
+                    <div class="club-logo-wrap">
+                        ${c.logo ? `<img src="${escapeHtml(c.logo)}" alt="${escapeHtml(c.name)}" loading="lazy">` : '<span style="font-size:1.1rem;">⚽</span>'}
+                    </div>
+                    <span class="club-name-text">${escapeHtml(c.name)}</span>
+                    <span class="club-count-badge">${c.count}×</span>
+                </a>
+            `;
+        }).join('');
+    }
+
+    /* =========================================================
+       SCOUTING BAROMETER TILE (Pre-Tournament)
+       ========================================================= */
+    function renderScoutingBarometer(teams, prefix) {
+        const container = $('tile-' + (prefix || '') + 'scouting-barometer');
+        if (!container) return;
+        if (!teams.length) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔬</div>Noch keine Teams</div>';
+            return;
+        }
+
+        const totalManagers = teams.length;
+        const pickCounts = {};
+        teams.forEach((t) => {
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (!full) return;
+                const id = String(full['player.id']);
+                pickCounts[id] = (pickCounts[id] || 0) + 1;
+            });
+        });
+
+        const teamStats = teams.map((t) => {
+            let totalPickRate = 0;
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (!full) return;
+                const id = String(full['player.id']);
+                const rate = totalManagers > 0 ? (pickCounts[id] || 1) / totalManagers : 0;
+                totalPickRate += rate;
+            });
+            const avgRate = totalPickRate / 15;
+            const hipsterScore = Math.round(100 - avgRate * 100);
+            return { manager: t.manager, hipsterScore };
+        });
+
+        const sorted = [...teamStats].sort((a, b) => b.hipsterScore - a.hipsterScore);
+        const top3Hipster = sorted.slice(0, 3);
+        const top3Mainstream = sorted.slice(-3).reverse();
+
+        let html = `<div class="dark-sub-label green">🏆 Einzigartig</div>`;
+        html += top3Hipster.map((t) => {
+            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+            return `
+                <div class="dark-bar-row">
+                    <div class="dark-bar-label"><a href="${url}">${escapeHtml(t.manager)}</a></div>
+                    <div class="dark-bar-track"><div class="dark-bar-fill" style="width:${t.hipsterScore}%;background:linear-gradient(90deg,#22c55e,#4ade80);"></div></div>
+                    <div class="dark-bar-val">${t.hipsterScore}%</div>
+                </div>
+            `;
+        }).join('');
+
+        html += `<div class="dark-sub-label red" style="margin-top:10px;">🐑 Mainstream</div>`;
+        html += top3Mainstream.map((t) => {
+            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+            return `
+                <div class="dark-bar-row">
+                    <div class="dark-bar-label"><a href="${url}">${escapeHtml(t.manager)}</a></div>
+                    <div class="dark-bar-track"><div class="dark-bar-fill" style="width:${t.hipsterScore}%;background:linear-gradient(90deg,#f87171,#ef4444);"></div></div>
+                    <div class="dark-bar-val">${t.hipsterScore}%</div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    /* =========================================================
+       TEAM AGE STRUCTURE TILE (Pre-Tournament)
+       ========================================================= */
+    function getAge(dateStr) {
+        if (!dateStr || dateStr === '-') return null;
+        const today = new Date();
+        const birth = new Date(dateStr);
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        return age;
+    }
+
+    function renderAgeStructure(teams, prefix) {
+        const container = $('tile-' + (prefix || '') + 'age-structure');
+        if (!container) return;
+        if (!teams.length) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎂</div>Noch keine Teams</div>';
+            return;
+        }
+
+        const teamAges = teams.map((t) => {
+            let totalAge = 0;
+            let count = 0;
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (!full) return;
+                const age = getAge(full.Geburtsdatum);
+                if (age) { totalAge += age; count++; }
+            });
+            const avgAge = count > 0 ? (totalAge / count) : 0;
+            return { manager: t.manager, avgAge: parseFloat(avgAge.toFixed(1)) };
+        });
+
+        const sorted = [...teamAges].sort((a, b) => b.avgAge - a.avgAge);
+        const top3Old = sorted.slice(0, 3);
+        const top3Young = sorted.slice(-3).reverse();
+
+        let html = `<div class="dark-sub-label muted">👨‍🦳 Erfahrenste Teams</div>`;
+        html += top3Old.map((t) => {
+            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+            return `
+                <div class="dark-bar-row">
+                    <div class="dark-bar-label"><a href="${url}">${escapeHtml(t.manager)}</a></div>
+                    <div style="flex:1;"></div>
+                    <span class="age-badge old">👨‍🦳 ${t.avgAge} J.</span>
+                </div>
+            `;
+        }).join('');
+
+        html += `<div class="dark-sub-label green" style="margin-top:10px;">👶 Jüngste Teams</div>`;
+        html += top3Young.map((t) => {
+            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+            return `
+                <div class="dark-bar-row">
+                    <div class="dark-bar-label"><a href="${url}">${escapeHtml(t.manager)}</a></div>
+                    <div style="flex:1;"></div>
+                    <span class="age-badge young">👶 ${t.avgAge} J.</span>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    /* =========================================================
+       TOP & FLOP MANAGER PICKS TILE (Live Dashboard)
+       ========================================================= */
+    function renderManagerPicks(teams, ptMap, prefix) {
+        const topContainer = $('tile-' + (prefix || '') + 'top-picks');
+        const flopContainer = $('tile-' + (prefix || '') + 'flop-picks');
+        if (!topContainer && !flopContainer) return;
+
+        // Build list of drafted players with their points
+        const draftedIds = new Set();
+        teams.forEach((t) => {
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (full) draftedIds.add(String(full['player.id']));
+            });
+        });
+
+        const draftedPlayers = playersData
+            .filter((p) => draftedIds.has(String(p['player.id'])))
+            .map((p) => ({ ...p, pts: ptMap[String(p['player.id'])] || 0 }))
+            .sort((a, b) => b.pts - a.pts);
+
+        function buildPicksHTML(list) {
+            if (!list.length) return '<li><div class="empty-state"><div class="empty-state-icon">📊</div>Noch keine Daten</div></li>';
+            return list.map((p, i) => {
+                const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+                const ptsClass = p.pts > 0 ? 'pos' : (p.pts < 0 ? 'neg' : 'zero');
+                const sign = p.pts > 0 ? '+' : '';
+                const rankCls = i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''));
+                const pickedBy = teams
+                    .filter((t) => (t.players || []).some((tp) => {
+                        const full = resolvePlayer(tp);
+                        return full && String(full['player.id']) === String(p['player.id']);
+                    }))
+                    .map((t) => t.manager)
+                    .join(', ');
+                return `
+                    <li>
+                        <a class="pick-item" href="${url}" aria-label="${escapeHtml(p.Spielername)}, ${sign}${p.pts} Punkte">
+                            <span class="pick-rank ${rankCls}">${i + 1}</span>
+                            <div class="pick-avatar-wrap">
+                                <img class="pick-avatar" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">
+                                ${p['Nationalteam.logo'] ? `<img class="pick-flag" src="${escapeHtml(p['Nationalteam.logo'])}" alt="" loading="lazy">` : ''}
+                            </div>
+                            <div class="pick-info">
+                                <div class="pick-name">${escapeHtml(p.Spielername)}</div>
+                                <div class="pick-meta">${escapeHtml(pickedBy)}</div>
+                            </div>
+                            <div class="pick-pts ${ptsClass}">${sign}${p.pts}</div>
+                        </a>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        if (topContainer) topContainer.innerHTML = buildPicksHTML(draftedPlayers.slice(0, 5));
+        if (flopContainer) flopContainer.innerHTML = buildPicksHTML([...draftedPlayers].slice(-5).reverse());
+    }
+
+    /* =========================================================
+       COMPACT PERFECT TEAM TILE (Live Dashboard)
+       ========================================================= */
+    function renderCompactPerfectTeam(ptMap, prefix) {
+        const container = $('tile-' + (prefix || '') + 'perfect-team');
+        const metaContainer = $('tile-' + (prefix || '') + 'perfect-meta');
+        if (!container) return;
+
+        const posMap = { GOALKEEPER: 'GK', DEFENDER: 'DEF', MIDFIELDER: 'MID', ATTACKER: 'ATT', FORWARD: 'ATT' };
+        const posLabels = { GK: 'TOR', DEF: 'ABW', MID: 'MIT', ATT: 'STU' };
+        const maxSlots = { GK: 2, DEF: 4, MID: 5, ATT: 4 };
+        const startSlots = { GK: 1, DEF: 3, MID: 4, ATT: 3 };
+
+        const teamSlots = { GK: [], DEF: [], MID: [], ATT: [] };
+        const selectedNations = new Set();
+
+        const sorted = [...playersData]
+            .map((p) => ({ ...p, pts: ptMap[String(p['player.id'])] || 0 }))
+            .sort((a, b) => b.pts - a.pts);
+
+        for (const p of sorted) {
+            const rawPos = String(p.Position || '').toUpperCase();
+            const key = posMap[rawPos];
+            if (!key) continue;
+            if (teamSlots[key].length >= maxSlots[key]) continue;
+            if (selectedNations.has(p['Nationalteam.name'])) continue;
+            teamSlots[key].push(p);
+            selectedNations.add(p['Nationalteam.name']);
+        }
+
+        // Find captain = highest pts player in starting lineup
+        const starters = [
+            ...teamSlots.GK.slice(0, startSlots.GK),
+            ...teamSlots.DEF.slice(0, startSlots.DEF),
+            ...teamSlots.MID.slice(0, startSlots.MID),
+            ...teamSlots.ATT.slice(0, startSlots.ATT)
+        ];
+        const benchers = [
+            ...teamSlots.GK.slice(startSlots.GK),
+            ...teamSlots.DEF.slice(startSlots.DEF),
+            ...teamSlots.MID.slice(startSlots.MID),
+            ...teamSlots.ATT.slice(startSlots.ATT)
+        ];
+
+        const captain = starters.reduce((best, p) => (!best || p.pts > best.pts) ? p : best, null);
+        const captainId = captain ? String(captain['player.id']) : null;
+        const maxPts = starters.reduce((sum, p) => sum + (String(p['player.id']) === captainId ? p.pts * 2 : p.pts), 0);
+
+        // Meta header
+        if (metaContainer) {
+            const captainHtml = captain ? `
+                <div class="compact-captain-pill">
+                    <img class="compact-captain-avatar" src="${escapeHtml(captain.Spielerfoto)}" alt="${escapeHtml(captain.Spielername)}" loading="lazy">
+                    <span class="compact-captain-name">C: ${escapeHtml(captain.Spielername)}</span>
+                </div>
+            ` : '';
+            metaContainer.innerHTML = `
+                <div class="compact-pt-stat">
+                    <div class="compact-pt-stat-val">${maxPts}</div>
+                    <div class="compact-pt-stat-label">Max. Punkte</div>
+                </div>
+                ${captainHtml}
+            `;
+        }
+
+        function chipHTML(p, isBench) {
+            if (!p) return '';
+            const isCaptain = String(p['player.id']) === captainId;
+            const pts = isCaptain ? p.pts * 2 : p.pts;
+            const ptsClass = pts > 0 ? (isCaptain ? 'gold' : 'pos') : (pts < 0 ? 'neg' : 'zero');
+            const sign = pts > 0 ? '+' : '';
+            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            const shortName = p.Spielername.split(' ').pop();
+            return `
+                <a class="compact-player-chip${isCaptain ? ' is-captain' : ''}" href="${url}" aria-label="${escapeHtml(p.Spielername)}, ${sign}${pts}">
+                    <img class="compact-chip-avatar" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">
+                    <span class="compact-chip-name">${escapeHtml(shortName)}${isCaptain ? ' ©' : ''}</span>
+                    <span class="compact-chip-pts ${ptsClass}">${sign}${pts}</span>
+                </a>
+            `;
+        }
+
+        let html = '<div class="compact-pitch">';
+
+        for (const key of ['GK', 'DEF', 'MID', 'ATT']) {
+            const players = teamSlots[key].slice(0, startSlots[key]);
+            if (!players.length) continue;
+            html += `
+                <div class="compact-pitch-row">
+                    <span class="compact-pos-badge">${posLabels[key]}</span>
+                    <div class="compact-players">${players.map((p) => chipHTML(p, false)).join('')}</div>
+                </div>
+            `;
+        }
+
+        if (benchers.length) {
+            html += `<div class="compact-bench-sep">Bank</div>`;
+            html += `
+                <div class="compact-pitch-row">
+                    <span class="compact-pos-badge">BNK</span>
+                    <div class="compact-players">${benchers.map((p) => chipHTML(p, true)).join('')}</div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    /* =========================================================
+       MATCHES RENDERER
+       ========================================================= */
+    function renderMatchesIntoContainer(container, data, teams) {
+        const matchInfos = extractMatchInfo(data);
+        if (!matchInfos.length) {
+            container.innerHTML = `
+                <div class="match-empty">
+                    <div style="font-size:1.5rem;opacity:0.4;margin-bottom:8px;">📅</div>
+                    Spielplandaten werden hier angezeigt, sobald sie verfügbar sind.
+                </div>
+            `;
+            return;
+        }
+
+        const matchPlayerMap = {};
+        Object.entries(data.points || {}).forEach(([playerId, doc]) => {
+            Object.keys(doc?.matches || {}).forEach((mId) => {
+                const n = Number(mId);
+                if (!matchPlayerMap[n]) matchPlayerMap[n] = [];
+                const p = getPlayerById(playerId);
+                if (p) matchPlayerMap[n].push(p);
+            });
+        });
+
+        const draftedIds = new Set();
+        (teams || []).forEach((t) => {
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (full) draftedIds.add(String(full['player.id']));
+            });
+        });
+
+        const shown = matchInfos.slice(-5).reverse();
+        container.innerHTML = shown.map((match) => {
+            const id = match.gameNumber || match.matchId || match.id;
+            const url = `spieleranalyse.html?view=games&openGame=${encodeURIComponent(id)}`;
+            let teamA = match.teamA || match.home || match.homeTeam || '';
+            let teamB = match.teamB || match.away || match.awayTeam || '';
+            let teamAFlag = match.teamAFlag || match.homeLogo || '';
+            let teamBFlag = match.teamBFlag || match.awayLogo || '';
+            let dateStr = match.date || match.datetime || '';
+
+            if (!teamA || !teamB) {
+                const nations = getNationFromMatchGame(id, data);
+                teamA = nations[0] || '?';
+                teamB = nations[1] || '?';
+                if (!teamAFlag) {
+                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamA);
+                    if (p) teamAFlag = p['Nationalteam.logo'];
+                }
+                if (!teamBFlag) {
+                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamB);
+                    if (p) teamBFlag = p['Nationalteam.logo'];
+                }
+            }
+
+            const playersInMatch = (matchPlayerMap[id] || [])
+                .filter((p) => draftedIds.has(String(p['player.id'])))
+                .slice(0, 5);
+
+            const avatarHtml = playersInMatch.length
+                ? `<div class="match-players-row" title="${playersInMatch.map((p) => escapeHtml(p.Spielername)).join(', ')}">` +
+                  playersInMatch.map((p) =>
+                      `<img class="match-player-avatar" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">`
+                  ).join('') + `</div>`
+                : '';
+
+            const dateLabel = dateStr ? new Date(dateStr).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' }) : `Spiel ${id}`;
+
+            return `
+                <a class="match-item" href="${url}" aria-label="${escapeHtml(teamA)} vs ${escapeHtml(teamB)}, Spiel ${id}">
+                    <div class="match-team">
+                        ${teamAFlag ? `<img class="match-team-flag" src="${escapeHtml(teamAFlag)}" alt="${escapeHtml(teamA)}" loading="lazy">` : `<div style="font-size:1.4rem;">🏳️</div>`}
+                        <div class="match-team-name">${escapeHtml(teamA)}</div>
+                    </div>
+                    <div class="match-vs">
+                        <div class="match-vs-text">VS</div>
+                        <div class="match-vs-date">${escapeHtml(dateLabel)}</div>
+                    </div>
+                    <div class="match-team">
+                        ${teamBFlag ? `<img class="match-team-flag" src="${escapeHtml(teamBFlag)}" alt="${escapeHtml(teamB)}" loading="lazy">` : `<div style="font-size:1.4rem;">🏳️</div>`}
+                        <div class="match-team-name">${escapeHtml(teamB)}</div>
+                    </div>
+                    ${avatarHtml}
+                </a>
+            `;
+        }).join('');
+    }
+
+    /* =========================================================
        MAIN DATA LOADER & RENDER
        ========================================================= */
     const APP = window.APP_CONFIG;
@@ -2898,25 +3596,19 @@
     const ctaBtnPost = $('hero-post-cta-btn');
     if (ctaBtnPost) ctaBtnPost.setAttribute('aria-label', `Team erstellen für ${shortLabel}`);
 
-    /**
-     * Kernlogik: Rendert alle Dashboard-Kacheln in die DOM-Elemente
-     * der angegebenen Sektion.
-     *
-     * tilePfx: '' → Pre-Start (IDs: tile-top-players, tile-matches, …)
-     *          'post-' → Post-Start (IDs: tile-post-top-players, tile-post-matches, …)
-     *
-     * heroPfx: '' → Pre-Start Hero-Karten (IDs: hcs-0, hcs-1, hcs-2)
-     *          'hcs-post-' → Post-Start Hero-Karten (IDs: hcs-post-0, hcs-post-1, hcs-post-2)
-     */
-    function renderSectionData(data, tilePfx, heroPfx) {
+    /* =========================================================
+       PRE START HOME – Render-Funktion
+       ========================================================= */
+    function renderPreStartHome(data) {
         const teams = Array.isArray(data.teams) ? data.teams : [];
         const ptMap = computeTotalPoints(data.points);
 
-        // Hero stats (Teamanzahl, gedraftete Spieler, Top-Manager)
-        renderHeroStats(teams, ptMap, heroPfx);
+        // Hero stats
+        renderHeroStats(teams, ptMap, '');
 
-        // Team count tile
-        renderTeamCount(teams.length, tilePfx);
+        // Team count + manager list
+        renderTeamCount(teams.length, '');
+        renderManagerList(teams, '');
 
         // Compute pick and captain counts
         const pickCounts = {};
@@ -2931,15 +3623,57 @@
             });
         });
 
-        // Top players
+        // Top players for hero cards (by pick count before tournament)
+        const topByPicks = Object.entries(pickCounts)
+            .map(([id, cnt]) => ({ player: getPlayerById(id), cnt }))
+            .filter((x) => x.player)
+            .sort((a, b) => b.cnt - a.cnt)
+            .map((x) => x.player);
+        renderHeroCards(topByPicks, ptMap, '');
+
+        // Captain watch
+        renderCaptainWatch(captainCounts, ptMap, '');
+
+        // Fan-Lieblinge (popular picks - 3D cards)
+        renderPopularPicks(pickCounts, '');
+
+        // Beliebteste Vereine
+        renderTopClubs(teams, '');
+
+        // Scouting Barometer
+        renderScoutingBarometer(teams, '');
+
+        // Team-Altersstruktur
+        renderAgeStructure(teams, '');
+
+        // Spielplan
+        const matchContent = $('tile-matches-content');
+        if (matchContent) renderMatchesIntoContainer(matchContent, data, teams);
+
+        // Trigger tilt for cards
+        setTimeout(() => initCardTilt(), 50);
+    }
+
+    /* =========================================================
+       POST START HOME – Render-Funktion (Live Dashboard)
+       ========================================================= */
+    function renderPostStartHome(data) {
+        const teams = Array.isArray(data.teams) ? data.teams : [];
+        const ptMap = computeTotalPoints(data.points);
+
+        // Hero stats
+        renderHeroStats(teams, ptMap, 'hcs-post-');
+
+        // Top players for hero cards (by live points)
         const topPlayers = [...playersData]
             .map((p) => ({ ...p, _pts: ptMap[String(p['player.id'])] || 0 }))
             .sort((a, b) => b._pts - a._pts || a.Spielername.localeCompare(b.Spielername, 'de'));
+        renderHeroCards(topPlayers, ptMap, 'hcs-post-');
 
-        renderHeroCards(topPlayers, ptMap, heroPfx);
-        renderTopPlayers(topPlayers, ptMap, tilePfx);
+        // Beste Spieler
+        renderTopPlayers(topPlayers, ptMap, 'post-');
 
-        // Top nations
+        // Beste Länder
         const nationMap = new Map();
         playersData.forEach((p) => {
             const nation = p['Nationalteam.name'];
@@ -2949,50 +3683,27 @@
         });
         const topNations = Array.from(nationMap.entries())
             .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'));
-        renderTopNations(topNations, tilePfx);
+        renderTopNations(topNations, 'post-');
 
-        // Top managers
+        // Top Manager
         const teamTotals = teams.map((t) => ({
             manager: t.manager || 'Unbekannt',
             total: getTeamTotal(t, ptMap)
         })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
+        renderTopManagers(teamTotals, ptMap, teams, 'post-');
 
-        renderTopManagers(teamTotals, ptMap, teams, tilePfx);
-
-        // Ranking history + jumps (shared cache, rendered per section)
+        // Grösste Veränderungen
         rankingHistoryCache = computeRankingHistory(data);
-        renderPeriodButtons(rankingHistoryCache.matchIds, tilePfx);
+        renderPeriodButtons(rankingHistoryCache.matchIds, 'post-');
 
-        // Popular picks
-        renderPopularPicks(pickCounts, tilePfx);
+        // Top & Flop Manager Picks
+        renderManagerPicks(teams, ptMap, 'post-');
 
-        // Captain watch
-        renderCaptainWatch(captainCounts, ptMap, tilePfx);
+        // Compact Perfect Team
+        renderCompactPerfectTeam(ptMap, 'post-');
 
-        // Matches
-        renderMatches(data, teams, tilePfx);
-    }
-
-    /* =========================================================
-       PRE START HOME – Render-Funktion
-       Inhalt/Logik der Startseite vor Spielstart.
-       Hier später Pre-Start-spezifische Inhalte anpassen.
-       ========================================================= */
-    function renderPreStartHome(data) {
-        // tilePfx '' → IDs ohne 'post-' Infix (tile-top-players etc.)
-        // heroPfx '' → Hero-Karten ohne 'post-' Infix (hcs-0 etc.)
-        renderSectionData(data, '', '');
-    }
-
-    /* =========================================================
-       POST START HOME – Render-Funktion
-       Inhalt/Logik der Startseite nach Spielstart / Live-Phase.
-       Hier später Post-Start-spezifische Inhalte anpassen.
-       ========================================================= */
-    function renderPostStartHome(data) {
-        // tilePfx 'post-' → IDs mit 'post-' Infix (tile-post-top-players etc.)
-        // heroPfx 'hcs-post-' → Hero-Karten mit 'post-' Infix (hcs-post-0 etc.)
-        renderSectionData(data, 'post-', 'hcs-post-');
+        // Trigger tilt for cards
+        setTimeout(() => initCardTilt(), 50);
     }
 
     /**
@@ -3012,7 +3723,6 @@
         }
     }
 
-    // Alias für Legacy-Aufrufe innerhalb dieser Datei
     function render(data) {
         renderIndexHome(data);
     }

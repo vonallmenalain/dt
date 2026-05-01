@@ -32,12 +32,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const brandName = APP.brandName || "DreamTeam";
 
     const navItems = [
+        { href: "index.html", label: "🏠 Dashboard", shortLabel: "Dashboard", icon: "🏠" },
         { href: "team-builder.html", label: "➕ Team erstellen", shortLabel: "Team", icon: "➕" },
-        { href: "punktesystem.html", label: "📊 Punktesystem", shortLabel: "Punkte", icon: "📊" },
         { href: "teams.html", label: "🛡️ Teams", shortLabel: "Teams", icon: "🛡️" },
         { href: "spieleranalyse.html", label: "🔍 Spieler-Analyse", shortLabel: "Analyse", icon: "🔍" },
         { href: "rangliste.html", label: "🏆 Rangliste", shortLabel: "Rangliste", icon: "🏆" },
-        { href: "dashboard.html", label: "📈 Dashboard", shortLabel: "Dashboard", icon: "📈" }
+        { href: "punktesystem.html", label: "📊 Punktesystem", shortLabel: "Punkte", icon: "📊" }
     ];
 
     const topNavLinks = navItems
@@ -74,6 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     navLinks.forEach(link => {
         const href = link.getAttribute("href");
         if (href === currentPage) {
+            link.classList.add("active");
+        }
+        // Also mark index.html active when on root "/"
+        if ((currentPage === "" || currentPage === "/") && href === "index.html") {
             link.classList.add("active");
         }
     });
