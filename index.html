@@ -3643,13 +3643,43 @@
        - matchId keys in points data
        ========================================================= */
     function extractMatchInfo(data) {
-        // Try explicit match arrays first
-        const candidates = [data.matches, data.matchCatalog, data.games, data.fixtures];
+        // Prefer structured fixtures from Firestore (keyed object)
+        const fixturesObj = data.fixtures;
+        if (fixturesObj && typeof fixturesObj === 'object' && !Array.isArray(fixturesObj) && Object.keys(fixturesObj).length > 0) {
+            return Object.values(fixturesObj)
+                .sort((a, b) => (a.kickoffTimestamp || 0) - (b.kickoffTimestamp || 0))
+                .map(f => ({
+                    id: f.fixtureId || f.id,
+                    gameNumber: f.fixtureId || f.id,
+                    matchId: f.fixtureId || f.id,
+                    teamA: f.homeTeam?.name || '',
+                    teamB: f.awayTeam?.name || '',
+                    homeTeam: f.homeTeam?.name || '',
+                    awayTeam: f.awayTeam?.name || '',
+                    homeLogo: f.homeTeam?.logo || '',
+                    awayLogo: f.awayTeam?.logo || '',
+                    date: f.kickoffIso || '',
+                    kickoff: f.kickoffIso || '',
+                    kickoffTimestamp: f.kickoffTimestamp || null,
+                    venue: f.venue?.name || '',
+                    venueCity: f.venue?.city || '',
+                    venueImage: f.venue?.image || '',
+                    statusShort: f.status?.short || '',
+                    statusLong: f.status?.long || '',
+                    goals: f.goals || null,
+                    homeWinner: f.homeTeam?.winner ?? null,
+                    awayWinner: f.awayTeam?.winner ?? null,
+                    round: f.league?.round || ''
+                }));
+        }
+
+        // Fallback: legacy explicit match arrays
+        const candidates = [data.matches, data.matchCatalog, data.games];
         for (const arr of candidates) {
             if (Array.isArray(arr) && arr.length > 0) return arr;
         }
 
-        // Try to extract from points structure
+        // Extract from points structure
         const matchIds = new Set();
         Object.values(data.points || {}).forEach((doc) => {
             Object.keys(doc?.matches || {}).forEach((id) => {
@@ -4544,21 +4574,44 @@
         // Try to get structured match data
         const matchInfos = extractMatchInfo(data);
 
-        // Filter to upcoming matches (or all if no date info)
         const now = Date.now();
+        const FINISHED_STATUSES = ['FT', 'AET', 'PEN'];
+
+        // Prefer upcoming/live; also include matches that just ended (within 90 min)
         let upcoming = matchInfos.filter((m) => {
+            const statusShort = m.statusShort || '';
+            // If we have explicit status: show live/not-yet-started, skip clearly finished
+            if (statusShort && FINISHED_STATUSES.includes(statusShort)) return false;
             const dateStr = m.date || m.datetime || m.kickoff || '';
-            if (!dateStr) return true; // include if no date
+            if (!dateStr) return true;
             const ms = new Date(dateStr).getTime();
             if (!Number.isFinite(ms)) return true;
-            return ms >= now - 90 * 60 * 1000; // include up to 90 min past kick-off (could be live)
+            return ms >= now - 90 * 60 * 1000;
         }).sort((a, b) => {
-            const da = new Date(a.date || a.datetime || 0).getTime() || 0;
-            const db2 = new Date(b.date || b.datetime || 0).getTime() || 0;
+            const da = (a.kickoffTimestamp ? a.kickoffTimestamp * 1000 : null) || new Date(a.date || a.datetime || 0).getTime() || 0;
+            const db2 = (b.kickoffTimestamp ? b.kickoffTimestamp * 1000 : null) || new Date(b.date || b.datetime || 0).getTime() || 0;
             return da - db2;
         }).slice(0, 5);
 
-        // If we only got match IDs (from points data) and no dates, just take last 5
+        // If no upcoming found but we have fixtures: show last finished matches with results
+        if (!upcoming.length && matchInfos.length) {
+            const finished = matchInfos
+                .filter(m => {
+                    if (m.statusShort && FINISHED_STATUSES.includes(m.statusShort)) return true;
+                    const dateStr = m.date || m.datetime || m.kickoff || '';
+                    if (!dateStr) return false;
+                    const ms = new Date(dateStr).getTime();
+                    return Number.isFinite(ms) && ms < now - 90 * 60 * 1000;
+                })
+                .sort((a, b) => {
+                    const da = (a.kickoffTimestamp ? a.kickoffTimestamp * 1000 : null) || new Date(a.date || a.datetime || 0).getTime() || 0;
+                    const db2 = (b.kickoffTimestamp ? b.kickoffTimestamp * 1000 : null) || new Date(b.date || b.datetime || 0).getTime() || 0;
+                    return db2 - da;
+                });
+            upcoming = finished.slice(0, 5);
+        }
+
+        // Final fallback: take last 5 by order
         if (!upcoming.length && matchInfos.length) {
             upcoming = matchInfos.slice(-5).reverse();
         }
@@ -4590,6 +4643,8 @@
             let flagA = match.teamAFlag || match.homeLogo || '';
             let flagB = match.teamBFlag || match.awayLogo || '';
             const dateStr = match.date || match.datetime || match.kickoff || '';
+            const statusShort = match.statusShort || '';
+            const goals = match.goals || null;
 
             if (!teamA || !teamB) {
                 const nations = getNationFromMatchGame(mId, data);
@@ -4605,11 +4660,31 @@
                 }
             }
 
+            const isFinished = FINISHED_STATUSES.includes(statusShort);
+            const isLive = ['1H', '2H', 'HT', 'ET', 'BT', 'P'].includes(statusShort);
+
+            // Build score/VS display
+            let vsDisplay;
+            if (isFinished && goals && (goals.home !== null || goals.away !== null)) {
+                vsDisplay = `<div class="nm-vs" style="color:#2ecc71;font-weight:900;font-size:1.1rem;">${goals.home ?? '?'} : ${goals.away ?? '?'}</div>`;
+            } else if (isLive && goals && (goals.home !== null || goals.away !== null)) {
+                vsDisplay = `<div class="nm-vs" style="color:#e74c3c;font-weight:900;">🔴 ${goals.home ?? '?'}:${goals.away ?? '?'}</div>`;
+            } else {
+                vsDisplay = `<div class="nm-vs">VS</div>`;
+            }
+
             // Determine time label
             let timeLabel = '';
             let timeClass = '';
             let timeVal = '';
-            if (dateStr) {
+            if (isFinished) {
+                timeLabel = 'Abgeschlossen';
+                timeClass = '';
+            } else if (isLive) {
+                timeLabel = 'LIVE';
+                timeClass = 'live';
+                if (match.statusElapsed) timeVal = `${match.statusElapsed}'`;
+            } else if (dateStr) {
                 const matchDate = new Date(dateStr);
                 const matchMs = matchDate.getTime();
                 const diffMin = (matchMs - now) / 60000;
@@ -4667,7 +4742,7 @@
                                 ${flagA ? `<img class="nm-team-flag" src="${escapeHtml(flagA)}" alt="${escapeHtml(teamA)}" loading="lazy">` : '<span style="font-size:1.2rem;">🏳️</span>'}
                                 <div class="nm-team-name">${escapeHtml(teamA)}</div>
                             </div>
-                            <div class="nm-vs">VS</div>
+                            ${vsDisplay}
                             <div class="nm-team">
                                 ${flagB ? `<img class="nm-team-flag" src="${escapeHtml(flagB)}" alt="${escapeHtml(teamB)}" loading="lazy">` : '<span style="font-size:1.2rem;">🏳️</span>'}
                                 <div class="nm-team-name">${escapeHtml(teamB)}</div>
@@ -4783,6 +4858,7 @@
                 db: APP.getDb(),
                 year: APP.year,
                 allowEmptyPoints: true,
+                allowEmptyFixtures: true,
                 log: false
             };
 

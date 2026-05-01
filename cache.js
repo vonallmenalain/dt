@@ -8,9 +8,11 @@
         tournamentKey: null,
         teamsCollection: null,
         pointsCollection: null,
+        fixturesCollection: null,
         fallbackMaxAgeMs: 10 * 60 * 1000,
         allowEmptyTeams: true,
         allowEmptyPoints: false,
+        allowEmptyFixtures: true,
         log: false
     };
 
@@ -67,9 +69,11 @@
         return {
             teams: `${base}_teams`,
             points: `${base}_points`,
+            fixtures: `${base}_fixtures`,
             meta: `${base}_meta`,
             lastGoodTeams: `${base}_last_good_teams`,
-            lastGoodPoints: `${base}_last_good_points`
+            lastGoodPoints: `${base}_last_good_points`,
+            lastGoodFixtures: `${base}_last_good_fixtures`
         };
     }
 
@@ -103,8 +107,10 @@
             tournamentLabel: source.tournamentLabel || null,
             teamsVersion: toNumberOrNull(source.teamsVersion),
             pointsVersion: toNumberOrNull(source.pointsVersion),
+            fixturesVersion: toNumberOrNull(source.fixturesVersion),
             teamsUpdatedAt: toNumberOrNull(source.teamsUpdatedAt),
             pointsUpdatedAt: toNumberOrNull(source.pointsUpdatedAt),
+            fixturesUpdatedAt: toNumberOrNull(source.fixturesUpdatedAt),
             fetchedAt: now()
         };
     }
@@ -129,6 +135,12 @@
         if (!points || typeof points !== 'object' || Array.isArray(points)) return false;
         const count = Object.keys(points).length;
         return allowEmptyPoints ? count >= 0 : count > 0;
+    }
+
+    function isValidFixturesData(fixtures, allowEmptyFixtures) {
+        if (!fixtures || typeof fixtures !== 'object' || Array.isArray(fixtures)) return false;
+        const count = Object.keys(fixtures).length;
+        return allowEmptyFixtures ? count >= 0 : count > 0;
     }
 
     function resolveConfig(options) {
@@ -159,22 +171,39 @@
             || (app && app.firestore && typeof app.firestore.pointsCollection === 'function' ? app.firestore.pointsCollection() : null)
             || `Punkte Spieler WM ${cfg.year}`;
 
+        cfg.fixturesCollection = cfg.fixturesCollection
+            || (app && app.firestore && typeof app.firestore.fixturesCollection === 'function' ? app.firestore.fixturesCollection() : null)
+            || null;
+
         cfg.keys = buildKeys(cfg.tournamentKey, cfg.prefix);
 
         return cfg;
     }
 
     function readDatasetState(kind, cfg) {
-        const currentKey = kind === 'teams' ? cfg.keys.teams : cfg.keys.points;
-        const backupKey = kind === 'teams' ? cfg.keys.lastGoodTeams : cfg.keys.lastGoodPoints;
+        let currentKey, backupKey;
+        if (kind === 'teams') {
+            currentKey = cfg.keys.teams;
+            backupKey = cfg.keys.lastGoodTeams;
+        } else if (kind === 'fixtures') {
+            currentKey = cfg.keys.fixtures;
+            backupKey = cfg.keys.lastGoodFixtures;
+        } else {
+            currentKey = cfg.keys.points;
+            backupKey = cfg.keys.lastGoodPoints;
+        }
 
         const current = readEnvelope(currentKey);
         const backup = readEnvelope(backupKey);
 
-        const validator =
-            kind === 'teams'
-                ? (data) => isValidTeamsData(data, cfg.allowEmptyTeams)
-                : (data) => isValidPointsData(data, cfg.allowEmptyPoints);
+        let validator;
+        if (kind === 'teams') {
+            validator = (data) => isValidTeamsData(data, cfg.allowEmptyTeams);
+        } else if (kind === 'fixtures') {
+            validator = (data) => isValidFixturesData(data, cfg.allowEmptyFixtures);
+        } else {
+            validator = (data) => isValidPointsData(data, cfg.allowEmptyPoints);
+        }
 
         const currentValid = current ? validator(current.data) : false;
         const backupValid = backup ? validator(backup.data) : false;
@@ -227,6 +256,14 @@
         return true;
     }
 
+    function saveFixtures(fixtures, cfg) {
+        if (!isValidFixturesData(fixtures, cfg.allowEmptyFixtures)) return false;
+        const payload = createEnvelope(fixtures);
+        writeStorage(cfg.keys.fixtures, payload);
+        writeStorage(cfg.keys.lastGoodFixtures, payload);
+        return true;
+    }
+
     function saveMeta(meta, cfg) {
         const normalized = normalizeMeta(meta, cfg.year, cfg.tournamentKey);
         writeStorage(cfg.keys.meta, createEnvelope(normalized));
@@ -239,8 +276,17 @@
     }
 
     function hasChanged(remoteMeta, localMeta, kind) {
-        const versionKey = kind === 'teams' ? 'teamsVersion' : 'pointsVersion';
-        const updatedAtKey = kind === 'teams' ? 'teamsUpdatedAt' : 'pointsUpdatedAt';
+        let versionKey, updatedAtKey;
+        if (kind === 'teams') {
+            versionKey = 'teamsVersion';
+            updatedAtKey = 'teamsUpdatedAt';
+        } else if (kind === 'fixtures') {
+            versionKey = 'fixturesVersion';
+            updatedAtKey = 'fixturesUpdatedAt';
+        } else {
+            versionKey = 'pointsVersion';
+            updatedAtKey = 'pointsUpdatedAt';
+        }
 
         const remoteVersion = remoteMeta ? remoteMeta[versionKey] : null;
         const localVersion = localMeta ? localMeta[versionKey] : null;
@@ -293,10 +339,26 @@
         return points;
     }
 
+    async function fetchFixtures(cfg) {
+        if (!cfg.fixturesCollection) return {};
+        try {
+            const snap = await cfg.db.collection(cfg.fixturesCollection).get();
+            const fixtures = {};
+            snap.forEach((doc) => {
+                fixtures[doc.id] = doc.data();
+            });
+            return fixtures;
+        } catch (err) {
+            log(cfg, 'Fixtures-Fetch fehlgeschlagen:', err);
+            return {};
+        }
+    }
+
     function getCachedBundle(options) {
         const cfg = resolveConfig(options);
         const teamsState = readDatasetState('teams', cfg);
         const pointsState = readDatasetState('points', cfg);
+        const fixturesState = readDatasetState('fixtures', cfg);
         const metaState = readMetaState(cfg);
 
         return {
@@ -304,13 +366,16 @@
             data: {
                 teams: teamsState.data || [],
                 points: pointsState.data || {},
+                fixtures: fixturesState.data || {},
                 meta: metaState.data
             },
             info: {
                 teamsFromBackup: teamsState.usedBackup,
                 pointsFromBackup: pointsState.usedBackup,
+                fixturesFromBackup: fixturesState.usedBackup,
                 teamsSavedAt: teamsState.savedAt,
                 pointsSavedAt: pointsState.savedAt,
+                fixturesSavedAt: fixturesState.savedAt,
                 metaSavedAt: metaState.savedAt
             }
         };
@@ -320,12 +385,15 @@
         const cfg = resolveConfig(options);
         const teamsState = readDatasetState('teams', cfg);
         const pointsState = readDatasetState('points', cfg);
+        const fixturesState = readDatasetState('fixtures', cfg);
         const localMetaState = readMetaState(cfg);
 
         let teams = teamsState.data;
         let points = pointsState.data;
+        let fixtures = fixturesState.data;
         let needTeams = !teamsState.valid;
         let needPoints = !pointsState.valid;
+        let needFixtures = !fixturesState.valid && !!cfg.fixturesCollection;
 
         const remoteMeta = options && options.remoteMetaOverride
             ? normalizeMeta(options.remoteMetaOverride, cfg.year, cfg.tournamentKey)
@@ -338,6 +406,9 @@
             if (hasChanged(remoteMeta, localMetaState.data, 'points') || !pointsState.valid) {
                 needPoints = true;
             }
+            if (cfg.fixturesCollection && (hasChanged(remoteMeta, localMetaState.data, 'fixtures') || !fixturesState.valid)) {
+                needFixtures = true;
+            }
         } else {
             if (isStale(teamsState.savedAt, cfg.fallbackMaxAgeMs)) {
                 needTeams = true;
@@ -345,12 +416,17 @@
             if (isStale(pointsState.savedAt, cfg.fallbackMaxAgeMs)) {
                 needPoints = true;
             }
+            if (cfg.fixturesCollection && isStale(fixturesState.savedAt, cfg.fallbackMaxAgeMs)) {
+                needFixtures = true;
+            }
         }
 
         let refreshedTeams = false;
         let refreshedPoints = false;
+        let refreshedFixtures = false;
         let usedBackupTeams = teamsState.usedBackup;
         let usedBackupPoints = pointsState.usedBackup;
+        let usedBackupFixtures = fixturesState.usedBackup;
 
         if (needTeams) {
             try {
@@ -418,6 +494,39 @@
             }
         }
 
+        if (needFixtures && cfg.fixturesCollection) {
+            try {
+                const freshFixtures = await fetchFixtures(cfg);
+
+                if (isValidFixturesData(freshFixtures, cfg.allowEmptyFixtures)) {
+                    fixtures = freshFixtures;
+                    saveFixtures(freshFixtures, cfg);
+                    refreshedFixtures = true;
+                    usedBackupFixtures = false;
+                } else {
+                    log(cfg, 'Fixtures-Fetch war ungültig, nutze last good cache.');
+                    const backup = fixturesState.backup && isValidFixturesData(fixturesState.backup.data, cfg.allowEmptyFixtures)
+                        ? fixturesState.backup.data
+                        : null;
+
+                    if (backup) {
+                        fixtures = backup;
+                        usedBackupFixtures = true;
+                    }
+                }
+            } catch (err) {
+                log(cfg, 'Fixtures-Fetch fehlgeschlagen:', err);
+                const backup = fixturesState.backup && isValidFixturesData(fixturesState.backup.data, cfg.allowEmptyFixtures)
+                    ? fixturesState.backup.data
+                    : null;
+
+                if (backup) {
+                    fixtures = backup;
+                    usedBackupFixtures = true;
+                }
+            }
+        }
+
         const finalMeta = remoteMeta || localMetaState.data;
 
         if (remoteMeta) {
@@ -436,14 +545,17 @@
             data: {
                 teams,
                 points,
+                fixtures: fixtures || {},
                 meta: finalMeta
             },
             info: {
                 refreshedTeams,
                 refreshedPoints,
+                refreshedFixtures,
                 usedBackupTeams,
                 usedBackupPoints,
-                fromCacheOnly: !refreshedTeams && !refreshedPoints
+                usedBackupFixtures,
+                fromCacheOnly: !refreshedTeams && !refreshedPoints && !refreshedFixtures
             }
         };
     }
@@ -517,9 +629,11 @@
         const cfg = resolveConfig(options);
         removeStorage(cfg.keys.teams);
         removeStorage(cfg.keys.points);
+        removeStorage(cfg.keys.fixtures);
         removeStorage(cfg.keys.meta);
         removeStorage(cfg.keys.lastGoodTeams);
         removeStorage(cfg.keys.lastGoodPoints);
+        removeStorage(cfg.keys.lastGoodFixtures);
     }
 
     window.DreamTeamCache = {
@@ -529,6 +643,7 @@
         bumpMetaVersion,
         clearCache,
         isValidTeamsData,
-        isValidPointsData
+        isValidPointsData,
+        isValidFixturesData
     };
 })(window);
