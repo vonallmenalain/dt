@@ -2,9 +2,9 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="view-transition" content="same-origin">
-    <meta name="description" content="DreamTeam als installierbare Webapp für dein Smartphone.">
+    <meta name="description" content="DreamTeam – Spieler-Analyse mit Statistiken, Punkten und Spieldetails.">
     <title>DreamTeam - Spieler-Analyse</title>
     <meta name="theme-color" content="#28a745">
     <meta name="mobile-web-app-capable" content="yes">
@@ -19,173 +19,339 @@
     <link rel="apple-touch-icon" sizes="180x180" href="Icons/apple-touch-icon.png">
     <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
-    
+
     <link rel="stylesheet" href="styles.css">
 
     <style>
+        /* =====================================================
+           DESIGN TOKENS & GLOBAL RESET
+           ===================================================== */
+        :root {
+            --dark-bg: #0d1117;
+            --dark-surface: #161b22;
+            --dark-card: #1c2333;
+            --dark-card-2: #21293a;
+            --text-main: #e6edf3;
+            --text-muted: #8b949e;
+            --green-main: #22c55e;
+            --green-light: #4ade80;
+            --green-glow: rgba(40, 167, 69, 0.45);
+            --gold: #ffd700;
+            --gold-dark: #e5a800;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --red-soft: #f87171;
+            --sidebar-width: 300px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
         body {
-            padding-top: 100px;
-            padding-bottom: 20px;
-            color: #333;
+            background: var(--dark-bg);
+            color: var(--text-main);
+            padding-top: 0;
+            padding-bottom: 0;
+            overflow-x: hidden;
+            font-family: inherit;
         }
 
-        .page-header {
-            max-width: 1400px;
-            margin: 0 auto 28px auto;
-            padding: 0 20px;
-            box-sizing: border-box;
+        /* Dark navbar override */
+        body > nav.navbar {
+            background: rgba(22, 27, 34, 0.95) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+        }
+
+        body > nav.navbar .navbar-brand,
+        body > nav.navbar .nav-links a {
+            color: var(--text-main) !important;
+        }
+
+        body > nav.navbar .nav-links a:hover,
+        body > nav.navbar .nav-links a.active {
+            background: rgba(34,197,94,0.2) !important;
+            color: var(--green-light) !important;
+        }
+
+        .bottom-nav {
+            background: #161b22 !important;
+            border-top-color: rgba(255,255,255,0.07) !important;
+        }
+
+        .bottom-nav a { color: var(--text-muted) !important; }
+        .bottom-nav a.active { color: var(--green-light) !important; }
+        .bottom-nav a .icon { filter: grayscale(100%) brightness(0.7) !important; }
+        .bottom-nav a.active .icon { filter: none !important; opacity: 1 !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* =====================================================
+           PAGE WRAPPER + ATMOSPHERE
+           ===================================================== */
+        .analysis-page {
+            min-height: 100svh;
+            padding-top: 72px;
+            padding-bottom: 100px;
+            position: relative;
+        }
+
+        .analysis-page::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 55% at 50% 100%, rgba(40,167,69,0.32) 0%, transparent 62%),
+                radial-gradient(ellipse 60% 40% at 10% 10%, rgba(255,215,0,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 90% 5%, rgba(40,167,69,0.12) 0%, transparent 50%),
+                linear-gradient(180deg, #050a0e 0%, #0d1117 25%, #0d1f10 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @media (max-width: 860px) {
+            .analysis-page { padding-top: 62px; padding-bottom: 82px; }
+        }
+
+        /* =====================================================
+           PAGE HEADER BAR (view toggle)
+           ===================================================== */
+        .analysis-header {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 18px 20px 0;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            gap: 18px;
+            justify-content: space-between;
+            gap: 16px;
             flex-wrap: wrap;
+            animation: fadeSlideDown 0.5s ease both;
         }
 
-        .header-title {
-            color: #2e7d32;
-            font-size: 2.5em;
-            margin: 0;
-            text-align: left;
-            line-height: 1.1;
+        .analysis-header-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .analysis-header-title span.accent-bar {
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, #4ade80, #22c55e);
+            border-radius: 2px;
         }
 
         .view-toggle {
             display: flex;
-            background: #fff;
+            background: var(--dark-card);
             border-radius: 30px;
-            padding: 5px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border: 2px solid #e2e8f0;
-            margin-left: auto;
+            padding: 4px;
+            border: 1px solid var(--glass-border);
         }
 
         .view-btn {
-            padding: 10px 22px;
+            padding: 9px 22px;
             border: none;
             background: transparent;
-            border-radius: 25px;
-            font-size: 15px;
-            font-weight: bold;
-            color: #666;
+            border-radius: 26px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-muted);
             cursor: pointer;
-            transition: 0.25s;
+            transition: background 0.22s, color 0.22s, box-shadow 0.22s;
+            letter-spacing: 0.3px;
+            min-height: 44px;
         }
 
         .view-btn.active {
-            background: #28a745;
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(34,197,94,0.35);
         }
 
-        .container {
-            max-width: 1400px;
+        .view-btn:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 3px;
+        }
+
+        /* =====================================================
+           SHELL LAYOUT (sidebar + main)
+           ===================================================== */
+        .analysis-shell {
+            max-width: 1600px;
             margin: 0 auto;
+            padding: 16px 20px 0;
             display: flex;
-            gap: 25px;
-            align-items: flex-start;
-            padding: 0 20px;
-            box-sizing: border-box;
+            gap: 20px;
+            align-items: start;
         }
 
-        /* --- LINKE SPALTE --- */
-        .sidebar {
-            width: 350px;
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        /* Desktop: main grows, sidebar is fixed width */
+        .main-content {
+            flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            box-sizing: border-box;
-            border: 1px solid #e2e8f0;
-            flex-shrink: 0;
-            position: sticky;
-            top: 100px;
-            overflow: hidden;
-            transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
         }
 
-        .sidebar.mobile-filter-highlight {
-            border-color: #28a745;
-            box-shadow: 0 0 0 3px rgba(40,167,69,0.18), 0 10px 28px rgba(40,167,69,0.12);
+        /* =====================================================
+           SIDEBAR
+           ===================================================== */
+        .analysis-sidebar {
+            flex-shrink: 0;
+            width: var(--sidebar-width);
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: sticky;
+            top: 88px;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.25s, border-color 0.25s;
+        }
+
+        .analysis-sidebar.mobile-filter-highlight {
+            border-color: rgba(34,197,94,0.5);
+            box-shadow: 0 0 0 3px rgba(34,197,94,0.15), 0 12px 32px rgba(34,197,94,0.12);
+        }
+
+        .sidebar-inner {
+            max-height: calc(100svh - 120px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar-view {
             display: none;
             flex-direction: column;
+            flex: 1;
             min-height: 0;
-            height: 100%;
         }
 
-        .sidebar-view.active {
-            display: flex;
+        .sidebar-view.active { display: flex; }
+
+        .sidebar-filter-block {
+            padding: 14px 14px 0;
+            flex-shrink: 0;
         }
 
         .filter-section {
-            margin-bottom: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .search-box,
         .filter-select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
+            padding: 10px 12px;
+            background: var(--dark-surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            min-height: 44px;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box::placeholder { color: var(--text-muted); }
+
+        .search-box:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: rgba(34,197,94,0.5);
+            box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+        }
+
+        .filter-select option {
+            background: var(--dark-surface);
+            color: var(--text-main);
         }
 
         .filter-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b949e' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
             cursor: pointer;
-            background: #fff;
         }
 
         .reset-btn {
             width: 100%;
-            padding: 8px;
+            padding: 9px 12px;
             background: transparent;
-            color: #888;
-            border: 1px dashed #ccc;
-            border-radius: 6px;
+            color: var(--text-muted);
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
-            font-size: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
+            min-height: 40px;
         }
 
         .reset-btn:hover {
-            color: #dc3545;
-            border-color: #dc3545;
-            background: #fff5f5;
+            color: var(--red-soft);
+            border-color: rgba(248,113,113,0.4);
+            background: rgba(248,113,113,0.06);
         }
 
         .sort-section {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 15px;
+            gap: 6px;
+            padding: 0 14px 10px;
+            border-bottom: 1px solid var(--glass-border);
+            flex-shrink: 0;
         }
 
         .sort-btn {
             flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 5px;
+            padding: 8px 10px;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: bold;
-            background: #eef2f3;
-            color: #555;
-            transition: 0.2s;
+            transition: background 0.18s, color 0.18s, border-color 0.18s;
+            min-height: 40px;
         }
 
         .sort-btn.active {
-            background: #28a745;
-            color: white;
+            background: rgba(34,197,94,0.15);
+            border-color: rgba(34,197,94,0.4);
+            color: var(--green-light);
         }
 
+        .sidebar-mini-title {
+            padding: 10px 14px 6px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        /* Scrollable player/country list */
         .player-list,
         .games-country-list {
             flex: 1;
@@ -193,50 +359,51 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding-right: 5px;
+            gap: 4px;
+            padding: 6px 10px 10px;
         }
 
         .player-list::-webkit-scrollbar,
-        .games-country-list::-webkit-scrollbar {
-            width: 6px;
-        }
+        .games-country-list::-webkit-scrollbar { width: 4px; }
 
         .player-list::-webkit-scrollbar-thumb,
         .games-country-list::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 3px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 2px;
         }
 
+        /* Player list items */
         .list-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
+            gap: 10px;
+            padding: 9px 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 10px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: background 0.18s, border-color 0.18s, transform 0.18s;
         }
 
         .list-item:hover {
-            background: #e2e8f0;
-            transform: translateX(3px);
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
         }
 
         .list-item.active {
-            background: #d4edda;
-            border-color: #28a745;
+            background: rgba(34,197,94,0.1);
+            border-color: rgba(34,197,94,0.35);
+            box-shadow: 0 0 0 0 rgba(34,197,94,0.2);
         }
 
         .list-avatar {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
+            background: #2a3040;
+            flex-shrink: 0;
         }
 
         .list-info {
@@ -247,414 +414,637 @@
         }
 
         .list-name {
-            font-weight: bold;
-            font-size: 13px;
-            color: #333;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .list-pos {
-            font-size: 11px;
-            color: #777;
+            font-size: 0.72rem;
+            color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .list-pts {
-            font-weight: bold;
-            font-size: 14px;
-            color: #28a745;
-            min-width: 40px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: var(--green-light);
+            min-width: 36px;
             text-align: right;
+            flex-shrink: 0;
         }
 
-        .list-pts.neg {
-            color: #dc3545;
-        }
+        .list-pts.neg { color: var(--red-soft); }
 
         .list-empty,
         .sidebar-empty {
             text-align: center;
-            padding: 20px;
-            color: #888;
-            font-size: 13px;
+            padding: 20px 10px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
         }
 
-        .sidebar-mini-title {
-            margin: 0 0 10px 0;
-            font-size: 1.05em;
-            color: #111;
-            font-weight: 800;
-        }
-
+        /* Games country list items */
         .games-country-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding: 10px;
-            border: 1px solid #e9ecef;
+            gap: 10px;
+            padding: 10px 10px;
+            border: 1px solid transparent;
             border-radius: 10px;
-            background: #f8fafc;
             cursor: pointer;
-            transition: 0.2s;
+            transition: background 0.18s, border-color 0.18s;
         }
 
         .games-country-item:hover {
-            background: #eef2f7;
-            transform: translateX(3px);
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
         }
 
         .games-country-item.active {
-            background: #d4edda;
-            border-color: #28a745;
+            background: rgba(34,197,94,0.1);
+            border-color: rgba(34,197,94,0.35);
         }
 
         .games-country-left {
-            min-width: 0;
-            flex: 1;
             display: flex;
             align-items: center;
             gap: 10px;
+            min-width: 0;
+            flex: 1;
         }
 
         .games-country-flag-small {
             width: 30px;
             height: 20px;
             object-fit: cover;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
+            border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.12);
             flex-shrink: 0;
-            background: #fff;
         }
 
         .games-country-name-small {
-            min-width: 0;
-            font-weight: 800;
-            color: #334155;
-            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 0.85rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .games-country-total-small {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--green-light);
             flex-shrink: 0;
-            font-size: 14px;
-            font-weight: 900;
-            color: #28a745;
-            text-align: right;
         }
 
-        .games-country-total-small.neg {
-            color: #dc3545;
+        .games-country-total-small.neg { color: var(--red-soft); }
+
+        /* Drafted badge in lists */
+        .games-picked-badge {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: var(--green-light);
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.3);
+            padding: 3px 7px;
+            border-radius: 999px;
+            flex-shrink: 0;
         }
 
-        /* --- RECHTE SPALTE --- */
-        .main-content {
-            flex: 1;
-            min-width: 0;
-            box-sizing: border-box;
+        /* =====================================================
+           MOBILE FILTER TOGGLE BUTTON
+           ===================================================== */
+        .mobile-filter-toggle {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-weight: 700;
+            width: 100%;
+            margin: 0 0 12px;
+            min-height: 48px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .mobile-filter-toggle:hover {
+            border-color: rgba(34,197,94,0.4);
+            background: var(--dark-card-2);
+        }
+
+        .mobile-filter-toggle:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 3px;
+        }
+
+        .mft-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .mft-chevron {
+            transition: transform 0.25s ease;
+            font-size: 0.75rem;
+        }
+
+        .mobile-filter-toggle.open .mft-chevron { transform: rotate(180deg); }
+
+        .main-view { display: none; }
+        .main-view.active { display: block; }
+
+        /* =====================================================
+           PLAYER HERO CARD (Premium Stage)
+           ===================================================== */
+        .player-hero-card {
+            position: relative;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            animation: heroFadeIn 0.6s ease both;
+        }
+
+        /* Glow atmosphere behind the hero */
+        .player-hero-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 70% 80% at 30% 50%, rgba(34,197,94,0.08) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 60% at 80% 20%, rgba(255,215,0,0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .player-hero-inner {
+            position: relative;
+            z-index: 1;
+            padding: 28px 28px 24px;
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
+        }
+
+        /* -- PORTRAIT STAGE -- */
+        .player-portrait-stage {
+            flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            padding: 5px 0 5px 5px;
+            align-items: center;
+            gap: 12px;
         }
 
-        .main-view {
-            display: none;
+        .player-photo-frame {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: var(--dark-surface);
+            border: 2px solid var(--glass-border);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,197,94,0.12);
+            flex-shrink: 0;
         }
 
-        .main-view.active {
+        /* Glow ring around photo */
+        .player-photo-frame::after {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.35) 0%, transparent 50%, rgba(255,215,0,0.18) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .player-main-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
             display: block;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.5s ease;
         }
 
+        .player-hero-card.is-switching .player-main-photo {
+            transform: scale(1.06);
+            filter: blur(3px);
+            opacity: 0.5;
+        }
+
+        .player-score-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: 1.15rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .player-score-pill.pos {
+            background: linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.12));
+            border: 1.5px solid rgba(34,197,94,0.5);
+            color: #4ade80;
+            box-shadow: 0 0 20px rgba(34,197,94,0.25), 0 4px 14px rgba(0,0,0,0.3);
+        }
+
+        .player-score-pill.neg {
+            background: linear-gradient(135deg, rgba(248,113,113,0.2), rgba(248,113,113,0.08));
+            border: 1.5px solid rgba(248,113,113,0.4);
+            color: var(--red-soft);
+        }
+
+        .player-score-pill.zero {
+            background: var(--glass-bg);
+            border: 1.5px solid var(--glass-border);
+            color: var(--text-muted);
+        }
+
+        /* -- PLAYER IDENTITY SECTION -- */
+        .player-identity {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-top: 4px;
+        }
+
+        .player-identity-top {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .player-position-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            color: var(--gold);
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            width: fit-content;
+        }
+
+        #detail-name {
+            font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+        }
+
+        /* Nation & Club cards row */
+        .player-flag-club-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .player-flag-card,
+        .player-club-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            min-width: 140px;
+            flex: 1;
+        }
+
+        .player-flag-card:hover,
+        .player-club-card:hover {
+            background: rgba(34,197,94,0.08);
+            border-color: rgba(34,197,94,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .player-flag-card:focus-visible,
+        .player-club-card:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 3px;
+            border-radius: 12px;
+        }
+
+        #detail-nation-flag,
+        #detail-club-logo {
+            flex-shrink: 0;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+
+        #detail-nation-flag {
+            width: 44px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #detail-club-logo {
+            width: 32px;
+            height: 32px;
+        }
+
+        .player-flag-info,
+        .player-club-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .pfc-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        #detail-nation-name,
+        #detail-club-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Meta pills: dob, height, weight */
+        .player-meta-grid {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .player-meta-pill {
+            display: flex;
+            flex-direction: column;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            min-width: 80px;
+        }
+
+        .pmp-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .pmp-value {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        /* Awards row */
+        .awards-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .award-badge {
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: help;
+            transition: transform 0.2s;
+        }
+
+        .award-badge:hover { transform: translateY(-1px); }
+
+        .award-captain {
+            background: rgba(255,215,0,0.15);
+            color: var(--gold);
+            border: 1px solid rgba(255,215,0,0.4);
+        }
+
+        .award-perfect {
+            background: rgba(251,191,36,0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(251,191,36,0.3);
+        }
+
+        .award-goleador {
+            background: rgba(249,115,22,0.12);
+            color: #fb923c;
+            border: 1px solid rgba(249,115,22,0.3);
+        }
+
+        .award-spielmacher {
+            background: rgba(59,130,246,0.12);
+            color: #60a5fa;
+            border: 1px solid rgba(59,130,246,0.3);
+        }
+
+        .award-joker {
+            background: rgba(168,85,247,0.12);
+            color: #c084fc;
+            border: 1px solid rgba(168,85,247,0.3);
+        }
+
+        .award-hitzkopf {
+            background: rgba(248,113,113,0.12);
+            color: var(--red-soft);
+            border: 1px solid rgba(248,113,113,0.3);
+        }
+
+        .award-pechvogel {
+            background: rgba(251,146,60,0.12);
+            color: #fb923c;
+            border: 1px solid rgba(251,146,60,0.3);
+        }
+
+        /* Switch animation states */
+        @keyframes heroFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes heroContentIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .player-hero-card.is-switching .player-identity {
+            opacity: 0.3;
+            transition: opacity 0.15s;
+        }
+
+        .player-hero-card:not(.is-switching) .player-identity {
+            opacity: 1;
+            transition: opacity 0.3s 0.1s;
+        }
+
+        /* =====================================================
+           EMPTY STATE
+           ===================================================== */
         #empty-state {
             text-align: center;
-            color: #888;
-            font-size: 1.2em;
-            padding: 50px;
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            color: var(--text-muted);
+            font-size: 1rem;
+            padding: 60px 20px;
+            background: var(--dark-card);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
         }
 
+        #empty-state::before {
+            content: "👈";
+            font-size: 2rem;
+            opacity: 0.5;
+        }
+
+        /* =====================================================
+           DETAIL VIEW
+           ===================================================== */
         #detail-view {
             display: none;
             flex-direction: column;
         }
 
-        .dashboard-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px 30px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
-            margin-bottom: 20px;
+        /* Dark glass cards */
+        .analysis-card {
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            transition: border-color 0.25s, box-shadow 0.25s;
         }
 
-        .dashboard-card:last-child {
-            margin-bottom: 0;
+        .analysis-card:last-child { margin-bottom: 0; }
+
+        @media (hover: hover) and (pointer: fine) {
+            .analysis-card:hover {
+                border-color: rgba(74,222,128,0.18);
+                box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+            }
         }
 
-        .hover-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .analysis-card-header {
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .hover-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.08);
-            border-color: #d1d5db;
-        }
-
-        .dashboard-title {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 1.15em;
-            color: #333;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 12px;
+        .analysis-card-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: bold;
         }
 
-        /* --- SPIELER PROFIL --- */
-        .detail-header {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        .detail-photo {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #f8f9fa;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .detail-title-section {
-            flex: 1;
-        }
-
-        .detail-name {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: #111;
-            margin: 0 0 10px 0;
-        }
-
-        .detail-pts-badge {
+        .act-accent {
             display: inline-block;
-            background: #28a745;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.2em;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(180deg, #4ade80, #22c55e);
+            border-radius: 2px;
         }
 
-        .detail-pts-badge.neg {
-            background: #dc3545;
-        }
+        .analysis-card-body { padding: 16px 20px; }
 
-        .awards-container {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .award-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
-            cursor: help;
-        }
-
-        .award-captain {
-            background: linear-gradient(135deg, #fffdf0, #fff2a8);
-            color: #b8860b;
-            border-color: #ffc107;
-            font-weight: 900;
-        }
-
-        .award-perfect {
-            background: #fff8e1;
-            color: #f57f17;
-            border-color: #ffecb3;
-        }
-
-        .award-goleador {
-            background: #fff3e0;
-            color: #c62828;
-            border-color: #ffcdd2;
-        }
-
-        .award-spielmacher {
-            background: #e3f2fd;
-            color: #1565c0;
-            border-color: #bbdefb;
-        }
-
-        .award-joker {
-            background: #f3e5f5;
-            color: #6a1b9a;
-            border-color: #e1bee7;
-        }
-
-        .award-hitzkopf {
-            background: #ffebee;
-            color: #b71c1c;
-            border-color: #ffcdd2;
-        }
-
-        .award-pechvogel {
-            background: #fffde7;
-            color: #e65100;
-            border-color: #fff9c4;
-        }
-
-        .top-tiles {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .big-tile {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #e9ecef;
-            transition: 0.2s;
-        }
-
-        .big-tile img {
-            height: 35px;
-            margin-bottom: 8px;
-            object-fit: contain;
-        }
-
-        .big-tile-title {
-            font-size: 10px;
-            color: #777;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 3px;
-        }
-
-        .big-tile-value {
-            font-size: 15px;
-            font-weight: bold;
-            color: #111;
-        }
-
-        .clickable-tile {
-            cursor: pointer;
-        }
-
-        .clickable-tile:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-color: #28a745;
-            background: #fff;
-        }
-
-        .bottom-tiles {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-
-        .small-tile {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #e9ecef;
-        }
-
-        .small-tile-title {
-            font-size: 10px;
-            color: #777;
-            text-transform: uppercase;
-            margin-bottom: 3px;
-        }
-
-        .small-tile-value {
-            font-size: 13px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        /* --- MANAGER --- */
+        /* =====================================================
+           MANAGER BADGES
+           ===================================================== */
         .manager-badges {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .manager-badge {
-            background: #eef2f3;
-            border: 1px solid #ccc;
-            padding: 6px 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 7px 14px;
             border-radius: 20px;
-            font-weight: bold;
-            font-size: 13px;
-            color: #444;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--text-main);
             text-decoration: none;
-            transition: 0.2s;
-            display: inline-block;
+            transition: background 0.2s, border-color 0.2s, transform 0.2s, color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .manager-badge:hover {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-            transform: translateY(-2px);
+            background: rgba(34,197,94,0.12);
+            border-color: rgba(34,197,94,0.4);
+            color: var(--green-light);
+            transform: translateY(-1px);
         }
 
-        /* --- PLUS / MINUS --- */
+        /* =====================================================
+           POINTS BREAKDOWN CARD
+           ===================================================== */
         .taktik-header {
             cursor: pointer;
-            transition: 0.2s;
-            opacity: 0.9;
+            padding: 18px 20px;
+            display: block;
+            transition: background 0.18s;
+            border-bottom: 1px solid transparent;
         }
 
-        .taktik-header:hover {
-            opacity: 1;
-            background: #fcfcfc !important;
-        }
-
-        .taktik-sum {
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 6px;
-        }
-
-        .taktik-sum.pos {
-            color: #28a745;
-            background: #e8f5e9;
-        }
-
-        .taktik-sum.neg {
-            color: #dc3545;
-            background: #fdeaea;
-        }
+        .taktik-header:hover { background: rgba(255,255,255,0.03); }
 
         .taktik-grid {
             display: grid;
@@ -662,100 +1052,143 @@
             gap: 20px;
         }
 
+        .taktik-header .taktik-grid {
+            align-items: center;
+            margin: 0;
+        }
+
+        .pts-section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pts-section-label {
+            font-size: 0.95rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pts-section-label.pos { color: var(--green-light); }
+        .pts-section-label.neg { color: var(--red-soft); }
+
+        .taktik-sum {
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        .taktik-sum.pos { color: var(--green-light); }
+        .taktik-sum.neg { color: var(--red-soft); }
+
+        .toggle-icon {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        .minus-header-col {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 20px;
+            border-left: 1px solid var(--glass-border);
+        }
+
+        .taktik-content {
+            display: none;
+            padding: 0 20px 20px;
+        }
+
+        .taktik-content .taktik-grid { align-items: start; }
+
         .stat-header-row {
             display: flex;
-            font-size: 11px;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            color: #888;
-            font-weight: bold;
+            color: var(--text-muted);
+            font-weight: 700;
             padding-bottom: 8px;
             margin-bottom: 8px;
             letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .stat-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            font-size: 14px;
-            color: #444;
-            border-bottom: 1px dashed #f1f1f1;
+            padding: 7px 0;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
         }
 
-        .stat-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
+        .stat-row:last-child { border-bottom: none; }
 
-        .stat-name {
-            flex: 2;
-            font-weight: 500;
-            text-align: left;
-        }
+        .stat-name { flex: 2; text-align: left; }
 
         .stat-count {
             flex: 1;
             text-align: center;
-            color: #666;
-            background: #f8f9fa;
-            padding: 2px 5px;
+            color: var(--text-muted);
+            background: var(--glass-bg);
+            padding: 2px 6px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 0.78rem;
         }
 
         .stat-total {
             flex: 1;
             text-align: right;
-            font-weight: bold;
-            font-size: 15px;
+            font-weight: 800;
+            font-size: 0.92rem;
         }
 
-        .stat-total.pos {
-            color: #28a745;
-        }
-
-        .stat-total.neg {
-            color: #dc3545;
-        }
+        .stat-total.pos { color: var(--green-light); }
+        .stat-total.neg { color: var(--red-soft); }
 
         .empty-cat {
-            color: #aaa;
+            color: var(--text-muted);
             font-style: italic;
-            font-size: 13px;
+            font-size: 0.82rem;
             text-align: center;
-            padding: 10px 0;
+            padding: 12px 0;
         }
 
-        /* --- SPIELER: GESPIELTE SPIELE --- */
+        /* =====================================================
+           PLAYER GAMES SECTION
+           ===================================================== */
         .match-card {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            background: var(--dark-surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
             margin-bottom: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: border-color 0.2s;
         }
+
+        .match-card:last-child { margin-bottom: 0; }
+
+        .match-card:hover { border-color: rgba(74,222,128,0.2); }
 
         .match-header {
-            padding: 15px;
-            background: #f8f9fa;
+            padding: 14px 16px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.18s;
         }
 
-        .match-header:hover {
-            background: #e2e8f0;
-        }
+        .match-header:hover { background: rgba(255,255,255,0.03); }
 
         .match-duel {
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 14px;
+            gap: 12px;
             min-width: 0;
             flex: 1;
             overflow: hidden;
@@ -764,23 +1197,17 @@
         .match-side {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             min-width: 0;
-            flex: 0 1 auto;
         }
 
-        .match-side.right .match-side-name {
-            order: 1;
-        }
-
-        .match-side.right .match-flag {
-            order: 2;
-        }
+        .match-side.right .match-side-name { order: 1; }
+        .match-side.right .match-flag { order: 2; }
 
         .match-side-name {
-            font-weight: bold;
-            font-size: 14px;
-            color: #334155;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-main);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -795,90 +1222,89 @@
             font: inherit;
             font-weight: inherit;
             cursor: pointer;
+            transition: color 0.2s;
         }
 
-        .match-country-btn:hover {
-            color: #007bff;
-            text-decoration: underline;
-        }
+        .match-country-btn:hover { color: var(--green-light); }
 
         .match-flag {
             width: 22px;
-            height: 16px;
+            height: 15px;
             object-fit: cover;
-            border-radius: 3px;
-            border: 1px solid #ccc;
+            border-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.12);
             flex-shrink: 0;
-            background: #fff;
         }
 
         .match-score {
             font-weight: 900;
-            font-size: 17px;
-            padding: 7px 14px;
+            font-size: 0.95rem;
+            padding: 5px 12px;
             border-radius: 999px;
             border: 1px solid transparent;
-            min-width: 86px;
+            min-width: 78px;
             text-align: center;
-            letter-spacing: 0.5px;
             flex-shrink: 0;
         }
 
         .match-score.win {
-            color: #1b5e20;
-            background: #e8f5e9;
-            border-color: #b7dfbc;
+            color: var(--green-light);
+            background: rgba(34,197,94,0.12);
+            border-color: rgba(34,197,94,0.3);
         }
 
         .match-score.loss {
-            color: #b71c1c;
-            background: #fdeaea;
-            border-color: #f3c2c2;
+            color: var(--red-soft);
+            background: rgba(248,113,113,0.1);
+            border-color: rgba(248,113,113,0.25);
         }
 
         .match-score.draw {
-            color: #475569;
-            background: #eef2f7;
-            border-color: #d8dee7;
+            color: var(--text-muted);
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
         }
 
         .match-summary-right {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             flex-shrink: 0;
             margin-left: auto;
         }
 
         .match-total {
-            font-weight: bold;
-            font-size: 16px;
-            color: #28a745;
-            background: #e8f5e9;
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--green-light);
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.25);
             padding: 4px 10px;
-            border-radius: 6px;
+            border-radius: 8px;
         }
 
         .match-total.neg {
-            color: #dc3545;
-            background: #fdeaea;
+            color: var(--red-soft);
+            background: rgba(248,113,113,0.1);
+            border-color: rgba(248,113,113,0.25);
         }
 
         .match-details-content {
             display: none;
-            padding: 15px;
-            border-top: 1px solid #eee;
-            background: white;
+            padding: 14px 16px;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.02);
         }
 
         .game-detail-row {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
-            border-bottom: 1px dashed #eee;
-            padding-bottom: 8px;
-            margin-bottom: 8px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            padding-bottom: 7px;
+            margin-bottom: 7px;
             gap: 20px;
+            color: var(--text-main);
         }
 
         .game-detail-row:last-child {
@@ -887,14 +1313,15 @@
             margin-bottom: 0;
         }
 
-        /* --- SPIELE VIEW --- */
+        /* =====================================================
+           GAMES VIEW COMPONENTS
+           ===================================================== */
         .games-top-card {
-            background: white;
-            border-radius: 12px;
+            background: var(--dark-card);
+            border-radius: 16px;
             padding: 18px 22px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
-            margin-bottom: 18px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 16px;
         }
 
         .games-country-summary {
@@ -914,123 +1341,117 @@
         }
 
         .games-country-flag-large {
-            width: 76px;
-            height: 52px;
+            width: 80px;
+            height: 54px;
             object-fit: cover;
             border-radius: 10px;
-            border: 1px solid #cbd5e1;
-            background: #fff;
+            border: 1px solid var(--glass-border);
             flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
         }
 
         .games-country-placeholder {
-            width: 76px;
-            height: 52px;
+            width: 80px;
+            height: 54px;
             border-radius: 10px;
-            border: 1px dashed #cbd5e1;
-            background: #f8fafc;
+            border: 1px dashed var(--glass-border);
+            background: var(--glass-bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
-            color: #94a3b8;
+            font-size: 28px;
+            color: var(--text-muted);
             flex-shrink: 0;
         }
 
-        .games-country-text {
-            min-width: 0;
-        }
+        .games-country-text { min-width: 0; }
 
         .games-country-label {
-            font-size: 11px;
-            font-weight: 900;
+            font-size: 0.68rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #64748b;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
             margin-bottom: 4px;
         }
 
         .games-country-name {
             margin: 0;
-            font-size: 1.75em;
-            color: #111827;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--text-main);
             line-height: 1.1;
         }
 
         .games-country-subtitle {
-            margin: 6px 0 0 0;
-            color: #64748b;
-            font-size: 14px;
+            margin: 5px 0 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
         }
 
         .games-country-points-box {
             flex-shrink: 0;
             text-align: right;
-            padding: 12px 16px;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            min-width: 132px;
-            max-width: 180px;
+            padding: 12px 18px;
+            border-radius: 14px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            min-width: 120px;
         }
 
         .games-country-points-label {
-            font-size: 11px;
-            font-weight: 900;
+            font-size: 0.68rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #64748b;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
             margin-bottom: 4px;
         }
 
         .games-country-points-value {
-            font-size: 1.8em;
+            font-size: 1.7rem;
             font-weight: 900;
-            color: #28a745;
+            color: var(--green-light);
             line-height: 1;
-            white-space: nowrap;
         }
 
-        .games-country-points-value.neg {
-            color: #dc3545;
-        }
+        .games-country-points-value.neg { color: var(--red-soft); }
 
         .games-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
         }
 
         .games-match-card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+            background: var(--dark-card);
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
             overflow: hidden;
+            transition: border-color 0.2s;
         }
+
+        .games-match-card:hover { border-color: rgba(74,222,128,0.2); }
 
         .games-match-header {
-            padding: 16px 18px;
+            padding: 14px 18px;
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 16px;
             cursor: pointer;
-            background: #f8fafc;
-            transition: background 0.2s;
+            background: rgba(255,255,255,0.02);
+            transition: background 0.18s;
         }
 
-        .games-match-header:hover {
-            background: #eef2f7;
-        }
+        .games-match-header:hover { background: rgba(255,255,255,0.05); }
 
         .games-match-number {
-            min-width: 68px;
-            font-size: 12px;
-            font-weight: 900;
-            color: #475569;
+            min-width: 64px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.5px;
         }
 
         .games-match-duel {
@@ -1038,27 +1459,23 @@
             min-width: 0;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .games-team {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             min-width: 0;
         }
 
-        .games-team.right .games-team-name {
-            order: 1;
-        }
-
-        .games-team.right .match-flag {
-            order: 2;
-        }
+        .games-team.right .games-team-name { order: 1; }
+        .games-team.right .match-flag { order: 2; }
 
         .games-team-name {
-            font-weight: 800;
-            color: #334155;
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 0.88rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1066,56 +1483,55 @@
 
         .games-score {
             font-weight: 900;
-            font-size: 17px;
-            min-width: 84px;
+            font-size: 0.95rem;
+            min-width: 80px;
             text-align: center;
-            padding: 6px 12px;
+            padding: 5px 12px;
             border-radius: 999px;
-            background: #eef2f7;
-            color: #475569;
-            border: 1px solid #d8dee7;
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            background: var(--glass-bg);
         }
 
         .games-score.win {
-            color: #1b5e20;
-            background: #e8f5e9;
-            border-color: #b7dfbc;
+            color: var(--green-light);
+            background: rgba(34,197,94,0.12);
+            border-color: rgba(34,197,94,0.3);
         }
 
         .games-score.loss {
-            color: #b71c1c;
-            background: #fdeaea;
-            border-color: #f3c2c2;
+            color: var(--red-soft);
+            background: rgba(248,113,113,0.1);
+            border-color: rgba(248,113,113,0.25);
         }
 
         .games-score.draw {
-            color: #475569;
-            background: #eef2f7;
-            border-color: #d8dee7;
+            color: var(--text-muted);
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
         }
 
         .games-match-toggle {
-            font-size: 18px;
-            color: #64748b;
+            font-size: 0.85rem;
+            color: var(--text-muted);
             flex-shrink: 0;
         }
 
         .games-match-body {
             display: none;
-            padding: 18px;
-            border-top: 1px solid #e2e8f0;
-            background: white;
+            padding: 16px 18px;
+            border-top: 1px solid var(--glass-border);
         }
 
         .games-teams-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 18px;
+            gap: 14px;
         }
 
         .games-team-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--dark-surface);
+            border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 14px;
         }
@@ -1123,60 +1539,62 @@
         .games-team-card-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 12px;
-            font-size: 1em;
-            font-weight: 900;
-            color: #111827;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-main);
         }
 
         .games-player-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .games-player-row {
             width: 100%;
-            border: 1px solid #e2e8f0;
-            background: white;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
             border-radius: 10px;
-            padding: 10px 12px;
+            padding: 9px 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: background 0.18s, border-color 0.18s, transform 0.18s;
             text-align: left;
+            color: var(--text-main);
         }
 
         .games-player-row:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-            border-color: #28a745;
+            background: rgba(34,197,94,0.08);
+            border-color: rgba(34,197,94,0.3);
+            transform: translateY(-1px);
         }
 
         .games-player-row.drafted {
-            background: linear-gradient(135deg, #f0fff4, #ffffff);
-            border-color: #86efac;
+            background: rgba(34,197,94,0.07);
+            border-color: rgba(34,197,94,0.25);
         }
 
         .games-player-left {
             min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 2px;
         }
 
         .games-player-name {
-            font-weight: 800;
-            color: #111827;
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 0.88rem;
         }
 
         .games-player-meta {
-            font-size: 12px;
-            color: #64748b;
+            font-size: 0.72rem;
+            color: var(--text-muted);
         }
 
         .games-player-right {
@@ -1186,172 +1604,175 @@
             flex-shrink: 0;
         }
 
-        .games-picked-badge {
-            font-size: 11px;
-            font-weight: 900;
-            color: #15803d;
-            background: #dcfce7;
-            border: 1px solid #86efac;
-            padding: 4px 8px;
-            border-radius: 999px;
-        }
-
         .games-player-points {
-            font-weight: 900;
-            color: #28a745;
-            min-width: 48px;
+            font-weight: 800;
+            color: var(--green-light);
+            min-width: 44px;
             text-align: right;
+            font-size: 0.9rem;
         }
 
-        .games-player-points.neg {
-            color: #dc3545;
-        }
+        .games-player-points.neg { color: var(--red-soft); }
 
         .games-empty {
-            color: #888;
+            color: var(--text-muted);
             font-style: italic;
-            font-size: 13px;
+            font-size: 0.82rem;
             padding: 10px 0;
             text-align: center;
         }
 
-        @media (max-width: 1000px) {
-            .page-header {
-                padding: 0 20px;
-                margin-bottom: 22px;
+        /* =====================================================
+           ANIMATIONS
+           ===================================================== */
+        @keyframes fadeSlideDown {
+            from { opacity: 0; transform: translateY(-14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Glow pulse on hero load */
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(34,197,94,0.12), 0 8px 40px rgba(0,0,0,0.5); }
+            50% { box-shadow: 0 0 50px rgba(34,197,94,0.22), 0 8px 40px rgba(0,0,0,0.5); }
+        }
+
+        .player-photo-frame.glow-active {
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        /* =====================================================
+           DESKTOP LAYOUT
+           ===================================================== */
+        @media (min-width: 861px) {
+            .analysis-sidebar {
+                max-height: calc(100svh - 120px);
+            }
+
+            .sidebar-inner {
+                height: 100%;
+            }
+
+            .mobile-filter-toggle { display: none; }
+
+            .player-photo-frame {
+                width: 200px;
+                height: 200px;
+            }
+        }
+
+        @media (min-width: 1100px) {
+            .player-photo-frame {
+                width: 240px;
+                height: 240px;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .player-photo-frame {
+                width: 280px;
+                height: 280px;
+            }
+        }
+
+        /* =====================================================
+           MOBILE LAYOUT
+           ===================================================== */
+        @media (max-width: 860px) {
+            :root { --sidebar-width: 280px; }
+
+            /* Collapse shell to flex column; sidebar moves below main via order */
+            .analysis-shell {
                 flex-direction: column;
-                align-items: stretch;
+                padding: 12px 14px 0;
+                gap: 0;
             }
 
-            .header-title {
-                text-align: center;
-                font-size: 2em;
-            }
-
-            .view-toggle {
+            /* Sidebar goes below main on mobile */
+            .analysis-sidebar {
+                order: 2;
                 width: 100%;
-                margin-left: 0;
+                border-radius: 14px;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, border-color 0.25s;
+                opacity: 0;
+                border-color: transparent;
+                margin-bottom: 0;
             }
 
-            .view-btn {
-                flex: 1;
+            .analysis-sidebar.mobile-open {
+                max-height: 640px;
+                opacity: 1;
+                border-color: var(--glass-border);
+                margin-bottom: 14px;
             }
 
-            .container {
+            .sidebar-inner { max-height: 620px; }
+
+            .main-content { order: 1; }
+
+            .mobile-filter-toggle { display: flex; }
+
+            /* Mobile hero: portrait is big and prominent */
+            .player-hero-inner {
                 flex-direction: column;
-                height: auto;
+                align-items: center;
+                padding: 20px 16px 20px;
+                gap: 16px;
             }
 
-            .sidebar {
+            .player-portrait-stage {
                 width: 100%;
-                position: static;
-                height: auto !important;
-                max-height: 45vh;
-                min-height: 320px;
-                padding: 15px;
+                align-items: center;
             }
 
-            .sidebar.mobile-filter-highlight {
-                animation: mobileFilterPulse 0.9s ease;
+            .player-photo-frame {
+                width: clamp(180px, 55vw, 280px);
+                height: clamp(180px, 55vw, 280px);
+                border-radius: 20px;
             }
 
-            @keyframes mobileFilterPulse {
-                0% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(40,167,69,0.0); }
-                30% { transform: translateY(-4px); box-shadow: 0 0 0 4px rgba(40,167,69,0.12), 0 10px 24px rgba(40,167,69,0.12); }
-                100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(40,167,69,0.0); }
-            }
-
-            .filter-section {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-                margin-bottom: 10px;
-            }
-
-            .search-box {
-                grid-column: 1 / -1;
-                padding: 8px;
-                font-size: 13px;
-            }
-
-            .filter-select {
-                padding: 6px;
-                font-size: 12px;
-                height: 34px;
-            }
-
-            .reset-btn {
-                padding: 6px;
-                font-size: 12px;
-                height: 34px;
-            }
-
-            .sort-section {
-                margin-bottom: 10px;
-                padding-bottom: 10px;
-                gap: 8px;
-            }
-
-            .sort-btn {
-                padding: 6px;
-                font-size: 13px;
-            }
-
-            .list-item {
-                padding: 8px 10px;
-                gap: 10px;
-            }
-
-            .list-avatar {
-                width: 35px;
-                height: 35px;
-                border-width: 1px;
-            }
-
-            .list-name {
-                font-size: 12px;
-            }
-
-            .list-pos {
-                font-size: 10px;
-            }
-
-            .list-pts {
-                font-size: 14px;
-            }
-
-            .games-country-name-small {
-                font-size: 12px;
-            }
-
-            .games-country-total-small {
-                font-size: 13px;
-            }
-
-            .detail-header {
-                flex-direction: column;
+            .player-identity {
+                width: 100%;
+                align-items: center;
                 text-align: center;
             }
 
-            .bottom-tiles {
-                grid-template-columns: 1fr 1fr;
-            }
+            #detail-name { font-size: clamp(1.5rem, 6vw, 2rem); }
 
-            .taktik-grid {
-                grid-template-columns: 1fr;
-            }
+            .player-flag-club-row { justify-content: center; }
+
+            .player-flag-card,
+            .player-club-card { flex: 1; min-width: 130px; }
+
+            .player-meta-grid { justify-content: center; }
+
+            .awards-container { justify-content: center; }
+
+            .analysis-header { padding: 14px 14px 0; }
+
+            /* Points breakdown: stack vertically */
+            .taktik-grid { grid-template-columns: 1fr; }
 
             .minus-header-col {
-                padding-left: 0 !important;
-                border-left: none !important;
-                margin-top: 10px;
-                width: 100%;
+                padding-left: 0;
+                border-left: none;
+                border-top: 1px solid var(--glass-border);
+                padding-top: 14px;
+                margin-top: 14px;
             }
+
+            .games-teams-grid { grid-template-columns: 1fr; }
 
             .match-header {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 12px;
+                gap: 10px;
             }
 
             .match-summary-right {
@@ -1359,19 +1780,10 @@
                 margin-left: 0;
             }
 
-            .match-duel {
-                flex-wrap: wrap;
+            .games-match-header {
+                flex-direction: column;
+                align-items: stretch;
                 gap: 10px;
-            }
-
-            .match-side-name {
-                font-size: 12px;
-            }
-
-            .match-score {
-                font-size: 15px;
-                min-width: 72px;
-                padding: 6px 10px;
             }
 
             .games-country-summary {
@@ -1379,210 +1791,286 @@
                 align-items: flex-start;
             }
 
-            .games-country-main {
-                align-items: flex-start;
-            }
-
-            .games-country-name {
-                font-size: 1.45em;
-            }
-
             .games-country-points-box {
-                width: auto;
-                min-width: 0;
-                max-width: none;
                 align-self: flex-start;
                 text-align: left;
-                padding: 10px 14px;
-            }
-
-            .games-country-points-value {
-                font-size: 1.45em;
-            }
-
-            .games-match-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-
-            .games-match-duel {
-                flex-wrap: wrap;
-            }
-
-            .games-team-name {
-                font-size: 12px;
-            }
-
-            .games-score {
-                font-size: 15px;
-                min-width: 70px;
-                padding: 6px 10px;
-            }
-
-            .games-teams-grid {
-                grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 900px) {
-            body {
-                padding-bottom: 90px;
-                padding-top: 80px;
+        @media (max-width: 480px) {
+            .player-flag-card, .player-club-card { flex: 1 1 100%; }
+        }
+
+        /* =====================================================
+           3D HOVER ON HERO (Desktop only, respects motion)
+           ===================================================== */
+        @media (hover: hover) and (pointer: fine) {
+            .player-hero-card:not(.is-switching) {
+                transform-style: preserve-3d;
+                transform-origin: center center;
+                transition: transform 0.35s ease, box-shadow 0.35s ease;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="page-header">
-    <h1 id="analysis-title" class="header-title">🔍 Spieler-Analyse</h1>
+<!-- ============================================================
+     PAGE WRAPPER
+     ============================================================ -->
+<div class="analysis-page">
 
-    <div class="view-toggle">
-        <button id="btn-view-players" class="view-btn active" type="button">Spieler</button>
-        <button id="btn-view-games" class="view-btn" type="button">Spiele</button>
+    <!-- Page header bar -->
+    <div class="analysis-header">
+        <div class="analysis-header-title">
+            <span class="accent-bar" aria-hidden="true"></span>
+            <span id="analysis-title">Spieler-Analyse</span>
+        </div>
+
+        <div class="view-toggle" role="group" aria-label="Ansicht wechseln">
+            <button id="btn-view-players" class="view-btn active" type="button">⚽ Spieler</button>
+            <button id="btn-view-games" class="view-btn" type="button">📅 Spiele</button>
+        </div>
     </div>
+
+    <!-- Shell: sidebar + main -->
+    <div class="analysis-shell">
+
+        <!-- =====================================================
+             SIDEBAR
+             ===================================================== -->
+        <aside class="analysis-sidebar" id="analysis-sidebar" role="complementary" aria-label="Spieler-Filter und -Liste">
+            <div class="sidebar-inner">
+                <!-- Players sidebar -->
+                <div id="sidebar-players" class="sidebar-view active">
+                    <div class="sidebar-filter-block">
+                        <div class="filter-section">
+                            <input type="text" id="search-input" class="search-box"
+                                   placeholder="🔍 Name, Land oder Club..."
+                                   aria-label="Spieler suchen">
+                            <select id="pos-filter" class="filter-select" aria-label="Position filtern">
+                                <option value="ALL">Alle Positionen</option>
+                                <option value="Torwart">Torwart</option>
+                                <option value="Verteidiger">Verteidiger</option>
+                                <option value="Mittelfeldspieler">Mittelfeldspieler</option>
+                                <option value="Stürmer">Stürmer</option>
+                            </select>
+                            <select id="nation-filter" class="filter-select" aria-label="Land filtern">
+                                <option value="ALL">Alle Länder</option>
+                            </select>
+                            <select id="club-filter" class="filter-select" aria-label="Verein filtern">
+                                <option value="ALL">Alle Vereine</option>
+                            </select>
+                            <button id="reset-filters" class="reset-btn" aria-label="Alle Filter zurücksetzen">Filter löschen</button>
+                        </div>
+                    </div>
+
+                    <div class="sort-section">
+                        <button class="sort-btn" id="sort-name" aria-label="Alphabetisch sortieren">A–Z</button>
+                        <button class="sort-btn active" id="sort-pts" aria-label="Nach Punkten sortieren">Punkte</button>
+                    </div>
+
+                    <div id="player-list" class="player-list" role="list" aria-label="Spielerliste">
+                        <div class="list-empty">Lade Spieler... ⏳</div>
+                    </div>
+                </div>
+
+                <!-- Games sidebar -->
+                <div id="sidebar-games" class="sidebar-view">
+                    <div class="sidebar-filter-block">
+                        <div class="filter-section">
+                            <button id="games-reset-filters" class="reset-btn" aria-label="Land zurücksetzen">Land zurücksetzen</button>
+                        </div>
+                    </div>
+
+                    <div class="sort-section">
+                        <button class="sort-btn" id="games-sort-name" aria-label="Länder alphabetisch sortieren">A–Z</button>
+                        <button class="sort-btn active" id="games-sort-pts" aria-label="Länder nach Punkten sortieren">Punkte</button>
+                    </div>
+
+                    <div class="sidebar-mini-title">Länder</div>
+                    <div id="games-country-list" class="games-country-list" role="list" aria-label="Länderliste">
+                        <div class="sidebar-empty">Lade Länder... ⏳</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- =====================================================
+             MAIN CONTENT
+             ===================================================== -->
+        <main class="main-content" id="main-content">
+
+            <!-- Mobile filter toggle (only shown on mobile, inside main area) -->
+            <button class="mobile-filter-toggle" id="mobile-filter-btn" type="button"
+                    aria-controls="analysis-sidebar"
+                    aria-expanded="false"
+                    aria-label="Spieler wechseln und Filter ein-/ausblenden">
+                <span>🔍 Spieler wechseln &amp; Filter</span>
+                <span class="mft-right">
+                    <span class="mft-chevron" aria-hidden="true">▼</span>
+                </span>
+            </button>
+
+            <!-- ─── PLAYERS VIEW ─────────────────────────────── -->
+            <div id="view-players" class="main-view active">
+
+                <!-- Empty state -->
+                <div id="empty-state">
+                    Wähle links einen Spieler aus, um sein Profil zu sehen.
+                </div>
+
+                <!-- Detail view -->
+                <div id="detail-view">
+
+                    <!-- ── PLAYER HERO CARD ──────────────────── -->
+                    <div class="player-hero-card" id="player-hero-card" aria-label="Spielerprofil">
+                        <div class="player-hero-inner">
+
+                            <!-- Portrait stage: big photo + score pill -->
+                            <div class="player-portrait-stage">
+                                <div class="player-photo-frame" id="player-photo-frame">
+                                    <img src="" id="detail-photo"
+                                         class="player-main-photo"
+                                         alt="Spielerfoto"
+                                         width="280" height="280"
+                                         loading="eager">
+                                </div>
+                                <div id="detail-total-pts" class="player-score-pill zero" aria-live="polite">0 Pkt.</div>
+                            </div>
+
+                            <!-- Identity: name, nation, club, meta -->
+                            <div class="player-identity">
+                                <div class="player-identity-top">
+                                    <div class="player-position-pill" id="detail-position" aria-label="Position">–</div>
+                                    <h2 id="detail-name">Spielername</h2>
+                                </div>
+
+                                <!-- Nation & Club -->
+                                <div class="player-flag-club-row">
+                                    <!-- Nation tile (id preserved for onclick JS) -->
+                                    <div class="player-flag-card" id="tile-nation"
+                                         role="button" tabindex="0"
+                                         title="Alle Spieler dieses Landes anzeigen"
+                                         aria-label="Nationalteam filtern">
+                                        <img id="detail-nation-flag" src="" alt="Nationalfahne" width="44" height="30">
+                                        <div class="player-flag-info">
+                                            <div class="pfc-label">Nationalteam</div>
+                                            <div id="detail-nation-name">–</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Club tile (id preserved for onclick JS) -->
+                                    <div class="player-club-card" id="tile-club"
+                                         role="button" tabindex="0"
+                                         title="Alle Spieler dieses Vereins anzeigen"
+                                         aria-label="Verein filtern">
+                                        <img id="detail-club-logo" src="" alt="Vereinslogo" width="32" height="32">
+                                        <div class="player-club-info">
+                                            <div class="pfc-label">Verein</div>
+                                            <div id="detail-club-name">–</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Meta pills -->
+                                <div class="player-meta-grid">
+                                    <div class="player-meta-pill">
+                                        <div class="pmp-label">Geburtsdatum</div>
+                                        <div class="pmp-value" id="detail-dob">–</div>
+                                    </div>
+                                    <div class="player-meta-pill">
+                                        <div class="pmp-label">Grösse</div>
+                                        <div class="pmp-value" id="detail-height">–</div>
+                                    </div>
+                                    <div class="player-meta-pill">
+                                        <div class="pmp-label">Gewicht</div>
+                                        <div class="pmp-value" id="detail-weight">–</div>
+                                    </div>
+                                </div>
+
+                                <!-- Awards -->
+                                <div id="award-section" class="awards-container" aria-label="Auszeichnungen"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /player-hero-card -->
+
+                    <!-- ── MANAGERS ───────────────────────────── -->
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <div class="analysis-card-title">
+                                <span class="act-accent" aria-hidden="true"></span>
+                                👥 Gewählt von Manager(n)
+                            </div>
+                        </div>
+                        <div class="analysis-card-body">
+                            <div id="detail-managers" class="manager-badges"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── POINTS BREAKDOWN ───────────────────── -->
+                    <div class="analysis-card" id="card-points-container" style="padding:0;"></div>
+
+                    <!-- ── PLAYED GAMES ───────────────────────── -->
+                    <div class="analysis-card">
+                        <div class="analysis-card-header">
+                            <div class="analysis-card-title">
+                                <span class="act-accent" aria-hidden="true"></span>
+                                📅 Gespielte Spiele
+                            </div>
+                        </div>
+                        <div class="analysis-card-body" id="detail-points-games"></div>
+                    </div>
+
+                </div>
+                <!-- /detail-view -->
+
+            </div>
+            <!-- /view-players -->
+
+            <!-- ─── GAMES VIEW ────────────────────────────────── -->
+            <div id="view-games" class="main-view">
+                <div id="games-top-card" class="games-top-card"></div>
+                <div id="games-list" class="games-list">
+                    <div class="games-empty">Lade Spiele... ⏳</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <!-- /analysis-shell -->
+
 </div>
-
-<div class="container">
-    <div class="sidebar" id="sidebar">
-        <div id="sidebar-players" class="sidebar-view active">
-            <div class="filter-section">
-                <input type="text" id="search-input" class="search-box" placeholder="🔍 Name, Land oder Club...">
-                <select id="pos-filter" class="filter-select">
-                    <option value="ALL">Alle Positionen</option>
-                    <option value="Torwart">Torwart</option>
-                    <option value="Verteidiger">Verteidiger</option>
-                    <option value="Mittelfeldspieler">Mittelfeldspieler</option>
-                    <option value="Stürmer">Stürmer</option>
-                </select>
-                <select id="nation-filter" class="filter-select">
-                    <option value="ALL">Alle Länder</option>
-                </select>
-                <select id="club-filter" class="filter-select">
-                    <option value="ALL">Alle Vereine</option>
-                </select>
-                <button id="reset-filters" class="reset-btn">Filter löschen</button>
-            </div>
-
-            <div class="sort-section">
-                <button class="sort-btn" id="sort-name">A-Z</button>
-                <button class="sort-btn active" id="sort-pts">Punkte</button>
-            </div>
-
-            <div id="player-list" class="player-list">
-                <div class="list-empty">Lade Spieler... ⏳</div>
-            </div>
-        </div>
-
-        <div id="sidebar-games" class="sidebar-view">
-            <div class="filter-section">
-                <button id="games-reset-filters" class="reset-btn">Land zurücksetzen</button>
-            </div>
-
-            <div class="sort-section">
-                <button class="sort-btn" id="games-sort-name">A-Z</button>
-                <button class="sort-btn active" id="games-sort-pts">Punkte</button>
-            </div>
-
-            <h3 class="sidebar-mini-title">Länder</h3>
-            <div id="games-country-list" class="games-country-list">
-                <div class="sidebar-empty">Lade Länder... ⏳</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="main-content" id="main-content">
-        <div id="view-players" class="main-view active">
-            <div id="empty-state">
-                👈 Wähle links einen Spieler aus, um seine Details zu sehen.
-            </div>
-
-            <div id="detail-view">
-                <div class="dashboard-card">
-                    <div class="detail-header">
-                        <img src="" id="detail-photo" class="detail-photo">
-                        <div class="detail-title-section">
-                            <h2 id="detail-name" class="detail-name">Spielername</h2>
-                            <div id="detail-total-pts" class="detail-pts-badge">0 Pkt.</div>
-                            <div id="award-section" class="awards-container"></div>
-                        </div>
-                    </div>
-
-                    <div class="top-tiles">
-                        <div class="big-tile clickable-tile" id="tile-nation" title="Klicke, um alle Spieler dieses Landes anzuzeigen">
-                            <div class="big-tile-title">Nationalteam</div>
-                            <img id="detail-nation-flag" src="">
-                            <div class="big-tile-value" id="detail-nation-name"></div>
-                        </div>
-                        <div class="big-tile clickable-tile" id="tile-club" title="Klicke, um alle Spieler dieses Vereins anzuzeigen">
-                            <div class="big-tile-title">Verein</div>
-                            <img id="detail-club-logo" src="">
-                            <div class="big-tile-value" id="detail-club-name"></div>
-                        </div>
-                    </div>
-
-                    <div class="bottom-tiles">
-                        <div class="small-tile"><div class="small-tile-title">Position</div><div class="small-tile-value" id="detail-position"></div></div>
-                        <div class="small-tile"><div class="small-tile-title">Geburtsdatum</div><div class="small-tile-value" id="detail-dob"></div></div>
-                        <div class="small-tile"><div class="small-tile-title">Grösse</div><div class="small-tile-value" id="detail-height"></div></div>
-                        <div class="small-tile"><div class="small-tile-title">Gewicht</div><div class="small-tile-value" id="detail-weight"></div></div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card hover-card">
-                    <h3 class="dashboard-title">👥 Gewählt von Manager(n)</h3>
-                    <div id="detail-managers" class="manager-badges"></div>
-                </div>
-
-                <div class="dashboard-card hover-card" id="card-points-container" style="padding: 0; overflow: hidden;"></div>
-
-                <div class="dashboard-card hover-card">
-                    <h3 class="dashboard-title">📅 Gespielte Spiele</h3>
-                    <div id="detail-points-games"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="view-games" class="main-view">
-            <div id="games-top-card" class="games-top-card"></div>
-
-            <div id="games-list" class="games-list">
-                <div class="games-empty">Lade Spiele... ⏳</div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- /analysis-page -->
 
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="data.js"></script>
 <script src="cache.js"></script>
 
 <script>
+    /* =========================================================
+       INIT – APP CONFIG
+       ========================================================= */
     const APP = window.APP_CONFIG;
 
     if (!APP) {
         throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor spieleranalyse.html.");
     }
 
-    const TOURNAMENT_YEAR = APP.year;
-    const TOURNAMENT_LABEL = APP.tournamentLabel;
+    const TOURNAMENT_YEAR   = APP.year;
+    const TOURNAMENT_LABEL  = APP.tournamentLabel;
     const PAGE_TITLE_PREFIX = APP.pageTitlePrefix;
     const PLAYER_BATCH_SIZE = 20;
 
     document.title = `${PAGE_TITLE_PREFIX} - Spieler-Analyse`;
 
-    const pageTitleEl = document.getElementById('analysis-title');
-    if (pageTitleEl) {
-        pageTitleEl.textContent = `🔍 Spieler-Analyse`;
-    }
-
-    const db = APP.getDb();
-
+    /* =========================================================
+       STATE
+       ========================================================= */
     let allTeams = [];
     let pointsData = {};
     let perfectTeamIds = new Set();
@@ -1610,7 +2098,7 @@
     let gamesCountryStatsMap = new Map();
 
     const CACHE_OPTIONS = {
-        db,
+        db: APP.getDb(),
         year: TOURNAMENT_YEAR,
         allowEmptyPoints: true,
         log: false
@@ -1626,56 +2114,30 @@
     };
 
     const RULE_NAMES = APP.ruleLabels || {
-        START: "Startaufstellung",
-        SUBBED_IN: "Eingewechselt",
-        SUBBED_OUT: "Ausgewechselt",
-        GOAL_GK: "Tore",
-        GOAL_DEF: "Tore",
-        GOAL_MID: "Tore",
-        GOAL_ATT: "Tore",
-        OWN_GOAL: "Eigentore",
-        ASSIST_GK_DEF: "Assists",
-        ASSIST_MID: "Assists",
-        ASSIST_ATT: "Assists",
-        TEAM_GOAL: "Tore (Mannschaft)",
-        GEGENTOR_GK_DEF: "Gegentore",
-        YELLOW_CARD: "Gelbe Karten",
-        RED_CARD: "Rote Karten",
-        PEN_SAVED: "Elfmeter gehalten",
-        PEN_MISSED: "Elfmeter verschossen",
-        PEN_COMMITED: "Elfmeter verursacht",
-        PEN_WON: "Elfmeter herausgeholt",
-        WIN: "Siege",
-        DRAW: "Unentschieden",
-        LOSS: "Niederlagen",
-        DEF_BASE_PTS: "Abwehr-Bonus"
+        START: "Startaufstellung", SUBBED_IN: "Eingewechselt", SUBBED_OUT: "Ausgewechselt",
+        GOAL_GK: "Tore", GOAL_DEF: "Tore", GOAL_MID: "Tore", GOAL_ATT: "Tore",
+        OWN_GOAL: "Eigentore", ASSIST_GK_DEF: "Assists", ASSIST_MID: "Assists", ASSIST_ATT: "Assists",
+        TEAM_GOAL: "Tore (Mannschaft)", GEGENTOR_GK_DEF: "Gegentore",
+        YELLOW_CARD: "Gelbe Karten", RED_CARD: "Rote Karten",
+        PEN_SAVED: "Elfmeter gehalten", PEN_MISSED: "Elfmeter verschossen",
+        PEN_COMMITED: "Elfmeter verursacht", PEN_WON: "Elfmeter herausgeholt",
+        WIN: "Siege", DRAW: "Unentschieden", LOSS: "Niederlagen", DEF_BASE_PTS: "Abwehr-Bonus"
     };
 
     const RULE_NAMES_MATCH = {
-        START: "Startaufstellung",
-        SUBBED_IN: "Eingewechselt",
-        SUBBED_OUT: "Ausgewechselt",
-        GOAL_GK: "Tor",
-        GOAL_DEF: "Tor",
-        GOAL_MID: "Tor",
-        GOAL_ATT: "Tor",
-        OWN_GOAL: "Eigentor",
-        ASSIST_GK_DEF: "Assist",
-        ASSIST_MID: "Assist",
-        ASSIST_ATT: "Assist",
-        TEAM_GOAL: "Tor (Mannschaft)",
-        GEGENTOR_GK_DEF: "Gegentore",
-        YELLOW_CARD: "Gelbe Karte",
-        RED_CARD: "Rote Karte",
-        PEN_SAVED: "Elfmeter gehalten",
-        PEN_MISSED: "Elfmeter verschossen",
-        PEN_COMMITED: "Elfmeter verursacht",
-        PEN_WON: "Elfmeter herausgeholt",
-        WIN: "Sieg",
-        DRAW: "Unentschieden",
-        LOSS: "Niederlage"
+        START: "Startaufstellung", SUBBED_IN: "Eingewechselt", SUBBED_OUT: "Ausgewechselt",
+        GOAL_GK: "Tor", GOAL_DEF: "Tor", GOAL_MID: "Tor", GOAL_ATT: "Tor",
+        OWN_GOAL: "Eigentor", ASSIST_GK_DEF: "Assist", ASSIST_MID: "Assist", ASSIST_ATT: "Assist",
+        TEAM_GOAL: "Tor (Mannschaft)", GEGENTOR_GK_DEF: "Gegentore",
+        YELLOW_CARD: "Gelbe Karte", RED_CARD: "Rote Karte",
+        PEN_SAVED: "Elfmeter gehalten", PEN_MISSED: "Elfmeter verschossen",
+        PEN_COMMITED: "Elfmeter verursacht", PEN_WON: "Elfmeter herausgeholt",
+        WIN: "Sieg", DRAW: "Unentschieden", LOSS: "Niederlage"
     };
 
+    /* =========================================================
+       UTILITIES
+       ========================================================= */
     function translatePosition(pos) {
         if (!pos) return 'K.A.';
         const p = String(pos).toUpperCase();
@@ -1688,11 +2150,8 @@
 
     function escapeHtml(text) {
         return String(text ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     function formatPoints(value) {
@@ -1704,350 +2163,33 @@
         return playersData.find(p => String(p['player.id']) === String(playerId)) || null;
     }
 
-    function syncSidebarHeight() {
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('main-content');
-
-        if (window.innerWidth <= 1000) {
-            sidebar.style.height = '';
-            return;
-        }
-
-        sidebar.style.height = '';
-
-        requestAnimationFrame(() => {
-            const viewportMax = window.innerHeight - 130;
-            const mainHeight = Math.ceil(mainContent.getBoundingClientRect().height);
-            const target = Math.min(Math.max(mainHeight, 420), viewportMax);
-            sidebar.style.height = target + 'px';
-        });
+    function prefersReducedMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
 
-    function jumpToFiltersOnMobile() {
-        if (window.innerWidth > 1000) return;
+    /* =========================================================
+       MOBILE FILTER TOGGLE
+       ========================================================= */
+    const mobileFilterBtn = document.getElementById('mobile-filter-btn');
+    const analysisSidebar = document.getElementById('analysis-sidebar');
 
-        const sidebar = document.getElementById('sidebar');
-        if (!sidebar) return;
+    mobileFilterBtn.addEventListener('click', () => {
+        const isOpen = analysisSidebar.classList.toggle('mobile-open');
+        mobileFilterBtn.classList.toggle('open', isOpen);
+        mobileFilterBtn.setAttribute('aria-expanded', String(isOpen));
+    });
 
-        sidebar.classList.remove('mobile-filter-highlight');
-        void sidebar.offsetWidth;
-        sidebar.classList.add('mobile-filter-highlight');
-
-        sidebar.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-
-        setTimeout(() => {
-            sidebar.classList.remove('mobile-filter-highlight');
-        }, 1100);
-    }
-
-    function getNationFlag(nationName) {
-        const player = playersData.find(p => p['Nationalteam.name'] === nationName);
-        return player ? (player['Nationalteam.logo'] || '') : '';
-    }
-
-    function parseResultString(resultString) {
-        const match = String(resultString || '').match(/^(.*?)\s+(\d+)\s*:\s*(\d+)\s+(.*?)$/);
-        if (!match) return null;
-
-        return {
-            homeName: match[1].trim(),
-            homeGoals: Number(match[2]),
-            awayGoals: Number(match[3]),
-            awayName: match[4].trim()
-        };
-    }
-
-    function getOutcomeFromMatchEvents(matchObj) {
-        const lineup = matchObj?.Aufstellung || {};
-
-        if (typeof lineup.WIN === 'number' && lineup.WIN !== 0) return 'win';
-        if (typeof lineup.LOSS === 'number' && lineup.LOSS !== 0) return 'loss';
-        if (typeof lineup.DRAW === 'number' && lineup.DRAW !== 0) return 'draw';
-
-        if (typeof matchObj?.WIN === 'number' && matchObj.WIN !== 0) return 'win';
-        if (typeof matchObj?.LOSS === 'number' && matchObj.LOSS !== 0) return 'loss';
-        if (typeof matchObj?.DRAW === 'number' && matchObj.DRAW !== 0) return 'draw';
-
-        return null;
-    }
-
-    function getMatchVisualData(matchObj, playerNation) {
-        const opponentNation = matchObj.Gegner || '';
-        const parsed = parseResultString(matchObj.Resultat || '');
-        const eventOutcome = getOutcomeFromMatchEvents(matchObj);
-
-        let leftName = opponentNation || '-';
-        let rightName = playerNation || '-';
-        let leftGoals = '-';
-        let rightGoals = '-';
-        let resultClass = eventOutcome || 'draw';
-
-        if (parsed) {
-            if (parsed.homeName === playerNation) {
-                leftName = opponentNation || parsed.awayName;
-                rightName = playerNation;
-                leftGoals = parsed.awayGoals;
-                rightGoals = parsed.homeGoals;
-            } else if (parsed.awayName === playerNation) {
-                leftName = opponentNation || parsed.homeName;
-                rightName = playerNation;
-                leftGoals = parsed.homeGoals;
-                rightGoals = parsed.awayGoals;
-            } else if (parsed.homeName === opponentNation) {
-                leftName = opponentNation;
-                rightName = parsed.awayName;
-                leftGoals = parsed.homeGoals;
-                rightGoals = parsed.awayGoals;
-            } else {
-                leftName = parsed.homeName;
-                rightName = parsed.awayName;
-                leftGoals = parsed.homeGoals;
-                rightGoals = parsed.awayGoals;
-            }
-
-            if (Number(rightGoals) > Number(leftGoals)) {
-                resultClass = 'win';
-            } else if (Number(rightGoals) < Number(leftGoals)) {
-                resultClass = 'loss';
-            } else {
-                resultClass = eventOutcome || 'draw';
-            }
-        }
-
-        return {
-            leftName,
-            rightName,
-            leftGoals,
-            rightGoals,
-            leftFlag: getNationFlag(leftName),
-            rightFlag: getNationFlag(rightName),
-            resultClass
-        };
-    }
-
-    function getNeutralMatchVisual(resultText, teamA, teamB) {
-        const parsed = parseResultString(resultText || '');
-        let leftName = teamA || '-';
-        let rightName = teamB || '-';
-        let leftGoals = '-';
-        let rightGoals = '-';
-
-        if (parsed) {
-            leftName = parsed.homeName || leftName;
-            rightName = parsed.awayName || rightName;
-            leftGoals = parsed.homeGoals;
-            rightGoals = parsed.awayGoals;
-        }
-
-        return {
-            leftName,
-            rightName,
-            leftGoals,
-            rightGoals,
-            leftFlag: getNationFlag(leftName),
-            rightFlag: getNationFlag(rightName)
-        };
-    }
-
-    function buildPlayerSelectedMap() {
-        playerSelectedMap = new Map();
-
-        allTeams.forEach(team => {
-            (team.players || []).forEach(tp => {
-                const key = String(tp.playerId);
-                playerSelectedMap.set(key, (playerSelectedMap.get(key) || 0) + 1);
-            });
-        });
-    }
-
-    function isPlayerDrafted(playerId) {
-        return (playerSelectedMap.get(String(playerId)) || 0) > 0;
-    }
-
-    function initStaticFilters() {
-        if (staticFiltersInitialized) return;
-
-        const nations = [...new Set(playersData.map(p => p['Nationalteam.name']))].filter(Boolean).sort();
-        const nationSelect = document.getElementById('nation-filter');
-
-        nations.forEach(n => {
-            nationSelect.innerHTML += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`;
-        });
-
-        const clubs = [...new Set(playersData.map(p => p['Club.name']))]
-            .filter(c => c && c !== "Vereinslos")
-            .sort();
-
-        const clubSelect = document.getElementById('club-filter');
-        clubs.forEach(c => {
-            clubSelect.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
-        });
-
-        staticFiltersInitialized = true;
-    }
-
-    function calculatePerfectTeamIds() {
-        perfectTeamIds = new Set();
-
-        const allPlayersWithPts = playersData.map(p => {
-            const pData = pointsData[String(p['player.id'])];
-            return {
-                id: String(p['player.id']),
-                nation: p['Nationalteam.name'],
-                pos: p.Position ? p.Position.toUpperCase() : 'UNKNOWN',
-                pts: pData ? (pData.totalPoints || 0) : 0
-            };
-        });
-
-        const selectedNations = new Set();
-        const teamSlots = { GK: [], DEF: [], MID: [], ATT: [] };
-        const maxSlots = { GK: 2, DEF: 4, MID: 5, ATT: 4 };
-
-        const sortedAll = [...allPlayersWithPts].sort((a, b) => b.pts - a.pts);
-
-        for (const p of sortedAll) {
-            let slotKey = '';
-            if (p.pos === 'GOALKEEPER') slotKey = 'GK';
-            else if (p.pos === 'DEFENDER') slotKey = 'DEF';
-            else if (p.pos === 'MIDFIELDER') slotKey = 'MID';
-            else if (p.pos === 'ATTACKER' || p.pos === 'FORWARD') slotKey = 'ATT';
-
-            if (slotKey && !selectedNations.has(p.nation) && teamSlots[slotKey].length < maxSlots[slotKey]) {
-                teamSlots[slotKey].push(p);
-                selectedNations.add(p.nation);
-                perfectTeamIds.add(p.id);
-            }
+    function closeMobileFilter() {
+        if (analysisSidebar.classList.contains('mobile-open') && window.innerWidth <= 860) {
+            analysisSidebar.classList.remove('mobile-open');
+            mobileFilterBtn.classList.remove('open');
+            mobileFilterBtn.setAttribute('aria-expanded', 'false');
         }
     }
 
-    function buildGamesCountryStats() {
-        const map = new Map();
-
-        playersData.forEach(player => {
-            const nation = player['Nationalteam.name'];
-            if (!nation) return;
-
-            const playerId = String(player['player.id']);
-            const totalPoints = pointsData[playerId]?.totalPoints || 0;
-
-            if (!map.has(nation)) {
-                map.set(nation, {
-                    nation,
-                    flag: player['Nationalteam.logo'] || '',
-                    totalPoints: 0,
-                    playerCount: 0
-                });
-            }
-
-            const entry = map.get(nation);
-            if (!entry.flag && player['Nationalteam.logo']) entry.flag = player['Nationalteam.logo'];
-            entry.totalPoints += totalPoints;
-            entry.playerCount += 1;
-        });
-
-        gamesCountryStats = Array.from(map.values());
-        gamesCountryStatsMap = new Map(gamesCountryStats.map(entry => [entry.nation, entry]));
-    }
-
-    function buildMatchCatalog() {
-        const rawMatchMap = new Map();
-
-        Object.entries(pointsData || {}).forEach(([playerId, docData]) => {
-            const fullP = getPlayerById(playerId);
-            if (!fullP) return;
-
-            const nation = fullP['Nationalteam.name'] || '?';
-            const club = fullP['Club.name'] || 'Vereinslos';
-
-            Object.entries(docData || {}).forEach(([key, val]) => {
-                if (!key.startsWith('Spiel_') || typeof val !== 'object' || !val) return;
-
-                const rawMatchId = Number(val.MatchID);
-                if (!Number.isFinite(rawMatchId)) return;
-
-                if (!rawMatchMap.has(rawMatchId)) {
-                    rawMatchMap.set(rawMatchId, {
-                        rawMatchId,
-                        number: null,
-                        resultText: val.Resultat || '',
-                        nations: new Set(),
-                        playersByNation: {},
-                        outcomeByNation: {}
-                    });
-                }
-
-                const match = rawMatchMap.get(rawMatchId);
-                match.resultText = match.resultText || val.Resultat || '';
-                match.nations.add(nation);
-                if (val.Gegner) match.nations.add(val.Gegner);
-
-                const outcome = getOutcomeFromMatchEvents(val);
-                if (outcome) {
-                    match.outcomeByNation[nation] = outcome;
-                }
-
-                if (!match.playersByNation[nation]) {
-                    match.playersByNation[nation] = [];
-                }
-
-                match.playersByNation[nation].push({
-                    playerId: String(fullP['player.id']),
-                    name: fullP.Spielername,
-                    nation,
-                    club,
-                    position: translatePosition(fullP.Position),
-                    photo: fullP.Spielerfoto || 'https://via.placeholder.com/40',
-                    totalPoints: typeof val.TotalPunkte === 'number' ? val.TotalPunkte : 0,
-                    drafted: isPlayerDrafted(fullP['player.id'])
-                });
-            });
-        });
-
-        const sortedMatchIds = Array.from(rawMatchMap.keys()).sort((a, b) => a - b);
-        const catalog = [];
-
-        sortedMatchIds.forEach((rawId, idx) => {
-            const match = rawMatchMap.get(rawId);
-            const parsed = parseResultString(match.resultText || '');
-            const teams = parsed
-                ? [parsed.homeName, parsed.awayName]
-                : Array.from(match.nations).sort((a, b) => a.localeCompare(b, 'de')).slice(0, 2);
-
-            const teamA = teams[0] || '-';
-            const teamB = teams[1] || '-';
-
-            Object.keys(match.playersByNation).forEach(nation => {
-                match.playersByNation[nation].sort((a, b) => {
-                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-                    return a.name.localeCompare(b.name, 'de');
-                });
-            });
-
-            catalog.push({
-                rawMatchId: rawId,
-                number: idx + 1,
-                resultText: match.resultText || '',
-                teamA,
-                teamB,
-                playersByNation: match.playersByNation,
-                outcomeByNation: match.outcomeByNation || {}
-            });
-        });
-
-        matchCatalog = catalog;
-        matchByNumber = new Map(catalog.map(m => [String(m.number), m]));
-    }
-
-    function getCurrentSelectedPlayerName() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const playerFromUrl = urlParams.get('player');
-        if (playerFromUrl) return playerFromUrl;
-        return currentPlayerName;
-    }
-
+    /* =========================================================
+       URL MANAGEMENT
+       ========================================================= */
     function getStateFromUrl() {
         const params = new URLSearchParams(window.location.search);
         return {
@@ -2100,22 +2242,315 @@
         }
     }
 
+    /* =========================================================
+       VIEW SWITCHING
+       ========================================================= */
     function setView(viewName, push = false) {
         currentView = viewName === 'games' ? 'games' : 'players';
 
         document.getElementById('btn-view-players').classList.toggle('active', currentView === 'players');
         document.getElementById('btn-view-games').classList.toggle('active', currentView === 'games');
-
         document.getElementById('view-players').classList.toggle('active', currentView === 'players');
         document.getElementById('view-games').classList.toggle('active', currentView === 'games');
-
         document.getElementById('sidebar-players').classList.toggle('active', currentView === 'players');
         document.getElementById('sidebar-games').classList.toggle('active', currentView === 'games');
 
-        syncSidebarHeight();
         updateUrl(push);
     }
 
+    /* =========================================================
+       SIDEBAR HEIGHT (desktop)
+       ========================================================= */
+    function syncSidebarHeight() {
+        if (window.innerWidth <= 860) return;
+
+        const sidebar = document.getElementById('analysis-sidebar');
+        const mainContent = document.getElementById('main-content');
+        sidebar.style.height = '';
+
+        requestAnimationFrame(() => {
+            const viewportMax = window.innerHeight - 110;
+            const mainHeight = Math.ceil(mainContent.getBoundingClientRect().height);
+            const target = Math.min(Math.max(mainHeight, 420), viewportMax);
+            sidebar.style.height = target + 'px';
+        });
+    }
+
+    /* =========================================================
+       MOBILE: scroll to hero after player select
+       ========================================================= */
+    function scrollToHeroOnMobile() {
+        if (window.innerWidth > 860) return;
+        const hero = document.getElementById('player-hero-card');
+        if (!hero) return;
+        setTimeout(() => {
+            hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+    }
+
+    function jumpToFiltersOnMobile() {
+        if (window.innerWidth > 860) return;
+        const sidebar = analysisSidebar;
+        if (!sidebar.classList.contains('mobile-open')) {
+            analysisSidebar.classList.add('mobile-open');
+            mobileFilterBtn.classList.add('open');
+            mobileFilterBtn.setAttribute('aria-expanded', 'true');
+        }
+        sidebar.classList.remove('mobile-filter-highlight');
+        void sidebar.offsetWidth;
+        sidebar.classList.add('mobile-filter-highlight');
+        mobileFilterBtn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => sidebar.classList.remove('mobile-filter-highlight'), 1100);
+    }
+
+    /* =========================================================
+       NATION FLAG HELPER
+       ========================================================= */
+    function getNationFlag(nationName) {
+        const player = playersData.find(p => p['Nationalteam.name'] === nationName);
+        return player ? (player['Nationalteam.logo'] || '') : '';
+    }
+
+    /* =========================================================
+       RESULT PARSING
+       ========================================================= */
+    function parseResultString(resultString) {
+        const match = String(resultString || '').match(/^(.*?)\s+(\d+)\s*:\s*(\d+)\s+(.*?)$/);
+        if (!match) return null;
+        return {
+            homeName: match[1].trim(), homeGoals: Number(match[2]),
+            awayGoals: Number(match[3]), awayName: match[4].trim()
+        };
+    }
+
+    function getOutcomeFromMatchEvents(matchObj) {
+        const lineup = matchObj?.Aufstellung || {};
+        if (typeof lineup.WIN === 'number' && lineup.WIN !== 0) return 'win';
+        if (typeof lineup.LOSS === 'number' && lineup.LOSS !== 0) return 'loss';
+        if (typeof lineup.DRAW === 'number' && lineup.DRAW !== 0) return 'draw';
+        if (typeof matchObj?.WIN === 'number' && matchObj.WIN !== 0) return 'win';
+        if (typeof matchObj?.LOSS === 'number' && matchObj.LOSS !== 0) return 'loss';
+        if (typeof matchObj?.DRAW === 'number' && matchObj.DRAW !== 0) return 'draw';
+        return null;
+    }
+
+    function getMatchVisualData(matchObj, playerNation) {
+        const opponentNation = matchObj.Gegner || '';
+        const parsed = parseResultString(matchObj.Resultat || '');
+        const eventOutcome = getOutcomeFromMatchEvents(matchObj);
+        let leftName = opponentNation || '-', rightName = playerNation || '-';
+        let leftGoals = '-', rightGoals = '-';
+        let resultClass = eventOutcome || 'draw';
+
+        if (parsed) {
+            if (parsed.homeName === playerNation) {
+                leftName = opponentNation || parsed.awayName; rightName = playerNation;
+                leftGoals = parsed.awayGoals; rightGoals = parsed.homeGoals;
+            } else if (parsed.awayName === playerNation) {
+                leftName = opponentNation || parsed.homeName; rightName = playerNation;
+                leftGoals = parsed.homeGoals; rightGoals = parsed.awayGoals;
+            } else if (parsed.homeName === opponentNation) {
+                leftName = opponentNation; rightName = parsed.awayName;
+                leftGoals = parsed.homeGoals; rightGoals = parsed.awayGoals;
+            } else {
+                leftName = parsed.homeName; rightName = parsed.awayName;
+                leftGoals = parsed.homeGoals; rightGoals = parsed.awayGoals;
+            }
+            if (Number(rightGoals) > Number(leftGoals)) resultClass = 'win';
+            else if (Number(rightGoals) < Number(leftGoals)) resultClass = 'loss';
+            else resultClass = eventOutcome || 'draw';
+        }
+
+        return {
+            leftName, rightName, leftGoals, rightGoals,
+            leftFlag: getNationFlag(leftName), rightFlag: getNationFlag(rightName), resultClass
+        };
+    }
+
+    function getNeutralMatchVisual(resultText, teamA, teamB) {
+        const parsed = parseResultString(resultText || '');
+        let leftName = teamA || '-', rightName = teamB || '-';
+        let leftGoals = '-', rightGoals = '-';
+        if (parsed) {
+            leftName = parsed.homeName || leftName; rightName = parsed.awayName || rightName;
+            leftGoals = parsed.homeGoals; rightGoals = parsed.awayGoals;
+        }
+        return {
+            leftName, rightName, leftGoals, rightGoals,
+            leftFlag: getNationFlag(leftName), rightFlag: getNationFlag(rightName)
+        };
+    }
+
+    /* =========================================================
+       PLAYER SELECTION MAP
+       ========================================================= */
+    function buildPlayerSelectedMap() {
+        playerSelectedMap = new Map();
+        allTeams.forEach(team => {
+            (team.players || []).forEach(tp => {
+                const key = String(tp.playerId);
+                playerSelectedMap.set(key, (playerSelectedMap.get(key) || 0) + 1);
+            });
+        });
+    }
+
+    function isPlayerDrafted(playerId) {
+        return (playerSelectedMap.get(String(playerId)) || 0) > 0;
+    }
+
+    /* =========================================================
+       STATIC FILTERS INIT
+       ========================================================= */
+    function initStaticFilters() {
+        if (staticFiltersInitialized) return;
+
+        const nations = [...new Set(playersData.map(p => p['Nationalteam.name']))].filter(Boolean).sort();
+        const nationSelect = document.getElementById('nation-filter');
+        nations.forEach(n => {
+            nationSelect.innerHTML += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`;
+        });
+
+        const clubs = [...new Set(playersData.map(p => p['Club.name']))]
+            .filter(c => c && c !== "Vereinslos").sort();
+        const clubSelect = document.getElementById('club-filter');
+        clubs.forEach(c => {
+            clubSelect.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+        });
+
+        staticFiltersInitialized = true;
+    }
+
+    /* =========================================================
+       PERFECT TEAM
+       ========================================================= */
+    function calculatePerfectTeamIds() {
+        perfectTeamIds = new Set();
+        const allPlayersWithPts = playersData.map(p => {
+            const pData = pointsData[String(p['player.id'])];
+            return {
+                id: String(p['player.id']),
+                nation: p['Nationalteam.name'],
+                pos: p.Position ? p.Position.toUpperCase() : 'UNKNOWN',
+                pts: pData ? (pData.totalPoints || 0) : 0
+            };
+        });
+
+        const selectedNations = new Set();
+        const teamSlots = { GK: [], DEF: [], MID: [], ATT: [] };
+        const maxSlots = { GK: 2, DEF: 4, MID: 5, ATT: 4 };
+        const sortedAll = [...allPlayersWithPts].sort((a, b) => b.pts - a.pts);
+
+        for (const p of sortedAll) {
+            let slotKey = '';
+            if (p.pos === 'GOALKEEPER') slotKey = 'GK';
+            else if (p.pos === 'DEFENDER') slotKey = 'DEF';
+            else if (p.pos === 'MIDFIELDER') slotKey = 'MID';
+            else if (p.pos === 'ATTACKER' || p.pos === 'FORWARD') slotKey = 'ATT';
+            if (slotKey && !selectedNations.has(p.nation) && teamSlots[slotKey].length < maxSlots[slotKey]) {
+                teamSlots[slotKey].push(p);
+                selectedNations.add(p.nation);
+                perfectTeamIds.add(p.id);
+            }
+        }
+    }
+
+    /* =========================================================
+       COUNTRY STATS
+       ========================================================= */
+    function buildGamesCountryStats() {
+        const map = new Map();
+        playersData.forEach(player => {
+            const nation = player['Nationalteam.name'];
+            if (!nation) return;
+            const playerId = String(player['player.id']);
+            const totalPoints = pointsData[playerId]?.totalPoints || 0;
+            if (!map.has(nation)) {
+                map.set(nation, { nation, flag: player['Nationalteam.logo'] || '', totalPoints: 0, playerCount: 0 });
+            }
+            const entry = map.get(nation);
+            if (!entry.flag && player['Nationalteam.logo']) entry.flag = player['Nationalteam.logo'];
+            entry.totalPoints += totalPoints;
+            entry.playerCount += 1;
+        });
+        gamesCountryStats = Array.from(map.values());
+        gamesCountryStatsMap = new Map(gamesCountryStats.map(entry => [entry.nation, entry]));
+    }
+
+    /* =========================================================
+       MATCH CATALOG
+       ========================================================= */
+    function buildMatchCatalog() {
+        const rawMatchMap = new Map();
+
+        Object.entries(pointsData || {}).forEach(([playerId, docData]) => {
+            const fullP = getPlayerById(playerId);
+            if (!fullP) return;
+            const nation = fullP['Nationalteam.name'] || '?';
+            const club = fullP['Club.name'] || 'Vereinslos';
+
+            Object.entries(docData || {}).forEach(([key, val]) => {
+                if (!key.startsWith('Spiel_') || typeof val !== 'object' || !val) return;
+                const rawMatchId = Number(val.MatchID);
+                if (!Number.isFinite(rawMatchId)) return;
+
+                if (!rawMatchMap.has(rawMatchId)) {
+                    rawMatchMap.set(rawMatchId, {
+                        rawMatchId, number: null, resultText: val.Resultat || '',
+                        nations: new Set(), playersByNation: {}, outcomeByNation: {}
+                    });
+                }
+
+                const match = rawMatchMap.get(rawMatchId);
+                match.resultText = match.resultText || val.Resultat || '';
+                match.nations.add(nation);
+                if (val.Gegner) match.nations.add(val.Gegner);
+                const outcome = getOutcomeFromMatchEvents(val);
+                if (outcome) match.outcomeByNation[nation] = outcome;
+
+                if (!match.playersByNation[nation]) match.playersByNation[nation] = [];
+                match.playersByNation[nation].push({
+                    playerId: String(fullP['player.id']),
+                    name: fullP.Spielername, nation, club,
+                    position: translatePosition(fullP.Position),
+                    photo: fullP.Spielerfoto || 'https://via.placeholder.com/40',
+                    totalPoints: typeof val.TotalPunkte === 'number' ? val.TotalPunkte : 0,
+                    drafted: isPlayerDrafted(fullP['player.id'])
+                });
+            });
+        });
+
+        const sortedMatchIds = Array.from(rawMatchMap.keys()).sort((a, b) => a - b);
+        const catalog = [];
+
+        sortedMatchIds.forEach((rawId, idx) => {
+            const match = rawMatchMap.get(rawId);
+            const parsed = parseResultString(match.resultText || '');
+            const teams = parsed
+                ? [parsed.homeName, parsed.awayName]
+                : Array.from(match.nations).sort((a, b) => a.localeCompare(b, 'de')).slice(0, 2);
+            const teamA = teams[0] || '-', teamB = teams[1] || '-';
+
+            Object.keys(match.playersByNation).forEach(nation => {
+                match.playersByNation[nation].sort((a, b) => {
+                    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                    return a.name.localeCompare(b.name, 'de');
+                });
+            });
+
+            catalog.push({
+                rawMatchId: rawId, number: idx + 1,
+                resultText: match.resultText || '', teamA, teamB,
+                playersByNation: match.playersByNation, outcomeByNation: match.outcomeByNation || {}
+            });
+        });
+
+        matchCatalog = catalog;
+        matchByNumber = new Map(catalog.map(m => [String(m.number), m]));
+    }
+
+    /* =========================================================
+       PLAYER LIST RENDERING
+       ========================================================= */
     function buildFilteredPlayers() {
         const searchTerm = document.getElementById('search-input').value.toLowerCase();
         const posFilter = document.getElementById('pos-filter').value;
@@ -2124,15 +2559,13 @@
 
         const filteredData = playersData.filter(p => {
             const pName = (p.Spielername || "").toLowerCase();
-            const pNat = (p['Nationalteam.name'] || "").toLowerCase();
+            const pNat  = (p['Nationalteam.name'] || "").toLowerCase();
             const pClub = (p['Club.name'] || "").toLowerCase();
-
             const matchSearch = pName.includes(searchTerm) || pNat.includes(searchTerm) || pClub.includes(searchTerm);
             const translatedPos = translatePosition(p.Position);
-            const matchPos = posFilter === 'ALL' || translatedPos === posFilter;
-            const matchNat = natFilter === 'ALL' || p['Nationalteam.name'] === natFilter;
+            const matchPos  = posFilter === 'ALL' || translatedPos === posFilter;
+            const matchNat  = natFilter === 'ALL' || p['Nationalteam.name'] === natFilter;
             const matchClub = clubFilter === 'ALL' || p['Club.name'] === clubFilter;
-
             return matchSearch && matchPos && matchNat && matchClub;
         });
 
@@ -2153,40 +2586,39 @@
     function appendNextPlayerBatch() {
         const list = document.getElementById('player-list');
         const nextBatch = filteredPlayersCache.slice(renderedPlayerCount, renderedPlayerCount + PLAYER_BATCH_SIZE);
-
         if (!nextBatch.length) return;
 
         nextBatch.forEach(player => {
             const div = document.createElement('div');
             div.className = 'list-item';
-
-            if (player.Spielername === currentPlayerName) {
-                div.classList.add('active');
-            }
+            div.setAttribute('role', 'listitem');
+            if (player.Spielername === currentPlayerName) div.classList.add('active');
 
             const ptsDoc = pointsData[String(player['player.id'])];
             const pts = ptsDoc ? (ptsDoc.totalPoints || 0) : 0;
             const isDrafted = isPlayerDrafted(player['player.id']);
 
             div.innerHTML = `
-                <img src="${escapeHtml(player.Spielerfoto)}" class="list-avatar">
+                <img src="${escapeHtml(player.Spielerfoto)}" class="list-avatar"
+                     alt="${escapeHtml(player.Spielername)}" loading="lazy" width="38" height="38">
                 <div class="list-info">
                     <div class="list-name">${escapeHtml(player.Spielername)}</div>
                     <div class="list-pos">${escapeHtml(translatePosition(player.Position))} | ${escapeHtml(player['Nationalteam.name'])}</div>
                 </div>
-                ${isDrafted ? '<span class="games-picked-badge">Gewählt</span>' : ''}
-                <div class="list-pts ${pts < 0 ? 'neg' : ''}">${pts > 0 ? '+' : ''}${pts}</div>
+                ${isDrafted ? '<span class="games-picked-badge" aria-label="Wurde gedraftet">Gewählt</span>' : ''}
+                <div class="list-pts ${pts < 0 ? 'neg' : ''}" aria-label="${pts > 0 ? '+' : ''}${pts} Punkte">${pts > 0 ? '+' : ''}${pts}</div>
             `;
 
             div.onclick = () => {
                 const preservedScrollTop = list.scrollTop;
                 playerListScrollTop = preservedScrollTop;
-
                 document.querySelectorAll('#player-list .list-item').forEach(el => el.classList.remove('active'));
                 div.classList.add('active');
                 currentPlayerName = player.Spielername;
-                showPlayerDetails(player);
+                triggerHeroSwitch(() => showPlayerDetails(player));
                 updateUrl(false);
+                closeMobileFilter();
+                scrollToHeroOnMobile();
 
                 requestAnimationFrame(() => {
                     const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
@@ -2204,7 +2636,6 @@
     function fillPlayerListUntilScrollable(requiredScrollHeight = 0) {
         const list = document.getElementById('player-list');
         const minHeight = Math.max(list.clientHeight + 5, requiredScrollHeight);
-
         let safety = 0;
         while (renderedPlayerCount < filteredPlayersCache.length && list.scrollHeight <= minHeight && safety < 40) {
             appendNextPlayerBatch();
@@ -2216,9 +2647,7 @@
         const list = document.getElementById('player-list');
         const desiredScrollTop = Math.max(0, Number(targetScrollTop) || 0);
         const requiredScrollHeight = desiredScrollTop + list.clientHeight + 80;
-
         fillPlayerListUntilScrollable(requiredScrollHeight);
-
         const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
         list.scrollTop = Math.min(desiredScrollTop, maxScrollTop);
         playerListScrollTop = list.scrollTop;
@@ -2228,7 +2657,6 @@
         const list = document.getElementById('player-list');
         const preservedScrollTop = preserveScroll ? playerListScrollTop : 0;
         list.innerHTML = '';
-
         filteredPlayersCache = data;
         renderedPlayerCount = 0;
 
@@ -2242,10 +2670,7 @@
         appendNextPlayerBatch();
         restorePlayerListScroll(preservedScrollTop);
         syncSidebarHeight();
-
-        requestAnimationFrame(() => {
-            restorePlayerListScroll(preservedScrollTop);
-        });
+        requestAnimationFrame(() => restorePlayerListScroll(preservedScrollTop));
     }
 
     function applyFilters() {
@@ -2254,56 +2679,103 @@
         return filteredData;
     }
 
+    /* =========================================================
+       HERO SWITCH ANIMATION
+       ========================================================= */
+    function triggerHeroSwitch(callback) {
+        if (prefersReducedMotion()) {
+            callback();
+            return;
+        }
+        const hero = document.getElementById('player-hero-card');
+        if (!hero) { callback(); return; }
+        hero.classList.add('is-switching');
+        setTimeout(() => {
+            callback();
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    hero.classList.remove('is-switching');
+                });
+            });
+        }, 160);
+    }
+
+    /* =========================================================
+       SHOW PLAYER DETAILS
+       ========================================================= */
     function showPlayerDetails(player) {
         currentPlayerName = player.Spielername;
 
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('detail-view').style.display = 'flex';
 
-        document.getElementById('detail-photo').src = player.Spielerfoto || 'https://via.placeholder.com/150';
-        document.getElementById('detail-name').innerText = player.Spielername;
-        document.getElementById('detail-nation-flag').src = player['Nationalteam.logo'] || '';
-        document.getElementById('detail-nation-name').innerText = player['Nationalteam.name'] || '-';
-        document.getElementById('detail-club-logo').src = player['Club.logo'] || '';
-        document.getElementById('detail-club-name').innerText = player['Club.name'] || 'Vereinslos';
-        document.getElementById('detail-position').innerText = translatePosition(player.Position);
+        // Photo
+        const photoEl = document.getElementById('detail-photo');
+        photoEl.src = player.Spielerfoto || 'https://via.placeholder.com/280';
+        photoEl.alt = `Foto von ${player.Spielername}`;
 
-        let dob = '-';
+        // Glow pulse on portrait frame
+        const frame = document.getElementById('player-photo-frame');
+        if (!prefersReducedMotion()) {
+            frame.classList.remove('glow-active');
+            void frame.offsetWidth;
+            frame.classList.add('glow-active');
+        }
+
+        // Name
+        document.getElementById('detail-name').textContent = player.Spielername;
+
+        // Position pill
+        document.getElementById('detail-position').textContent = translatePosition(player.Position);
+
+        // Nation
+        const nationFlagEl = document.getElementById('detail-nation-flag');
+        nationFlagEl.src = player['Nationalteam.logo'] || '';
+        nationFlagEl.alt = `Fahne von ${player['Nationalteam.name'] || ''}`;
+        document.getElementById('detail-nation-name').textContent = player['Nationalteam.name'] || '–';
+
+        // Club
+        const clubLogoEl = document.getElementById('detail-club-logo');
+        clubLogoEl.src = player['Club.logo'] || '';
+        clubLogoEl.alt = `Logo von ${player['Club.name'] || ''}`;
+        document.getElementById('detail-club-name').textContent = player['Club.name'] || 'Vereinslos';
+
+        // DOB
+        let dob = '–';
         if (player.Geburtsdatum) {
             const parts = player.Geburtsdatum.split('T')[0].split('-');
             if (parts.length === 3) dob = `${parts[2]}.${parts[1]}.${parts[0]}`;
         }
-        document.getElementById('detail-dob').innerText = dob;
-        document.getElementById('detail-height').innerText = player.Groesse ? player.Groesse + ' cm' : 'K.A.';
+        document.getElementById('detail-dob').textContent = dob;
+        document.getElementById('detail-height').textContent = player.Groesse ? player.Groesse + ' cm' : 'K.A.';
 
         let foundWeight = null;
         for (let key in player) {
             if (key.toLowerCase().includes('gewicht') || key.toLowerCase().includes('weight')) {
-                if (player[key]) {
-                    foundWeight = player[key];
-                    break;
-                }
+                if (player[key]) { foundWeight = player[key]; break; }
             }
         }
-
         if (foundWeight && foundWeight !== "0" && foundWeight !== "null" && foundWeight !== "-") {
             let wStr = String(foundWeight).trim();
-            document.getElementById('detail-weight').innerText = wStr.toLowerCase().includes('kg') ? wStr : wStr + ' kg';
+            document.getElementById('detail-weight').textContent = wStr.toLowerCase().includes('kg') ? wStr : wStr + ' kg';
         } else {
-            document.getElementById('detail-weight').innerText = 'K.A.';
+            document.getElementById('detail-weight').textContent = 'K.A.';
         }
 
+        // Points badge
         const ptsDoc = pointsData[String(player['player.id'])];
         const totalPts = ptsDoc ? (ptsDoc.totalPoints || 0) : 0;
         const badge = document.getElementById('detail-total-pts');
-        badge.innerText = `${totalPts > 0 ? '+' : ''}${totalPts} Pkt.`;
-        badge.className = `detail-pts-badge ${totalPts < 0 ? 'neg' : ''}`;
+        badge.textContent = `${totalPts > 0 ? '+' : ''}${totalPts} Pkt.`;
+        badge.className = `player-score-pill ${totalPts > 0 ? 'pos' : (totalPts < 0 ? 'neg' : 'zero')}`;
 
+        // Managers
         const pickedBy = [];
         const captainedBy = [];
-
         allTeams.forEach(team => {
-            const teamPlayer = (team.players || []).find(tp => String(tp.playerId) === String(player['player.id']) || tp.name === player.Spielername);
+            const teamPlayer = (team.players || []).find(tp =>
+                String(tp.playerId) === String(player['player.id']) || tp.name === player.Spielername
+            );
             if (teamPlayer) {
                 pickedBy.push(team.manager);
                 if (teamPlayer.isCaptain) captainedBy.push(team.manager);
@@ -2312,9 +2784,10 @@
 
         const mgrBox = document.getElementById('detail-managers');
         mgrBox.innerHTML = pickedBy.length > 0
-            ? pickedBy.map(m => `<a href="teams.html?manager=${encodeURIComponent(m)}" class="manager-badge">👤 ${escapeHtml(m)}</a>`).join('')
-            : '<div style="color:#888; font-size:13px; font-style:italic;">Noch nicht gedraftet.</div>';
+            ? pickedBy.map(m => `<a href="teams.html?manager=${encodeURIComponent(m)}" class="manager-badge" aria-label="Team von ${escapeHtml(m)} ansehen">👤 ${escapeHtml(m)}</a>`).join('')
+            : '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">Noch nicht gedraftet.</div>';
 
+        // Awards + points breakdown
         const combinedPointsBox = document.getElementById('card-points-container');
         const gameBox = document.getElementById('detail-points-games');
         const awardBox = document.getElementById('award-section');
@@ -2326,22 +2799,14 @@
         if (captainedBy.length > 0) {
             awardBox.innerHTML += `<div class="award-badge award-captain" title="Als Captain gewählt von: ${escapeHtml(captainedBy.join(', '))}">👑 Captain</div>`;
         }
-
         if (perfectTeamIds.has(String(player['player.id']))) {
-            awardBox.innerHTML += `<a href="dashboard.html" class="award-badge award-perfect" style="text-decoration:none; cursor:pointer;" title="Dieser Spieler hat es ins theoretische PerfectTeam geschafft.">🏆 PerfectTeam</a>`;
+            awardBox.innerHTML += `<a href="dashboard.html" class="award-badge award-perfect" style="text-decoration:none;" title="Dieser Spieler hat es ins theoretische PerfectTeam geschafft.">🏆 PerfectTeam</a>`;
         }
 
         if (ptsDoc) {
             let gamesArray = [];
-            let countGoals = 0;
-            let countAssists = 0;
-            let countSubbedIn = 0;
-            let countYellow = 0;
-            let countRed = 0;
-            let countErrors = 0;
-
-            let plusEvents = [];
-            let minusEvents = [];
+            let countGoals = 0, countAssists = 0, countSubbedIn = 0, countYellow = 0, countRed = 0, countErrors = 0;
+            let plusEvents = [], minusEvents = [];
 
             let defBasePts = ptsDoc.DEF_BASE_PTS || 0;
             let gegenPts = ptsDoc.GEGENTOR_GK_DEF || 0;
@@ -2355,93 +2820,85 @@
 
             Object.entries(ptsDoc).forEach(([key, val]) => {
                 if (['totalPoints', 'playerName', 'lastUpdated', 'DEF_BASE_PTS', 'GEGENTOR_GK_DEF'].includes(key)) return;
-
                 if (key.startsWith('Spiel_') && typeof val === 'object') {
                     gamesArray.push(val);
                 } else if (typeof val === 'number' && val !== 0 && RULES[key]) {
                     const count = Math.round(val / RULES[key]);
                     const displayName = RULE_NAMES[key] || key;
                     const points = val;
-
                     if (points > 0) plusEvents.push({ name: displayName, count, points });
                     else if (points < 0) minusEvents.push({ name: displayName, count, points });
-
-                    if (['GOAL_GK', 'GOAL_DEF', 'GOAL_MID', 'GOAL_ATT'].includes(key)) countGoals += count;
-                    if (['ASSIST_GK_DEF', 'ASSIST_MID', 'ASSIST_ATT'].includes(key)) countAssists += count;
+                    if (['GOAL_GK','GOAL_DEF','GOAL_MID','GOAL_ATT'].includes(key)) countGoals += count;
+                    if (['ASSIST_GK_DEF','ASSIST_MID','ASSIST_ATT'].includes(key)) countAssists += count;
                     if (key === 'SUBBED_IN') countSubbedIn += count;
                     if (key === 'YELLOW_CARD') countYellow += count;
                     if (key === 'RED_CARD') countRed += count;
-                    if (['OWN_GOAL', 'PEN_MISSED', 'PEN_COMMITED'].includes(key)) countErrors += count;
+                    if (['OWN_GOAL','PEN_MISSED','PEN_COMMITED'].includes(key)) countErrors += count;
                 }
             });
 
             plusEvents.sort((a, b) => b.points - a.points);
             minusEvents.sort((a, b) => a.points - b.points);
 
-            const totalPlus = plusEvents.reduce((sum, e) => sum + e.points, 0);
+            const totalPlus  = plusEvents.reduce((sum, e) => sum + e.points, 0);
             const totalMinus = minusEvents.reduce((sum, e) => sum + e.points, 0);
 
+            const headerRow = (color) => `
+                <div class="stat-header-row">
+                    <span style="flex:2;text-align:left;color:${color}">Aktion</span>
+                    <span style="flex:1;text-align:center;color:${color}">Anzahl</span>
+                    <span style="flex:1;text-align:right;color:${color}">Punkte</span>
+                </div>`;
+
             const plusHTML = plusEvents.length > 0
-                ? `
-                    <div class="stat-header-row" style="border-bottom: 2px solid #e8f5e9; margin-bottom: 10px; padding-bottom: 8px;">
-                        <span style="flex: 2; text-align: left; color: #2e7d32; font-size: 11px;">Aktion</span>
-                        <span style="flex: 1; text-align: center; color: #2e7d32; font-size: 11px;">Anzahl</span>
-                        <span style="flex: 1; text-align: right; color: #2e7d32; font-size: 11px;">Punkte</span>
-                    </div>
-                ` + plusEvents.map(e => `
+                ? headerRow('var(--green-light)') + plusEvents.map(e => `
                     <div class="stat-row">
                         <span class="stat-name">${escapeHtml(e.name)}</span>
                         <span class="stat-count">${e.count}x</span>
                         <span class="stat-total pos">+${e.points}</span>
-                    </div>
-                `).join('')
+                    </div>`).join('')
                 : '<div class="empty-cat">Noch keine Pluspunkte gesammelt.</div>';
 
             const minusHTML = minusEvents.length > 0
-                ? `
-                    <div class="stat-header-row" style="border-bottom: 2px solid #ffebee; margin-bottom: 10px; padding-bottom: 8px;">
-                        <span style="flex: 2; text-align: left; color: #c62828; font-size: 11px;">Aktion</span>
-                        <span style="flex: 1; text-align: center; color: #c62828; font-size: 11px;">Anzahl</span>
-                        <span style="flex: 1; text-align: right; color: #c62828; font-size: 11px;">Punkte</span>
-                    </div>
-                ` + minusEvents.map(e => `
+                ? headerRow('var(--red-soft)') + minusEvents.map(e => `
                     <div class="stat-row">
                         <span class="stat-name">${escapeHtml(e.name)}</span>
                         <span class="stat-count">${e.count}x</span>
                         <span class="stat-total neg">${e.points}</span>
-                    </div>
-                `).join('')
+                    </div>`).join('')
                 : '<div class="empty-cat">Keine Minuspunkte! Vorbildlich.</div>';
 
             combinedPointsBox.innerHTML = `
-                <div class="taktik-header" onclick="toggleDetails(this)" style="display:block; padding:25px 30px; background:#fff; cursor:pointer; transition:0.2s;">
-                    <div class="taktik-grid" style="margin:0; align-items:center;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding-right:10px;">
-                            <h4 style="margin:0; color:#2e7d32; font-size:18px; display:flex; align-items:center; gap:8px;">📈 Pluspunkte</h4>
-                            <span class="taktik-sum pos" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">+${totalPlus}</span>
+                <div class="analysis-card-header" style="border-bottom:1px solid var(--glass-border);">
+                    <div class="analysis-card-title">
+                        <span class="act-accent" aria-hidden="true"></span>
+                        📊 Punkteaufschlüsselung
+                    </div>
+                </div>
+                <div class="taktik-header" onclick="toggleDetails(this)" aria-expanded="false">
+                    <div class="taktik-grid">
+                        <div class="pts-section-head">
+                            <span class="pts-section-label pos">📈 Pluspunkte</span>
+                            <span class="taktik-sum pos">+${totalPlus}</span>
                         </div>
-                        <div class="minus-header-col" style="display:flex; justify-content:space-between; align-items:center; padding-left:20px; border-left:1px solid #eee;">
-                            <h4 style="margin:0; color:#c62828; font-size:18px; display:flex; align-items:center; gap:8px;">📉 Minuspunkte</h4>
-                            <div style="display:flex; align-items:center; gap:15px;">
-                                <span class="taktik-sum neg" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">${totalMinus}</span>
-                                <span class="toggle-icon" style="color:#888;">▼</span>
+                        <div class="minus-header-col pts-section-head">
+                            <span class="pts-section-label neg">📉 Minuspunkte</span>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <span class="taktik-sum neg">${totalMinus}</span>
+                                <span class="toggle-icon" aria-hidden="true">▼</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="taktik-content" style="display:none; padding:0 30px 25px 30px; background:#fff;">
-                    <div class="taktik-grid" style="margin-top:0; align-items:start;">
-                        <div class="card-plus" style="padding-right:10px;">
-                            ${plusHTML}
-                        </div>
-                        <div class="card-minus" style="padding-left:20px; border-left:1px solid transparent;">
-                            ${minusHTML}
-                        </div>
+                <div class="taktik-content">
+                    <div class="taktik-grid" style="align-items:start;padding-top:14px;">
+                        <div class="card-plus">${plusHTML}</div>
+                        <div class="card-minus" style="padding-left:20px;border-left:1px solid var(--glass-border);">${minusHTML}</div>
                     </div>
                 </div>
             `;
 
-            if (countGoals >= 2) awardBox.innerHTML += `<div class="award-badge award-goleador" title="Wird ab 2 Toren im Turnier verliehen.">🔥 Goleador</div>`;
+            if (countGoals >= 2)   awardBox.innerHTML += `<div class="award-badge award-goleador" title="Wird ab 2 Toren im Turnier verliehen.">🔥 Goleador</div>`;
             if (countAssists >= 2) awardBox.innerHTML += `<div class="award-badge award-spielmacher" title="Wird ab 2 Assists im Turnier verliehen.">🎯 Spielmacher</div>`;
             if (countSubbedIn >= 2) awardBox.innerHTML += `<div class="award-badge award-joker" title="Wird ab 2 Einwechslungen als Joker verliehen.">🃏 Super-Joker</div>`;
             if (countRed >= 1 || countYellow >= 2) awardBox.innerHTML += `<div class="award-badge award-hitzkopf" title="Wird bei einer Roten oder ab 2 Gelben Karten verliehen.">🛑 Hitzkopf</div>`;
@@ -2451,14 +2908,12 @@
                 gamesArray.sort((a, b) => Number(a.MatchID) - Number(b.MatchID));
 
                 gamesArray.forEach(val => {
-                    const matchVisual = getMatchVisualData(val, player['Nationalteam.name']);
-                    const matchNumber = getMatchNumberByRawId(val.MatchID);
+                    const matchVisual  = getMatchVisualData(val, player['Nationalteam.name']);
+                    const matchNumber  = getMatchNumberByRawId(val.MatchID);
 
                     let detailsHTML = '';
                     if (val.Aufstellung) {
-                        let combinedGameDefPts = 0;
-                        let hasGameDefStats = false;
-
+                        let combinedGameDefPts = 0, hasGameDefStats = false;
                         Object.entries(val.Aufstellung).forEach(([k, v]) => {
                             if (k === 'DEF_BASE_PTS' || k === 'GEGENTOR_GK_DEF') {
                                 combinedGameDefPts += v;
@@ -2468,25 +2923,22 @@
                                 detailsHTML += `<div class="game-detail-row"><span>${escapeHtml(displayName)}:</span><strong>${v > 0 ? '+' : ''}${v}</strong></div>`;
                             }
                         });
-
                         if (hasGameDefStats && combinedGameDefPts !== 0) {
                             detailsHTML += `<div class="game-detail-row"><span>Gegentore:</span><strong>${combinedGameDefPts > 0 ? '+' : ''}${combinedGameDefPts}</strong></div>`;
                         }
                     }
-
                     if (detailsHTML === '') {
-                        detailsHTML = '<div style="color:#888; font-size:13px;">Keine Punkte-Ereignisse in diesem Spiel.</div>';
+                        detailsHTML = '<div style="color:var(--text-muted);font-size:0.82rem;">Keine Punkte-Ereignisse in diesem Spiel.</div>';
                     }
 
                     const leftFlagHtml = matchVisual.leftFlag
-                        ? `<img src="${matchVisual.leftFlag}" class="match-flag" alt="${escapeHtml(matchVisual.leftName)}">`
-                        : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
-
+                        ? `<img src="${matchVisual.leftFlag}" class="match-flag" alt="${escapeHtml(matchVisual.leftName)}" loading="lazy">`
+                        : `<span class="match-flag" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
                     const rightFlagHtml = matchVisual.rightFlag
-                        ? `<img src="${matchVisual.rightFlag}" class="match-flag" alt="${escapeHtml(matchVisual.rightName)}">`
-                        : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+                        ? `<img src="${matchVisual.rightFlag}" class="match-flag" alt="${escapeHtml(matchVisual.rightName)}" loading="lazy">`
+                        : `<span class="match-flag" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
 
-                    const leftNationEncoded = encodeURIComponent(matchVisual.leftName);
+                    const leftNationEncoded  = encodeURIComponent(matchVisual.leftName);
                     const rightNationEncoded = encodeURIComponent(matchVisual.rightName);
 
                     const card = document.createElement('div');
@@ -2496,56 +2948,67 @@
                             <div class="match-duel">
                                 <div class="match-side">
                                     ${leftFlagHtml}
-                                    <button class="match-country-btn match-side-name" type="button" onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${leftNationEncoded}'), '${matchNumber || ''}')">${escapeHtml(matchVisual.leftName)}</button>
+                                    <button class="match-country-btn match-side-name" type="button"
+                                            onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${leftNationEncoded}'), '${matchNumber || ''}')"
+                                            aria-label="${escapeHtml(matchVisual.leftName)} in Spiele-Ansicht öffnen">
+                                        ${escapeHtml(matchVisual.leftName)}
+                                    </button>
                                 </div>
-
                                 <div class="match-score ${matchVisual.resultClass}">
                                     ${matchVisual.leftGoals} : ${matchVisual.rightGoals}
                                 </div>
-
                                 <div class="match-side right">
-                                    <button class="match-country-btn match-side-name" type="button" onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${rightNationEncoded}'), '${matchNumber || ''}')">${escapeHtml(matchVisual.rightName)}</button>
+                                    <button class="match-country-btn match-side-name" type="button"
+                                            onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${rightNationEncoded}'), '${matchNumber || ''}')"
+                                            aria-label="${escapeHtml(matchVisual.rightName)} in Spiele-Ansicht öffnen">
+                                        ${escapeHtml(matchVisual.rightName)}
+                                    </button>
                                     ${rightFlagHtml}
                                 </div>
                             </div>
-
                             <div class="match-summary-right">
                                 <div class="match-total ${val.TotalPunkte < 0 ? 'neg' : ''}">${val.TotalPunkte > 0 ? '+' : ''}${val.TotalPunkte} Pkt.</div>
-                                <span class="toggle-icon">▼</span>
+                                <span class="toggle-icon" aria-hidden="true">▼</span>
                             </div>
                         </div>
                         <div class="match-details-content">
-                            ${matchNumber ? `<div style="font-size:12px; font-weight:900; color:#64748b; margin-bottom:10px;">Spiel ${matchNumber}</div>` : ''}
+                            ${matchNumber ? `<div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);margin-bottom:10px;">SPIEL ${matchNumber}</div>` : ''}
                             ${detailsHTML}
                         </div>
                     `;
                     gameBox.appendChild(card);
                 });
             } else {
-                gameBox.innerHTML = '<div style="color:#888; padding:10px; font-style:italic;">Noch keine Spiele absolviert.</div>';
+                gameBox.innerHTML = '<div style="color:var(--text-muted);padding:10px;font-style:italic;">Noch keine Spiele absolviert.</div>';
             }
         } else {
             combinedPointsBox.innerHTML = `
-                <div class="taktik-header" onclick="toggleDetails(this)" style="display:block; padding:25px 30px; background:#fff; cursor:pointer; transition:0.2s;">
-                    <div class="taktik-grid" style="margin:0; align-items:center;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding-right:10px;">
-                            <h4 style="margin:0; color:#2e7d32; font-size:18px; display:flex; align-items:center; gap:8px;">📈 Pluspunkte</h4>
-                            <span class="taktik-sum pos" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">+0</span>
+                <div class="analysis-card-header" style="border-bottom:1px solid var(--glass-border);">
+                    <div class="analysis-card-title">
+                        <span class="act-accent" aria-hidden="true"></span>
+                        📊 Punkteaufschlüsselung
+                    </div>
+                </div>
+                <div class="taktik-header" onclick="toggleDetails(this)" aria-expanded="false">
+                    <div class="taktik-grid">
+                        <div class="pts-section-head">
+                            <span class="pts-section-label pos">📈 Pluspunkte</span>
+                            <span class="taktik-sum pos">+0</span>
                         </div>
-                        <div class="minus-header-col" style="display:flex; justify-content:space-between; align-items:center; padding-left:20px; border-left:1px solid #eee;">
-                            <h4 style="margin:0; color:#c62828; font-size:18px; display:flex; align-items:center; gap:8px;">📉 Minuspunkte</h4>
-                            <div style="display:flex; align-items:center; gap:15px;">
-                                <span class="taktik-sum neg" style="font-size:18px; min-width:40px; text-align:right; background:transparent; padding:0;">0</span>
-                                <span class="toggle-icon" style="color:#888;">▼</span>
+                        <div class="minus-header-col pts-section-head">
+                            <span class="pts-section-label neg">📉 Minuspunkte</span>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <span class="taktik-sum neg">0</span>
+                                <span class="toggle-icon" aria-hidden="true">▼</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="taktik-content" style="display:none; padding:0 30px 25px 30px; background:#fff;">
-                    <div class="empty-cat">Keine Daten</div>
+                <div class="taktik-content">
+                    <div class="empty-cat">Keine Daten vorhanden.</div>
                 </div>
             `;
-            gameBox.innerHTML = '<div style="color:#888; padding:10px; font-style:italic;">Noch keine Spiele absolviert.</div>';
+            gameBox.innerHTML = '<div style="color:var(--text-muted);padding:10px;font-style:italic;">Noch keine Spiele absolviert.</div>';
         }
 
         document.querySelectorAll('.list-item').forEach(el => {
@@ -2556,12 +3019,18 @@
         syncSidebarHeight();
     }
 
+    /* =========================================================
+       MATCH HELPERS
+       ========================================================= */
     function getMatchNumberByRawId(rawId) {
         const num = Number(rawId);
         const found = matchCatalog.find(m => Number(m.rawMatchId) === num);
         return found ? found.number : null;
     }
 
+    /* =========================================================
+       GAMES VIEW
+       ========================================================= */
     function getSelectedGamesCountryStats() {
         if (currentGameNationFilter === 'ALL') return null;
         return gamesCountryStatsMap.get(currentGameNationFilter) || null;
@@ -2569,7 +3038,6 @@
 
     function getSortedGamesCountryStats() {
         const items = [...gamesCountryStats];
-
         if (currentGamesSort === 'name') {
             items.sort((a, b) => a.nation.localeCompare(b.nation, 'de'));
         } else {
@@ -2578,40 +3046,33 @@
                 return a.nation.localeCompare(b.nation, 'de');
             });
         }
-
         return items;
     }
 
     function getGamesScoreClass(match) {
         if (currentGameNationFilter === 'ALL') return 'draw';
-
         const outcome = match.outcomeByNation?.[currentGameNationFilter];
         if (outcome === 'win') return 'win';
         if (outcome === 'loss') return 'loss';
         if (outcome === 'draw') return 'draw';
-
         const parsed = parseResultString(match.resultText || '');
         if (!parsed) return 'draw';
-
         if (currentGameNationFilter === parsed.homeName) {
             if (parsed.homeGoals > parsed.awayGoals) return 'win';
             if (parsed.homeGoals < parsed.awayGoals) return 'loss';
             return 'draw';
         }
-
         if (currentGameNationFilter === parsed.awayName) {
             if (parsed.awayGoals > parsed.homeGoals) return 'win';
             if (parsed.awayGoals < parsed.homeGoals) return 'loss';
             return 'draw';
         }
-
         return 'draw';
     }
 
     function restoreGamesCountryListScroll(targetScrollTop = gamesCountryListScrollTop) {
         const list = document.getElementById('games-country-list');
         if (!list) return;
-
         const desiredScrollTop = Math.max(0, Number(targetScrollTop) || 0);
         const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
         list.scrollTop = Math.min(desiredScrollTop, maxScrollTop);
@@ -2632,11 +3093,13 @@
         list.innerHTML = countries.map(entry => {
             const nationEncoded = encodeURIComponent(entry.nation);
             const flagHtml = entry.flag
-                ? `<img src="${entry.flag}" class="games-country-flag-small" alt="${escapeHtml(entry.nation)}">`
-                : `<span class="games-country-flag-small" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
-
+                ? `<img src="${entry.flag}" class="games-country-flag-small" alt="${escapeHtml(entry.nation)}" loading="lazy">`
+                : `<span class="games-country-flag-small" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
             return `
-                <div class="games-country-item ${currentGameNationFilter === entry.nation ? 'active' : ''}" onclick="selectGamesNation(decodeURIComponent('${nationEncoded}'))">
+                <div class="games-country-item ${currentGameNationFilter === entry.nation ? 'active' : ''}"
+                     role="listitem"
+                     onclick="selectGamesNation(decodeURIComponent('${nationEncoded}'))"
+                     aria-label="${escapeHtml(entry.nation)}, ${formatPoints(entry.totalPoints)} Punkte">
                     <div class="games-country-left">
                         ${flagHtml}
                         <div class="games-country-name-small">${escapeHtml(entry.nation)}</div>
@@ -2646,9 +3109,7 @@
             `;
         }).join('');
 
-        requestAnimationFrame(() => {
-            restoreGamesCountryListScroll(preservedScrollTop);
-        });
+        requestAnimationFrame(() => restoreGamesCountryListScroll(preservedScrollTop));
     }
 
     function renderGamesTopCard() {
@@ -2663,7 +3124,7 @@
                         <div class="games-country-text">
                             <div class="games-country-label">Land</div>
                             <h2 class="games-country-name">Kein Land ausgewählt</h2>
-                            <p class="games-country-subtitle">Links ein Land wählen oder unten alle Spiele des Turniers durchsuchen.</p>
+                            <p class="games-country-subtitle">Links ein Land wählen oder alle Spiele des Turniers durchsuchen.</p>
                         </div>
                     </div>
                 </div>
@@ -2682,10 +3143,9 @@
                     <div class="games-country-text">
                         <div class="games-country-label">Land</div>
                         <h2 class="games-country-name">${escapeHtml(stats.nation)}</h2>
-                        <p class="games-country-subtitle">Alle Spiele und alle Spieler dieses Landes im Überblick.</p>
+                        <p class="games-country-subtitle">Alle Spiele und Spieler dieses Landes im Überblick.</p>
                     </div>
                 </div>
-
                 <div class="games-country-points-box">
                     <div class="games-country-points-label">Total Punkte</div>
                     <div class="games-country-points-value ${stats.totalPoints < 0 ? 'neg' : ''}">${formatPoints(stats.totalPoints)}</div>
@@ -2723,54 +3183,40 @@
             const scoreClass = getGamesScoreClass(match);
 
             const leftFlagHtml = visual.leftFlag
-                ? `<img src="${visual.leftFlag}" class="match-flag" alt="${escapeHtml(visual.leftName)}">`
-                : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+                ? `<img src="${visual.leftFlag}" class="match-flag" alt="${escapeHtml(visual.leftName)}" loading="lazy">`
+                : `<span class="match-flag" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
             const rightFlagHtml = visual.rightFlag
-                ? `<img src="${visual.rightFlag}" class="match-flag" alt="${escapeHtml(visual.rightName)}">`
-                : `<span class="match-flag" style="display:inline-flex; align-items:center; justify-content:center; font-size:12px;">🏳️</span>`;
+                ? `<img src="${visual.rightFlag}" class="match-flag" alt="${escapeHtml(visual.rightName)}" loading="lazy">`
+                : `<span class="match-flag" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
 
             const bodyA = renderGamesTeamPlayers(match.teamA, match.playersByNation[match.teamA] || []);
             const bodyB = renderGamesTeamPlayers(match.teamB, match.playersByNation[match.teamB] || []);
 
             return `
                 <div class="games-match-card">
-                    <div class="games-match-header" onclick="openGameCard('${match.number}')">
+                    <div class="games-match-header" onclick="openGameCard('${match.number}')" aria-expanded="${String(currentOpenGameNumber) === String(match.number)}">
                         <div class="games-match-number">Spiel ${match.number}</div>
-
                         <div class="games-match-duel">
                             <div class="games-team">
                                 ${leftFlagHtml}
                                 <span class="games-team-name">${escapeHtml(visual.leftName)}</span>
                             </div>
-
-                            <div class="games-score ${scoreClass}">
-                                ${visual.leftGoals} : ${visual.rightGoals}
-                            </div>
-
+                            <div class="games-score ${scoreClass}">${visual.leftGoals} : ${visual.rightGoals}</div>
                             <div class="games-team right">
                                 <span class="games-team-name">${escapeHtml(visual.rightName)}</span>
                                 ${rightFlagHtml}
                             </div>
                         </div>
-
-                        <div class="games-match-toggle">${String(currentOpenGameNumber) === String(match.number) ? '▲' : '▼'}</div>
+                        <div class="games-match-toggle" aria-hidden="true">${String(currentOpenGameNumber) === String(match.number) ? '▲' : '▼'}</div>
                     </div>
-
                     <div class="games-match-body" style="display:${String(currentOpenGameNumber) === String(match.number) ? 'block' : 'none'};">
                         <div class="games-teams-grid">
                             <div class="games-team-card">
-                                <div class="games-team-card-header">
-                                    ${leftFlagHtml}
-                                    <span>${escapeHtml(match.teamA)}</span>
-                                </div>
+                                <div class="games-team-card-header">${leftFlagHtml}<span>${escapeHtml(match.teamA)}</span></div>
                                 <div class="games-player-list">${bodyA}</div>
                             </div>
-
                             <div class="games-team-card">
-                                <div class="games-team-card-header">
-                                    ${rightFlagHtml}
-                                    <span>${escapeHtml(match.teamB)}</span>
-                                </div>
+                                <div class="games-team-card-header">${rightFlagHtml}<span>${escapeHtml(match.teamB)}</span></div>
                                 <div class="games-player-list">${bodyB}</div>
                             </div>
                         </div>
@@ -2783,20 +3229,19 @@
     }
 
     function renderGamesTeamPlayers(teamName, players) {
-        if (!players.length) {
-            return '<div class="games-empty">Keine Spieler-Daten vorhanden.</div>';
-        }
-
+        if (!players.length) return '<div class="games-empty">Keine Spieler-Daten vorhanden.</div>';
         return players.map(player => {
             const playerEncoded = encodeURIComponent(player.name);
             return `
-                <button type="button" class="games-player-row ${player.drafted ? 'drafted' : ''}" onclick="openPlayerFromGames(decodeURIComponent('${playerEncoded}'))">
+                <button type="button" class="games-player-row ${player.drafted ? 'drafted' : ''}"
+                        onclick="openPlayerFromGames(decodeURIComponent('${playerEncoded}'))"
+                        aria-label="${escapeHtml(player.name)}, ${formatPoints(player.totalPoints)} Punkte">
                     <div class="games-player-left">
                         <div class="games-player-name">${escapeHtml(player.name)}</div>
                         <div class="games-player-meta">${escapeHtml(player.position)} • ${escapeHtml(player.club)}</div>
                     </div>
                     <div class="games-player-right">
-                        ${player.drafted ? `<span class="games-picked-badge">Gewählt</span>` : ''}
+                        ${player.drafted ? `<span class="games-picked-badge" aria-label="Wurde gedraftet">Gewählt</span>` : ''}
                         <span class="games-player-points ${player.totalPoints < 0 ? 'neg' : ''}">${formatPoints(player.totalPoints)}</span>
                     </div>
                 </button>
@@ -2804,62 +3249,67 @@
         }).join('');
     }
 
+    /* =========================================================
+       GLOBAL FUNCTIONS (called from inline HTML)
+       ========================================================= */
     function openGameCard(gameNumber, push = false) {
         if (String(currentOpenGameNumber) === String(gameNumber)) {
             currentOpenGameNumber = null;
         } else {
             currentOpenGameNumber = String(gameNumber);
         }
-
         renderGamesView();
         if (currentView !== 'games') setView('games', false);
         updateUrl(push);
     }
-
     window.openGameCard = openGameCard;
 
     function selectGamesNation(nation, push = true) {
         const countryList = document.getElementById('games-country-list');
-        if (countryList) {
-            gamesCountryListScrollTop = countryList.scrollTop;
-        }
-
+        if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
         currentGameNationFilter = nation || 'ALL';
         currentOpenGameNumber = null;
         renderGamesView();
         if (currentView !== 'games') setView('games', false);
         updateUrl(push);
     }
-
     window.selectGamesNation = selectGamesNation;
 
     function openPlayerFromGames(playerName) {
         const player = playersData.find(p => p.Spielername === playerName);
         if (!player) return;
-
         currentPlayerName = playerName;
         setView('players', false);
-        showPlayerDetails(player);
+        triggerHeroSwitch(() => showPlayerDetails(player));
         updateUrl(true);
+        scrollToHeroOnMobile();
     }
-
     window.openPlayerFromGames = openPlayerFromGames;
 
     function openGamesViewWithNation(nation, matchNumber = null) {
         const countryList = document.getElementById('games-country-list');
-        if (countryList) {
-            gamesCountryListScrollTop = countryList.scrollTop;
-        }
-
+        if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
         currentGameNationFilter = nation || 'ALL';
         currentOpenGameNumber = matchNumber || null;
         setView('games', false);
         renderGamesView();
         updateUrl(true);
     }
-
     window.openGamesViewWithNation = openGamesViewWithNation;
 
+    window.toggleDetails = function(headerEl) {
+        const content = headerEl.nextElementSibling;
+        const icon = headerEl.querySelector('.toggle-icon');
+        const isOpen = content.style.display === 'block';
+        content.style.display = isOpen ? 'none' : 'block';
+        if (icon) icon.textContent = isOpen ? '▼' : '▲';
+        headerEl.setAttribute('aria-expanded', String(!isOpen));
+        syncSidebarHeight();
+    };
+
+    /* =========================================================
+       MAIN DATASET APPLICATION
+       ========================================================= */
     function applyDataset(data, options = {}) {
         const preserveCurrentPlayer = !!options.preserveCurrentPlayer;
 
@@ -2889,8 +3339,9 @@
             currentPlayerName = state.player;
         }
 
-        if (state.club && Array.from(document.getElementById('club-filter').options).some(o => o.value === state.club)) {
-            document.getElementById('club-filter').value = state.club;
+        const clubFilterEl = document.getElementById('club-filter');
+        if (state.club && Array.from(clubFilterEl.options).some(o => o.value === state.club)) {
+            clubFilterEl.value = state.club;
         }
 
         document.getElementById('games-sort-name').classList.toggle('active', currentGamesSort === 'name');
@@ -2903,7 +3354,6 @@
         if (currentPlayerName) {
             targetPlayer = playersData.find(p => p.Spielername === currentPlayerName);
         }
-
         if (!targetPlayer && filteredData.length > 0) {
             targetPlayer = filteredData[0];
             currentPlayerName = targetPlayer.Spielername;
@@ -2914,41 +3364,22 @@
         } else {
             document.getElementById('detail-view').style.display = 'none';
             document.getElementById('empty-state').style.display = 'block';
-            document.getElementById('empty-state').innerText = 'Keine Spieler für diese Filter gefunden.';
+            document.getElementById('empty-state').textContent = 'Keine Spieler für diese Filter gefunden.';
         }
 
         setView(currentView, false);
         hasRenderedOnce = true;
     }
 
-    window.toggleDetails = function(headerEl) {
-        const content = headerEl.nextElementSibling;
-        const icon = headerEl.querySelector('.toggle-icon');
+    /* =========================================================
+       EVENT LISTENERS
+       ========================================================= */
+    document.getElementById('btn-view-players').addEventListener('click', () => setView('players', true));
+    document.getElementById('btn-view-games').addEventListener('click', () => setView('games', true));
 
-        if (content.style.display === 'block') {
-            content.style.display = 'none';
-            if (icon) icon.innerText = '▼';
-            headerEl.style.background = '#f8f9fa';
-        } else {
-            content.style.display = 'block';
-            if (icon) icon.innerText = '▲';
-            headerEl.style.background = '#eef2f7';
-        }
-
-        syncSidebarHeight();
-    };
-
-    document.getElementById('btn-view-players').addEventListener('click', () => {
-        setView('players', true);
-    });
-
-    document.getElementById('btn-view-games').addEventListener('click', () => {
-        setView('games', true);
-    });
-
-    document.getElementById('tile-nation').onclick = () => {
-        const nat = document.getElementById('detail-nation-name').innerText;
-        if (nat && nat !== '-') {
+    document.getElementById('tile-nation').addEventListener('click', () => {
+        const nat = document.getElementById('detail-nation-name').textContent;
+        if (nat && nat !== '–' && nat !== '-') {
             document.getElementById('search-input').value = '';
             document.getElementById('pos-filter').value = 'ALL';
             document.getElementById('club-filter').value = 'ALL';
@@ -2957,11 +3388,15 @@
             jumpToFiltersOnMobile();
             updateUrl(false);
         }
-    };
+    });
 
-    document.getElementById('tile-club').onclick = () => {
-        const club = document.getElementById('detail-club-name').innerText;
-        if (club && club !== 'Vereinslos' && club !== '-') {
+    document.getElementById('tile-nation').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('tile-nation').click(); }
+    });
+
+    document.getElementById('tile-club').addEventListener('click', () => {
+        const club = document.getElementById('detail-club-name').textContent;
+        if (club && club !== 'Vereinslos' && club !== '–' && club !== '-') {
             document.getElementById('search-input').value = '';
             document.getElementById('pos-filter').value = 'ALL';
             document.getElementById('nation-filter').value = 'ALL';
@@ -2970,93 +3405,69 @@
             jumpToFiltersOnMobile();
             updateUrl(false);
         }
-    };
+    });
 
-    document.getElementById('search-input').oninput = () => {
-        applyFilters();
-        updateUrl(false);
-    };
+    document.getElementById('tile-club').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('tile-club').click(); }
+    });
 
-    document.getElementById('pos-filter').onchange = () => {
-        applyFilters();
-        updateUrl(false);
-    };
+    document.getElementById('search-input').addEventListener('input', () => { applyFilters(); updateUrl(false); });
+    document.getElementById('pos-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
+    document.getElementById('nation-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
+    document.getElementById('club-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
 
-    document.getElementById('nation-filter').onchange = () => {
-        applyFilters();
-        updateUrl(false);
-    };
-
-    document.getElementById('club-filter').onchange = () => {
-        applyFilters();
-        updateUrl(false);
-    };
-
-    document.getElementById('reset-filters').onclick = () => {
+    document.getElementById('reset-filters').addEventListener('click', () => {
         document.getElementById('search-input').value = '';
         document.getElementById('pos-filter').value = 'ALL';
         document.getElementById('nation-filter').value = 'ALL';
         document.getElementById('club-filter').value = 'ALL';
-        applyFilters();
-        updateUrl(false);
-    };
+        applyFilters(); updateUrl(false);
+    });
 
-    document.getElementById('sort-name').onclick = () => {
+    document.getElementById('sort-name').addEventListener('click', () => {
         currentSort = 'name';
         document.getElementById('sort-name').classList.add('active');
         document.getElementById('sort-pts').classList.remove('active');
-        applyFilters();
-        updateUrl(false);
-    };
+        applyFilters(); updateUrl(false);
+    });
 
-    document.getElementById('sort-pts').onclick = () => {
+    document.getElementById('sort-pts').addEventListener('click', () => {
         currentSort = 'pts';
         document.getElementById('sort-pts').classList.add('active');
         document.getElementById('sort-name').classList.remove('active');
-        applyFilters();
-        updateUrl(false);
-    };
+        applyFilters(); updateUrl(false);
+    });
 
-    document.getElementById('games-sort-name').onclick = () => {
+    document.getElementById('games-sort-name').addEventListener('click', () => {
         currentGamesSort = 'name';
         document.getElementById('games-sort-name').classList.add('active');
         document.getElementById('games-sort-pts').classList.remove('active');
-        renderGamesView();
-        updateUrl(false);
-    };
+        renderGamesView(); updateUrl(false);
+    });
 
-    document.getElementById('games-sort-pts').onclick = () => {
+    document.getElementById('games-sort-pts').addEventListener('click', () => {
         currentGamesSort = 'pts';
         document.getElementById('games-sort-pts').classList.add('active');
         document.getElementById('games-sort-name').classList.remove('active');
-        renderGamesView();
-        updateUrl(false);
-    };
+        renderGamesView(); updateUrl(false);
+    });
 
     document.getElementById('games-reset-filters').addEventListener('click', () => {
         const countryList = document.getElementById('games-country-list');
-        if (countryList) {
-            gamesCountryListScrollTop = countryList.scrollTop;
-        }
-
+        if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
         currentGameNationFilter = 'ALL';
         currentOpenGameNumber = null;
-        renderGamesView();
-        updateUrl(true);
+        renderGamesView(); updateUrl(true);
     });
 
     document.getElementById('player-list').addEventListener('scroll', () => {
         const list = document.getElementById('player-list');
         playerListScrollTop = list.scrollTop;
-
-        if (list.scrollTop + list.clientHeight >= list.scrollHeight - 80) {
-            appendNextPlayerBatch();
-        }
+        if (list.scrollTop + list.clientHeight >= list.scrollHeight - 80) appendNextPlayerBatch();
     });
 
     document.getElementById('games-country-list').addEventListener('scroll', () => {
-        const list = document.getElementById('games-country-list');
-        gamesCountryListScrollTop = list.scrollTop;
+        gamesCountryListScrollTop = document.getElementById('games-country-list').scrollTop;
     });
 
     window.addEventListener('resize', syncSidebarHeight);
@@ -3066,15 +3477,14 @@
         applyDataset({ points: pointsData, teams: allTeams }, { preserveCurrentPlayer: false });
     });
 
+    /* =========================================================
+       META REFRESH
+       ========================================================= */
     async function refreshFromMeta(remoteMeta) {
         if (isMetaRefreshRunning) return;
         isMetaRefreshRunning = true;
-
         try {
-            const updated = await DreamTeamCache.loadBundle({
-                ...CACHE_OPTIONS,
-                remoteMetaOverride: remoteMeta
-            });
+            const updated = await DreamTeamCache.loadBundle({ ...CACHE_OPTIONS, remoteMetaOverride: remoteMeta });
             applyDataset(updated.data, { preserveCurrentPlayer: true });
         } catch (err) {
             console.error('Meta-Refresh fehlgeschlagen:', err);
@@ -3083,12 +3493,13 @@
         }
     }
 
+    /* =========================================================
+       INIT
+       ========================================================= */
     async function init() {
         try {
             const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
-            if (cached.ok) {
-                applyDataset(cached.data, { preserveCurrentPlayer: false });
-            }
+            if (cached.ok) applyDataset(cached.data, { preserveCurrentPlayer: false });
 
             const fresh = await DreamTeamCache.loadBundle(CACHE_OPTIONS);
             applyDataset(fresh.data, { preserveCurrentPlayer: true });
@@ -3104,13 +3515,12 @@
                     }
                 });
             }
-
         } catch (e) {
             console.error(e);
             if (!hasRenderedOnce) {
-                document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:red;">Fehler beim Laden.</div>';
-                document.getElementById('games-country-list').innerHTML = '<div class="sidebar-empty" style="color:red;">Fehler beim Laden.</div>';
-                document.getElementById('games-list').innerHTML = '<div class="games-empty" style="color:red;">Fehler beim Laden.</div>';
+                document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
+                document.getElementById('games-country-list').innerHTML = '<div class="sidebar-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
+                document.getElementById('games-list').innerHTML = '<div class="games-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
             }
         }
     }
@@ -3118,9 +3528,7 @@
     window.addEventListener('DOMContentLoaded', init);
 
     window.addEventListener('beforeunload', () => {
-        if (typeof metaUnsubscribe === 'function') {
-            metaUnsubscribe();
-        }
+        if (typeof metaUnsubscribe === 'function') metaUnsubscribe();
     });
 </script>
 </body>
