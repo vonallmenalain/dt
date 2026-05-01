@@ -2444,7 +2444,6 @@
                         <div class="picker-search-wrap">
                             <input type="text" id="picker-search" class="picker-search" placeholder="🔍 Spieler, Club oder Land suchen…" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Spieler suchen">
                             <button type="button" id="clear-picker-search" class="clear-input-btn" aria-label="Suche löschen">×</button>
-                            <button type="button" id="clear-all-picker-filters" class="clear-all-filters-btn" aria-label="Alle Filter löschen">✕</button>
                         </div>
                         <select id="picker-nation-filter" class="picker-select" aria-label="Nach Nation filtern">
                             <option value="ALL">🌍 Alle Länder</option>
@@ -2808,10 +2807,6 @@
         if (!isMobileView()) return;
         dom.pickerHost.classList.add('mobile-open');
         document.body.classList.add('mobile-picker-open');
-        /* Focus search so mobile keyboard opens directly */
-        requestAnimationFrame(() => {
-            if (dom.pickerSearch) dom.pickerSearch.focus({ preventScroll: true });
-        });
     }
 
     function closeMobilePicker() {
