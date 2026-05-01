@@ -1573,6 +1573,40 @@
         }
 
         /* =====================================================
+           TOURNAMENT CLOSED BANNER
+           ===================================================== */
+        .tournament-closed-banner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 16px;
+            animation: fadeSlideUp 0.5s ease both;
+        }
+
+        .tcb-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .tcb-text {
+            font-size: 0.92rem;
+            color: #f87171;
+            line-height: 1.5;
+        }
+
+        .tcb-text strong {
+            display: block;
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 3px;
+            color: #fca5a5;
+        }
+
+        /* =====================================================
            TOAST FEEDBACK
            ===================================================== */
         .mobile-feedback {
@@ -2567,6 +2601,15 @@
          SUBMIT SECTION
          =================================================== -->
     <div class="submit-section-outer">
+        <!-- Tournament-closed banner (hidden until JS determines started) -->
+        <div class="tournament-closed-banner" id="tournament-closed-banner" style="display:none;" role="alert" aria-live="assertive">
+            <div class="tcb-icon">⛔</div>
+            <div class="tcb-text">
+                <strong>Turnier hat begonnen</strong><br>
+                Nach Turnierstart können keine neuen Teams mehr eingereicht werden.
+            </div>
+        </div>
+
         <div class="submit-card" id="submit-card">
             <div class="submit-header">
                 <h3 class="submit-title">Team abschicken</h3>
@@ -4024,10 +4067,28 @@
     }
 
     /* =========================================================
+       TOURNAMENT STATUS CHECK
+       ========================================================= */
+    function isTournamentStarted() {
+        const override = localStorage.getItem('dreamteamIndexViewMode') || 'auto';
+        if (override === 'pre') return false;
+        if (override === 'post') return true;
+        const start = (window.APP_CONFIG && window.APP_CONFIG.DREAMTEAM_START)
+            ? window.APP_CONFIG.DREAMTEAM_START
+            : new Date('2024-06-14T21:00:00+02:00');
+        return new Date() >= start;
+    }
+
+    /* =========================================================
        SUBMIT
        ========================================================= */
     async function submitTeam() {
         if (isSubmitting) return;
+
+        if (isTournamentStarted()) {
+            showToast('⛔ Nach Turnierstart können keine neuen Teams mehr eingereicht werden.');
+            return;
+        }
 
         if (dom.duplicateWarning) dom.duplicateWarning.style.display = 'none';
         validateForm();
@@ -4122,6 +4183,27 @@
     }
 
     /* =========================================================
+       TOURNAMENT CLOSED – UI LOCK
+       ========================================================= */
+    function applyTournamentClosedState() {
+        if (!isTournamentStarted()) return;
+
+        const banner = document.getElementById('tournament-closed-banner');
+        if (banner) banner.style.display = 'flex';
+
+        if (dom.submitBtn) {
+            dom.submitBtn.disabled = true;
+            dom.submitBtn.textContent = '⛔ Einreichung gesperrt';
+            dom.submitBtn.setAttribute('aria-label', 'Einreichung gesperrt – Turnier hat begonnen');
+        }
+
+        if (dom.managerName) {
+            dom.managerName.disabled = true;
+            dom.managerName.placeholder = '⛔ Einreichung nach Turnierstart gesperrt';
+        }
+    }
+
+    /* =========================================================
        SETUP & INIT
        ========================================================= */
     function setupUI() {
@@ -4134,6 +4216,8 @@
         renderNationFilterOptions();
         restoreSavedNationFilter();
         updateSearchClearButton();
+
+        applyTournamentClosedState();
 
         /* Button events */
         if (dom.clearTeamBtn) dom.clearTeamBtn.addEventListener('click', clearTeam);

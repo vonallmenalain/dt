@@ -2002,6 +2002,584 @@
             .tile-grid-3-auto { grid-template-columns: 1fr; }
         }
 
+        /* ===================================================
+           POST-START HERO – COMPACT VERSION
+           =================================================== */
+        .hero-post-compact {
+            min-height: auto;
+            padding: 56px 24px 36px;
+            justify-content: flex-start;
+        }
+
+        .hero-title-post {
+            font-size: clamp(2rem, 5.5vw, 3.4rem);
+            margin: 0 0 14px;
+        }
+
+        .hero-stats-post {
+            margin-bottom: 22px;
+        }
+
+        .hero-post-pills-only {
+            margin-bottom: 0;
+            animation: none;
+        }
+
+        .btn-pill-accent {
+            background: rgba(255, 215, 0, 0.12) !important;
+            border-color: rgba(255, 215, 0, 0.35) !important;
+            color: var(--gold) !important;
+        }
+
+        .btn-pill-accent:hover {
+            background: rgba(255, 215, 0, 0.2) !important;
+            border-color: rgba(255, 215, 0, 0.55) !important;
+        }
+
+        /* ===================================================
+           RANKING PREVIEW TILE
+           =================================================== */
+        .ranking-preview-tile {
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ranking-preview-tile::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            background: rgba(255,215,0,0.04);
+        }
+
+        .ranking-preview-tile:hover::after { opacity: 1; }
+
+        .ranking-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #f87171;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 100px;
+        }
+
+        .ranking-live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: livePulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        .ranking-podium-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rp-entry {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: background 0.2s ease, border-color 0.2s ease;
+            text-decoration: none;
+        }
+
+        .rp-entry:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.12);
+        }
+
+        .rp-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 900;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.06);
+            color: var(--text-muted);
+        }
+
+        .rp-rank.rank-1 {
+            background: linear-gradient(135deg, #ffd700, #e5a800);
+            color: #1a1100;
+        }
+
+        .rp-rank.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0, #9ca3af);
+            color: #1a1a1a;
+        }
+
+        .rp-rank.rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #b45309);
+            color: #fff;
+        }
+
+        .rp-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rp-manager {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rp-team-name {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rp-score {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #4ade80;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+
+        .rp-avatars {
+            display: flex;
+            flex-shrink: 0;
+        }
+
+        .rp-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--dark-card);
+            margin-left: -6px;
+            background: #2a3040;
+        }
+
+        .rp-avatar:first-child { margin-left: 0; }
+
+        .ranking-view-all {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,215,0,0.07);
+            border: 1px solid rgba(255,215,0,0.2);
+            color: var(--gold);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .ranking-view-all:hover {
+            background: rgba(255,215,0,0.14);
+            border-color: rgba(255,215,0,0.35);
+        }
+
+        /* ===================================================
+           3D PLAYER CAROUSEL
+           =================================================== */
+        .player-carousel-section {
+            position: relative;
+            padding: 0 0 8px;
+            overflow: hidden;
+        }
+
+        .carousel-viewport {
+            position: relative;
+            overflow: hidden;
+            padding: 24px 0 30px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .carousel-viewport:active { cursor: grabbing; }
+
+        .carousel-track {
+            display: flex;
+            gap: 20px;
+            transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .carousel-track.dragging {
+            transition: none;
+        }
+
+        .carousel-slide {
+            flex-shrink: 0;
+            width: 160px;
+            transition: transform 0.45s ease, opacity 0.45s ease, filter 0.45s ease;
+        }
+
+        .carousel-slide.is-center {
+            z-index: 2;
+        }
+
+        .carousel-card {
+            position: relative;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px 14px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            transition: box-shadow 0.35s ease, border-color 0.35s ease;
+            backface-visibility: hidden;
+        }
+
+        .carousel-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .carousel-slide.is-center .carousel-card {
+            border-color: rgba(74, 222, 128, 0.4);
+            box-shadow: 0 0 0 1px rgba(74,222,128,0.2), 0 24px 60px rgba(0,0,0,0.55), 0 0 40px rgba(74,222,128,0.1);
+        }
+
+        .carousel-slide.is-center .carousel-card::before {
+            opacity: 1;
+        }
+
+        .cc-rank-badge {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 100px;
+            background: rgba(255,255,255,0.08);
+            color: var(--text-muted);
+        }
+
+        .cc-rank-badge.rank-1 { background: linear-gradient(135deg,#ffd700,#e5a800); color:#1a1100; }
+        .cc-rank-badge.rank-2 { background: linear-gradient(135deg,#c0c0c0,#9ca3af); color:#1a1a1a; }
+        .cc-rank-badge.rank-3 { background: linear-gradient(135deg,#cd7f32,#b45309); color:#fff; }
+
+        .cc-pts-badge {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 100px;
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .cc-photo {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.1);
+            background: #2a3040;
+        }
+
+        .carousel-slide.is-center .cc-photo {
+            width: 84px;
+            height: 84px;
+            border-color: rgba(74, 222, 128, 0.35);
+        }
+
+        .cc-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .cc-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .cc-flag {
+            width: 18px;
+            height: 13px;
+            border-radius: 2px;
+            object-fit: cover;
+        }
+
+        .cc-nation {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90px;
+        }
+
+        .cc-pos {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Carousel nav arrows */
+        .carousel-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .carousel-arrow {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--text-main);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .carousel-arrow:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.25);
+            transform: scale(1.08);
+        }
+
+        .carousel-arrow:active { transform: scale(0.94); }
+
+        .carousel-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .carousel-dot.active {
+            background: #4ade80;
+            transform: scale(1.4);
+        }
+
+        /* ===================================================
+           NÄCHSTE SPIELE TILE
+           =================================================== */
+        .next-matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nm-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 14px 16px;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .nm-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
+        }
+
+        .nm-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .nm-teams {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .nm-team {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .nm-team-flag {
+            width: 26px;
+            height: 18px;
+            border-radius: 3px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .nm-team-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nm-vs {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            letter-spacing: 1px;
+        }
+
+        .nm-time-badge {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .nm-time-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #4ade80;
+        }
+
+        .nm-time-label.today { color: #fbbf24; }
+        .nm-time-label.live { color: #f87171; }
+
+        .nm-time-val {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .nm-players-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .nm-player-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 100px;
+            padding: 4px 10px 4px 4px;
+            text-decoration: none;
+            transition: background 0.15s ease;
+        }
+
+        .nm-player-chip:hover {
+            background: rgba(255,255,255,0.09);
+        }
+
+        .nm-player-photo {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #2a3040;
+            flex-shrink: 0;
+        }
+
+        .nm-player-info {
+            min-width: 0;
+        }
+
+        .nm-player-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        .nm-manager-badges {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+
+        .nm-mgr-badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #4ade80;
+            background: rgba(74,222,128,0.1);
+            border-radius: 3px;
+            padding: 1px 5px;
+            white-space: nowrap;
+        }
+
+        .nm-empty {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 4px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -2231,20 +2809,15 @@
 <div id="indexHomePostStart" style="display:none;">
 
 <!-- HERO SECTION (Post Start) -->
-<section class="hero" id="hero-post">
+<section class="hero hero-post-compact" id="hero-post">
     <div class="hero-content">
-        <h1 class="hero-title">
+        <h1 class="hero-title hero-title-post">
             <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
             <span class="accent" id="hero-post-title-accent">DreamTeam</span>
         </h1>
 
-        <p class="hero-claim">
-            Live-Dashboard – Punkte, Rangliste,<br>
-            Top-Picks und mehr in Echtzeit.
-        </p>
-
-        <!-- Live stats -->
-        <div class="hero-stats">
+        <!-- Live stats (no subtitle, directly under title) -->
+        <div class="hero-stats hero-stats-post">
             <div class="hero-stat">
                 <div class="hero-stat-value" id="hs-post-teams" aria-live="polite">–</div>
                 <div class="hero-stat-label">Teams erstellt</div>
@@ -2261,49 +2834,61 @@
             </div>
         </div>
 
-        <!-- CTA -->
-        <div class="hero-cta-wrap">
-            <a href="team-builder.html" class="btn-primary-hero" id="hero-post-cta-btn" aria-label="Team erstellen für das Turnier">
-                ⚽ Team erstellen
-            </a>
+        <!-- Navigation pills (no primary CTA in post-start mode) -->
+        <div class="hero-cta-wrap hero-post-pills-only">
             <div class="hero-secondary-btns">
-                <a href="punktesystem.html" class="btn-pill">📊 Punktesystem</a>
-                <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
+                <a href="rangliste.html" class="btn-pill btn-pill-accent">🏆 Rangliste</a>
                 <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler-Analyse</a>
                 <a href="teams.html" class="btn-pill">🛡️ Teams</a>
+                <a href="punktesystem.html" class="btn-pill">📊 Punktesystem</a>
             </div>
         </div>
-
-        <!-- Floating player cards preview -->
-        <div class="hero-cards-preview" id="hero-post-cards-preview" aria-hidden="true">
-            <a class="hero-card-slot" id="hcs-post-0" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">👤</div>
-                <div class="hcs-name">–</div>
-            </a>
-            <a class="hero-card-slot" id="hcs-post-1" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">⭐</div>
-                <div class="hcs-name">–</div>
-            </a>
-            <a class="hero-card-slot" id="hcs-post-2" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">👤</div>
-                <div class="hcs-name">–</div>
-            </a>
-        </div>
-    </div>
-
-    <div class="scroll-hint" aria-hidden="true">
-        <span>Live-Stats</span>
-        <div class="scroll-hint-arrow"></div>
     </div>
 </section>
 
 <!-- LIVE DASHBOARD AREA (Post Start) -->
 <main class="dashboard-area" id="dashboard-post-area">
 
-    <!-- ── Row 1: Beste Spieler + Beste Länder ───────────── -->
+    <!-- ── Row 1: Rangliste Preview + Beste Spieler Carousel ─ -->
     <div class="tile-grid tile-grid-2 mb-section">
 
-        <!-- Beste Spieler -->
+        <!-- Rangliste Preview Tile -->
+        <div class="gtile ranking-preview-tile" id="tile-post-ranking-preview" role="region" aria-label="Aktuelle Rangliste – Kurzübersicht">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🏆</span> Live Rangliste
+                    <span class="ranking-live-badge"><span class="ranking-live-dot" aria-hidden="true"></span>LIVE</span>
+                </div>
+            </div>
+            <div class="ranking-podium-row" id="tile-post-ranking-preview-list" aria-label="Top Manager">
+                <div class="skel" style="height:50px;margin-bottom:8px;border-radius:12px;"></div>
+                <div class="skel" style="height:50px;margin-bottom:8px;border-radius:12px;"></div>
+                <div class="skel" style="height:50px;margin-bottom:8px;border-radius:12px;"></div>
+            </div>
+            <a href="rangliste.html" class="ranking-view-all" aria-label="Vollständige Rangliste öffnen">
+                🏆 Vollständige Rangliste →
+            </a>
+        </div>
+
+        <!-- Nächste Spiele Tile -->
+        <div class="gtile" id="tile-post-next-matches-wrap">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">📅</span> Nächste Spiele
+                </div>
+            </div>
+            <div class="next-matches-list" id="tile-post-next-matches" aria-label="Nächste Spiele">
+                <div class="skel" style="height:80px;margin-bottom:8px;border-radius:12px;"></div>
+                <div class="skel" style="height:80px;margin-bottom:8px;border-radius:12px;"></div>
+                <div class="skel" style="height:80px;margin-bottom:8px;border-radius:12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 2: Beste Spieler 3D Carousel (full width) ──── -->
+    <div class="mb-section">
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -2312,11 +2897,47 @@
                 </div>
                 <a href="spieleranalyse.html" class="section-link" aria-label="Alle Spieler analysieren">Alle →</a>
             </div>
-            <ul class="player-list" id="tile-post-top-players" aria-label="Top 5 Spieler nach Punkten">
-                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
-                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
-                <li><div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div></li>
-            </ul>
+            <div class="player-carousel-section" id="tile-post-carousel-section">
+                <div class="carousel-viewport" id="post-carousel-viewport" aria-label="Top Spieler Karussell">
+                    <div class="carousel-track" id="post-carousel-track" role="list">
+                        <!-- Rendered by JS -->
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:72px;height:72px;border-radius:50%;margin:0 auto 8px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:72px;height:72px;border-radius:50%;margin:0 auto 8px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:72px;height:72px;border-radius:50%;margin:0 auto 8px;"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-nav" id="post-carousel-nav">
+                    <button class="carousel-arrow" id="post-carousel-prev" aria-label="Vorheriger Spieler">‹</button>
+                    <div class="carousel-dots" id="post-carousel-dots" role="tablist"></div>
+                    <button class="carousel-arrow" id="post-carousel-next" aria-label="Nächster Spieler">›</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 3: Top Manager + Beste Länder ─────────────── -->
+    <div class="tile-grid tile-grid-2 mb-section">
+
+        <!-- Top Manager -->
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">🏅</span> Top Manager
+                </div>
+                <a href="rangliste.html" class="section-link" aria-label="Vollständige Rangliste">Rangliste →</a>
+            </div>
+            <div id="tile-post-top-managers" aria-label="Top 5 Manager nach Punkten">
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
         </div>
 
         <!-- Beste Länder -->
@@ -2336,26 +2957,8 @@
         </div>
     </div>
 
-    <!-- ── Row 2: Top Manager + Grösste Veränderungen ────── -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Top Manager -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🏅</span> Top Manager
-                </div>
-                <a href="rangliste.html" class="section-link" aria-label="Vollständige Rangliste">Rangliste →</a>
-            </div>
-            <div id="tile-post-top-managers" aria-label="Top 5 Manager nach Punkten">
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
-        </div>
-
-        <!-- Grösste Veränderungen -->
+    <!-- ── Row 4: Grösste Veränderungen (full width) ───────── -->
+    <div class="mb-section">
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -2372,7 +2975,7 @@
         </div>
     </div>
 
-    <!-- ── Row 3: Top Manager Picks + Flop Manager Picks ─── -->
+    <!-- ── Row 5: Top Manager Picks + Flop Manager Picks ─── -->
     <div class="tile-grid tile-grid-2 mb-section">
 
         <!-- Top Manager Picks -->
@@ -2406,7 +3009,7 @@
         </div>
     </div>
 
-    <!-- ── Row 4: Perfect Team (compact) ─────────────────── -->
+    <!-- ── Row 6: Perfect Team (compact) ─────────────────── -->
     <div class="mb-section">
         <div class="gtile">
             <div class="gtile-header">
@@ -3659,6 +4262,431 @@
     }
 
     /* =========================================================
+       RANKING PREVIEW TILE (Post-Start)
+       ========================================================= */
+    function renderRankingPreview(teamTotals, ptMap, teams) {
+        const container = $('tile-post-ranking-preview-list');
+        if (!container) return;
+
+        if (!teamTotals.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏆</div>
+                    Noch keine Ranglistendaten verfügbar.
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = teamTotals.slice(0, 5).map((t, i) => {
+            const rank = i + 1;
+            const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+            const sign = t.total > 0 ? '+' : '';
+            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+
+            // Collect top player avatars for this manager
+            const teamObj = teams.find((t2) => t2.manager === t.manager);
+            let avatarHtml = '';
+            if (teamObj) {
+                const topAvatars = (teamObj.players || [])
+                    .map((tp) => {
+                        const full = resolvePlayer(tp);
+                        if (!full) return null;
+                        const base = ptMap[String(full['player.id'])] || 0;
+                        return { pts: tp.isCaptain ? base * 2 : base, photo: full.Spielerfoto, name: full.Spielername };
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => b.pts - a.pts)
+                    .slice(0, 3);
+                if (topAvatars.length) {
+                    avatarHtml = `<div class="rp-avatars">` +
+                        topAvatars.map((p) =>
+                            `<img class="rp-avatar" src="${escapeHtml(p.photo)}" alt="${escapeHtml(p.name)}" loading="lazy">`
+                        ).join('') +
+                        `</div>`;
+                }
+            }
+
+            return `
+                <a class="rp-entry" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${rank}, ${sign}${t.total} Punkte">
+                    <div class="rp-rank ${rankCls}">${rank}</div>
+                    <div class="rp-info">
+                        <div class="rp-manager">${escapeHtml(t.manager)}</div>
+                        <div class="rp-team-name">Rang ${rank}</div>
+                    </div>
+                    ${avatarHtml}
+                    <div class="rp-score">${sign}${t.total}</div>
+                </a>
+            `;
+        }).join('');
+    }
+
+    /* =========================================================
+       PLAYER CAROUSEL (3D Coverflow)
+       ========================================================= */
+    let carouselState = {
+        current: 0,
+        total: 0,
+        players: [],
+        isDragging: false,
+        dragStart: 0,
+        dragDelta: 0,
+        lastTranslate: 0
+    };
+
+    function buildCarouselCard(player, pts, rank, idx) {
+        const sign = pts > 0 ? '+' : '';
+        const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+        const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+        const posMap = { GOALKEEPER: 'TOR', DEFENDER: 'ABW', MIDFIELDER: 'MIT', ATTACKER: 'STU', FORWARD: 'STU' };
+        const posLabel = posMap[String(player.Position || '').toUpperCase()] || String(player.Position || '').slice(0, 3);
+
+        return `
+            <div class="carousel-slide" data-idx="${idx}" role="listitem" aria-label="${escapeHtml(player.Spielername)}, ${sign}${pts} Punkte">
+                <a class="carousel-card" href="${url}" draggable="false">
+                    <div class="cc-rank-badge ${rankCls}">#${rank}</div>
+                    <div class="cc-pts-badge">${sign}${pts}</div>
+                    <img class="cc-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy">
+                    <div class="cc-name">${escapeHtml(player.Spielername)}</div>
+                    ${player['Nationalteam.logo'] ? `
+                    <div class="cc-meta">
+                        <img class="cc-flag" src="${escapeHtml(player['Nationalteam.logo'])}" alt="${escapeHtml(player['Nationalteam.name'] || '')}" loading="lazy">
+                        <span class="cc-nation">${escapeHtml(player['Nationalteam.name'] || '')}</span>
+                    </div>` : ''}
+                    <div class="cc-pos">${escapeHtml(posLabel)}</div>
+                </a>
+            </div>
+        `;
+    }
+
+    function updateCarousel(animated) {
+        const track = $('post-carousel-track');
+        const viewport = $('post-carousel-viewport');
+        const dotsEl = $('post-carousel-dots');
+        if (!track || !viewport) return;
+
+        const slides = track.querySelectorAll('.carousel-slide');
+        const n = slides.length;
+        if (!n) return;
+
+        const idx = carouselState.current;
+        const slideW = 160 + 20; // width + gap
+
+        // Calculate offset to center the active slide
+        const vpW = viewport.offsetWidth || 600;
+        const targetOffset = (vpW / 2) - (slideW * idx) - (160 / 2);
+
+        if (!animated) track.classList.add('dragging');
+        else track.classList.remove('dragging');
+
+        track.style.transform = `translateX(${targetOffset}px)`;
+        carouselState.lastTranslate = targetOffset;
+
+        // Update slide states (center=1, adjacent=0.85, far=0.65)
+        slides.forEach((slide, i) => {
+            const dist = Math.abs(i - idx);
+            slide.classList.toggle('is-center', dist === 0);
+            const scale = dist === 0 ? 1.12 : (dist === 1 ? 0.9 : 0.78);
+            const ry = dist === 0 ? 0 : (i < idx ? 15 : -15);
+            const opacity = dist === 0 ? 1 : (dist === 1 ? 0.75 : 0.5);
+            slide.style.transform = `perspective(900px) rotateY(${ry}deg) scale(${scale})`;
+            slide.style.opacity = opacity;
+            slide.style.filter = dist === 0 ? 'none' : `blur(${dist > 1 ? 1 : 0}px)`;
+        });
+
+        // Dots
+        if (dotsEl) {
+            dotsEl.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === idx);
+                dot.setAttribute('aria-selected', i === idx ? 'true' : 'false');
+            });
+        }
+    }
+
+    function renderPlayerCarousel(topPlayers, ptMap) {
+        const track = $('post-carousel-track');
+        const dotsEl = $('post-carousel-dots');
+        if (!track) return;
+
+        const top10 = topPlayers.slice(0, 10);
+        carouselState.players = top10;
+        carouselState.total = top10.length;
+
+        if (!top10.length) {
+            track.innerHTML = `<div class="carousel-slide is-center"><div class="carousel-card"><div class="empty-state"><div class="empty-state-icon">⭐</div>Noch keine Punkte verfügbar.</div></div></div>`;
+            return;
+        }
+
+        track.innerHTML = top10.map((p, i) => {
+            const pts = ptMap[String(p['player.id'])] || 0;
+            return buildCarouselCard(p, pts, i + 1, i);
+        }).join('');
+
+        // Build dots
+        if (dotsEl) {
+            dotsEl.innerHTML = top10.map((_, i) =>
+                `<div class="carousel-dot${i === 0 ? ' active' : ''}" data-dot="${i}" role="tab" aria-label="Spieler ${i+1}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="0"></div>`
+            ).join('');
+
+            dotsEl.querySelectorAll('.carousel-dot').forEach((dot) => {
+                dot.addEventListener('click', () => {
+                    carouselState.current = Number(dot.dataset.dot);
+                    updateCarousel(true);
+                });
+                dot.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        carouselState.current = Number(dot.dataset.dot);
+                        updateCarousel(true);
+                    }
+                });
+            });
+        }
+
+        // Set starting position to center-ish
+        carouselState.current = Math.min(2, Math.floor(top10.length / 2));
+        updateCarousel(false);
+
+        setupCarouselInteractions();
+    }
+
+    function setupCarouselInteractions() {
+        const prev = $('post-carousel-prev');
+        const next = $('post-carousel-next');
+        const viewport = $('post-carousel-viewport');
+        const track = $('post-carousel-track');
+        if (!viewport || !track) return;
+
+        // Ensure we don't double-bind
+        if (viewport.dataset.carouselBound) return;
+        viewport.dataset.carouselBound = '1';
+
+        if (prev) prev.addEventListener('click', () => {
+            if (carouselState.current > 0) { carouselState.current--; updateCarousel(true); }
+        });
+        if (next) next.addEventListener('click', () => {
+            if (carouselState.current < carouselState.total - 1) { carouselState.current++; updateCarousel(true); }
+        });
+
+        // Touch / Mouse drag
+        function getClientX(e) {
+            return e.touches ? e.touches[0].clientX : e.clientX;
+        }
+
+        function onDragStart(e) {
+            if (e.target.closest('a')) return;
+            carouselState.isDragging = true;
+            carouselState.dragStart = getClientX(e);
+            carouselState.dragDelta = 0;
+            track.classList.add('dragging');
+        }
+
+        function onDragMove(e) {
+            if (!carouselState.isDragging) return;
+            e.preventDefault();
+            carouselState.dragDelta = getClientX(e) - carouselState.dragStart;
+            track.style.transform = `translateX(${carouselState.lastTranslate + carouselState.dragDelta}px)`;
+        }
+
+        function onDragEnd() {
+            if (!carouselState.isDragging) return;
+            carouselState.isDragging = false;
+            track.classList.remove('dragging');
+
+            const threshold = 50;
+            if (carouselState.dragDelta < -threshold && carouselState.current < carouselState.total - 1) {
+                carouselState.current++;
+            } else if (carouselState.dragDelta > threshold && carouselState.current > 0) {
+                carouselState.current--;
+            }
+            updateCarousel(true);
+        }
+
+        viewport.addEventListener('touchstart', onDragStart, { passive: true });
+        viewport.addEventListener('touchmove', onDragMove, { passive: false });
+        viewport.addEventListener('touchend', onDragEnd);
+        viewport.addEventListener('mousedown', onDragStart);
+        viewport.addEventListener('mousemove', onDragMove);
+        viewport.addEventListener('mouseup', onDragEnd);
+        viewport.addEventListener('mouseleave', onDragEnd);
+
+        // Keyboard navigation
+        viewport.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && carouselState.current > 0) {
+                carouselState.current--; updateCarousel(true);
+            } else if (e.key === 'ArrowRight' && carouselState.current < carouselState.total - 1) {
+                carouselState.current++; updateCarousel(true);
+            }
+        });
+
+        // Recalculate on resize
+        window.addEventListener('resize', () => updateCarousel(false), { passive: true });
+    }
+
+    /* =========================================================
+       NEXT MATCHES (Post-Start) with drafted players
+       ========================================================= */
+    function renderNextMatchesTile(data, teams) {
+        const container = $('tile-post-next-matches');
+        if (!container) return;
+
+        // Build drafted player lookup: playerId → [managers]
+        const draftedPlayerManagers = {};
+        (teams || []).forEach((t) => {
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (!full) return;
+                const id = String(full['player.id']);
+                if (!draftedPlayerManagers[id]) draftedPlayerManagers[id] = { player: full, managers: [] };
+                draftedPlayerManagers[id].managers.push(t.manager);
+            });
+        });
+
+        // Try to get structured match data
+        const matchInfos = extractMatchInfo(data);
+
+        // Filter to upcoming matches (or all if no date info)
+        const now = Date.now();
+        let upcoming = matchInfos.filter((m) => {
+            const dateStr = m.date || m.datetime || m.kickoff || '';
+            if (!dateStr) return true; // include if no date
+            const ms = new Date(dateStr).getTime();
+            if (!Number.isFinite(ms)) return true;
+            return ms >= now - 90 * 60 * 1000; // include up to 90 min past kick-off (could be live)
+        }).sort((a, b) => {
+            const da = new Date(a.date || a.datetime || 0).getTime() || 0;
+            const db2 = new Date(b.date || b.datetime || 0).getTime() || 0;
+            return da - db2;
+        }).slice(0, 5);
+
+        // If we only got match IDs (from points data) and no dates, just take last 5
+        if (!upcoming.length && matchInfos.length) {
+            upcoming = matchInfos.slice(-5).reverse();
+        }
+
+        // Build nation lookup for match players
+        const matchPlayerMap = {};
+        Object.entries(data.points || {}).forEach(([playerId, doc]) => {
+            Object.keys(doc?.matches || {}).forEach((mId) => {
+                const n = Number(mId);
+                if (!Number.isFinite(n)) return;
+                if (!matchPlayerMap[n]) matchPlayerMap[n] = new Set();
+                matchPlayerMap[n].add(String(playerId));
+            });
+        });
+
+        if (!upcoming.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📅</div>
+                    Keine kommenden Spiele gefunden.
+                </div>`;
+            return;
+        }
+
+        const html = upcoming.map((match) => {
+            const mId = match.gameNumber || match.matchId || match.id;
+            let teamA = match.teamA || match.home || match.homeTeam || '';
+            let teamB = match.teamB || match.away || match.awayTeam || '';
+            let flagA = match.teamAFlag || match.homeLogo || '';
+            let flagB = match.teamBFlag || match.awayLogo || '';
+            const dateStr = match.date || match.datetime || match.kickoff || '';
+
+            if (!teamA || !teamB) {
+                const nations = getNationFromMatchGame(mId, data);
+                teamA = nations[0] || '?';
+                teamB = nations[1] || '?';
+                if (!flagA) {
+                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamA);
+                    if (p) flagA = p['Nationalteam.logo'];
+                }
+                if (!flagB) {
+                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamB);
+                    if (p) flagB = p['Nationalteam.logo'];
+                }
+            }
+
+            // Determine time label
+            let timeLabel = '';
+            let timeClass = '';
+            let timeVal = '';
+            if (dateStr) {
+                const matchDate = new Date(dateStr);
+                const matchMs = matchDate.getTime();
+                const diffMin = (matchMs - now) / 60000;
+                if (diffMin < -90) {
+                    timeLabel = 'Abgeschlossen';
+                } else if (diffMin < 0) {
+                    timeLabel = 'LIVE';
+                    timeClass = 'live';
+                } else if (diffMin < 60 * 24) {
+                    timeLabel = 'Heute';
+                    timeClass = 'today';
+                    timeVal = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                } else if (diffMin < 60 * 48) {
+                    timeLabel = 'Morgen';
+                    timeVal = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                } else {
+                    timeLabel = matchDate.toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit' });
+                    timeVal = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                }
+            } else {
+                timeLabel = `Spiel ${mId}`;
+            }
+
+            // Find drafted players for this match
+            const playerIdsInMatch = matchPlayerMap[Number(mId)] || new Set();
+            const draftedInMatch = Array.from(playerIdsInMatch)
+                .filter((pid) => draftedPlayerManagers[pid])
+                .map((pid) => draftedPlayerManagers[pid])
+                .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'))
+                .slice(0, 8);
+
+            const playersHtml = draftedInMatch.length
+                ? draftedInMatch.map(({ player, managers }) => {
+                    const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+                    const mgrsHtml = managers.slice(0, 3).map((m) =>
+                        `<div class="nm-mgr-badge">${escapeHtml(m.split(' ')[0])}</div>`
+                    ).join('') + (managers.length > 3 ? `<div class="nm-mgr-badge">+${managers.length - 3}</div>` : '');
+                    return `
+                        <a class="nm-player-chip" href="${url}" draggable="false">
+                            <img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy">
+                            <div class="nm-player-info">
+                                <div class="nm-player-name">${escapeHtml(player.Spielername.split(' ').pop())}</div>
+                                <div class="nm-manager-badges">${mgrsHtml}</div>
+                            </div>
+                        </a>
+                    `;
+                }).join('')
+                : `<div class="nm-empty">Keine gedrafteten Spieler in diesem Spiel.</div>`;
+
+            return `
+                <div class="nm-card">
+                    <div class="nm-header">
+                        <div class="nm-teams">
+                            <div class="nm-team">
+                                ${flagA ? `<img class="nm-team-flag" src="${escapeHtml(flagA)}" alt="${escapeHtml(teamA)}" loading="lazy">` : '<span style="font-size:1.2rem;">🏳️</span>'}
+                                <div class="nm-team-name">${escapeHtml(teamA)}</div>
+                            </div>
+                            <div class="nm-vs">VS</div>
+                            <div class="nm-team">
+                                ${flagB ? `<img class="nm-team-flag" src="${escapeHtml(flagB)}" alt="${escapeHtml(teamB)}" loading="lazy">` : '<span style="font-size:1.2rem;">🏳️</span>'}
+                                <div class="nm-team-name">${escapeHtml(teamB)}</div>
+                            </div>
+                        </div>
+                        <div class="nm-time-badge">
+                            <div class="nm-time-label ${timeClass}">${escapeHtml(timeLabel)}</div>
+                            ${timeVal ? `<div class="nm-time-val">${escapeHtml(timeVal)}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="nm-players-row">${playersHtml}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    /* =========================================================
        POST START HOME – Render-Funktion (Live Dashboard)
        ========================================================= */
     function renderPostStartHome(data) {
@@ -3668,14 +4696,28 @@
         // Hero stats
         renderHeroStats(teams, ptMap, 'hcs-post-');
 
-        // Top players for hero cards (by live points)
+        // Top players by live points (used by multiple tiles)
         const topPlayers = [...playersData]
             .map((p) => ({ ...p, _pts: ptMap[String(p['player.id'])] || 0 }))
             .sort((a, b) => b._pts - a._pts || a.Spielername.localeCompare(b.Spielername, 'de'));
-        renderHeroCards(topPlayers, ptMap, 'hcs-post-');
 
-        // Beste Spieler
-        renderTopPlayers(topPlayers, ptMap, 'post-');
+        // Team totals for ranking
+        const teamTotals = teams.map((t) => ({
+            manager: t.manager || 'Unbekannt',
+            total: getTeamTotal(t, ptMap)
+        })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
+
+        // Ranking Preview Tile (new – prominent)
+        renderRankingPreview(teamTotals, ptMap, teams);
+
+        // Next Matches Tile (new)
+        renderNextMatchesTile(data, teams);
+
+        // 3D Player Carousel (new)
+        renderPlayerCarousel(topPlayers, ptMap);
+
+        // Top Manager
+        renderTopManagers(teamTotals, ptMap, teams, 'post-');
 
         // Beste Länder
         const nationMap = new Map();
@@ -3688,13 +4730,6 @@
         const topNations = Array.from(nationMap.entries())
             .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'));
         renderTopNations(topNations, 'post-');
-
-        // Top Manager
-        const teamTotals = teams.map((t) => ({
-            manager: t.manager || 'Unbekannt',
-            total: getTeamTotal(t, ptMap)
-        })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
-        renderTopManagers(teamTotals, ptMap, teams, 'post-');
 
         // Grösste Veränderungen
         rankingHistoryCache = computeRankingHistory(data);
