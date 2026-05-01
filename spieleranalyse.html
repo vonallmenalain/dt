@@ -1885,14 +1885,10 @@
 
     <!-- Page header bar -->
     <div class="analysis-header">
-        <div class="analysis-header-title">
-            <span class="accent-bar" aria-hidden="true"></span>
-            <span id="analysis-title">Spieler-Analyse</span>
-        </div>
-
-        <div class="view-toggle" role="group" aria-label="Ansicht wechseln">
-            <button id="btn-view-players" class="view-btn active" type="button">⚽ Spieler</button>
-            <button id="btn-view-games" class="view-btn" type="button">📅 Spiele</button>
+        <div class="view-toggle" role="tablist" aria-label="Analyse-Bereiche">
+            <button id="btn-view-players" class="view-btn active" type="button" role="tab" aria-selected="true">⚽ Spieler</button>
+            <button id="btn-view-countries" class="view-btn" type="button" role="tab" aria-selected="false">🌍 Länder</button>
+            <button id="btn-view-games" class="view-btn" type="button" role="tab" aria-selected="false">📅 Spiele</button>
         </div>
     </div>
 
@@ -1981,9 +1977,7 @@
             <div id="view-players" class="main-view active">
 
                 <!-- Empty state -->
-                <div id="empty-state">
-                    Wähle links einen Spieler aus, um sein Profil zu sehen.
-                </div>
+                <div id="empty-state" style="display:none;"></div>
 
                 <!-- Detail view -->
                 <div id="detail-view">
@@ -2092,11 +2086,18 @@
             </div>
             <!-- /view-players -->
 
-            <!-- ─── GAMES VIEW ────────────────────────────────── -->
-            <div id="view-games" class="main-view">
+            <!-- ─── COUNTRIES VIEW ────────────────────────────── -->
+            <div id="view-countries" class="main-view">
                 <div id="games-top-card" class="games-top-card"></div>
                 <div id="games-list" class="games-list">
                     <div class="games-empty">Lade Spiele... ⏳</div>
+                </div>
+            </div>
+
+            <!-- ─── GAMES SCHEDULE VIEW ───────────────────────── -->
+            <div id="view-games" class="main-view">
+                <div id="schedule-list" class="games-list">
+                    <div class="games-empty">Lade Spielplan... ⏳</div>
                 </div>
             </div>
 
@@ -2150,6 +2151,7 @@
     let gamesCountryListScrollTop = 0;
 
     let currentView = 'players';
+    let scheduleCatalog = [];
     let currentPlayerName = null;
     let currentGameNationFilter = 'ALL';
     let currentOpenGameNumber = null;
@@ -2266,7 +2268,7 @@
     mobileSidebarClose?.addEventListener('click', closeMobileFilter);
 
     function updateMobileFilterButtonLabel() {
-        const label = currentView === 'games' ? '🌍 Land suchen' : '🔍 Spieler suchen';
+        const label = currentView === 'countries' ? '🌍 Land suchen' : '🔍 Spieler suchen';
         const span = mobileFilterBtn.querySelector('span');
         if (span) span.textContent = label;
         mobileFilterBtn.setAttribute('aria-label', label);
@@ -2278,7 +2280,7 @@
     function getStateFromUrl() {
         const params = new URLSearchParams(window.location.search);
         return {
-            view: params.get('view') === 'games' ? 'games' : 'players',
+            view: ['players','countries','games'].includes(params.get('view')) ? params.get('view') : 'players',
             player: params.get('player') || null,
             club: params.get('club') || 'ALL',
             gameNation: params.get('gameNation') || 'ALL',
@@ -2290,8 +2292,8 @@
     function updateUrl(push = false) {
         const params = new URLSearchParams();
 
-        if (currentView === 'games') {
-            params.set('view', 'games');
+        if (currentView === 'countries') {
+            params.set('view', 'countries');
             if (currentGameNationFilter && currentGameNationFilter !== 'ALL') {
                 params.set('gameNation', currentGameNationFilter);
             }
@@ -2301,6 +2303,8 @@
             if (currentGamesSort !== 'pts') {
                 params.set('gameSort', currentGamesSort);
             }
+        } else if (currentView === 'games') {
+            params.set('view', 'games');
         } else {
             if (currentPlayerName) {
                 params.set('player', currentPlayerName);
@@ -2331,14 +2335,19 @@
        VIEW SWITCHING
        ========================================================= */
     function setView(viewName, push = false) {
-        currentView = viewName === 'games' ? 'games' : 'players';
+        currentView = ['players','countries','games'].includes(viewName) ? viewName : 'players';
 
         document.getElementById('btn-view-players').classList.toggle('active', currentView === 'players');
+        document.getElementById('btn-view-countries').classList.toggle('active', currentView === 'countries');
         document.getElementById('btn-view-games').classList.toggle('active', currentView === 'games');
+        document.getElementById('btn-view-players').setAttribute('aria-selected', String(currentView === 'players'));
+        document.getElementById('btn-view-countries').setAttribute('aria-selected', String(currentView === 'countries'));
+        document.getElementById('btn-view-games').setAttribute('aria-selected', String(currentView === 'games'));
         document.getElementById('view-players').classList.toggle('active', currentView === 'players');
+        document.getElementById('view-countries').classList.toggle('active', currentView === 'countries');
         document.getElementById('view-games').classList.toggle('active', currentView === 'games');
         document.getElementById('sidebar-players').classList.toggle('active', currentView === 'players');
-        document.getElementById('sidebar-games').classList.toggle('active', currentView === 'games');
+        document.getElementById('sidebar-games').classList.toggle('active', currentView === 'countries');
 
         updateUrl(push);
         updateMobileFilterButtonLabel();
@@ -2602,7 +2611,7 @@
                 if (!rawMatchMap.has(rawMatchId)) {
                     rawMatchMap.set(rawMatchId, {
                         rawMatchId, number: null, resultText: val.Resultat || '',
-                        nations: new Set(), playersByNation: {}, outcomeByNation: {}
+                        nations: new Set(), playersByNation: {}, outcomeByNation: {}, dateTime: val.Datum || val.Date || val.Kickoff || '', venue: val.Stadion || val.Venue || val.Ort || val.Spielort || ''
                     });
                 }
 
@@ -2645,7 +2654,7 @@
 
             catalog.push({
                 rawMatchId: rawId, number: idx + 1,
-                resultText: match.resultText || '', teamA, teamB,
+                resultText: match.resultText || '', teamA, teamB, dateTime: match.dateTime || '', venue: match.venue || '',
                 playersByNation: match.playersByNation, outcomeByNation: match.outcomeByNation || {}
             });
         });
@@ -3355,6 +3364,33 @@
         }).join('');
     }
 
+
+    function buildScheduleCatalog(data) {
+        const explicit = [data?.matches, data?.matchCatalog, data?.games, data?.fixtures].find(a => Array.isArray(a) && a.length) || [];
+        if (explicit.length) {
+            scheduleCatalog = explicit.map((m, i) => ({
+                id: m.id || m.gameNumber || m.matchId || i + 1,
+                teamA: m.teamA || m.home || m.homeTeam || '-',
+                teamB: m.teamB || m.away || m.awayTeam || '-',
+                date: m.date || m.datetime || '',
+                venue: m.venue || m.stadium || m.location || 'Spielort folgt'
+            }));
+            return;
+        }
+        scheduleCatalog = matchCatalog.map(m => ({ id: m.number, teamA: m.teamA, teamB: m.teamB, date: m.dateTime || '', venue: m.venue || 'Spielort folgt' }));
+    }
+
+    function renderScheduleView() {
+        const el = document.getElementById('schedule-list');
+        if (!scheduleCatalog.length) { el.innerHTML = '<div class="games-empty">Kein Spielplan verfügbar.</div>'; return; }
+        el.innerHTML = scheduleCatalog.map(m => {
+            const dt = m.date ? new Date(m.date) : null;
+            const dateLabel = dt && !Number.isNaN(dt.getTime()) ? dt.toLocaleDateString('de-CH',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}) : 'Datum folgt';
+            const timeLabel = dt && !Number.isNaN(dt.getTime()) ? dt.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}) : 'Uhrzeit folgt';
+            return `<div class="games-match-card"><div class="games-match-header" style="cursor:default;"><div class="games-match-number">Spiel ${escapeHtml(m.id)}</div><div class="games-match-duel"><div class="games-team"><span class="games-team-name">${escapeHtml(m.teamA)}</span></div><div class="games-score draw">${escapeHtml(timeLabel)}</div><div class="games-team right"><span class="games-team-name">${escapeHtml(m.teamB)}</span></div></div></div><div class="games-match-body" style="display:block;"><div class="games-player-meta" style="padding:4px 14px 14px;">${escapeHtml(dateLabel)} • ${escapeHtml(m.venue || 'Spielort folgt')}</div></div></div>`;
+        }).join('');
+    }
+
     /* =========================================================
        GLOBAL FUNCTIONS (called from inline HTML)
        ========================================================= */
@@ -3365,7 +3401,8 @@
             currentOpenGameNumber = String(gameNumber);
         }
         renderGamesView();
-        if (currentView !== 'games') setView('games', false);
+        renderScheduleView();
+        if (currentView !== 'countries') setView('countries', false);
         updateUrl(push);
         updateMobileFilterButtonLabel();
     }
@@ -3377,7 +3414,7 @@
         currentGameNationFilter = nation || 'ALL';
         currentOpenGameNumber = null;
         renderGamesView();
-        if (currentView !== 'games') setView('games', false);
+        if (currentView !== 'countries') setView('countries', false);
         updateUrl(push);
         updateMobileFilterButtonLabel();
         if (options.closeFilter !== false) closeMobileFilter();
@@ -3401,7 +3438,7 @@
         if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
         currentGameNationFilter = nation || 'ALL';
         currentOpenGameNumber = matchNumber || null;
-        setView('games', false);
+        setView('countries', false);
         renderGamesView();
         updateUrl(true);
     }
@@ -3431,6 +3468,7 @@
         initStaticFilters();
         buildGamesCountryStats();
         buildMatchCatalog();
+        buildScheduleCatalog(data);
 
         const state = getStateFromUrl();
 
@@ -3485,6 +3523,7 @@
        EVENT LISTENERS
        ========================================================= */
     document.getElementById('btn-view-players').addEventListener('click', () => setView('players', true));
+    document.getElementById('btn-view-countries').addEventListener('click', () => setView('countries', true));
     document.getElementById('btn-view-games').addEventListener('click', () => setView('games', true));
 
     document.getElementById('tile-nation').addEventListener('click', () => {
