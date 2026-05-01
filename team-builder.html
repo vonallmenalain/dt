@@ -981,6 +981,9 @@
 
         .picker-search-wrap {
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .picker-search {
@@ -1055,6 +1058,26 @@
         .clear-input-btn:hover {
             background: rgba(255,255,255,0.18);
             color: var(--text-main);
+        }
+
+        .clear-all-filters-btn {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 50%;
+            background: rgba(239,68,68,0.12);
+            color: #f87171;
+            font-size: 12px;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clear-all-filters-btn.visible {
+            display: inline-flex;
         }
 
         .picker-clear-btn {
@@ -2011,7 +2034,7 @@
                 -webkit-backdrop-filter: blur(8px);
                 padding: 0;
                 display: none;
-                align-items: flex-end;
+                align-items: flex-start;
                 justify-content: center;
                 z-index: 10000;
             }
@@ -2030,15 +2053,15 @@
                 width: 100%;
                 max-width: 640px;
                 min-width: 0;
-                max-height: 90svh;
-                max-height: 90vh;
+                max-height: 100svh;
+                max-height: 100vh;
                 display: flex;
                 flex-direction: column;
-                animation: sheetSlideUp 0.3s cubic-bezier(0.32,0.72,0,1) both;
+                animation: sheetSlideDown 0.25s cubic-bezier(0.32,0.72,0,1) both;
             }
 
-            @keyframes sheetSlideUp {
-                from { transform: translateY(100%); opacity: 0.7; }
+            @keyframes sheetSlideDown {
+                from { transform: translateY(-16px); opacity: 0.85; }
                 to   { transform: translateY(0);    opacity: 1; }
             }
 
@@ -2052,11 +2075,11 @@
             }
 
             .picker-card {
-                border-radius: 20px 20px 0 0;
-                max-height: 90svh;
-                max-height: 90vh;
+                border-radius: 0 0 20px 20px;
+                max-height: 100svh;
+                max-height: 100vh;
                 height: auto !important;
-                box-shadow: 0 -8px 40px rgba(0,0,0,0.6), 0 -1px 0 rgba(255,255,255,0.08);
+                box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.08);
                 padding: 0;
                 display: flex;
                 flex-direction: column;
@@ -2074,7 +2097,7 @@
                 height: 4px;
                 background: rgba(255,255,255,0.18);
                 border-radius: 2px;
-                margin: 14px auto 0;
+                margin: 10px auto 0;
                 flex-shrink: 0;
             }
 
@@ -2421,6 +2444,7 @@
                         <div class="picker-search-wrap">
                             <input type="text" id="picker-search" class="picker-search" placeholder="🔍 Spieler, Club oder Land suchen…" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Spieler suchen">
                             <button type="button" id="clear-picker-search" class="clear-input-btn" aria-label="Suche löschen">×</button>
+                            <button type="button" id="clear-all-picker-filters" class="clear-all-filters-btn" aria-label="Alle Filter löschen">✕</button>
                         </div>
                         <select id="picker-nation-filter" class="picker-select" aria-label="Nach Nation filtern">
                             <option value="ALL">🌍 Alle Länder</option>
@@ -2675,6 +2699,7 @@
         pickerSubtitle:       document.getElementById('picker-subtitle'),
         pickerSearch:         document.getElementById('picker-search'),
         clearPickerSearch:    document.getElementById('clear-picker-search'),
+        clearAllPickerFilters:document.getElementById('clear-all-picker-filters'),
         pickerNationFilter:   document.getElementById('picker-nation-filter'),
         clearPickerFilters:   document.getElementById('clear-picker-filters'),
         pickerResultCount:    document.getElementById('picker-result-count'),
@@ -2783,10 +2808,9 @@
         if (!isMobileView()) return;
         dom.pickerHost.classList.add('mobile-open');
         document.body.classList.add('mobile-picker-open');
-        /* Trap focus inside dialog when opened */
+        /* Focus search so mobile keyboard opens directly */
         requestAnimationFrame(() => {
-            const firstFocusable = dom.pickerCard ? dom.pickerCard.querySelector('button, input, select, [tabindex="0"]') : null;
-            if (firstFocusable) firstFocusable.focus({ preventScroll: true });
+            if (dom.pickerSearch) dom.pickerSearch.focus({ preventScroll: true });
         });
     }
 
@@ -2865,6 +2889,17 @@
             mobileFilterNation = (mobileFilterNation === nation) ? 'ALL' : nation;
         }
 
+        renderMobileFilterChips();
+        renderPickerPlayers(true);
+    }
+
+    function clearAllPickerFilters() {
+        mobileFilterOnlyAvailable = false;
+        mobileFilterHideInvalid   = false;
+        mobileFilterNation        = 'ALL';
+        if (dom.pickerNationFilter) dom.pickerNationFilter.value = 'ALL';
+        if (dom.pickerSearch) dom.pickerSearch.value = '';
+        updateSearchClearButton();
         renderMobileFilterChips();
         renderPickerPlayers(true);
     }
@@ -3065,7 +3100,12 @@
 
     function updateSearchClearButton() {
         if (!dom.clearPickerSearch) return;
-        dom.clearPickerSearch.classList.toggle('visible', dom.pickerSearch.value.trim().length > 0);
+        const hasText = dom.pickerSearch && dom.pickerSearch.value.trim().length > 0;
+        dom.clearPickerSearch.classList.toggle('visible', hasText);
+        if (dom.clearAllPickerFilters) {
+            const anyFilterActive = hasText || mobileFilterOnlyAvailable || mobileFilterHideInvalid || mobileFilterNation !== 'ALL';
+            dom.clearAllPickerFilters.classList.toggle('visible', anyFilterActive);
+        }
     }
 
     /* =========================================================
@@ -3503,14 +3543,7 @@
     function openSlotPicker(slotId) {
         currentEditingSlotId = String(slotId);
 
-        /* On mobile, reset position/availability filters when switching slots so
-           the user sees relevant players immediately */
         if (isMobileView()) {
-            mobileFilterOnlyAvailable = false;
-            mobileFilterHideInvalid   = false;
-            mobileFilterNation        = 'ALL';
-            if (dom.pickerSearch) dom.pickerSearch.value = '';
-            updateSearchClearButton();
             /* Hide next-slot bar until player is chosen */
             if (dom.pickerNextSlotBar) dom.pickerNextSlotBar.classList.remove('visible');
         }
@@ -4068,7 +4101,15 @@
                 saveStateToLocal();
                 if (isMobileView()) renderMobileFilterChips();
                 applyPickerFilters();
-                if (dom.pickerSearch && !isMobileView()) dom.pickerSearch.focus();
+                if (dom.pickerSearch) dom.pickerSearch.focus();
+            });
+        }
+
+        if (dom.clearAllPickerFilters) {
+            dom.clearAllPickerFilters.addEventListener('click', () => {
+                clearAllPickerFilters();
+                saveStateToLocal();
+                if (dom.pickerSearch) dom.pickerSearch.focus();
             });
         }
 
@@ -4081,10 +4122,8 @@
 
         if (dom.clearPickerFilters) {
             dom.clearPickerFilters.addEventListener('click', () => {
-                if (dom.pickerSearch) dom.pickerSearch.value = '';
-                if (dom.pickerNationFilter) dom.pickerNationFilter.value = 'ALL';
+                clearAllPickerFilters();
                 saveStateToLocal();
-                applyPickerFilters();
             });
         }
 
