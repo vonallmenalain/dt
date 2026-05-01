@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="view-transition" content="same-origin">
-    <meta name="description" content="DreamTeam als installierbare Webapp für dein Smartphone.">
+    <meta name="description" content="DreamTeam Teams – Alle Teilnehmer-Teams auf einen Blick.">
     <title>DreamTeam - Teams</title>
     <meta name="theme-color" content="#28a745">
     <meta name="mobile-web-app-capable" content="yes">
@@ -19,50 +19,448 @@
     <link rel="apple-touch-icon" sizes="180x180" href="Icons/apple-touch-icon.png">
     <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
-    
+
     <link rel="stylesheet" href="styles.css">
 
     <style>
-        /* --- SPEZIFISCHES DESIGN NUR FÜR DIE TEAM-ANSICHT --- */
-        body { padding-top: 100px; padding-bottom: 50px; } 
-        
-        .layout { display: flex; gap: 30px; max-width: 1700px; margin: 0 auto; align-items: flex-start; }
-
-        /* Linke Spalte */
-        .sidebar { 
-            width: 250px; background: white; border-radius: 15px; padding: 20px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 2px solid #e2e8f0; 
-            position: sticky; top: 100px; max-height: calc(100vh - 150px); display: flex; flex-direction: column; flex-shrink: 0;
-        }
-        .sidebar h2 { margin-top: 0; font-size: 1.5em; color: #111; border-bottom: 3px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
-        .search-box { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; box-sizing: border-box; }
-        
-        .manager-list { overflow-y: auto; overflow-x: hidden; flex: 1; display: flex; flex-direction: column; gap: 5px; padding-right: 5px; }
-        .manager-list::-webkit-scrollbar { width: 6px; }
-        .manager-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-        
-        .manager-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; font-weight: bold; color: #444; font-size: 14px; }
-        .manager-item:hover { background: #eef2f3; transform: translateX(5px); }
-        .manager-item.active { background: #d4edda; border-color: #28a745; color: #155724; box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2); }
-
-        /* Rechte Spalte: Team-Ansicht */
-        .main-view { flex: 1; background: white; border-radius: 15px; padding: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 2px solid #e2e8f0; min-height: 600px; position: relative; overflow: hidden; }
-        
-        .mobile-manager-select {
-            display: none; width: 100%; padding: 15px 20px; font-size: 16px; font-weight: bold;
-            color: #333; background-color: #f8f9fa; border: 2px solid #e2e8f0; border-radius: 12px;
-            margin-bottom: 20px; outline: none; cursor: pointer;
-            -webkit-appearance: none; appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-            background-repeat: no-repeat; background-position: right 15px center; background-size: 16px;
+        /* =====================================================
+           ROOT & GLOBAL
+           ===================================================== */
+        :root {
+            --green-glow: rgba(40, 167, 69, 0.45);
+            --gold: #ffd700;
+            --gold-dark: #e5a800;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --dark-bg: #0d1117;
+            --dark-surface: #161b22;
+            --dark-card: #1c2333;
+            --text-main: #e6edf3;
+            --text-muted: #8b949e;
+            --green-main: #22c55e;
+            --green-light: #4ade80;
         }
 
-        .team-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 30px; border-bottom: 3px solid #f1f5f9; padding-bottom: 15px; }
-        .team-header h2 { margin: 0; font-size: 2.2em; }
+        body {
+            background: var(--dark-bg);
+            color: var(--text-main);
+            padding-top: 0;
+            padding-bottom: 0;
+            overflow-x: hidden;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        /* Dark navbar overrides */
+        body > nav.navbar {
+            background: rgba(22, 27, 34, 0.95) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+        }
+
+        body > nav.navbar .navbar-brand,
+        body > nav.navbar .nav-links a {
+            color: var(--text-main) !important;
+        }
+
+        body > nav.navbar .nav-links a:hover,
+        body > nav.navbar .nav-links a.active {
+            background: rgba(34,197,94,0.2) !important;
+            color: var(--green-light) !important;
+        }
+
+        .bottom-nav {
+            background: #161b22 !important;
+            border-top-color: rgba(255,255,255,0.07) !important;
+        }
+
+        .bottom-nav a { color: var(--text-muted) !important; }
+        .bottom-nav a.active { color: var(--green-light) !important; }
+        .bottom-nav a .icon { filter: grayscale(100%) brightness(0.7) !important; }
+        .bottom-nav a.active .icon { filter: none !important; opacity: 1 !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* =====================================================
+           KEYFRAMES
+           ===================================================== */
+        @keyframes fadeSlideDown {
+            from { opacity: 0; transform: translateY(-18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(22px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        @keyframes cardFlyIn {
+            from { opacity: 0; transform: translateY(-28px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes textFlyIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes heroPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4), 0 8px 32px rgba(34,197,94,0.3); }
+            50%       { box-shadow: 0 0 0 10px rgba(34,197,94,0.0), 0 8px 32px rgba(34,197,94,0.45); }
+        }
+
+        /* =====================================================
+           PAGE WRAPPER & ATMOSPHERE
+           ===================================================== */
+        .teams-page {
+            min-height: 100vh;
+            position: relative;
+            padding-top: 80px;
+            padding-bottom: 100px;
+            box-sizing: border-box;
+        }
+
+        .teams-page::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% 100%, rgba(40,167,69,0.28) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 10% 10%, rgba(255,215,0,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 90% 5%, rgba(40,167,69,0.1) 0%, transparent 50%),
+                linear-gradient(180deg, #050a0e 0%, #0d1117 25%, #0d1f10 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @media (max-width: 900px) {
+            .teams-page {
+                padding-top: 70px;
+                padding-bottom: calc(80px + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* =====================================================
+           TEAMS HERO / HEADER
+           ===================================================== */
+        .teams-hero {
+            max-width: 1760px;
+            margin: 0 auto;
+            padding: 28px 24px 20px;
+            box-sizing: border-box;
+            animation: fadeSlideDown 0.55s ease both;
+        }
+
+        .teams-hero-inner {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .teams-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(40,167,69,0.15);
+            border: 1px solid rgba(40,167,69,0.35);
+            color: var(--green-light);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 100px;
+            margin-bottom: 10px;
+        }
+
+        .teams-hero-title {
+            font-size: clamp(1.5rem, 4vw, 2.4rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin: 0 0 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .teams-hero-title .accent {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .teams-hero-title .gold-text {
+            background: linear-gradient(135deg, var(--gold), #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .teams-hero-subtitle {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .teams-hero-pills {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .hero-stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-stat-pill.teams-count {
+            background: rgba(74,222,128,0.12);
+            border: 1px solid rgba(74,222,128,0.25);
+            color: var(--green-light);
+        }
+
+        .hero-stat-pill.current-manager {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.25);
+            color: var(--gold);
+        }
+
+        .hero-stat-pill.current-rank {
+            background: rgba(99,102,241,0.12);
+            border: 1px solid rgba(99,102,241,0.25);
+            color: #a5b4fc;
+        }
+
+        /* =====================================================
+           LAYOUT
+           ===================================================== */
+        .teams-layout {
+            max-width: 1760px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            padding: 0 24px;
+            box-sizing: border-box;
+            animation: fadeSlideUp 0.6s 0.1s ease both;
+        }
+
+        /* =====================================================
+           SIDEBAR – Desktop Glass Panel
+           ===================================================== */
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 96px;
+            max-height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 20px 16px;
+            box-sizing: border-box;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header-accent {
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, var(--green-light), var(--green-main));
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            font-weight: 500;
+            outline: none;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .search-box::placeholder { color: var(--text-muted); }
+
+        .search-box:focus {
+            border-color: rgba(74,222,128,0.45);
+            background: rgba(74,222,128,0.06);
+            box-shadow: 0 0 0 3px rgba(74,222,128,0.1);
+        }
+
+        .manager-list {
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-right: 4px;
+        }
+
+        .manager-list::-webkit-scrollbar { width: 4px; }
+        .manager-list::-webkit-scrollbar-track { background: transparent; }
+        .manager-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+        .manager-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+        .manager-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s, box-shadow 0.18s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .manager-item span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .manager-item:hover {
+                background: rgba(74,222,128,0.07);
+                border-color: rgba(74,222,128,0.2);
+                color: var(--text-main);
+                transform: translateX(4px);
+            }
+        }
+
+        .manager-item.active {
+            background: rgba(34,197,94,0.14);
+            border-color: rgba(34,197,94,0.4);
+            color: var(--green-light);
+            box-shadow: 0 0 16px rgba(34,197,94,0.12), inset 0 0 0 1px rgba(34,197,94,0.08);
+        }
+
+        .manager-item-rank {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            opacity: 0.6;
+            flex-shrink: 0;
+            margin-left: 6px;
+        }
+
+        .manager-item.active .manager-item-rank {
+            color: var(--green-light);
+            opacity: 0.8;
+        }
+
+        /* =====================================================
+           MAIN VIEW
+           ===================================================== */
+        .main-view {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* =====================================================
+           TEAM HEADER CARD
+           ===================================================== */
+        .team-header-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 22px 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-header-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(74,222,128,0.3), transparent);
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
         .team-header-left {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             min-width: 0;
             flex: 1;
         }
@@ -76,252 +474,371 @@
             flex-shrink: 0;
         }
 
+        .display-manager-name-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #display-manager-name {
+            margin: 0;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--text-main);
+        }
+
         .total-points-display {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #28a745;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+            font-size: 2.4em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--green-light), var(--green-main));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             line-height: 1;
+            font-variant-numeric: tabular-nums;
         }
 
         .rank-display-link {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 14px;
+            padding: 10px 16px;
             border-radius: 14px;
-            background: #f8fafc;
-            border: 1px solid #dbe4ea;
-            color: #334155;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main);
             text-decoration: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
         }
 
         .rank-display-link:hover {
             transform: translateY(-2px);
-            border-color: #28a745;
-            box-shadow: 0 8px 16px rgba(40,167,69,0.15);
+            border-color: rgba(74,222,128,0.4);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 16px rgba(74,222,128,0.12);
+            background: rgba(74,222,128,0.08);
         }
 
-        .rank-display-icon {
-            font-size: 20px;
-            line-height: 1;
-        }
+        .rank-display-icon { font-size: 18px; line-height: 1; }
 
         .rank-display-text {
             display: flex;
             flex-direction: column;
             line-height: 1;
-            gap: 4px;
+            gap: 3px;
         }
 
         .rank-display-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #64748b;
+            color: var(--text-muted);
         }
 
         .rank-display-value {
-            font-size: 1.3em;
+            font-size: 1.2em;
             font-weight: 900;
-            color: #111827;
+            color: var(--text-main);
         }
 
         .manager-awards {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
+
         .manager-awards:empty { display: none; }
 
         .manager-award {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 7px 12px;
+            gap: 6px;
+            padding: 5px 10px;
             border-radius: 999px;
-            background: #f8f9fa;
-            border: 1px solid #e2e8f0;
-            color: #334155;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
             line-height: 1;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
             white-space: nowrap;
+            backdrop-filter: blur(6px);
         }
+
         .manager-award img {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             object-fit: contain;
             border-radius: 50%;
-            background: #fff;
+            background: rgba(255,255,255,0.08);
             padding: 2px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        }
-        .manager-award .award-emoji {
-            font-size: 15px;
-            line-height: 1;
         }
 
-        .manager-award.club {
-            background: #ffffff;
-            border-color: #dbe4ea;
-            color: #334155;
-        }
-        .manager-award.gk {
-            background: #eff6ff;
-            border-color: #bfdbfe;
-            color: #1d4ed8;
-        }
-        .manager-award.def {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
-            color: #15803d;
-        }
-        .manager-award.mid {
-            background: #faf5ff;
-            border-color: #e9d5ff;
-            color: #7e22ce;
-        }
-        .manager-award.att {
-            background: #fff7ed;
-            border-color: #fed7aa;
-            color: #c2410c;
-        }
-        .manager-award.captain {
-            background: linear-gradient(135deg, #fffdf0, #fff2a8);
-            border-color: #facc15;
-            color: #7c5700;
-        }
-        .manager-award.bench {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-            color: #334155;
-        }
-        .manager-award.scouting {
-            background: #ecfeff;
-            border-color: #a5f3fc;
-            color: #0f766e;
-        }
-        .manager-award.perfect {
-            background: #fff7ed;
-            border-color: #fdba74;
-            color: #c2410c;
-        }
-        .manager-award.instinct {
-            background: #fdf4ff;
-            border-color: #f5d0fe;
-            color: #a21caf;
-        }
+        .manager-award .award-emoji { font-size: 13px; line-height: 1; }
 
-        @keyframes textFlyIn {
-            0% { opacity: 0; transform: translateX(-20px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
+        .manager-award.club    { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-main); }
+        .manager-award.gk      { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
+        .manager-award.def     { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.25); color: var(--green-light); }
+        .manager-award.mid     { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.25); color: #c4b5fd; }
+        .manager-award.att     { background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.25); color: #fbbf24; }
+        .manager-award.captain { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3); color: var(--gold); }
+        .manager-award.bench   { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); }
+        .manager-award.scouting { background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25); color: #67e8f9; }
+        .manager-award.perfect  { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; }
+        .manager-award.instinct { background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.25); color: #d8b4fe; }
+
+        /* Header animation */
         .animate-header-text { animation: textFlyIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
 
-        /* --- SPIELFELD LAYOUT --- */
-        .team-board { width: 100%; display: flex; flex-direction: column; overflow-x: auto; }
+        /* =====================================================
+           EMPTY & LOADING STATE
+           ===================================================== */
+        #empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+            font-size: 1.1em;
+            font-weight: 600;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 18px;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.4s ease both;
+        }
 
+        #empty-state .empty-icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* =====================================================
+           TEAM BOARD CONTAINER
+           ===================================================== */
+        .team-board-card {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 16px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* =====================================================
+           PITCH – DESKTOP
+           ===================================================== */
         .board-headers {
             display: flex;
             align-items: flex-end;
             gap: 20px;
             margin-bottom: 10px;
-            padding-left: 50px;
+            padding-left: 46px;
         }
 
         .header-pitch {
             flex: 1;
             text-align: center;
-            color: #2e7d32;
-            font-size: 1.2em;
-            font-weight: bold;
+            color: rgba(74,222,128,0.75);
+            font-size: 0.72rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            border-bottom: 3px solid #2e7d32;
-            padding-bottom: 10px;
-            margin-right: 0;
-            box-sizing: border-box;
+            letter-spacing: 3px;
+            border-bottom: 2px solid rgba(74,222,128,0.25);
+            padding-bottom: 8px;
         }
 
         .header-bench {
             flex: none;
-            width: 280px;
+            width: 250px;
             text-align: center;
-            color: #666;
-            font-size: 1.2em;
-            font-weight: bold;
+            color: rgba(255,215,0,0.6);
+            font-size: 0.72rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            border-bottom: 3px dashed #ccc;
-            padding-bottom: 10px;
+            letter-spacing: 3px;
+            border-bottom: 2px dashed rgba(255,215,0,0.2);
+            padding-bottom: 8px;
+        }
+
+        .team-board {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-x: auto;
+        }
+
+        .team-board::-webkit-scrollbar { height: 4px; }
+        .team-board::-webkit-scrollbar-track { background: transparent; }
+        .team-board::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        .pos-row {
+            display: flex;
+            align-items: stretch;
+            margin-bottom: 0;
+            min-height: 270px;
+        }
+
+        .pos-badge-container {
+            width: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pos-badge {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            color: rgba(255,255,255,0.3);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 10px;
+        }
+
+        .pos-badge-mobile, .bench-badge-mobile { display: none; }
+
+        .pos-scroll-area {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+        }
+
+        /* PITCH ZONE */
+        .pitch-zone {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-width: 840px;
+            padding: 20px;
             box-sizing: border-box;
         }
 
-        .pos-row { display: flex; align-items: stretch; margin-bottom: 0; min-height: 280px; } 
-        .pos-badge-container { width: 50px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-right: 2px solid transparent; }
-        .pos-badge { writing-mode: vertical-rl; transform: rotate(180deg); color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; font-size: 14px; }
-        .pos-badge-mobile, .bench-badge-mobile { display: none; }
-
-        .pos-scroll-area { flex: 1; display: flex; gap: 20px; }
-        
-        .pitch-zone { 
-            flex: 1; border-left: 3px solid #fff; border-right: 3px solid #fff;
-            padding: 15px 20px; position: relative; display: flex; align-items: center; 
-            min-width: 880px; 
+        /* Alternating green pitch rows */
+        .pos-row:nth-child(odd) .pitch-zone {
+            background: linear-gradient(160deg, #1a5c26, #1b6b2a, #1d7530);
         }
-        .pos-row:nth-child(odd) .pitch-zone { background-color: #2e7d32; }
-        .pos-row:nth-child(even) .pitch-zone { background-color: #29732d; }
-        
-        .bench-zone { 
-            flex: none; width: 240px; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; 
-            padding: 15px 20px; position: relative; display: flex; justify-content: center; align-items: center;
+        .pos-row:nth-child(even) .pitch-zone {
+            background: linear-gradient(160deg, #174e22, #1b6424, #1a5c26);
         }
-        .pos-row:nth-child(odd) .bench-zone { background-color: #f8f9fa; }
-        .pos-row:nth-child(even) .bench-zone { background-color: #f1f3f5; }
 
-        .pos-row:first-of-type .pitch-zone { border-top: 3px solid #fff; border-top-left-radius: 15px; border-top-right-radius: 15px; }
-        .pos-row:last-of-type .pitch-zone { border-bottom: 3px solid #fff; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
-        .pos-row:first-of-type .bench-zone { border-top: 1px solid #e2e8f0; border-top-left-radius: 15px; border-top-right-radius: 15px; }
-        .pos-row:last-of-type .bench-zone { border-bottom: 1px solid #e2e8f0; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
+        /* First row rounded top */
+        .pos-row:first-of-type .pitch-zone {
+            border-top: 2px solid rgba(255,255,255,0.12);
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+        }
+
+        /* Last row rounded bottom */
+        .pos-row:last-of-type .pitch-zone {
+            border-bottom: 2px solid rgba(255,255,255,0.12);
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+        }
+
+        /* Side borders for pitch look */
+        .pitch-zone {
+            border-left: 2px solid rgba(255,255,255,0.12);
+            border-right: 2px solid rgba(255,255,255,0.12);
+        }
+
+        /* Spotlight overlay on pitch */
+        .pitch-zone::after {
+            content: "";
+            position: absolute;
+            top: -40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 60%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* BENCH ZONE */
+        .bench-zone {
+            flex: none;
+            width: 220px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 14px;
+            box-sizing: border-box;
+            background: rgba(255,255,255,0.025);
+            border-left: 2px solid rgba(255,215,0,0.15);
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .pos-row:first-of-type .bench-zone {
+            border-top: 1px solid rgba(255,255,255,0.07);
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+        }
+
+        .pos-row:last-of-type .bench-zone {
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+        }
+
+        /* Gold accent line on bench top */
+        .pos-row:first-of-type .bench-zone::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);
+        }
 
         .cards-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 30px;
+            gap: 22px;
             flex-wrap: nowrap;
             width: 100%;
-            min-height: 240px;
+            min-height: 230px;
+            position: relative;
+            z-index: 1;
         }
 
-        /* --- TEAM-WECHSEL ANIMATION (FLY-IN) --- */
-        @keyframes cardFlyIn {
-            0% { opacity: 0; transform: translateY(-30px); }
-            100% { opacity: 1; transform: translateY(0); }
+        /* =====================================================
+           CARD WRAPPER & PLAYER CARD
+           ===================================================== */
+        .card-wrapper {
+            width: 160px;
+            height: 230px;
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+            animation: cardFlyIn 0.55s ease-out both;
         }
 
-        .card-wrapper { 
-            width: 170px; height: 240px; 
-            position: relative; z-index: 1; flex-shrink: 0; 
-            animation: cardFlyIn 0.6s ease-out both;
-        }
         .card-wrapper:hover { z-index: 100; }
 
-        /* --- KARTEN DESIGN --- */
-        .player-card { 
-            background: white; border-radius: 12px; box-shadow: 0 8px 15px rgba(0,0,0,0.1); 
-            width: 100%; height: 100%; 
-            text-align: center; display: flex; flex-direction: column; 
-            align-items: center; position: relative; border: 1px solid #eee; box-sizing: border-box; 
-            justify-content: flex-start; padding-top: 15px; cursor: pointer;
-            text-decoration: none; color: inherit;
-            transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1);
+        .player-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-sizing: border-box;
+            justify-content: flex-start;
+            padding-top: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1);
             transform-style: preserve-3d;
             transform-origin: center center;
             transition: transform 0.18s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
@@ -329,371 +846,821 @@
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
+
+        /* Shine overlay */
+        .player-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-radius: 12px 12px 0 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .js-tilt-glare { border-radius: 12px; }
 
         .player-card.is-captain {
-            background: linear-gradient(135deg, #fffdf0, #fff2a8);
-            border: 2px solid #ffc107;
-            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+            background: linear-gradient(135deg, #1c1a0e, #261e08);
+            border: 1.5px solid rgba(255,193,7,0.5);
+            box-shadow: 0 0 0 1px rgba(255,193,7,0.15), 0 8px 24px rgba(255,193,7,0.15), 0 8px 30px rgba(0,0,0,0.5);
         }
+
+        @media (hover: hover) and (pointer: fine) {
+            .player-card:hover {
+                box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(74,222,128,0.35) !important;
+                border-color: rgba(74,222,128,0.45) !important;
+            }
+
+            .player-card.is-captain:hover {
+                box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,193,7,0.5) !important;
+                border-color: rgba(255,193,7,0.6) !important;
+            }
+
+            .player-card:hover .avatar-wrapper { transform: translateZ(44px); }
+            .player-card:hover .card-info { transform: translateZ(32px); }
+            .player-card:hover .card-pts { transform: translateZ(58px) scale(1.05); }
+            .player-card:hover .captain-badge { transform: translateZ(58px) scale(1.1); }
+            .player-card:hover .card-avatar { transform: scale(1.12); }
+        }
+
         .captain-badge {
-            position: absolute; top: 8px; left: 8px; 
-            background: linear-gradient(135deg, #ffd700, #ffb300); color: #000; 
-            width: 26px; height: 26px; border-radius: 50%; display: flex; 
-            justify-content: center; align-items: center; font-weight: 900; 
-            font-size: 14px; border: 2px solid #fff; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 30;
-            transform: translateZ(30px); transition: transform 0.3s ease;
+            position: absolute;
+            top: 8px; left: 8px;
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #000;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 12px;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 10px rgba(255,193,7,0.5), 0 2px 5px rgba(0,0,0,0.4);
+            z-index: 30;
+            transform: translateZ(30px);
+            transition: transform 0.3s ease;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
 
-        .avatar-wrapper { 
-            width: 85px; height: 85px; border-radius: 8px; overflow: hidden; 
-            background: #f8f9fa; border: 1px solid #eee; margin-bottom: 10px;
-            transform: translateZ(20px); transition: transform 0.3s ease;
+        .avatar-wrapper {
+            width: 80px; height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 8px;
+            transform: translateZ(18px);
+            transition: transform 0.3s ease;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
+            position: relative;
+            z-index: 1;
         }
-        .card-avatar { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
 
-        .card-info { 
-            width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0 5px; box-sizing: border-box;
-            transform: translateZ(15px); transition: transform 0.3s ease;
+        .card-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .card-info {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 6px;
+            box-sizing: border-box;
+            transform: translateZ(12px);
+            transition: transform 0.3s ease;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
+            position: relative;
+            z-index: 1;
         }
+
         .card-name {
-            font-weight: bold; font-size: 13px; line-height: 1.2; min-height: 32px;
-            display: flex; align-items: center; justify-content: center; text-align: center;
-            width: 100%; color: #111; margin-bottom: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            line-height: 1.2;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            color: var(--text-main);
+            margin-bottom: 5px;
         }
-        
-        .card-sub-info { 
-            display: flex; align-items: center; justify-content: center; gap: 6px; 
-            background: transparent; padding: 2px 0; font-size: 11px; 
-            width: 100%; margin: 0 auto 4px auto; 
-            border: none; font-weight: bold; color: #333; box-sizing: border-box; 
-        }
-        .small-icon { width: 22px; height: 16px; object-fit: cover; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .small-icon.club { width: 18px; height: 18px; object-fit: contain; box-shadow: none; }
 
-        .card-pts { 
-            position: absolute; top: 8px; right: 8px; background: #28a745; color: white; 
-            padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: bold; 
-            z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transform: translateZ(30px); transition: transform 0.3s ease;
+        .card-sub-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 10px;
+            width: 100%;
+            margin-bottom: 3px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .small-icon {
+            width: 20px; height: 14px;
+            object-fit: cover;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .small-icon.club { width: 16px; height: 16px; object-fit: contain; box-shadow: none; }
+
+        .card-pts {
+            position: absolute;
+            top: 8px; right: 8px;
+            background: rgba(34,197,94,0.85);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            z-index: 20;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(34,197,94,0.3);
+            transform: translateZ(30px);
+            transition: transform 0.3s ease;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
-        .card-pts.neg { background: #dc3545; }
+
+        .card-pts.neg {
+            background: rgba(239,68,68,0.85);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(239,68,68,0.3);
+        }
 
         .player-card.is-captain .card-pts {
             background: linear-gradient(135deg, #ffd700, #ff9900);
             color: #000;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 900;
-            padding: 6px 10px;
-            border: 2px solid #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            padding: 5px 9px;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            box-shadow: 0 0 12px rgba(255,193,7,0.5), 0 4px 10px rgba(0,0,0,0.4);
             transform: translateZ(35px);
         }
 
-        #empty-state { text-align: center; padding: 100px 20px; color: #888; font-size: 1.2em; }
-
-        @media (hover: hover) and (pointer: fine) {
-            .player-card:hover { box-shadow: 0 25px 50px rgba(0,0,0,0.4) !important; border-color: #ffd700; }
-            .player-card:hover .avatar-wrapper { transform: translateZ(50px); }
-            .player-card:hover .card-info { transform: translateZ(40px); }
-            .player-card:hover .card-pts { transform: translateZ(60px); }
-            .player-card.is-captain:hover .card-pts { transform: translateZ(65px) scale(1.1); }
-            .player-card:hover .captain-badge { transform: translateZ(60px) scale(1.1); }
-            .player-card:hover .card-avatar { transform: scale(1.15); transition: transform 0.3s ease; }
-            .manager-item:hover { background: #eef2f3; transform: translateX(5px); }
+        /* =====================================================
+           MOBILE – Team picker button / trigger
+           ===================================================== */
+        .mobile-picker-trigger {
+            display: none;
         }
 
-        /* --- MOBILE ANPASSUNG --- */
-        @media (max-width: 1000px) {
-            html, body {
-                overflow-x: auto;
-                overflow-y: auto;
-                -webkit-text-size-adjust: 100%;
-                touch-action: auto;
+        .mobile-picker-btn {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+            color: var(--text-main);
+            text-align: left;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-picker-btn:active {
+            background: rgba(74,222,128,0.08);
+            border-color: rgba(74,222,128,0.3);
+        }
+
+        .mobile-picker-btn-left {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .mobile-picker-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .mobile-picker-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mobile-picker-meta {
+            font-size: 0.75rem;
+            color: var(--green-light);
+            font-weight: 600;
+        }
+
+        .mobile-picker-chevron {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        /* =====================================================
+           MOBILE – Team picker modal
+           ===================================================== */
+        .team-picker-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 9000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .team-picker-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .team-picker-modal {
+            background: #161b22;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            box-shadow: 0 -20px 60px rgba(0,0,0,0.6);
+            transform: translateY(40px);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
+
+        .team-picker-overlay.visible .team-picker-modal {
+            transform: translateY(0);
+        }
+
+        .team-picker-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+            margin: 12px auto 0;
+            flex-shrink: 0;
+        }
+
+        .team-picker-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 12px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .team-picker-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .team-picker-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s, color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .team-picker-close:active {
+            background: rgba(255,255,255,0.15);
+            color: var(--text-main);
+        }
+
+        .team-picker-search-wrap {
+            padding: 12px 16px 10px;
+            flex-shrink: 0;
+        }
+
+        .team-picker-search {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .team-picker-search::placeholder { color: var(--text-muted); }
+        .team-picker-search:focus {
+            border-color: rgba(74,222,128,0.4);
+            box-shadow: 0 0 0 3px rgba(74,222,128,0.1);
+        }
+
+        .team-picker-list {
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            padding: 6px 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .team-picker-list::-webkit-scrollbar { width: 4px; }
+        .team-picker-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        .team-picker-item {
+            padding: 13px 16px;
+            border-radius: 11px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: rgba(255,255,255,0.03);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .team-picker-item:active {
+            background: rgba(74,222,128,0.12);
+            border-color: rgba(74,222,128,0.3);
+        }
+
+        .team-picker-item.active {
+            background: rgba(34,197,94,0.14);
+            border-color: rgba(34,197,94,0.4);
+            color: var(--green-light);
+        }
+
+        .team-picker-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .team-picker-item-pts {
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .team-picker-item.active .team-picker-item-pts { color: var(--green-light); }
+        .team-picker-item:not(.active) .team-picker-item-pts { color: var(--text-muted); opacity: 0.7; }
+
+        /* =====================================================
+           MOBILE TEAM SECTIONS (stacked view)
+           ===================================================== */
+        .mobile-team-sections {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .mobile-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .mobile-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .mobile-section-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mobile-section-pill.pitch {
+            background: rgba(34,197,94,0.15);
+            border: 1px solid rgba(34,197,94,0.3);
+            color: var(--green-light);
+        }
+
+        .mobile-section-pill.bench {
+            background: rgba(255,215,0,0.12);
+            border: 1px solid rgba(255,215,0,0.25);
+            color: var(--gold);
+        }
+
+        .mobile-section-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 14px 12px;
+            justify-content: center;
+        }
+
+        /* Mobile card sizes */
+        .mobile-card-wrapper {
+            width: 110px;
+            height: 162px;
+            flex-shrink: 0;
+        }
+
+        .mobile-bench-card-wrapper {
+            width: 100px;
+            height: 148px;
+            flex-shrink: 0;
+        }
+
+        /* =====================================================
+           MOBILE RESPONSIVE
+           ===================================================== */
+        @media (max-width: 900px) {
+            .teams-layout {
+                padding: 0 12px;
             }
 
-            .layout,
-            .main-view,
-            .team-board,
-            .pos-row,
-            .pos-scroll-area,
-            .pitch-zone,
-            .bench-zone,
-            .cards-container,
-            .player-card {
-                touch-action: auto;
-            }
-
-            .layout { flex-direction: column; gap: 15px; }
-            .main-view { width: 100%; box-sizing: border-box; padding: 20px 15px; overflow: visible; }
             .sidebar { display: none !important; }
-            .mobile-manager-select { display: block; }
 
+            .mobile-picker-trigger { display: block; }
+
+            /* Hide desktop board, show mobile sections */
+            .team-board-card { display: none; }
+            .mobile-team-sections { display: flex; }
+
+            /* Team header adjustments */
             .team-header {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 14px;
             }
 
-            .team-header-left {
-                align-items: center;
-                text-align: center;
-            }
+            .team-header-left { align-items: center; text-align: center; }
+            .display-manager-name-wrap { justify-content: center; }
 
-            .team-header h2 {
-                display: block;
-                font-size: 1.7em;
-            }
+            #display-manager-name { font-size: 1.5rem; }
 
-            .manager-awards {
-                justify-content: center;
-            }
+            .manager-awards { justify-content: center; }
 
             .team-header-right {
                 width: 100%;
                 justify-content: center;
+            }
+
+            .total-points-display { font-size: 2rem; }
+
+            /* Hero adjustments */
+            .teams-hero-inner {
+                flex-direction: column;
                 gap: 12px;
             }
 
-            .total-points-display {
-                text-align: center;
-                width: auto;
-                font-size: 2.1em;
+            .teams-hero-pills {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .teams-hero { padding: 16px 12px 14px; }
+            .teams-hero-title { font-size: 1.3rem; }
+            .team-header-card { padding: 16px; }
+            .total-points-display { font-size: 1.7rem; }
+
+            .mobile-section-cards {
+                gap: 8px;
+                padding: 10px 8px;
             }
 
-            .rank-display-link {
-                padding: 9px 12px;
+            .mobile-card-wrapper { width: 96px; height: 142px; }
+            .mobile-bench-card-wrapper { width: 88px; height: 130px; }
+        }
+
+        @media (max-width: 420px) {
+            .mobile-card-wrapper { width: 88px; height: 130px; }
+            .mobile-bench-card-wrapper { width: 82px; height: 120px; }
+            .card-name { font-size: 10px; min-height: 24px; }
+        }
+
+        /* Mobile card internal sizes */
+        @media (max-width: 900px) {
+            .mobile-card-wrapper .avatar-wrapper,
+            .mobile-bench-card-wrapper .avatar-wrapper {
+                width: 52px;
+                height: 52px;
+                margin-bottom: 5px;
             }
 
-            .rank-display-value {
-                font-size: 1.15em;
+            .mobile-card-wrapper .card-name,
+            .mobile-bench-card-wrapper .card-name {
+                font-size: 10px;
+                min-height: 24px;
+                margin-bottom: 3px;
             }
 
-            .board-headers { display: none; }
-            .pos-badge-container { display: none; }
-
-            .team-board {
-                overflow-x: auto;
-                overflow-y: visible;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: 10px;
-            }
-            .team-board::-webkit-scrollbar { display: none; }
-
-            .pos-row {
-                display: flex;
-                align-items: stretch;
-                min-height: 195px;
-                width: max-content;
-                margin-bottom: 0;
+            .mobile-card-wrapper .card-sub-info,
+            .mobile-bench-card-wrapper .card-sub-info {
+                font-size: 9px;
+                gap: 3px;
+                margin-bottom: 2px;
             }
 
-            .pos-scroll-area {
-                display: flex;
-                gap: 0;
-                width: max-content;
-                flex: none;
+            .mobile-card-wrapper .small-icon,
+            .mobile-bench-card-wrapper .small-icon {
+                width: 16px; height: 11px;
             }
 
-            .pitch-zone,
-            .bench-zone {
-                flex: none;
-                box-sizing: border-box;
-                border-radius: 0 !important;
-                padding: 34px 12px 14px 12px;
+            .mobile-card-wrapper .small-icon.club,
+            .mobile-bench-card-wrapper .small-icon.club {
+                width: 13px; height: 13px;
             }
 
-            .pitch-zone {
-                width: 560px;
-                min-width: 560px;
-                border-left: 3px solid #fff !important;
-                border-right: 3px solid #fff !important;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+            .mobile-card-wrapper .captain-badge,
+            .mobile-bench-card-wrapper .captain-badge {
+                width: 20px; height: 20px; font-size: 10px; top: 4px; left: 4px;
             }
 
-            .bench-zone {
-                width: 160px;
-                min-width: 160px;
-                border-left: 2px dashed rgba(0,0,0,0.2) !important;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+            .mobile-card-wrapper .card-pts,
+            .mobile-bench-card-wrapper .card-pts {
+                font-size: 10px; top: 4px; right: 4px; padding: 3px 6px;
             }
 
-            .pos-badge-mobile,
-            .bench-badge-mobile {
-                position: absolute;
-                top: 10px;
-                left: 12px;
-                font-size: 11px;
-                font-weight: bold;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+            .mobile-card-wrapper .player-card.is-captain .card-pts,
+            .mobile-bench-card-wrapper .player-card.is-captain .card-pts {
+                font-size: 12px; padding: 4px 7px;
             }
 
-            .pos-badge-mobile {
-                display: block;
-                color: rgba(255,255,255,0.85);
-            }
-
-            .bench-badge-mobile {
-                display: none;
-                color: #999;
-            }
-
-            .pos-row:first-of-type .bench-badge-mobile {
-                display: block;
-            }
-
-            .cards-container {
-                justify-content: center;
-                align-items: center;
-                gap: 14px;
-                flex-wrap: nowrap;
-                width: 100%;
-                min-height: auto;
-                padding: 0;
-            }
-
-            .card-wrapper {
-                width: 110px;
-                height: 165px;
-            }
-
-            .avatar-wrapper { width: 55px; height: 55px; margin-top: 2px; margin-bottom: 5px; }
-            .card-name { font-size: 11px; min-height: 26px; margin-bottom: 3px; line-height: 1.1; }
-            .card-sub-info { font-size: 9px; padding: 3px 0; gap: 4px; margin-bottom: 3px; }
-            .small-icon { width: 16px; height: 11px; }
-            .small-icon.club { width: 14px; height: 14px; }
-            
-            .captain-badge { width: 20px; height: 20px; font-size: 11px; top: 4px; left: 4px; }
-            .card-pts { font-size: 11px; top: 4px; right: 4px; padding: 3px 6px; }
-            .player-card.is-captain .card-pts { font-size: 13px; padding: 4px 7px; border-width: 1px; }
-
-            .player-card {
+            /* Disable 3D on touch */
+            .mobile-card-wrapper .player-card,
+            .mobile-bench-card-wrapper .player-card {
                 transform-style: flat;
-                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
             }
-            .avatar-wrapper, .card-info, .card-pts, .captain-badge {
+
+            .mobile-card-wrapper .avatar-wrapper,
+            .mobile-card-wrapper .card-info,
+            .mobile-card-wrapper .card-pts,
+            .mobile-card-wrapper .captain-badge,
+            .mobile-bench-card-wrapper .avatar-wrapper,
+            .mobile-bench-card-wrapper .card-info,
+            .mobile-bench-card-wrapper .card-pts,
+            .mobile-bench-card-wrapper .captain-badge {
                 transform: none !important;
                 transition: none !important;
             }
-            .player-card:active {
-                transform: scale(0.95);
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                border-color: #28a745;
+
+            .mobile-card-wrapper .player-card:active,
+            .mobile-bench-card-wrapper .player-card:active {
+                transform: scale(0.94) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="layout">
-    <div class="sidebar" id="sidebar">
-        <h2 id="sidebar-title" style="text-align: center;">🛡️ Alle Teams</h2>
-        <input type="text" id="manager-search" class="search-box" placeholder="Suche Manager...">
-        <div class="manager-list" id="manager-list"></div>
-    </div>
+<!-- nav.js injects .navbar and .bottom-nav here -->
 
-    <div class="main-view">
-        <select class="mobile-manager-select" id="mobile-manager-select"></select>
-        <div id="empty-state">👈 Lade Teams... ⏳</div>
-        
-        <div id="team-view" style="display: none;">
-            <div class="team-header">
-                <div class="team-header-left">
-                    <h2 id="display-manager-name" class="animate-header-text">-</h2>
-                    <div id="manager-awards" class="manager-awards animate-header-text"></div>
-                </div>
+<div class="teams-page">
 
-                <div class="team-header-right">
-                    <div class="total-points-display animate-header-text" id="display-total-points">0 Pkt.</div>
-
-                    <a href="rangliste.html" id="display-rank-link" class="rank-display-link animate-header-text" title="Zur Rangliste wechseln">
-                        <span class="rank-display-icon">🏆</span>
-                        <div class="rank-display-text">
-                            <div class="rank-display-label">Rang</div>
-                            <div class="rank-display-value" id="display-rank">-</div>
-                        </div>
-                    </a>
-                </div>
+    <!-- ===================== HERO ===================== -->
+    <div class="teams-hero">
+        <div class="teams-hero-inner">
+            <div class="teams-hero-title-area">
+                <div class="teams-hero-badge">🛡️ DreamTeam</div>
+                <h1 class="teams-hero-title">
+                    Alle <span class="gold-text" id="hero-tournament-label">Tournament</span>
+                    <span class="accent">DreamTeams</span>
+                </h1>
+                <p class="teams-hero-subtitle">Vergleiche alle Teams – Spielfeld, Punkte und Awards auf einen Blick.</p>
             </div>
-
-            <div class="team-board">
-                <div class="board-headers">
-                    <div class="header-pitch">Spielfeld</div>
-                    <div class="header-bench">Ersatzbank</div>
-                </div>
-
-                <div class="pos-row">
-                    <div class="pos-badge-container"><div class="pos-badge">Tor</div></div>
-                    <div class="pos-scroll-area">
-                        <div class="pitch-zone">
-                            <div class="pos-badge-mobile">Tor</div>
-                            <div class="cards-container" id="row-GK"></div>
-                        </div>
-                        <div class="bench-zone">
-                            <div class="bench-badge-mobile">Ersatzbank</div>
-                            <div class="cards-container" id="bench-GK"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pos-row">
-                    <div class="pos-badge-container"><div class="pos-badge">Verteidigung</div></div>
-                    <div class="pos-scroll-area">
-                        <div class="pitch-zone">
-                            <div class="pos-badge-mobile">Verteidigung</div>
-                            <div class="cards-container" id="row-DEF"></div>
-                        </div>
-                        <div class="bench-zone">
-                            <div class="bench-badge-mobile">Ersatzbank</div>
-                            <div class="cards-container" id="bench-DEF"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pos-row">
-                    <div class="pos-badge-container"><div class="pos-badge">Mittelfeld</div></div>
-                    <div class="pos-scroll-area">
-                        <div class="pitch-zone">
-                            <div class="pos-badge-mobile">Mittelfeld</div>
-                            <div class="cards-container" id="row-MID"></div>
-                        </div>
-                        <div class="bench-zone">
-                            <div class="bench-badge-mobile">Ersatzbank</div>
-                            <div class="cards-container" id="bench-MID"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="pos-row">
-                    <div class="pos-badge-container"><div class="pos-badge">Sturm</div></div>
-                    <div class="pos-scroll-area">
-                        <div class="pitch-zone">
-                            <div class="pos-badge-mobile">Sturm</div>
-                            <div class="cards-container" id="row-ATT"></div>
-                        </div>
-                        <div class="bench-zone">
-                            <div class="bench-badge-mobile">Ersatzbank</div>
-                            <div class="cards-container" id="bench-ATT"></div>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="teams-hero-pills" id="hero-pills">
+                <span class="hero-stat-pill teams-count" id="hero-teams-count" style="display:none;">
+                    👥 <span id="hero-count-val">0</span> Teams
+                </span>
+                <span class="hero-stat-pill current-manager" id="hero-current-manager" style="display:none;">
+                    🛡️ <span id="hero-manager-val">–</span>
+                </span>
+                <span class="hero-stat-pill current-rank" id="hero-current-rank" style="display:none;">
+                    🏆 Rang <span id="hero-rank-val">–</span>
+                </span>
             </div>
         </div>
+    </div>
+
+    <!-- ===================== LAYOUT ===================== -->
+    <div class="teams-layout">
+
+        <!-- Desktop Sidebar -->
+        <aside class="sidebar" id="sidebar" aria-label="Manager-Auswahl">
+            <div class="sidebar-header">
+                <div class="sidebar-header-accent"></div>
+                <h2 class="sidebar-title">🛡️ Alle Teams</h2>
+            </div>
+            <input type="text" id="manager-search" class="search-box" placeholder="Suche Manager…" aria-label="Manager suchen">
+            <div class="manager-list" id="manager-list" role="listbox" aria-label="Manager-Liste"></div>
+        </aside>
+
+        <!-- Main View -->
+        <main class="main-view">
+
+            <!-- Mobile team picker trigger -->
+            <div class="mobile-picker-trigger">
+                <button class="mobile-picker-btn" id="mobile-picker-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="team-picker-modal">
+                    <div class="mobile-picker-btn-left">
+                        <span class="mobile-picker-label">🛡️ Team auswählen</span>
+                        <span class="mobile-picker-name" id="mobile-picker-name">–</span>
+                        <span class="mobile-picker-meta" id="mobile-picker-meta"></span>
+                    </div>
+                    <span class="mobile-picker-chevron">⌄</span>
+                </button>
+            </div>
+
+            <!-- Empty / Loading State -->
+            <div id="empty-state">
+                <span class="empty-icon">⏳</span>
+                Teams werden geladen…
+            </div>
+
+            <!-- Team View (hidden until data loads) -->
+            <div id="team-view" style="display:none;">
+
+                <!-- Team Header Card -->
+                <div class="team-header-card">
+                    <div class="team-header">
+                        <div class="team-header-left">
+                            <div class="display-manager-name-wrap">
+                                <h2 id="display-manager-name" class="animate-header-text">–</h2>
+                            </div>
+                            <div id="manager-awards" class="manager-awards animate-header-text"></div>
+                        </div>
+                        <div class="team-header-right">
+                            <div class="total-points-display animate-header-text" id="display-total-points">0 Pkt.</div>
+                            <a href="rangliste.html" id="display-rank-link" class="rank-display-link animate-header-text" title="Zur Rangliste wechseln">
+                                <span class="rank-display-icon">🏆</span>
+                                <div class="rank-display-text">
+                                    <div class="rank-display-label">Rang</div>
+                                    <div class="rank-display-value" id="display-rank">–</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop: Pitch / Board View -->
+                <div class="team-board-card">
+                    <div class="team-board">
+                        <div class="board-headers">
+                            <div class="header-pitch">Spielfeld</div>
+                            <div class="header-bench">Ersatzbank</div>
+                        </div>
+
+                        <div class="pos-row">
+                            <div class="pos-badge-container"><div class="pos-badge">Tor</div></div>
+                            <div class="pos-scroll-area">
+                                <div class="pitch-zone">
+                                    <div class="pos-badge-mobile">Tor</div>
+                                    <div class="cards-container" id="row-GK"></div>
+                                </div>
+                                <div class="bench-zone">
+                                    <div class="bench-badge-mobile">Ersatzbank</div>
+                                    <div class="cards-container" id="bench-GK"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pos-row">
+                            <div class="pos-badge-container"><div class="pos-badge">Verteidigung</div></div>
+                            <div class="pos-scroll-area">
+                                <div class="pitch-zone">
+                                    <div class="pos-badge-mobile">Verteidigung</div>
+                                    <div class="cards-container" id="row-DEF"></div>
+                                </div>
+                                <div class="bench-zone">
+                                    <div class="bench-badge-mobile">Ersatzbank</div>
+                                    <div class="cards-container" id="bench-DEF"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pos-row">
+                            <div class="pos-badge-container"><div class="pos-badge">Mittelfeld</div></div>
+                            <div class="pos-scroll-area">
+                                <div class="pitch-zone">
+                                    <div class="pos-badge-mobile">Mittelfeld</div>
+                                    <div class="cards-container" id="row-MID"></div>
+                                </div>
+                                <div class="bench-zone">
+                                    <div class="bench-badge-mobile">Ersatzbank</div>
+                                    <div class="cards-container" id="bench-MID"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pos-row">
+                            <div class="pos-badge-container"><div class="pos-badge">Sturm</div></div>
+                            <div class="pos-scroll-area">
+                                <div class="pitch-zone">
+                                    <div class="pos-badge-mobile">Sturm</div>
+                                    <div class="cards-container" id="row-ATT"></div>
+                                </div>
+                                <div class="bench-zone">
+                                    <div class="bench-badge-mobile">Ersatzbank</div>
+                                    <div class="cards-container" id="bench-ATT"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile: Stacked Sections -->
+                <div class="mobile-team-sections" id="mobile-sections">
+                    <div class="mobile-section" id="mobile-section-GK">
+                        <div class="mobile-section-header">
+                            <span class="mobile-section-pill pitch">🧤 Tor</span>
+                        </div>
+                        <div class="mobile-section-cards" id="mobile-row-GK"></div>
+                    </div>
+                    <div class="mobile-section" id="mobile-section-DEF">
+                        <div class="mobile-section-header">
+                            <span class="mobile-section-pill pitch">🛡️ Verteidigung</span>
+                        </div>
+                        <div class="mobile-section-cards" id="mobile-row-DEF"></div>
+                    </div>
+                    <div class="mobile-section" id="mobile-section-MID">
+                        <div class="mobile-section-header">
+                            <span class="mobile-section-pill pitch">🎯 Mittelfeld</span>
+                        </div>
+                        <div class="mobile-section-cards" id="mobile-row-MID"></div>
+                    </div>
+                    <div class="mobile-section" id="mobile-section-ATT">
+                        <div class="mobile-section-header">
+                            <span class="mobile-section-pill pitch">⚡ Sturm</span>
+                        </div>
+                        <div class="mobile-section-cards" id="mobile-row-ATT"></div>
+                    </div>
+                    <div class="mobile-section" id="mobile-section-BENCH">
+                        <div class="mobile-section-header">
+                            <span class="mobile-section-pill bench">🪑 Ersatzbank</span>
+                        </div>
+                        <div class="mobile-section-cards" id="mobile-bench-all"></div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Mobile Team Picker Modal -->
+<div class="team-picker-overlay" id="team-picker-overlay" role="dialog" aria-modal="true" aria-labelledby="team-picker-title-el" tabindex="-1">
+    <div class="team-picker-modal" id="team-picker-modal">
+        <div class="team-picker-handle"></div>
+        <div class="team-picker-header">
+            <h2 class="team-picker-title" id="team-picker-title-el">Team auswählen</h2>
+            <button class="team-picker-close" id="team-picker-close" aria-label="Modal schließen">✕</button>
+        </div>
+        <div class="team-picker-search-wrap">
+            <input type="search" id="team-picker-search" class="team-picker-search" placeholder="Suche Manager…" aria-label="Manager suchen">
+        </div>
+        <div class="team-picker-list" id="team-picker-list" role="listbox" aria-label="Manager-Liste"></div>
     </div>
 </div>
 
@@ -713,7 +1680,7 @@
         throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor teams.html.");
     }
 
-    const TOURNAMENT_YEAR = APP.year;
+    const TOURNAMENT_YEAR  = APP.year;
     const TOURNAMENT_LABEL = APP.tournamentLabel;
     const PAGE_TITLE_PREFIX = APP.pageTitlePrefix;
     const CARD_BASE_TRANSFORM = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
@@ -724,10 +1691,9 @@
 
     document.title = `${PAGE_TITLE_PREFIX} - Teams`;
 
-    const sidebarTitleEl = document.getElementById('sidebar-title');
-    if (sidebarTitleEl) {
-        sidebarTitleEl.textContent = `🛡️ Alle Teams`;
-    }
+    // Set hero tournament label
+    const heroLabelEl = document.getElementById('hero-tournament-label');
+    if (heroLabelEl) heroLabelEl.textContent = TOURNAMENT_LABEL;
 
     let allTeams = [];
     let playerPointsData = {};
@@ -737,6 +1703,7 @@
     let metaUnsubscribe = null;
     let hasRenderedOnce = false;
     let isMetaRefreshRunning = false;
+    let modalPickerInitialized = false;
 
     const CACHE_OPTIONS = {
         db,
@@ -745,6 +1712,9 @@
         log: false
     };
 
+    /* =====================================================
+       STORAGE HELPERS
+       ===================================================== */
     function getStoredManagerName() {
         return localStorage.getItem(MANAGER_STORAGE_KEY) || localStorage.getItem(LEGACY_MANAGER_STORAGE_KEY);
     }
@@ -755,7 +1725,10 @@
         localStorage.setItem(LEGACY_MANAGER_STORAGE_KEY, managerName);
     }
 
-    function animateValue(id, start, end, duration, suffix = "") {
+    /* =====================================================
+       ANIMATE VALUE
+       ===================================================== */
+    function animateValue(id, start, end, duration, suffix) {
         const obj = document.getElementById(id);
         if (!obj) return;
 
@@ -765,13 +1738,14 @@
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const current = Math.floor(progress * (end - start) + start);
             obj.innerHTML = current + suffix;
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
+            if (progress < 1) window.requestAnimationFrame(step);
         };
         window.requestAnimationFrame(step);
     }
 
+    /* =====================================================
+       DATA PROCESSING
+       ===================================================== */
     function buildPlayerPointsMap(rawPoints) {
         playerPointsData = {};
         Object.entries(rawPoints || {}).forEach(([id, docData]) => {
@@ -787,31 +1761,17 @@
 
     function getFavoriteClubAwardData(mergedPlayers) {
         const clubMap = {};
-
         (mergedPlayers || []).forEach(player => {
             if (!player.club || player.club === '?' || player.club === 'Vereinslos') return;
-
             if (!clubMap[player.club]) {
-                clubMap[player.club] = {
-                    name: player.club,
-                    logo: player.clubLogo || '',
-                    count: 0,
-                    points: 0
-                };
+                clubMap[player.club] = { name: player.club, logo: player.clubLogo || '', count: 0, points: 0 };
             }
-
             clubMap[player.club].count += 1;
             clubMap[player.club].points += player.pts;
         });
-
         const clubs = Object.values(clubMap);
         if (!clubs.length) return null;
-
-        clubs.sort((a, b) => {
-            if (b.count !== a.count) return b.count - a.count;
-            return b.points - a.points;
-        });
-
+        clubs.sort((a, b) => b.count !== a.count ? b.count - a.count : b.points - a.points);
         return clubs[0].count >= 2 ? clubs[0] : null;
     }
 
@@ -846,24 +1806,12 @@
 
             const teamTotal = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
 
-            const positionTotals = {
-                GOALKEEPER: 0,
-                DEFENDER: 0,
-                MIDFIELDER: 0,
-                ATTACKER: 0,
-                BENCH: 0
-            };
+            const positionTotals = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0, BENCH: 0 };
 
             mergedPlayers.forEach(player => {
                 const posKey = normalizePosition(player.pos);
-
-                if (positionTotals[posKey] !== undefined) {
-                    positionTotals[posKey] += player.pts;
-                }
-
-                if (player.slotNum >= 11) {
-                    positionTotals.BENCH += player.pts;
-                }
+                if (positionTotals[posKey] !== undefined) positionTotals[posKey] += player.pts;
+                if (player.slotNum >= 11) positionTotals.BENCH += player.pts;
             });
 
             const captainCard = mergedPlayers.find(player => player.isCaptain) || null;
@@ -890,11 +1838,7 @@
             if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
             return a.manager.localeCompare(b.manager, 'de');
         });
-
-        ranking.forEach((team, index) => {
-            team.currentRank = index + 1;
-        });
-
+        ranking.forEach((team, index) => { team.currentRank = index + 1; });
         return teams;
     }
 
@@ -911,7 +1855,6 @@
 
     function buildPerfectTeamIds() {
         const ids = new Set();
-
         const allPlayersWithPts = playersData.map(p => ({
             ...p,
             pts: playerPointsData[String(p['player.id'])] || 0
@@ -920,18 +1863,15 @@
         const selectedNations = new Set();
         const teamSlots = { GK: [], DEF: [], MID: [], ATT: [] };
         const maxSlots = { GK: 2, DEF: 4, MID: 5, ATT: 4 };
-
         const sortedAll = [...allPlayersWithPts].sort((a, b) => b.pts - a.pts);
 
         for (const p of sortedAll) {
             const pos = normalizePosition(p.Position);
             let slotKey = '';
-
             if (pos === 'GOALKEEPER') slotKey = 'GK';
             else if (pos === 'DEFENDER') slotKey = 'DEF';
             else if (pos === 'MIDFIELDER') slotKey = 'MID';
             else if (pos === 'ATTACKER') slotKey = 'ATT';
-
             if (!slotKey) continue;
 
             const nationName = p['Nationalteam.name'];
@@ -952,10 +1892,7 @@
             teamSlots.ATT[3] || null
         ].filter(Boolean);
 
-        displayedAllPlayers.forEach(player => {
-            ids.add(String(player['player.id']));
-        });
-
+        displayedAllPlayers.forEach(player => { ids.add(String(player['player.id'])); });
         return ids;
     }
 
@@ -963,54 +1900,37 @@
         return (teams || []).map(team => {
             const scoutingCount = (team.mergedPlayers || []).filter(player => (globalPickCounts[player.id] || 0) === 1).length;
             const perfectHits = (team.mergedPlayers || []).filter(player => perfectTeamIds.has(String(player.id))).length;
-
-            return {
-                ...team,
-                scoutingCount,
-                perfectHits
-            };
+            return { ...team, scoutingCount, perfectHits };
         });
     }
 
     function buildLeaderData(teams, valueGetter) {
         let bestValue = -Infinity;
         let winners = [];
-
         (teams || []).forEach(team => {
             const value = valueGetter(team);
-
             if (typeof value !== 'number' || Number.isNaN(value)) return;
-
-            if (value > bestValue) {
-                bestValue = value;
-                winners = [team.manager];
-            } else if (value === bestValue) {
-                winners.push(team.manager);
-            }
+            if (value > bestValue) { bestValue = value; winners = [team.manager]; }
+            else if (value === bestValue) { winners.push(team.manager); }
         });
-
-        if (!winners.length) {
-            return { value: null, winners: [] };
-        }
-
-        return { value: bestValue, winners };
+        return winners.length ? { value: bestValue, winners } : { value: null, winners: [] };
     }
 
     function buildTeamAwardLeaders(teams) {
         return {
-            gk: buildLeaderData(teams, team => team.positionTotals.GOALKEEPER),
-            def: buildLeaderData(teams, team => team.positionTotals.DEFENDER),
-            mid: buildLeaderData(teams, team => team.positionTotals.MIDFIELDER),
-            att: buildLeaderData(teams, team => team.positionTotals.ATTACKER),
-            captain: buildLeaderData(teams, team => team.captainPoints),
-            bench: buildLeaderData(teams, team => team.positionTotals.BENCH),
-            scouting: buildLeaderData(teams, team => team.scoutingCount),
-            perfect: buildLeaderData(teams, team => team.perfectHits),
-            instinct: buildLeaderData(teams, team => team.captainShare)
+            gk:       buildLeaderData(teams, t => t.positionTotals.GOALKEEPER),
+            def:      buildLeaderData(teams, t => t.positionTotals.DEFENDER),
+            mid:      buildLeaderData(teams, t => t.positionTotals.MIDFIELDER),
+            att:      buildLeaderData(teams, t => t.positionTotals.ATTACKER),
+            captain:  buildLeaderData(teams, t => t.captainPoints),
+            bench:    buildLeaderData(teams, t => t.positionTotals.BENCH),
+            scouting: buildLeaderData(teams, t => t.scoutingCount),
+            perfect:  buildLeaderData(teams, t => t.perfectHits),
+            instinct: buildLeaderData(teams, t => t.captainShare)
         };
     }
 
-    function hasLeaderAward(leader, managerName, minValue = 1) {
+    function hasLeaderAward(leader, managerName, minValue) {
         return !!(
             leader &&
             typeof leader.value === 'number' &&
@@ -1020,106 +1940,45 @@
         );
     }
 
+    /* =====================================================
+       RENDER MANAGER AWARDS
+       ===================================================== */
     function renderManagerAwards(team) {
         const awardsEl = document.getElementById('manager-awards');
         if (!awardsEl) return;
-
-        if (!team) {
-            awardsEl.innerHTML = '';
-            return;
-        }
+        if (!team) { awardsEl.innerHTML = ''; return; }
 
         const awards = [];
 
         if (team.favoriteClub && team.favoriteClub.count >= 2) {
-            awards.push({
-                type: 'club',
-                label: 'Lieblingsclub',
-                title: `${team.favoriteClub.name} (${team.favoriteClub.count} Spieler, ${team.favoriteClub.points} Pkt.)`,
-                logo: team.favoriteClub.logo || '',
-                emoji: '🏢'
-            });
+            awards.push({ type: 'club', label: 'Lieblingsclub', title: `${team.favoriteClub.name} (${team.favoriteClub.count} Spieler, ${team.favoriteClub.points} Pkt.)`, logo: team.favoriteClub.logo || '', emoji: '🏢' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.gk, team.manager, 1)) {
-            awards.push({
-                type: 'gk',
-                label: 'Top-Torwart',
-                title: `Bestes Torwart-Paket aller Teams (${team.positionTotals.GOALKEEPER} Pkt.)`,
-                emoji: '🧤'
-            });
+            awards.push({ type: 'gk', label: 'Top-Torwart', title: `Bestes Torwart-Paket aller Teams (${team.positionTotals.GOALKEEPER} Pkt.)`, emoji: '🧤' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.def, team.manager, 1)) {
-            awards.push({
-                type: 'def',
-                label: 'Top-Abwehr',
-                title: `Beste Verteidigung aller Teams (${team.positionTotals.DEFENDER} Pkt.)`,
-                emoji: '🛡️'
-            });
+            awards.push({ type: 'def', label: 'Top-Abwehr', title: `Beste Verteidigung aller Teams (${team.positionTotals.DEFENDER} Pkt.)`, emoji: '🛡️' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.mid, team.manager, 1)) {
-            awards.push({
-                type: 'mid',
-                label: 'Top-Mittelfeld',
-                title: `Bestes Mittelfeld aller Teams (${team.positionTotals.MIDFIELDER} Pkt.)`,
-                emoji: '🎯'
-            });
+            awards.push({ type: 'mid', label: 'Top-Mittelfeld', title: `Bestes Mittelfeld aller Teams (${team.positionTotals.MIDFIELDER} Pkt.)`, emoji: '🎯' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.att, team.manager, 1)) {
-            awards.push({
-                type: 'att',
-                label: 'Top-Sturm',
-                title: `Bester Sturm aller Teams (${team.positionTotals.ATTACKER} Pkt.)`,
-                emoji: '⚡'
-            });
+            awards.push({ type: 'att', label: 'Top-Sturm', title: `Bester Sturm aller Teams (${team.positionTotals.ATTACKER} Pkt.)`, emoji: '⚡' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.captain, team.manager, 1)) {
-            awards.push({
-                type: 'captain',
-                label: 'Top-Captain',
-                title: `Captain mit den meisten Punkten (${team.captainPoints} Pkt.)`,
-                emoji: '👑'
-            });
+            awards.push({ type: 'captain', label: 'Top-Captain', title: `Captain mit den meisten Punkten (${team.captainPoints} Pkt.)`, emoji: '👑' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.bench, team.manager, 1)) {
-            awards.push({
-                type: 'bench',
-                label: 'Beste Bank',
-                title: `Stärkste Ersatzbank aller Teams (${team.positionTotals.BENCH} Pkt.)`,
-                emoji: '🪑'
-            });
+            awards.push({ type: 'bench', label: 'Beste Bank', title: `Stärkste Ersatzbank aller Teams (${team.positionTotals.BENCH} Pkt.)`, emoji: '🪑' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.scouting, team.manager, 1)) {
-            awards.push({
-                type: 'scouting',
-                label: 'Scouting-Meister',
-                title: `${team.scoutingCount} Unique Picks im Team`,
-                emoji: '🔎'
-            });
+            awards.push({ type: 'scouting', label: 'Scouting-Meister', title: `${team.scoutingCount} Unique Picks im Team`, emoji: '🔎' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.perfect, team.manager, 1)) {
-            awards.push({
-                type: 'perfect',
-                label: 'PerfectTeam-Treffer',
-                title: `${team.perfectHits} Spieler aus dem aktuellen PerfectTeam`,
-                emoji: '🏆'
-            });
+            awards.push({ type: 'perfect', label: 'PerfectTeam-Treffer', title: `${team.perfectHits} Spieler aus dem aktuellen PerfectTeam`, emoji: '🏆' });
         }
-
         if (hasLeaderAward(teamAwardLeaders.instinct, team.manager, 0.18) && team.captainPoints > 0 && team.totalScore > 0) {
-            awards.push({
-                type: 'instinct',
-                label: 'Captain-Gespür',
-                title: `Captain liefert ${Math.round(team.captainShare * 100)}% der Team-Punkte (${team.captainPoints} Pkt.)`,
-                emoji: '🧠'
-            });
+            awards.push({ type: 'instinct', label: 'Captain-Gespür', title: `Captain liefert ${Math.round(team.captainShare * 100)}% der Team-Punkte (${team.captainPoints} Pkt.)`, emoji: '🧠' });
         }
 
         awardsEl.innerHTML = awards.map(award => `
@@ -1133,162 +1992,272 @@
         `).join('');
     }
 
-    function getCurrentDisplayedManager() {
-        const teamView = document.getElementById('team-view');
-        if (teamView.style.display === 'none') return null;
-        const current = document.getElementById('display-manager-name').innerText.trim();
-        return current || null;
+    /* =====================================================
+       HERO PILLS
+       ===================================================== */
+    function updateHeroPills(team) {
+        const countPill   = document.getElementById('hero-teams-count');
+        const managerPill = document.getElementById('hero-current-manager');
+        const rankPill    = document.getElementById('hero-current-rank');
+        const countVal    = document.getElementById('hero-count-val');
+        const managerVal  = document.getElementById('hero-manager-val');
+        const rankVal     = document.getElementById('hero-rank-val');
+
+        if (countPill && countVal) {
+            countVal.textContent = allTeams.length;
+            countPill.style.display = '';
+        }
+
+        if (team && managerPill && managerVal) {
+            managerVal.textContent = team.manager;
+            managerPill.style.display = '';
+        }
+
+        if (team && rankPill && rankVal) {
+            rankVal.textContent = team.currentRank || '–';
+            rankPill.style.display = '';
+        }
     }
 
-    function getFilteredTeamsFromSearch() {
-        const term = document.getElementById('manager-search').value.toLowerCase().trim();
-        if (!term) return allTeams;
-        return allTeams.filter(t => t.manager.toLowerCase().includes(term));
+    /* =====================================================
+       MOBILE PICKER BUTTON
+       ===================================================== */
+    function updateMobilePickerBtn(team) {
+        const nameEl = document.getElementById('mobile-picker-name');
+        const metaEl = document.getElementById('mobile-picker-meta');
+        if (!nameEl) return;
+
+        if (team) {
+            nameEl.textContent = team.manager;
+            if (metaEl) {
+                const rankStr = team.currentRank ? ` · Rang ${team.currentRank}` : '';
+                metaEl.textContent = `${team.totalScore} Pkt.${rankStr}`;
+            }
+        } else {
+            nameEl.textContent = '– Kein Team gewählt –';
+            if (metaEl) metaEl.textContent = '';
+        }
     }
 
-    function getPreferredManager(teams, preferCurrentDisplayed = false) {
+    /* =====================================================
+       MANAGER LIST (Desktop Sidebar)
+       ===================================================== */
+    function getCurrentManager() {
         const urlParams = new URLSearchParams(window.location.search);
-        const managerFromUrl = urlParams.get('manager');
-        const managerFromStorage = getStoredManagerName();
-        const currentDisplayedManager = preferCurrentDisplayed ? getCurrentDisplayedManager() : null;
-
-        const managerExists = (managerName) => !!teams.find(t => t.manager === managerName);
-
-        if (managerFromUrl && managerExists(managerFromUrl)) return managerFromUrl;
-        if (currentDisplayedManager && managerExists(currentDisplayedManager)) return currentDisplayedManager;
-        if (managerFromStorage && managerExists(managerFromStorage)) return managerFromStorage;
-        if (teams.length > 0) return teams[0].manager;
-
-        return null;
-    }
-
-    function updateManagerUrlAndStorage(managerName) {
-        if (!managerName) return;
-        setStoredManagerName(managerName);
-        window.history.replaceState(null, '', '?manager=' + encodeURIComponent(managerName));
-    }
-
-    function applyDataset(data, options = {}) {
-        const preferCurrentDisplayed = !!options.preferCurrentDisplayed;
-
-        buildPlayerPointsMap(data.points || {});
-        allTeams = enrichTeamsWithScores(data.teams || []);
-        allTeams = assignTeamRanks(allTeams);
-        globalPickCounts = buildGlobalPickCounts(allTeams);
-        perfectTeamIds = buildPerfectTeamIds();
-        allTeams = augmentTeamsWithDerivedAwards(allTeams);
-        teamAwardLeaders = buildTeamAwardLeaders(allTeams);
-
-        if (!allTeams.length) {
-            document.getElementById('team-view').style.display = 'none';
-            document.getElementById('empty-state').style.display = 'block';
-            document.getElementById('empty-state').innerText = `Noch keine Teams für ${TOURNAMENT_LABEL} vorhanden.`;
-            document.getElementById('display-rank').innerText = '-';
-            renderManagerList([]);
-            return;
-        }
-
-        const preferredManager = getPreferredManager(allTeams, preferCurrentDisplayed);
-        updateManagerUrlAndStorage(preferredManager);
-
-        renderManagerList(getFilteredTeamsFromSearch());
-
-        const teamToLoad = allTeams.find(t => t.manager === preferredManager) || allTeams[0];
-        if (teamToLoad) {
-            loadTeam(teamToLoad);
-            hasRenderedOnce = true;
-        }
+        return urlParams.get('manager') || getStoredManagerName();
     }
 
     function renderManagerList(teamsToRender) {
         const listEl = document.getElementById('manager-list');
-        const selectEl = document.getElementById('mobile-manager-select');
-        
+        if (!listEl) return;
+
         listEl.innerHTML = '';
-        selectEl.innerHTML = '';
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentManager = urlParams.get('manager') || getStoredManagerName();
+        const currentManager = getCurrentManager();
 
         teamsToRender.forEach(team => {
             const div = document.createElement('div');
             div.className = 'manager-item';
+            div.setAttribute('role', 'option');
+            div.setAttribute('aria-selected', team.manager === currentManager ? 'true' : 'false');
             if (team.manager === currentManager) div.classList.add('active');
+
             const nameSpan = document.createElement('span');
             nameSpan.textContent = team.manager;
+
+            const rankSpan = document.createElement('span');
+            rankSpan.className = 'manager-item-rank';
+            rankSpan.textContent = team.currentRank ? `#${team.currentRank}` : '';
+
             div.appendChild(nameSpan);
-            div.onclick = () => {
-                document.querySelectorAll('.manager-item').forEach(el => el.classList.remove('active'));
-                div.classList.add('active');
-                setStoredManagerName(team.manager);
-                window.history.replaceState(null, '', '?manager=' + encodeURIComponent(team.manager));
-                loadTeam(team);
-            };
+            div.appendChild(rankSpan);
+
+            div.addEventListener('click', () => {
+                selectManager(team);
+            });
+
             listEl.appendChild(div);
         });
+    }
 
-        allTeams.forEach(team => {
-            const opt = document.createElement('option');
-            opt.value = team.manager;
-            opt.textContent = `👥 ${team.manager}`;
-            if (team.manager === currentManager) opt.selected = true;
-            selectEl.appendChild(opt);
+    /* =====================================================
+       MOBILE PICKER MODAL – LIST
+       ===================================================== */
+    function renderMobileManagerPicker(teamsToRender) {
+        const listEl = document.getElementById('team-picker-list');
+        if (!listEl) return;
+
+        listEl.innerHTML = '';
+        const currentManager = getCurrentManager();
+
+        teamsToRender.forEach(team => {
+            const item = document.createElement('div');
+            item.className = 'team-picker-item';
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', team.manager === currentManager ? 'true' : 'false');
+            if (team.manager === currentManager) item.classList.add('active');
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'team-picker-item-name';
+            nameSpan.textContent = team.manager;
+
+            const ptsSpan = document.createElement('span');
+            ptsSpan.className = 'team-picker-item-pts';
+            ptsSpan.textContent = team.currentRank ? `#${team.currentRank} · ${team.totalScore} Pkt.` : `${team.totalScore} Pkt.`;
+
+            item.appendChild(nameSpan);
+            item.appendChild(ptsSpan);
+
+            item.addEventListener('click', () => {
+                selectManager(team);
+                closeTeamPickerModal();
+            });
+
+            listEl.appendChild(item);
         });
     }
 
-    document.getElementById('mobile-manager-select').addEventListener('change', (e) => {
-        const managerName = e.target.value;
-        const team = allTeams.find(t => t.manager === managerName);
-        if (team) {
-            document.querySelectorAll('.manager-item').forEach(el => {
-                el.classList.remove('active');
-                const span = el.querySelector('span');
-                if (span && span.innerText === managerName) el.classList.add('active');
-            });
-            setStoredManagerName(team.manager);
-            window.history.replaceState(null, '', '?manager=' + encodeURIComponent(team.manager));
-            loadTeam(team);
-        }
-    });
+    /* =====================================================
+       SELECT MANAGER (shared logic)
+       ===================================================== */
+    function selectManager(team) {
+        // Update sidebar active state
+        document.querySelectorAll('.manager-item').forEach(el => {
+            const span = el.querySelector('span');
+            const isActive = span && span.textContent === team.manager;
+            el.classList.toggle('active', isActive);
+            el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
 
-    document.getElementById('manager-search').addEventListener('input', () => {
-        renderManagerList(getFilteredTeamsFromSearch());
-    });
+        // Update modal active state if open
+        document.querySelectorAll('.team-picker-item').forEach(el => {
+            const nameSpan = el.querySelector('.team-picker-item-name');
+            const isActive = nameSpan && nameSpan.textContent === team.manager;
+            el.classList.toggle('active', isActive);
+            el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
 
-    function animateHeader() {
-        const nameEl = document.getElementById('display-manager-name');
-        const awardsEl = document.getElementById('manager-awards');
-        const ptsEl = document.getElementById('display-total-points');
-        const rankLinkEl = document.getElementById('display-rank-link');
-
-        nameEl.classList.remove('animate-header-text');
-        awardsEl.classList.remove('animate-header-text');
-        ptsEl.classList.remove('animate-header-text');
-        rankLinkEl.classList.remove('animate-header-text');
-
-        void nameEl.offsetWidth;
-
-        nameEl.classList.add('animate-header-text');
-        awardsEl.classList.add('animate-header-text');
-        ptsEl.classList.add('animate-header-text');
-        rankLinkEl.classList.add('animate-header-text');
+        setStoredManagerName(team.manager);
+        window.history.replaceState(null, '', '?manager=' + encodeURIComponent(team.manager));
+        loadTeam(team);
     }
 
+    /* =====================================================
+       SEARCH FILTER
+       ===================================================== */
+    function getFilteredTeams(searchTerm) {
+        const term = (searchTerm || '').toLowerCase().trim();
+        if (!term) return allTeams;
+        return allTeams.filter(t => t.manager.toLowerCase().includes(term));
+    }
+
+    function getDesktopSearchTerm() {
+        const el = document.getElementById('manager-search');
+        return el ? el.value : '';
+    }
+
+    function getMobileSearchTerm() {
+        const el = document.getElementById('team-picker-search');
+        return el ? el.value : '';
+    }
+
+    /* =====================================================
+       MODAL OPEN / CLOSE
+       ===================================================== */
+    function openTeamPickerModal() {
+        const overlay = document.getElementById('team-picker-overlay');
+        const btn     = document.getElementById('mobile-picker-btn');
+        if (!overlay) return;
+
+        renderMobileManagerPicker(getFilteredTeams(getMobileSearchTerm()));
+
+        overlay.classList.add('visible');
+        document.body.classList.add('modal-open');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        overlay.focus();
+
+        // Scroll active item into view
+        requestAnimationFrame(() => {
+            const activeItem = overlay.querySelector('.team-picker-item.active');
+            if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
+        });
+    }
+
+    function closeTeamPickerModal() {
+        const overlay = document.getElementById('team-picker-overlay');
+        const btn     = document.getElementById('mobile-picker-btn');
+        if (!overlay) return;
+
+        overlay.classList.remove('visible');
+        document.body.classList.remove('modal-open');
+        if (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+            btn.focus();
+        }
+    }
+
+    function initModalEvents() {
+        if (modalPickerInitialized) return;
+        modalPickerInitialized = true;
+
+        const openBtn   = document.getElementById('mobile-picker-btn');
+        const closeBtn  = document.getElementById('team-picker-close');
+        const overlay   = document.getElementById('team-picker-overlay');
+        const searchEl  = document.getElementById('team-picker-search');
+
+        if (openBtn) {
+            openBtn.addEventListener('click', openTeamPickerModal);
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeTeamPickerModal);
+        }
+
+        // Close on backdrop click
+        if (overlay) {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeTeamPickerModal();
+            });
+        }
+
+        // Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay && overlay.classList.contains('visible')) {
+                closeTeamPickerModal();
+            }
+        });
+
+        // Modal search filter
+        if (searchEl) {
+            searchEl.addEventListener('input', () => {
+                renderMobileManagerPicker(getFilteredTeams(searchEl.value));
+            });
+        }
+    }
+
+    /* =====================================================
+       HEADER ANIMATION
+       ===================================================== */
+    function animateHeader() {
+        const els = [
+            document.getElementById('display-manager-name'),
+            document.getElementById('manager-awards'),
+            document.getElementById('display-total-points'),
+            document.getElementById('display-rank-link')
+        ];
+
+        els.forEach(el => { if (el) el.classList.remove('animate-header-text'); });
+        void (els[0] && els[0].offsetWidth);
+        els.forEach(el => { if (el) el.classList.add('animate-header-text'); });
+    }
+
+    /* =====================================================
+       VANILLA TILT
+       ===================================================== */
     function hardResetCard(card) {
         if (!card) return;
-        try {
-            if (card.vanillaTilt) {
-                card.vanillaTilt.reset();
-            }
-        } catch (e) {}
-
-        requestAnimationFrame(() => {
-            card.style.transform = CARD_BASE_TRANSFORM;
-        });
-
-        setTimeout(() => {
-            card.style.transform = CARD_BASE_TRANSFORM;
-        }, 220);
+        try { if (card.vanillaTilt) card.vanillaTilt.reset(); } catch (e) {}
+        requestAnimationFrame(() => { card.style.transform = CARD_BASE_TRANSFORM; });
+        setTimeout(() => { card.style.transform = CARD_BASE_TRANSFORM; }, 220);
     }
 
     function initCardTilt() {
@@ -1296,7 +2265,7 @@
 
         cards.forEach(card => {
             if (card.vanillaTilt) {
-                card.vanillaTilt.destroy();
+                try { card.vanillaTilt.destroy(); } catch (e) {}
             }
             card.style.transform = CARD_BASE_TRANSFORM;
 
@@ -1307,17 +2276,15 @@
             }
         });
 
-        if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-            return;
-        }
-
+        // Only enable tilt on pointer:fine (non-touch) devices
+        if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
         if (!cards.length) return;
 
         VanillaTilt.init(cards, {
-            max: 15,
+            max: 14,
             speed: 280,
             glare: true,
-            "max-glare": 0.35,
+            "max-glare": 0.3,
             scale: 1,
             transition: true,
             reset: true,
@@ -1326,9 +2293,44 @@
         });
     }
 
+    /* =====================================================
+       CARD HTML BUILDER
+       ===================================================== */
+    function buildCardHtml(mergedP, idx, wrapperClass) {
+        const ptsClass  = mergedP.pts > 0 ? 'pos' : (mergedP.pts < 0 ? 'neg' : '');
+        const sign      = mergedP.pts > 0 ? '+' : '';
+        const analysisUrl = `spieleranalyse.html?player=${encodeURIComponent(mergedP.name)}`;
+        const animStyle = `animation-delay: ${idx * 0.04}s;`;
+        const capClass  = mergedP.isCaptain ? 'is-captain' : '';
+        const capBadge  = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';
+        const ptsId     = `pts-${mergedP.id}-${mergedP.slotNum}`;
+
+        return `
+            <div class="${wrapperClass}" style="${animStyle}">
+                <a href="${analysisUrl}" class="player-card ${capClass}">
+                    ${capBadge}
+                    <div class="card-pts ${ptsClass}" id="${ptsId}">${sign}${mergedP.pts}</div>
+                    <div class="avatar-wrapper"><img src="${mergedP.photo}" class="card-avatar" alt="${mergedP.name}" loading="lazy"></div>
+                    <div class="card-info">
+                        <div class="card-name">${mergedP.name}</div>
+                        <div class="card-sub-info"><img src="${mergedP.flag}" class="small-icon" alt="${mergedP.nation}" loading="lazy"> <span>${mergedP.nation}</span></div>
+                        <div class="card-sub-info"><img src="${mergedP.clubLogo}" class="small-icon club" alt="${mergedP.club}" loading="lazy"> <span>${mergedP.club}</span></div>
+                    </div>
+                </a>
+            </div>
+        `;
+    }
+
+    /* =====================================================
+       CLEAR BOARD
+       ===================================================== */
     function clearBoard() {
-        ['row-GK', 'row-DEF', 'row-MID', 'row-ATT', 'bench-GK', 'bench-DEF', 'bench-MID', 'bench-ATT'].forEach(id => {
-            document.getElementById(id).innerHTML = '';
+        const desktopIds = ['row-GK', 'row-DEF', 'row-MID', 'row-ATT', 'bench-GK', 'bench-DEF', 'bench-MID', 'bench-ATT'];
+        const mobileIds  = ['mobile-row-GK', 'mobile-row-DEF', 'mobile-row-MID', 'mobile-row-ATT', 'mobile-bench-all'];
+
+        [...desktopIds, ...mobileIds].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '';
         });
     }
 
@@ -1337,21 +2339,37 @@
         if (el) el.insertAdjacentHTML('beforeend', html);
     }
 
+    /* =====================================================
+       LOAD TEAM
+       ===================================================== */
     function loadTeam(team) {
-        document.getElementById('empty-state').style.display = 'none';
-        document.getElementById('team-view').style.display = 'block';
-        
-        document.getElementById('display-manager-name').innerText = team.manager;
-        document.getElementById('mobile-manager-select').value = team.manager;
-        document.getElementById('display-rank').innerText = team.currentRank ? team.currentRank : '-';
+        const emptyState = document.getElementById('empty-state');
+        const teamView   = document.getElementById('team-view');
+        if (emptyState) emptyState.style.display = 'none';
+        if (teamView)   teamView.style.display = 'block';
+
+        // Header
+        const nameEl = document.getElementById('display-manager-name');
+        if (nameEl) nameEl.textContent = team.manager;
+
+        const rankEl = document.getElementById('display-rank');
+        if (rankEl) rankEl.textContent = team.currentRank ? team.currentRank : '–';
 
         const rankLink = document.getElementById('display-rank-link');
-        rankLink.href = 'rangliste.html';
-        rankLink.title = team.currentRank ? `Zur Rangliste wechseln (aktueller Rang ${team.currentRank})` : 'Zur Rangliste wechseln';
+        if (rankLink) {
+            rankLink.href = 'rangliste.html';
+            rankLink.title = team.currentRank ? `Zur Rangliste wechseln (aktueller Rang ${team.currentRank})` : 'Zur Rangliste wechseln';
+        }
 
         renderManagerAwards(team);
         animateHeader();
-        animateValue("display-total-points", 0, team.totalScore, 1000, " Pkt.");
+        animateValue("display-total-points", 0, team.totalScore, 900, " Pkt.");
+
+        // Update mobile picker button
+        updateMobilePickerBtn(team);
+
+        // Update hero pills
+        updateHeroPills(team);
 
         clearBoard();
 
@@ -1359,59 +2377,150 @@
         const playersToRender = Array.isArray(team.mergedPlayers) ? team.mergedPlayers : [];
 
         playersToRender.forEach((mergedP, idx) => {
-            const ptsClass = mergedP.pts > 0 ? 'pos' : (mergedP.pts < 0 ? 'neg' : '');
-            const sign = mergedP.pts > 0 ? '+' : '';
-            const analysisUrl = `spieleranalyse.html?player=${encodeURIComponent(mergedP.name)}`;
-            const animStyle = `animation-delay: ${idx * 0.03}s;`;
-            const capClass = mergedP.isCaptain ? 'is-captain' : '';
-            const capBadge = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';
-            const ptsId = `pts-${mergedP.id}-${mergedP.slotNum}`;
+            // Desktop card
+            const desktopHtml = buildCardHtml(mergedP, idx, 'card-wrapper');
+            // Mobile card
+            const isBench = mergedP.slotNum >= 11;
+            const mobileWrapperClass = isBench ? 'mobile-bench-card-wrapper' : 'mobile-card-wrapper';
+            const mobileHtml = buildCardHtml(mergedP, idx, mobileWrapperClass);
 
-            const html = `
-                <div class="card-wrapper" style="${animStyle}">
-                    <a href="${analysisUrl}" class="player-card ${capClass}">
-                        ${capBadge}
-                        <div class="card-pts ${ptsClass}" id="${ptsId}">${sign}${mergedP.pts}</div>
-                        <div class="avatar-wrapper"><img src="${mergedP.photo}" class="card-avatar" alt="${mergedP.name}"></div>
-                        <div class="card-info">
-                            <div class="card-name">${mergedP.name}</div>
-                            <div class="card-sub-info"><img src="${mergedP.flag}" class="small-icon" alt="${mergedP.nation}"> <span>${mergedP.nation}</span></div>
-                            <div class="card-sub-info"><img src="${mergedP.clubLogo}" class="small-icon club" alt="${mergedP.club}"> <span>${mergedP.club}</span></div>
-                        </div>
-                    </a>
-                </div>
-            `;
-
-            if (mergedP.slotNum === 11) appendCardHtml('bench-GK', html);
-            else if (mergedP.slotNum === 12) appendCardHtml('bench-DEF', html);
-            else if (mergedP.slotNum === 13) appendCardHtml('bench-MID', html);
-            else if (mergedP.slotNum >= 14) appendCardHtml('bench-ATT', html);
-            else {
+            // Route desktop
+            if (mergedP.slotNum === 11) {
+                appendCardHtml('bench-GK', desktopHtml);
+            } else if (mergedP.slotNum === 12) {
+                appendCardHtml('bench-DEF', desktopHtml);
+            } else if (mergedP.slotNum === 13) {
+                appendCardHtml('bench-MID', desktopHtml);
+            } else if (mergedP.slotNum >= 14) {
+                appendCardHtml('bench-ATT', desktopHtml);
+            } else {
                 let rowId = 'row-ATT';
                 if (mergedP.pos === 'GOALKEEPER') rowId = 'row-GK';
                 else if (mergedP.pos === 'DEFENDER') rowId = 'row-DEF';
                 else if (mergedP.pos === 'MIDFIELDER') rowId = 'row-MID';
-                appendCardHtml(rowId, html);
+                appendCardHtml(rowId, desktopHtml);
             }
 
+            // Route mobile
+            if (isBench) {
+                appendCardHtml('mobile-bench-all', mobileHtml);
+            } else {
+                let mobileRowId = 'mobile-row-ATT';
+                if (mergedP.pos === 'GOALKEEPER') mobileRowId = 'mobile-row-GK';
+                else if (mergedP.pos === 'DEFENDER') mobileRowId = 'mobile-row-DEF';
+                else if (mergedP.pos === 'MIDFIELDER') mobileRowId = 'mobile-row-MID';
+                appendCardHtml(mobileRowId, mobileHtml);
+            }
+
+            // Animate points counter
+            const ptsId = `pts-${mergedP.id}-${mergedP.slotNum}`;
             setTimeout(() => {
-                animateValue(ptsId, 0, mergedP.pts, 800, "");
+                animateValue(ptsId, 0, mergedP.pts, 750, "");
             }, cardDelayCount * 40 + 100);
 
             cardDelayCount++;
         });
 
         requestAnimationFrame(() => {
-            setTimeout(() => {
-                initCardTilt();
-            }, 180);
+            setTimeout(() => { initCardTilt(); }, 180);
         });
     }
 
+    /* =====================================================
+       APPLY DATASET
+       ===================================================== */
+    function getPreferredManager(teams, preferCurrentDisplayed) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const managerFromUrl = urlParams.get('manager');
+        const managerFromStorage = getStoredManagerName();
+
+        let currentDisplayedManager = null;
+        if (preferCurrentDisplayed) {
+            const teamView = document.getElementById('team-view');
+            const nameEl   = document.getElementById('display-manager-name');
+            if (teamView && teamView.style.display !== 'none' && nameEl) {
+                currentDisplayedManager = nameEl.textContent.trim() || null;
+            }
+        }
+
+        const managerExists = (name) => !!teams.find(t => t.manager === name);
+
+        if (managerFromUrl && managerExists(managerFromUrl)) return managerFromUrl;
+        if (currentDisplayedManager && managerExists(currentDisplayedManager)) return currentDisplayedManager;
+        if (managerFromStorage && managerExists(managerFromStorage)) return managerFromStorage;
+        if (teams.length > 0) return teams[0].manager;
+        return null;
+    }
+
+    function updateManagerUrlAndStorage(managerName) {
+        if (!managerName) return;
+        setStoredManagerName(managerName);
+        window.history.replaceState(null, '', '?manager=' + encodeURIComponent(managerName));
+    }
+
+    function applyDataset(data, options) {
+        const preferCurrentDisplayed = !!(options && options.preferCurrentDisplayed);
+
+        buildPlayerPointsMap(data.points || {});
+        allTeams = enrichTeamsWithScores(data.teams || []);
+        allTeams = assignTeamRanks(allTeams);
+        globalPickCounts = buildGlobalPickCounts(allTeams);
+        perfectTeamIds = buildPerfectTeamIds();
+        allTeams = augmentTeamsWithDerivedAwards(allTeams);
+        teamAwardLeaders = buildTeamAwardLeaders(allTeams);
+
+        if (!allTeams.length) {
+            const teamView   = document.getElementById('team-view');
+            const emptyState = document.getElementById('empty-state');
+            if (teamView)   teamView.style.display = 'none';
+            if (emptyState) {
+                emptyState.style.display = 'block';
+                emptyState.innerHTML = `<span class="empty-icon">📭</span>Noch keine Teams für ${TOURNAMENT_LABEL} vorhanden.`;
+            }
+            const rankEl = document.getElementById('display-rank');
+            if (rankEl) rankEl.textContent = '–';
+            renderManagerList([]);
+            return;
+        }
+
+        // Update hero teams count
+        const heroCountPill = document.getElementById('hero-teams-count');
+        const heroCountVal  = document.getElementById('hero-count-val');
+        if (heroCountPill && heroCountVal) {
+            heroCountVal.textContent = allTeams.length;
+            heroCountPill.style.display = '';
+        }
+
+        const preferredManager = getPreferredManager(allTeams, preferCurrentDisplayed);
+        updateManagerUrlAndStorage(preferredManager);
+
+        renderManagerList(getFilteredTeams(getDesktopSearchTerm()));
+
+        const teamToLoad = allTeams.find(t => t.manager === preferredManager) || allTeams[0];
+        if (teamToLoad) {
+            loadTeam(teamToLoad);
+            hasRenderedOnce = true;
+        }
+    }
+
+    /* =====================================================
+       SEARCH EVENT LISTENERS
+       ===================================================== */
+    function initSearchListeners() {
+        const desktopSearch = document.getElementById('manager-search');
+        if (desktopSearch) {
+            desktopSearch.addEventListener('input', () => {
+                renderManagerList(getFilteredTeams(desktopSearch.value));
+            });
+        }
+    }
+
+    /* =====================================================
+       META REFRESH
+       ===================================================== */
     async function refreshFromMeta(remoteMeta) {
         if (isMetaRefreshRunning) return;
         isMetaRefreshRunning = true;
-
         try {
             const updated = await DreamTeamCache.loadBundle({
                 ...CACHE_OPTIONS,
@@ -1425,7 +2534,13 @@
         }
     }
 
+    /* =====================================================
+       INIT
+       ===================================================== */
     async function init() {
+        initSearchListeners();
+        initModalEvents();
+
         try {
             const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
             if (cached.ok) {
@@ -1438,22 +2553,21 @@
             if (!metaUnsubscribe) {
                 metaUnsubscribe = DreamTeamCache.subscribeToMeta({
                     ...CACHE_OPTIONS,
-                    onChange: async ({ remoteMeta }) => {
-                        await refreshFromMeta(remoteMeta);
-                    },
-                    onError: (err) => {
-                        console.error('Meta-Listener Fehler:', err);
-                    }
+                    onChange: async ({ remoteMeta }) => { await refreshFromMeta(remoteMeta); },
+                    onError: (err) => { console.error('Meta-Listener Fehler:', err); }
                 });
             }
 
         } catch (e) {
             console.error(e);
-
             if (!hasRenderedOnce) {
-                document.getElementById('team-view').style.display = 'none';
-                document.getElementById('empty-state').style.display = 'block';
-                document.getElementById('empty-state').innerText = `Fehler beim Laden der Teams für ${TOURNAMENT_LABEL}.`;
+                const teamView   = document.getElementById('team-view');
+                const emptyState = document.getElementById('empty-state');
+                if (teamView)   teamView.style.display = 'none';
+                if (emptyState) {
+                    emptyState.style.display = 'block';
+                    emptyState.innerHTML = `<span class="empty-icon">⚠️</span>Fehler beim Laden der Teams für ${TOURNAMENT_LABEL}.`;
+                }
             }
         }
     }
@@ -1461,23 +2575,17 @@
     window.addEventListener('DOMContentLoaded', init);
 
     window.addEventListener('pageshow', () => {
-        setTimeout(() => {
-            initCardTilt();
-        }, 120);
+        setTimeout(() => { initCardTilt(); }, 120);
     });
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-            setTimeout(() => {
-                initCardTilt();
-            }, 80);
+            setTimeout(() => { initCardTilt(); }, 80);
         }
     });
 
     window.addEventListener('beforeunload', () => {
-        if (typeof metaUnsubscribe === 'function') {
-            metaUnsubscribe();
-        }
+        if (typeof metaUnsubscribe === 'function') metaUnsubscribe();
     });
 </script>
 </body>
