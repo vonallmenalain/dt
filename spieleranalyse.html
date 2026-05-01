@@ -2166,6 +2166,7 @@
         db: APP.getDb(),
         year: TOURNAMENT_YEAR,
         allowEmptyPoints: true,
+        allowEmptyFixtures: true,
         log: false
     };
 
@@ -3366,18 +3367,72 @@
 
 
     function buildScheduleCatalog(data) {
-        const explicit = [data?.matches, data?.matchCatalog, data?.games, data?.fixtures].find(a => Array.isArray(a) && a.length) || [];
+        // Prefer structured fixtures from Firestore (data.fixtures is an object keyed by fixtureId)
+        const fixturesObj = data?.fixtures;
+        if (fixturesObj && typeof fixturesObj === 'object' && !Array.isArray(fixturesObj) && Object.keys(fixturesObj).length > 0) {
+            const fixturesArray = Object.values(fixturesObj)
+                .sort((a, b) => (a.kickoffTimestamp || 0) - (b.kickoffTimestamp || 0));
+
+            scheduleCatalog = fixturesArray.map(f => ({
+                id: f.fixtureId || f.id,
+                teamA: f.homeTeam?.name || '-',
+                teamALogo: f.homeTeam?.logo || '',
+                teamB: f.awayTeam?.name || '-',
+                teamBLogo: f.awayTeam?.logo || '',
+                date: f.kickoffIso || '',
+                kickoffTimestamp: f.kickoffTimestamp || null,
+                venue: f.venue?.name || 'Spielort folgt',
+                venueCity: f.venue?.city || '',
+                venueImage: f.venue?.image || '',
+                status: f.status || null,
+                goals: f.goals || null,
+                round: f.league?.round || '',
+                homeWinner: f.homeTeam?.winner ?? null,
+                awayWinner: f.awayTeam?.winner ?? null
+            }));
+            return;
+        }
+
+        // Fallback: legacy explicit arrays in data
+        const explicit = [data?.matches, data?.matchCatalog, data?.games].find(a => Array.isArray(a) && a.length) || [];
         if (explicit.length) {
             scheduleCatalog = explicit.map((m, i) => ({
                 id: m.id || m.gameNumber || m.matchId || i + 1,
                 teamA: m.teamA || m.home || m.homeTeam || '-',
+                teamALogo: '',
                 teamB: m.teamB || m.away || m.awayTeam || '-',
+                teamBLogo: '',
                 date: m.date || m.datetime || '',
-                venue: m.venue || m.stadium || m.location || 'Spielort folgt'
+                kickoffTimestamp: null,
+                venue: m.venue || m.stadium || m.location || 'Spielort folgt',
+                venueCity: '',
+                venueImage: '',
+                status: null,
+                goals: null,
+                round: '',
+                homeWinner: null,
+                awayWinner: null
             }));
             return;
         }
-        scheduleCatalog = matchCatalog.map(m => ({ id: m.number, teamA: m.teamA, teamB: m.teamB, date: m.dateTime || '', venue: m.venue || 'Spielort folgt' }));
+
+        scheduleCatalog = matchCatalog.map(m => ({
+            id: m.number,
+            teamA: m.teamA,
+            teamALogo: '',
+            teamB: m.teamB,
+            teamBLogo: '',
+            date: m.dateTime || '',
+            kickoffTimestamp: null,
+            venue: m.venue || 'Spielort folgt',
+            venueCity: '',
+            venueImage: '',
+            status: null,
+            goals: null,
+            round: '',
+            homeWinner: null,
+            awayWinner: null
+        }));
     }
 
     function renderScheduleView() {
@@ -3385,9 +3440,63 @@
         if (!scheduleCatalog.length) { el.innerHTML = '<div class="games-empty">Kein Spielplan verfügbar.</div>'; return; }
         el.innerHTML = scheduleCatalog.map(m => {
             const dt = m.date ? new Date(m.date) : null;
-            const dateLabel = dt && !Number.isNaN(dt.getTime()) ? dt.toLocaleDateString('de-CH',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}) : 'Datum folgt';
-            const timeLabel = dt && !Number.isNaN(dt.getTime()) ? dt.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}) : 'Uhrzeit folgt';
-            return `<div class="games-match-card"><div class="games-match-header" style="cursor:default;"><div class="games-match-number">Spiel ${escapeHtml(m.id)}</div><div class="games-match-duel"><div class="games-team"><span class="games-team-name">${escapeHtml(m.teamA)}</span></div><div class="games-score draw">${escapeHtml(timeLabel)}</div><div class="games-team right"><span class="games-team-name">${escapeHtml(m.teamB)}</span></div></div></div><div class="games-match-body" style="display:block;"><div class="games-player-meta" style="padding:4px 14px 14px;">${escapeHtml(dateLabel)} • ${escapeHtml(m.venue || 'Spielort folgt')}</div></div></div>`;
+            const dateLabel = dt && !Number.isNaN(dt.getTime())
+                ? dt.toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
+                : 'Datum folgt';
+            const timeLabel = dt && !Number.isNaN(dt.getTime())
+                ? dt.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })
+                : 'Uhrzeit folgt';
+
+            const statusShort = m.status?.short || '';
+            const isFinished = ['FT', 'AET', 'PEN'].includes(statusShort);
+            const isLive = ['1H', '2H', 'HT', 'ET', 'BT', 'P'].includes(statusShort);
+
+            let scoreOrTime;
+            if (isFinished && m.goals) {
+                const gh = m.goals.home ?? '?';
+                const ga = m.goals.away ?? '?';
+                scoreOrTime = `<span style="color:#2ecc71;font-weight:bold;">${gh} : ${ga}</span>`;
+            } else if (isLive && m.goals) {
+                const gh = m.goals.home ?? '?';
+                const ga = m.goals.away ?? '?';
+                scoreOrTime = `<span style="color:#e74c3c;font-weight:bold;">${gh} : ${ga} 🔴</span>`;
+            } else {
+                scoreOrTime = `<span style="color:#bdc3c7;">${escapeHtml(timeLabel)}</span>`;
+            }
+
+            const homeLogo = m.teamALogo ? `<img src="${escapeHtml(m.teamALogo)}" alt="" width="22" height="22" style="vertical-align:middle;margin-right:5px;object-fit:contain;" loading="lazy">` : '';
+            const awayLogo = m.teamBLogo ? `<img src="${escapeHtml(m.teamBLogo)}" alt="" width="22" height="22" style="vertical-align:middle;margin-left:5px;object-fit:contain;" loading="lazy">` : '';
+
+            const venueInfo = m.venue && m.venue !== 'Spielort folgt'
+                ? `${escapeHtml(m.venue)}${m.venueCity ? ' · ' + escapeHtml(m.venueCity) : ''}`
+                : 'Spielort folgt';
+
+            const venueImageHtml = m.venueImage
+                ? `<div style="margin-top:8px;"><img src="${escapeHtml(m.venueImage)}" alt="${escapeHtml(m.venue || '')}" style="width:100%;max-width:320px;height:90px;object-fit:cover;border-radius:6px;opacity:0.85;" loading="lazy"></div>`
+                : '';
+
+            const roundLabel = m.round ? `<span style="color:#95a5a6;font-size:12px;">${escapeHtml(m.round)}</span>` : '';
+
+            return `<div class="games-match-card">
+                <div class="games-match-header" style="cursor:default;">
+                    ${roundLabel ? `<div class="games-match-number">${roundLabel}</div>` : `<div class="games-match-number">Spiel ${escapeHtml(String(m.id))}</div>`}
+                    <div class="games-match-duel">
+                        <div class="games-team">
+                            ${homeLogo}<span class="games-team-name">${escapeHtml(m.teamA)}</span>
+                        </div>
+                        <div class="games-score draw">${scoreOrTime}</div>
+                        <div class="games-team right">
+                            <span class="games-team-name">${escapeHtml(m.teamB)}</span>${awayLogo}
+                        </div>
+                    </div>
+                </div>
+                <div class="games-match-body" style="display:block;">
+                    <div class="games-player-meta" style="padding:4px 14px 6px;">
+                        ${escapeHtml(dateLabel)} · ${venueInfo}
+                    </div>
+                    ${venueImageHtml}
+                </div>
+            </div>`;
         }).join('');
     }
 

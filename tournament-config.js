@@ -268,6 +268,14 @@ window.APP_CONFIG = (() => {
 
       fixtureDetailUrl(fixtureId) {
         return `https://v3.football.api-sports.io/fixtures?id=${fixtureId}`;
+      },
+
+      venueUrl(venueId) {
+        return `https://v3.football.api-sports.io/venues?id=${venueId}`;
+      },
+
+      fixturesWithTimezoneUrl() {
+        return `${this.fixturesUrl()}&timezone=Europe/Zurich`;
       }
     },
 
@@ -284,6 +292,10 @@ window.APP_CONFIG = (() => {
 
       pointsCollection() {
         return `Punkte Spieler ${getActiveTournament().shortLabel}`;
+      },
+
+      fixturesCollection() {
+        return `Spiele ${getActiveTournament().shortLabel}`;
       }
     },
 

@@ -306,6 +306,7 @@
     const META_COLLECTION = APP.firestore.metaCollection || "app_meta";
     const META_DOC_ID = APP.firestore.metaDocId();
     const POINTS_COLLECTION = APP.firestore.pointsCollection();
+    const FIXTURES_COLLECTION = (APP.firestore.fixturesCollection && APP.firestore.fixturesCollection()) || null;
     const RULES = APP.rules || {};
     const db = APP.getDb();
 
@@ -394,6 +395,52 @@
             pointsVersion: FieldValue.increment(1),
             pointsUpdatedAt: Date.now()
         }, { merge: true });
+    }
+
+    async function updateFixtureStatusInFirestore(finishedGames) {
+        if (!FIXTURES_COLLECTION || !finishedGames || finishedGames.length === 0) return 0;
+
+        const FieldValue = firebase.firestore.FieldValue;
+        let batch = db.batch();
+        let batchCount = 0;
+        let totalUpdated = 0;
+
+        for (const game of finishedGames) {
+            const fixtureId = String(game.fixture.id);
+            const docRef = db.collection(FIXTURES_COLLECTION).doc(fixtureId);
+
+            const update = {
+                status: {
+                    long: game.fixture.status?.long || "",
+                    short: game.fixture.status?.short || "",
+                    elapsed: game.fixture.status?.elapsed ?? null
+                },
+                goals: {
+                    home: game.goals?.home ?? null,
+                    away: game.goals?.away ?? null
+                },
+                score: game.score || {},
+                "homeTeam.winner": game.teams?.home?.winner ?? null,
+                "awayTeam.winner": game.teams?.away?.winner ?? null,
+                updatedAt: FieldValue.serverTimestamp()
+            };
+
+            batch.set(docRef, update, { merge: true });
+            batchCount++;
+            totalUpdated++;
+
+            if (batchCount === 400) {
+                await batch.commit();
+                batch = db.batch();
+                batchCount = 0;
+            }
+        }
+
+        if (batchCount > 0) {
+            await batch.commit();
+        }
+
+        return totalUpdated;
     }
 
     function buildEmptyPlayerObject(player) {
@@ -717,6 +764,17 @@
                 log(`✅ Meta-Dokument ${META_COLLECTION}/${META_DOC_ID} aktualisiert (pointsVersion erhöht).`, "log-success");
             } else {
                 log(`⚠️ Keine Spieler mit Punkten gefunden. Meta-Version wurde nicht erhöht.`, "log-warning");
+            }
+
+            // Optionally update fixture status/goals/score in the fixtures collection
+            if (FIXTURES_COLLECTION && finishedGames.length > 0) {
+                try {
+                    log(`\n🏟️ Aktualisiere Spielstatus in "${FIXTURES_COLLECTION}"...`, "log-warning");
+                    const updatedCount = await updateFixtureStatusInFirestore(finishedGames);
+                    log(`✅ ${updatedCount} Spiel-Dokumente mit aktuellem Status/Resultat aktualisiert.`, "log-success");
+                } catch (fixtureErr) {
+                    log(`⚠️ Fixture-Status-Update fehlgeschlagen (Punkte wurden trotzdem gespeichert): ${fixtureErr.message}`, "log-warning");
+                }
             }
 
             log(`\n🎉 FERTIG! ${writeSuccess} Spieler haben Punkte erhalten.`, "log-success");
