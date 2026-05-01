@@ -566,6 +566,28 @@
 
         .mobile-filter-toggle.open .mft-chevron { transform: rotate(180deg); }
 
+        .mobile-sidebar-close {
+            display: none;
+            align-self: flex-end;
+            margin: 10px 10px 0 0;
+            border: 1px solid var(--glass-border);
+            background: var(--dark-card-2);
+            color: var(--text-main);
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+        }
+
+        .mobile-filter-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 8, 20, 0.72);
+            z-index: 1600;
+        }
+
+
         .main-view { display: none; }
         .main-view.active { display: block; }
 
@@ -770,16 +792,16 @@
         }
 
         #detail-nation-flag {
-            width: 44px;
-            height: 30px;
+            width: 58px;
+            height: 40px;
             object-fit: cover;
             border-radius: 4px;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
         #detail-club-logo {
-            width: 32px;
-            height: 32px;
+            width: 46px;
+            height: 46px;
         }
 
         .player-flag-info,
@@ -1699,20 +1721,34 @@
                 border-radius: 14px;
                 max-height: 0;
                 overflow: hidden;
-                transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, border-color 0.25s;
+                transition: max-height 0.28s ease;
                 opacity: 0;
                 border-color: transparent;
                 margin-bottom: 0;
+                position: relative;
+                z-index: 1700;
             }
 
             .analysis-sidebar.mobile-open {
-                max-height: 640px;
+                position: fixed;
+                left: 12px;
+                right: 12px;
+                top: 72px;
+                width: auto;
+                max-height: calc(100vh - 96px);
                 opacity: 1;
                 border-color: var(--glass-border);
-                margin-bottom: 14px;
+                margin-bottom: 0;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.45);
             }
 
-            .sidebar-inner { max-height: 620px; }
+            .analysis-sidebar.mobile-open + * { pointer-events: auto; }
+
+            .analysis-sidebar.mobile-open .sidebar-inner { max-height: calc(100vh - 128px); }
+
+            .mobile-sidebar-close { display: inline-flex; align-items: center; justify-content: center; }
+
+            body.mobile-filter-open .mobile-filter-overlay { display: block; }
 
             .main-content { order: 1; }
 
@@ -1748,7 +1784,11 @@
             .player-flag-club-row { justify-content: center; }
 
             .player-flag-card,
-            .player-club-card { flex: 1; min-width: 130px; }
+            .player-club-card { flex: 1; min-width: 130px; justify-content: center; text-align: center; }
+
+            .list-item { align-items: center; }
+            .list-info { align-items: center; text-align: center; }
+            .list-pts { min-width: 44px; text-align: center; }
 
             .player-meta-grid { justify-content: center; }
 
@@ -1841,6 +1881,7 @@
              ===================================================== -->
         <aside class="analysis-sidebar" id="analysis-sidebar" role="complementary" aria-label="Spieler-Filter und -Liste">
             <div class="sidebar-inner">
+                <button id="mobile-sidebar-close" class="mobile-sidebar-close" type="button" aria-label="Filter schliessen">✕</button>
                 <!-- Players sidebar -->
                 <div id="sidebar-players" class="sidebar-view active">
                     <div class="sidebar-filter-block">
@@ -1906,11 +1947,12 @@
                     aria-controls="analysis-sidebar"
                     aria-expanded="false"
                     aria-label="Spieler wechseln und Filter ein-/ausblenden">
-                <span>🔍 Spieler wechseln &amp; Filter</span>
+                <span>🔍 Spieler suchen</span>
                 <span class="mft-right">
                     <span class="mft-chevron" aria-hidden="true">▼</span>
                 </span>
             </button>
+            <div id="mobile-filter-overlay" class="mobile-filter-overlay" aria-hidden="true"></div>
 
             <!-- ─── PLAYERS VIEW ─────────────────────────────── -->
             <div id="view-players" class="main-view active">
@@ -1955,7 +1997,6 @@
                                          aria-label="Nationalteam filtern">
                                         <img id="detail-nation-flag" src="" alt="Nationalfahne" width="44" height="30">
                                         <div class="player-flag-info">
-                                            <div class="pfc-label">Nationalteam</div>
                                             <div id="detail-nation-name">–</div>
                                         </div>
                                     </div>
@@ -1967,7 +2008,6 @@
                                          aria-label="Verein filtern">
                                         <img id="detail-club-logo" src="" alt="Vereinslogo" width="32" height="32">
                                         <div class="player-club-info">
-                                            <div class="pfc-label">Verein</div>
                                             <div id="detail-club-name">–</div>
                                         </div>
                                     </div>
@@ -2172,9 +2212,12 @@
        ========================================================= */
     const mobileFilterBtn = document.getElementById('mobile-filter-btn');
     const analysisSidebar = document.getElementById('analysis-sidebar');
+    const mobileFilterOverlay = document.getElementById('mobile-filter-overlay');
+    const mobileSidebarClose = document.getElementById('mobile-sidebar-close');
 
     mobileFilterBtn.addEventListener('click', () => {
         const isOpen = analysisSidebar.classList.toggle('mobile-open');
+        document.body.classList.toggle('mobile-filter-open', isOpen);
         mobileFilterBtn.classList.toggle('open', isOpen);
         mobileFilterBtn.setAttribute('aria-expanded', String(isOpen));
 
@@ -2188,9 +2231,22 @@
     function closeMobileFilter() {
         if (analysisSidebar.classList.contains('mobile-open') && window.innerWidth <= 860) {
             analysisSidebar.classList.remove('mobile-open');
+            document.body.classList.remove('mobile-filter-open');
             mobileFilterBtn.classList.remove('open');
             mobileFilterBtn.setAttribute('aria-expanded', 'false');
         }
+    }
+
+    
+
+    mobileFilterOverlay?.addEventListener('click', closeMobileFilter);
+    mobileSidebarClose?.addEventListener('click', closeMobileFilter);
+
+    function updateMobileFilterButtonLabel() {
+        const label = currentView === 'games' ? '🌍 Land suchen' : '🔍 Spieler suchen';
+        const span = mobileFilterBtn.querySelector('span');
+        if (span) span.textContent = label;
+        mobileFilterBtn.setAttribute('aria-label', label);
     }
 
     /* =========================================================
@@ -2262,6 +2318,7 @@
         document.getElementById('sidebar-games').classList.toggle('active', currentView === 'games');
 
         updateUrl(push);
+        updateMobileFilterButtonLabel();
     }
 
     /* =========================================================
@@ -3267,6 +3324,7 @@
         renderGamesView();
         if (currentView !== 'games') setView('games', false);
         updateUrl(push);
+        updateMobileFilterButtonLabel();
     }
     window.openGameCard = openGameCard;
 
@@ -3278,6 +3336,7 @@
         renderGamesView();
         if (currentView !== 'games') setView('games', false);
         updateUrl(push);
+        updateMobileFilterButtonLabel();
     }
     window.selectGamesNation = selectGamesNation;
 
