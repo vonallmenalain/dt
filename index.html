@@ -2430,39 +2430,53 @@
         /* ===================================================
            3D PLAYER CAROUSEL – INFINITE ENDLESS
            =================================================== */
+
+        /* The carousel row has no panel/tile wrapper – cards stand freely */
+        .carousel-section-header {
+            padding: 0 16px;
+            margin-bottom: 12px;
+        }
+
+        /* Break out of dashboard-area padding so carousel touches screen edges */
         .player-carousel-section {
             position: relative;
             padding: 0 0 8px;
+            margin-left: -20px;
+            margin-right: -20px;
         }
 
+        /* The outer clips so neighbours appear half-visible */
         .carousel-outer {
             position: relative;
+            overflow: hidden;
         }
 
+        /* Subtle fade-out at the very edges to hint at more cards */
         .carousel-outer::before,
         .carousel-outer::after {
             content: "";
             position: absolute;
             top: 0;
             bottom: 0;
-            width: 80px;
-            z-index: 10;
+            width: 56px;
+            z-index: 20;
             pointer-events: none;
         }
 
         .carousel-outer::before {
             left: 0;
-            background: linear-gradient(to right, rgba(7,26,10,0.8), transparent);
+            background: linear-gradient(to right, rgba(7,26,10,0.6), transparent);
         }
 
         .carousel-outer::after {
             right: 0;
-            background: linear-gradient(to left, rgba(7,26,10,0.8), transparent);
+            background: linear-gradient(to left, rgba(7,26,10,0.6), transparent);
         }
 
         .carousel-viewport {
             position: relative;
-            overflow: hidden;
+            /* Overflow visible so neighbors can peek out from the clipping outer */
+            overflow: visible;
             padding: 36px 0 40px;
             cursor: grab;
             user-select: none;
@@ -2472,8 +2486,8 @@
 
         .carousel-track {
             display: flex;
-            gap: 20px;
-            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            gap: 10px;
+            transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             will-change: transform;
         }
 
@@ -2483,10 +2497,10 @@
 
         .carousel-slide {
             flex-shrink: 0;
-            width: 170px;
-            transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94),
-                        opacity 0.5s ease,
-                        filter 0.5s ease;
+            width: 160px;
+            transition: transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94),
+                        opacity 0.42s ease,
+                        filter 0.42s ease;
             position: relative;
         }
 
@@ -2617,27 +2631,19 @@
             max-width: 90px;
         }
 
-        .cc-pos {
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: rgba(255,255,255,0.35);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 2px 8px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
+        /* Club logo replaces position text */
+        .cc-club-logo {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            opacity: 0.85;
+            transition: opacity 0.3s;
         }
 
-        .cc-tap-hint {
-            font-size: 0.62rem;
-            color: rgba(74,222,128,0.6);
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            display: none;
-        }
-
-        .carousel-slide.is-center .cc-tap-hint {
-            display: block;
+        .carousel-slide.is-center .cc-club-logo {
+            opacity: 1;
+            width: 32px;
+            height: 32px;
         }
 
         /* Carousel nav arrows */
@@ -2672,6 +2678,13 @@
         }
 
         .carousel-arrow:active { transform: scale(0.94); }
+
+        /* Hide nav arrows completely on mobile */
+        @media (max-width: 600px) {
+            .carousel-arrow {
+                display: none !important;
+            }
+        }
 
         .carousel-dots {
             display: flex;
@@ -3211,33 +3224,31 @@
 
     <!-- ── Row 2: Beste Spieler 3D Endless Carousel ──────── -->
     <div class="mb-section">
-        <div class="post-panel">
-            <div class="post-section-label">
-                <span class="post-section-label-icon">⭐</span>
-                <span class="post-section-label-text">Beste Spieler</span>
-                <a href="spieleranalyse.html" style="margin-left:auto;font-size:0.78rem;font-weight:700;color:#4ade80;text-decoration:none;opacity:0.8;" aria-label="Alle Spieler analysieren">Alle →</a>
-            </div>
-            <div class="player-carousel-section" id="tile-post-carousel-section">
-                <div class="carousel-outer">
-                    <div class="carousel-viewport" id="post-carousel-viewport" aria-label="Top Spieler Karussell">
-                        <div class="carousel-track" id="post-carousel-track" role="list">
-                            <div class="carousel-slide">
-                                <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
-                            </div>
-                            <div class="carousel-slide">
-                                <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
-                            </div>
-                            <div class="carousel-slide">
-                                <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
-                            </div>
+        <div class="post-section-label carousel-section-header">
+            <span class="post-section-label-icon">⭐</span>
+            <span class="post-section-label-text">Beste Spieler</span>
+            <a href="spieleranalyse.html" style="margin-left:auto;font-size:0.78rem;font-weight:700;color:#4ade80;text-decoration:none;opacity:0.8;" aria-label="Alle Spieler analysieren">Alle →</a>
+        </div>
+        <div class="player-carousel-section" id="tile-post-carousel-section">
+            <div class="carousel-outer">
+                <div class="carousel-viewport" id="post-carousel-viewport" aria-label="Top Spieler Karussell">
+                    <div class="carousel-track" id="post-carousel-track" role="list">
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
                         </div>
                     </div>
                 </div>
-                <div class="carousel-nav" id="post-carousel-nav">
-                    <button class="carousel-arrow" id="post-carousel-prev" aria-label="Vorheriger Spieler">‹</button>
-                    <div class="carousel-dots" id="post-carousel-dots" role="tablist"></div>
-                    <button class="carousel-arrow" id="post-carousel-next" aria-label="Nächster Spieler">›</button>
-                </div>
+            </div>
+            <div class="carousel-nav" id="post-carousel-nav">
+                <button class="carousel-arrow" id="post-carousel-prev" aria-label="Vorheriger Spieler">‹</button>
+                <div class="carousel-dots" id="post-carousel-dots" role="tablist"></div>
+                <button class="carousel-arrow" id="post-carousel-next" aria-label="Nächster Spieler">›</button>
             </div>
         </div>
     </div>
@@ -4737,29 +4748,28 @@
         autoPlayTimer: null
     };
 
-    const SLIDE_W = 170 + 20; // width + gap
+    const SLIDE_W = 160 + 10; // width + gap
 
     function buildCarouselCard(player, pts, rank, dataRealIdx) {
         const sign = pts > 0 ? '+' : '';
         const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
         const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-        const posMap = { GOALKEEPER: 'TOR', DEFENDER: 'ABW', MIDFIELDER: 'MIT', ATTACKER: 'STU', FORWARD: 'STU' };
-        const posLabel = posMap[String(player.Position || '').toUpperCase()] || String(player.Position || '').slice(0, 3);
+        const clubLogo = player['Club.logo'] || '';
+        const clubName = player['Club.name'] || '';
 
         return `
             <div class="carousel-slide" data-real="${dataRealIdx}" role="listitem" aria-label="${escapeHtml(player.Spielername)}, ${sign}${pts} Punkte">
                 <a class="carousel-card" href="${url}" draggable="false">
                     <div class="cc-rank-badge ${rankCls}">#${rank}</div>
                     <div class="cc-pts-badge">${sign}${pts}</div>
-                    <img class="cc-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22/%3E'">
+                    <img class="cc-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="eager" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22/%3E'">
                     <div class="cc-name">${escapeHtml(player.Spielername)}</div>
                     ${player['Nationalteam.logo'] ? `
                     <div class="cc-meta">
-                        <img class="cc-flag" src="${escapeHtml(player['Nationalteam.logo'])}" alt="${escapeHtml(player['Nationalteam.name'] || '')}" loading="lazy">
+                        <img class="cc-flag" src="${escapeHtml(player['Nationalteam.logo'])}" alt="${escapeHtml(player['Nationalteam.name'] || '')}" loading="eager">
                         <span class="cc-nation">${escapeHtml(player['Nationalteam.name'] || '')}</span>
                     </div>` : ''}
-                    <div class="cc-pos">${escapeHtml(posLabel)}</div>
-                    <div class="cc-tap-hint">Klick → Analyse</div>
+                    ${clubLogo ? `<img class="cc-club-logo" src="${escapeHtml(clubLogo)}" alt="${escapeHtml(clubName)}" loading="eager" title="${escapeHtml(clubName)}">` : ''}
                 </a>
             </div>
         `;
@@ -4785,8 +4795,9 @@
 
         // Virtual index in the cloned track
         const idx = carouselState.current;
-        const vpW = viewport.offsetWidth || 600;
-        const targetOffset = (vpW / 2) - (SLIDE_W * idx) - (SLIDE_W / 2) + 10;
+        // Use the outer container width (which clips) so the center card is truly centered
+        const vpW = (viewport.parentElement || viewport).offsetWidth || viewport.offsetWidth || 360;
+        const targetOffset = (vpW / 2) - (SLIDE_W * idx) - (SLIDE_W / 2);
 
         if (!animated) track.classList.add('dragging');
         else track.classList.remove('dragging');
@@ -4800,12 +4811,13 @@
             const isCenter = dist === 0;
             slide.classList.toggle('is-center', isCenter);
 
-            const scale = isCenter ? 1.15 : (dist === 1 ? 0.88 : (dist === 2 ? 0.76 : 0.68));
-            const ry = isCenter ? 0 : (i < idx ? 22 : -22);
-            const opacity = isCenter ? 1 : (dist === 1 ? 0.7 : (dist === 2 ? 0.45 : 0.25));
-            const blur = isCenter ? 0 : (dist === 1 ? 0 : 1.5);
+            const scale = isCenter ? 1.12 : (dist === 1 ? 0.9 : (dist === 2 ? 0.78 : 0.68));
+            const ry = isCenter ? 0 : (i < idx ? 18 : -18);
+            // Dist-1 cards are half-visible (peeking), so keep them visible
+            const opacity = isCenter ? 1 : (dist === 1 ? 0.75 : (dist === 2 ? 0.4 : 0.15));
+            const blur = isCenter ? 0 : (dist === 1 ? 0 : 2);
 
-            slide.style.transform = `perspective(1000px) rotateY(${ry}deg) scale(${scale})`;
+            slide.style.transform = `perspective(900px) rotateY(${ry}deg) scale(${scale})`;
             slide.style.opacity = opacity;
             slide.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
             slide.style.zIndex = isCenter ? 10 : (10 - dist);
@@ -4821,7 +4833,7 @@
         }
 
         // Seamless infinite: if near a clone boundary, jump silently
-        setTimeout(() => _maybeJumpInfinite(track), 520);
+        setTimeout(() => _maybeJumpInfinite(track), 460);
     }
 
     function _maybeJumpInfinite(track) {
@@ -4849,30 +4861,47 @@
         const dotsEl = $('post-carousel-dots');
         if (!track) return;
 
-        const top10 = topPlayers.slice(0, 10);
-        carouselState.players = top10;
-        carouselState.total = top10.length;
+        // Select up to 15 players from 15 different nations (same logic as PerfectTeam)
+        const seenNations = new Set();
+        const top15 = [];
+        for (const p of topPlayers) {
+            const nation = p['Nationalteam.name'];
+            if (nation && seenNations.has(nation)) continue;
+            if (nation) seenNations.add(nation);
+            top15.push(p);
+            if (top15.length >= 15) break;
+        }
 
-        if (!top10.length) {
+        carouselState.players = top15;
+        carouselState.total = top15.length;
+
+        if (!top15.length) {
             track.innerHTML = `<div class="carousel-slide is-center"><div class="carousel-card"><div class="empty-state"><div class="empty-state-icon">⭐</div>Noch keine Punkte verfügbar.</div></div></div>`;
             return;
         }
 
+        // Preload all player and club images before rendering to avoid load lag
+        top15.forEach((p) => {
+            if (p.Spielerfoto) { const img = new Image(); img.src = p.Spielerfoto; }
+            if (p['Club.logo']) { const img = new Image(); img.src = p['Club.logo']; }
+            if (p['Nationalteam.logo']) { const img = new Image(); img.src = p['Nationalteam.logo']; }
+        });
+
         // Build 3 copies for infinite illusion
-        const cardHtmls = top10.map((p, i) => {
+        const cardHtmls = top15.map((p, i) => {
             const pts = ptMap[String(p['player.id'])] || 0;
             return buildCarouselCard(p, pts, i + 1, i);
         });
         track.innerHTML = [...cardHtmls, ...cardHtmls, ...cardHtmls].join('');
 
         // Start in the middle copy
-        const offset = top10.length;
+        const offset = top15.length;
         carouselState._offset = offset;
         carouselState.current = offset; // starts at first item of middle copy
 
-        // Build dots (for real 10 items only)
+        // Build dots (for real 15 items only)
         if (dotsEl) {
-            dotsEl.innerHTML = top10.map((_, i) =>
+            dotsEl.innerHTML = top15.map((_, i) =>
                 `<div class="carousel-dot${i === 0 ? ' active' : ''}" data-dot="${i}" role="tab" aria-label="Spieler ${i+1}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="0"></div>`
             ).join('');
 
@@ -4924,38 +4953,79 @@
             return e.touches ? e.touches[0].clientX : e.clientX;
         }
 
+        let _dragVelocity = 0;
+        let _lastDragX = 0;
+        let _lastDragTime = 0;
+        let _touchStartY = 0;
+        let _touchLocked = false; // true = locked to horizontal scroll
+
         function onDragStart(e) {
-            if (e.target.closest('a') && carouselState.isDragging === false) return;
+            if (e.target.closest('a') && !carouselState.isDragging) return;
+            const cx = getClientX(e);
             carouselState.isDragging = true;
-            carouselState.dragStart = getClientX(e);
+            carouselState.dragStart = cx;
             carouselState.dragDelta = 0;
+            _dragVelocity = 0;
+            _lastDragX = cx;
+            _lastDragTime = Date.now();
+            _touchStartY = e.touches ? e.touches[0].clientY : 0;
+            _touchLocked = false;
             track.classList.add('dragging');
         }
 
         function onDragMove(e) {
             if (!carouselState.isDragging) return;
-            e.preventDefault();
-            carouselState.dragDelta = getClientX(e) - carouselState.dragStart;
-            track.style.transform = `translateX(${carouselState.lastTranslate + carouselState.dragDelta}px)`;
+            const cx = getClientX(e);
+            const dx = cx - carouselState.dragStart;
+
+            // On touch: determine dominant axis on first significant movement
+            if (e.touches && !_touchLocked) {
+                const dy = e.touches[0].clientY - _touchStartY;
+                if (Math.abs(dy) > Math.abs(dx) + 4) {
+                    // Vertical scroll – abort horizontal drag
+                    carouselState.isDragging = false;
+                    track.classList.remove('dragging');
+                    updateCarousel(true);
+                    return;
+                }
+                if (Math.abs(dx) > 6) _touchLocked = true;
+            }
+
+            if (!_touchLocked && e.touches) return;
+
+            if (e.cancelable) e.preventDefault();
+            carouselState.dragDelta = dx;
+            track.style.transform = `translateX(${carouselState.lastTranslate + dx}px)`;
+
+            // Track velocity for momentum snapping
+            const now = Date.now();
+            const dt = now - _lastDragTime;
+            if (dt > 0) _dragVelocity = (cx - _lastDragX) / dt;
+            _lastDragX = cx;
+            _lastDragTime = now;
         }
 
         function onDragEnd() {
             if (!carouselState.isDragging) return;
             carouselState.isDragging = false;
+            _touchLocked = false;
             track.classList.remove('dragging');
 
-            const threshold = 40;
-            if (carouselState.dragDelta < -threshold) {
+            // Momentum-based snapping
+            const threshold = 30;
+            const velThreshold = 0.25; // px/ms
+            if (carouselState.dragDelta < -threshold || _dragVelocity < -velThreshold) {
                 carouselState.current++;
-            } else if (carouselState.dragDelta > threshold) {
+            } else if (carouselState.dragDelta > threshold || _dragVelocity > velThreshold) {
                 carouselState.current--;
             }
+            _dragVelocity = 0;
             updateCarousel(true);
         }
 
         viewport.addEventListener('touchstart', onDragStart, { passive: true });
         viewport.addEventListener('touchmove', onDragMove, { passive: false });
-        viewport.addEventListener('touchend', onDragEnd);
+        viewport.addEventListener('touchend', onDragEnd, { passive: true });
         viewport.addEventListener('mousedown', onDragStart);
         viewport.addEventListener('mousemove', onDragMove);
         viewport.addEventListener('mouseup', onDragEnd);
