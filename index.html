@@ -2631,19 +2631,18 @@
             max-width: 90px;
         }
 
-        /* Club logo replaces position text */
+        /* Club logo in meta row */
         .cc-club-logo {
-            width: 28px;
-            height: 28px;
+            width: 18px;
+            height: 18px;
             object-fit: contain;
+            border-radius: 2px;
             opacity: 0.85;
             transition: opacity 0.3s;
         }
 
         .carousel-slide.is-center .cc-club-logo {
             opacity: 1;
-            width: 32px;
-            height: 32px;
         }
 
         /* Carousel nav arrows */
@@ -3222,12 +3221,11 @@
         </div>
     </div>
 
-    <!-- ── Row 2: Beste Spieler 3D Endless Carousel ──────── -->
+    <!-- ── Row 2: Perfect Team 3D Endless Carousel ──────── -->
     <div class="mb-section">
         <div class="post-section-label carousel-section-header">
             <span class="post-section-label-icon">⭐</span>
-            <span class="post-section-label-text">Beste Spieler</span>
-            <a href="spieleranalyse.html" style="margin-left:auto;font-size:0.78rem;font-weight:700;color:#4ade80;text-decoration:none;opacity:0.8;" aria-label="Alle Spieler analysieren">Alle →</a>
+            <span class="post-section-label-text">Perfect Team</span>
         </div>
         <div class="player-carousel-section" id="tile-post-carousel-section">
             <div class="carousel-outer">
@@ -3356,23 +3354,6 @@
         </div>
     </div>
 
-    <!-- ── Row 6: Perfect Team (compact) ─────────────────── -->
-    <div class="mb-section">
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🏆</span> Perfect Team
-                </div>
-                <div class="compact-pt-header" id="tile-post-perfect-meta" style="margin-bottom:0;"></div>
-            </div>
-            <div id="tile-post-perfect-team" aria-label="Perfect Team">
-                <div class="skel" style="height:36px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:36px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:36px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
-        </div>
-    </div>
 
 </main>
 
@@ -4769,7 +4750,11 @@
                         <img class="cc-flag" src="${escapeHtml(player['Nationalteam.logo'])}" alt="${escapeHtml(player['Nationalteam.name'] || '')}" loading="eager">
                         <span class="cc-nation">${escapeHtml(player['Nationalteam.name'] || '')}</span>
                     </div>` : ''}
-                    ${clubLogo ? `<img class="cc-club-logo" src="${escapeHtml(clubLogo)}" alt="${escapeHtml(clubName)}" loading="eager" title="${escapeHtml(clubName)}">` : ''}
+                    ${clubLogo ? `
+                    <div class="cc-meta">
+                        <img class="cc-club-logo" src="${escapeHtml(clubLogo)}" alt="${escapeHtml(clubName)}" loading="eager">
+                        <span class="cc-nation">${escapeHtml(clubName)}</span>
+                    </div>` : ''}
                 </a>
             </div>
         `;
@@ -4937,10 +4922,12 @@
         viewport.dataset.carouselBound = '1';
 
         function goNext() {
+            stopMomentum();
             carouselState.current++;
             updateCarousel(true);
         }
         function goPrev() {
+            stopMomentum();
             carouselState.current--;
             updateCarousel(true);
         }
@@ -4948,7 +4935,90 @@
         if (prev) prev.addEventListener('click', goPrev);
         if (next) next.addEventListener('click', goNext);
 
-        // Touch / Mouse drag
+        // ── Momentum / inertia state ────────────────────────────
+        let _momentumRaf = null;
+        let _momentumVel = 0;          // px/ms at lift-off
+        const FRICTION = 0.92;         // velocity multiplier per frame (tune for feel)
+        const SNAP_VEL_THRESHOLD = 0.04; // px/ms – stop and snap when below this
+
+        function stopMomentum() {
+            if (_momentumRaf) {
+                cancelAnimationFrame(_momentumRaf);
+                _momentumRaf = null;
+            }
+        }
+
+        // Update individual slide 3D styles based on a continuous pixel offset
+        function _updateSlidesForOffset(offset) {
+            const vpEl = viewport.parentElement || viewport;
+            const vpW = vpEl.offsetWidth || viewport.offsetWidth || 360;
+            const centerX = vpW / 2;
+            const slides = track.querySelectorAll('.carousel-slide');
+            slides.forEach((slide, i) => {
+                const slideCenter = offset + i * SLIDE_W + SLIDE_W / 2;
+                const distPx = slideCenter - centerX;
+                const distSlides = distPx / SLIDE_W;
+                const absDist = Math.abs(distSlides);
+
+                const scale = Math.max(0.68, 1.12 - absDist * 0.22);
+                const ry = Math.max(-30, Math.min(30, -distSlides * 18));
+                const opacity = Math.max(0.15, 1 - absDist * 0.35);
+                const blur = absDist < 1 ? 0 : Math.min(3, (absDist - 1) * 2);
+
+                const isCenter = absDist < 0.5;
+                slide.classList.toggle('is-center', isCenter);
+                slide.style.transform = `perspective(900px) rotateY(${ry}deg) scale(${scale})`;
+                slide.style.opacity = opacity;
+                slide.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+                slide.style.zIndex = Math.round(10 - absDist);
+            });
+        }
+
+        // Run free-scroll inertia, then snap to nearest slide
+        function runMomentum() {
+            stopMomentum();
+
+            // Use a wrapper object so the jump can mutate offset inside step()
+            const state = { offset: carouselState.lastTranslate };
+
+            function step() {
+                _momentumVel *= FRICTION;
+
+                if (Math.abs(_momentumVel) < SNAP_VEL_THRESHOLD) {
+                    _momentumRaf = null;
+                    const vpEl = viewport.parentElement || viewport;
+                    const vpW = vpEl.offsetWidth || viewport.offsetWidth || 360;
+                    const floatIdx = ((vpW / 2) - (SLIDE_W / 2) - state.offset) / SLIDE_W;
+                    carouselState.current = Math.round(floatIdx);
+                    updateCarousel(true);
+                    return;
+                }
+
+                state.offset += _momentumVel * 16; // ~16ms per frame
+
+                // Infinite boundary: silently jump to matching position in middle copy
+                const realTotal = carouselState.total;
+                const off = carouselState._offset;
+                if (realTotal && off) {
+                    const vpEl2 = viewport.parentElement || viewport;
+                    const vpW2 = vpEl2.offsetWidth || viewport.offsetWidth || 360;
+                    const fi = ((vpW2 / 2) - (SLIDE_W / 2) - state.offset) / SLIDE_W;
+                    const jumpDist = realTotal * SLIDE_W;
+                    if (fi >= off + realTotal) state.offset += jumpDist;
+                    else if (fi < off)         state.offset -= jumpDist;
+                }
+
+                carouselState.lastTranslate = state.offset;
+                track.style.transform = `translateX(${state.offset}px)`;
+                _updateSlidesForOffset(state.offset);
+
+                _momentumRaf = requestAnimationFrame(step);
+            }
+
+            _momentumRaf = requestAnimationFrame(step);
+        }
+
+        // ── Touch / Mouse drag ──────────────────────────────────
         function getClientX(e) {
             return e.touches ? e.touches[0].clientX : e.clientX;
         }
@@ -4957,15 +5027,30 @@
         let _lastDragX = 0;
         let _lastDragTime = 0;
         let _touchStartY = 0;
-        let _touchLocked = false; // true = locked to horizontal scroll
+        let _touchLocked = false;
+
+        // Rolling velocity samples for smoother lift-off velocity
+        const VEL_SAMPLES = 5;
+        let _velSamples = [];
 
         function onDragStart(e) {
-            if (e.target.closest('a') && !carouselState.isDragging) return;
+            // Stop any ongoing momentum immediately (tap to stop)
+            if (_momentumRaf) {
+                stopMomentum();
+                // Read the current pixel position from the track transform
+                const mat = new DOMMatrix(getComputedStyle(track).transform);
+                carouselState.lastTranslate = mat.m41;
+                track.classList.add('dragging');
+                // Don't propagate — this tap was just to stop, not to start a new drag
+                if (e.touches) return;
+            }
+
             const cx = getClientX(e);
             carouselState.isDragging = true;
             carouselState.dragStart = cx;
             carouselState.dragDelta = 0;
             _dragVelocity = 0;
+            _velSamples = [];
             _lastDragX = cx;
             _lastDragTime = Date.now();
             _touchStartY = e.touches ? e.touches[0].clientY : 0;
@@ -4982,7 +5067,6 @@
             if (e.touches && !_touchLocked) {
                 const dy = e.touches[0].clientY - _touchStartY;
                 if (Math.abs(dy) > Math.abs(dx) + 4) {
-                    // Vertical scroll – abort horizontal drag
                     carouselState.isDragging = false;
                     track.classList.remove('dragging');
                     updateCarousel(true);
@@ -4995,12 +5079,21 @@
 
             if (e.cancelable) e.preventDefault();
             carouselState.dragDelta = dx;
-            track.style.transform = `translateX(${carouselState.lastTranslate + dx}px)`;
+            const newOffset = carouselState.lastTranslate + dx;
+            track.style.transform = `translateX(${newOffset}px)`;
 
-            // Track velocity for momentum snapping
+            // Update 3D slide visuals continuously while dragging
+            _updateSlidesForOffset(newOffset);
+
+            // Rolling velocity sample
             const now = Date.now();
             const dt = now - _lastDragTime;
-            if (dt > 0) _dragVelocity = (cx - _lastDragX) / dt;
+            if (dt > 0) {
+                const v = (cx - _lastDragX) / dt;
+                _velSamples.push(v);
+                if (_velSamples.length > VEL_SAMPLES) _velSamples.shift();
+                _dragVelocity = _velSamples.reduce((a, b) => a + b, 0) / _velSamples.length;
+            }
             _lastDragX = cx;
             _lastDragTime = now;
         }
@@ -5011,16 +5104,26 @@
             _touchLocked = false;
             track.classList.remove('dragging');
 
-            // Momentum-based snapping
-            const threshold = 30;
-            const velThreshold = 0.25; // px/ms
-            if (carouselState.dragDelta < -threshold || _dragVelocity < -velThreshold) {
-                carouselState.current++;
-            } else if (carouselState.dragDelta > threshold || _dragVelocity > velThreshold) {
-                carouselState.current--;
+            // Capture final pixel position
+            const endOffset = carouselState.lastTranslate + carouselState.dragDelta;
+            carouselState.lastTranslate = endOffset;
+
+            const absVel = Math.abs(_dragVelocity);
+
+            if (absVel > 0.05) {
+                // Launch momentum scroll
+                _momentumVel = _dragVelocity;
+                runMomentum();
+            } else {
+                // Snap to nearest slide
+                const vpEl = viewport.parentElement || viewport;
+                const vpW = vpEl.offsetWidth || viewport.offsetWidth || 360;
+                const floatIdx = ((vpW / 2) - (SLIDE_W / 2) - endOffset) / SLIDE_W;
+                carouselState.current = Math.round(floatIdx);
+                updateCarousel(true);
             }
             _dragVelocity = 0;
-            updateCarousel(true);
+            _velSamples = [];
         }
 
         viewport.addEventListener('touchstart', onDragStart, { passive: true });
