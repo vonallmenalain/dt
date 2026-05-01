@@ -427,21 +427,12 @@
                 0 20px 60px rgba(0,0,0,0.5);
         }
 
-        /* Pitch line markings */
+        /* Subtle spotlight overlay (no pitch line markings) */
         .pitch-container::before {
             content: "";
             position: absolute;
             inset: 0;
-            background:
-                /* Center circle */
-                radial-gradient(circle 70px at 50% 50%, transparent 68px, rgba(255,255,255,0.08) 70px, transparent 72px),
-                /* Center spot */
-                radial-gradient(circle 3px at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 100%),
-                /* Halfway line */
-                linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.07) 49.5%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.07) 50.5%, transparent 100%),
-                /* Outer edge lines */
-                linear-gradient(transparent 2%, rgba(255,255,255,0.07) 2.5%, transparent 3%),
-                linear-gradient(transparent 97%, rgba(255,255,255,0.07) 97.5%, transparent 98%);
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 70%);
             pointer-events: none;
             border-radius: 12px;
         }
@@ -472,16 +463,53 @@
             margin-bottom: 0;
         }
 
+        /* When inside a pitch-row-group, margin is handled by the group */
+        .pitch-row-group .pitch-row {
+            margin-bottom: 0;
+        }
+
+        /* Legacy label (hidden on desktop, kept for any fallback) */
         .pitch-row-label {
-            text-align: center;
-            font-size: 0.62rem;
-            font-weight: 800;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.35);
-            margin-bottom: 8px;
+            display: none;
+        }
+
+        /* Desktop position badge column (left side of each pitch row) */
+        .pitch-row-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 28px;
+            gap: 0;
             position: relative;
-            z-index: 1;
+        }
+
+        .pitch-row-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .pitch-pos-badge-col {
+            width: 40px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: stretch;
+        }
+
+        .pitch-pos-badge {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            color: rgba(255,255,255,0.28);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 9px;
+            user-select: none;
+        }
+
+        /* .pitch-row inside groups no longer needs margin-bottom (group handles it) */
+        .pitch-row-group .pitch-row {
+            flex: 1;
+            margin-bottom: 0;
         }
 
         /* =====================================================
@@ -829,20 +857,60 @@
         }
 
         /* Bench player cards are horizontal */
+        /* Bench card: column layout — buttons row on top, content row below */
         .bench-slots .builder-player-card {
-            flex-direction: row;
-            padding: 8px;
-            align-items: center;
-            gap: 8px;
+            flex-direction: column;
+            padding: 6px 8px 8px;
+            align-items: stretch;
+            gap: 0;
             justify-content: flex-start;
         }
 
+        /* Top row: captain + remove buttons aligned left */
+        .bench-slots .builder-player-card .bench-btn-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+
+        .bench-slots .builder-player-card .builder-captain-btn {
+            position: static;
+            transform: none;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            font-size: 9px;
+            border-radius: 50%;
+        }
+
+        .bench-slots .builder-player-card .builder-remove-btn {
+            position: static;
+            transform: none;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            font-size: 10px;
+            border-radius: 50%;
+        }
+
+        /* Bottom row: avatar left, info right */
+        .bench-slots .builder-player-card .bench-content-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            flex: 1;
+            min-width: 0;
+        }
+
         .bench-slots .builder-player-card .avatar-wrapper {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             flex-shrink: 0;
             margin-bottom: 0;
             transform: none !important;
+            align-self: flex-start;
         }
 
         .bench-slots .builder-player-card .card-info {
@@ -858,32 +926,27 @@
             min-height: auto;
             text-align: left;
             justify-content: flex-start;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            display: block;
         }
 
         .bench-slots .builder-player-card .card-sub-info {
             justify-content: flex-start;
             font-size: 9px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
-        .bench-slots .builder-player-card .builder-captain-btn {
-            position: static;
-            transform: none;
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-            font-size: 10px;
-            margin-left: auto;
-        }
-
-        .bench-slots .builder-player-card .builder-remove-btn {
-            position: static;
-            transform: none;
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-            font-size: 11px;
+        .bench-slots .builder-player-card .card-sub-info span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .bench-slots .empty-slot {
@@ -2402,14 +2465,22 @@
             <div class="pitch-outer">
                 <div class="pitch-glass-frame">
                     <div class="pitch-container" id="pitch-container">
-                        <div class="pitch-row-label">Tor</div>
-                        <div class="pitch-row" id="row-GOALKEEPER"></div>
-                        <div class="pitch-row-label">Verteidigung</div>
-                        <div class="pitch-row" id="row-DEFENDER"></div>
-                        <div class="pitch-row-label">Mittelfeld</div>
-                        <div class="pitch-row" id="row-MIDFIELDER"></div>
-                        <div class="pitch-row-label">Sturm</div>
-                        <div class="pitch-row" id="row-ATTACKER"></div>
+                        <div class="pitch-row-group">
+                            <div class="pitch-pos-badge-col"><div class="pitch-pos-badge">Tor</div></div>
+                            <div class="pitch-row" id="row-GOALKEEPER"></div>
+                        </div>
+                        <div class="pitch-row-group">
+                            <div class="pitch-pos-badge-col"><div class="pitch-pos-badge">Verteidigung</div></div>
+                            <div class="pitch-row" id="row-DEFENDER"></div>
+                        </div>
+                        <div class="pitch-row-group">
+                            <div class="pitch-pos-badge-col"><div class="pitch-pos-badge">Mittelfeld</div></div>
+                            <div class="pitch-row" id="row-MIDFIELDER"></div>
+                        </div>
+                        <div class="pitch-row-group">
+                            <div class="pitch-pos-badge-col"><div class="pitch-pos-badge">Sturm</div></div>
+                            <div class="pitch-row" id="row-ATTACKER"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3110,28 +3181,27 @@
         const isCaptain = String(player.id) === String(selectedCaptainId);
         const isActive  = String(slot.id) === String(currentEditingSlotId);
 
-        /* Bench slots use a horizontal layout — flagged via slot.cont */
         const isBench = slot.cont === 'bench-slots';
 
-        return `
-            <div class="slot-wrapper${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
-                <div class="builder-player-card${isCaptain ? ' is-captain' : ''}">
-                    <button type="button"
+        const captainBtn = `<button type="button"
                         class="builder-captain-btn${isCaptain ? ' active' : ''}"
                         title="${isCaptain ? 'Dein Captain!' : 'Zum Captain ernennen'}"
                         data-action="set-captain"
                         data-player-id="${escapeHtml(player.id)}"
-                        aria-label="${isCaptain ? 'Captain: ' : 'Captain ernennen: '}${escapeHtml(player.name)}">C</button>
-                    <button type="button"
+                        aria-label="${isCaptain ? 'Captain: ' : 'Captain ernennen: '}${escapeHtml(player.name)}">C</button>`;
+
+        const removeBtn = `<button type="button"
                         class="builder-remove-btn"
                         title="Spieler entfernen"
                         data-action="remove-player"
                         data-slot-id="${escapeHtml(slot.id)}"
-                        aria-label="${escapeHtml(player.name)} entfernen">✖</button>
-                    <div class="avatar-wrapper">
+                        aria-label="${escapeHtml(player.name)} entfernen">✖</button>`;
+
+        const avatarHtml = `<div class="avatar-wrapper">
                         <img src="${escapeHtml(player.photo)}" class="card-avatar" alt="${escapeHtml(player.name)}" loading="lazy">
-                    </div>
-                    <div class="card-info">
+                    </div>`;
+
+        const cardInfoHtml = `<div class="card-info">
                         <div class="card-name">${escapeHtml(player.name)}</div>
                         <div class="card-sub-info">
                             ${player.flag ? `<img src="${escapeHtml(player.flag)}" class="small-icon" alt="${escapeHtml(player.nation)}" loading="lazy">` : ''}
@@ -3141,7 +3211,17 @@
                             ${player.clubLogo ? `<img src="${escapeHtml(player.clubLogo)}" class="small-icon club" alt="${escapeHtml(player.club)}" loading="lazy">` : ''}
                             <span>${escapeHtml(player.club)}</span>
                         </div>
-                    </div>
+                    </div>`;
+
+        const innerHtml = isBench
+            ? `<div class="bench-btn-row">${captainBtn}${removeBtn}</div>
+                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>`
+            : `${captainBtn}${removeBtn}${avatarHtml}${cardInfoHtml}`;
+
+        return `
+            <div class="slot-wrapper${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
+                <div class="builder-player-card${isCaptain ? ' is-captain' : ''}">
+                    ${innerHtml}
                 </div>
             </div>
         `;

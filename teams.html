@@ -271,7 +271,7 @@
             display: flex;
             gap: 20px;
             align-items: flex-start;
-            padding: 0 24px;
+            padding: 24px 24px 0;
             box-sizing: border-box;
             animation: fadeSlideUp 0.6s 0.1s ease both;
         }
@@ -1460,30 +1460,11 @@
 
 <div class="teams-page">
 
-    <!-- ===================== HERO ===================== -->
-    <div class="teams-hero">
-        <div class="teams-hero-inner">
-            <div class="teams-hero-title-area">
-                <div class="teams-hero-badge">🛡️ DreamTeam</div>
-                <h1 class="teams-hero-title">
-                    Alle <span class="gold-text" id="hero-tournament-label">Tournament</span>
-                    <span class="accent">DreamTeams</span>
-                </h1>
-                <p class="teams-hero-subtitle">Vergleiche alle Teams – Spielfeld, Punkte und Awards auf einen Blick.</p>
-            </div>
-            <div class="teams-hero-pills" id="hero-pills">
-                <span class="hero-stat-pill teams-count" id="hero-teams-count" style="display:none;">
-                    👥 <span id="hero-count-val">0</span> Teams
-                </span>
-                <span class="hero-stat-pill current-manager" id="hero-current-manager" style="display:none;">
-                    🛡️ <span id="hero-manager-val">–</span>
-                </span>
-                <span class="hero-stat-pill current-rank" id="hero-current-rank" style="display:none;">
-                    🏆 Rang <span id="hero-rank-val">–</span>
-                </span>
-            </div>
-        </div>
-    </div>
+    <!-- Hidden hero elements still referenced by JS -->
+    <span id="hero-tournament-label" style="display:none;"></span>
+    <span id="hero-teams-count" style="display:none;"><span id="hero-count-val"></span></span>
+    <span id="hero-current-manager" style="display:none;"><span id="hero-manager-val"></span></span>
+    <span id="hero-current-rank" style="display:none;"><span id="hero-rank-val"></span></span>
 
     <!-- ===================== LAYOUT ===================== -->
     <div class="teams-layout">
@@ -1547,10 +1528,6 @@
                 <!-- Desktop: Pitch / Board View -->
                 <div class="team-board-card">
                     <div class="team-board">
-                        <div class="board-headers">
-                            <div class="header-pitch">Spielfeld</div>
-                            <div class="header-bench">Ersatzbank</div>
-                        </div>
 
                         <div class="pos-row">
                             <div class="pos-badge-container"><div class="pos-badge">Tor</div></div>
