@@ -1648,6 +1648,226 @@
         }
 
         /* =====================================================
+           SCHEDULE VIEW (Spielplan Tab)
+           ===================================================== */
+        .schedule-empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+        }
+
+        .schedule-date-group {
+            margin-bottom: 24px;
+        }
+
+        .schedule-date-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .schedule-date-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+        }
+
+        .schedule-date-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .schedule-matches-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Schedule card */
+        .sc-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .sc-card:hover {
+            border-color: rgba(74,222,128,0.2);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .sc-card--finished {
+            border-color: rgba(34,197,94,0.15);
+        }
+
+        .sc-card--live {
+            border-color: rgba(248,113,113,0.35);
+            background: rgba(248,113,113,0.04);
+            animation: liveCardPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes liveCardPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); }
+            50% { box-shadow: 0 0 0 4px rgba(248,113,113,0.1); }
+        }
+
+        .sc-card-inner {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            gap: 10px;
+        }
+
+        .sc-team {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sc-team.sc-team-away {
+            justify-content: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .sc-team-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+
+        .sc-team-logo-placeholder {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .sc-team-name {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sc-center {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 80px;
+        }
+
+        .sc-score {
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+
+        .sc-colon {
+            margin: 0 4px;
+            opacity: 0.6;
+        }
+
+        .sc-score.sc-finished {
+            color: #4ade80;
+        }
+
+        .sc-score.sc-live {
+            color: #f87171;
+        }
+
+        .sc-time {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        .sc-vs {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: rgba(255,255,255,0.25);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .sc-round {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .sc-meta {
+            padding: 0 18px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sc-venue {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .sc-venue-img-wrap {
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 80px;
+        }
+
+        .sc-venue-img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            display: block;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 600px) {
+            .sc-card-inner {
+                padding: 12px 14px;
+            }
+
+            .sc-team-logo {
+                width: 26px;
+                height: 26px;
+            }
+
+            .sc-team-name {
+                font-size: 0.82rem;
+            }
+
+            .sc-score {
+                font-size: 1rem;
+            }
+
+            .sc-center {
+                min-width: 70px;
+            }
+        }
+
+        /* =====================================================
            ANIMATIONS
            ===================================================== */
         @keyframes fadeSlideDown {
@@ -2349,6 +2569,11 @@
         document.getElementById('view-games').classList.toggle('active', currentView === 'games');
         document.getElementById('sidebar-players').classList.toggle('active', currentView === 'players');
         document.getElementById('sidebar-games').classList.toggle('active', currentView === 'countries');
+
+        // Render schedule when switching to games view
+        if (currentView === 'games') {
+            renderScheduleView();
+        }
 
         updateUrl(push);
         updateMobileFilterButtonLabel();
@@ -3437,67 +3662,124 @@
 
     function renderScheduleView() {
         const el = document.getElementById('schedule-list');
-        if (!scheduleCatalog.length) { el.innerHTML = '<div class="games-empty">Kein Spielplan verfügbar.</div>'; return; }
-        el.innerHTML = scheduleCatalog.map(m => {
+        if (!el) return;
+
+        if (!scheduleCatalog.length) {
+            el.innerHTML = `<div class="schedule-empty-state">
+                <div style="font-size:2.5rem;margin-bottom:12px;">📅</div>
+                <div style="font-size:0.95rem;font-weight:700;color:var(--text-muted,#8b949e);">Kein Spielplan verfügbar</div>
+                <div style="font-size:0.8rem;color:rgba(139,148,158,0.6);margin-top:4px;">Bitte zuerst Spielplan über Admin synchronisieren.</div>
+            </div>`;
+            return;
+        }
+
+        // Group by date for section headers
+        function getDateKey(m) {
             const dt = m.date ? new Date(m.date) : null;
-            const dateLabel = dt && !Number.isNaN(dt.getTime())
-                ? dt.toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
-                : 'Datum folgt';
-            const timeLabel = dt && !Number.isNaN(dt.getTime())
-                ? dt.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })
-                : 'Uhrzeit folgt';
+            if (!dt || Number.isNaN(dt.getTime())) return '_nodate';
+            return dt.toISOString().slice(0, 10);
+        }
 
-            const statusShort = m.status?.short || '';
-            const isFinished = ['FT', 'AET', 'PEN'].includes(statusShort);
-            const isLive = ['1H', '2H', 'HT', 'ET', 'BT', 'P'].includes(statusShort);
+        const grouped = new Map();
+        scheduleCatalog.forEach(m => {
+            const key = getDateKey(m);
+            if (!grouped.has(key)) grouped.set(key, []);
+            grouped.get(key).push(m);
+        });
 
-            let scoreOrTime;
-            if (isFinished && m.goals) {
-                const gh = m.goals.home ?? '?';
-                const ga = m.goals.away ?? '?';
-                scoreOrTime = `<span style="color:#2ecc71;font-weight:bold;">${gh} : ${ga}</span>`;
-            } else if (isLive && m.goals) {
-                const gh = m.goals.home ?? '?';
-                const ga = m.goals.away ?? '?';
-                scoreOrTime = `<span style="color:#e74c3c;font-weight:bold;">${gh} : ${ga} 🔴</span>`;
+        const FINISHED = ['FT', 'AET', 'PEN'];
+        const LIVE_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P'];
+
+        let html = '';
+
+        for (const [dateKey, matches] of grouped) {
+            // Section header
+            let sectionLabel = '';
+            if (dateKey === '_nodate') {
+                sectionLabel = 'Datum folgt';
             } else {
-                scoreOrTime = `<span style="color:#bdc3c7;">${escapeHtml(timeLabel)}</span>`;
+                const dt = new Date(dateKey);
+                sectionLabel = dt.toLocaleDateString('de-CH', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
             }
 
-            const homeLogo = m.teamALogo ? `<img src="${escapeHtml(m.teamALogo)}" alt="" width="22" height="22" style="vertical-align:middle;margin-right:5px;object-fit:contain;" loading="lazy">` : '';
-            const awayLogo = m.teamBLogo ? `<img src="${escapeHtml(m.teamBLogo)}" alt="" width="22" height="22" style="vertical-align:middle;margin-left:5px;object-fit:contain;" loading="lazy">` : '';
+            html += `<div class="schedule-date-group">
+                <div class="schedule-date-header">
+                    <span class="schedule-date-line"></span>
+                    <span class="schedule-date-label">${escapeHtml(sectionLabel)}</span>
+                    <span class="schedule-date-line"></span>
+                </div>
+                <div class="schedule-matches-group">`;
 
-            const venueInfo = m.venue && m.venue !== 'Spielort folgt'
-                ? `${escapeHtml(m.venue)}${m.venueCity ? ' · ' + escapeHtml(m.venueCity) : ''}`
-                : 'Spielort folgt';
+            matches.forEach(m => {
+                const dt = m.date ? new Date(m.date) : null;
+                const validDt = dt && !Number.isNaN(dt.getTime());
+                const timeLabel = validDt ? dt.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
-            const venueImageHtml = m.venueImage
-                ? `<div style="margin-top:8px;"><img src="${escapeHtml(m.venueImage)}" alt="${escapeHtml(m.venue || '')}" style="width:100%;max-width:320px;height:90px;object-fit:cover;border-radius:6px;opacity:0.85;" loading="lazy"></div>`
-                : '';
+                const statusShort = m.status?.short || '';
+                const isFinished = FINISHED.includes(statusShort);
+                const isLive = LIVE_STATUSES.includes(statusShort);
 
-            const roundLabel = m.round ? `<span style="color:#95a5a6;font-size:12px;">${escapeHtml(m.round)}</span>` : '';
+                // Score / time center display
+                let centerHtml = '';
+                let matchStatusCls = '';
+                if (isFinished && m.goals) {
+                    centerHtml = `<div class="sc-score sc-finished">${m.goals.home ?? '?'}<span class="sc-colon">:</span>${m.goals.away ?? '?'}</div>`;
+                    matchStatusCls = 'sc-card--finished';
+                } else if (isLive && m.goals) {
+                    centerHtml = `<div class="sc-score sc-live">🔴 ${m.goals.home ?? '?'}<span class="sc-colon">:</span>${m.goals.away ?? '?'}</div>`;
+                    matchStatusCls = 'sc-card--live';
+                } else {
+                    centerHtml = `<div class="sc-time">${escapeHtml(timeLabel)}</div><div class="sc-vs">VS</div>`;
+                }
 
-            return `<div class="games-match-card">
-                <div class="games-match-header" style="cursor:default;">
-                    ${roundLabel ? `<div class="games-match-number">${roundLabel}</div>` : `<div class="games-match-number">Spiel ${escapeHtml(String(m.id))}</div>`}
-                    <div class="games-match-duel">
-                        <div class="games-team">
-                            ${homeLogo}<span class="games-team-name">${escapeHtml(m.teamA)}</span>
+                // Logos
+                const homeLogo = m.teamALogo
+                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamALogo)}" alt="${escapeHtml(m.teamA)}" loading="lazy" onerror="this.style.display='none'">`
+                    : `<span class="sc-team-logo-placeholder">🏳️</span>`;
+                const awayLogo = m.teamBLogo
+                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamBLogo)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
+                    : `<span class="sc-team-logo-placeholder">🏳️</span>`;
+
+                // Venue
+                const venueText = m.venue && m.venue !== 'Spielort folgt'
+                    ? `${m.venue}${m.venueCity ? ' · ' + m.venueCity : ''}`
+                    : '';
+
+                // Round label
+                const roundText = m.round ? m.round.replace(/Regular Season -\s*/i, '').replace(/Group Stage -\s*/i, 'Gruppe: ') : '';
+
+                // Venue image (only if available and valid)
+                const venueImg = m.venueImage
+                    ? `<img class="sc-venue-img" src="${escapeHtml(m.venueImage)}" alt="${escapeHtml(m.venue || '')}" loading="lazy" onerror="this.parentNode.style.display='none'">`
+                    : '';
+
+                html += `<div class="sc-card ${matchStatusCls}">
+                    <div class="sc-card-inner">
+                        <div class="sc-team sc-team-home">
+                            ${homeLogo}
+                            <span class="sc-team-name">${escapeHtml(m.teamA)}</span>
                         </div>
-                        <div class="games-score draw">${scoreOrTime}</div>
-                        <div class="games-team right">
-                            <span class="games-team-name">${escapeHtml(m.teamB)}</span>${awayLogo}
+                        <div class="sc-center">
+                            ${centerHtml}
+                            ${roundText ? `<div class="sc-round">${escapeHtml(roundText)}</div>` : ''}
+                        </div>
+                        <div class="sc-team sc-team-away">
+                            <span class="sc-team-name">${escapeHtml(m.teamB)}</span>
+                            ${awayLogo}
                         </div>
                     </div>
-                </div>
-                <div class="games-match-body" style="display:block;">
-                    <div class="games-player-meta" style="padding:4px 14px 6px;">
-                        ${escapeHtml(dateLabel)} · ${venueInfo}
-                    </div>
-                    ${venueImageHtml}
-                </div>
-            </div>`;
-        }).join('');
+                    ${(venueText || venueImg) ? `
+                    <div class="sc-meta">
+                        ${venueText ? `<span class="sc-venue">🏟️ ${escapeHtml(venueText)}</span>` : ''}
+                        ${venueImg ? `<div class="sc-venue-img-wrap">${venueImg}</div>` : ''}
+                    </div>` : ''}
+                </div>`;
+            });
+
+            html += `</div></div>`;
+        }
+
+        el.innerHTML = html;
     }
 
     /* =========================================================
