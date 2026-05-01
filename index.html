@@ -5465,6 +5465,10 @@
         });
     }
 
+    // Abort controller for manager carousel – allows us to tear down all listeners
+    // on re-render without having to track individual handler references.
+    let _mgrCarouselAbortCtrl = null;
+
     function setupManagerCarouselInteractions() {
         const prev     = $('mgr-carousel-prev');
         const next     = $('mgr-carousel-next');
@@ -5473,8 +5477,17 @@
         const dotsEl   = $('mgr-carousel-dots');
         if (!viewport || !track) return;
 
-        if (viewport.dataset.mgrCarouselBound) return;
+        // Tear down previous listeners (if any) before re-binding
+        if (_mgrCarouselAbortCtrl) {
+            _mgrCarouselAbortCtrl.abort();
+        }
+        _mgrCarouselAbortCtrl = new AbortController();
+        const { signal } = _mgrCarouselAbortCtrl;
+
         viewport.dataset.mgrCarouselBound = '1';
+
+        // Retrieve fresh slide list on each operation so stale refs are never used
+        function getSlides() { return track.querySelectorAll('.carousel-slide'); }
 
         function goNext() {
             const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
@@ -5487,21 +5500,19 @@
             viewport.scrollTo({ left: prevIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
         }
 
-        if (prev) prev.addEventListener('click', goPrev);
-        if (next) next.addEventListener('click', goNext);
+        if (prev) prev.addEventListener('click', goPrev, { signal });
+        if (next) next.addEventListener('click', goNext, { signal });
 
         let _rafPending  = false;
         let _scrollTimer = null;
         let _isScrolling = false;
         const _supportsScrollEnd = 'onscrollend' in window;
 
-        const slides = track.querySelectorAll('.carousel-slide');
-        const totalSlides = slides.length;
-
         function onScrollFrame() {
             _rafPending = false;
-            _applyMgr3DEffect(viewport, slides, totalSlides);
-            _updateMgrDots(viewport, dotsEl, totalSlides);
+            const slides = getSlides();
+            _applyMgr3DEffect(viewport, slides, slides.length);
+            _updateMgrDots(viewport, dotsEl, slides.length);
         }
 
         function onScrollEnd() {
@@ -5512,8 +5523,9 @@
                 viewport.scrollTo({ left: snapTarget, behavior: 'smooth' });
             }
             requestAnimationFrame(() => {
-                _applyMgr3DEffect(viewport, slides, totalSlides);
-                _updateMgrDots(viewport, dotsEl, totalSlides);
+                const slides = getSlides();
+                _applyMgr3DEffect(viewport, slides, slides.length);
+                _updateMgrDots(viewport, dotsEl, slides.length);
             });
         }
 
@@ -5530,17 +5542,17 @@
                 clearTimeout(_scrollTimer);
                 _scrollTimer = setTimeout(onScrollEnd, 100);
             }
-        }, { passive: true });
+        }, { passive: true, signal });
 
         if (_supportsScrollEnd) {
-            viewport.addEventListener('scrollend', onScrollEnd, { passive: true });
+            viewport.addEventListener('scrollend', onScrollEnd, { passive: true, signal });
         }
 
         viewport.setAttribute('tabindex', '0');
         viewport.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft')  { e.preventDefault(); goPrev(); }
             else if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
-        });
+        }, { signal });
 
         // On desktop (non-touch), translate vertical mouse-wheel into horizontal scroll
         // so the carousel is navigable without the arrow buttons.
@@ -5551,7 +5563,7 @@
             const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
             const targetIdx = Math.max(0, Math.min(currIdx + delta, mgrCarouselState.total - 1));
             viewport.scrollTo({ left: targetIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
-        }, { passive: false });
+        }, { passive: false, signal });
 
         let _resizeTimer = null;
         window.addEventListener('resize', () => {
@@ -5560,10 +5572,11 @@
                 const nearestIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
                 _setMgrTrackPadding(track, viewport);
                 viewport.scrollLeft = nearestIdx * MGR_CAROUSEL_UNIT;
-                _applyMgr3DEffect(viewport, slides, totalSlides);
-                _updateMgrDots(viewport, dotsEl, totalSlides);
+                const slides = getSlides();
+                _applyMgr3DEffect(viewport, slides, slides.length);
+                _updateMgrDots(viewport, dotsEl, slides.length);
             }, 150);
-        }, { passive: true });
+        }, { passive: true, signal });
     }
 
     /* =========================================================
