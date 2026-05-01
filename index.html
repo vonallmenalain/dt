@@ -2722,6 +2722,89 @@
         }
 
         /* ===================================================
+           MANAGER CAROUSEL CARD ELEMENTS
+           =================================================== */
+        .mc-rank-badge {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 100px;
+            background: rgba(255,255,255,0.08);
+            color: var(--text-muted);
+        }
+
+        .mc-rank-badge.rank-1 { background: linear-gradient(135deg,#ffd700,#e5a800); color:#1a1100; }
+        .mc-rank-badge.rank-2 { background: linear-gradient(135deg,#c0c0c0,#9ca3af); color:#1a1a1a; }
+        .mc-rank-badge.rank-3 { background: linear-gradient(135deg,#cd7f32,#b45309); color:#fff; }
+
+        .mc-pts-badge {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 100px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+        }
+
+        .mc-avatars {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .mc-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.12);
+            background: #2a3040;
+            flex-shrink: 0;
+        }
+
+        .mc-avatar-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .mc-name {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        /* Center card gold accent for rank 1 */
+        .mgr-carousel-rank-1.is-center .carousel-card {
+            border-color: rgba(255, 215, 0, 0.5) !important;
+            box-shadow:
+                0 0 0 1px rgba(255,215,0,0.25),
+                0 20px 50px rgba(0,0,0,0.5),
+                0 0 30px rgba(255,215,0,0.12) !important;
+        }
+        .mgr-carousel-rank-1.is-center .carousel-card::before {
+            background: linear-gradient(90deg, transparent, #ffd700, #e5a800, transparent) !important;
+        }
+
+        /* ===================================================
            NÄCHSTE SPIELE – MATCH TICKER (transparent)
            =================================================== */
         .match-ticker {
@@ -3203,7 +3286,7 @@
         <!-- Navigation pills (no primary CTA in post-start mode) -->
         <div class="hero-cta-wrap hero-post-pills-only">
             <div class="hero-secondary-btns">
-                <a href="rangliste.html" class="btn-pill btn-pill-accent">🏆 Rangliste</a>
+                <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
                 <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler-Analyse</a>
                 <a href="teams.html" class="btn-pill">🛡️ Teams</a>
                 <a href="punktesystem.html" class="btn-pill">📊 Punktesystem</a>
@@ -3265,7 +3348,37 @@
         </div>
     </div>
 
-    <!-- ── Row 3: Nächste Spiele Match Ticker ────────────── -->
+    <!-- ── Row 3: Manager Rangliste Carousel ─────────────── -->
+    <div class="mb-section">
+        <div class="post-section-label carousel-section-header">
+            <span class="post-section-label-icon">🏆</span>
+            <span class="post-section-label-text">Rangliste</span>
+        </div>
+        <div class="player-carousel-section" id="tile-post-manager-carousel-section">
+            <div class="carousel-outer" id="mgr-carousel-outer">
+                <div class="carousel-viewport" id="mgr-carousel-viewport" aria-label="Manager Rangliste Karussell">
+                    <div class="carousel-track" id="mgr-carousel-track" role="list">
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-nav" id="mgr-carousel-nav">
+                <button class="carousel-arrow" id="mgr-carousel-prev" aria-label="Vorheriger Manager">‹</button>
+                <div class="carousel-dots" id="mgr-carousel-dots" role="tablist"></div>
+                <button class="carousel-arrow" id="mgr-carousel-next" aria-label="Nächster Manager">›</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 4: Nächste Spiele Match Ticker ────────────── -->
     <div class="mb-section">
         <div class="post-panel" id="tile-post-next-matches-wrap">
             <div class="post-section-label">
@@ -5101,6 +5214,210 @@
     }
 
     /* =========================================================
+       MANAGER CAROUSEL – Non-infinite, ranked #1 first (left)
+       ========================================================= */
+
+    let mgrCarouselState = {
+        total: 0,
+        _offset: 0
+    };
+
+    function buildManagerCarouselCard(manager, rank, total, avatars) {
+        const sign = total > 0 ? '+' : '';
+        const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+        const rankSlideClass = rank === 1 ? 'mgr-carousel-rank-1' : '';
+
+        const avatarHtml = avatars.length
+            ? avatars.map(a =>
+                `<img class="mc-avatar" src="${escapeHtml(a.photo)}" alt="${escapeHtml(a.name)}" loading="lazy" onerror="this.style.display='none'">`
+              ).join('')
+            : `<div class="mc-avatar-placeholder">👤</div>`;
+
+        return `
+            <div class="carousel-slide ${rankSlideClass}" role="listitem" aria-label="${escapeHtml(manager)}, Rang ${rank}, ${sign}${total} Punkte">
+                <div class="carousel-card">
+                    <div class="mc-rank-badge ${rankCls}">#${rank}</div>
+                    <div class="mc-pts-badge">${sign}${total}</div>
+                    <div class="mc-avatars">${avatarHtml}</div>
+                    <div class="mc-name">${escapeHtml(manager)}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderManagerCarousel(teamTotals, ptMap, teams) {
+        const track    = $('mgr-carousel-track');
+        const dotsEl   = $('mgr-carousel-dots');
+        const viewport = $('mgr-carousel-viewport');
+        if (!track || !viewport) return;
+
+        if (!teamTotals.length) {
+            track.innerHTML = `<div class="carousel-slide is-center"><div class="carousel-card"><div class="empty-state"><div class="empty-state-icon">🏆</div>Noch keine Ranglistendaten verfügbar.</div></div></div>`;
+            return;
+        }
+
+        // Helper: get top-3 player avatars for a manager by points
+        function getMgrAvatars(manager) {
+            const teamObj = teams.find(t => t.manager === manager);
+            if (!teamObj) return [];
+            return (teamObj.players || [])
+                .map(tp => {
+                    const full = resolvePlayer(tp);
+                    if (!full) return null;
+                    const base = ptMap[String(full['player.id'])] || 0;
+                    return { pts: tp.isCaptain ? base * 2 : base, photo: full.Spielerfoto, name: full.Spielername };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b.pts - a.pts)
+                .slice(0, 3);
+        }
+
+        mgrCarouselState.total = teamTotals.length;
+        // For non-infinite: offset = 0, no tripling
+        mgrCarouselState._offset = 0;
+
+        // Build card HTML (single set, no clones – not an infinite loop)
+        const cardHtmls = teamTotals.map((t, i) => {
+            const rank = i + 1;
+            const avatars = getMgrAvatars(t.manager);
+            return buildManagerCarouselCard(t.manager, rank, t.total, avatars);
+        });
+        track.innerHTML = cardHtmls.join('');
+
+        // Dots
+        if (dotsEl) {
+            dotsEl.innerHTML = teamTotals.map((_, i) =>
+                `<div class="carousel-dot${i === 0 ? ' active' : ''}" data-mgr-dot="${i}" role="tab" aria-label="Manager ${i+1}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="0"></div>`
+            ).join('');
+
+            dotsEl.querySelectorAll('[data-mgr-dot]').forEach((dot) => {
+                dot.addEventListener('click', () => {
+                    const idx = Number(dot.dataset.mgrDot);
+                    viewport.scrollTo({ left: idx * CAROUSEL_UNIT, behavior: 'smooth' });
+                });
+                dot.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const idx = Number(dot.dataset.mgrDot);
+                        viewport.scrollTo({ left: idx * CAROUSEL_UNIT, behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        // Set padding so first and last slide can be centred, then snap to index 0 (#1)
+        requestAnimationFrame(() => {
+            _setTrackPadding(track, viewport);
+            viewport.scrollLeft = 0;
+            const slides = track.querySelectorAll('.carousel-slide');
+            _apply3DEffect(viewport, slides, slides.length);
+            _updateMgrDots(viewport, dotsEl, slides.length);
+        });
+
+        setupManagerCarouselInteractions();
+    }
+
+    function _updateMgrDots(viewport, dotsEl, totalSlides) {
+        if (!dotsEl || !mgrCarouselState.total) return;
+        const bestIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
+        const clampedIdx = Math.max(0, Math.min(bestIdx, mgrCarouselState.total - 1));
+        const dots = dotsEl.querySelectorAll('[data-mgr-dot]');
+        dots.forEach((dot, i) => {
+            const active = i === clampedIdx;
+            dot.classList.toggle('active', active);
+            dot.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+    }
+
+    function setupManagerCarouselInteractions() {
+        const prev     = $('mgr-carousel-prev');
+        const next     = $('mgr-carousel-next');
+        const viewport = $('mgr-carousel-viewport');
+        const track    = $('mgr-carousel-track');
+        const dotsEl   = $('mgr-carousel-dots');
+        if (!viewport || !track) return;
+
+        if (viewport.dataset.mgrCarouselBound) return;
+        viewport.dataset.mgrCarouselBound = '1';
+
+        function goNext() {
+            const currIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
+            viewport.scrollTo({ left: (currIdx + 1) * CAROUSEL_UNIT, behavior: 'smooth' });
+        }
+        function goPrev() {
+            const currIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
+            viewport.scrollTo({ left: (currIdx - 1) * CAROUSEL_UNIT, behavior: 'smooth' });
+        }
+
+        if (prev) prev.addEventListener('click', goPrev);
+        if (next) next.addEventListener('click', goNext);
+
+        let _rafPending  = false;
+        let _scrollTimer = null;
+        let _isScrolling = false;
+        const _supportsScrollEnd = 'onscrollend' in window;
+
+        const slides = track.querySelectorAll('.carousel-slide');
+        const totalSlides = slides.length;
+
+        function onScrollFrame() {
+            _rafPending = false;
+            _apply3DEffect(viewport, slides, totalSlides);
+            _updateMgrDots(viewport, dotsEl, totalSlides);
+        }
+
+        function onScrollEnd() {
+            _isScrolling = false;
+            viewport.classList.remove('is-scrolling');
+            const snapTarget = Math.round(viewport.scrollLeft / CAROUSEL_UNIT) * CAROUSEL_UNIT;
+            if (Math.abs(viewport.scrollLeft - snapTarget) > 4) {
+                viewport.scrollTo({ left: snapTarget, behavior: 'smooth' });
+            }
+            requestAnimationFrame(() => {
+                _apply3DEffect(viewport, slides, totalSlides);
+                _updateMgrDots(viewport, dotsEl, totalSlides);
+            });
+        }
+
+        viewport.addEventListener('scroll', () => {
+            if (!_isScrolling) {
+                _isScrolling = true;
+                viewport.classList.add('is-scrolling');
+            }
+            if (!_rafPending) {
+                _rafPending = true;
+                requestAnimationFrame(onScrollFrame);
+            }
+            if (!_supportsScrollEnd) {
+                clearTimeout(_scrollTimer);
+                _scrollTimer = setTimeout(onScrollEnd, 100);
+            }
+        }, { passive: true });
+
+        if (_supportsScrollEnd) {
+            viewport.addEventListener('scrollend', onScrollEnd, { passive: true });
+        }
+
+        viewport.setAttribute('tabindex', '0');
+        viewport.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft')  { e.preventDefault(); goPrev(); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
+        });
+
+        let _resizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(_resizeTimer);
+            _resizeTimer = setTimeout(() => {
+                const nearestIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
+                _setTrackPadding(track, viewport);
+                viewport.scrollLeft = nearestIdx * CAROUSEL_UNIT;
+                _apply3DEffect(viewport, slides, totalSlides);
+                _updateMgrDots(viewport, dotsEl, totalSlides);
+            }, 150);
+        }, { passive: true });
+    }
+
+    /* =========================================================
        COUNTRY NORMALIZATION HELPERS
        (used for matching player nationality with fixture teams)
        ========================================================= */
@@ -5432,6 +5749,9 @@
 
         // 3D Player Carousel (new)
         renderPlayerCarousel(topPlayers, ptMap);
+
+        // Manager Ranking Carousel
+        renderManagerCarousel(teamTotals, ptMap, teams);
 
         // Top Manager
         renderTopManagers(teamTotals, ptMap, teams, 'post-');
