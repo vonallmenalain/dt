@@ -23,39 +23,71 @@
     <link rel="stylesheet" href="styles.css">
 
     <style>
-        /* --- SPEZIFISCHES DESIGN NUR FÜR DIE TEAM-ANSICHT --- */
-        body { padding-top: 100px; padding-bottom: 50px; } 
+        :root {
+            --dark-bg: #0d1117;
+            --dark-surface: #161b22;
+            --dark-card: #1c2333;
+            --text-main: #e6edf3;
+            --text-muted: #8b949e;
+            --green-main: #22c55e;
+            --green-light: #4ade80;
+            --gold: #ffd700;
+            --danger: #ef4444;
+        }
+
+        body {
+            padding-top: 100px;
+            padding-bottom: calc(86px + env(safe-area-inset-bottom));
+            background:
+                radial-gradient(circle at 20% -10%, rgba(34, 197, 94, 0.16), transparent 34%),
+                radial-gradient(circle at 90% 20%, rgba(255, 215, 0, 0.12), transparent 30%),
+                radial-gradient(circle at 50% 110%, rgba(22, 32, 54, 0.6), transparent 45%),
+                var(--dark-bg);
+            color: var(--text-main);
+        }
+
+        .teams-page { max-width: 1700px; margin: 0 auto; padding: 0 16px; animation: fadeSlideUp .7s ease both; }
+        .teams-hero {
+            background: linear-gradient(140deg, rgba(28,35,51,.85), rgba(22,27,34,.88));
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 22px;
+            padding: 22px 26px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,.35);
+            animation: fadeSlideDown .75s ease both;
+        }
+        .teams-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,.08) 50%, transparent 75%); transform: translateX(-140%); animation: shimmer 8s linear infinite; pointer-events: none; }
+        .teams-hero h1 { margin: 0 0 8px; font-size: clamp(1.45rem, 2.8vw, 2.4rem); letter-spacing: .2px; }
+        .teams-hero .gold { color: var(--gold); }
+        .teams-hero .green { color: var(--green-light); }
+        .teams-hero p { margin: 0; color: var(--text-muted); }
         
-        .layout { display: flex; gap: 30px; max-width: 1700px; margin: 0 auto; align-items: flex-start; }
+        .layout { display: flex; gap: 24px; align-items: flex-start; animation: fadeSlideUp .8s ease both; }
 
         /* Linke Spalte */
         .sidebar { 
-            width: 250px; background: white; border-radius: 15px; padding: 20px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 2px solid #e2e8f0; 
+            width: 280px; background: rgba(28,35,51,.72); border-radius: 18px; padding: 20px; 
+            box-shadow: 0 14px 35px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(14px);
             position: sticky; top: 100px; max-height: calc(100vh - 150px); display: flex; flex-direction: column; flex-shrink: 0;
         }
-        .sidebar h2 { margin-top: 0; font-size: 1.5em; color: #111; border-bottom: 3px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
-        .search-box { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; box-sizing: border-box; }
+        .sidebar h2 { margin-top: 0; font-size: 1.35em; color: var(--text-main); border-bottom: 1px solid rgba(255,255,255,.12); padding-bottom: 10px; margin-bottom: 15px; }
+        .search-box { width: 100%; padding: 12px 13px; border-radius: 12px; border: 1px solid rgba(255,255,255,.18); margin-bottom: 15px; box-sizing: border-box; background: rgba(13,17,23,.65); color: var(--text-main); }
         
         .manager-list { overflow-y: auto; overflow-x: hidden; flex: 1; display: flex; flex-direction: column; gap: 5px; padding-right: 5px; }
         .manager-list::-webkit-scrollbar { width: 6px; }
         .manager-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
         
-        .manager-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; font-weight: bold; color: #444; font-size: 14px; }
-        .manager-item:hover { background: #eef2f3; transform: translateX(5px); }
-        .manager-item.active { background: #d4edda; border-color: #28a745; color: #155724; box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2); }
+        .manager-item { padding: 12px 15px; border-radius: 12px; cursor: pointer; transition: .22s ease; border: 1px solid rgba(255,255,255,.14); display: flex; justify-content: space-between; align-items: center; background: rgba(13,17,23,.65); font-weight: 700; color: var(--text-main); font-size: 14px; }
+        .manager-item:hover { transform: translateX(4px) translateY(-1px); border-color: rgba(74,222,128,.5); }
+        .manager-item.active { background: rgba(34,197,94,.22); border-color: var(--green-main); color: #d9fbe6; box-shadow: 0 0 0 1px rgba(34,197,94,.25), 0 12px 20px rgba(0,0,0,.28); }
 
         /* Rechte Spalte: Team-Ansicht */
-        .main-view { flex: 1; background: white; border-radius: 15px; padding: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 2px solid #e2e8f0; min-height: 600px; position: relative; overflow: hidden; }
+        .main-view { flex: 1; background: linear-gradient(165deg, rgba(28,35,51,.75), rgba(14,20,31,.82)); border-radius: 20px; padding: 28px; box-shadow: 0 16px 44px rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.14); min-height: 600px; position: relative; overflow: hidden; backdrop-filter: blur(14px); }
         
-        .mobile-manager-select {
-            display: none; width: 100%; padding: 15px 20px; font-size: 16px; font-weight: bold;
-            color: #333; background-color: #f8f9fa; border: 2px solid #e2e8f0; border-radius: 12px;
-            margin-bottom: 20px; outline: none; cursor: pointer;
-            -webkit-appearance: none; appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-            background-repeat: no-repeat; background-position: right 15px center; background-size: 16px;
-        }
+        .mobile-manager-select { display: none !important; }
+        .mobile-team-picker-trigger { display:none; }
 
         .team-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 30px; border-bottom: 3px solid #f1f5f9; padding-bottom: 15px; }
         .team-header h2 { margin: 0; font-size: 2.2em; }
@@ -436,7 +468,18 @@
             .layout { flex-direction: column; gap: 15px; }
             .main-view { width: 100%; box-sizing: border-box; padding: 20px 15px; overflow: visible; }
             .sidebar { display: none !important; }
-            .mobile-manager-select { display: block; }
+            .mobile-team-picker-trigger {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                margin-bottom: 16px;
+                padding: 14px 16px;
+                background: rgba(28,35,51,.88);
+                border: 1px solid rgba(255,255,255,.14);
+                border-radius: 14px;
+                color: var(--text-main);
+            }
 
             .team-header {
                 flex-direction: column;
@@ -481,28 +524,9 @@
             .board-headers { display: none; }
             .pos-badge-container { display: none; }
 
-            .team-board {
-                overflow-x: auto;
-                overflow-y: visible;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: 10px;
-            }
-            .team-board::-webkit-scrollbar { display: none; }
-
-            .pos-row {
-                display: flex;
-                align-items: stretch;
-                min-height: 195px;
-                width: max-content;
-                margin-bottom: 0;
-            }
-
-            .pos-scroll-area {
-                display: flex;
-                gap: 0;
-                width: max-content;
-                flex: none;
-            }
+            .team-board { overflow: visible; padding-bottom: 10px; }
+            .pos-row { min-height: auto; width: 100%; margin-bottom: 14px; display:block; }
+            .pos-scroll-area { width: 100%; flex: none; display:block; }
 
             .pitch-zone,
             .bench-zone {
@@ -512,24 +536,9 @@
                 padding: 34px 12px 14px 12px;
             }
 
-            .pitch-zone {
-                width: 560px;
-                min-width: 560px;
-                border-left: 3px solid #fff !important;
-                border-right: 3px solid #fff !important;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+            .pitch-zone { width: 100%; min-width: 100%; border: 1px solid rgba(74,222,128,.25)!important; display: flex; align-items: center; justify-content: center; border-radius: 14px!important; background: linear-gradient(180deg, rgba(34,197,94,.20), rgba(22,27,34,.80)); }
 
-            .bench-zone {
-                width: 160px;
-                min-width: 160px;
-                border-left: 2px dashed rgba(0,0,0,0.2) !important;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+            .bench-zone { width: 100%; min-width: 100%; margin-top: 8px; border: 1px solid rgba(255,215,0,.24)!important; border-radius: 14px!important; background: rgba(22,27,34,.75); }
 
             .pos-badge-mobile,
             .bench-badge-mobile {
@@ -595,10 +604,29 @@
                 border-color: #28a745;
             }
         }
+        .team-picker-modal{position:fixed;inset:0;display:none;z-index:9999;}
+        .team-picker-modal.is-open{display:block;}
+        .team-picker-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(7px);}
+        .team-picker-panel{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(94vw,560px);max-height:80vh;background:rgba(22,27,34,.96);border:1px solid rgba(255,255,255,.14);border-radius:20px 20px 0 0;padding:16px;display:flex;flex-direction:column;gap:12px;}
+        .team-picker-head{display:flex;justify-content:space-between;align-items:center;}
+        .team-picker-list{overflow:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:6px;}
+        .team-picker-close{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--text-main);border-radius:10px;padding:6px 10px;}
+        .no-scroll{overflow:hidden;}
+        @keyframes fadeSlideDown { from {opacity:0; transform:translateY(-20px);} to {opacity:1; transform:translateY(0);} }
+        @keyframes fadeSlideUp { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+        @keyframes shimmer { from {transform: translateX(-140%);} to {transform: translateX(140%);} }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
     </style>
 </head>
 <body>
 
+<div class="teams-page">
+    <section class="teams-hero">
+        <h1>Alle <span class="gold" id="hero-tournament-label">Turnier</span> <span class="green">DreamTeams</span></h1>
+        <p>Wähle ein Team, entdecke Awards und verfolge Punkte & Rang live.</p>
+    </section>
 <div class="layout">
     <div class="sidebar" id="sidebar">
         <h2 id="sidebar-title" style="text-align: center;">🛡️ Alle Teams</h2>
@@ -607,6 +635,7 @@
     </div>
 
     <div class="main-view">
+        <button class="mobile-team-picker-trigger" id="mobile-team-picker-trigger" type="button">🛡️ Team auswählen <strong id="mobile-current-manager">-</strong></button>
         <select class="mobile-manager-select" id="mobile-manager-select"></select>
         <div id="empty-state">👈 Lade Teams... ⏳</div>
         
@@ -696,6 +725,19 @@
         </div>
     </div>
 </div>
+</div>
+
+<div class="team-picker-modal" id="team-picker-modal" aria-hidden="true">
+    <div class="team-picker-backdrop" id="team-picker-backdrop"></div>
+    <div class="team-picker-panel" role="dialog" aria-modal="true" aria-labelledby="team-picker-title">
+        <div class="team-picker-head">
+            <h3 id="team-picker-title">Team auswählen</h3>
+            <button class="team-picker-close" id="team-picker-close" type="button" aria-label="Schließen">✕</button>
+        </div>
+        <input type="text" id="mobile-manager-search" class="search-box" placeholder="Suche Manager...">
+        <div class="team-picker-list" id="mobile-manager-list"></div>
+    </div>
+</div>
 
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
@@ -728,6 +770,8 @@
     if (sidebarTitleEl) {
         sidebarTitleEl.textContent = `🛡️ Alle Teams`;
     }
+    const heroTournamentLabelEl = document.getElementById('hero-tournament-label');
+    if (heroTournamentLabelEl) heroTournamentLabelEl.textContent = TOURNAMENT_LABEL;
 
     let allTeams = [];
     let playerPointsData = {};
@@ -1167,6 +1211,20 @@
         setStoredManagerName(managerName);
         window.history.replaceState(null, '', '?manager=' + encodeURIComponent(managerName));
     }
+    function updateMobilePickerMeta(team) {
+        const mobileCurrent = document.getElementById('mobile-current-manager');
+        if (mobileCurrent) mobileCurrent.textContent = team?.manager || '-';
+    }
+
+    function selectManager(team) {
+        if (!team) return;
+        document.querySelectorAll('.manager-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.managerName === team.manager);
+        });
+        updateManagerUrlAndStorage(team.manager);
+        loadTeam(team);
+        closeTeamPickerModal();
+    }
 
     function applyDataset(data, options = {}) {
         const preferCurrentDisplayed = !!options.preferCurrentDisplayed;
@@ -1203,9 +1261,11 @@
     function renderManagerList(teamsToRender) {
         const listEl = document.getElementById('manager-list');
         const selectEl = document.getElementById('mobile-manager-select');
+        const mobileListEl = document.getElementById('mobile-manager-list');
         
         listEl.innerHTML = '';
         selectEl.innerHTML = '';
+        if (mobileListEl) mobileListEl.innerHTML = '';
         
         const urlParams = new URLSearchParams(window.location.search);
         const currentManager = urlParams.get('manager') || getStoredManagerName();
@@ -1213,18 +1273,19 @@
         teamsToRender.forEach(team => {
             const div = document.createElement('div');
             div.className = 'manager-item';
+            div.dataset.managerName = team.manager;
             if (team.manager === currentManager) div.classList.add('active');
             const nameSpan = document.createElement('span');
             nameSpan.textContent = team.manager;
             div.appendChild(nameSpan);
-            div.onclick = () => {
-                document.querySelectorAll('.manager-item').forEach(el => el.classList.remove('active'));
-                div.classList.add('active');
-                setStoredManagerName(team.manager);
-                window.history.replaceState(null, '', '?manager=' + encodeURIComponent(team.manager));
-                loadTeam(team);
-            };
+            div.onclick = () => selectManager(team);
             listEl.appendChild(div);
+
+            if (mobileListEl) {
+                const mobBtn = div.cloneNode(true);
+                mobBtn.onclick = () => selectManager(team);
+                mobileListEl.appendChild(mobBtn);
+            }
         });
 
         allTeams.forEach(team => {
@@ -1234,6 +1295,27 @@
             if (team.manager === currentManager) opt.selected = true;
             selectEl.appendChild(opt);
         });
+    }
+    function renderMobileManagerPicker(teamsToRender) {
+        const mobileListEl = document.getElementById('mobile-manager-list');
+        if (!mobileListEl) return;
+        renderManagerList(teamsToRender);
+    }
+
+    function openTeamPickerModal() {
+        const modal = document.getElementById('team-picker-modal');
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('no-scroll');
+    }
+
+    function closeTeamPickerModal() {
+        const modal = document.getElementById('team-picker-modal');
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('no-scroll');
     }
 
     document.getElementById('mobile-manager-select').addEventListener('change', (e) => {
@@ -1254,6 +1336,15 @@
     document.getElementById('manager-search').addEventListener('input', () => {
         renderManagerList(getFilteredTeamsFromSearch());
     });
+    document.getElementById('mobile-manager-search')?.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        const teams = !term ? allTeams : allTeams.filter(t => t.manager.toLowerCase().includes(term));
+        renderManagerList(teams);
+    });
+    document.getElementById('mobile-team-picker-trigger')?.addEventListener('click', openTeamPickerModal);
+    document.getElementById('team-picker-close')?.addEventListener('click', closeTeamPickerModal);
+    document.getElementById('team-picker-backdrop')?.addEventListener('click', closeTeamPickerModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeTeamPickerModal(); });
 
     function animateHeader() {
         const nameEl = document.getElementById('display-manager-name');
@@ -1343,6 +1434,7 @@
         
         document.getElementById('display-manager-name').innerText = team.manager;
         document.getElementById('mobile-manager-select').value = team.manager;
+        updateMobilePickerMeta(team);
         document.getElementById('display-rank').innerText = team.currentRank ? team.currentRank : '-';
 
         const rankLink = document.getElementById('display-rank-link');
