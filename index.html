@@ -2453,7 +2453,7 @@
     function getDreamteamStart() {
         return (window.APP_CONFIG && window.APP_CONFIG.DREAMTEAM_START)
             ? window.APP_CONFIG.DREAMTEAM_START
-            : new Date("2026-06-11T21:00:00+02:00");
+            : new Date("2024-06-14T21:00:00+02:00");
     }
 
     const DEV_TOGGLE_KEY = "dreamteamIndexViewMode";
@@ -2518,7 +2518,11 @@
             const next = DEV_MODES[nextIdx];
             localStorage.setItem(DEV_TOGGLE_KEY, next);
             updateDevToggleLabel();
-            applyIndexViewMode();
+            if (_lastRenderedData) {
+                render(_lastRenderedData);
+            } else {
+                applyIndexViewMode();
+            }
             // Re-trigger tilt for any newly visible cards
             setTimeout(() => initCardTilt(), 80);
         });
@@ -3723,7 +3727,10 @@
         }
     }
 
+    let _lastRenderedData = null;
+
     function render(data) {
+        _lastRenderedData = data;
         renderIndexHome(data);
     }
 

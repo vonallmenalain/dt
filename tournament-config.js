@@ -85,11 +85,11 @@ window.APP_CONFIG = (() => {
 
   // ─────────────────────────────────────────────────────────
   // DREAMTEAM SPIELSTART – Umschaltzeitpunkt Pre/Post-Start
-  // Aktueller Testwert: 11. Juni 2026, 21:00 Uhr Schweizer Zeit
+  // EM 2024: Eröffnungsspiel am 14. Juni 2024, 21:00 Uhr Schweizer Zeit
   // Zeitzone: Europe/Zurich (CEST = UTC+2 im Sommer)
   // Zum Ändern: Datum & Uhrzeit hier anpassen.
   // ─────────────────────────────────────────────────────────
-  const DREAMTEAM_START = new Date("2026-06-11T21:00:00+02:00");
+  const DREAMTEAM_START = new Date("2024-06-14T21:00:00+02:00");
 
   const firebaseConfig = {
     apiKey: "AIzaSyAOrgxmb_NZM1H_HZpMG1XfK9azDgV2zCQ",
