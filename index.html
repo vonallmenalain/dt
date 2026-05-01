@@ -2003,6 +2003,76 @@
         }
 
         /* ===================================================
+           POST-START WRAPPER – green-tinted atmosphere
+           =================================================== */
+        #indexHomePostStart {
+            position: relative;
+        }
+
+        #indexHomePostStart::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 100%, rgba(40,167,69,0.55) 0%, transparent 65%),
+                radial-gradient(ellipse 70% 50% at 50% 80%, rgba(40,167,69,0.30) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 20% 0%, rgba(255,215,0,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(40,167,69,0.22) 0%, transparent 50%),
+                linear-gradient(180deg, #050a0e 0%, #071a0a 40%, #0a2010 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Dashboard area for post-start – transparent, no heavy tiles */
+        #dashboard-post-area {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Floating glass panel (transparent, no hard tile) */
+        .post-panel {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 28px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .post-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            pointer-events: none;
+        }
+
+        .post-section-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .post-section-label-text {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: rgba(255,255,255,0.45);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .post-section-label-icon {
+            font-size: 1rem;
+        }
+
+        /* ===================================================
            POST-START HERO – COMPACT VERSION
            =================================================== */
         .hero-post-compact {
@@ -2037,27 +2107,11 @@
         }
 
         /* ===================================================
-           RANKING PREVIEW TILE
+           LIVE RANGLISTE PODIUM (3-column podest)
            =================================================== */
-        .ranking-preview-tile {
-            cursor: pointer;
-            text-decoration: none;
-            display: block;
+        .podium-section {
             position: relative;
-            overflow: hidden;
         }
-
-        .ranking-preview-tile::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            background: rgba(255,215,0,0.04);
-        }
-
-        .ranking-preview-tile:hover::after { opacity: 1; }
 
         .ranking-live-badge {
             display: inline-flex;
@@ -2087,65 +2141,229 @@
             50% { opacity: 0.4; transform: scale(0.7); }
         }
 
-        .ranking-podium-row {
+        /* Podium layout */
+        .podium-stage {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0 14px;
+        }
+
+        .podium-slot {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-        }
-
-        .rp-entry {
-            display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            transition: background 0.2s ease, border-color 0.2s ease;
+            gap: 10px;
+            flex: 1;
+            max-width: 160px;
+            cursor: pointer;
             text-decoration: none;
+            position: relative;
         }
 
-        .rp-entry:hover {
-            background: rgba(255,255,255,0.07);
-            border-color: rgba(255,255,255,0.12);
+        .podium-slot-1 {
+            order: 2;
+            transform: translateY(0);
         }
 
-        .rp-rank {
-            width: 28px;
-            height: 28px;
+        .podium-slot-2 {
+            order: 1;
+            transform: translateY(18px);
+        }
+
+        .podium-slot-3 {
+            order: 3;
+            transform: translateY(24px);
+        }
+
+        .podium-crown {
+            font-size: 1.4rem;
+            animation: floatCrown 3s ease-in-out infinite;
+        }
+
+        @keyframes floatCrown {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .podium-slot-2 .podium-crown,
+        .podium-slot-3 .podium-crown {
+            font-size: 1rem;
+            animation: none;
+        }
+
+        .podium-avatar-ring {
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.85rem;
-            font-weight: 900;
+            position: relative;
             flex-shrink: 0;
+        }
+
+        .podium-slot-1 .podium-avatar-ring {
+            width: 84px;
+            height: 84px;
+            background: radial-gradient(circle, rgba(255,215,0,0.25), rgba(255,215,0,0.05));
+            box-shadow: 0 0 0 2px rgba(255,215,0,0.6), 0 0 30px rgba(255,215,0,0.25);
+        }
+
+        .podium-slot-2 .podium-avatar-ring {
+            background: radial-gradient(circle, rgba(192,192,192,0.2), rgba(192,192,192,0.04));
+            box-shadow: 0 0 0 2px rgba(192,192,192,0.5);
+        }
+
+        .podium-slot-3 .podium-avatar-ring {
+            background: radial-gradient(circle, rgba(205,127,50,0.2), rgba(205,127,50,0.04));
+            box-shadow: 0 0 0 2px rgba(205,127,50,0.5);
+        }
+
+        .podium-initials {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.85);
+            background: rgba(255,255,255,0.08);
+            letter-spacing: -0.5px;
+        }
+
+        .podium-slot-1 .podium-initials { font-size: 1.5rem; }
+
+        .podium-info {
+            text-align: center;
+        }
+
+        .podium-name {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 130px;
+        }
+
+        .podium-slot-1 .podium-name {
+            font-size: 0.95rem;
+        }
+
+        .podium-pts {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #4ade80;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .podium-slot-2 .podium-pts,
+        .podium-slot-3 .podium-pts {
+            font-size: 0.92rem;
+        }
+
+        .podium-rank-tag {
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 100px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .podium-slot-1 .podium-rank-tag {
+            background: rgba(255,215,0,0.2);
+            color: var(--gold);
+            border: 1px solid rgba(255,215,0,0.4);
+        }
+
+        .podium-slot-2 .podium-rank-tag {
+            background: rgba(192,192,192,0.12);
+            color: #c0c0c0;
+            border: 1px solid rgba(192,192,192,0.3);
+        }
+
+        .podium-slot-3 .podium-rank-tag {
+            background: rgba(205,127,50,0.12);
+            color: #cd7f32;
+            border: 1px solid rgba(205,127,50,0.3);
+        }
+
+        .podium-pedestal {
+            width: 100%;
+            border-radius: 10px 10px 6px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .podium-slot-1 .podium-pedestal {
+            height: 48px;
+            background: linear-gradient(180deg, rgba(255,215,0,0.25), rgba(255,215,0,0.1));
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .podium-slot-2 .podium-pedestal {
+            height: 36px;
+            background: linear-gradient(180deg, rgba(192,192,192,0.18), rgba(192,192,192,0.07));
+            border: 1px solid rgba(192,192,192,0.2);
+        }
+
+        .podium-slot-3 .podium-pedestal {
+            height: 28px;
+            background: linear-gradient(180deg, rgba(205,127,50,0.18), rgba(205,127,50,0.07));
+            border: 1px solid rgba(205,127,50,0.2);
+        }
+
+        .podium-pedestal-num {
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .podium-slot-1 .podium-pedestal-num { color: var(--gold); }
+        .podium-slot-2 .podium-pedestal-num { color: #c0c0c0; }
+        .podium-slot-3 .podium-pedestal-num { color: #cd7f32; }
+
+        .podium-rest {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .podium-rest-entry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            text-decoration: none;
+            transition: background 0.18s ease;
+        }
+
+        .podium-rest-entry:hover {
             background: rgba(255,255,255,0.06);
+        }
+
+        .podium-rest-rank {
+            font-size: 0.78rem;
+            font-weight: 800;
             color: var(--text-muted);
+            min-width: 18px;
+            text-align: center;
         }
 
-        .rp-rank.rank-1 {
-            background: linear-gradient(135deg, #ffd700, #e5a800);
-            color: #1a1100;
-        }
-
-        .rp-rank.rank-2 {
-            background: linear-gradient(135deg, #c0c0c0, #9ca3af);
-            color: #1a1a1a;
-        }
-
-        .rp-rank.rank-3 {
-            background: linear-gradient(135deg, #cd7f32, #b45309);
-            color: #fff;
-        }
-
-        .rp-info {
+        .podium-rest-name {
             flex: 1;
-            min-width: 0;
-        }
-
-        .rp-manager {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: var(--text-main);
             white-space: nowrap;
@@ -2153,20 +2371,10 @@
             text-overflow: ellipsis;
         }
 
-        .rp-team-name {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .rp-score {
-            font-size: 1.1rem;
+        .podium-rest-pts {
+            font-size: 0.88rem;
             font-weight: 900;
             color: #4ade80;
-            font-variant-numeric: tabular-nums;
-            flex-shrink: 0;
         }
 
         .rp-avatars {
@@ -2175,12 +2383,12 @@
         }
 
         .rp-avatar {
-            width: 26px;
-            height: 26px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--dark-card);
-            margin-left: -6px;
+            border: 2px solid rgba(255,255,255,0.1);
+            margin-left: -5px;
             background: #2a3040;
         }
 
@@ -2191,36 +2399,73 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-top: 14px;
-            padding: 12px;
-            border-radius: 10px;
-            background: rgba(255,215,0,0.07);
-            border: 1px solid rgba(255,215,0,0.2);
+            margin-top: 16px;
+            padding: 11px;
+            border-radius: 12px;
+            background: rgba(255,215,0,0.06);
+            border: 1px solid rgba(255,215,0,0.18);
             color: var(--gold);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 700;
             text-decoration: none;
             transition: background 0.2s ease, border-color 0.2s ease;
         }
 
         .ranking-view-all:hover {
-            background: rgba(255,215,0,0.14);
-            border-color: rgba(255,215,0,0.35);
+            background: rgba(255,215,0,0.12);
+            border-color: rgba(255,215,0,0.32);
         }
 
+        /* Legacy rp-* kept for compatibility */
+        .ranking-podium-row { display: flex; flex-direction: column; gap: 8px; }
+        .rp-entry { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); transition:background 0.2s; text-decoration:none; }
+        .rp-entry:hover { background:rgba(255,255,255,0.07); }
+        .rp-rank { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:900; flex-shrink:0; background:rgba(255,255,255,0.06); color:var(--text-muted); }
+        .rp-rank.rank-1 { background:linear-gradient(135deg,#ffd700,#e5a800); color:#1a1100; }
+        .rp-rank.rank-2 { background:linear-gradient(135deg,#c0c0c0,#9ca3af); color:#1a1a1a; }
+        .rp-rank.rank-3 { background:linear-gradient(135deg,#cd7f32,#b45309); color:#fff; }
+        .rp-info { flex:1; min-width:0; }
+        .rp-manager { font-size:0.9rem; font-weight:700; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rp-team-name { font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .rp-score { font-size:1.1rem; font-weight:900; color:#4ade80; font-variant-numeric:tabular-nums; flex-shrink:0; }
+
         /* ===================================================
-           3D PLAYER CAROUSEL
+           3D PLAYER CAROUSEL – INFINITE ENDLESS
            =================================================== */
         .player-carousel-section {
             position: relative;
             padding: 0 0 8px;
-            overflow: hidden;
+        }
+
+        .carousel-outer {
+            position: relative;
+        }
+
+        .carousel-outer::before,
+        .carousel-outer::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .carousel-outer::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(7,26,10,0.8), transparent);
+        }
+
+        .carousel-outer::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(7,26,10,0.8), transparent);
         }
 
         .carousel-viewport {
             position: relative;
             overflow: hidden;
-            padding: 24px 0 30px;
+            padding: 36px 0 40px;
             cursor: grab;
             user-select: none;
         }
@@ -2230,7 +2475,7 @@
         .carousel-track {
             display: flex;
             gap: 20px;
-            transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             will-change: transform;
         }
 
@@ -2240,29 +2485,47 @@
 
         .carousel-slide {
             flex-shrink: 0;
-            width: 160px;
-            transition: transform 0.45s ease, opacity 0.45s ease, filter 0.45s ease;
+            width: 170px;
+            transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94),
+                        opacity 0.5s ease,
+                        filter 0.5s ease;
+            position: relative;
         }
 
         .carousel-slide.is-center {
-            z-index: 2;
+            z-index: 10;
         }
 
         .carousel-card {
             position: relative;
-            background: var(--dark-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 20px 14px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            padding: 22px 16px 18px;
             text-align: center;
             text-decoration: none;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 9px;
             overflow: hidden;
-            transition: box-shadow 0.35s ease, border-color 0.35s ease;
+            transition: box-shadow 0.4s ease, border-color 0.4s ease, background 0.4s ease;
             backface-visibility: hidden;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .carousel-slide.is-center .carousel-card {
+            border-color: rgba(74, 222, 128, 0.5);
+            background: rgba(255,255,255,0.09);
+            box-shadow:
+                0 0 0 1px rgba(74,222,128,0.25),
+                0 30px 70px rgba(0,0,0,0.6),
+                0 0 50px rgba(74,222,128,0.15);
+            cursor: pointer;
+            pointer-events: auto;
         }
 
         .carousel-card::before {
@@ -2272,14 +2535,9 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #4ade80, #22c55e);
+            background: linear-gradient(90deg, transparent, #4ade80, #22c55e, transparent);
             opacity: 0;
-            transition: opacity 0.35s ease;
-        }
-
-        .carousel-slide.is-center .carousel-card {
-            border-color: rgba(74, 222, 128, 0.4);
-            box-shadow: 0 0 0 1px rgba(74,222,128,0.2), 0 24px 60px rgba(0,0,0,0.55), 0 0 40px rgba(74,222,128,0.1);
+            transition: opacity 0.4s ease;
         }
 
         .carousel-slide.is-center .carousel-card::before {
@@ -2290,7 +2548,7 @@
             position: absolute;
             top: 10px;
             left: 12px;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 900;
             padding: 3px 8px;
             border-radius: 100px;
@@ -2306,32 +2564,33 @@
             position: absolute;
             top: 10px;
             right: 12px;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 900;
             padding: 3px 8px;
             border-radius: 100px;
-            background: #22c55e;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             color: #fff;
         }
 
         .cc-photo {
-            width: 72px;
-            height: 72px;
+            width: 76px;
+            height: 76px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid rgba(255,255,255,0.1);
             background: #2a3040;
+            transition: width 0.4s, height 0.4s, border-color 0.4s;
         }
 
         .carousel-slide.is-center .cc-photo {
-            width: 84px;
-            height: 84px;
-            border-color: rgba(74, 222, 128, 0.35);
+            width: 92px;
+            height: 92px;
+            border-color: rgba(74, 222, 128, 0.45);
         }
 
         .cc-name {
-            font-size: 0.8rem;
-            font-weight: 700;
+            font-size: 0.82rem;
+            font-weight: 800;
             color: var(--text-main);
             line-height: 1.2;
             text-align: center;
@@ -2363,9 +2622,24 @@
         .cc-pos {
             font-size: 0.68rem;
             font-weight: 700;
-            color: var(--text-muted);
+            color: rgba(255,255,255,0.35);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .cc-tap-hint {
+            font-size: 0.62rem;
+            color: rgba(74,222,128,0.6);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: none;
+        }
+
+        .carousel-slide.is-center .cc-tap-hint {
+            display: block;
         }
 
         /* Carousel nav arrows */
@@ -2373,18 +2647,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            margin-top: 12px;
+            gap: 14px;
+            margin-top: 8px;
         }
 
         .carousel-arrow {
-            width: 36px;
-            height: 36px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            border: 1px solid var(--glass-border);
-            background: var(--glass-bg);
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
             color: var(--text-main);
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -2394,8 +2668,8 @@
         }
 
         .carousel-arrow:hover {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.25);
+            background: rgba(74,222,128,0.15);
+            border-color: rgba(74,222,128,0.4);
             transform: scale(1.08);
         }
 
@@ -2411,135 +2685,167 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.18);
             cursor: pointer;
-            transition: background 0.2s ease, transform 0.2s ease;
+            transition: background 0.2s ease, transform 0.2s ease, width 0.2s ease;
         }
 
         .carousel-dot.active {
             background: #4ade80;
             transform: scale(1.4);
+            width: 14px;
+            border-radius: 3px;
         }
 
         /* ===================================================
-           NÄCHSTE SPIELE TILE
+           NÄCHSTE SPIELE – MATCH TICKER (transparent)
            =================================================== */
-        .next-matches-list {
+        .match-ticker {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 0;
         }
 
-        .nm-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 14px;
-            padding: 14px 16px;
-            transition: background 0.2s ease, border-color 0.2s ease;
+        .nm-match-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            position: relative;
         }
 
-        .nm-card:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.12);
+        .nm-match-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
-        .nm-header {
+        .nm-match-row:first-child {
+            padding-top: 0;
+        }
+
+        .nm-match-main {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            gap: 8px;
         }
 
-        .nm-teams {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .nm-team-side {
             flex: 1;
             min-width: 0;
-        }
-
-        .nm-team {
             display: flex;
             align-items: center;
-            gap: 6px;
-            min-width: 0;
+            gap: 7px;
+        }
+
+        .nm-team-side.right {
+            justify-content: flex-end;
+            flex-direction: row-reverse;
         }
 
         .nm-team-flag {
-            width: 26px;
-            height: 18px;
+            width: 28px;
+            height: 20px;
             border-radius: 3px;
             object-fit: cover;
             flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
         }
 
         .nm-team-name {
-            font-size: 0.85rem;
-            font-weight: 700;
+            font-size: 0.9rem;
+            font-weight: 800;
             color: var(--text-main);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .nm-vs {
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: var(--text-muted);
+        .nm-center-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
             flex-shrink: 0;
-            letter-spacing: 1px;
+            min-width: 60px;
         }
 
         .nm-time-badge {
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 4px 10px;
+            white-space: nowrap;
         }
 
-        .nm-time-label {
-            font-size: 0.68rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #4ade80;
+        .nm-time-badge.today {
+            background: rgba(251,191,36,0.18);
+            border-color: rgba(251,191,36,0.35);
+            color: #fbbf24;
         }
 
-        .nm-time-label.today { color: #fbbf24; }
-        .nm-time-label.live { color: #f87171; }
+        .nm-time-badge.live {
+            background: rgba(248,113,113,0.18);
+            border-color: rgba(248,113,113,0.35);
+            color: #f87171;
+            animation: livePulse 1.2s infinite;
+        }
 
-        .nm-time-val {
-            font-size: 0.8rem;
+        .nm-time-sub {
+            font-size: 0.7rem;
             color: var(--text-muted);
             font-weight: 600;
         }
 
+        .nm-vs {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .nm-score-display {
+            font-size: 1.05rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .nm-venue-line {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-align: center;
+        }
+
         .nm-players-row {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             flex-wrap: wrap;
+            margin-top: 8px;
         }
 
         .nm-player-chip {
             display: flex;
             align-items: center;
             gap: 5px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(74,222,128,0.08);
+            border: 1px solid rgba(74,222,128,0.15);
             border-radius: 100px;
-            padding: 4px 10px 4px 4px;
+            padding: 3px 8px 3px 3px;
             text-decoration: none;
             transition: background 0.15s ease;
         }
 
         .nm-player-chip:hover {
-            background: rgba(255,255,255,0.09);
+            background: rgba(74,222,128,0.16);
         }
 
         .nm-player-photo {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             object-fit: cover;
             background: #2a3040;
@@ -2551,7 +2857,7 @@
         }
 
         .nm-player-name {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-main);
             white-space: nowrap;
@@ -2564,21 +2870,57 @@
         }
 
         .nm-mgr-badge {
-            font-size: 0.6rem;
+            font-size: 0.58rem;
             font-weight: 700;
             color: #4ade80;
             background: rgba(74,222,128,0.1);
             border-radius: 3px;
-            padding: 1px 5px;
+            padding: 1px 4px;
             white-space: nowrap;
         }
 
-        .nm-empty {
-            font-size: 0.8rem;
+        .nm-more-players {
+            font-size: 0.7rem;
             color: var(--text-muted);
-            font-style: italic;
-            padding: 4px 0;
+            font-weight: 600;
+            align-self: center;
         }
+
+        /* Legacy nm-card kept for any code that references it */
+        .nm-card { padding: 0; }
+        .nm-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+        .nm-teams { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+        .nm-team { display:flex; align-items:center; gap:6px; min-width:0; }
+        .nm-time-label { font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#4ade80; }
+        .nm-time-label.today { color:#fbbf24; }
+        .nm-time-label.live { color:#f87171; }
+        .nm-time-val { font-size:0.8rem; color:var(--text-muted); font-weight:600; }
+        .nm-empty { font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:4px 0; }
+
+        /* ===================================================
+           GTile override inside post-start area
+           (makes them match the transparent green dashboard)
+           =================================================== */
+        #dashboard-post-area .gtile {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.09);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        #dashboard-post-area .gtile::before {
+            display: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            #dashboard-post-area .gtile:hover {
+                background: rgba(255,255,255,0.07);
+                border-color: rgba(74,222,128,0.18);
+                box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(74,222,128,0.1);
+            }
+        }
+
+        .ranking-preview-tile { position:relative; }
 
     </style>
 </head>
@@ -2849,66 +3191,47 @@
 <!-- LIVE DASHBOARD AREA (Post Start) -->
 <main class="dashboard-area" id="dashboard-post-area">
 
-    <!-- ── Row 1: Rangliste Preview + Beste Spieler Carousel ─ -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Rangliste Preview Tile -->
-        <div class="gtile ranking-preview-tile" id="tile-post-ranking-preview" role="region" aria-label="Aktuelle Rangliste – Kurzübersicht">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🏆</span> Live Rangliste
-                    <span class="ranking-live-badge"><span class="ranking-live-dot" aria-hidden="true"></span>LIVE</span>
-                </div>
+    <!-- ── Row 1: Live Rangliste Podium (full width) ────────── -->
+    <div class="mb-section">
+        <div class="post-panel podium-section" id="tile-post-ranking-preview" role="region" aria-label="Aktuelle Rangliste – Kurzübersicht">
+            <div class="post-section-label">
+                <span class="post-section-label-icon">🏆</span>
+                <span class="post-section-label-text">Live Rangliste</span>
+                <span class="ranking-live-badge" style="margin-left:auto;"><span class="ranking-live-dot" aria-hidden="true"></span>LIVE</span>
             </div>
-            <div class="ranking-podium-row" id="tile-post-ranking-preview-list" aria-label="Top Manager">
-                <div class="skel" style="height:50px;margin-bottom:8px;border-radius:12px;"></div>
-                <div class="skel" style="height:50px;margin-bottom:8px;border-radius:12px;"></div>
-                <div class="skel" style="height:50px;margin-bottom:8px;border-radius:12px;"></div>
+            <!-- Podest: rendered by JS into tile-post-ranking-preview-list -->
+            <div id="tile-post-ranking-preview-list" aria-label="Top Manager">
+                <div class="skel" style="height:90px;margin-bottom:12px;border-radius:16px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:6px;border-radius:10px;"></div>
+                <div class="skel" style="height:44px;border-radius:10px;"></div>
             </div>
             <a href="rangliste.html" class="ranking-view-all" aria-label="Vollständige Rangliste öffnen">
                 🏆 Vollständige Rangliste →
             </a>
         </div>
-
-        <!-- Nächste Spiele Tile -->
-        <div class="gtile" id="tile-post-next-matches-wrap">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">📅</span> Nächste Spiele
-                </div>
-            </div>
-            <div class="next-matches-list" id="tile-post-next-matches" aria-label="Nächste Spiele">
-                <div class="skel" style="height:80px;margin-bottom:8px;border-radius:12px;"></div>
-                <div class="skel" style="height:80px;margin-bottom:8px;border-radius:12px;"></div>
-                <div class="skel" style="height:80px;margin-bottom:8px;border-radius:12px;"></div>
-            </div>
-        </div>
     </div>
 
-    <!-- ── Row 2: Beste Spieler 3D Carousel (full width) ──── -->
+    <!-- ── Row 2: Beste Spieler 3D Endless Carousel ──────── -->
     <div class="mb-section">
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">⭐</span> Beste Spieler
-                </div>
-                <a href="spieleranalyse.html" class="section-link" aria-label="Alle Spieler analysieren">Alle →</a>
+        <div class="post-panel">
+            <div class="post-section-label">
+                <span class="post-section-label-icon">⭐</span>
+                <span class="post-section-label-text">Beste Spieler</span>
+                <a href="spieleranalyse.html" style="margin-left:auto;font-size:0.78rem;font-weight:700;color:#4ade80;text-decoration:none;opacity:0.8;" aria-label="Alle Spieler analysieren">Alle →</a>
             </div>
             <div class="player-carousel-section" id="tile-post-carousel-section">
-                <div class="carousel-viewport" id="post-carousel-viewport" aria-label="Top Spieler Karussell">
-                    <div class="carousel-track" id="post-carousel-track" role="list">
-                        <!-- Rendered by JS -->
-                        <div class="carousel-slide">
-                            <div class="carousel-card"><div class="skel" style="width:72px;height:72px;border-radius:50%;margin:0 auto 8px;"></div></div>
-                        </div>
-                        <div class="carousel-slide">
-                            <div class="carousel-card"><div class="skel" style="width:72px;height:72px;border-radius:50%;margin:0 auto 8px;"></div></div>
-                        </div>
-                        <div class="carousel-slide">
-                            <div class="carousel-card"><div class="skel" style="width:72px;height:72px;border-radius:50%;margin:0 auto 8px;"></div></div>
+                <div class="carousel-outer">
+                    <div class="carousel-viewport" id="post-carousel-viewport" aria-label="Top Spieler Karussell">
+                        <div class="carousel-track" id="post-carousel-track" role="list">
+                            <div class="carousel-slide">
+                                <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                            </div>
+                            <div class="carousel-slide">
+                                <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2917,6 +3240,21 @@
                     <div class="carousel-dots" id="post-carousel-dots" role="tablist"></div>
                     <button class="carousel-arrow" id="post-carousel-next" aria-label="Nächster Spieler">›</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Row 3: Nächste Spiele Match Ticker ────────────── -->
+    <div class="mb-section">
+        <div class="post-panel" id="tile-post-next-matches-wrap">
+            <div class="post-section-label">
+                <span class="post-section-label-icon">📅</span>
+                <span class="post-section-label-text">Nächste Spiele</span>
+            </div>
+            <div class="match-ticker" id="tile-post-next-matches" aria-label="Nächste Spiele">
+                <div class="skel" style="height:60px;margin-bottom:12px;border-radius:10px;"></div>
+                <div class="skel" style="height:60px;margin-bottom:12px;border-radius:10px;"></div>
+                <div class="skel" style="height:60px;border-radius:10px;"></div>
             </div>
         </div>
     </div>
@@ -4299,71 +4637,111 @@
         if (!container) return;
 
         if (!teamTotals.length) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">🏆</div>
-                    Noch keine Ranglistendaten verfügbar.
-                </div>`;
+            container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏆</div>Noch keine Ranglistendaten verfügbar.</div>`;
             return;
         }
 
-        container.innerHTML = teamTotals.slice(0, 5).map((t, i) => {
-            const rank = i + 1;
-            const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-            const sign = t.total > 0 ? '+' : '';
-            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+        // Helper: build initials from manager name
+        function managerInitials(name) {
+            const parts = String(name || '').trim().split(/\s+/);
+            if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            return String(name || '?').slice(0, 2).toUpperCase();
+        }
 
-            // Collect top player avatars for this manager
-            const teamObj = teams.find((t2) => t2.manager === t.manager);
-            let avatarHtml = '';
-            if (teamObj) {
-                const topAvatars = (teamObj.players || [])
-                    .map((tp) => {
-                        const full = resolvePlayer(tp);
-                        if (!full) return null;
-                        const base = ptMap[String(full['player.id'])] || 0;
-                        return { pts: tp.isCaptain ? base * 2 : base, photo: full.Spielerfoto, name: full.Spielername };
-                    })
-                    .filter(Boolean)
-                    .sort((a, b) => b.pts - a.pts)
-                    .slice(0, 3);
-                if (topAvatars.length) {
-                    avatarHtml = `<div class="rp-avatars">` +
-                        topAvatars.map((p) =>
-                            `<img class="rp-avatar" src="${escapeHtml(p.photo)}" alt="${escapeHtml(p.name)}" loading="lazy">`
-                        ).join('') +
-                        `</div>`;
-                }
-            }
+        // Helper: get top avatars for a manager
+        function getAvatars(manager) {
+            const teamObj = teams.find(t2 => t2.manager === manager);
+            if (!teamObj) return [];
+            return (teamObj.players || [])
+                .map(tp => {
+                    const full = resolvePlayer(tp);
+                    if (!full) return null;
+                    const base = ptMap[String(full['player.id'])] || 0;
+                    return { pts: tp.isCaptain ? base * 2 : base, photo: full.Spielerfoto, name: full.Spielername };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b.pts - a.pts)
+                .slice(0, 3);
+        }
 
-            return `
-                <a class="rp-entry" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${rank}, ${sign}${t.total} Punkte">
-                    <div class="rp-rank ${rankCls}">${rank}</div>
-                    <div class="rp-info">
-                        <div class="rp-manager">${escapeHtml(t.manager)}</div>
-                        <div class="rp-team-name">Rang ${rank}</div>
-                    </div>
-                    ${avatarHtml}
-                    <div class="rp-score">${sign}${t.total}</div>
-                </a>
-            `;
-        }).join('');
+        const top3 = teamTotals.slice(0, 3);
+        const rest = teamTotals.slice(3, 7);
+
+        // Podium (top 3)
+        const crownIcons = ['👑', '🥈', '🥉'];
+        const rankLabels = ['#1', '#2', '#3'];
+        const slotClasses = ['podium-slot-1', 'podium-slot-2', 'podium-slot-3'];
+
+        const podiumHtml = `
+            <div class="podium-stage">
+                ${top3.map((t, i) => {
+                    const sign = t.total > 0 ? '+' : '';
+                    const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+                    const avatars = getAvatars(t.manager);
+                    const avatarHtml = avatars.length
+                        ? `<div class="rp-avatars" style="justify-content:center;margin-bottom:4px;">` +
+                          avatars.map(a => `<img class="rp-avatar" src="${escapeHtml(a.photo)}" alt="${escapeHtml(a.name)}" loading="lazy" onerror="this.style.display='none'">`).join('') +
+                          `</div>`
+                        : '';
+                    return `
+                        <a class="podium-slot ${slotClasses[i]}" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${i+1}, ${sign}${t.total} Punkte">
+                            <div class="podium-crown">${crownIcons[i]}</div>
+                            <div class="podium-avatar-ring">
+                                <div class="podium-initials">${escapeHtml(managerInitials(t.manager))}</div>
+                            </div>
+                            <div class="podium-info">
+                                ${avatarHtml}
+                                <div class="podium-name">${escapeHtml(t.manager)}</div>
+                                <div class="podium-pts">${sign}${t.total}</div>
+                                <div class="podium-rank-tag">${rankLabels[i]}</div>
+                            </div>
+                            <div class="podium-pedestal">
+                                <span class="podium-pedestal-num">${i + 1}</span>
+                            </div>
+                        </a>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        // Ranks 4-7 as compact list
+        const restHtml = rest.length ? `
+            <div class="podium-rest">
+                ${rest.map((t, i) => {
+                    const rank = i + 4;
+                    const sign = t.total > 0 ? '+' : '';
+                    const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+                    return `
+                        <a class="podium-rest-entry" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${rank}">
+                            <span class="podium-rest-rank">${rank}</span>
+                            <span class="podium-rest-name">${escapeHtml(t.manager)}</span>
+                            <span class="podium-rest-pts">${sign}${t.total}</span>
+                        </a>
+                    `;
+                }).join('')}
+            </div>
+        ` : '';
+
+        container.innerHTML = podiumHtml + restHtml;
     }
 
     /* =========================================================
-       PLAYER CAROUSEL (3D Coverflow)
+       PLAYER CAROUSEL (3D Coverflow – Infinite Endless Loop)
        ========================================================= */
     let carouselState = {
         current: 0,
-        total: 0,
+        total: 0,           // real player count (≤10)
         players: [],
         isDragging: false,
         dragStart: 0,
         dragDelta: 0,
-        lastTranslate: 0
+        lastTranslate: 0,
+        autoPlayTimer: null
     };
 
-    function buildCarouselCard(player, pts, rank, idx) {
+    const SLIDE_W = 170 + 20; // width + gap
+
+    function buildCarouselCard(player, pts, rank, dataRealIdx) {
         const sign = pts > 0 ? '+' : '';
         const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
         const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
@@ -4371,11 +4749,11 @@
         const posLabel = posMap[String(player.Position || '').toUpperCase()] || String(player.Position || '').slice(0, 3);
 
         return `
-            <div class="carousel-slide" data-idx="${idx}" role="listitem" aria-label="${escapeHtml(player.Spielername)}, ${sign}${pts} Punkte">
+            <div class="carousel-slide" data-real="${dataRealIdx}" role="listitem" aria-label="${escapeHtml(player.Spielername)}, ${sign}${pts} Punkte">
                 <a class="carousel-card" href="${url}" draggable="false">
                     <div class="cc-rank-badge ${rankCls}">#${rank}</div>
                     <div class="cc-pts-badge">${sign}${pts}</div>
-                    <img class="cc-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy">
+                    <img class="cc-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22/%3E'">
                     <div class="cc-name">${escapeHtml(player.Spielername)}</div>
                     ${player['Nationalteam.logo'] ? `
                     <div class="cc-meta">
@@ -4383,9 +4761,15 @@
                         <span class="cc-nation">${escapeHtml(player['Nationalteam.name'] || '')}</span>
                     </div>` : ''}
                     <div class="cc-pos">${escapeHtml(posLabel)}</div>
+                    <div class="cc-tap-hint">Klick → Analyse</div>
                 </a>
             </div>
         `;
+    }
+
+    // clamp real index with wrap-around
+    function wrapIdx(i, total) {
+        return ((i % total) + total) % total;
     }
 
     function updateCarousel(animated) {
@@ -4398,12 +4782,13 @@
         const n = slides.length;
         if (!n) return;
 
-        const idx = carouselState.current;
-        const slideW = 160 + 20; // width + gap
+        const realTotal = carouselState.total;
+        if (!realTotal) return;
 
-        // Calculate offset to center the active slide
+        // Virtual index in the cloned track
+        const idx = carouselState.current;
         const vpW = viewport.offsetWidth || 600;
-        const targetOffset = (vpW / 2) - (slideW * idx) - (160 / 2);
+        const targetOffset = (vpW / 2) - (SLIDE_W * idx) - (SLIDE_W / 2) + 10;
 
         if (!animated) track.classList.add('dragging');
         else track.classList.remove('dragging');
@@ -4411,24 +4796,53 @@
         track.style.transform = `translateX(${targetOffset}px)`;
         carouselState.lastTranslate = targetOffset;
 
-        // Update slide states (center=1, adjacent=0.85, far=0.65)
+        // Update individual slide styles
         slides.forEach((slide, i) => {
             const dist = Math.abs(i - idx);
-            slide.classList.toggle('is-center', dist === 0);
-            const scale = dist === 0 ? 1.12 : (dist === 1 ? 0.9 : 0.78);
-            const ry = dist === 0 ? 0 : (i < idx ? 15 : -15);
-            const opacity = dist === 0 ? 1 : (dist === 1 ? 0.75 : 0.5);
-            slide.style.transform = `perspective(900px) rotateY(${ry}deg) scale(${scale})`;
+            const isCenter = dist === 0;
+            slide.classList.toggle('is-center', isCenter);
+
+            const scale = isCenter ? 1.15 : (dist === 1 ? 0.88 : (dist === 2 ? 0.76 : 0.68));
+            const ry = isCenter ? 0 : (i < idx ? 22 : -22);
+            const opacity = isCenter ? 1 : (dist === 1 ? 0.7 : (dist === 2 ? 0.45 : 0.25));
+            const blur = isCenter ? 0 : (dist === 1 ? 0 : 1.5);
+
+            slide.style.transform = `perspective(1000px) rotateY(${ry}deg) scale(${scale})`;
             slide.style.opacity = opacity;
-            slide.style.filter = dist === 0 ? 'none' : `blur(${dist > 1 ? 1 : 0}px)`;
+            slide.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+            slide.style.zIndex = isCenter ? 10 : (10 - dist);
         });
 
-        // Dots
+        // Dots: based on real index
+        const realIdx = wrapIdx(idx - carouselState._offset, realTotal);
         if (dotsEl) {
             dotsEl.querySelectorAll('.carousel-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === idx);
-                dot.setAttribute('aria-selected', i === idx ? 'true' : 'false');
+                dot.classList.toggle('active', i === realIdx);
+                dot.setAttribute('aria-selected', i === realIdx ? 'true' : 'false');
             });
+        }
+
+        // Seamless infinite: if near a clone boundary, jump silently
+        setTimeout(() => _maybeJumpInfinite(track), 520);
+    }
+
+    function _maybeJumpInfinite(track) {
+        const realTotal = carouselState.total;
+        if (!realTotal || !carouselState._offset) return;
+
+        const offset = carouselState._offset;
+        const idx = carouselState.current;
+        const totalSlides = realTotal * 3; // we build 3 copies
+
+        // If we're in the last clone set, jump to middle set
+        if (idx >= offset + realTotal) {
+            carouselState.current = idx - realTotal;
+            updateCarousel(false);
+        }
+        // If we're in the first clone set, jump to middle set
+        if (idx < offset) {
+            carouselState.current = idx + realTotal;
+            updateCarousel(false);
         }
     }
 
@@ -4446,12 +4860,19 @@
             return;
         }
 
-        track.innerHTML = top10.map((p, i) => {
+        // Build 3 copies for infinite illusion
+        const cardHtmls = top10.map((p, i) => {
             const pts = ptMap[String(p['player.id'])] || 0;
             return buildCarouselCard(p, pts, i + 1, i);
-        }).join('');
+        });
+        track.innerHTML = [...cardHtmls, ...cardHtmls, ...cardHtmls].join('');
 
-        // Build dots
+        // Start in the middle copy
+        const offset = top10.length;
+        carouselState._offset = offset;
+        carouselState.current = offset; // starts at first item of middle copy
+
+        // Build dots (for real 10 items only)
         if (dotsEl) {
             dotsEl.innerHTML = top10.map((_, i) =>
                 `<div class="carousel-dot${i === 0 ? ' active' : ''}" data-dot="${i}" role="tab" aria-label="Spieler ${i+1}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="0"></div>`
@@ -4459,23 +4880,22 @@
 
             dotsEl.querySelectorAll('.carousel-dot').forEach((dot) => {
                 dot.addEventListener('click', () => {
-                    carouselState.current = Number(dot.dataset.dot);
+                    const target = carouselState._offset + Number(dot.dataset.dot);
+                    carouselState.current = target;
                     updateCarousel(true);
                 });
                 dot.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        carouselState.current = Number(dot.dataset.dot);
+                        const target = carouselState._offset + Number(dot.dataset.dot);
+                        carouselState.current = target;
                         updateCarousel(true);
                     }
                 });
             });
         }
 
-        // Set starting position to center-ish
-        carouselState.current = Math.min(2, Math.floor(top10.length / 2));
         updateCarousel(false);
-
         setupCarouselInteractions();
     }
 
@@ -4486,16 +4906,20 @@
         const track = $('post-carousel-track');
         if (!viewport || !track) return;
 
-        // Ensure we don't double-bind
         if (viewport.dataset.carouselBound) return;
         viewport.dataset.carouselBound = '1';
 
-        if (prev) prev.addEventListener('click', () => {
-            if (carouselState.current > 0) { carouselState.current--; updateCarousel(true); }
-        });
-        if (next) next.addEventListener('click', () => {
-            if (carouselState.current < carouselState.total - 1) { carouselState.current++; updateCarousel(true); }
-        });
+        function goNext() {
+            carouselState.current++;
+            updateCarousel(true);
+        }
+        function goPrev() {
+            carouselState.current--;
+            updateCarousel(true);
+        }
+
+        if (prev) prev.addEventListener('click', goPrev);
+        if (next) next.addEventListener('click', goNext);
 
         // Touch / Mouse drag
         function getClientX(e) {
@@ -4503,7 +4927,7 @@
         }
 
         function onDragStart(e) {
-            if (e.target.closest('a')) return;
+            if (e.target.closest('a') && carouselState.isDragging === false) return;
             carouselState.isDragging = true;
             carouselState.dragStart = getClientX(e);
             carouselState.dragDelta = 0;
@@ -4522,10 +4946,10 @@
             carouselState.isDragging = false;
             track.classList.remove('dragging');
 
-            const threshold = 50;
-            if (carouselState.dragDelta < -threshold && carouselState.current < carouselState.total - 1) {
+            const threshold = 40;
+            if (carouselState.dragDelta < -threshold) {
                 carouselState.current++;
-            } else if (carouselState.dragDelta > threshold && carouselState.current > 0) {
+            } else if (carouselState.dragDelta > threshold) {
                 carouselState.current--;
             }
             updateCarousel(true);
@@ -4540,16 +4964,135 @@
         viewport.addEventListener('mouseleave', onDragEnd);
 
         // Keyboard navigation
+        viewport.setAttribute('tabindex', '0');
         viewport.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' && carouselState.current > 0) {
-                carouselState.current--; updateCarousel(true);
-            } else if (e.key === 'ArrowRight' && carouselState.current < carouselState.total - 1) {
-                carouselState.current++; updateCarousel(true);
-            }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
         });
 
         // Recalculate on resize
         window.addEventListener('resize', () => updateCarousel(false), { passive: true });
+    }
+
+    /* =========================================================
+       COUNTRY NORMALIZATION HELPERS
+       (used for matching player nationality with fixture teams)
+       ========================================================= */
+
+    /**
+     * Normalize a country name/code to a canonical lower-case key.
+     * This handles API variations like "Spain" / "Spanien" / "ESP" etc.
+     */
+    function normalizeCountry(value) {
+        if (!value) return '';
+        const s = String(value).trim().toLowerCase();
+
+        // Direct alias map for known EM 2024 teams
+        const aliases = {
+            // Albanian
+            'albania': 'albania', 'albanien': 'albania', 'alb': 'albania',
+            // Austrian
+            'austria': 'austria', 'österreich': 'austria', 'aut': 'austria',
+            // Belgian
+            'belgium': 'belgium', 'belgien': 'belgium', 'bel': 'belgium',
+            // Croatian
+            'croatia': 'croatia', 'kroatien': 'croatia', 'cro': 'croatia', 'hrv': 'croatia',
+            // Czech
+            'czech republic': 'czech republic', 'tschechien': 'czech republic', 'czechia': 'czech republic', 'cze': 'czech republic',
+            // Danish
+            'denmark': 'denmark', 'dänemark': 'denmark', 'den': 'denmark',
+            // English
+            'england': 'england', 'eng': 'england',
+            // French
+            'france': 'france', 'frankreich': 'france', 'fra': 'france',
+            // Georgian
+            'georgia': 'georgia', 'georgien': 'georgia', 'geo': 'georgia',
+            // German
+            'germany': 'germany', 'deutschland': 'germany', 'ger': 'germany', 'deu': 'germany',
+            // Hungarian
+            'hungary': 'hungary', 'ungarn': 'hungary', 'hun': 'hungary',
+            // Italian
+            'italy': 'italy', 'italien': 'italy', 'ita': 'italy',
+            // Dutch
+            'netherlands': 'netherlands', 'niederlande': 'netherlands', 'holland': 'netherlands', 'ned': 'netherlands', 'nld': 'netherlands',
+            // Polish
+            'poland': 'poland', 'polen': 'poland', 'pol': 'poland',
+            // Portuguese
+            'portugal': 'portugal', 'por': 'portugal',
+            // Romanian
+            'romania': 'romania', 'rumänien': 'romania', 'rou': 'romania',
+            // Scottish
+            'scotland': 'scotland', 'schottland': 'scotland', 'sco': 'scotland',
+            // Serbian
+            'serbia': 'serbia', 'serbien': 'serbia', 'srb': 'serbia',
+            // Slovak
+            'slovakia': 'slovakia', 'slowakei': 'slovakia', 'svk': 'slovakia',
+            // Slovenian
+            'slovenia': 'slovenia', 'slowenien': 'slovenia', 'svn': 'slovenia',
+            // Spanish
+            'spain': 'spain', 'spanien': 'spain', 'esp': 'spain',
+            // Swiss
+            'switzerland': 'switzerland', 'schweiz': 'switzerland', 'sui': 'switzerland', 'che': 'switzerland',
+            // Turkish
+            'türkiye': 'türkiye', 'turkey': 'türkiye', 'turkiye': 'türkiye', 'türkei': 'türkiye', 'tur': 'türkiye',
+            // Ukrainian
+            'ukraine': 'ukraine', 'ukr': 'ukraine',
+        };
+
+        return aliases[s] || s;
+    }
+
+    /**
+     * Return all normalized country keys for a player object.
+     */
+    function getPlayerCountryKeys(player) {
+        const keys = new Set();
+        const fields = [
+            player['Nationalteam.name'],
+            player.nationality,
+            player.nation,
+            player.country,
+            player.countryCode,
+            player.countryName
+        ];
+        fields.forEach(v => {
+            const k = normalizeCountry(v);
+            if (k) keys.add(k);
+        });
+        return keys;
+    }
+
+    /**
+     * Return all normalized team keys for a fixture.
+     */
+    function getFixtureTeamKeys(fixture) {
+        const keys = new Set();
+        const fields = [
+            fixture.teamA, fixture.homeTeam, fixture.home,
+            fixture.teamB, fixture.awayTeam, fixture.away,
+            fixture.homeCountry, fixture.awayCountry
+        ];
+        fields.forEach(v => {
+            const k = normalizeCountry(v);
+            if (k) keys.add(k);
+        });
+        return keys;
+    }
+
+    /**
+     * Returns true if the player's nationality matches either team in the fixture.
+     */
+    function isPlayerInFixture(player, fixture) {
+        const playerKeys = getPlayerCountryKeys(player);
+        if (!playerKeys.size) return false;
+
+        const homeKey = normalizeCountry(fixture.teamA || fixture.homeTeam || fixture.home || '');
+        const awayKey = normalizeCountry(fixture.teamB || fixture.awayTeam || fixture.away || '');
+
+        for (const pk of playerKeys) {
+            if (pk && (pk === homeKey || pk === awayKey)) return true;
+        }
+        return false;
     }
 
     /* =========================================================
@@ -4559,7 +5102,7 @@
         const container = $('tile-post-next-matches');
         if (!container) return;
 
-        // Build drafted player lookup: playerId → [managers]
+        // Build drafted player lookup: playerId → { player, managers[] }
         const draftedPlayerManagers = {};
         (teams || []).forEach((t) => {
             (t.players || []).forEach((tp) => {
@@ -4571,16 +5114,14 @@
             });
         });
 
-        // Try to get structured match data
         const matchInfos = extractMatchInfo(data);
 
         const now = Date.now();
         const FINISHED_STATUSES = ['FT', 'AET', 'PEN'];
 
-        // Prefer upcoming/live; also include matches that just ended (within 90 min)
+        // Prefer upcoming/live
         let upcoming = matchInfos.filter((m) => {
             const statusShort = m.statusShort || '';
-            // If we have explicit status: show live/not-yet-started, skip clearly finished
             if (statusShort && FINISHED_STATUSES.includes(statusShort)) return false;
             const dateStr = m.date || m.datetime || m.kickoff || '';
             if (!dateStr) return true;
@@ -4591,71 +5132,49 @@
             const da = (a.kickoffTimestamp ? a.kickoffTimestamp * 1000 : null) || new Date(a.date || a.datetime || 0).getTime() || 0;
             const db2 = (b.kickoffTimestamp ? b.kickoffTimestamp * 1000 : null) || new Date(b.date || b.datetime || 0).getTime() || 0;
             return da - db2;
-        }).slice(0, 5);
+        }).slice(0, 3);
 
-        // If no upcoming found but we have fixtures: show last finished matches with results
+        // Fallback: last finished
         if (!upcoming.length && matchInfos.length) {
-            const finished = matchInfos
-                .filter(m => {
-                    if (m.statusShort && FINISHED_STATUSES.includes(m.statusShort)) return true;
-                    const dateStr = m.date || m.datetime || m.kickoff || '';
-                    if (!dateStr) return false;
-                    const ms = new Date(dateStr).getTime();
-                    return Number.isFinite(ms) && ms < now - 90 * 60 * 1000;
-                })
+            upcoming = matchInfos
+                .filter(m => FINISHED_STATUSES.includes(m.statusShort || '') ||
+                    (m.date && new Date(m.date).getTime() < now - 90 * 60 * 1000))
                 .sort((a, b) => {
-                    const da = (a.kickoffTimestamp ? a.kickoffTimestamp * 1000 : null) || new Date(a.date || a.datetime || 0).getTime() || 0;
-                    const db2 = (b.kickoffTimestamp ? b.kickoffTimestamp * 1000 : null) || new Date(b.date || b.datetime || 0).getTime() || 0;
+                    const da = (a.kickoffTimestamp ? a.kickoffTimestamp * 1000 : null) || new Date(a.date || 0).getTime() || 0;
+                    const db2 = (b.kickoffTimestamp ? b.kickoffTimestamp * 1000 : null) || new Date(b.date || 0).getTime() || 0;
                     return db2 - da;
-                });
-            upcoming = finished.slice(0, 5);
+                })
+                .slice(0, 3);
         }
 
-        // Final fallback: take last 5 by order
         if (!upcoming.length && matchInfos.length) {
-            upcoming = matchInfos.slice(-5).reverse();
+            upcoming = matchInfos.slice(0, 3);
         }
-
-        // Build nation lookup for match players
-        const matchPlayerMap = {};
-        Object.entries(data.points || {}).forEach(([playerId, doc]) => {
-            Object.keys(doc?.matches || {}).forEach((mId) => {
-                const n = Number(mId);
-                if (!Number.isFinite(n)) return;
-                if (!matchPlayerMap[n]) matchPlayerMap[n] = new Set();
-                matchPlayerMap[n].add(String(playerId));
-            });
-        });
 
         if (!upcoming.length) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">📅</div>
-                    Keine kommenden Spiele gefunden.
-                </div>`;
+            container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div>Keine Spiele gefunden.</div>`;
             return;
         }
 
         const html = upcoming.map((match) => {
-            const mId = match.gameNumber || match.matchId || match.id;
             let teamA = match.teamA || match.home || match.homeTeam || '';
             let teamB = match.teamB || match.away || match.awayTeam || '';
-            let flagA = match.teamAFlag || match.homeLogo || '';
-            let flagB = match.teamBFlag || match.awayLogo || '';
+            let flagA = match.homeLogo || match.teamAFlag || '';
+            let flagB = match.awayLogo || match.teamBFlag || '';
             const dateStr = match.date || match.datetime || match.kickoff || '';
             const statusShort = match.statusShort || '';
             const goals = match.goals || null;
 
             if (!teamA || !teamB) {
-                const nations = getNationFromMatchGame(mId, data);
+                const nations = getNationFromMatchGame(match.id || match.matchId || match.gameNumber, data);
                 teamA = nations[0] || '?';
                 teamB = nations[1] || '?';
                 if (!flagA) {
-                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamA);
+                    const p = playersData.find(pl => pl['Nationalteam.name'] === teamA);
                     if (p) flagA = p['Nationalteam.logo'];
                 }
                 if (!flagB) {
-                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamB);
+                    const p = playersData.find(pl => pl['Nationalteam.name'] === teamB);
                     if (p) flagB = p['Nationalteam.logo'];
                 }
             }
@@ -4663,97 +5182,94 @@
             const isFinished = FINISHED_STATUSES.includes(statusShort);
             const isLive = ['1H', '2H', 'HT', 'ET', 'BT', 'P'].includes(statusShort);
 
-            // Build score/VS display
-            let vsDisplay;
-            if (isFinished && goals && (goals.home !== null || goals.away !== null)) {
-                vsDisplay = `<div class="nm-vs" style="color:#2ecc71;font-weight:900;font-size:1.1rem;">${goals.home ?? '?'} : ${goals.away ?? '?'}</div>`;
-            } else if (isLive && goals && (goals.home !== null || goals.away !== null)) {
-                vsDisplay = `<div class="nm-vs" style="color:#e74c3c;font-weight:900;">🔴 ${goals.home ?? '?'}:${goals.away ?? '?'}</div>`;
-            } else {
-                vsDisplay = `<div class="nm-vs">VS</div>`;
-            }
+            // Time display
+            let timeBadgeText = '';
+            let timeBadgeCls = '';
+            let timeSubText = '';
 
-            // Determine time label
-            let timeLabel = '';
-            let timeClass = '';
-            let timeVal = '';
-            if (isFinished) {
-                timeLabel = 'Abgeschlossen';
-                timeClass = '';
+            if (isFinished && goals) {
+                timeBadgeText = `${goals.home ?? '?'} : ${goals.away ?? '?'}`;
+                timeBadgeCls = '';
+                timeSubText = 'Abpfiff';
+            } else if (isLive && goals) {
+                timeBadgeText = `${goals.home ?? '?'} : ${goals.away ?? '?'}`;
+                timeBadgeCls = 'live';
+                timeSubText = match.statusElapsed ? `${match.statusElapsed}'` : 'LIVE';
+            } else if (isFinished) {
+                timeBadgeText = 'Abpfiff';
             } else if (isLive) {
-                timeLabel = 'LIVE';
-                timeClass = 'live';
-                if (match.statusElapsed) timeVal = `${match.statusElapsed}'`;
+                timeBadgeText = 'LIVE';
+                timeBadgeCls = 'live';
+                if (match.statusElapsed) timeSubText = `${match.statusElapsed}'`;
             } else if (dateStr) {
                 const matchDate = new Date(dateStr);
-                const matchMs = matchDate.getTime();
-                const diffMin = (matchMs - now) / 60000;
-                if (diffMin < -90) {
-                    timeLabel = 'Abgeschlossen';
-                } else if (diffMin < 0) {
-                    timeLabel = 'LIVE';
-                    timeClass = 'live';
-                } else if (diffMin < 60 * 24) {
-                    timeLabel = 'Heute';
-                    timeClass = 'today';
-                    timeVal = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
-                } else if (diffMin < 60 * 48) {
-                    timeLabel = 'Morgen';
-                    timeVal = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                const diffMin = (matchDate.getTime() - now) / 60000;
+                if (diffMin < 0 && diffMin > -90) {
+                    timeBadgeText = 'LIVE';
+                    timeBadgeCls = 'live';
+                } else if (diffMin < 60 * 24 && diffMin >= 0) {
+                    timeBadgeText = 'Heute';
+                    timeBadgeCls = 'today';
+                    timeSubText = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                } else if (diffMin < 60 * 48 && diffMin >= 0) {
+                    timeBadgeText = 'Morgen';
+                    timeSubText = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
                 } else {
-                    timeLabel = matchDate.toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit' });
-                    timeVal = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                    timeBadgeText = matchDate.toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit' });
+                    timeSubText = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
                 }
             } else {
-                timeLabel = `Spiel ${mId}`;
+                timeBadgeText = '–';
             }
 
-            // Find drafted players for this match
-            const playerIdsInMatch = matchPlayerMap[Number(mId)] || new Set();
-            const draftedInMatch = Array.from(playerIdsInMatch)
-                .filter((pid) => draftedPlayerManagers[pid])
-                .map((pid) => draftedPlayerManagers[pid])
-                .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'))
-                .slice(0, 8);
+            // Venue line
+            const venueText = match.venue && match.venue !== 'Spielort folgt'
+                ? `${match.venue}${match.venueCity ? ' · ' + match.venueCity : ''}`
+                : '';
 
-            const playersHtml = draftedInMatch.length
-                ? draftedInMatch.map(({ player, managers }) => {
-                    const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
-                    const mgrsHtml = managers.slice(0, 3).map((m) =>
-                        `<div class="nm-mgr-badge">${escapeHtml(m.split(' ')[0])}</div>`
-                    ).join('') + (managers.length > 3 ? `<div class="nm-mgr-badge">+${managers.length - 3}</div>` : '');
-                    return `
-                        <a class="nm-player-chip" href="${url}" draggable="false">
-                            <img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy">
-                            <div class="nm-player-info">
-                                <div class="nm-player-name">${escapeHtml(player.Spielername.split(' ').pop())}</div>
-                                <div class="nm-manager-badges">${mgrsHtml}</div>
-                            </div>
-                        </a>
-                    `;
-                }).join('')
-                : `<div class="nm-empty">Keine gedrafteten Spieler in diesem Spiel.</div>`;
+            // Find drafted players by nationality matching (robust)
+            const draftedInMatch = Object.values(draftedPlayerManagers)
+                .filter(({ player }) => isPlayerInFixture(player, match))
+                .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'));
+
+            const MAX_VISIBLE = 5;
+            const visiblePlayers = draftedInMatch.slice(0, MAX_VISIBLE);
+            const extraCount = draftedInMatch.length - MAX_VISIBLE;
+
+            const playersHtml = visiblePlayers.map(({ player, managers }) => {
+                const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+                const mgrsHtml = managers.slice(0, 2).map(m =>
+                    `<div class="nm-mgr-badge">${escapeHtml(m.split(' ')[0])}</div>`
+                ).join('') + (managers.length > 2 ? `<div class="nm-mgr-badge">+${managers.length - 2}</div>` : '');
+                return `
+                    <a class="nm-player-chip" href="${url}" draggable="false">
+                        <img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">
+                        <div class="nm-player-info">
+                            <div class="nm-player-name">${escapeHtml(player.Spielername.split(' ').pop())}</div>
+                            <div class="nm-manager-badges">${mgrsHtml}</div>
+                        </div>
+                    </a>
+                `;
+            }).join('') + (extraCount > 0 ? `<span class="nm-more-players">+${extraCount} weitere</span>` : '');
 
             return `
-                <div class="nm-card">
-                    <div class="nm-header">
-                        <div class="nm-teams">
-                            <div class="nm-team">
-                                ${flagA ? `<img class="nm-team-flag" src="${escapeHtml(flagA)}" alt="${escapeHtml(teamA)}" loading="lazy">` : '<span style="font-size:1.2rem;">🏳️</span>'}
-                                <div class="nm-team-name">${escapeHtml(teamA)}</div>
-                            </div>
-                            ${vsDisplay}
-                            <div class="nm-team">
-                                ${flagB ? `<img class="nm-team-flag" src="${escapeHtml(flagB)}" alt="${escapeHtml(teamB)}" loading="lazy">` : '<span style="font-size:1.2rem;">🏳️</span>'}
-                                <div class="nm-team-name">${escapeHtml(teamB)}</div>
-                            </div>
+                <div class="nm-match-row">
+                    <div class="nm-match-main">
+                        <div class="nm-team-side">
+                            ${flagA ? `<img class="nm-team-flag" src="${escapeHtml(flagA)}" alt="${escapeHtml(teamA)}" loading="lazy">` : '<span style="font-size:1.1rem;flex-shrink:0;">🏳️</span>'}
+                            <span class="nm-team-name">${escapeHtml(teamA)}</span>
                         </div>
-                        <div class="nm-time-badge">
-                            <div class="nm-time-label ${timeClass}">${escapeHtml(timeLabel)}</div>
-                            ${timeVal ? `<div class="nm-time-val">${escapeHtml(timeVal)}</div>` : ''}
+                        <div class="nm-center-col">
+                            <div class="nm-time-badge ${timeBadgeCls}">${escapeHtml(timeBadgeText)}</div>
+                            ${timeSubText ? `<div class="nm-time-sub">${escapeHtml(timeSubText)}</div>` : ''}
+                        </div>
+                        <div class="nm-team-side right">
+                            ${flagB ? `<img class="nm-team-flag" src="${escapeHtml(flagB)}" alt="${escapeHtml(teamB)}" loading="lazy">` : '<span style="font-size:1.1rem;flex-shrink:0;">🏳️</span>'}
+                            <span class="nm-team-name">${escapeHtml(teamB)}</span>
                         </div>
                     </div>
-                    <div class="nm-players-row">${playersHtml}</div>
+                    ${venueText ? `<div class="nm-venue-line">🏟️ ${escapeHtml(venueText)}</div>` : ''}
+                    ${draftedInMatch.length > 0 ? `<div class="nm-players-row">${playersHtml}</div>` : ''}
                 </div>
             `;
         }).join('');
