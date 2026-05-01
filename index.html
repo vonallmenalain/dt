@@ -2326,7 +2326,7 @@
                     <span class="section-title-accent" aria-hidden="true"></span>
                     <span class="gtile-title-icon">🌍</span> Beste Länder
                 </div>
-                <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Länderspiele ansehen">Alle →</a>
+                <a href="spieleranalyse.html?view=countries" class="section-link" aria-label="Länder-Analyse ansehen">Alle →</a>
             </div>
             <div id="tile-post-top-nations" aria-label="Top 5 Länder nach Punkten">
                 <div class="skel" style="height:40px;margin-bottom:8px;border-radius:8px;"></div>
@@ -2836,7 +2836,7 @@
         const maxPts = nations[0]?.[1] || 1;
 
         container.innerHTML = nations.slice(0, 5).map(([nation, pts], i) => {
-            const url = `spieleranalyse.html?view=games&gameNation=${encodeURIComponent(nation)}`;
+            const url = `spieleranalyse.html?view=countries&gameNation=${encodeURIComponent(nation)}`;
             const flagPlayer = playersData.find((p) => p['Nationalteam.name'] === nation);
             const flagUrl = flagPlayer ? flagPlayer['Nationalteam.logo'] : '';
             const barPct = maxPts > 0 ? Math.round((pts / maxPts) * 100) : 0;
