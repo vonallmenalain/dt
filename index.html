@@ -2861,6 +2861,42 @@
             flex-shrink: 0;
         }
 
+         .mc-name-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .mc-name-link:hover .mc-name { color: var(--green-light); }
+
+        .mc-meta-links {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 0.73rem;
+            gap: 10px;
+        }
+
+        .mc-meta-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .mc-meta-link:hover { color: var(--green-light); }
+
+        .mc-rank-trend {
+            margin-top: 8px;
+            width: 100%;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mc-rank-trend svg { width: 100%; height: 100%; }
+
         .mc-name {
             font-size: 0.85rem;
             font-weight: 800;
@@ -5341,7 +5377,9 @@
     // 3-D effect for manager carousel (uses MGR_CAROUSEL_UNIT)
     function _applyMgr3DEffect(viewport, slides, totalSlides) {
         const scrollLeft  = viewport.scrollLeft;
-        const centerFloat = scrollLeft / MGR_CAROUSEL_UNIT;
+        const first = slides.length ? slides[0].offsetLeft : 0;
+        const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : MGR_CAROUSEL_UNIT;
+        const centerFloat = (scrollLeft - first) / unit;
 
         for (let i = 0; i < totalSlides; i++) {
             const slide = slides[i];
@@ -5362,7 +5400,47 @@
         }
     }
 
-    function buildManagerCarouselCard(manager, rank, total, avatars) {
+    function buildManagerRankTrendSvg(history, totalManagers) {
+        const totalRanks = Math.max(totalManagers, 1);
+        const values = Array.isArray(history) ? history.map(h => h.rank).filter(v => Number.isFinite(v)) : [];
+        if (!values.length) return '';
+
+        const width = 150;
+        const height = 24;
+        const padX = 4;
+        const padY = 3;
+        const step = values.length > 1 ? (width - padX * 2) / (values.length - 1) : 0;
+        const points = values.map((r, i) => {
+            const ratio = totalRanks <= 1 ? 0.5 : (r - 1) / (totalRanks - 1);
+            const y = padY + ratio * (height - padY * 2);
+            return `${(padX + i * step).toFixed(2)},${y.toFixed(2)}`;
+        });
+
+        return `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+            <polyline fill="none" stroke="rgba(34,197,94,0.95)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${points.join(' ')}"></polyline>
+            <polyline fill="none" stroke="rgba(74,222,128,0.22)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" points="${points.join(' ')}"></polyline>
+        </svg>`;
+    }
+
+    function _getMgrUnit(slides) {
+        return slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : MGR_CAROUSEL_UNIT;
+    }
+
+    function _getMgrNearestIdx(viewport, slides) {
+        if (!slides.length) return 0;
+        const first = slides[0].offsetLeft;
+        const unit = _getMgrUnit(slides);
+        return Math.round((viewport.scrollLeft - first) / unit);
+    }
+
+    function _scrollMgrToIdx(viewport, slides, idx, behavior='smooth') {
+        if (!slides.length) return;
+        const first = slides[0].offsetLeft;
+        const unit = _getMgrUnit(slides);
+        viewport.scrollTo({ left: first + idx * unit, behavior });
+    }
+
+    function buildManagerCarouselCard(manager, rank, total, avatars, history, totalManagers) {
         const sign = total > 0 ? '+' : '';
         const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
         const rankSlideClass = rank === 1 ? 'mgr-carousel-rank-1' : '';
@@ -5374,9 +5452,9 @@
             // Arrange: 2nd (left side), 1st (center/bigger), 3rd (right side)
             const buildWrap = (a, wrapCls) => {
                 const captainCls = a.isCaptain ? 'is-captain' : '';
-                return `<div class="mc-avatar-wrap ${wrapCls} ${captainCls}">
+                return `<a href="spieleranalyse.html?player=${encodeURIComponent(a.name)}" class="mc-avatar-wrap ${wrapCls} ${captainCls}" aria-label="${escapeHtml(a.name)} analysieren">
                     <img src="${escapeHtml(a.photo)}" alt="${escapeHtml(a.name)}" loading="lazy" onerror="this.style.display='none'">
-                </div>`;
+                </a>`;
             };
 
             if (avatars.length === 1) {
@@ -5393,10 +5471,17 @@
         return `
             <div class="carousel-slide ${rankSlideClass}" role="listitem" aria-label="${escapeHtml(manager)}, Rang ${rank}, ${sign}${total} Punkte">
                 <div class="carousel-card">
-                    <div class="mc-rank-badge ${rankCls}">#${rank}</div>
-                    <div class="mc-pts-badge">${sign}${total}</div>
+                    <a href="rangliste.html" class="mc-meta-link" aria-label="Zur Rangliste">
+                        <div class="mc-rank-badge ${rankCls}">#${rank}</div>
+                    </a>
+                    <a href="rangliste.html" class="mc-meta-link" aria-label="Zur Rangliste">
+                        <div class="mc-pts-badge">${sign}${total}</div>
+                    </a>
                     <div class="mc-avatars">${avatarHtml}</div>
-                    <div class="mc-name">${escapeHtml(manager)}</div>
+                    <a href="teams.html?manager=${encodeURIComponent(manager)}" class="mc-name-link" aria-label="Team von ${escapeHtml(manager)}">
+                        <div class="mc-name">${escapeHtml(manager)}</div>
+                    </a>
+                    <div class="mc-rank-trend">${buildManagerRankTrendSvg(history, totalManagers)}</div>
                 </div>
             </div>
         `;
@@ -5443,7 +5528,7 @@
         const cardHtmls = teamTotals.map((t, i) => {
             const rank = i + 1;
             const avatars = getMgrAvatars(t.manager);
-            return buildManagerCarouselCard(t.manager, rank, t.total, avatars);
+            return buildManagerCarouselCard(t.manager, rank, t.total, avatars, t.history, teamTotals.length);
         });
         track.innerHTML = cardHtmls.join('');
 
@@ -5456,13 +5541,13 @@
             dotsEl.querySelectorAll('[data-mgr-dot]').forEach((dot) => {
                 dot.addEventListener('click', () => {
                     const idx = Number(dot.dataset.mgrDot);
-                    viewport.scrollTo({ left: idx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
+                    _scrollMgrToIdx(viewport, track.querySelectorAll('.carousel-slide'), idx, 'smooth');
                 });
                 dot.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         const idx = Number(dot.dataset.mgrDot);
-                        viewport.scrollTo({ left: idx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
+                        _scrollMgrToIdx(viewport, track.querySelectorAll('.carousel-slide'), idx, 'smooth');
                     }
                 });
             });
@@ -5472,7 +5557,7 @@
         // then snap to index 0 (rank #1).
         requestAnimationFrame(() => {
             _setMgrTrackPadding(track, viewport);
-            viewport.scrollLeft = 0;
+            _scrollMgrToIdx(viewport, track.querySelectorAll('.carousel-slide'), 0, 'auto');
             const slides = track.querySelectorAll('.carousel-slide');
             _applyMgr3DEffect(viewport, slides, slides.length);
             _updateMgrDots(viewport, dotsEl, slides.length);
@@ -5483,7 +5568,8 @@
 
     function _updateMgrDots(viewport, dotsEl, totalSlides) {
         if (!dotsEl || !mgrCarouselState.total) return;
-        const bestIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+        const slides = document.getElementById('mgr-carousel-track')?.querySelectorAll('.carousel-slide') || [];
+        const bestIdx = _getMgrNearestIdx(viewport, slides);
         const clampedIdx = Math.max(0, Math.min(bestIdx, mgrCarouselState.total - 1));
         const dots = dotsEl.querySelectorAll('[data-mgr-dot]');
         dots.forEach((dot, i) => {
@@ -5518,14 +5604,14 @@
         function getSlides() { return track.querySelectorAll('.carousel-slide'); }
 
         function goNext() {
-            const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+            const currIdx = _getMgrNearestIdx(viewport, getSlides());
             const nextIdx = Math.min(currIdx + 1, mgrCarouselState.total - 1);
-            viewport.scrollTo({ left: nextIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
+            _scrollMgrToIdx(viewport, getSlides(), nextIdx, 'smooth');
         }
         function goPrev() {
-            const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+            const currIdx = _getMgrNearestIdx(viewport, getSlides());
             const prevIdx = Math.max(currIdx - 1, 0);
-            viewport.scrollTo({ left: prevIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
+            _scrollMgrToIdx(viewport, getSlides(), prevIdx, 'smooth');
         }
 
         if (prev) prev.addEventListener('click', goPrev, { signal });
@@ -5546,10 +5632,12 @@
         function onScrollEnd() {
             _isScrolling = false;
             viewport.classList.remove('is-scrolling');
-            const snapTarget = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT) * MGR_CAROUSEL_UNIT;
-            if (Math.abs(viewport.scrollLeft - snapTarget) > 4) {
-                viewport.scrollTo({ left: snapTarget, behavior: 'smooth' });
-            }
+            const slides = getSlides();
+            const snapIdx = _getMgrNearestIdx(viewport, slides);
+            const first = slides.length ? slides[0].offsetLeft : 0;
+            const unit = _getMgrUnit(slides);
+            const snapTarget = first + snapIdx * unit;
+            if (Math.abs(viewport.scrollLeft - snapTarget) > 4) _scrollMgrToIdx(viewport, slides, snapIdx, 'smooth');
             requestAnimationFrame(() => {
                 const slides = getSlides();
                 _applyMgr3DEffect(viewport, slides, slides.length);
@@ -5588,18 +5676,19 @@
             if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // already horizontal scroll
             e.preventDefault();
             const delta = e.deltaY > 0 ? 1 : -1;
-            const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+            const currIdx = _getMgrNearestIdx(viewport, getSlides());
             const targetIdx = Math.max(0, Math.min(currIdx + delta, mgrCarouselState.total - 1));
-            viewport.scrollTo({ left: targetIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
+            _scrollMgrToIdx(viewport, getSlides(), targetIdx, 'smooth');
         }, { passive: false, signal });
 
         let _resizeTimer = null;
         window.addEventListener('resize', () => {
             clearTimeout(_resizeTimer);
             _resizeTimer = setTimeout(() => {
-                const nearestIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+                const slidesBefore = getSlides();
+                const nearestIdx = _getMgrNearestIdx(viewport, slidesBefore);
                 _setMgrTrackPadding(track, viewport);
-                viewport.scrollLeft = nearestIdx * MGR_CAROUSEL_UNIT;
+                _scrollMgrToIdx(viewport, getSlides(), nearestIdx, 'auto');
                 const slides = getSlides();
                 _applyMgr3DEffect(viewport, slides, slides.length);
                 _updateMgrDots(viewport, dotsEl, slides.length);
