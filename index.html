@@ -4980,15 +4980,24 @@
         return P;
     }
 
+    function _getCarouselCenterFloat(viewport, slides) {
+        if (!slides || slides.length === 0) return 0;
+        if (slides.length === 1) return 0;
+        const first = slides[0].offsetLeft;
+        const second = slides[1].offsetLeft;
+        const unit = second - first;
+        if (!unit) return 0;
+        return (viewport.scrollLeft - first) / unit;
+    }
+
     // ── 3-D effect via passive scroll listener + rAF ──────────
     // Called on every animation frame while scrolling.
     // Only writes transform/opacity – never layout props.
     // With track padding P = (vpW - SLIDE_W)/2:
     //   distSlides = i - scrollLeft/CAROUSEL_UNIT
     function _apply3DEffect(viewport, slides, totalSlides) {
-        const scrollLeft  = viewport.scrollLeft;
-        // fractional "which slide is at centre" in the padded coordinate space
-        const centerFloat = scrollLeft / CAROUSEL_UNIT;
+        // fractional "which slide is at centre" in the rendered coordinate space
+        const centerFloat = _getCarouselCenterFloat(viewport, slides);
         // Always force exactly one foreground slide, even if scroll rests between two cards.
         const nearestCenterIdx = Math.max(0, Math.min(totalSlides - 1, Math.round(centerFloat)));
 
@@ -5021,7 +5030,7 @@
         if (!realTotal) return;
 
         // Nearest slide to centre
-        const bestIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
+        const bestIdx = Math.round(_getCarouselCenterFloat(viewport, viewport.querySelectorAll('.carousel-slide')));
         // Map cloned index → real index 0…(realTotal-1)
         const realIdx = wrapIdx(bestIdx - carouselState._offset, realTotal);
         const dots = dotsEl.querySelectorAll('.carousel-dot');
@@ -5038,10 +5047,13 @@
     function _recenterIfNeeded(viewport) {
         const realTotal = carouselState.total;
         if (!realTotal || !carouselState._offset) return;
+        const slides = viewport.querySelectorAll('.carousel-slide');
+        if (!slides.length) return;
 
-        const floatIdx = viewport.scrollLeft / CAROUSEL_UNIT;
+        const floatIdx = _getCarouselCenterFloat(viewport, slides);
         const offset   = carouselState._offset;
-        const jumpPx   = realTotal * CAROUSEL_UNIT;
+        const unit     = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
+        const jumpPx   = realTotal * unit;
 
         if (floatIdx >= offset + realTotal) {
             viewport.scrollLeft -= jumpPx;
@@ -5054,7 +5066,10 @@
     // With padding P: scrollLeft = slideIdx * CAROUSEL_UNIT
     function _scrollToRealIndex(viewport, realIdx, behavior) {
         const slideIdx = carouselState._offset + realIdx;
-        const target   = slideIdx * CAROUSEL_UNIT;
+        const slides = viewport.querySelectorAll('.carousel-slide');
+        const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
+        const first = slides.length ? slides[0].offsetLeft : 0;
+        const target = first + slideIdx * unit;
         if (behavior === 'instant') {
             // scrollTo 'instant' not universally supported; direct assignment always works
             viewport.scrollLeft = target;
@@ -5157,12 +5172,18 @@
         // ── Arrow navigation ──
         // With track padding, scrollLeft == slideIdx * CAROUSEL_UNIT
         function goNext() {
-            const currIdx  = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
-            viewport.scrollTo({ left: (currIdx + 1) * CAROUSEL_UNIT, behavior: 'smooth' });
+            const slides = track.querySelectorAll('.carousel-slide');
+            const currIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
+            const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
+            const first = slides.length ? slides[0].offsetLeft : 0;
+            viewport.scrollTo({ left: first + (currIdx + 1) * unit, behavior: 'smooth' });
         }
         function goPrev() {
-            const currIdx  = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
-            viewport.scrollTo({ left: (currIdx - 1) * CAROUSEL_UNIT, behavior: 'smooth' });
+            const slides = track.querySelectorAll('.carousel-slide');
+            const currIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
+            const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
+            const first = slides.length ? slides[0].offsetLeft : 0;
+            viewport.scrollTo({ left: first + (currIdx - 1) * unit, behavior: 'smooth' });
         }
 
         if (prev) prev.addEventListener('click', goPrev);
@@ -5192,7 +5213,10 @@
             _recenterIfNeeded(viewport);
 
             // Nudge to exact slide boundary if CSS snap missed slightly
-            const snapTarget = Math.round(viewport.scrollLeft / CAROUSEL_UNIT) * CAROUSEL_UNIT;
+            const centerIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
+            const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
+            const first = slides.length ? slides[0].offsetLeft : 0;
+            const snapTarget = first + centerIdx * unit;
             if (Math.abs(viewport.scrollLeft - snapTarget) > 4) {
                 viewport.scrollTo({ left: snapTarget, behavior: 'smooth' });
             }
@@ -5269,9 +5293,11 @@
         window.addEventListener('resize', () => {
             clearTimeout(_resizeTimer);
             _resizeTimer = setTimeout(() => {
-                const nearestIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
+                const nearestIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
                 _setTrackPadding(track, viewport);
-                viewport.scrollLeft = nearestIdx * CAROUSEL_UNIT;
+                const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
+                const first = slides.length ? slides[0].offsetLeft : 0;
+                viewport.scrollLeft = first + nearestIdx * unit;
                 _apply3DEffect(viewport, slides, totalSlides);
                 _updateDots(viewport, dotsEl, totalSlides);
             }, 150);
