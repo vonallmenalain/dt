@@ -4989,6 +4989,8 @@
         const scrollLeft  = viewport.scrollLeft;
         // fractional "which slide is at centre" in the padded coordinate space
         const centerFloat = scrollLeft / CAROUSEL_UNIT;
+        // Always force exactly one foreground slide, even if scroll rests between two cards.
+        const nearestCenterIdx = Math.max(0, Math.min(totalSlides - 1, Math.round(centerFloat)));
 
         for (let i = 0; i < totalSlides; i++) {
             const slide = slides[i];
@@ -5002,7 +5004,7 @@
             // opacity: center 1, falls off, floor 0.30
             const opacity = Math.max(0.30, 1 - absDist * 0.30);
 
-            const isCenter = absDist < 0.5;
+            const isCenter = i === nearestCenterIdx;
             if (isCenter !== slide.classList.contains('is-center')) {
                 slide.classList.toggle('is-center', isCenter);
             }
