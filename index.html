@@ -3071,7 +3071,8 @@
             align-items: center;
             gap: 2px;
             flex-shrink: 0;
-            min-width: 60px;
+            min-width: 120px;
+            text-align: center;
         }
 
         .nm-time-badge {
@@ -3104,6 +3105,13 @@
             font-weight: 600;
         }
 
+        .nm-venue-inline {
+            font-size: 0.62rem;
+            max-width: 140px;
+            white-space: normal;
+            line-height: 1.2;
+        }
+
         .nm-vs {
             font-size: 0.7rem;
             font-weight: 800;
@@ -3126,19 +3134,22 @@
 
         .nm-players-row {
             display: flex;
-            gap: 5px;
+            gap: 6px;
             flex-wrap: wrap;
-            margin-top: 8px;
+            margin-top: 10px;
+            justify-content: center;
         }
 
         .nm-player-chip {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
             background: rgba(74,222,128,0.08);
             border: 1px solid rgba(74,222,128,0.15);
-            border-radius: 100px;
-            padding: 3px 8px 3px 3px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            padding: 0;
             text-decoration: none;
             transition: background 0.15s ease;
         }
@@ -3148,40 +3159,14 @@
         }
 
         .nm-player-photo {
-            width: 22px;
-            height: 22px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             object-fit: cover;
             background: #2a3040;
             flex-shrink: 0;
         }
 
-        .nm-player-info {
-            min-width: 0;
-        }
-
-        .nm-player-name {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--text-main);
-            white-space: nowrap;
-        }
-
-        .nm-manager-badges {
-            display: flex;
-            gap: 3px;
-            flex-wrap: wrap;
-        }
-
-        .nm-mgr-badge {
-            font-size: 0.58rem;
-            font-weight: 700;
-            color: #4ade80;
-            background: rgba(74,222,128,0.1);
-            border-radius: 3px;
-            padding: 1px 4px;
-            white-space: nowrap;
-        }
 
         .nm-more-players {
             font-size: 0.7rem;
@@ -4237,7 +4222,7 @@
     <!-- HERO -->
     <section class="hero hero-post-compact" id="hero-post">
         <div class="hero-content">
-            <span class="live-pill"><span class="live-dot"></span>Live · Turnier läuft</span>
+            
             <h1 class="hero-title hero-title-post">
                 <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
                 <span class="accent" id="hero-post-title-accent">DreamTeam</span>
@@ -4271,7 +4256,7 @@
                 <a href="punktesystem.html" class="btn-pill">📊 Punkte</a>
             </div>
 
-            <div class="post-scroll-cue" aria-hidden="true">Mehr entdecken</div>
+            
         </div>
     </section>
 
@@ -4327,7 +4312,7 @@
                     </div>
                     <div class="pt-toggle" id="post-players-toggle" role="tablist" aria-label="Spieler-Ansicht">
                         <button type="button" class="pt-toggle-btn active" data-mode="top" role="tab" aria-selected="true">Top 5</button>
-                        <button type="button" class="pt-toggle-btn" data-mode="perfect" role="tab" aria-selected="false">Perfect XV</button>
+                        <button type="button" class="pt-toggle-btn" data-mode="perfect" role="tab" aria-selected="false">Perfect 15</button>
                     </div>
                 </div>
 
@@ -4342,7 +4327,7 @@
                     </div>
                 </div>
 
-                <!-- Perfect XV pitch (hidden by default) -->
+                <!-- Perfect 15 pitch (hidden by default) -->
                 <div id="post-players-perfect-view" style="display:none;">
                     <div class="compact-pt-header" id="tile-post-perfect-meta">
                         <div class="skel" style="height:34px;width:140px;border-radius:8px;"></div>
@@ -6627,21 +6612,14 @@
             const visiblePlayers = draftedInMatch.slice(0, MAX_VISIBLE);
             const extraCount = draftedInMatch.length - MAX_VISIBLE;
 
-            const playersHtml = visiblePlayers.map(({ player, managers }) => {
+            const playersHtml = visiblePlayers.map(({ player }) => {
                 const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
-                const mgrsHtml = managers.slice(0, 2).map(m =>
-                    `<div class="nm-mgr-badge">${escapeHtml(m.split(' ')[0])}</div>`
-                ).join('') + (managers.length > 2 ? `<div class="nm-mgr-badge">+${managers.length - 2}</div>` : '');
                 return `
-                    <a class="nm-player-chip" href="${url}" draggable="false">
+                    <a class="nm-player-chip" href="${url}" draggable="false" aria-label="${escapeHtml(player.Spielername)} analysieren">
                         <img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">
-                        <div class="nm-player-info">
-                            <div class="nm-player-name">${escapeHtml(player.Spielername.split(' ').pop())}</div>
-                            <div class="nm-manager-badges">${mgrsHtml}</div>
-                        </div>
                     </a>
                 `;
-            }).join('') + (extraCount > 0 ? `<span class="nm-more-players">+${extraCount} weitere</span>` : '');
+            }).join('') + (extraCount > 0 ? `<span class="nm-more-players">+${extraCount}</span>` : '');
 
             return `
                 <div class="nm-match-row">
@@ -6653,13 +6631,13 @@
                         <div class="nm-center-col">
                             <div class="nm-time-badge ${timeBadgeCls}">${escapeHtml(timeBadgeText)}</div>
                             ${timeSubText ? `<div class="nm-time-sub">${escapeHtml(timeSubText)}</div>` : ''}
+                            ${venueText ? `<div class="nm-time-sub nm-venue-inline">${escapeHtml(venueText)}</div>` : ''}
                         </div>
                         <div class="nm-team-side right">
                             ${flagB ? `<img class="nm-team-flag" src="${escapeHtml(flagB)}" alt="${escapeHtml(teamB)}" loading="lazy">` : '<span style="font-size:1.1rem;flex-shrink:0;">🏳️</span>'}
                             <span class="nm-team-name">${escapeHtml(teamB)}</span>
                         </div>
                     </div>
-                    ${venueText ? `<div class="nm-venue-line">🏟️ ${escapeHtml(venueText)}</div>` : ''}
                     ${draftedInMatch.length > 0 ? `<div class="nm-players-row">${playersHtml}</div>` : ''}
                 </div>
             `;
