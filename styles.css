@@ -19,7 +19,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    background: var(--dark);
+    background: linear-gradient(135deg, #13261a 0%, #1b3a27 45%, #1f4d2f 100%);
     padding: 15px 30px;
     display: flex;
     justify-content: space-between;
@@ -33,11 +33,23 @@ body {
 .navbar-brand {
     color: white;
     font-size: 1.5em;
-    font-weight: bold;
+    font-weight: 900;
     text-decoration: none;
     line-height: 1.1;
     white-space: nowrap;
     flex-shrink: 0;
+    letter-spacing: -0.5px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.navbar-brand .brand-gold {
+    color: #ffd700;
+}
+
+.navbar-brand .brand-green {
+    color: #4ade80;
 }
 
 .nav-links {
