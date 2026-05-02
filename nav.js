@@ -29,8 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    const brandName = APP.brandName || "DreamTeam";
-
     const navItems = [
         { href: "index.html", label: "🏠 Dashboard", shortLabel: "Dashboard", icon: "🏠" },
         { href: "team-builder.html", label: "➕ Team erstellen", shortLabel: "Team", icon: "➕" },
@@ -55,7 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const navHTML = `
         <nav class="navbar">
-            <a href="index.html" class="navbar-brand">⚽ ${brandName}</a>
+            <a href="index.html" class="navbar-brand" aria-label="EM 2024 DreamTeam">
+                <span class="brand-gold">EM 2024</span>
+                <span class="brand-green">DreamTeam</span>
+            </a>
             <div class="nav-links">
                 ${topNavLinks}
             </div>
