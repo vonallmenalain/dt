@@ -3227,6 +3227,761 @@
         .ranking-preview-tile { position:relative; }
 
         /* ===================================================
+           POST-START WOW LAYER
+           Stadium atmosphere · floating particles · scroll reveals
+           =================================================== */
+
+        #indexHomePostStart {
+            background-attachment: fixed;
+        }
+
+        /* Stadium spotlight cones from above */
+        .ps-stage-glow {
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .ps-stage-glow::before,
+        .ps-stage-glow::after {
+            content: "";
+            position: absolute;
+            top: -10%;
+            width: 60%;
+            height: 110%;
+            background: radial-gradient(ellipse 60% 70% at 50% 0%,
+                rgba(74,222,128,0.18) 0%,
+                rgba(74,222,128,0.06) 35%,
+                transparent 75%);
+            filter: blur(20px);
+            transform-origin: top center;
+            animation: psBeamSweep 9s ease-in-out infinite alternate;
+            mix-blend-mode: screen;
+        }
+
+        .ps-stage-glow::before {
+            left: -10%;
+            transform: rotate(-12deg);
+        }
+
+        .ps-stage-glow::after {
+            right: -10%;
+            transform: rotate(12deg);
+            animation-delay: 4.5s;
+            background: radial-gradient(ellipse 60% 70% at 50% 0%,
+                rgba(255,215,0,0.10) 0%,
+                rgba(255,215,0,0.04) 35%,
+                transparent 75%);
+        }
+
+        @keyframes psBeamSweep {
+            0%   { transform: rotate(-14deg) translateX(-2%); opacity: 0.85; }
+            50%  { transform: rotate(-8deg)  translateX(2%);  opacity: 1; }
+            100% { transform: rotate(-14deg) translateX(-2%); opacity: 0.7; }
+        }
+
+        /* Floating ambient orbs */
+        .ps-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(40px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.55;
+            mix-blend-mode: screen;
+        }
+
+        .ps-orb.o1 {
+            width: 320px;
+            height: 320px;
+            left: -90px;
+            top: 18%;
+            background: radial-gradient(circle, rgba(74,222,128,0.55), transparent 65%);
+            animation: psOrbDrift 14s ease-in-out infinite alternate;
+        }
+
+        .ps-orb.o2 {
+            width: 380px;
+            height: 380px;
+            right: -120px;
+            top: 55%;
+            background: radial-gradient(circle, rgba(255,215,0,0.30), transparent 65%);
+            animation: psOrbDrift 18s 2s ease-in-out infinite alternate-reverse;
+        }
+
+        .ps-orb.o3 {
+            width: 260px;
+            height: 260px;
+            left: 30%;
+            bottom: -60px;
+            background: radial-gradient(circle, rgba(34,197,94,0.32), transparent 65%);
+            animation: psOrbDrift 22s 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes psOrbDrift {
+            0%   { transform: translate(0, 0) scale(1); }
+            50%  { transform: translate(30px, -28px) scale(1.06); }
+            100% { transform: translate(-22px, 26px) scale(0.96); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ps-orb, .ps-stage-glow::before, .ps-stage-glow::after { animation: none !important; }
+        }
+
+        /* Glass/transparent post-start hero */
+        .hero-post-compact {
+            position: relative;
+            z-index: 2;
+            min-height: auto;
+            padding: 56px 20px 28px;
+        }
+
+        .hero-title-post {
+            font-size: clamp(2rem, 7vw, 3.6rem);
+            margin: 0 0 14px;
+        }
+
+        /* Live badge */
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: rgba(239,68,68,0.14);
+            border: 1px solid rgba(239,68,68,0.4);
+            color: #f87171;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            margin-bottom: 18px;
+            animation: fadeSlideDown 0.6s ease both;
+        }
+
+        .live-pill .live-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 10px rgba(239,68,68,0.85);
+            animation: livePulse 1.4s infinite ease-in-out;
+        }
+
+        /* Hero KPI bar */
+        .post-hero-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            max-width: 760px;
+            margin: 22px auto 0;
+            animation: fadeSlideDown 0.7s 0.18s ease both;
+        }
+
+        .post-hero-kpi {
+            position: relative;
+            padding: 12px 8px 11px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.10);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .post-hero-kpi:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(74,222,128,0.32);
+        }
+
+        .post-hero-kpi-val {
+            font-size: clamp(1.05rem, 3.5vw, 1.55rem);
+            font-weight: 900;
+            color: #4ade80;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .post-hero-kpi-val.gold { color: var(--gold); }
+
+        .post-hero-kpi-label {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 520px) {
+            .post-hero-kpis { grid-template-columns: repeat(2, 1fr); }
+            .post-hero-kpi-val { font-size: 1.2rem; }
+        }
+
+        /* Glass panel: transparent, floating, no hard tile look */
+        .glass {
+            position: relative;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.085);
+            border-radius: 22px;
+            padding: 18px 16px 18px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+            overflow: hidden;
+        }
+
+        .glass::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+            pointer-events: none;
+        }
+
+        @media (min-width: 640px) {
+            .glass { padding: 22px 22px 20px; border-radius: 26px; }
+        }
+
+        /* Decorative floating orb inside a panel */
+        .glass-deco {
+            position: absolute;
+            width: 220px; height: 220px;
+            right: -60px; top: -60px;
+            background: radial-gradient(circle, rgba(74,222,128,0.18), transparent 65%);
+            filter: blur(30px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glass > * { position: relative; z-index: 1; }
+
+        /* Section heading inside post panels */
+        .post-h {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .post-h-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 0.4px;
+        }
+
+        .post-h-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px; height: 30px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, rgba(74,222,128,0.22), rgba(34,197,94,0.05));
+            border: 1px solid rgba(74,222,128,0.28);
+            font-size: 1rem;
+            box-shadow: 0 4px 14px rgba(34,197,94,0.20) inset;
+        }
+
+        .post-h-icon.gold {
+            background: linear-gradient(135deg, rgba(255,215,0,0.22), rgba(255,215,0,0.05));
+            border-color: rgba(255,215,0,0.32);
+        }
+
+        .post-h-icon.red {
+            background: linear-gradient(135deg, rgba(248,113,113,0.22), rgba(239,68,68,0.05));
+            border-color: rgba(248,113,113,0.32);
+        }
+
+        .post-h-icon.cyan {
+            background: linear-gradient(135deg, rgba(56,189,248,0.22), rgba(14,165,233,0.05));
+            border-color: rgba(56,189,248,0.32);
+        }
+
+        .post-h-link {
+            font-size: 0.78rem;
+            color: #4ade80;
+            text-decoration: none;
+            font-weight: 700;
+            opacity: 0.85;
+            transition: opacity 0.2s, transform 0.2s;
+            white-space: nowrap;
+        }
+
+        .post-h-link:hover { opacity: 1; transform: translateX(2px); }
+
+        /* Scroll reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+            will-change: opacity, transform;
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reveal { opacity: 1; transform: none; transition: none; }
+        }
+
+        /* Above-the-fold post layout */
+        #dashboard-post-area {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px 100px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 2;
+        }
+
+        @media (min-width: 720px) {
+            #dashboard-post-area { padding: 0 24px 110px; }
+        }
+
+        .post-fold {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 980px) {
+            .post-fold {
+                grid-template-columns: 1.15fr 0.85fr;
+                grid-template-areas:
+                    "managers matches"
+                    "players  matches";
+                gap: 18px;
+            }
+            .post-fold .post-fold-managers  { grid-area: managers; }
+            .post-fold .post-fold-players   { grid-area: players; }
+            .post-fold .post-fold-matches   { grid-area: matches; }
+        }
+
+        /* Below-the-fold post sections */
+        .post-bottom {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: 1fr;
+            margin-top: 22px;
+        }
+
+        @media (min-width: 880px) {
+            .post-bottom { grid-template-columns: 1fr 1fr; gap: 18px; }
+            .post-bottom .post-full { grid-column: 1 / -1; }
+        }
+
+        /* Top-managers podium-style ranked list */
+        .tm-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tm-row {
+            display: grid;
+            grid-template-columns: 32px 44px 1fr auto;
+            grid-template-rows: auto auto;
+            grid-template-areas:
+                "rank avatar name pts"
+                "rank avatar best best";
+            align-items: center;
+            gap: 4px 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tm-row::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(74,222,128,0.06), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+            pointer-events: none;
+        }
+
+        .tm-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(74,222,128,0.22); transform: translateX(4px); }
+        .tm-row:hover::before { transform: translateX(100%); }
+
+        .tm-row.rank-1 {
+            background: linear-gradient(135deg, rgba(255,215,0,0.10), rgba(255,215,0,0.02));
+            border-color: rgba(255,215,0,0.32);
+        }
+        .tm-row.rank-2 {
+            background: linear-gradient(135deg, rgba(192,192,192,0.08), rgba(192,192,192,0.02));
+            border-color: rgba(192,192,192,0.24);
+        }
+        .tm-row.rank-3 {
+            background: linear-gradient(135deg, rgba(205,127,50,0.08), rgba(205,127,50,0.02));
+            border-color: rgba(205,127,50,0.24);
+        }
+
+        .tm-rank {
+            grid-area: rank;
+            font-size: 1.05rem;
+            font-weight: 900;
+            text-align: center;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+        .tm-row.rank-1 .tm-rank { color: var(--gold); text-shadow: 0 0 14px rgba(255,215,0,0.45); }
+        .tm-row.rank-2 .tm-rank { color: #c0c0c0; }
+        .tm-row.rank-3 .tm-rank { color: #cd7f32; }
+
+        .tm-avatar {
+            grid-area: avatar;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.14);
+            background: #2a3040;
+        }
+
+        .tm-row.rank-1 .tm-avatar { border-color: rgba(255,215,0,0.55); box-shadow: 0 0 0 2px rgba(255,215,0,0.18); }
+        .tm-row.rank-2 .tm-avatar { border-color: rgba(192,192,192,0.45); }
+        .tm-row.rank-3 .tm-avatar { border-color: rgba(205,127,50,0.45); }
+
+        .tm-name {
+            grid-area: name;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tm-pts {
+            grid-area: pts;
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: #4ade80;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .tm-row.rank-1 .tm-pts { color: var(--gold); }
+
+        .tm-best {
+            grid-area: best;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
+            margin-top: 2px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .tm-best-label {
+            opacity: 0.7;
+            margin-right: 2px;
+        }
+
+        .tm-best-photo {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: #2a3040;
+            flex-shrink: 0;
+        }
+
+        .tm-best-name {
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .tm-best-pts {
+            font-weight: 800;
+            color: #4ade80;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* Top players grid with podium feel */
+        .tp-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        @media (min-width: 480px) {
+            .tp-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        .tp-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 6px 10px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tp-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.06); border-color: rgba(74,222,128,0.3); }
+
+        .tp-card .tp-rank-badge {
+            position: absolute;
+            top: 6px; left: 6px;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.66rem;
+            font-weight: 900;
+            background: rgba(255,255,255,0.07);
+            color: var(--text-muted);
+        }
+
+        .tp-card.rank-1 .tp-rank-badge { background: linear-gradient(135deg,#ffd700,#e5a800); color:#1a1100; box-shadow: 0 0 14px rgba(255,215,0,0.5); }
+        .tp-card.rank-2 .tp-rank-badge { background: linear-gradient(135deg,#c0c0c0,#9ca3af); color:#1a1a1a; }
+        .tp-card.rank-3 .tp-rank-badge { background: linear-gradient(135deg,#cd7f32,#b45309); color:#fff; }
+
+        .tp-photo-wrap {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+
+        .tp-photo {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.12);
+            background: #2a3040;
+        }
+
+        .tp-card.rank-1 .tp-photo { border-color: rgba(255,215,0,0.55); box-shadow: 0 0 22px rgba(255,215,0,0.25); }
+
+        .tp-flag {
+            position: absolute;
+            bottom: -2px;
+            right: -4px;
+            width: 20px; height: 14px;
+            border-radius: 2px;
+            object-fit: cover;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .tp-name {
+            font-size: 0.74rem;
+            font-weight: 800;
+            color: var(--text-main);
+            text-align: center;
+            line-height: 1.15;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            width: 100%;
+        }
+
+        .tp-pts {
+            font-size: 0.92rem;
+            font-weight: 900;
+            color: #4ade80;
+            line-height: 1;
+        }
+
+        .tp-card.rank-1 .tp-pts { color: var(--gold); }
+
+        /* Toggle pill for top-players (Top vs Perfect Team) */
+        .pt-toggle {
+            display: inline-flex;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 100px;
+            padding: 3px;
+            gap: 0;
+        }
+
+        .pt-toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border-radius: 100px;
+            cursor: pointer;
+            letter-spacing: 0.4px;
+            transition: background 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .pt-toggle-btn.active {
+            background: linear-gradient(135deg, rgba(74,222,128,0.22), rgba(34,197,94,0.10));
+            color: #4ade80;
+            box-shadow: inset 0 0 0 1px rgba(74,222,128,0.35);
+        }
+
+        /* Compact perfect team pitch reused */
+        #tile-post-perfect-pitch {
+            margin-top: 6px;
+        }
+
+        /* Movers tile period-buttons styling overrides */
+        #period-post-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        /* The Top/Flop dual section */
+        .tf-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 720px) {
+            .tf-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .tf-block-h {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .tf-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .tf-pill.green {
+            background: rgba(74,222,128,0.14);
+            border: 1px solid rgba(74,222,128,0.32);
+            color: #4ade80;
+        }
+
+        .tf-pill.red {
+            background: rgba(248,113,113,0.14);
+            border: 1px solid rgba(248,113,113,0.32);
+            color: #f87171;
+        }
+
+        .tf-block-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .picks-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Hero CTA-pills for post-start */
+        .post-hero-pills {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+            animation: fadeSlideDown 0.7s 0.32s ease both;
+        }
+
+        /* Mobile spacing tweaks */
+        @media (max-width: 600px) {
+            .hero-post-compact { padding: 38px 16px 22px; }
+            .post-h-title { font-size: 0.88rem; }
+            .post-h-link { font-size: 0.72rem; }
+            .glass { padding: 16px 14px; border-radius: 20px; }
+            .tm-row { padding: 10px 10px; grid-template-columns: 26px 40px 1fr auto; }
+            .tm-avatar { width: 40px; height: 40px; }
+            .tm-name { font-size: 0.88rem; }
+            .tm-pts { font-size: 0.95rem; }
+            .tm-best { font-size: 0.66rem; }
+            #dashboard-post-area { padding: 0 14px 90px; }
+            .post-fold { gap: 14px; }
+        }
+
+        /* Scroll cue specifically for post-start */
+        .post-scroll-cue {
+            display: flex;
+            justify-content: center;
+            margin: 14px auto 6px;
+            color: rgba(255,255,255,0.32);
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            animation: scrollBounce 2.2s 1s ease-in-out infinite;
+        }
+
+        .post-scroll-cue::after {
+            content: "↓";
+            margin-left: 6px;
+            font-size: 0.85rem;
+        }
+
+        /* Counter animation reset (used in JS) */
+        .num-roll {
+            display: inline-block;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ===================================================
            PRE-START-SPECIFIC LAYOUT/BACKGROUND
            =================================================== */
         #indexHomePreStart.prestart-home {
@@ -3432,19 +4187,232 @@
 </div><!-- /#indexHomePreStart -->
 
 <!-- =====================================================
-     POST START HOME: Startseite nach Spielstart / Live-Phase
-     Minimale Startansicht für Neuaufbau.
+     POST START HOME: Live-Dashboard nach Spielstart
      ===================================================== -->
 <div id="indexHomePostStart" style="display:none;">
 
-<section class="hero hero-post-compact" id="hero-post">
-    <div class="hero-content">
-        <h1 class="hero-title hero-title-post">
-            <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
-            <span class="accent" id="hero-post-title-accent">DreamTeam</span>
-        </h1>
-    </div>
-</section>
+    <!-- Atmosphäre: Spotlights & Orbs -->
+    <div class="ps-stage-glow" aria-hidden="true"></div>
+    <div class="ps-orb o1" aria-hidden="true"></div>
+    <div class="ps-orb o2" aria-hidden="true"></div>
+    <div class="ps-orb o3" aria-hidden="true"></div>
+
+    <!-- HERO -->
+    <section class="hero hero-post-compact" id="hero-post">
+        <div class="hero-content">
+            <span class="live-pill"><span class="live-dot"></span>Live · Turnier läuft</span>
+            <h1 class="hero-title hero-title-post">
+                <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
+                <span class="accent" id="hero-post-title-accent">DreamTeam</span>
+            </h1>
+
+            <!-- KPI bar -->
+            <div class="post-hero-kpis" role="list" aria-label="Live Statistiken">
+                <a href="rangliste.html" class="post-hero-kpi" role="listitem">
+                    <span class="post-hero-kpi-val gold" id="hs-post-leader">–</span>
+                    <span class="post-hero-kpi-label">👑 Leader</span>
+                </a>
+                <a href="rangliste.html" class="post-hero-kpi" role="listitem">
+                    <span class="post-hero-kpi-val" id="hs-post-leader-pts">–</span>
+                    <span class="post-hero-kpi-label">⭐ Top Punkte</span>
+                </a>
+                <a href="spieleranalyse.html" class="post-hero-kpi" role="listitem">
+                    <span class="post-hero-kpi-val" id="hs-post-top-player-pts">–</span>
+                    <span class="post-hero-kpi-label">🔥 Top Spieler</span>
+                </a>
+                <a href="teams.html" class="post-hero-kpi" role="listitem">
+                    <span class="post-hero-kpi-val" id="hs-post-teams">–</span>
+                    <span class="post-hero-kpi-label">🛡️ Teams</span>
+                </a>
+            </div>
+
+            <!-- Quick nav pills -->
+            <div class="post-hero-pills">
+                <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
+                <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler</a>
+                <a href="teams.html" class="btn-pill">🛡️ Teams</a>
+                <a href="punktesystem.html" class="btn-pill">📊 Punkte</a>
+            </div>
+
+            <div class="post-scroll-cue" aria-hidden="true">Mehr entdecken</div>
+        </div>
+    </section>
+
+    <!-- LIVE DASHBOARD -->
+    <main id="dashboard-post-area">
+
+        <!-- ───────── Above-the-fold ───────── -->
+        <section class="post-fold">
+
+            <!-- 1. Top Manager (with best picks) -->
+            <div class="glass post-fold-managers" id="post-managers-panel">
+                <div class="glass-deco" aria-hidden="true"></div>
+                <div class="post-h">
+                    <div class="post-h-title">
+                        <span class="post-h-icon gold">👑</span>
+                        Top Manager
+                    </div>
+                    <a class="post-h-link" href="rangliste.html">Rangliste →</a>
+                </div>
+                <div class="tm-list" id="tile-post-top-managers" aria-label="Top Manager mit besten Picks">
+                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
+                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
+                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
+                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
+                    <div class="skel" style="height:62px;border-radius:14px;"></div>
+                </div>
+            </div>
+
+            <!-- 2. Nächste Spiele -->
+            <div class="glass post-fold-matches" id="post-matches-panel">
+                <div class="glass-deco" style="left:-60px;right:auto;background:radial-gradient(circle, rgba(255,215,0,0.15), transparent 65%);" aria-hidden="true"></div>
+                <div class="post-h">
+                    <div class="post-h-title">
+                        <span class="post-h-icon cyan">📅</span>
+                        Nächste Spiele
+                    </div>
+                    <a class="post-h-link" href="spieleranalyse.html?view=games">Alle →</a>
+                </div>
+                <div id="tile-post-next-matches" class="match-ticker" aria-label="Kommende Spiele">
+                    <div class="skel" style="height:64px;margin-bottom:8px;border-radius:12px;"></div>
+                    <div class="skel" style="height:64px;margin-bottom:8px;border-radius:12px;"></div>
+                    <div class="skel" style="height:64px;border-radius:12px;"></div>
+                </div>
+            </div>
+
+            <!-- 3. Top Spieler (mit Toggle: Top / Perfect Team) -->
+            <div class="glass post-fold-players" id="post-players-panel">
+                <div class="glass-deco" aria-hidden="true"></div>
+                <div class="post-h">
+                    <div class="post-h-title">
+                        <span class="post-h-icon">⭐</span>
+                        <span id="post-players-title">Top Spieler</span>
+                    </div>
+                    <div class="pt-toggle" id="post-players-toggle" role="tablist" aria-label="Spieler-Ansicht">
+                        <button type="button" class="pt-toggle-btn active" data-mode="top" role="tab" aria-selected="true">Top 5</button>
+                        <button type="button" class="pt-toggle-btn" data-mode="perfect" role="tab" aria-selected="false">Perfect XV</button>
+                    </div>
+                </div>
+
+                <!-- Top players grid -->
+                <div id="post-players-top-view">
+                    <div class="tp-grid" id="tile-post-top-players-grid" aria-label="Top Spieler">
+                        <div class="skel" style="height:118px;border-radius:14px;"></div>
+                        <div class="skel" style="height:118px;border-radius:14px;"></div>
+                        <div class="skel" style="height:118px;border-radius:14px;"></div>
+                        <div class="skel" style="height:118px;border-radius:14px;"></div>
+                        <div class="skel" style="height:118px;border-radius:14px;"></div>
+                    </div>
+                </div>
+
+                <!-- Perfect XV pitch (hidden by default) -->
+                <div id="post-players-perfect-view" style="display:none;">
+                    <div class="compact-pt-header" id="tile-post-perfect-meta">
+                        <div class="skel" style="height:34px;width:140px;border-radius:8px;"></div>
+                    </div>
+                    <div id="tile-post-perfect-team" aria-label="Perfect Team">
+                        <div class="skel" style="height:42px;margin-bottom:8px;border-radius:10px;"></div>
+                        <div class="skel" style="height:42px;margin-bottom:8px;border-radius:10px;"></div>
+                        <div class="skel" style="height:42px;margin-bottom:8px;border-radius:10px;"></div>
+                        <div class="skel" style="height:42px;border-radius:10px;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ───────── Below-the-fold ───────── -->
+        <div class="post-bottom">
+
+            <!-- 4. Fan-Lieblinge (most-drafted players, like pre-start) -->
+            <div class="glass post-full reveal" data-reveal>
+                <div class="glass-deco" style="left:-60px;right:auto;background:radial-gradient(circle, rgba(255,215,0,0.16), transparent 65%);" aria-hidden="true"></div>
+                <div class="post-h">
+                    <div class="post-h-title">
+                        <span class="post-h-icon">🔥</span>
+                        Fan-Lieblinge
+                    </div>
+                    <span class="tf-block-sub">Am meisten gedraftete Spieler</span>
+                </div>
+                <div class="pop-picks-scroll" id="tile-post-popular-picks" aria-label="Meistgewählte Spieler">
+                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
+                </div>
+            </div>
+
+            <!-- 5. Grösste Veränderungen der Rangliste -->
+            <div class="glass reveal" data-reveal>
+                <div class="post-h">
+                    <div class="post-h-title">
+                        <span class="post-h-icon cyan">📈</span>
+                        Grösste Bewegungen
+                    </div>
+                    <a class="post-h-link" href="rangliste.html?view=history">Verlauf →</a>
+                </div>
+                <div id="period-post-btns" role="tablist" aria-label="Zeitraum"></div>
+                <div id="tile-post-rank-jumps" aria-label="Rangveränderungen">
+                    <div class="skel" style="height:48px;margin-bottom:8px;border-radius:10px;"></div>
+                    <div class="skel" style="height:48px;margin-bottom:8px;border-radius:10px;"></div>
+                    <div class="skel" style="height:48px;margin-bottom:8px;border-radius:10px;"></div>
+                </div>
+            </div>
+
+            <!-- 6. Top Nationen -->
+            <div class="glass reveal" data-reveal>
+                <div class="post-h">
+                    <div class="post-h-title">
+                        <span class="post-h-icon">🌍</span>
+                        Beste Nationen
+                    </div>
+                    <a class="post-h-link" href="spieleranalyse.html?view=countries">Mehr →</a>
+                </div>
+                <div id="tile-post-top-nations" aria-label="Top Nationen nach Punkten">
+                    <div class="skel" style="height:38px;margin-bottom:8px;border-radius:10px;"></div>
+                    <div class="skel" style="height:38px;margin-bottom:8px;border-radius:10px;"></div>
+                    <div class="skel" style="height:38px;margin-bottom:8px;border-radius:10px;"></div>
+                </div>
+            </div>
+
+            <!-- 7. Top & Flop Picks (gedraftete Spieler – beste & schlechteste) -->
+            <div class="glass post-full reveal" data-reveal>
+                <div class="glass-deco" aria-hidden="true"></div>
+                <div class="post-h">
+                    <div class="post-h-title">
+                        <span class="post-h-icon">🎯</span>
+                        Manager-Picks: Top &amp; Flop
+                    </div>
+                    <span class="tf-block-sub">Wer hat sie gewählt?</span>
+                </div>
+                <div class="tf-grid">
+                    <div>
+                        <div class="tf-block-h">
+                            <span class="tf-pill green">🏆 Beste Picks</span>
+                            <span class="tf-block-sub">Top 5 gedraftete Spieler</span>
+                        </div>
+                        <ul class="picks-list" id="tile-post-top-picks" aria-label="Beste Picks">
+                            <li><div class="skel" style="height:50px;border-radius:8px;margin-bottom:8px;"></div></li>
+                            <li><div class="skel" style="height:50px;border-radius:8px;margin-bottom:8px;"></div></li>
+                            <li><div class="skel" style="height:50px;border-radius:8px;"></div></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="tf-block-h">
+                            <span class="tf-pill red">😬 Flop Picks</span>
+                            <span class="tf-block-sub">Schlechteste 5 gedraftete Spieler</span>
+                        </div>
+                        <ul class="picks-list" id="tile-post-flop-picks" aria-label="Flop Picks">
+                            <li><div class="skel" style="height:50px;border-radius:8px;margin-bottom:8px;"></div></li>
+                            <li><div class="skel" style="height:50px;border-radius:8px;margin-bottom:8px;"></div></li>
+                            <li><div class="skel" style="height:50px;border-radius:8px;"></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
 
 </div><!-- /#indexHomePostStart -->
 
@@ -5664,49 +6632,257 @@
     }
 
     /* =========================================================
+       POST START – Hero KPIs (4 numbers in glass tiles)
+       ========================================================= */
+    function renderPostHeroKpis(teams, ptMap, teamTotals, topPlayers) {
+        const leaderEl = $('hs-post-leader');
+        const leaderPtsEl = $('hs-post-leader-pts');
+        const topPlayerPtsEl = $('hs-post-top-player-pts');
+        const teamCountEl = $('hs-post-teams');
+
+        if (leaderEl) {
+            const top = teamTotals[0];
+            leaderEl.textContent = top ? top.manager : '–';
+            const link = leaderEl.closest('a');
+            if (link && top) link.href = `teams.html?manager=${encodeURIComponent(top.manager)}`;
+        }
+
+        if (leaderPtsEl) {
+            const top = teamTotals[0];
+            const pts = top ? top.total : 0;
+            const sign = pts > 0 ? '+' : '';
+            leaderPtsEl.textContent = top ? `${sign}${pts}` : '–';
+        }
+
+        if (topPlayerPtsEl) {
+            const tp = topPlayers[0];
+            const pts = tp ? tp._pts : 0;
+            const sign = pts > 0 ? '+' : '';
+            topPlayerPtsEl.textContent = tp ? `${sign}${pts}` : '–';
+            const link = topPlayerPtsEl.closest('a');
+            if (link && tp) link.href = `spieleranalyse.html?player=${encodeURIComponent(tp.Spielername)}`;
+        }
+
+        if (teamCountEl) animateCounter(teamCountEl, teams.length);
+    }
+
+    /* =========================================================
+       POST START – Top Manager (with best-pick callout)
+       ========================================================= */
+    function renderPostTopManagers(teamTotals, ptMap, teams) {
+        const container = $('tile-post-top-managers');
+        if (!container) return;
+
+        if (!teamTotals.length) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏅</div>Noch keine Teams</div>';
+            return;
+        }
+
+        const reasonLabels = ['🥇 Top Pick:', '⭐ Top Pick:', '✨ Top Pick:', '✦ Top Pick:', '✦ Top Pick:'];
+
+        container.innerHTML = teamTotals.slice(0, 5).map((t, i) => {
+            const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
+            const rankCls = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+            const sign = t.total > 0 ? '+' : '';
+
+            const teamObj = teams.find((t2) => t2.manager === t.manager);
+            let bestPick = null;
+            let avatarSrc = '';
+
+            if (teamObj) {
+                const ranked = (teamObj.players || [])
+                    .map((tp) => {
+                        const full = resolvePlayer(tp);
+                        if (!full) return null;
+                        const base = ptMap[String(full['player.id'])] || 0;
+                        return {
+                            pts: tp.isCaptain ? base * 2 : base,
+                            isCaptain: !!tp.isCaptain,
+                            photo: full.Spielerfoto,
+                            name: full.Spielername
+                        };
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => b.pts - a.pts);
+
+                bestPick = ranked[0] || null;
+                avatarSrc = bestPick ? bestPick.photo : '';
+            }
+
+            const initials = (() => {
+                const parts = String(t.manager || '').trim().split(/\s+/);
+                if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                return String(t.manager || '?').slice(0, 2).toUpperCase();
+            })();
+
+            const initialsBlock = `<div class="tm-avatar" style="display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.85rem;color:rgba(255,255,255,0.7);">${escapeHtml(initials)}</div>`;
+
+            const avatarHtml = avatarSrc
+                ? `<img class="tm-avatar" src="${escapeHtml(avatarSrc)}" alt="${escapeHtml(bestPick.name)}" loading="lazy" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'tm-avatar',style:'display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.85rem;color:rgba(255,255,255,0.7);',textContent:'${escapeHtml(initials)}'}));">`
+                : initialsBlock;
+
+            const bestSign = bestPick && bestPick.pts > 0 ? '+' : '';
+            const bestHtml = bestPick ? `
+                <div class="tm-best">
+                    <span class="tm-best-label">${reasonLabels[i] || '⭐ Top Pick:'}</span>
+                    <span class="tm-best-name">${escapeHtml(bestPick.name)}${bestPick.isCaptain ? ' ©' : ''}</span>
+                    <span class="tm-best-pts">${bestSign}${bestPick.pts}</span>
+                </div>
+            ` : `<div class="tm-best"><span class="tm-best-label">Noch keine Punkte</span></div>`;
+
+            return `
+                <a class="tm-row ${rankCls}" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${i+1}, ${sign}${t.total} Punkte">
+                    <div class="tm-rank">${i + 1}</div>
+                    ${avatarHtml}
+                    <div class="tm-name">${escapeHtml(t.manager)}</div>
+                    <div class="tm-pts">${sign}${t.total}</div>
+                    ${bestHtml}
+                </a>
+            `;
+        }).join('');
+    }
+
+    /* =========================================================
+       POST START – Top Players Grid (5er)
+       ========================================================= */
+    function renderPostTopPlayersGrid(topPlayers, ptMap) {
+        const container = $('tile-post-top-players-grid');
+        if (!container) return;
+
+        const top5 = topPlayers.slice(0, 5);
+        if (!top5.length || top5.every(p => p._pts === 0)) {
+            container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">⭐</div>Noch keine Punkte</div>';
+            return;
+        }
+
+        container.innerHTML = top5.map((p, i) => {
+            const pts = ptMap[String(p['player.id'])] || 0;
+            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            const sign = pts > 0 ? '+' : '';
+            const rankCls = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+            return `
+                <a class="tp-card ${rankCls}" href="${url}" aria-label="${escapeHtml(p.Spielername)}, ${sign}${pts} Punkte">
+                    <div class="tp-rank-badge">${i + 1}</div>
+                    <div class="tp-photo-wrap">
+                        <img class="tp-photo" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">
+                        ${p['Nationalteam.logo'] ? `<img class="tp-flag" src="${escapeHtml(p['Nationalteam.logo'])}" alt="${escapeHtml(p['Nationalteam.name'] || '')}" loading="lazy">` : ''}
+                    </div>
+                    <span class="tp-name">${escapeHtml(p.Spielername)}</span>
+                    <span class="tp-pts">${sign}${pts}</span>
+                </a>
+            `;
+        }).join('');
+    }
+
+    /* =========================================================
+       POST START – Top/Perfect Toggle wiring
+       ========================================================= */
+    function initPostPlayersToggle() {
+        const toggleEl = $('post-players-toggle');
+        if (!toggleEl || toggleEl.dataset.bound === '1') return;
+        toggleEl.dataset.bound = '1';
+
+        const titleEl = $('post-players-title');
+        const topView = $('post-players-top-view');
+        const perfectView = $('post-players-perfect-view');
+
+        toggleEl.querySelectorAll('.pt-toggle-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                toggleEl.querySelectorAll('.pt-toggle-btn').forEach((b) => {
+                    const active = b === btn;
+                    b.classList.toggle('active', active);
+                    b.setAttribute('aria-selected', active ? 'true' : 'false');
+                });
+                if (mode === 'perfect') {
+                    if (titleEl) titleEl.textContent = 'Perfect Team';
+                    if (topView) topView.style.display = 'none';
+                    if (perfectView) perfectView.style.display = '';
+                } else {
+                    if (titleEl) titleEl.textContent = 'Top Spieler';
+                    if (topView) topView.style.display = '';
+                    if (perfectView) perfectView.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    /* =========================================================
+       SCROLL REVEAL – simple IntersectionObserver
+       ========================================================= */
+    let _revealObserver = null;
+    function initScrollReveal() {
+        const els = document.querySelectorAll('#indexHomePostStart [data-reveal]:not(.is-visible)');
+        if (!els.length) return;
+
+        if (prefersReducedMotion()) {
+            els.forEach((el) => el.classList.add('is-visible'));
+            return;
+        }
+
+        if (!_revealObserver && 'IntersectionObserver' in window) {
+            _revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        _revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
+        }
+
+        if (_revealObserver) {
+            els.forEach((el) => _revealObserver.observe(el));
+        } else {
+            els.forEach((el) => el.classList.add('is-visible'));
+        }
+    }
+
+    /* =========================================================
        POST START HOME – Render-Funktion (Live Dashboard)
        ========================================================= */
     function renderPostStartHome(data) {
         const teams = Array.isArray(data.teams) ? data.teams : [];
         const ptMap = computeTotalPoints(data.points);
 
-        // Hero stats
-        renderHeroStats(teams, ptMap, 'hcs-post-');
-
-        // Top players by live points (used by multiple tiles)
         const topPlayers = [...playersData]
             .map((p) => ({ ...p, _pts: ptMap[String(p['player.id'])] || 0 }))
             .sort((a, b) => b._pts - a._pts || a.Spielername.localeCompare(b.Spielername, 'de'));
 
-        // Compute ranking history once – shared by carousel + jumps tile
         rankingHistoryCache = computeRankingHistory(data);
         const historyByManager = new Map(
             (rankingHistoryCache.teams || []).map(t => [t.manager, t.history])
         );
 
-        // Team totals for ranking, enriched with rank history (for the mini graph)
         const teamTotals = teams.map((t) => ({
             manager: t.manager || 'Unbekannt',
             total: getTeamTotal(t, ptMap),
             history: historyByManager.get(t.manager || 'Unbekannt') || []
         })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
 
-        // Ranking Preview Tile (new – prominent)
-        renderRankingPreview(teamTotals, ptMap, teams);
+        renderPostHeroKpis(teams, ptMap, teamTotals, topPlayers);
 
-        // Next Matches Tile (new)
+        renderPostTopManagers(teamTotals, ptMap, teams);
+
         renderNextMatchesTile(data, teams);
 
-        // 3D Player Carousel (new)
-        renderPlayerCarousel(topPlayers, ptMap);
+        renderPostTopPlayersGrid(topPlayers, ptMap);
+        renderCompactPerfectTeam(ptMap, 'post-');
+        initPostPlayersToggle();
 
-        // Manager Ranking Carousel (with mini history sparkline)
-        renderManagerCarousel(teamTotals, ptMap, teams);
+        const pickCounts = {};
+        teams.forEach((t) => {
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (!full) return;
+                const id = String(full['player.id']);
+                pickCounts[id] = (pickCounts[id] || 0) + 1;
+            });
+        });
+        renderPopularPicks(pickCounts, 'post-');
 
-        // Top Manager
-        renderTopManagers(teamTotals, ptMap, teams, 'post-');
+        renderPeriodButtons(rankingHistoryCache.matchIds, 'post-');
 
-        // Beste Länder
         const nationMap = new Map();
         playersData.forEach((p) => {
             const nation = p['Nationalteam.name'];
@@ -5718,16 +6894,10 @@
             .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'));
         renderTopNations(topNations, 'post-');
 
-        // Grösste Veränderungen (rankingHistoryCache already computed above)
-        renderPeriodButtons(rankingHistoryCache.matchIds, 'post-');
-
-        // Top & Flop Manager Picks
         renderManagerPicks(teams, ptMap, 'post-');
 
-        // Compact Perfect Team
-        renderCompactPerfectTeam(ptMap, 'post-');
+        initScrollReveal();
 
-        // Trigger tilt for cards
         setTimeout(() => initCardTilt(), 50);
     }
 
