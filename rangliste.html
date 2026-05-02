@@ -347,28 +347,6 @@
             will-change: transform;
         }
 
-        @media (hover: hover) and (pointer: fine) {
-            .podium-box:hover {
-                transform: translateY(-6px);
-            }
-
-            .podium-box::before {
-                content: "";
-                position: absolute;
-                top: -60%;
-                left: -60%;
-                width: 50%;
-                height: 200%;
-                background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.05) 50%, transparent 80%);
-                transform: skewX(-25deg);
-                transition: left 0.6s ease;
-                pointer-events: none;
-                z-index: 1;
-            }
-
-            .podium-box:hover::before { left: 150%; }
-        }
-
         .podium-1 {
             height: 400px;
             border-top: 4px solid var(--gold);
@@ -377,9 +355,6 @@
             z-index: 3;
         }
 
-        .podium-1:hover {
-            box-shadow: 0 -8px 40px rgba(255,215,0,0.28), 0 0 0 1px rgba(255,215,0,0.25), 0 28px 70px rgba(0,0,0,0.5) !important;
-        }
 
         .podium-2 {
             height: 344px;
@@ -389,9 +364,6 @@
             z-index: 2;
         }
 
-        .podium-2:hover {
-            box-shadow: 0 -6px 28px rgba(192,192,192,0.2), 0 0 0 1px rgba(192,192,192,0.2), 0 24px 60px rgba(0,0,0,0.45) !important;
-        }
 
         .podium-3 {
             height: 312px;
@@ -399,10 +371,6 @@
             background: linear-gradient(160deg, rgba(205,127,50,0.06) 0%, var(--dark-card) 50%);
             box-shadow: 0 -6px 18px rgba(205,127,50,0.1), 0 0 0 1px rgba(205,127,50,0.1), 0 14px 44px rgba(0,0,0,0.3);
             z-index: 1;
-        }
-
-        .podium-3:hover {
-            box-shadow: 0 -6px 26px rgba(205,127,50,0.2), 0 0 0 1px rgba(205,127,50,0.2), 0 22px 56px rgba(0,0,0,0.4) !important;
         }
 
         /* Spotlight effect on #1 */
