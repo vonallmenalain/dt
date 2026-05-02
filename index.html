@@ -2889,13 +2889,17 @@
         .mc-rank-trend {
             margin-top: 8px;
             width: 100%;
-            height: 26px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.2s ease;
         }
 
-        .mc-rank-trend svg { width: 100%; height: 100%; }
+        .mc-rank-trend:hover { background: rgba(74,222,128,0.08); }
+        .mc-rank-trend svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
         .mc-name {
             font-size: 0.85rem;
@@ -4938,51 +4942,345 @@
     }
 
     /* =========================================================
-       PLAYER CAROUSEL – Native Scroll + 3-D Coverflow
+       UNIFIED 3-D CAROUSEL ENGINE
        ---------------------------------------------------------
+       Used by both the player and the manager carousels.
+
        Architecture:
-         • overflow-x: auto on the viewport → browser owns ALL
+         • overflow-x: auto on the viewport → browser owns all
            touch physics (momentum, rubber-band, multi-swipe).
          • scroll-snap-type: x proximity → snap without fighting.
-         • 3-D effect applied via a passive rAF loop reading
-           scrollLeft, never touching layout properties.
-         • Infinite loop: 3× rendered (left clones | real | right
-           clones). Silent recentering after scroll stops.
-         • No translateX drag simulation, no preventDefault on
-           touchmove, no manual velocity tracking.
+         • 3-D coverflow effect applied via a single passive
+           rAF loop reading scrollLeft. Never touches layout.
+         • Optional infinite mode: cards rendered 3× (left | real
+           | right). Silent recenter after scroll stops, so the
+           user always remains in the middle copy → seamless loop.
+         • One controller per carousel; tear-down via AbortController
+           on re-render so listeners never accumulate.
        ========================================================= */
 
-    // ── Carousel state (lean – no drag fields) ──────────────
-    let carouselState = {
-        total: 0,        // real player count
-        players: [],
-        _offset: 0       // slide index of first middle-copy item
-    };
+    // Slide dimensions – kept in sync with CSS
+    const CAROUSEL_SLIDE_GAP    = 10;                    // px
+    const PLAYER_SLIDE_W        = 160;                   // px – player card
+    const MGR_SLIDE_W           = 200;                   // px – manager card
+    const PLAYER_SLIDE_UNIT     = PLAYER_SLIDE_W + CAROUSEL_SLIDE_GAP;
+    const MGR_SLIDE_UNIT        = MGR_SLIDE_W + CAROUSEL_SLIDE_GAP;
 
-    // Slide dimensions – kept in sync after resize
-    const CAROUSEL_SLIDE_W  = 160;   // px (matches CSS width)
-    const CAROUSEL_SLIDE_GAP = 10;   // px (matches CSS gap)
-    const CAROUSEL_UNIT = CAROUSEL_SLIDE_W + CAROUSEL_SLIDE_GAP; // 170 px
+    // Active controllers (one per carousel id) – allows tear-down on re-render
+    const _carouselControllers = new Map();
 
-    // Manager carousel uses wider slides
-    const MGR_CAROUSEL_SLIDE_W  = 200;  // px (matches #mgr-carousel-track .carousel-slide width)
-    const MGR_CAROUSEL_UNIT = MGR_CAROUSEL_SLIDE_W + CAROUSEL_SLIDE_GAP; // 210 px
+    // Helper: wrap any signed index into [0, total)
+    function _wrapIdx(i, total) { return ((i % total) + total) % total; }
 
-    // Wrap an index into [0, total)
-    function wrapIdx(i, total) {
-        return ((i % total) + total) % total;
+    /**
+     * Setup or rebuild a 3-D carousel.
+     *
+     * opts:
+     *   trackId, viewportId, dotsId, prevId, nextId  – DOM ids
+     *   cards         – array of card HTML strings (one per real slide)
+     *   slideWidth    – px width of a single .carousel-slide
+     *   infinite      – bool; render cards × 3 and seamlessly loop
+     *   slideClass    – optional fn(realIdx) → string (extra class for slide)
+     *   dotLabel      – optional fn(realIdx) → aria label
+     *
+     * Returns a controller with .scrollToReal(idx, behavior) and .destroy().
+     */
+    function setupCarousel(opts) {
+        const track    = document.getElementById(opts.trackId);
+        const viewport = document.getElementById(opts.viewportId);
+        if (!track || !viewport) return null;
+
+        const dotsEl   = opts.dotsId ? document.getElementById(opts.dotsId) : null;
+        const prevBtn  = opts.prevId ? document.getElementById(opts.prevId) : null;
+        const nextBtn  = opts.nextId ? document.getElementById(opts.nextId) : null;
+
+        const cards         = opts.cards || [];
+        const real          = cards.length;
+        const slideWidth    = opts.slideWidth;
+        const fallbackUnit  = slideWidth + CAROUSEL_SLIDE_GAP;
+        const isInfinite    = !!opts.infinite && real > 1;
+        const copies        = isInfinite ? 3 : 1;
+        const offset        = isInfinite ? real : 0;     // start of middle copy
+        const totalSlides   = real * copies;
+
+        // Tear down any previous controller bound to this viewport
+        const oldCtrl = _carouselControllers.get(opts.viewportId);
+        if (oldCtrl) oldCtrl.destroy();
+        viewport.classList.remove('is-scrolling');
+
+        const abort  = new AbortController();
+        const signal = abort.signal;
+
+        // ── Render slides + dots ────────────────────────────────
+        if (real === 0) {
+            track.innerHTML = opts.emptyHtml || '';
+            if (dotsEl) dotsEl.innerHTML = '';
+            return null;
+        }
+
+        // Inject extra slide class (e.g. mgr-carousel-rank-1) into the wrapper
+        const wrappedCards = cards.map((html, i) => {
+            const extraCls = opts.slideClass ? opts.slideClass(i) : '';
+            if (!extraCls) return html;
+            // Inject into the first <div class="carousel-slide ..."> opener
+            return html.replace(
+                /class="carousel-slide([^"]*)"/,
+                `class="carousel-slide $1 ${extraCls}"`
+            );
+        });
+
+        let slidesHtml = '';
+        for (let c = 0; c < copies; c++) slidesHtml += wrappedCards.join('');
+        track.innerHTML = slidesHtml;
+
+        if (dotsEl) {
+            dotsEl.innerHTML = cards.map((_, i) => {
+                const label = opts.dotLabel ? opts.dotLabel(i) : `Slide ${i + 1}`;
+                return `<div class="carousel-dot${i === 0 ? ' active' : ''}" data-dot="${i}" role="tab" aria-label="${label}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="0"></div>`;
+            }).join('');
+        }
+
+        // Cache slide nodes ONCE – querying on every scroll frame is wasteful
+        let slides = Array.from(track.querySelectorAll('.carousel-slide'));
+
+        // ── Track padding ──────────────────────────────────────
+        // Pure CSS padding-left + an explicit right spacer element.
+        // (Some browsers exclude padding-right from scrollable area,
+        // making the last slide unreachable.)
+        function setPadding() {
+            const vpW = viewport.offsetWidth;
+            const P   = Math.max(0, (vpW - slideWidth) / 2);
+            track.style.paddingLeft  = P + 'px';
+            track.style.paddingRight = '0';
+            const existing = track.querySelector('.carousel-track-spacer');
+            if (existing) existing.remove();
+            const spacer = document.createElement('div');
+            spacer.className = 'carousel-track-spacer';
+            spacer.style.cssText = `flex-shrink:0;width:${P}px;min-width:${P}px;pointer-events:none;`;
+            track.appendChild(spacer);
+            return P;
+        }
+
+        function getUnit() {
+            if (slides.length < 2) return fallbackUnit;
+            return slides[1].offsetLeft - slides[0].offsetLeft || fallbackUnit;
+        }
+
+        function getCenterFloat() {
+            if (slides.length === 0) return 0;
+            const first = slides[0].offsetLeft;
+            const unit  = getUnit();
+            return (viewport.scrollLeft - first) / unit;
+        }
+
+        function scrollToSlideIdx(slideIdx, behavior) {
+            if (!slides.length) return;
+            const first = slides[0].offsetLeft;
+            const unit  = getUnit();
+            const left  = first + slideIdx * unit;
+            if (behavior === 'auto' || behavior === 'instant') {
+                viewport.scrollLeft = left;
+            } else {
+                viewport.scrollTo({ left, behavior: 'smooth' });
+            }
+        }
+
+        function scrollToReal(realIdx, behavior) {
+            scrollToSlideIdx(offset + _wrapIdx(realIdx, real), behavior);
+        }
+
+        // ── 3-D coverflow effect ───────────────────────────────
+        function apply3D() {
+            const cf       = getCenterFloat();
+            const nearest  = Math.max(0, Math.min(totalSlides - 1, Math.round(cf)));
+            for (let i = 0; i < totalSlides; i++) {
+                const slide = slides[i];
+                if (!slide) continue;
+                const dist  = i - cf;
+                const a     = Math.abs(dist);
+                const scale = Math.max(0.70, 1.10 - a * 0.19);
+                const ry    = Math.max(-22, Math.min(22, -dist * 16));
+                const op    = Math.max(0.30, 1 - a * 0.30);
+                const isC   = i === nearest;
+                if (isC !== slide.classList.contains('is-center')) {
+                    slide.classList.toggle('is-center', isC);
+                }
+                slide.style.transform = `perspective(900px) rotateY(${ry.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+                slide.style.opacity   = op.toFixed(3);
+                slide.style.zIndex    = String(Math.round(10 - a * 2));
+            }
+        }
+
+        function updateDots() {
+            if (!dotsEl) return;
+            const nearest = Math.round(getCenterFloat());
+            const realIdx = isInfinite
+                ? _wrapIdx(nearest - offset, real)
+                : Math.max(0, Math.min(real - 1, nearest));
+            const dots = dotsEl.querySelectorAll('.carousel-dot');
+            dots.forEach((dot, i) => {
+                const active = i === realIdx;
+                dot.classList.toggle('active', active);
+                dot.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+        }
+
+        // ── Infinite-loop recentering after scroll stops ────────
+        function recenterIfNeeded() {
+            if (!isInfinite) return;
+            const cf   = getCenterFloat();
+            const unit = getUnit();
+            const jump = real * unit;
+            if (cf >= offset + real)      viewport.scrollLeft -= jump;
+            else if (cf < offset)         viewport.scrollLeft += jump;
+        }
+
+        // ── Scroll lifecycle (single passive listener + rAF) ────
+        let _rafPending  = false;
+        let _scrollTimer = null;
+        let _isScrolling = false;
+        const _supportsScrollEnd = 'onscrollend' in window;
+
+        function onScrollFrame() {
+            _rafPending = false;
+            apply3D();
+            updateDots();
+        }
+
+        function onScrollEnd() {
+            _isScrolling = false;
+            viewport.classList.remove('is-scrolling');
+            recenterIfNeeded();
+
+            // Nudge to exact slide boundary when CSS-snap rests slightly off
+            const nearest = Math.round(getCenterFloat());
+            const first   = slides.length ? slides[0].offsetLeft : 0;
+            const unit    = getUnit();
+            const target  = first + nearest * unit;
+            if (Math.abs(viewport.scrollLeft - target) > 4) {
+                viewport.scrollTo({ left: target, behavior: 'smooth' });
+            }
+            // Final pass after either the snap or the recenter
+            requestAnimationFrame(() => { apply3D(); updateDots(); });
+        }
+
+        viewport.addEventListener('scroll', () => {
+            if (!_isScrolling) {
+                _isScrolling = true;
+                viewport.classList.add('is-scrolling');
+            }
+            if (!_rafPending) {
+                _rafPending = true;
+                requestAnimationFrame(onScrollFrame);
+            }
+            if (!_supportsScrollEnd) {
+                clearTimeout(_scrollTimer);
+                _scrollTimer = setTimeout(onScrollEnd, 110);
+            }
+        }, { passive: true, signal });
+
+        if (_supportsScrollEnd) {
+            viewport.addEventListener('scrollend', onScrollEnd, { passive: true, signal });
+        }
+
+        // ── Arrow & keyboard nav ───────────────────────────────
+        function step(dir) {
+            const nearest = Math.round(getCenterFloat());
+            const targetSlideIdx = isInfinite
+                ? nearest + dir
+                : Math.max(0, Math.min(totalSlides - 1, nearest + dir));
+            scrollToSlideIdx(targetSlideIdx, 'smooth');
+        }
+
+        if (prevBtn) prevBtn.addEventListener('click', () => step(-1), { signal });
+        if (nextBtn) nextBtn.addEventListener('click', () => step(+1), { signal });
+
+        viewport.setAttribute('tabindex', '0');
+        viewport.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft')  { e.preventDefault(); step(-1); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); step(+1); }
+        }, { signal });
+
+        // Mouse wheel → horizontal navigation on desktop
+        viewport.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // already horizontal
+            e.preventDefault();
+            step(e.deltaY > 0 ? 1 : -1);
+        }, { passive: false, signal });
+
+        // ── Dot taps ───────────────────────────────────────────
+        if (dotsEl) {
+            dotsEl.querySelectorAll('.carousel-dot').forEach((dot) => {
+                const idx = Number(dot.dataset.dot);
+                dot.addEventListener('click', () => scrollToReal(idx, 'smooth'), { signal });
+                dot.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        scrollToReal(idx, 'smooth');
+                    }
+                }, { signal });
+            });
+        }
+
+        // ── Suppress accidental link click on swipe ─────────────
+        let _moved = false, _sx = 0, _sy = 0;
+        viewport.addEventListener('pointerdown', (e) => {
+            _moved = false; _sx = e.clientX; _sy = e.clientY;
+        }, { passive: true, signal });
+        viewport.addEventListener('pointermove', (e) => {
+            if (_moved) return;
+            if (Math.abs(e.clientX - _sx) > 8 || Math.abs(e.clientY - _sy) > 8) _moved = true;
+        }, { passive: true, signal });
+        viewport.addEventListener('click', (e) => {
+            if (_moved) { e.preventDefault(); e.stopPropagation(); }
+        }, { capture: true, signal });
+
+        // ── Initial layout & resize ────────────────────────────
+        function layout(scrollBehavior) {
+            setPadding();
+            slides = Array.from(track.querySelectorAll('.carousel-slide'));
+            scrollToSlideIdx(offset, scrollBehavior || 'auto');
+            apply3D();
+            updateDots();
+        }
+
+        let _resizeT = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(_resizeT);
+            _resizeT = setTimeout(() => {
+                const nearest = Math.round(getCenterFloat());
+                setPadding();
+                slides = Array.from(track.querySelectorAll('.carousel-slide'));
+                scrollToSlideIdx(nearest, 'auto');
+                apply3D();
+                updateDots();
+            }, 150);
+        }, { passive: true, signal });
+
+        // First layout in next frame so widths are correct
+        requestAnimationFrame(() => layout('auto'));
+
+        const controller = {
+            scrollToReal,
+            destroy: () => abort.abort()
+        };
+        _carouselControllers.set(opts.viewportId, controller);
+        return controller;
     }
 
-    // ── Card HTML builder ──────────────────────────────────────
-    function buildCarouselCard(player, pts, rank, dataRealIdx) {
-        const sign = pts > 0 ? '+' : '';
-        const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
-        const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+    /* =========================================================
+       PLAYER CAROUSEL – build cards & feed them to the engine
+       ========================================================= */
+
+    function buildPlayerCarouselCard(player, pts, rank) {
+        const sign     = pts > 0 ? '+' : '';
+        const url      = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+        const rankCls  = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
         const clubLogo = player['Club.logo'] || '';
         const clubName = player['Club.name'] || '';
 
         return `
-            <div class="carousel-slide" data-real="${dataRealIdx}" role="listitem" aria-label="${escapeHtml(player.Spielername)}, ${sign}${pts} Punkte">
+            <div class="carousel-slide" role="listitem" aria-label="${escapeHtml(player.Spielername)}, ${sign}${pts} Punkte">
                 <a class="carousel-card" href="${url}" draggable="false">
                     <div class="cc-rank-badge ${rankCls}">#${rank}</div>
                     <div class="cc-pts-badge">${sign}${pts}</div>
@@ -5003,473 +5301,111 @@
         `;
     }
 
-    // ── Track padding ──────────────────────────────────────────
-    // Set left/right padding on the track so that slide 0 and the
-    // last slide can be scrolled to the viewport centre.
-    // With padding P = (vpW - SLIDE_W) / 2:
-    //   scrollLeft to centre slide i = i * CAROUSEL_UNIT   (simple!)
-    function _setTrackPadding(track, viewport) {
-        const vpW = viewport.offsetWidth;
-        const P   = Math.max(0, (vpW - CAROUSEL_SLIDE_W) / 2);
-        track.style.paddingLeft  = P + 'px';
-        track.style.paddingRight = P + 'px';
-        return P;
-    }
-
-    function _getCarouselCenterFloat(viewport, slides) {
-        if (!slides || slides.length === 0) return 0;
-        if (slides.length === 1) return 0;
-        const first = slides[0].offsetLeft;
-        const second = slides[1].offsetLeft;
-        const unit = second - first;
-        if (!unit) return 0;
-        return (viewport.scrollLeft - first) / unit;
-    }
-
-    // ── 3-D effect via passive scroll listener + rAF ──────────
-    // Called on every animation frame while scrolling.
-    // Only writes transform/opacity – never layout props.
-    // With track padding P = (vpW - SLIDE_W)/2:
-    //   distSlides = i - scrollLeft/CAROUSEL_UNIT
-    function _apply3DEffect(viewport, slides, totalSlides) {
-        // fractional "which slide is at centre" in the rendered coordinate space
-        const centerFloat = _getCarouselCenterFloat(viewport, slides);
-        // Always force exactly one foreground slide, even if scroll rests between two cards.
-        const nearestCenterIdx = Math.max(0, Math.min(totalSlides - 1, Math.round(centerFloat)));
-
-        for (let i = 0; i < totalSlides; i++) {
-            const slide = slides[i];
-            const distSlides = i - centerFloat;
-            const absDist    = Math.abs(distSlides);
-
-            // scale: center ≈1.10, ±1 ≈0.91, ±2 ≈0.80, further ≈0.70
-            const scale   = Math.max(0.70, 1.10 - absDist * 0.19);
-            // rotateY: max ±22°, proportional to distance
-            const ry      = Math.max(-22, Math.min(22, -distSlides * 16));
-            // opacity: center 1, falls off, floor 0.30
-            const opacity = Math.max(0.30, 1 - absDist * 0.30);
-
-            const isCenter = i === nearestCenterIdx;
-            if (isCenter !== slide.classList.contains('is-center')) {
-                slide.classList.toggle('is-center', isCenter);
-            }
-            slide.style.transform = `perspective(900px) rotateY(${ry.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-            slide.style.opacity   = opacity.toFixed(3);
-            slide.style.zIndex    = Math.round(10 - absDist * 2);
-        }
-    }
-
-    // ── Dot / active-slide update ──────────────────────────────
-    function _updateDots(viewport, dotsEl, totalSlides) {
-        if (!dotsEl) return;
-        const realTotal = carouselState.total;
-        if (!realTotal) return;
-
-        // Nearest slide to centre
-        const bestIdx = Math.round(_getCarouselCenterFloat(viewport, viewport.querySelectorAll('.carousel-slide')));
-        // Map cloned index → real index 0…(realTotal-1)
-        const realIdx = wrapIdx(bestIdx - carouselState._offset, realTotal);
-        const dots = dotsEl.querySelectorAll('.carousel-dot');
-        dots.forEach((dot, i) => {
-            const active = i === realIdx;
-            dot.classList.toggle('active', active);
-            dot.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-    }
-
-    // ── Infinite-loop recentering (called after scroll stops) ──
-    // Silently jumps scrollLeft so the user always stays in the
-    // middle copy, making the loop seamless.
-    function _recenterIfNeeded(viewport) {
-        const realTotal = carouselState.total;
-        if (!realTotal || !carouselState._offset) return;
-        const slides = viewport.querySelectorAll('.carousel-slide');
-        if (!slides.length) return;
-
-        const floatIdx = _getCarouselCenterFloat(viewport, slides);
-        const offset   = carouselState._offset;
-        const unit     = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
-        const jumpPx   = realTotal * unit;
-
-        if (floatIdx >= offset + realTotal) {
-            viewport.scrollLeft -= jumpPx;
-        } else if (floatIdx < offset) {
-            viewport.scrollLeft += jumpPx;
-        }
-    }
-
-    // ── Scroll to a logical real index (0-based) ──────────────
-    // With padding P: scrollLeft = slideIdx * CAROUSEL_UNIT
-    function _scrollToRealIndex(viewport, realIdx, behavior) {
-        const slideIdx = carouselState._offset + realIdx;
-        const slides = viewport.querySelectorAll('.carousel-slide');
-        const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
-        const first = slides.length ? slides[0].offsetLeft : 0;
-        const target = first + slideIdx * unit;
-        if (behavior === 'instant') {
-            // scrollTo 'instant' not universally supported; direct assignment always works
-            viewport.scrollLeft = target;
-        } else {
-            viewport.scrollTo({ left: target, behavior: 'smooth' });
-        }
-    }
-
-    // ── Main render function ───────────────────────────────────
     function renderPlayerCarousel(topPlayers, ptMap) {
-        const track   = $('post-carousel-track');
-        const dotsEl  = $('post-carousel-dots');
-        const viewport = $('post-carousel-viewport');
-        if (!track || !viewport) return;
+        const track = $('post-carousel-track');
+        if (!track) return;
 
-        // ── Select up to 15 players (one per nation) ──
-        // To change the number of displayed players, adjust the
-        // limit value below (currently 15). The rest adapts automatically.
-        const MAX_PLAYERS = 15;   // ← change here (e.g. 10 or 20)
+        // Pick up to 15 players (one per nation)
+        const MAX_PLAYERS = 15;
         const seenNations = new Set();
-        const top15 = [];
+        const top = [];
         for (const p of topPlayers) {
             const nation = p['Nationalteam.name'];
             if (nation && seenNations.has(nation)) continue;
             if (nation) seenNations.add(nation);
-            top15.push(p);
-            if (top15.length >= MAX_PLAYERS) break;
+            top.push(p);
+            if (top.length >= MAX_PLAYERS) break;
         }
 
-        carouselState.players = top15;
-        carouselState.total   = top15.length;
-
-        if (!top15.length) {
+        if (!top.length) {
             track.innerHTML = `<div class="carousel-slide is-center"><div class="carousel-card"><div class="empty-state"><div class="empty-state-icon">⭐</div>Noch keine Punkte verfügbar.</div></div></div>`;
             return;
         }
 
-        // Preload images to prevent layout shift on first render
-        top15.forEach((p) => {
+        // Preload images to avoid layout shift on first paint
+        top.forEach((p) => {
             if (p.Spielerfoto)          { const img = new Image(); img.src = p.Spielerfoto; }
             if (p['Club.logo'])         { const img = new Image(); img.src = p['Club.logo']; }
             if (p['Nationalteam.logo']) { const img = new Image(); img.src = p['Nationalteam.logo']; }
         });
 
-        // Build card HTML once, then replicate ×3 (left clone | real | right clone)
-        const cardHtmls = top15.map((p, i) => {
-            const pts = ptMap[String(p['player.id'])] || 0;
-            return buildCarouselCard(p, pts, i + 1, i);
+        const cards = top.map((p, i) => buildPlayerCarouselCard(p, ptMap[String(p['player.id'])] || 0, i + 1));
+
+        setupCarousel({
+            trackId:    'post-carousel-track',
+            viewportId: 'post-carousel-viewport',
+            dotsId:     'post-carousel-dots',
+            prevId:     'post-carousel-prev',
+            nextId:     'post-carousel-next',
+            cards,
+            slideWidth: PLAYER_SLIDE_W,
+            infinite:   true,
+            dotLabel:   (i) => `Spieler ${i + 1}`
         });
-        track.innerHTML = [...cardHtmls, ...cardHtmls, ...cardHtmls].join('');
-
-        // Index at which the middle (real) copy starts
-        const offset = top15.length;
-        carouselState._offset = offset;
-
-        // ── Dots ──
-        if (dotsEl) {
-            dotsEl.innerHTML = top15.map((_, i) =>
-                `<div class="carousel-dot${i === 0 ? ' active' : ''}" data-dot="${i}" role="tab" aria-label="Spieler ${i+1}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="0"></div>`
-            ).join('');
-
-            dotsEl.querySelectorAll('.carousel-dot').forEach((dot) => {
-                dot.addEventListener('click', () => {
-                    _scrollToRealIndex(viewport, Number(dot.dataset.dot), 'smooth');
-                });
-                dot.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        _scrollToRealIndex(viewport, Number(dot.dataset.dot), 'smooth');
-                    }
-                });
-            });
-        }
-
-        // Set track padding so edge slides can be centred, then scroll to index 0
-        requestAnimationFrame(() => {
-            _setTrackPadding(track, viewport);
-            _scrollToRealIndex(viewport, 0, 'instant');
-            // Apply initial 3-D state
-            const slides = track.querySelectorAll('.carousel-slide');
-            _apply3DEffect(viewport, slides, slides.length);
-            _updateDots(viewport, dotsEl, slides.length);
-        });
-
-        setupCarouselInteractions();
-    }
-
-    // ── Interactions: scroll listener + arrows + keyboard ─────
-    function setupCarouselInteractions() {
-        const prev     = $('post-carousel-prev');
-        const next     = $('post-carousel-next');
-        const viewport = $('post-carousel-viewport');
-        const track    = $('post-carousel-track');
-        const dotsEl   = $('post-carousel-dots');
-        if (!viewport || !track) return;
-
-        if (viewport.dataset.carouselBound) return;
-        viewport.dataset.carouselBound = '1';
-
-        // ── Arrow navigation ──
-        // With track padding, scrollLeft == slideIdx * CAROUSEL_UNIT
-        function goNext() {
-            const slides = track.querySelectorAll('.carousel-slide');
-            const currIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
-            const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
-            const first = slides.length ? slides[0].offsetLeft : 0;
-            viewport.scrollTo({ left: first + (currIdx + 1) * unit, behavior: 'smooth' });
-        }
-        function goPrev() {
-            const slides = track.querySelectorAll('.carousel-slide');
-            const currIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
-            const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
-            const first = slides.length ? slides[0].offsetLeft : 0;
-            viewport.scrollTo({ left: first + (currIdx - 1) * unit, behavior: 'smooth' });
-        }
-
-        if (prev) prev.addEventListener('click', goPrev);
-        if (next) next.addEventListener('click', goNext);
-
-        // ── 3-D rAF loop driven by native scroll ──────────────
-        let _rafPending  = false;
-        let _scrollTimer = null;
-        let _isScrolling = false;
-        // scrollend is natively supported in Chrome 114+, Firefox 109+
-        const _supportsScrollEnd = 'onscrollend' in window;
-
-        const slides = track.querySelectorAll('.carousel-slide');
-        const totalSlides = slides.length;
-
-        function onScrollFrame() {
-            _rafPending = false;
-            _apply3DEffect(viewport, slides, totalSlides);
-            _updateDots(viewport, dotsEl, totalSlides);
-        }
-
-        function onScrollEnd() {
-            _isScrolling = false;
-            viewport.classList.remove('is-scrolling');
-
-            // Recenter for infinite loop
-            _recenterIfNeeded(viewport);
-
-            // Nudge to exact slide boundary if CSS snap missed slightly
-            const centerIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
-            const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
-            const first = slides.length ? slides[0].offsetLeft : 0;
-            const snapTarget = first + centerIdx * unit;
-            if (Math.abs(viewport.scrollLeft - snapTarget) > 4) {
-                viewport.scrollTo({ left: snapTarget, behavior: 'smooth' });
-            }
-            // Final 3-D update
-            requestAnimationFrame(() => {
-                _apply3DEffect(viewport, slides, totalSlides);
-                _updateDots(viewport, dotsEl, totalSlides);
-            });
-        }
-
-        viewport.addEventListener('scroll', () => {
-            // Mark scrolling state → strips expensive CSS during motion
-            if (!_isScrolling) {
-                _isScrolling = true;
-                viewport.classList.add('is-scrolling');
-            }
-
-            // Schedule a single rAF per scroll event batch
-            if (!_rafPending) {
-                _rafPending = true;
-                requestAnimationFrame(onScrollFrame);
-            }
-
-            // Fallback debounce for browsers without scrollend (~100 ms)
-            if (!_supportsScrollEnd) {
-                clearTimeout(_scrollTimer);
-                _scrollTimer = setTimeout(onScrollEnd, 100);
-            }
-        }, { passive: true });
-
-        // Wire up scrollend for browsers that support it
-        if (_supportsScrollEnd) {
-            viewport.addEventListener('scrollend', onScrollEnd, { passive: true });
-        }
-
-        // ── Prevent accidental link navigation during swipe ───
-        // Cards are <a> elements; suppress click if finger moved > 8 px.
-        let _pointerMoved = false;
-        let _pointerStartX = 0;
-        let _pointerStartY = 0;
-
-        viewport.addEventListener('pointerdown', (e) => {
-            _pointerMoved  = false;
-            _pointerStartX = e.clientX;
-            _pointerStartY = e.clientY;
-        }, { passive: true });
-
-        viewport.addEventListener('pointermove', (e) => {
-            if (!_pointerMoved) {
-                const dx = Math.abs(e.clientX - _pointerStartX);
-                const dy = Math.abs(e.clientY - _pointerStartY);
-                if (dx > 8 || dy > 8) _pointerMoved = true;
-            }
-        }, { passive: true });
-
-        // Capture-phase click so we intercept before the <a> fires
-        viewport.addEventListener('click', (e) => {
-            if (_pointerMoved) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, { capture: true });
-
-        // ── Keyboard navigation ────────────────────────────────
-        viewport.setAttribute('tabindex', '0');
-        viewport.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft')  { e.preventDefault(); goPrev(); }
-            else if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
-        });
-
-        // ── Resize / orientation change ────────────────────────
-        // Re-apply padding then re-snap to the nearest centred slide
-        let _resizeTimer = null;
-        window.addEventListener('resize', () => {
-            clearTimeout(_resizeTimer);
-            _resizeTimer = setTimeout(() => {
-                const nearestIdx = Math.round(_getCarouselCenterFloat(viewport, slides));
-                _setTrackPadding(track, viewport);
-                const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : CAROUSEL_UNIT;
-                const first = slides.length ? slides[0].offsetLeft : 0;
-                viewport.scrollLeft = first + nearestIdx * unit;
-                _apply3DEffect(viewport, slides, totalSlides);
-                _updateDots(viewport, dotsEl, totalSlides);
-            }, 150);
-        }, { passive: true });
     }
 
     /* =========================================================
-       MANAGER CAROUSEL – Non-infinite, ranked #1 first (left)
+       MANAGER CAROUSEL – ranking with mini history graph
+       ---------------------------------------------------------
+       • Infinite loop (after rank 1 you can scroll left to land
+         on the lowest-ranked manager).
+       • Center card is clickable to teams.html.
+       • Mini sparkline under the manager name links directly to
+         rangliste.html?view=history&manager=… so the user lands
+         on that manager's chart.
        ========================================================= */
-
-    let mgrCarouselState = {
-        total: 0,
-        _offset: 0
-    };
-
-    // Dedicated track-padding setter for manager carousel (uses MGR_CAROUSEL_SLIDE_W).
-    // Uses CSS padding-left for the left offset (always included in scrollable area)
-    // and appends an explicit right-spacer element to guarantee the right padding
-    // is part of the scrollable overflow (CSS padding-right can be excluded by some
-    // browsers, causing the last slide to be unreachable).
-    function _setMgrTrackPadding(track, viewport) {
-        const vpW = viewport.offsetWidth;
-        const P   = Math.max(0, (vpW - MGR_CAROUSEL_SLIDE_W) / 2);
-
-        track.style.paddingLeft  = P + 'px';
-        track.style.paddingRight = '0';
-
-        // Remove existing right spacer
-        const existing = track.querySelector('.mgr-track-spacer-right');
-        if (existing) existing.remove();
-
-        // Append a right spacer element that is definitely part of the scrollable width
-        const rightSpacer = document.createElement('div');
-        rightSpacer.className = 'mgr-track-spacer-right';
-        rightSpacer.style.cssText = `flex-shrink:0;width:${P}px;min-width:${P}px;pointer-events:none;`;
-        track.appendChild(rightSpacer);
-
-        return P;
-    }
-
-    // 3-D effect for manager carousel (uses MGR_CAROUSEL_UNIT)
-    function _applyMgr3DEffect(viewport, slides, totalSlides) {
-        const scrollLeft  = viewport.scrollLeft;
-        const first = slides.length ? slides[0].offsetLeft : 0;
-        const unit = slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : MGR_CAROUSEL_UNIT;
-        const centerFloat = (scrollLeft - first) / unit;
-
-        for (let i = 0; i < totalSlides; i++) {
-            const slide = slides[i];
-            const distSlides = i - centerFloat;
-            const absDist    = Math.abs(distSlides);
-
-            const scale   = Math.max(0.70, 1.10 - absDist * 0.19);
-            const ry      = Math.max(-22, Math.min(22, -distSlides * 16));
-            const opacity = Math.max(0.30, 1 - absDist * 0.30);
-
-            const isCenter = absDist < 0.5;
-            if (isCenter !== slide.classList.contains('is-center')) {
-                slide.classList.toggle('is-center', isCenter);
-            }
-            slide.style.transform = `perspective(900px) rotateY(${ry.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-            slide.style.opacity   = opacity.toFixed(3);
-            slide.style.zIndex    = Math.round(10 - absDist * 2);
-        }
-    }
 
     function buildManagerRankTrendSvg(history, totalManagers) {
         const totalRanks = Math.max(totalManagers, 1);
-        const values = Array.isArray(history) ? history.map(h => h.rank).filter(v => Number.isFinite(v)) : [];
+        const values     = Array.isArray(history) ? history.map(h => h.rank).filter(v => Number.isFinite(v)) : [];
         if (!values.length) return '';
 
-        const width = 150;
-        const height = 24;
-        const padX = 4;
-        const padY = 3;
-        const step = values.length > 1 ? (width - padX * 2) / (values.length - 1) : 0;
-        const points = values.map((r, i) => {
+        const W = 150, H = 28, padX = 4, padY = 4;
+        const step = values.length > 1 ? (W - padX * 2) / (values.length - 1) : 0;
+        const innerH = H - padY * 2;
+
+        const pts = values.map((r, i) => {
             const ratio = totalRanks <= 1 ? 0.5 : (r - 1) / (totalRanks - 1);
-            const y = padY + ratio * (height - padY * 2);
-            return `${(padX + i * step).toFixed(2)},${y.toFixed(2)}`;
+            const x = padX + i * step;
+            const y = padY + ratio * innerH;
+            return { x, y };
         });
+        const polyline = pts.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
+        const last = pts[pts.length - 1];
 
-        return `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
-            <polyline fill="none" stroke="rgba(34,197,94,0.95)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${points.join(' ')}"></polyline>
-            <polyline fill="none" stroke="rgba(74,222,128,0.22)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" points="${points.join(' ')}"></polyline>
-        </svg>`;
-    }
-
-    function _getMgrUnit(slides) {
-        return slides.length > 1 ? (slides[1].offsetLeft - slides[0].offsetLeft) : MGR_CAROUSEL_UNIT;
-    }
-
-    function _getMgrNearestIdx(viewport, slides) {
-        if (!slides.length) return 0;
-        const first = slides[0].offsetLeft;
-        const unit = _getMgrUnit(slides);
-        return Math.round((viewport.scrollLeft - first) / unit);
-    }
-
-    function _scrollMgrToIdx(viewport, slides, idx, behavior='smooth') {
-        if (!slides.length) return;
-        const first = slides[0].offsetLeft;
-        const unit = _getMgrUnit(slides);
-        viewport.scrollTo({ left: first + idx * unit, behavior });
+        return `
+            <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="${polyline}" fill="none" stroke="rgba(74,222,128,0.22)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                <polyline points="${polyline}" fill="none" stroke="#4ade80" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                <circle cx="${last.x.toFixed(2)}" cy="${last.y.toFixed(2)}" r="3.1" fill="#4ade80"></circle>
+            </svg>
+        `;
     }
 
     function buildManagerCarouselCard(manager, rank, total, avatars, history, totalManagers) {
-        const sign = total > 0 ? '+' : '';
+        const sign    = total > 0 ? '+' : '';
         const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-        const rankSlideClass = rank === 1 ? 'mgr-carousel-rank-1' : '';
+        const trendSvg = buildManagerRankTrendSvg(history, totalManagers);
+        const trendHref = `rangliste.html?view=history&manager=${encodeURIComponent(manager)}`;
 
-        // Build avatar group: [side-left, center (highest pts), side-right]
-        // avatars are already sorted by pts desc: [0]=highest, [1]=2nd, [2]=3rd
+        // Avatar group (sorted by pts desc): 2nd left, 1st center, 3rd right
         let avatarHtml = '';
         if (avatars.length) {
-            // Arrange: 2nd (left side), 1st (center/bigger), 3rd (right side)
-            const buildWrap = (a, wrapCls) => {
-                const captainCls = a.isCaptain ? 'is-captain' : '';
-                return `<a href="spieleranalyse.html?player=${encodeURIComponent(a.name)}" class="mc-avatar-wrap ${wrapCls} ${captainCls}" aria-label="${escapeHtml(a.name)} analysieren">
+            const wrap = (a, cls) => {
+                const cap = a.isCaptain ? 'is-captain' : '';
+                return `<a href="spieleranalyse.html?player=${encodeURIComponent(a.name)}" class="mc-avatar-wrap ${cls} ${cap}" aria-label="${escapeHtml(a.name)} analysieren">
                     <img src="${escapeHtml(a.photo)}" alt="${escapeHtml(a.name)}" loading="lazy" onerror="this.style.display='none'">
                 </a>`;
             };
-
-            if (avatars.length === 1) {
-                avatarHtml = buildWrap(avatars[0], 'mc-center');
-            } else if (avatars.length === 2) {
-                avatarHtml = buildWrap(avatars[1], 'mc-side') + buildWrap(avatars[0], 'mc-center');
-            } else {
-                avatarHtml = buildWrap(avatars[1], 'mc-side') + buildWrap(avatars[0], 'mc-center') + buildWrap(avatars[2], 'mc-side2');
-            }
+            if (avatars.length === 1)      avatarHtml = wrap(avatars[0], 'mc-center');
+            else if (avatars.length === 2) avatarHtml = wrap(avatars[1], 'mc-side') + wrap(avatars[0], 'mc-center');
+            else                           avatarHtml = wrap(avatars[1], 'mc-side') + wrap(avatars[0], 'mc-center') + wrap(avatars[2], 'mc-side2');
         } else {
             avatarHtml = `<div class="mc-avatar-placeholder">👤</div>`;
         }
 
         return `
-            <div class="carousel-slide ${rankSlideClass}" role="listitem" aria-label="${escapeHtml(manager)}, Rang ${rank}, ${sign}${total} Punkte">
+            <div class="carousel-slide" role="listitem" aria-label="${escapeHtml(manager)}, Rang ${rank}, ${sign}${total} Punkte">
                 <div class="carousel-card">
                     <a href="rangliste.html" class="mc-meta-link" aria-label="Zur Rangliste">
                         <div class="mc-rank-badge ${rankCls}">#${rank}</div>
@@ -5481,24 +5417,25 @@
                     <a href="teams.html?manager=${encodeURIComponent(manager)}" class="mc-name-link" aria-label="Team von ${escapeHtml(manager)}">
                         <div class="mc-name">${escapeHtml(manager)}</div>
                     </a>
-                    <div class="mc-rank-trend">${buildManagerRankTrendSvg(history, totalManagers)}</div>
+                    ${trendSvg ? `
+                    <a href="${trendHref}" class="mc-rank-trend" aria-label="Historie von ${escapeHtml(manager)} öffnen">
+                        ${trendSvg}
+                    </a>` : `<div class="mc-rank-trend"></div>`}
                 </div>
             </div>
         `;
     }
 
     function renderManagerCarousel(teamTotals, ptMap, teams) {
-        const track    = $('mgr-carousel-track');
-        const dotsEl   = $('mgr-carousel-dots');
-        const viewport = $('mgr-carousel-viewport');
-        if (!track || !viewport) return;
+        const track = $('mgr-carousel-track');
+        if (!track) return;
 
         if (!teamTotals.length) {
             track.innerHTML = `<div class="carousel-slide is-center"><div class="carousel-card"><div class="empty-state"><div class="empty-state-icon">🏆</div>Noch keine Ranglistendaten verfügbar.</div></div></div>`;
             return;
         }
 
-        // Helper: get top-3 player avatars for a manager by points, including captain info
+        // Top-3 player avatars per manager (by points incl. captain bonus)
         function getMgrAvatars(manager) {
             const teamObj = teams.find(t => t.manager === manager);
             if (!teamObj) return [];
@@ -5510,7 +5447,7 @@
                     return {
                         pts: tp.isCaptain ? base * 2 : base,
                         photo: full.Spielerfoto,
-                        name: full.Spielername,
+                        name:  full.Spielername,
                         isCaptain: !!tp.isCaptain
                     };
                 })
@@ -5519,181 +5456,27 @@
                 .slice(0, 3);
         }
 
-        mgrCarouselState.total = teamTotals.length;
-        mgrCarouselState._offset = 0;
-
-        // Reset bound flag so interaction listeners can re-bind with fresh slide references
-        delete viewport.dataset.mgrCarouselBound;
-
-        const cardHtmls = teamTotals.map((t, i) => {
+        const cards = teamTotals.map((t, i) => {
             const rank = i + 1;
-            const avatars = getMgrAvatars(t.manager);
-            return buildManagerCarouselCard(t.manager, rank, t.total, avatars, t.history, teamTotals.length);
-        });
-        track.innerHTML = cardHtmls.join('');
-
-        // Dots
-        if (dotsEl) {
-            dotsEl.innerHTML = teamTotals.map((_, i) =>
-                `<div class="carousel-dot${i === 0 ? ' active' : ''}" data-mgr-dot="${i}" role="tab" aria-label="Manager ${i+1}" aria-selected="${i === 0 ? 'true' : 'false'}" tabindex="0"></div>`
-            ).join('');
-
-            dotsEl.querySelectorAll('[data-mgr-dot]').forEach((dot) => {
-                dot.addEventListener('click', () => {
-                    const idx = Number(dot.dataset.mgrDot);
-                    _scrollMgrToIdx(viewport, track.querySelectorAll('.carousel-slide'), idx, 'smooth');
-                });
-                dot.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        const idx = Number(dot.dataset.mgrDot);
-                        _scrollMgrToIdx(viewport, track.querySelectorAll('.carousel-slide'), idx, 'smooth');
-                    }
-                });
-            });
-        }
-
-        // Set padding so every slide (first and last included) can reach the centre,
-        // then snap to index 0 (rank #1).
-        requestAnimationFrame(() => {
-            _setMgrTrackPadding(track, viewport);
-            _scrollMgrToIdx(viewport, track.querySelectorAll('.carousel-slide'), 0, 'auto');
-            const slides = track.querySelectorAll('.carousel-slide');
-            _applyMgr3DEffect(viewport, slides, slides.length);
-            _updateMgrDots(viewport, dotsEl, slides.length);
+            return buildManagerCarouselCard(t.manager, rank, t.total, getMgrAvatars(t.manager), t.history, teamTotals.length);
         });
 
-        setupManagerCarouselInteractions();
-    }
+        // Infinite loop only when ≥ 2 managers (otherwise the
+        // “endless” effect would be just one card duplicated).
+        const infinite = teamTotals.length > 1;
 
-    function _updateMgrDots(viewport, dotsEl, totalSlides) {
-        if (!dotsEl || !mgrCarouselState.total) return;
-        const slides = document.getElementById('mgr-carousel-track')?.querySelectorAll('.carousel-slide') || [];
-        const bestIdx = _getMgrNearestIdx(viewport, slides);
-        const clampedIdx = Math.max(0, Math.min(bestIdx, mgrCarouselState.total - 1));
-        const dots = dotsEl.querySelectorAll('[data-mgr-dot]');
-        dots.forEach((dot, i) => {
-            const active = i === clampedIdx;
-            dot.classList.toggle('active', active);
-            dot.setAttribute('aria-selected', active ? 'true' : 'false');
+        setupCarousel({
+            trackId:    'mgr-carousel-track',
+            viewportId: 'mgr-carousel-viewport',
+            dotsId:     'mgr-carousel-dots',
+            prevId:     'mgr-carousel-prev',
+            nextId:     'mgr-carousel-next',
+            cards,
+            slideWidth: MGR_SLIDE_W,
+            infinite,
+            slideClass: (i) => i === 0 ? 'mgr-carousel-rank-1' : '',
+            dotLabel:   (i) => `Manager ${i + 1}`
         });
-    }
-
-    // Abort controller for manager carousel – allows us to tear down all listeners
-    // on re-render without having to track individual handler references.
-    let _mgrCarouselAbortCtrl = null;
-
-    function setupManagerCarouselInteractions() {
-        const prev     = $('mgr-carousel-prev');
-        const next     = $('mgr-carousel-next');
-        const viewport = $('mgr-carousel-viewport');
-        const track    = $('mgr-carousel-track');
-        const dotsEl   = $('mgr-carousel-dots');
-        if (!viewport || !track) return;
-
-        // Tear down previous listeners (if any) before re-binding
-        if (_mgrCarouselAbortCtrl) {
-            _mgrCarouselAbortCtrl.abort();
-        }
-        _mgrCarouselAbortCtrl = new AbortController();
-        const { signal } = _mgrCarouselAbortCtrl;
-
-        viewport.dataset.mgrCarouselBound = '1';
-
-        // Retrieve fresh slide list on each operation so stale refs are never used
-        function getSlides() { return track.querySelectorAll('.carousel-slide'); }
-
-        function goNext() {
-            const currIdx = _getMgrNearestIdx(viewport, getSlides());
-            const nextIdx = Math.min(currIdx + 1, mgrCarouselState.total - 1);
-            _scrollMgrToIdx(viewport, getSlides(), nextIdx, 'smooth');
-        }
-        function goPrev() {
-            const currIdx = _getMgrNearestIdx(viewport, getSlides());
-            const prevIdx = Math.max(currIdx - 1, 0);
-            _scrollMgrToIdx(viewport, getSlides(), prevIdx, 'smooth');
-        }
-
-        if (prev) prev.addEventListener('click', goPrev, { signal });
-        if (next) next.addEventListener('click', goNext, { signal });
-
-        let _rafPending  = false;
-        let _scrollTimer = null;
-        let _isScrolling = false;
-        const _supportsScrollEnd = 'onscrollend' in window;
-
-        function onScrollFrame() {
-            _rafPending = false;
-            const slides = getSlides();
-            _applyMgr3DEffect(viewport, slides, slides.length);
-            _updateMgrDots(viewport, dotsEl, slides.length);
-        }
-
-        function onScrollEnd() {
-            _isScrolling = false;
-            viewport.classList.remove('is-scrolling');
-            const slides = getSlides();
-            const snapIdx = _getMgrNearestIdx(viewport, slides);
-            const first = slides.length ? slides[0].offsetLeft : 0;
-            const unit = _getMgrUnit(slides);
-            const snapTarget = first + snapIdx * unit;
-            if (Math.abs(viewport.scrollLeft - snapTarget) > 4) _scrollMgrToIdx(viewport, slides, snapIdx, 'smooth');
-            requestAnimationFrame(() => {
-                const slides = getSlides();
-                _applyMgr3DEffect(viewport, slides, slides.length);
-                _updateMgrDots(viewport, dotsEl, slides.length);
-            });
-        }
-
-        viewport.addEventListener('scroll', () => {
-            if (!_isScrolling) {
-                _isScrolling = true;
-                viewport.classList.add('is-scrolling');
-            }
-            if (!_rafPending) {
-                _rafPending = true;
-                requestAnimationFrame(onScrollFrame);
-            }
-            if (!_supportsScrollEnd) {
-                clearTimeout(_scrollTimer);
-                _scrollTimer = setTimeout(onScrollEnd, 100);
-            }
-        }, { passive: true, signal });
-
-        if (_supportsScrollEnd) {
-            viewport.addEventListener('scrollend', onScrollEnd, { passive: true, signal });
-        }
-
-        viewport.setAttribute('tabindex', '0');
-        viewport.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft')  { e.preventDefault(); goPrev(); }
-            else if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
-        }, { signal });
-
-        // On desktop (non-touch), translate vertical mouse-wheel into horizontal scroll
-        // so the carousel is navigable without the arrow buttons.
-        viewport.addEventListener('wheel', (e) => {
-            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // already horizontal scroll
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? 1 : -1;
-            const currIdx = _getMgrNearestIdx(viewport, getSlides());
-            const targetIdx = Math.max(0, Math.min(currIdx + delta, mgrCarouselState.total - 1));
-            _scrollMgrToIdx(viewport, getSlides(), targetIdx, 'smooth');
-        }, { passive: false, signal });
-
-        let _resizeTimer = null;
-        window.addEventListener('resize', () => {
-            clearTimeout(_resizeTimer);
-            _resizeTimer = setTimeout(() => {
-                const slidesBefore = getSlides();
-                const nearestIdx = _getMgrNearestIdx(viewport, slidesBefore);
-                _setMgrTrackPadding(track, viewport);
-                _scrollMgrToIdx(viewport, getSlides(), nearestIdx, 'auto');
-                const slides = getSlides();
-                _applyMgr3DEffect(viewport, slides, slides.length);
-                _updateMgrDots(viewport, dotsEl, slides.length);
-            }, 150);
-        }, { passive: true, signal });
     }
 
     /* =========================================================
@@ -6014,10 +5797,17 @@
             .map((p) => ({ ...p, _pts: ptMap[String(p['player.id'])] || 0 }))
             .sort((a, b) => b._pts - a._pts || a.Spielername.localeCompare(b.Spielername, 'de'));
 
-        // Team totals for ranking
+        // Compute ranking history once – shared by carousel + jumps tile
+        rankingHistoryCache = computeRankingHistory(data);
+        const historyByManager = new Map(
+            (rankingHistoryCache.teams || []).map(t => [t.manager, t.history])
+        );
+
+        // Team totals for ranking, enriched with rank history (for the mini graph)
         const teamTotals = teams.map((t) => ({
             manager: t.manager || 'Unbekannt',
-            total: getTeamTotal(t, ptMap)
+            total: getTeamTotal(t, ptMap),
+            history: historyByManager.get(t.manager || 'Unbekannt') || []
         })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
 
         // Ranking Preview Tile (new – prominent)
@@ -6029,7 +5819,7 @@
         // 3D Player Carousel (new)
         renderPlayerCarousel(topPlayers, ptMap);
 
-        // Manager Ranking Carousel
+        // Manager Ranking Carousel (with mini history sparkline)
         renderManagerCarousel(teamTotals, ptMap, teams);
 
         // Top Manager
@@ -6047,8 +5837,7 @@
             .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'));
         renderTopNations(topNations, 'post-');
 
-        // Grösste Veränderungen
-        rankingHistoryCache = computeRankingHistory(data);
+        // Grösste Veränderungen (rankingHistoryCache already computed above)
         renderPeriodButtons(rankingHistoryCache.matchIds, 'post-');
 
         // Top & Flop Manager Picks
