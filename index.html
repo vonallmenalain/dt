@@ -395,6 +395,13 @@
             object-fit: cover;
         }
 
+        .hcs-club {
+            width: 20px;
+            height: 20px;
+            margin-top: 4px;
+            object-fit: contain;
+        }
+
         .hcs-empty {
             width: 70px;
             height: 70px;
@@ -3931,10 +3938,11 @@
             const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
             if (slot.tagName === 'A') slot.href = url;
             slot.innerHTML = `
-                ${pts !== 0 ? `<div class="hcs-pts">${sign}${pts}</div>` : ''}
+                ${isPost && pts !== 0 ? `<div class="hcs-pts">${sign}${pts}</div>` : ''}
                 <img class="hcs-photo" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">
                 <div class="hcs-name">${escapeHtml(p.Spielername)}</div>
                 ${p['Nationalteam.logo'] ? `<img class="hcs-flag" src="${escapeHtml(p['Nationalteam.logo'])}" alt="${escapeHtml(p['Nationalteam.name'] || '')}" loading="lazy">` : ''}
+                ${!isPost && p['Club.logo'] ? `<img class="hcs-club" src="${escapeHtml(p['Club.logo'])}" alt="${escapeHtml(p['Club.name'] || '')}" loading="lazy">` : ''}
             `;
         });
     }
