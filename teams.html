@@ -82,6 +82,14 @@
         .bottom-nav a .icon { filter: grayscale(100%) brightness(0.7) !important; }
         .bottom-nav a.active .icon { filter: none !important; opacity: 1 !important; }
 
+        /* Keep hero data spans permanently invisible – JS sets display:'' but these are internal only */
+        #hero-tournament-label,
+        #hero-teams-count,
+        #hero-current-manager,
+        #hero-current-rank {
+            display: none !important;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -1242,45 +1250,114 @@
         .team-picker-item:not(.active) .team-picker-item-pts { color: var(--text-muted); opacity: 0.7; }
 
         /* =====================================================
-           MOBILE TEAM SECTIONS (stacked view)
+           MOBILE TEAM SECTIONS – Pitch-Field Layout
            ===================================================== */
         .mobile-team-sections {
             display: none;
             flex-direction: column;
-            gap: 14px;
+            gap: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        /* Pitch wrapper groups the 4 position rows inside green field */
+        .mobile-pitch-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border-radius: 18px 18px 0 0;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.12);
+            border-bottom: none;
+            position: relative;
+        }
+
+        /* Subtle pitch center circle watermark */
+        .mobile-pitch-field::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .mobile-section {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 16px;
+            position: relative;
             overflow: hidden;
+        }
+
+        /* Alternating pitch stripes */
+        .mobile-pitch-field .mobile-section:nth-child(odd) {
+            background: linear-gradient(160deg, #1a5c26, #1b6b2a, #1d7530);
+        }
+        .mobile-pitch-field .mobile-section:nth-child(even) {
+            background: linear-gradient(160deg, #174e22, #1b6424, #1a5c26);
+        }
+
+        /* Spotlight on each row */
+        .mobile-pitch-field .mobile-section::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Divider lines between pitch rows */
+        .mobile-pitch-field .mobile-section + .mobile-section {
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Bench section sits below pitch with distinct styling */
+        .mobile-bench-section {
+            background: rgba(20, 26, 34, 0.95);
+            border: 2px solid rgba(255,215,0,0.18);
+            border-top: none;
+            border-radius: 0 0 18px 18px;
         }
 
         .mobile-section-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
-            padding: 12px 16px 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 8px 14px 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mobile-pitch-field .mobile-section-header {
+            border-bottom: 1px solid rgba(255,255,255,0.07);
         }
 
         .mobile-section-pill {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 4px 10px;
+            padding: 3px 9px;
             border-radius: 100px;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
         }
 
         .mobile-section-pill.pitch {
-            background: rgba(34,197,94,0.15);
-            border: 1px solid rgba(34,197,94,0.3);
-            color: var(--green-light);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.85);
         }
 
         .mobile-section-pill.bench {
@@ -1289,24 +1366,48 @@
             color: var(--gold);
         }
 
-        .mobile-section-cards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 14px 12px;
-            justify-content: center;
+        /* Position total points badge in header */
+        .mobile-section-pts {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.3px;
         }
 
-        /* Mobile card sizes */
+        .mobile-pitch-field .mobile-section-pts {
+            color: rgba(255,255,255,0.55);
+        }
+
+        .mobile-bench-section .mobile-section-pts {
+            color: rgba(255,215,0,0.6);
+        }
+
+        /* ── Card grid inside each section ─────────────────── */
+        .mobile-section-cards {
+            display: grid;
+            /* Fill row fully: auto-fit columns of min 90px, max expand to fill */
+            grid-template-columns: repeat(var(--cols, 4), 1fr);
+            gap: 8px;
+            padding: 10px 10px 14px;
+            justify-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mobile card: fill the grid cell, fixed aspect ratio */
         .mobile-card-wrapper {
-            width: 110px;
-            height: 162px;
+            width: 100%;
+            max-width: 140px;
+            aspect-ratio: 2/3;
+            height: auto;
             flex-shrink: 0;
         }
 
         .mobile-bench-card-wrapper {
-            width: 100px;
-            height: 148px;
+            width: 100%;
+            max-width: 120px;
+            aspect-ratio: 2/3;
+            height: auto;
             flex-shrink: 0;
         }
 
@@ -1315,7 +1416,7 @@
            ===================================================== */
         @media (max-width: 900px) {
             .teams-layout {
-                padding: 0 12px;
+                padding: 0 10px;
             }
 
             .sidebar { display: none !important; }
@@ -1330,7 +1431,7 @@
             .team-header {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 14px;
+                gap: 12px;
             }
 
             .team-header-left { align-items: center; text-align: center; }
@@ -1358,41 +1459,32 @@
             }
         }
 
-        @media (max-width: 680px) {
-            .teams-hero { padding: 16px 12px 14px; }
-            .teams-hero-title { font-size: 1.3rem; }
-            .team-header-card { padding: 16px; }
-            .total-points-display { font-size: 1.7rem; }
-
-            .mobile-section-cards {
-                gap: 8px;
-                padding: 10px 8px;
+        @media (max-width: 900px) {
+            /* Card internals scale with the grid cell */
+            .mobile-card-wrapper .player-card,
+            .mobile-bench-card-wrapper .player-card {
+                width: 100%;
+                height: 100%;
+                padding-top: 12px;
+                box-sizing: border-box;
+                transform-style: flat;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
             }
 
-            .mobile-card-wrapper { width: 96px; height: 142px; }
-            .mobile-bench-card-wrapper { width: 88px; height: 130px; }
-        }
-
-        @media (max-width: 420px) {
-            .mobile-card-wrapper { width: 88px; height: 130px; }
-            .mobile-bench-card-wrapper { width: 82px; height: 120px; }
-            .card-name { font-size: 10px; min-height: 24px; }
-        }
-
-        /* Mobile card internal sizes */
-        @media (max-width: 900px) {
             .mobile-card-wrapper .avatar-wrapper,
             .mobile-bench-card-wrapper .avatar-wrapper {
-                width: 52px;
-                height: 52px;
-                margin-bottom: 5px;
+                width: 56%;
+                height: auto;
+                aspect-ratio: 1;
+                margin-bottom: 6px;
             }
 
             .mobile-card-wrapper .card-name,
             .mobile-bench-card-wrapper .card-name {
-                font-size: 10px;
-                min-height: 24px;
+                font-size: 11px;
+                min-height: 22px;
                 margin-bottom: 3px;
+                padding: 0 4px;
             }
 
             .mobile-card-wrapper .card-sub-info,
@@ -1414,26 +1506,20 @@
 
             .mobile-card-wrapper .captain-badge,
             .mobile-bench-card-wrapper .captain-badge {
-                width: 20px; height: 20px; font-size: 10px; top: 4px; left: 4px;
+                width: 20px; height: 20px; font-size: 10px; top: 5px; left: 5px;
             }
 
             .mobile-card-wrapper .card-pts,
             .mobile-bench-card-wrapper .card-pts {
-                font-size: 10px; top: 4px; right: 4px; padding: 3px 6px;
+                font-size: 10px; top: 5px; right: 5px; padding: 3px 6px;
             }
 
             .mobile-card-wrapper .player-card.is-captain .card-pts,
             .mobile-bench-card-wrapper .player-card.is-captain .card-pts {
-                font-size: 12px; padding: 4px 7px;
+                font-size: 11px; padding: 4px 7px;
             }
 
-            /* Disable 3D on touch */
-            .mobile-card-wrapper .player-card,
-            .mobile-bench-card-wrapper .player-card {
-                transform-style: flat;
-                transition: transform 0.15s ease, box-shadow 0.15s ease;
-            }
-
+            /* Remove 3D transforms on touch */
             .mobile-card-wrapper .avatar-wrapper,
             .mobile-card-wrapper .card-info,
             .mobile-card-wrapper .card-pts,
@@ -1450,6 +1536,41 @@
             .mobile-bench-card-wrapper .player-card:active {
                 transform: scale(0.94) !important;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+            }
+
+            /* Bench section: 4 columns */
+            .mobile-bench-section .mobile-section-cards {
+                --cols: 4;
+                gap: 6px;
+                padding: 8px 8px 12px;
+            }
+
+            .mobile-bench-section .mobile-bench-card-wrapper {
+                max-width: 110px;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .teams-hero { padding: 14px 10px 12px; }
+            .teams-hero-title { font-size: 1.25rem; }
+            .team-header-card { padding: 14px; }
+            .total-points-display { font-size: 1.7rem; }
+
+            .mobile-section-cards { gap: 6px; padding: 8px 8px 12px; }
+
+            .mobile-card-wrapper .card-name,
+            .mobile-bench-card-wrapper .card-name {
+                font-size: 10px;
+                min-height: 20px;
+            }
+        }
+
+        /* On very small screens force max 3 columns for readability */
+        @media (max-width: 360px) {
+            .mobile-section-cards {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 5px;
+                padding: 6px 6px 10px;
             }
         }
     </style>
@@ -1589,33 +1710,42 @@
 
                 <!-- Mobile: Stacked Sections -->
                 <div class="mobile-team-sections" id="mobile-sections">
-                    <div class="mobile-section" id="mobile-section-GK">
-                        <div class="mobile-section-header">
-                            <span class="mobile-section-pill pitch">🧤 Tor</span>
+                    <!-- Pitch field: GK / DEF / MID / ATT -->
+                    <div class="mobile-pitch-field">
+                        <div class="mobile-section" id="mobile-section-GK">
+                            <div class="mobile-section-header">
+                                <span class="mobile-section-pill pitch">🧤 Tor</span>
+                                <span class="mobile-section-pts" id="mobile-pts-GK"></span>
+                            </div>
+                            <div class="mobile-section-cards" id="mobile-row-GK"></div>
                         </div>
-                        <div class="mobile-section-cards" id="mobile-row-GK"></div>
-                    </div>
-                    <div class="mobile-section" id="mobile-section-DEF">
-                        <div class="mobile-section-header">
-                            <span class="mobile-section-pill pitch">🛡️ Verteidigung</span>
+                        <div class="mobile-section" id="mobile-section-DEF">
+                            <div class="mobile-section-header">
+                                <span class="mobile-section-pill pitch">🛡️ Verteidigung</span>
+                                <span class="mobile-section-pts" id="mobile-pts-DEF"></span>
+                            </div>
+                            <div class="mobile-section-cards" id="mobile-row-DEF"></div>
                         </div>
-                        <div class="mobile-section-cards" id="mobile-row-DEF"></div>
-                    </div>
-                    <div class="mobile-section" id="mobile-section-MID">
-                        <div class="mobile-section-header">
-                            <span class="mobile-section-pill pitch">🎯 Mittelfeld</span>
+                        <div class="mobile-section" id="mobile-section-MID">
+                            <div class="mobile-section-header">
+                                <span class="mobile-section-pill pitch">🎯 Mittelfeld</span>
+                                <span class="mobile-section-pts" id="mobile-pts-MID"></span>
+                            </div>
+                            <div class="mobile-section-cards" id="mobile-row-MID"></div>
                         </div>
-                        <div class="mobile-section-cards" id="mobile-row-MID"></div>
-                    </div>
-                    <div class="mobile-section" id="mobile-section-ATT">
-                        <div class="mobile-section-header">
-                            <span class="mobile-section-pill pitch">⚡ Sturm</span>
+                        <div class="mobile-section" id="mobile-section-ATT">
+                            <div class="mobile-section-header">
+                                <span class="mobile-section-pill pitch">⚡ Sturm</span>
+                                <span class="mobile-section-pts" id="mobile-pts-ATT"></span>
+                            </div>
+                            <div class="mobile-section-cards" id="mobile-row-ATT"></div>
                         </div>
-                        <div class="mobile-section-cards" id="mobile-row-ATT"></div>
                     </div>
-                    <div class="mobile-section" id="mobile-section-BENCH">
+                    <!-- Bench: separate below pitch -->
+                    <div class="mobile-section mobile-bench-section" id="mobile-section-BENCH">
                         <div class="mobile-section-header">
                             <span class="mobile-section-pill bench">🪑 Ersatzbank</span>
+                            <span class="mobile-section-pts" id="mobile-pts-BENCH"></span>
                         </div>
                         <div class="mobile-section-cards" id="mobile-bench-all"></div>
                     </div>
@@ -2309,6 +2439,18 @@
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
         });
+
+        // Reset mobile column counts
+        ['mobile-row-GK', 'mobile-row-DEF', 'mobile-row-MID', 'mobile-row-ATT', 'mobile-bench-all'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.removeProperty('--cols');
+        });
+
+        // Reset mobile pts labels
+        ['mobile-pts-GK', 'mobile-pts-DEF', 'mobile-pts-MID', 'mobile-pts-ATT', 'mobile-pts-BENCH'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '';
+        });
     }
 
     function appendCardHtml(targetId, html) {
@@ -2396,6 +2538,30 @@
             }, cardDelayCount * 40 + 100);
 
             cardDelayCount++;
+        });
+
+        // Set CSS grid columns for each mobile section based on player count
+        const mobileColMap = {
+            'mobile-row-GK':  { pts: team.positionTotals.GOALKEEPER, ptsId: 'mobile-pts-GK' },
+            'mobile-row-DEF': { pts: team.positionTotals.DEFENDER,   ptsId: 'mobile-pts-DEF' },
+            'mobile-row-MID': { pts: team.positionTotals.MIDFIELDER,  ptsId: 'mobile-pts-MID' },
+            'mobile-row-ATT': { pts: team.positionTotals.ATTACKER,    ptsId: 'mobile-pts-ATT' },
+            'mobile-bench-all': { pts: team.positionTotals.BENCH,     ptsId: 'mobile-pts-BENCH' }
+        };
+
+        Object.entries(mobileColMap).forEach(([rowId, { pts, ptsId }]) => {
+            const rowEl = document.getElementById(rowId);
+            if (rowEl) {
+                const count = rowEl.children.length;
+                // Use the exact player count as column count so they perfectly fill one row
+                const cols = Math.max(1, count);
+                rowEl.style.setProperty('--cols', cols);
+            }
+            const ptsEl = document.getElementById(ptsId);
+            if (ptsEl && typeof pts === 'number') {
+                const sign = pts > 0 ? '+' : '';
+                ptsEl.textContent = `${sign}${pts} Pkt.`;
+            }
         });
 
         requestAnimationFrame(() => {
