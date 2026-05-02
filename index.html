@@ -3155,6 +3155,33 @@
 
         .ranking-preview-tile { position:relative; }
 
+        /* ===================================================
+           PRE-START-SPECIFIC LAYOUT/BACKGROUND
+           =================================================== */
+        #indexHomePreStart.prestart-home {
+            position: relative;
+            min-height: 100vh;
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 110%, rgba(40,167,69,0.45) 0%, transparent 65%),
+                radial-gradient(ellipse 70% 50% at 50% 80%, rgba(40,167,69,0.25) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 20% 0%, rgba(255,215,0,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(40,167,69,0.18) 0%, transparent 50%),
+                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, #0d1f10 100%);
+            background-attachment: fixed;
+        }
+
+        #indexHomePreStart.prestart-home .hero::before {
+            background: none;
+        }
+
+        #indexHomePreStart.prestart-home .prestart-two-col {
+            align-items: stretch;
+        }
+
+        #indexHomePreStart.prestart-home .prestart-two-col > .gtile {
+            height: 100%;
+        }
+
     </style>
 </head>
 <body>
@@ -3173,7 +3200,7 @@
      Inhalt identisch mit aktueller index.html.
      Hier später eigene Pre-Start-Inhalte einbauen.
      ===================================================== -->
-<div id="indexHomePreStart">
+<div id="indexHomePreStart" class="prestart-home">
 
 <!-- HERO SECTION (Pre Start) -->
 <section class="hero" id="hero">
@@ -3248,45 +3275,7 @@
      ===================================================== -->
 <main class="dashboard-area" id="dashboard-area">
 
-    <!-- ── Row 1: Team count (with managers) + Captain Watch ─ -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Team Count + Manager List -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="gtile-title-icon">👥</span> Erstellte Teams
-                </div>
-                <a href="teams.html" class="section-link" aria-label="Alle Teams anzeigen">Alle →</a>
-            </div>
-            <div class="team-count-big" id="tile-team-count">
-                <span class="skel" style="display:inline-block;width:60px;height:3.2rem;"></span>
-            </div>
-            <div class="team-count-sub" id="tile-team-sub">Teams nehmen am Turnier teil</div>
-            <div class="manager-list-compact" id="tile-manager-list" aria-label="Manager-Liste">
-                <div class="skel" style="height:28px;margin-bottom:4px;border-radius:6px;"></div>
-                <div class="skel" style="height:28px;margin-bottom:4px;border-radius:6px;"></div>
-            </div>
-            <div class="team-count-glow" aria-hidden="true"></div>
-        </div>
-
-        <!-- Captain Watch -->
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">👑</span> Captain Watch
-                </div>
-            </div>
-            <div id="tile-captain-watch" aria-label="Beliebteste Captains">
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Row 2: Fan-Lieblinge (3D cards) full width ─────── -->
+    <!-- ── Row 1: Fan-Lieblinge ─────── -->
     <div class="mb-section">
         <div class="gtile">
             <div class="gtile-header">
@@ -3303,10 +3292,25 @@
         </div>
     </div>
 
-    <!-- ── Row 3: Beliebteste Vereine + Scouting Barometer ── -->
-    <div class="tile-grid tile-grid-2 mb-section">
+    <!-- ── Row 2: Captain Watch ─ -->
+    <div class="mb-section">
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">👑</span> Captain Watch
+                </div>
+            </div>
+            <div id="tile-captain-watch" aria-label="Beliebteste Captains">
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
+        </div>
+    </div>
 
-        <!-- Beliebteste Vereine -->
+    <!-- ── Row 3: Beliebteste Vereine ── -->
+    <div class="mb-section">
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -3320,8 +3324,10 @@
                 <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
             </div>
         </div>
+    </div>
 
-        <!-- Scouting Barometer -->
+    <!-- ── Row 4: Scouting Barometer + Team-Altersstruktur ── -->
+    <div class="tile-grid tile-grid-2 mb-section prestart-two-col">
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -3335,12 +3341,7 @@
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
             </div>
         </div>
-    </div>
 
-    <!-- ── Row 4: Team-Altersstruktur + Spielplan ───────── -->
-    <div class="tile-grid tile-grid-2 mb-section">
-
-        <!-- Team-Altersstruktur -->
         <div class="gtile">
             <div class="gtile-header">
                 <div class="gtile-title">
@@ -3352,21 +3353,6 @@
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
-            </div>
-        </div>
-
-        <!-- Spielplan -->
-        <div class="gtile" id="tile-matches" aria-label="Nächste Spiele im Turnier">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">📅</span> Spielplan
-                </div>
-                <a href="spieleranalyse.html?view=games" class="section-link" aria-label="Alle Spiele ansehen">Alle →</a>
-            </div>
-            <div id="tile-matches-content">
-                <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
-                <div class="skel" style="height:60px;margin-bottom:10px;border-radius:10px;"></div>
             </div>
         </div>
     </div>
@@ -4416,11 +4402,11 @@
         });
 
         const sorted = [...teamStats].sort((a, b) => b.hipsterScore - a.hipsterScore);
-        const top3Hipster = sorted.slice(0, 3);
-        const top3Mainstream = sorted.slice(-3).reverse();
+        const top5Hipster = sorted.slice(0, 5);
+        const top5Mainstream = sorted.slice(-5).reverse();
 
         let html = `<div class="dark-sub-label green">🏆 Einzigartig</div>`;
-        html += top3Hipster.map((t) => {
+        html += top5Hipster.map((t) => {
             const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
             return `
                 <div class="dark-bar-row">
@@ -4432,7 +4418,7 @@
         }).join('');
 
         html += `<div class="dark-sub-label red" style="margin-top:10px;">🐑 Mainstream</div>`;
-        html += top3Mainstream.map((t) => {
+        html += top5Mainstream.map((t) => {
             const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
             return `
                 <div class="dark-bar-row">
@@ -4481,11 +4467,11 @@
         });
 
         const sorted = [...teamAges].sort((a, b) => b.avgAge - a.avgAge);
-        const top3Old = sorted.slice(0, 3);
-        const top3Young = sorted.slice(-3).reverse();
+        const top5Old = sorted.slice(0, 5);
+        const top5Young = sorted.slice(-5).reverse();
 
         let html = `<div class="dark-sub-label muted">👨‍🦳 Erfahrenste Teams</div>`;
-        html += top3Old.map((t) => {
+        html += top5Old.map((t) => {
             const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
             return `
                 <div class="dark-bar-row">
@@ -4497,7 +4483,7 @@
         }).join('');
 
         html += `<div class="dark-sub-label green" style="margin-top:10px;">👶 Jüngste Teams</div>`;
-        html += top3Young.map((t) => {
+        html += top5Young.map((t) => {
             const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
             return `
                 <div class="dark-bar-row">
@@ -4805,10 +4791,6 @@
         // Hero stats
         renderHeroStats(teams, ptMap, '');
 
-        // Team count + manager list
-        renderTeamCount(teams.length, '');
-        renderManagerList(teams, '');
-
         // Compute pick and captain counts
         const pickCounts = {};
         const captainCounts = {};
@@ -4845,9 +4827,7 @@
         // Team-Altersstruktur
         renderAgeStructure(teams, '');
 
-        // Spielplan
-        const matchContent = $('tile-matches-content');
-        if (matchContent) renderMatchesIntoContainer(matchContent, data, teams);
+        // Spielplan ist in der Pre-Start-Ansicht bewusst deaktiviert.
 
         // Trigger tilt for cards
         setTimeout(() => initCardTilt(), 50);
