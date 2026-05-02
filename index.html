@@ -416,6 +416,63 @@
             object-fit: contain;
         }
 
+
+
+        @media (max-width: 600px) {
+            .hero-cards-preview {
+                max-width: 360px;
+                height: 200px;
+                margin-top: 8px;
+            }
+
+            .hero-card-slot {
+                width: 96px;
+                height: 138px;
+            }
+
+            .hero-card-slot:nth-child(1) {
+                left: 2%;
+                transform: rotate(-12deg) translateY(26px) scale(0.82);
+                opacity: 0.84;
+            }
+
+            .hero-card-slot:nth-child(2) {
+                left: 18%;
+                transform: rotate(-6deg) translateY(10px) scale(0.94);
+            }
+
+            .hero-card-slot:nth-child(3) {
+                width: 112px;
+                height: 162px;
+            }
+
+            .hero-card-slot:nth-child(4) {
+                right: 18%;
+                transform: rotate(6deg) translateY(10px) scale(0.94);
+            }
+
+            .hero-card-slot:nth-child(5) {
+                right: 2%;
+                transform: rotate(12deg) translateY(26px) scale(0.82);
+                opacity: 0.84;
+            }
+
+            .hero-card-slot img.hcs-photo {
+                width: 58px;
+                height: 58px;
+            }
+
+            .hero-card-slot:nth-child(3) img.hcs-photo {
+                width: 70px;
+                height: 70px;
+            }
+
+            .hcs-name {
+                font-size: 10px;
+                line-height: 1.15;
+                padding: 0 5px;
+            }
+        }
         .hcs-empty {
             width: 70px;
             height: 70px;
