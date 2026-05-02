@@ -297,7 +297,7 @@
             position: relative;
             height: 220px;
             width: 100%;
-            max-width: 620px;
+            max-width: 700px;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -328,15 +328,15 @@
         }
 
         .hero-card-slot:nth-child(1) {
-            left: 4%;
-            transform: rotate(-14deg) translateY(24px);
+            left: 0%;
+            transform: rotate(-15deg) translateY(28px) scale(0.88);
             z-index: 1;
-            opacity: 0.8;
+            opacity: 0.74;
         }
 
         .hero-card-slot:nth-child(2) {
-            left: 24%;
-            transform: rotate(-7deg) translateY(10px);
+            left: 20%;
+            transform: rotate(-8deg) translateY(12px);
             z-index: 2;
             opacity: 0.92;
         }
@@ -352,17 +352,17 @@
         }
 
         .hero-card-slot:nth-child(4) {
-            right: 24%;
-            transform: rotate(7deg) translateY(10px);
+            right: 20%;
+            transform: rotate(8deg) translateY(12px);
             z-index: 2;
             opacity: 0.92;
         }
 
         .hero-card-slot:nth-child(5) {
-            right: 4%;
-            transform: rotate(14deg) translateY(24px);
+            right: 0%;
+            transform: rotate(15deg) translateY(28px) scale(0.88);
             z-index: 1;
-            opacity: 0.8;
+            opacity: 0.74;
         }
 
         .hero-card-slot img.hcs-photo {
@@ -4798,6 +4798,17 @@
     if (ctaBtnPost) ctaBtnPost.setAttribute('aria-label', `Team erstellen für ${shortLabel}`);
 
     /* =========================================================
+       PRE START HERO CARDS – MANUELL KONFIGURIERTE SPIELER
+       ========================================================= */
+    const PRESTART_HERO_PLAYER_NAMES = [
+        'Lamine Yamal',
+        'Kylian Mbappé',
+        'Jude Bellingham',
+        'Jamal Musiala',
+        'Vitinha'
+    ];
+
+    /* =========================================================
        PRE START HOME – Render-Funktion
        ========================================================= */
     function renderPreStartHome(data) {
@@ -4820,13 +4831,22 @@
             });
         });
 
-        // Top players for hero cards (by pick count before tournament)
+        // Hero cards for pre-start: manually configured players (fallback: top picks)
         const topByPicks = Object.entries(pickCounts)
             .map(([id, cnt]) => ({ player: getPlayerById(id), cnt }))
             .filter((x) => x.player)
             .sort((a, b) => b.cnt - a.cnt)
             .map((x) => x.player);
-        renderHeroCards(topByPicks, ptMap, '');
+
+        const preferredPrestartPlayers = PRESTART_HERO_PLAYER_NAMES
+            .map((name) => getPlayerByName(name))
+            .filter(Boolean);
+
+        renderHeroCards(
+            preferredPrestartPlayers.length ? preferredPrestartPlayers : topByPicks,
+            ptMap,
+            ''
+        );
 
         // Captain watch
         renderCaptainWatch(captainCounts, ptMap, '');
