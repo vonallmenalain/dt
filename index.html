@@ -291,13 +291,13 @@
         }
 
         /* ===================================================
-           HERO PLAYER CARD PREVIEW (Top 3 floating cards)
+           HERO PLAYER CARD PREVIEW (Top 5 floating cards)
            =================================================== */
         .hero-cards-preview {
             position: relative;
-            height: 200px;
+            height: 220px;
             width: 100%;
-            max-width: 500px;
+            max-width: 620px;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -328,27 +328,41 @@
         }
 
         .hero-card-slot:nth-child(1) {
-            left: 0;
-            transform: rotate(-8deg) translateY(20px);
+            left: 4%;
+            transform: rotate(-14deg) translateY(24px);
             z-index: 1;
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         .hero-card-slot:nth-child(2) {
-            left: 50%;
-            transform: translateX(-50%) rotate(0deg);
-            z-index: 3;
-            width: 136px;
-            height: 192px;
-            border-color: rgba(40,167,69,0.5);
-            box-shadow: 0 0 30px rgba(40,167,69,0.2), 0 20px 60px rgba(0,0,0,0.5);
+            left: 24%;
+            transform: rotate(-7deg) translateY(10px);
+            z-index: 2;
+            opacity: 0.92;
         }
 
         .hero-card-slot:nth-child(3) {
-            right: 0;
-            transform: rotate(8deg) translateY(20px);
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg);
+            z-index: 5;
+            width: 136px;
+            height: 192px;
+            border-color: rgba(40,167,69,0.5);
+            box-shadow: 0 0 30px rgba(40,167,69,0.24), 0 20px 60px rgba(0,0,0,0.55);
+        }
+
+        .hero-card-slot:nth-child(4) {
+            right: 24%;
+            transform: rotate(7deg) translateY(10px);
+            z-index: 2;
+            opacity: 0.92;
+        }
+
+        .hero-card-slot:nth-child(5) {
+            right: 4%;
+            transform: rotate(14deg) translateY(24px);
             z-index: 1;
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         .hero-card-slot img.hcs-photo {
@@ -361,7 +375,7 @@
             background: #2a3040;
         }
 
-        .hero-card-slot:nth-child(2) img.hcs-photo {
+        .hero-card-slot:nth-child(3) img.hcs-photo {
             width: 82px;
             height: 82px;
         }
@@ -3253,6 +3267,14 @@
                 <div class="hcs-name">–</div>
             </a>
             <a class="hero-card-slot" id="hcs-2" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
+                <div class="hcs-empty">⭐</div>
+                <div class="hcs-name">–</div>
+            </a>
+            <a class="hero-card-slot" id="hcs-3" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
+                <div class="hcs-empty">👤</div>
+                <div class="hcs-name">–</div>
+            </a>
+            <a class="hero-card-slot" id="hcs-4" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
                 <div class="hcs-empty">👤</div>
                 <div class="hcs-name">–</div>
             </a>
@@ -3901,13 +3923,16 @@
        HERO MINI-CARDS
        ========================================================= */
     function renderHeroCards(topPlayers, ptMap, heroPfx) {
-        // heroPfx: '' → Pre-Start IDs (hcs-0, hcs-1, hcs-2)
-        //          'hcs-post-' → Post-Start IDs (hcs-post-0, hcs-post-1, hcs-post-2)
+        // heroPfx: '' → Pre-Start IDs (hcs-0 ... hcs-4)
+        //          'hcs-post-' → Post-Start IDs (hcs-post-0 ...)
         const isPost = heroPfx === 'hcs-post-';
-        const slots = isPost
-            ? [$('hcs-post-0'), $('hcs-post-1'), $('hcs-post-2')]
-            : [$('hcs-0'), $('hcs-1'), $('hcs-2')];
-        topPlayers.slice(0, 3).forEach((p, i) => {
+        const slots = [];
+        for (let i = 0; i < 8; i += 1) {
+            const slot = $(`${heroPfx}hcs-${i}`);
+            if (!slot) break;
+            slots.push(slot);
+        }
+        topPlayers.slice(0, slots.length).forEach((p, i) => {
             const slot = slots[i];
             if (!slot) return;
             const pts = ptMap[String(p['player.id'])] || 0;
