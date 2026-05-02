@@ -2724,16 +2724,30 @@
         /* ===================================================
            MANAGER CAROUSEL CARD ELEMENTS
            =================================================== */
+
+        /* Manager carousel slide is wider than player carousel */
+        #mgr-carousel-track .carousel-slide {
+            width: 200px;
+        }
+
+        /* Manager card needs more vertical space so badges don't overlap avatars */
+        #mgr-carousel-track .carousel-card {
+            padding: 52px 14px 18px;
+            min-height: 200px;
+            justify-content: flex-start;
+        }
+
         .mc-rank-badge {
             position: absolute;
-            top: 10px;
+            top: 12px;
             left: 12px;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 900;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 100px;
             background: rgba(255,255,255,0.08);
             color: var(--text-muted);
+            z-index: 2;
         }
 
         .mc-rank-badge.rank-1 { background: linear-gradient(135deg,#ffd700,#e5a800); color:#1a1100; }
@@ -2742,32 +2756,96 @@
 
         .mc-pts-badge {
             position: absolute;
-            top: 10px;
+            top: 12px;
             right: 12px;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 900;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 100px;
             background: linear-gradient(135deg, #22c55e, #16a34a);
             color: #fff;
+            z-index: 2;
         }
 
+        /* Avatar group: 3 player photos, center one bigger (like rangliste.html) */
         .mc-avatars {
             display: flex;
-            gap: 4px;
             justify-content: center;
             align-items: center;
-            flex-wrap: nowrap;
+            position: relative;
+            margin-bottom: 4px;
         }
 
-        .mc-avatar {
-            width: 44px;
-            height: 44px;
+        /* Side avatars (rank-2 and rank-3 by points) */
+        .mc-avatar-wrap {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .mc-avatar-wrap.mc-side {
+            width: 46px;
+            height: 46px;
+            margin-left: -5px;
+            z-index: 1;
+        }
+
+        .mc-avatar-wrap.mc-center {
+            width: 64px;
+            height: 64px;
+            z-index: 3;
+            margin-left: -8px;
+            margin-right: -8px;
+        }
+
+        .mc-avatar-wrap.mc-side2 {
+            width: 46px;
+            height: 46px;
+            margin-left: -5px;
+            z-index: 2;
+        }
+
+        .mc-avatar-wrap img {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid rgba(255,255,255,0.12);
+            border: 3px solid rgba(255,255,255,0.12);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             background: #2a3040;
-            flex-shrink: 0;
+        }
+
+        .mc-avatar-wrap.mc-center img {
+            border-color: rgba(255,215,0,0.5);
+            box-shadow: 0 0 0 2px rgba(255,215,0,0.25), 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        /* Captain badge "C" */
+        .mc-avatar-wrap.is-captain img {
+            border-color: rgba(255,193,7,0.6);
+            box-shadow: 0 0 0 2px rgba(255,215,0,0.25), 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .mc-avatar-wrap.is-captain::after {
+            content: 'C';
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #000;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 9px;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 20;
         }
 
         .mc-avatar-placeholder {
@@ -2784,12 +2862,13 @@
         }
 
         .mc-name {
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             font-weight: 800;
             color: var(--text-main);
             line-height: 1.2;
             text-align: center;
             word-break: break-word;
+            margin-top: 6px;
         }
 
         /* Center card gold accent for rank 1 */
@@ -3298,23 +3377,33 @@
 <!-- LIVE DASHBOARD AREA (Post Start) -->
 <main class="dashboard-area" id="dashboard-post-area">
 
-    <!-- ── Row 1: Live Rangliste Podium (full width) ────────── -->
+    <!-- ── Row 1: Manager Rangliste Carousel ─────────────── -->
     <div class="mb-section">
-        <div class="post-panel podium-section" id="tile-post-ranking-preview" role="region" aria-label="Aktuelle Rangliste – Kurzübersicht">
-            <div class="post-section-label">
-                <span class="post-section-label-icon">🏆</span>
-                <span class="post-section-label-text">Live Rangliste</span>
-                <span class="ranking-live-badge" style="margin-left:auto;"><span class="ranking-live-dot" aria-hidden="true"></span>LIVE</span>
+        <div class="post-section-label carousel-section-header">
+            <span class="post-section-label-icon">🏆</span>
+            <span class="post-section-label-text">Rangliste</span>
+        </div>
+        <div class="player-carousel-section" id="tile-post-manager-carousel-section">
+            <div class="carousel-outer" id="mgr-carousel-outer">
+                <div class="carousel-viewport" id="mgr-carousel-viewport" aria-label="Manager Rangliste Karussell">
+                    <div class="carousel-track" id="mgr-carousel-track" role="list">
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                        <div class="carousel-slide">
+                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <!-- Podest: rendered by JS into tile-post-ranking-preview-list -->
-            <div id="tile-post-ranking-preview-list" aria-label="Top Manager">
-                <div class="skel" style="height:90px;margin-bottom:12px;border-radius:16px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:6px;border-radius:10px;"></div>
-                <div class="skel" style="height:44px;border-radius:10px;"></div>
+            <div class="carousel-nav" id="mgr-carousel-nav">
+                <button class="carousel-arrow" id="mgr-carousel-prev" aria-label="Vorheriger Manager">‹</button>
+                <div class="carousel-dots" id="mgr-carousel-dots" role="tablist"></div>
+                <button class="carousel-arrow" id="mgr-carousel-next" aria-label="Nächster Manager">›</button>
             </div>
-            <a href="rangliste.html" class="ranking-view-all" aria-label="Vollständige Rangliste öffnen">
-                🏆 Vollständige Rangliste →
-            </a>
         </div>
     </div>
 
@@ -3344,36 +3433,6 @@
                 <button class="carousel-arrow" id="post-carousel-prev" aria-label="Vorheriger Spieler">‹</button>
                 <div class="carousel-dots" id="post-carousel-dots" role="tablist"></div>
                 <button class="carousel-arrow" id="post-carousel-next" aria-label="Nächster Spieler">›</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Row 3: Manager Rangliste Carousel ─────────────── -->
-    <div class="mb-section">
-        <div class="post-section-label carousel-section-header">
-            <span class="post-section-label-icon">🏆</span>
-            <span class="post-section-label-text">Rangliste</span>
-        </div>
-        <div class="player-carousel-section" id="tile-post-manager-carousel-section">
-            <div class="carousel-outer" id="mgr-carousel-outer">
-                <div class="carousel-viewport" id="mgr-carousel-viewport" aria-label="Manager Rangliste Karussell">
-                    <div class="carousel-track" id="mgr-carousel-track" role="list">
-                        <div class="carousel-slide">
-                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
-                        </div>
-                        <div class="carousel-slide">
-                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
-                        </div>
-                        <div class="carousel-slide">
-                            <div class="carousel-card"><div class="skel" style="width:76px;height:76px;border-radius:50%;margin:0 auto 10px;"></div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-nav" id="mgr-carousel-nav">
-                <button class="carousel-arrow" id="mgr-carousel-prev" aria-label="Vorheriger Manager">‹</button>
-                <div class="carousel-dots" id="mgr-carousel-dots" role="tablist"></div>
-                <button class="carousel-arrow" id="mgr-carousel-next" aria-label="Nächster Manager">›</button>
             </div>
         </div>
     </div>
@@ -4869,6 +4928,10 @@
     const CAROUSEL_SLIDE_GAP = 10;   // px (matches CSS gap)
     const CAROUSEL_UNIT = CAROUSEL_SLIDE_W + CAROUSEL_SLIDE_GAP; // 170 px
 
+    // Manager carousel uses wider slides
+    const MGR_CAROUSEL_SLIDE_W  = 200;  // px (matches #mgr-carousel-track .carousel-slide width)
+    const MGR_CAROUSEL_UNIT = MGR_CAROUSEL_SLIDE_W + CAROUSEL_SLIDE_GAP; // 210 px
+
     // Wrap an index into [0, total)
     function wrapIdx(i, total) {
         return ((i % total) + total) % total;
@@ -5222,16 +5285,82 @@
         _offset: 0
     };
 
+    // Dedicated track-padding setter for manager carousel (uses MGR_CAROUSEL_SLIDE_W).
+    // Uses CSS padding-left for the left offset (always included in scrollable area)
+    // and appends an explicit right-spacer element to guarantee the right padding
+    // is part of the scrollable overflow (CSS padding-right can be excluded by some
+    // browsers, causing the last slide to be unreachable).
+    function _setMgrTrackPadding(track, viewport) {
+        const vpW = viewport.offsetWidth;
+        const P   = Math.max(0, (vpW - MGR_CAROUSEL_SLIDE_W) / 2);
+
+        track.style.paddingLeft  = P + 'px';
+        track.style.paddingRight = '0';
+
+        // Remove existing right spacer
+        const existing = track.querySelector('.mgr-track-spacer-right');
+        if (existing) existing.remove();
+
+        // Append a right spacer element that is definitely part of the scrollable width
+        const rightSpacer = document.createElement('div');
+        rightSpacer.className = 'mgr-track-spacer-right';
+        rightSpacer.style.cssText = `flex-shrink:0;width:${P}px;min-width:${P}px;pointer-events:none;`;
+        track.appendChild(rightSpacer);
+
+        return P;
+    }
+
+    // 3-D effect for manager carousel (uses MGR_CAROUSEL_UNIT)
+    function _applyMgr3DEffect(viewport, slides, totalSlides) {
+        const scrollLeft  = viewport.scrollLeft;
+        const centerFloat = scrollLeft / MGR_CAROUSEL_UNIT;
+
+        for (let i = 0; i < totalSlides; i++) {
+            const slide = slides[i];
+            const distSlides = i - centerFloat;
+            const absDist    = Math.abs(distSlides);
+
+            const scale   = Math.max(0.70, 1.10 - absDist * 0.19);
+            const ry      = Math.max(-22, Math.min(22, -distSlides * 16));
+            const opacity = Math.max(0.30, 1 - absDist * 0.30);
+
+            const isCenter = absDist < 0.5;
+            if (isCenter !== slide.classList.contains('is-center')) {
+                slide.classList.toggle('is-center', isCenter);
+            }
+            slide.style.transform = `perspective(900px) rotateY(${ry.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+            slide.style.opacity   = opacity.toFixed(3);
+            slide.style.zIndex    = Math.round(10 - absDist * 2);
+        }
+    }
+
     function buildManagerCarouselCard(manager, rank, total, avatars) {
         const sign = total > 0 ? '+' : '';
         const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
         const rankSlideClass = rank === 1 ? 'mgr-carousel-rank-1' : '';
 
-        const avatarHtml = avatars.length
-            ? avatars.map(a =>
-                `<img class="mc-avatar" src="${escapeHtml(a.photo)}" alt="${escapeHtml(a.name)}" loading="lazy" onerror="this.style.display='none'">`
-              ).join('')
-            : `<div class="mc-avatar-placeholder">👤</div>`;
+        // Build avatar group: [side-left, center (highest pts), side-right]
+        // avatars are already sorted by pts desc: [0]=highest, [1]=2nd, [2]=3rd
+        let avatarHtml = '';
+        if (avatars.length) {
+            // Arrange: 2nd (left side), 1st (center/bigger), 3rd (right side)
+            const buildWrap = (a, wrapCls) => {
+                const captainCls = a.isCaptain ? 'is-captain' : '';
+                return `<div class="mc-avatar-wrap ${wrapCls} ${captainCls}">
+                    <img src="${escapeHtml(a.photo)}" alt="${escapeHtml(a.name)}" loading="lazy" onerror="this.style.display='none'">
+                </div>`;
+            };
+
+            if (avatars.length === 1) {
+                avatarHtml = buildWrap(avatars[0], 'mc-center');
+            } else if (avatars.length === 2) {
+                avatarHtml = buildWrap(avatars[1], 'mc-side') + buildWrap(avatars[0], 'mc-center');
+            } else {
+                avatarHtml = buildWrap(avatars[1], 'mc-side') + buildWrap(avatars[0], 'mc-center') + buildWrap(avatars[2], 'mc-side2');
+            }
+        } else {
+            avatarHtml = `<div class="mc-avatar-placeholder">👤</div>`;
+        }
 
         return `
             <div class="carousel-slide ${rankSlideClass}" role="listitem" aria-label="${escapeHtml(manager)}, Rang ${rank}, ${sign}${total} Punkte">
@@ -5256,7 +5385,7 @@
             return;
         }
 
-        // Helper: get top-3 player avatars for a manager by points
+        // Helper: get top-3 player avatars for a manager by points, including captain info
         function getMgrAvatars(manager) {
             const teamObj = teams.find(t => t.manager === manager);
             if (!teamObj) return [];
@@ -5265,7 +5394,12 @@
                     const full = resolvePlayer(tp);
                     if (!full) return null;
                     const base = ptMap[String(full['player.id'])] || 0;
-                    return { pts: tp.isCaptain ? base * 2 : base, photo: full.Spielerfoto, name: full.Spielername };
+                    return {
+                        pts: tp.isCaptain ? base * 2 : base,
+                        photo: full.Spielerfoto,
+                        name: full.Spielername,
+                        isCaptain: !!tp.isCaptain
+                    };
                 })
                 .filter(Boolean)
                 .sort((a, b) => b.pts - a.pts)
@@ -5273,10 +5407,11 @@
         }
 
         mgrCarouselState.total = teamTotals.length;
-        // For non-infinite: offset = 0, no tripling
         mgrCarouselState._offset = 0;
 
-        // Build card HTML (single set, no clones – not an infinite loop)
+        // Reset bound flag so interaction listeners can re-bind with fresh slide references
+        delete viewport.dataset.mgrCarouselBound;
+
         const cardHtmls = teamTotals.map((t, i) => {
             const rank = i + 1;
             const avatars = getMgrAvatars(t.manager);
@@ -5293,24 +5428,25 @@
             dotsEl.querySelectorAll('[data-mgr-dot]').forEach((dot) => {
                 dot.addEventListener('click', () => {
                     const idx = Number(dot.dataset.mgrDot);
-                    viewport.scrollTo({ left: idx * CAROUSEL_UNIT, behavior: 'smooth' });
+                    viewport.scrollTo({ left: idx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
                 });
                 dot.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         const idx = Number(dot.dataset.mgrDot);
-                        viewport.scrollTo({ left: idx * CAROUSEL_UNIT, behavior: 'smooth' });
+                        viewport.scrollTo({ left: idx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
                     }
                 });
             });
         }
 
-        // Set padding so first and last slide can be centred, then snap to index 0 (#1)
+        // Set padding so every slide (first and last included) can reach the centre,
+        // then snap to index 0 (rank #1).
         requestAnimationFrame(() => {
-            _setTrackPadding(track, viewport);
+            _setMgrTrackPadding(track, viewport);
             viewport.scrollLeft = 0;
             const slides = track.querySelectorAll('.carousel-slide');
-            _apply3DEffect(viewport, slides, slides.length);
+            _applyMgr3DEffect(viewport, slides, slides.length);
             _updateMgrDots(viewport, dotsEl, slides.length);
         });
 
@@ -5319,7 +5455,7 @@
 
     function _updateMgrDots(viewport, dotsEl, totalSlides) {
         if (!dotsEl || !mgrCarouselState.total) return;
-        const bestIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
+        const bestIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
         const clampedIdx = Math.max(0, Math.min(bestIdx, mgrCarouselState.total - 1));
         const dots = dotsEl.querySelectorAll('[data-mgr-dot]');
         dots.forEach((dot, i) => {
@@ -5329,6 +5465,10 @@
         });
     }
 
+    // Abort controller for manager carousel – allows us to tear down all listeners
+    // on re-render without having to track individual handler references.
+    let _mgrCarouselAbortCtrl = null;
+
     function setupManagerCarouselInteractions() {
         const prev     = $('mgr-carousel-prev');
         const next     = $('mgr-carousel-next');
@@ -5337,45 +5477,55 @@
         const dotsEl   = $('mgr-carousel-dots');
         if (!viewport || !track) return;
 
-        if (viewport.dataset.mgrCarouselBound) return;
+        // Tear down previous listeners (if any) before re-binding
+        if (_mgrCarouselAbortCtrl) {
+            _mgrCarouselAbortCtrl.abort();
+        }
+        _mgrCarouselAbortCtrl = new AbortController();
+        const { signal } = _mgrCarouselAbortCtrl;
+
         viewport.dataset.mgrCarouselBound = '1';
 
+        // Retrieve fresh slide list on each operation so stale refs are never used
+        function getSlides() { return track.querySelectorAll('.carousel-slide'); }
+
         function goNext() {
-            const currIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
-            viewport.scrollTo({ left: (currIdx + 1) * CAROUSEL_UNIT, behavior: 'smooth' });
+            const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+            const nextIdx = Math.min(currIdx + 1, mgrCarouselState.total - 1);
+            viewport.scrollTo({ left: nextIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
         }
         function goPrev() {
-            const currIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
-            viewport.scrollTo({ left: (currIdx - 1) * CAROUSEL_UNIT, behavior: 'smooth' });
+            const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+            const prevIdx = Math.max(currIdx - 1, 0);
+            viewport.scrollTo({ left: prevIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
         }
 
-        if (prev) prev.addEventListener('click', goPrev);
-        if (next) next.addEventListener('click', goNext);
+        if (prev) prev.addEventListener('click', goPrev, { signal });
+        if (next) next.addEventListener('click', goNext, { signal });
 
         let _rafPending  = false;
         let _scrollTimer = null;
         let _isScrolling = false;
         const _supportsScrollEnd = 'onscrollend' in window;
 
-        const slides = track.querySelectorAll('.carousel-slide');
-        const totalSlides = slides.length;
-
         function onScrollFrame() {
             _rafPending = false;
-            _apply3DEffect(viewport, slides, totalSlides);
-            _updateMgrDots(viewport, dotsEl, totalSlides);
+            const slides = getSlides();
+            _applyMgr3DEffect(viewport, slides, slides.length);
+            _updateMgrDots(viewport, dotsEl, slides.length);
         }
 
         function onScrollEnd() {
             _isScrolling = false;
             viewport.classList.remove('is-scrolling');
-            const snapTarget = Math.round(viewport.scrollLeft / CAROUSEL_UNIT) * CAROUSEL_UNIT;
+            const snapTarget = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT) * MGR_CAROUSEL_UNIT;
             if (Math.abs(viewport.scrollLeft - snapTarget) > 4) {
                 viewport.scrollTo({ left: snapTarget, behavior: 'smooth' });
             }
             requestAnimationFrame(() => {
-                _apply3DEffect(viewport, slides, totalSlides);
-                _updateMgrDots(viewport, dotsEl, totalSlides);
+                const slides = getSlides();
+                _applyMgr3DEffect(viewport, slides, slides.length);
+                _updateMgrDots(viewport, dotsEl, slides.length);
             });
         }
 
@@ -5392,29 +5542,41 @@
                 clearTimeout(_scrollTimer);
                 _scrollTimer = setTimeout(onScrollEnd, 100);
             }
-        }, { passive: true });
+        }, { passive: true, signal });
 
         if (_supportsScrollEnd) {
-            viewport.addEventListener('scrollend', onScrollEnd, { passive: true });
+            viewport.addEventListener('scrollend', onScrollEnd, { passive: true, signal });
         }
 
         viewport.setAttribute('tabindex', '0');
         viewport.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft')  { e.preventDefault(); goPrev(); }
             else if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
-        });
+        }, { signal });
+
+        // On desktop (non-touch), translate vertical mouse-wheel into horizontal scroll
+        // so the carousel is navigable without the arrow buttons.
+        viewport.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // already horizontal scroll
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 1 : -1;
+            const currIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+            const targetIdx = Math.max(0, Math.min(currIdx + delta, mgrCarouselState.total - 1));
+            viewport.scrollTo({ left: targetIdx * MGR_CAROUSEL_UNIT, behavior: 'smooth' });
+        }, { passive: false, signal });
 
         let _resizeTimer = null;
         window.addEventListener('resize', () => {
             clearTimeout(_resizeTimer);
             _resizeTimer = setTimeout(() => {
-                const nearestIdx = Math.round(viewport.scrollLeft / CAROUSEL_UNIT);
-                _setTrackPadding(track, viewport);
-                viewport.scrollLeft = nearestIdx * CAROUSEL_UNIT;
-                _apply3DEffect(viewport, slides, totalSlides);
-                _updateMgrDots(viewport, dotsEl, totalSlides);
+                const nearestIdx = Math.round(viewport.scrollLeft / MGR_CAROUSEL_UNIT);
+                _setMgrTrackPadding(track, viewport);
+                viewport.scrollLeft = nearestIdx * MGR_CAROUSEL_UNIT;
+                const slides = getSlides();
+                _applyMgr3DEffect(viewport, slides, slides.length);
+                _updateMgrDots(viewport, dotsEl, slides.length);
             }, 150);
-        }, { passive: true });
+        }, { passive: true, signal });
     }
 
     /* =========================================================
