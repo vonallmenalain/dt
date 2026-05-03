@@ -1446,6 +1446,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            width: 100%;
         }
 
         .games-match-card {
@@ -1606,6 +1607,24 @@
 
         .games-player-left {
             min-width: 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .games-player-photo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: var(--dark-card);
+            flex-shrink: 0;
+        }
+
+        .games-player-info {
+            min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 2px;
@@ -1658,6 +1677,7 @@
 
         .schedule-date-group {
             margin-bottom: 24px;
+            width: 100%;
         }
 
         .schedule-date-header {
@@ -1687,6 +1707,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            width: 100%;
         }
 
         /* Schedule card */
@@ -1696,6 +1717,8 @@
             border-radius: 14px;
             overflow: hidden;
             transition: border-color 0.2s ease, background 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .sc-card:hover {
@@ -1723,6 +1746,8 @@
             align-items: flex-start;
             padding: 14px 18px;
             gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .sc-team {
@@ -1758,6 +1783,29 @@
             justify-content: flex-end;
         }
 
+        .sc-player-avatar-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            border-radius: 50%;
+            display: inline-flex;
+            flex-shrink: 0;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .sc-player-avatar-btn:hover {
+            transform: scale(1.12);
+            box-shadow: 0 0 0 2px rgba(74,222,128,0.5);
+            border-radius: 50%;
+        }
+
+        .sc-player-avatar-btn:focus-visible {
+            outline: 2px solid rgba(74,222,128,0.7);
+            outline-offset: 1px;
+            border-radius: 50%;
+        }
+
         .sc-player-avatar {
             width: 30px;
             height: 30px;
@@ -1765,6 +1813,7 @@
             object-fit: cover;
             border: 1px solid rgba(255,255,255,0.12);
             background: var(--dark-card);
+            display: block;
         }
 
         .sc-team-logo {
@@ -1800,7 +1849,8 @@
             flex-direction: column;
             align-items: center;
             gap: 2px;
-            min-width: 80px;
+            min-width: 90px;
+            max-width: 130px;
         }
 
         .sc-score {
@@ -1847,6 +1897,15 @@
             margin-top: 2px;
         }
 
+        .sc-venue-center {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 3px;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
         .sc-meta {
             padding: 0 18px 12px;
             display: flex;
@@ -1883,7 +1942,8 @@
             }
 
             .sc-center {
-                min-width: 64px;
+                min-width: 72px;
+                max-width: 110px;
             }
         }
 
@@ -3623,13 +3683,19 @@
         if (!players.length) return '<div class="games-empty">Keine Spieler-Daten vorhanden.</div>';
         return players.map(player => {
             const playerEncoded = encodeURIComponent(player.name);
+            const photoHtml = player.photo && !player.photo.includes('placeholder')
+                ? `<img src="${escapeHtml(player.photo)}" class="games-player-photo" alt="${escapeHtml(player.name)}" loading="lazy" onerror="this.style.display='none'">`
+                : '';
             return `
                 <button type="button" class="games-player-row ${player.drafted ? 'drafted' : ''}"
                         onclick="openPlayerFromGames(decodeURIComponent('${playerEncoded}'))"
                         aria-label="${escapeHtml(player.name)}, ${formatPoints(player.totalPoints)} Punkte">
                     <div class="games-player-left">
-                        <div class="games-player-name">${escapeHtml(player.name)}</div>
-                        <div class="games-player-meta">${escapeHtml(player.position)} • ${escapeHtml(player.club)}</div>
+                        ${photoHtml}
+                        <div class="games-player-info">
+                            <div class="games-player-name">${escapeHtml(player.name)}</div>
+                            <div class="games-player-meta">${escapeHtml(player.position)} • ${escapeHtml(player.club)}</div>
+                        </div>
                     </div>
                     <div class="games-player-right">
                         ${player.drafted ? `<span class="games-picked-badge" aria-label="Wurde gedraftet">Gewählt</span>` : ''}
@@ -3809,7 +3875,8 @@
             const avatarsHtml = players.map(p => {
                 const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
                 if (!photo) return '';
-                return `<img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" title="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">`;
+                const nameEncoded = encodeURIComponent(p.name);
+                return `<button type="button" class="sc-player-avatar-btn" onclick="openPlayerFromGames(decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
             }).filter(Boolean).join('');
             if (!avatarsHtml) return '';
             const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
@@ -3926,6 +3993,7 @@
                         <div class="sc-center">
                             ${centerHtml}
                             ${roundText ? `<div class="sc-round">${escapeHtml(roundText)}</div>` : ''}
+                            ${venueText ? `<div class="sc-venue-center">🏟️ ${escapeHtml(venueText)}</div>` : ''}
                         </div>
                         <div class="sc-team sc-team-away">
                             <div class="sc-team-info sc-team-info-away">
@@ -3935,10 +4003,6 @@
                             ${awayAvatars}
                         </div>
                     </div>
-                    ${venueText ? `
-                    <div class="sc-meta">
-                        <span class="sc-venue">🏟️ ${escapeHtml(venueText)}</span>
-                    </div>` : ''}
                 </div>`;
             });
 
