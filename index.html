@@ -3143,7 +3143,7 @@
             flex: 1;
             min-width: 0;
             display: flex;
-            gap: 4px;
+            gap: 6px;
             flex-wrap: wrap;
         }
 
@@ -3170,8 +3170,8 @@
             background: rgba(74,222,128,0.08);
             border: 1px solid rgba(74,222,128,0.15);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 48px;
+            height: 48px;
             padding: 0;
             text-decoration: none;
             transition: background 0.15s ease;
@@ -3182,8 +3182,8 @@
         }
 
         .nm-player-photo {
-            width: 26px;
-            height: 26px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             object-fit: cover;
             background: #2a3040;
@@ -6650,8 +6650,6 @@
             // Separate drafted players by team side
             const homeKey = normalizeCountry(teamA);
             const awayKey = normalizeCountry(teamB);
-            const MAX_SIDE = 4;
-
             const draftedHome = Object.values(draftedPlayerManagers)
                 .filter(({ player }) => {
                     const keys = getPlayerCountryKeys(player);
@@ -6666,21 +6664,19 @@
                 })
                 .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'));
 
-            function buildChips(players, maxVisible) {
-                const visible = players.slice(0, maxVisible);
-                const extra = players.length - maxVisible;
-                return visible.map(({ player }) => {
+            function buildChips(players) {
+                return players.map(({ player }) => {
                     const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
                     return `<a class="nm-player-chip" href="${url}" draggable="false" aria-label="${escapeHtml(player.Spielername)} analysieren"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'"></a>`;
-                }).join('') + (extra > 0 ? `<span class="nm-more-players">+${extra}</span>` : '');
+                }).join('');
             }
 
             const hasPlayers = draftedHome.length > 0 || draftedAway.length > 0;
             const playersRowHtml = hasPlayers ? `
                 <div class="nm-players-row">
-                    <div class="nm-players-side left">${buildChips(draftedHome, MAX_SIDE)}</div>
+                    <div class="nm-players-side left">${buildChips(draftedHome)}</div>
                     <div class="nm-players-divider"></div>
-                    <div class="nm-players-side right">${buildChips(draftedAway, MAX_SIDE)}</div>
+                    <div class="nm-players-side right">${buildChips(draftedAway)}</div>
                 </div>` : '';
 
             return `
