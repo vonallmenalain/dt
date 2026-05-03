@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { href: "index.html", label: "🏠 Dashboard", shortLabel: "Dashboard", icon: "🏠" },
         { href: "team-builder.html", label: "➕ Team erstellen", shortLabel: "Team", icon: "➕" },
         { href: "teams.html", label: "🛡️ Teams", shortLabel: "Teams", icon: "🛡️" },
-        { href: "spieleranalyse.html", label: "🔍 Spieler-Analyse", shortLabel: "Analyse", icon: "🔍" },
+        { href: "spieleranalyse.html", label: "🔍 Analyse", shortLabel: "Analyse", icon: "🔍" },
         { href: "rangliste.html", label: "🏆 Rangliste", shortLabel: "Rangliste", icon: "🏆" },
         { href: "punktesystem.html", label: "📊 Punktesystem", shortLabel: "Punkte", icon: "📊" }
     ];
