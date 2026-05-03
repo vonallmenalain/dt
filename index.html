@@ -3134,10 +3134,33 @@
 
         .nm-players-row {
             display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
+            gap: 4px;
             margin-top: 10px;
-            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .nm-players-side {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .nm-players-side.left {
+            justify-content: flex-start;
+        }
+
+        .nm-players-side.right {
+            justify-content: flex-end;
+        }
+
+        .nm-players-divider {
+            width: 1px;
+            background: rgba(255,255,255,0.08);
+            align-self: stretch;
+            margin: 0 4px;
+            flex-shrink: 0;
         }
 
         .nm-player-chip {
@@ -6493,6 +6516,32 @@
     /* =========================================================
        NEXT MATCHES (Post-Start) with drafted players
        ========================================================= */
+
+    // Test data: first 3 games of EM 2024 (Testzwecke)
+    const EM2024_TEST_FIXTURES = [
+        {
+            id: 'em2024_test_1',
+            teamA: 'Germany', homeLogo: 'https://media.api-sports.io/football/teams/25.png',
+            teamB: 'Scotland', awayLogo: 'https://media.api-sports.io/football/teams/1108.png',
+            date: '2024-06-14T21:00:00+02:00', venue: 'Allianz Arena', venueCity: 'München',
+            statusShort: 'NS'
+        },
+        {
+            id: 'em2024_test_2',
+            teamA: 'Hungary', homeLogo: 'https://media.api-sports.io/football/teams/769.png',
+            teamB: 'Switzerland', awayLogo: 'https://media.api-sports.io/football/teams/15.png',
+            date: '2024-06-15T15:00:00+02:00', venue: 'RheinEnergieStadion', venueCity: 'Köln',
+            statusShort: 'NS'
+        },
+        {
+            id: 'em2024_test_3',
+            teamA: 'Spain', homeLogo: 'https://media.api-sports.io/football/teams/9.png',
+            teamB: 'Croatia', awayLogo: 'https://media.api-sports.io/football/teams/3.png',
+            date: '2024-06-15T18:00:00+02:00', venue: 'Olympiastadion', venueCity: 'Berlin',
+            statusShort: 'NS'
+        }
+    ];
+
     function renderNextMatchesTile(data, teams) {
         const container = $('tile-post-next-matches');
         if (!container) return;
@@ -6514,7 +6563,7 @@
         const now = Date.now();
         const FINISHED_STATUSES = ['FT', 'AET', 'PEN'];
 
-        // Prefer upcoming/live
+        // Only show genuinely upcoming or live matches (no finished results)
         let upcoming = matchInfos.filter((m) => {
             const statusShort = m.statusShort || '';
             if (statusShort && FINISHED_STATUSES.includes(statusShort)) return false;
@@ -6529,25 +6578,13 @@
             return da - db2;
         }).slice(0, 3);
 
-        // Fallback: last finished
-        if (!upcoming.length && matchInfos.length) {
-            upcoming = matchInfos
-                .filter(m => FINISHED_STATUSES.includes(m.statusShort || '') ||
-                    (m.date && new Date(m.date).getTime() < now - 90 * 60 * 1000))
-                .sort((a, b) => {
-                    const da = (a.kickoffTimestamp ? a.kickoffTimestamp * 1000 : null) || new Date(a.date || 0).getTime() || 0;
-                    const db2 = (b.kickoffTimestamp ? b.kickoffTimestamp * 1000 : null) || new Date(b.date || 0).getTime() || 0;
-                    return db2 - da;
-                })
-                .slice(0, 3);
-        }
-
-        if (!upcoming.length && matchInfos.length) {
-            upcoming = matchInfos.slice(0, 3);
+        // If no real upcoming data available, use EM 2024 test fixtures
+        if (!upcoming.length) {
+            upcoming = EM2024_TEST_FIXTURES;
         }
 
         if (!upcoming.length) {
-            container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div>Keine Spiele gefunden.</div>`;
+            container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div>Keine bevorstehenden Spiele gefunden.</div>`;
             return;
         }
 
@@ -6558,7 +6595,6 @@
             let flagB = match.awayLogo || match.teamBFlag || '';
             const dateStr = match.date || match.datetime || match.kickoff || '';
             const statusShort = match.statusShort || '';
-            const goals = match.goals || null;
 
             if (!teamA || !teamB) {
                 const nations = getNationFromMatchGame(match.id || match.matchId || match.gameNumber, data);
@@ -6574,25 +6610,14 @@
                 }
             }
 
-            const isFinished = FINISHED_STATUSES.includes(statusShort);
             const isLive = ['1H', '2H', 'HT', 'ET', 'BT', 'P'].includes(statusShort);
 
-            // Time display
+            // Time display (upcoming only – no finished score)
             let timeBadgeText = '';
             let timeBadgeCls = '';
             let timeSubText = '';
 
-            if (isFinished && goals) {
-                timeBadgeText = `${goals.home ?? '?'} : ${goals.away ?? '?'}`;
-                timeBadgeCls = '';
-                timeSubText = 'Abpfiff';
-            } else if (isLive && goals) {
-                timeBadgeText = `${goals.home ?? '?'} : ${goals.away ?? '?'}`;
-                timeBadgeCls = 'live';
-                timeSubText = match.statusElapsed ? `${match.statusElapsed}'` : 'LIVE';
-            } else if (isFinished) {
-                timeBadgeText = 'Abpfiff';
-            } else if (isLive) {
+            if (isLive) {
                 timeBadgeText = 'LIVE';
                 timeBadgeCls = 'live';
                 if (match.statusElapsed) timeSubText = `${match.statusElapsed}'`;
@@ -6622,23 +6647,41 @@
                 ? `${match.venue}${match.venueCity ? ' · ' + match.venueCity : ''}`
                 : '';
 
-            // Find drafted players by nationality matching (robust)
-            const draftedInMatch = Object.values(draftedPlayerManagers)
-                .filter(({ player }) => isPlayerInFixture(player, match))
+            // Separate drafted players by team side
+            const homeKey = normalizeCountry(teamA);
+            const awayKey = normalizeCountry(teamB);
+            const MAX_SIDE = 4;
+
+            const draftedHome = Object.values(draftedPlayerManagers)
+                .filter(({ player }) => {
+                    const keys = getPlayerCountryKeys(player);
+                    return Array.from(keys).some(k => k === homeKey);
+                })
                 .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'));
 
-            const MAX_VISIBLE = 5;
-            const visiblePlayers = draftedInMatch.slice(0, MAX_VISIBLE);
-            const extraCount = draftedInMatch.length - MAX_VISIBLE;
+            const draftedAway = Object.values(draftedPlayerManagers)
+                .filter(({ player }) => {
+                    const keys = getPlayerCountryKeys(player);
+                    return Array.from(keys).some(k => k === awayKey);
+                })
+                .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'));
 
-            const playersHtml = visiblePlayers.map(({ player }) => {
-                const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
-                return `
-                    <a class="nm-player-chip" href="${url}" draggable="false" aria-label="${escapeHtml(player.Spielername)} analysieren">
-                        <img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">
-                    </a>
-                `;
-            }).join('') + (extraCount > 0 ? `<span class="nm-more-players">+${extraCount}</span>` : '');
+            function buildChips(players, maxVisible) {
+                const visible = players.slice(0, maxVisible);
+                const extra = players.length - maxVisible;
+                return visible.map(({ player }) => {
+                    const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+                    return `<a class="nm-player-chip" href="${url}" draggable="false" aria-label="${escapeHtml(player.Spielername)} analysieren"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'"></a>`;
+                }).join('') + (extra > 0 ? `<span class="nm-more-players">+${extra}</span>` : '');
+            }
+
+            const hasPlayers = draftedHome.length > 0 || draftedAway.length > 0;
+            const playersRowHtml = hasPlayers ? `
+                <div class="nm-players-row">
+                    <div class="nm-players-side left">${buildChips(draftedHome, MAX_SIDE)}</div>
+                    <div class="nm-players-divider"></div>
+                    <div class="nm-players-side right">${buildChips(draftedAway, MAX_SIDE)}</div>
+                </div>` : '';
 
             return `
                 <div class="nm-match-row">
@@ -6657,7 +6700,7 @@
                             <span class="nm-team-name">${escapeHtml(teamB)}</span>
                         </div>
                     </div>
-                    ${draftedInMatch.length > 0 ? `<div class="nm-players-row">${playersHtml}</div>` : ''}
+                    ${playersRowHtml}
                 </div>
             `;
         }).join('');
