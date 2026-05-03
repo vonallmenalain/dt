@@ -4009,7 +4009,12 @@
         #indexHomePreStart.prestart-home {
             position: relative;
             min-height: 100vh;
-            background: var(--dark-bg);
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 110%, rgba(40,167,69,0.45) 0%, transparent 65%),
+                radial-gradient(ellipse 70% 50% at 50% 80%, rgba(40,167,69,0.25) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 20% 0%, rgba(255,215,0,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 0%, rgba(40,167,69,0.18) 0%, transparent 50%),
+                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, #0d1f10 100%);
             background-attachment: fixed;
         }
 
@@ -4023,26 +4028,6 @@
 
         #indexHomePreStart.prestart-home .prestart-two-col > .gtile {
             height: 100%;
-        }
-
-        /* Pre-start tiles: same transparent/glass style as post-start */
-        #indexHomePreStart.prestart-home .gtile {
-            background: rgba(255,255,255,0.04);
-            border-color: rgba(255,255,255,0.09);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        #indexHomePreStart.prestart-home .gtile::before {
-            display: none;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            #indexHomePreStart.prestart-home .gtile:hover {
-                background: rgba(255,255,255,0.07);
-                border-color: rgba(74,222,128,0.18);
-                box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(74,222,128,0.1);
-            }
         }
 
     </style>
@@ -4099,6 +4084,7 @@
             </a>
             <div class="hero-secondary-btns">
                 <a href="punktesystem.html" class="btn-pill">📊 Punktesystem</a>
+                <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
                 <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler-Analyse</a>
                 <a href="teams.html" class="btn-pill">🛡️ Teams</a>
             </div>
