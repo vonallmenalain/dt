@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="view-transition" content="same-origin">
-    <meta name="description" content="DreamTeam – Spieler-Analyse mit Statistiken, Punkten und Spieldetails.">
-    <title>DreamTeam - Spieler-Analyse</title>
+    <meta name="description" content="DreamTeam – Analyse mit Statistiken, Punkten und Spieldetails.">
+    <title>DreamTeam - Analyse</title>
     <meta name="theme-color" content="#28a745">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1720,7 +1720,7 @@
 
         .sc-card-inner {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             padding: 14px 18px;
             gap: 10px;
         }
@@ -1729,30 +1729,59 @@
             flex: 1;
             min-width: 0;
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sc-team-info {
+            display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        .sc-team-info-away {
+            justify-content: flex-end;
         }
 
         .sc-team.sc-team-away {
+            align-items: flex-end;
+        }
+
+        .sc-player-avatars {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .sc-player-avatars-away {
             justify-content: flex-end;
-            flex-direction: row-reverse;
+        }
+
+        .sc-player-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: var(--dark-card);
         }
 
         .sc-team-logo {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
             flex-shrink: 0;
             border-radius: 4px;
         }
 
         .sc-team-logo-placeholder {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             flex-shrink: 0;
         }
 
@@ -1830,26 +1859,17 @@
             color: var(--text-muted);
         }
 
-        .sc-venue-img-wrap {
-            border-radius: 8px;
-            overflow: hidden;
-            max-height: 80px;
-        }
-
-        .sc-venue-img {
-            width: 100%;
-            height: 80px;
-            object-fit: cover;
-            display: block;
-            opacity: 0.8;
-        }
-
         @media (max-width: 600px) {
             .sc-card-inner {
                 padding: 12px 14px;
             }
 
             .sc-team-logo {
+                width: 24px;
+                height: 24px;
+            }
+
+            .sc-player-avatar {
                 width: 26px;
                 height: 26px;
             }
@@ -1863,7 +1883,7 @@
             }
 
             .sc-center {
-                min-width: 70px;
+                min-width: 64px;
             }
         }
 
@@ -2118,7 +2138,7 @@
         <!-- =====================================================
              SIDEBAR
              ===================================================== -->
-        <aside class="analysis-sidebar" id="analysis-sidebar" role="complementary" aria-label="Spieler-Filter und -Liste">
+        <aside class="analysis-sidebar" id="analysis-sidebar" role="complementary" aria-label="Filter und Liste">
             <div class="sidebar-inner">
                 <button id="mobile-sidebar-close" class="mobile-sidebar-close" type="button" aria-label="Filter schliessen">✕</button>
                 <!-- Players sidebar -->
@@ -2170,6 +2190,25 @@
 
                     <div class="sidebar-mini-title">Länder</div>
                     <div id="games-country-list" class="games-country-list" role="list" aria-label="Länderliste">
+                        <div class="sidebar-empty">Lade Länder... ⏳</div>
+                    </div>
+                </div>
+
+                <!-- Schedule sidebar -->
+                <div id="sidebar-schedule" class="sidebar-view">
+                    <div class="sidebar-filter-block">
+                        <div class="filter-section">
+                            <button id="schedule-reset-filters" class="reset-btn" aria-label="Land zurücksetzen">Land zurücksetzen</button>
+                        </div>
+                    </div>
+
+                    <div class="sort-section">
+                        <button class="sort-btn" id="schedule-sort-name" aria-label="Länder alphabetisch sortieren">A–Z</button>
+                        <button class="sort-btn active" id="schedule-sort-az" aria-label="Länder nach Name sortieren">Alle</button>
+                    </div>
+
+                    <div class="sidebar-mini-title">Nach Land filtern</div>
+                    <div id="schedule-country-list" class="games-country-list" role="list" aria-label="Länderliste für Spielplan">
                         <div class="sidebar-empty">Lade Länder... ⏳</div>
                     </div>
                 </div>
@@ -2350,7 +2389,7 @@
     const PAGE_TITLE_PREFIX = APP.pageTitlePrefix;
     const PLAYER_BATCH_SIZE = 20;
 
-    document.title = `${PAGE_TITLE_PREFIX} - Spieler-Analyse`;
+    document.title = `${PAGE_TITLE_PREFIX} - Analyse`;
 
     /* =========================================================
        STATE
@@ -2374,6 +2413,8 @@
     let scheduleCatalog = [];
     let currentPlayerName = null;
     let currentGameNationFilter = 'ALL';
+    let currentScheduleNationFilter = 'ALL';
+    let scheduleNationList = [];
     let currentOpenGameNumber = null;
 
     let matchCatalog = [];
@@ -2489,7 +2530,10 @@
     mobileSidebarClose?.addEventListener('click', closeMobileFilter);
 
     function updateMobileFilterButtonLabel() {
-        const label = currentView === 'countries' ? '🌍 Land suchen' : '🔍 Spieler suchen';
+        let label;
+        if (currentView === 'countries') label = '🌍 Land suchen';
+        else if (currentView === 'games') label = '🌍 Land filtern';
+        else label = '🔍 Spieler suchen';
         const span = mobileFilterBtn.querySelector('span');
         if (span) span.textContent = label;
         mobileFilterBtn.setAttribute('aria-label', label);
@@ -2505,6 +2549,7 @@
             player: params.get('player') || null,
             club: params.get('club') || 'ALL',
             gameNation: params.get('gameNation') || 'ALL',
+            scheduleNation: params.get('scheduleNation') || 'ALL',
             openGame: params.get('openGame') || null,
             gameSort: params.get('gameSort') === 'name' ? 'name' : 'pts'
         };
@@ -2526,6 +2571,9 @@
             }
         } else if (currentView === 'games') {
             params.set('view', 'games');
+            if (currentScheduleNationFilter && currentScheduleNationFilter !== 'ALL') {
+                params.set('scheduleNation', currentScheduleNationFilter);
+            }
         } else {
             if (currentPlayerName) {
                 params.set('player', currentPlayerName);
@@ -2569,10 +2617,12 @@
         document.getElementById('view-games').classList.toggle('active', currentView === 'games');
         document.getElementById('sidebar-players').classList.toggle('active', currentView === 'players');
         document.getElementById('sidebar-games').classList.toggle('active', currentView === 'countries');
+        document.getElementById('sidebar-schedule').classList.toggle('active', currentView === 'games');
 
         // Render schedule when switching to games view
         if (currentView === 'games') {
             renderScheduleView();
+            renderScheduleCountryList();
         }
 
         updateUrl(push);
@@ -3591,6 +3641,63 @@
     }
 
 
+    /* =========================================================
+       SCHEDULE NATION FILTER
+       ========================================================= */
+    function buildScheduleNationList() {
+        const nations = new Set();
+        scheduleCatalog.forEach(m => {
+            if (m.teamA && m.teamA !== '-') nations.add(m.teamA);
+            if (m.teamB && m.teamB !== '-') nations.add(m.teamB);
+        });
+        scheduleNationList = Array.from(nations).sort((a, b) => a.localeCompare(b, 'de'));
+    }
+
+    function renderScheduleCountryList() {
+        const list = document.getElementById('schedule-country-list');
+        if (!list) return;
+
+        if (!scheduleNationList.length) {
+            list.innerHTML = '<div class="sidebar-empty">Keine Länder gefunden.</div>';
+            return;
+        }
+
+        list.innerHTML = ['ALL', ...scheduleNationList].map(nation => {
+            const isAll = nation === 'ALL';
+            const flagHtml = isAll
+                ? `<span class="games-country-flag-small" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🌍</span>`
+                : (() => {
+                    const flag = getNationFlag(nation);
+                    return flag
+                        ? `<img src="${escapeHtml(flag)}" class="games-country-flag-small" alt="${escapeHtml(nation)}" loading="lazy">`
+                        : `<span class="games-country-flag-small" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
+                })();
+            const label = isAll ? 'Alle Länder' : nation;
+            const isActive = currentScheduleNationFilter === nation;
+            const nationEncoded = encodeURIComponent(nation);
+            return `
+                <div class="games-country-item ${isActive ? 'active' : ''}"
+                     role="listitem"
+                     onclick="selectScheduleNation(decodeURIComponent('${nationEncoded}'))"
+                     aria-label="${escapeHtml(label)}">
+                    <div class="games-country-left">
+                        ${flagHtml}
+                        <div class="games-country-name-small">${escapeHtml(label)}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectScheduleNation(nation) {
+        currentScheduleNationFilter = nation || 'ALL';
+        renderScheduleView();
+        renderScheduleCountryList();
+        updateUrl(false);
+        closeMobileFilter();
+    }
+    window.selectScheduleNation = selectScheduleNation;
+
     function buildScheduleCatalog(data) {
         // Prefer structured fixtures from Firestore (data.fixtures is an object keyed by fixtureId)
         const fixturesObj = data?.fixtures;
@@ -3673,6 +3780,58 @@
             return;
         }
 
+        // Build a lookup from teamName -> playersByNation (drafted only) using matchCatalog
+        // matchCatalog entries have playersByNation keyed by team name
+        const draftedByMatchTeam = new Map();
+        matchCatalog.forEach(mc => {
+            Object.entries(mc.playersByNation || {}).forEach(([nation, players]) => {
+                const drafted = players.filter(p => p.drafted);
+                if (drafted.length) {
+                    const key = `${mc.rawMatchId}__${nation}`;
+                    draftedByMatchTeam.set(key, drafted);
+                }
+            });
+        });
+
+        function getScheduleDraftedPlayers(m, teamName) {
+            // Try to find the matching matchCatalog entry by teamA/teamB name
+            const mc = matchCatalog.find(c =>
+                (c.teamA === m.teamA && c.teamB === m.teamB) ||
+                (c.teamA === m.teamB && c.teamB === m.teamA)
+            );
+            if (!mc) return [];
+            const key = `${mc.rawMatchId}__${teamName}`;
+            return draftedByMatchTeam.get(key) || [];
+        }
+
+        function renderScheduleAvatars(players, alignRight = false) {
+            if (!players.length) return '';
+            const avatarsHtml = players.map(p => {
+                const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
+                if (!photo) return '';
+                return `<img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" title="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">`;
+            }).filter(Boolean).join('');
+            if (!avatarsHtml) return '';
+            const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
+            return `<div class="${cls}">${avatarsHtml}</div>`;
+        }
+
+        // Filter by nation if selected
+        let filteredSchedule = scheduleCatalog;
+        if (currentScheduleNationFilter !== 'ALL') {
+            filteredSchedule = scheduleCatalog.filter(m =>
+                m.teamA === currentScheduleNationFilter || m.teamB === currentScheduleNationFilter
+            );
+        }
+
+        if (!filteredSchedule.length) {
+            el.innerHTML = `<div class="schedule-empty-state">
+                <div style="font-size:2rem;margin-bottom:10px;">🔍</div>
+                <div style="font-size:0.9rem;font-weight:700;color:var(--text-muted,#8b949e);">Keine Spiele für dieses Land gefunden.</div>
+            </div>`;
+            return;
+        }
+
         // Group by date for section headers
         function getDateKey(m) {
             const dt = m.date ? new Date(m.date) : null;
@@ -3681,7 +3840,7 @@
         }
 
         const grouped = new Map();
-        scheduleCatalog.forEach(m => {
+        filteredSchedule.forEach(m => {
             const key = getDateKey(m);
             if (!grouped.has(key)) grouped.set(key, []);
             grouped.get(key).push(m);
@@ -3693,7 +3852,6 @@
         let html = '';
 
         for (const [dateKey, matches] of grouped) {
-            // Section header
             let sectionLabel = '';
             if (dateKey === '_nodate') {
                 sectionLabel = 'Datum folgt';
@@ -3732,15 +3890,17 @@
                     centerHtml = `<div class="sc-time">${escapeHtml(timeLabel)}</div><div class="sc-vs">VS</div>`;
                 }
 
-                // Logos
-                const homeLogo = m.teamALogo
-                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamALogo)}" alt="${escapeHtml(m.teamA)}" loading="lazy" onerror="this.style.display='none'">`
+                // Team logos (flag from player data)
+                const homeFlagUrl = getNationFlag(m.teamA);
+                const awayFlagUrl = getNationFlag(m.teamB);
+                const homeLogo = (m.teamALogo || homeFlagUrl)
+                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamALogo || homeFlagUrl)}" alt="${escapeHtml(m.teamA)}" loading="lazy" onerror="this.style.display='none'">`
                     : `<span class="sc-team-logo-placeholder">🏳️</span>`;
-                const awayLogo = m.teamBLogo
-                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamBLogo)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
+                const awayLogo = (m.teamBLogo || awayFlagUrl)
+                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamBLogo || awayFlagUrl)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
                     : `<span class="sc-team-logo-placeholder">🏳️</span>`;
 
-                // Venue
+                // Venue text (no image)
                 const venueText = m.venue && m.venue !== 'Spielort folgt'
                     ? `${m.venue}${m.venueCity ? ' · ' + m.venueCity : ''}`
                     : '';
@@ -3748,30 +3908,36 @@
                 // Round label
                 const roundText = m.round ? m.round.replace(/Regular Season -\s*/i, '').replace(/Group Stage -\s*/i, 'Gruppe: ') : '';
 
-                // Venue image (only if available and valid)
-                const venueImg = m.venueImage
-                    ? `<img class="sc-venue-img" src="${escapeHtml(m.venueImage)}" alt="${escapeHtml(m.venue || '')}" loading="lazy" onerror="this.parentNode.style.display='none'">`
-                    : '';
+                // Drafted player avatars
+                const homeDrafted = getScheduleDraftedPlayers(m, m.teamA);
+                const awayDrafted = getScheduleDraftedPlayers(m, m.teamB);
+                const homeAvatars = renderScheduleAvatars(homeDrafted, false);
+                const awayAvatars = renderScheduleAvatars(awayDrafted, true);
 
                 html += `<div class="sc-card ${matchStatusCls}">
                     <div class="sc-card-inner">
                         <div class="sc-team sc-team-home">
-                            ${homeLogo}
-                            <span class="sc-team-name">${escapeHtml(m.teamA)}</span>
+                            <div class="sc-team-info">
+                                ${homeLogo}
+                                <span class="sc-team-name">${escapeHtml(m.teamA)}</span>
+                            </div>
+                            ${homeAvatars}
                         </div>
                         <div class="sc-center">
                             ${centerHtml}
                             ${roundText ? `<div class="sc-round">${escapeHtml(roundText)}</div>` : ''}
                         </div>
                         <div class="sc-team sc-team-away">
-                            <span class="sc-team-name">${escapeHtml(m.teamB)}</span>
-                            ${awayLogo}
+                            <div class="sc-team-info sc-team-info-away">
+                                <span class="sc-team-name">${escapeHtml(m.teamB)}</span>
+                                ${awayLogo}
+                            </div>
+                            ${awayAvatars}
                         </div>
                     </div>
-                    ${(venueText || venueImg) ? `
+                    ${venueText ? `
                     <div class="sc-meta">
-                        ${venueText ? `<span class="sc-venue">🏟️ ${escapeHtml(venueText)}</span>` : ''}
-                        ${venueImg ? `<div class="sc-venue-img-wrap">${venueImg}</div>` : ''}
+                        <span class="sc-venue">🏟️ ${escapeHtml(venueText)}</span>
                     </div>` : ''}
                 </div>`;
             });
@@ -3780,6 +3946,7 @@
         }
 
         el.innerHTML = html;
+        syncSidebarHeight();
     }
 
     /* =========================================================
@@ -3860,11 +4027,13 @@
         buildGamesCountryStats();
         buildMatchCatalog();
         buildScheduleCatalog(data);
+        buildScheduleNationList();
 
         const state = getStateFromUrl();
 
         currentView = state.view;
         currentGameNationFilter = state.gameNation || 'ALL';
+        currentScheduleNationFilter = state.scheduleNation || 'ALL';
         currentOpenGameNumber = state.openGame || null;
         currentGamesSort = state.gameSort || 'pts';
 
@@ -4003,6 +4172,26 @@
         currentGameNationFilter = 'ALL';
         currentOpenGameNumber = null;
         renderGamesView(); updateUrl(true);
+    });
+
+    document.getElementById('schedule-reset-filters').addEventListener('click', () => {
+        currentScheduleNationFilter = 'ALL';
+        renderScheduleView();
+        renderScheduleCountryList();
+        updateUrl(false);
+    });
+
+    document.getElementById('schedule-sort-name').addEventListener('click', () => {
+        scheduleNationList.sort((a, b) => a.localeCompare(b, 'de'));
+        document.getElementById('schedule-sort-name').classList.add('active');
+        document.getElementById('schedule-sort-az').classList.remove('active');
+        renderScheduleCountryList();
+    });
+
+    document.getElementById('schedule-sort-az').addEventListener('click', () => {
+        document.getElementById('schedule-sort-az').classList.add('active');
+        document.getElementById('schedule-sort-name').classList.remove('active');
+        renderScheduleCountryList();
     });
 
     document.getElementById('player-list').addEventListener('scroll', () => {
