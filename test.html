@@ -64,6 +64,17 @@
             text-align: center;
         }
 
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
         .gold-text {
             background: linear-gradient(135deg, var(--gold), #fbbf24, #e5a800);
             -webkit-background-clip: text;
@@ -83,7 +94,7 @@
             z-index: 2;
             width: min(88vw, 860px);
             height: min(66svh, 510px);
-            margin-top: clamp(8px, 2vh, 16px);
+            margin-top: 6px;
             perspective: 1100px;
             isolation: isolate;
             touch-action: pan-y;
@@ -96,7 +107,7 @@
         .carousel-label {
             position: relative;
             z-index: 2;
-            margin: clamp(10px, 2.2vh, 18px) 0 0;
+            margin: clamp(6px, 1.2vh, 12px) 0 0;
             font-size: clamp(1.2rem, 3.2vw, 1.9rem);
             font-weight: 800;
             letter-spacing: 0.02em;
@@ -288,10 +299,11 @@
         <span class="accent">DreamTeam</span>
     </h1>
 
-    <h2 class="carousel-label gold-text">Fan-Lieblinge</h2>
-
-    <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
-        <div class="track" id="track"></div>
+    <div class="hero-content">
+        <h2 class="carousel-label gold-text">Fan-Lieblinge</h2>
+        <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
+            <div class="track" id="track"></div>
+        </div>
     </div>
 </section>
 
