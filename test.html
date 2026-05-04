@@ -9,8 +9,8 @@
         :root {
             --dark-bg: #0d1117;
             --gold: #ffd700;
-            --card-w: clamp(178px, 36vw, 235px);
-            --card-h: clamp(252px, 51vw, 322px);
+            --card-w: clamp(125px, 25.2vw, 165px);
+            --card-h: clamp(176px, 35.7vw, 225px);
             --blur: 14px;
         }
 
@@ -109,10 +109,10 @@
             height: var(--card-h);
             border-radius: 20px;
             overflow: hidden;
-            padding: 12px;
+            padding: 9px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 7px;
             background:
                 linear-gradient(165deg, rgba(29,39,59,0.95) 0%, rgba(19,27,43,0.96) 65%, rgba(13,18,31,0.98) 100%),
                 radial-gradient(circle at 20% 0%, rgba(255,215,0,0.14), transparent 52%);
@@ -155,12 +155,12 @@
 
         .player-name {
             margin: 0;
-            font-size: clamp(1rem, 2.8vw, 1.12rem);
+            font-size: clamp(0.9rem, 2.3vw, 1rem);
             line-height: 1.16;
             font-weight: 800;
             color: #f8fbff;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -170,7 +170,7 @@
             align-items: center;
             gap: 7px;
             min-width: 0;
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             line-height: 1.2;
             color: rgba(230,237,243,0.84);
         }
@@ -183,20 +183,19 @@
         }
 
         .meta-icon {
-            width: 20px;
-            height: 20px;
-            flex: 0 0 20px;
+            width: 17px;
+            height: 17px;
+            flex: 0 0 17px;
             object-fit: contain;
-            border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.08);
-            padding: 1px;
+            border-radius: 0;
+            border: 0;
+            background: transparent;
+            padding: 0;
         }
 
         .flag-icon {
             object-fit: cover;
-            border-radius: 4px;
-            padding: 0;
+            border-radius: 0;
         }
 
         .drafts {
@@ -236,6 +235,31 @@
 
         @media (max-width: 560px) {
             .carousel { height: min(63svh, 420px); }
+            .player-card {
+                padding: 8px;
+                gap: 6px;
+            }
+            .player-info { gap: 4px; }
+            .player-name {
+                font-size: 0.82rem;
+                line-height: 1.2;
+                -webkit-line-clamp: 3;
+            }
+            .meta-row {
+                font-size: 0.64rem;
+                line-height: 1.15;
+                gap: 5px;
+            }
+            .meta-icon {
+                width: 14px;
+                height: 14px;
+                flex-basis: 14px;
+            }
+            .drafts {
+                font-size: 0.62rem;
+                padding: 4px 8px;
+                gap: 4px;
+            }
         }
     </style>
 </head>
@@ -349,7 +373,7 @@ const CLICK_VELOCITY_THRESHOLD = 0.012;
 
 function resizeCarousel() {
     const w = carousel.clientWidth;
-    cardGap = Math.max(128, Math.min(212, w * 0.26));
+    cardGap = Math.max(96, Math.min(156, w * 0.19));
 }
 
 function mod(a, n) { return ((a % n) + n) % n; }
