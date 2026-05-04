@@ -115,6 +115,46 @@
             color: #f8fbff;
             text-transform: uppercase;
         }
+        .carousel-view-switcher {
+            display: flex;
+            gap: 8px;
+            padding: 6px;
+            margin: 8px 0 10px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(18,35,26,0.9), rgba(13,22,17,0.92));
+            border: 1px solid rgba(134,239,172,0.26);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.35);
+            width: min(92vw, 820px);
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .carousel-view-switcher::-webkit-scrollbar { display: none; }
+        .carousel-view-button {
+            border: 0;
+            color: rgba(230,237,243,0.9);
+            background: transparent;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-weight: 800;
+            font-size: 0.82rem;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .carousel-view-button.is-active {
+            color: #06210f;
+            background: linear-gradient(135deg, #86efac, #22c55e);
+            box-shadow: 0 0 0 1px rgba(134,239,172,0.7), 0 8px 22px rgba(34,197,94,0.3);
+        }
+        .manager-card-players { position: relative; flex: 1; border-radius: 14px; background: rgba(255,255,255,0.03); }
+        .manager-card-player-main, .manager-card-player-corner { position: absolute; border-radius: 50%; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.35); background: #0f172a; }
+        .manager-card-player-main { width: 54%; aspect-ratio: 1/1; left: 23%; top: 23%; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .manager-card-player-corner { width: 28%; aspect-ratio: 1/1; }
+        .manager-card-player-corner.pos-1 { left: 5%; top: 5%; } .manager-card-player-corner.pos-2 { right: 5%; top: 5%; }
+        .manager-card-player-corner.pos-3 { left: 5%; bottom: 5%; } .manager-card-player-corner.pos-4 { right: 5%; bottom: 5%; }
+        .manager-card-player-main img, .manager-card-player-corner img { width:100%; height:100%; object-fit:cover; }
+        .captain-badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; background:#f97316; color:#fff; font-size:0.66rem; font-weight:900; display:grid; place-items:center; border:1px solid rgba(0,0,0,0.35); }
 
         .track {
             position: absolute;
@@ -838,6 +878,7 @@
 
     <div class="hero-content">
         <h2 class="carousel-label gold-text">Fan-Lieblinge</h2>
+        <div class="carousel-view-switcher" id="carouselViewSwitcher" aria-label="Karussell-Ansicht wählen"></div>
         <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
             <div class="track" id="track"></div>
         </div>
@@ -1004,6 +1045,16 @@
 
 const track = document.getElementById('track');
 const carousel = document.getElementById('carousel');
+const carouselLabel = document.querySelector('.carousel-label');
+const viewSwitcher = document.getElementById('carouselViewSwitcher');
+const CAROUSEL_VIEW_STORAGE_KEY = 'dreamteam_test_active_carousel_view';
+const CAROUSEL_VIEWS = { TOP_PLAYERS:'topPlayers', FAN_FAVORITES:'fanFavorites', CAPTAIN_WATCH:'captainWatch', MANAGER_RANKING:'managerRanking' };
+const VIEW_META = [
+    {id:CAROUSEL_VIEWS.TOP_PLAYERS,label:'Top Spieler'},
+    {id:CAROUSEL_VIEWS.FAN_FAVORITES,label:'Fan-Lieblinge'},
+    {id:CAROUSEL_VIEWS.CAPTAIN_WATCH,label:'Captain Watch'},
+    {id:CAROUSEL_VIEWS.MANAGER_RANKING,label:'Managerrangliste'}
+];
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -1035,6 +1086,11 @@ function parseTeamsFromStorage() {
     return candidates.sort((a, b) => b.length - a.length)[0] || [];
 }
 
+function getPlayerTotalPoints(player) {
+    return Number(player?.totalPoints ?? player?.points ?? player?.punkte ?? player?.score ?? player?.['Punkte'] ?? 0) || 0;
+}
+function getPlayerImage(player){ return player?.photo || player?.image || player?.playerPhoto || player?.avatar || player?.Spielerfoto || ''; }
+function getManagerName(team){ return team?.manager || team?.managerName || team?.name || 'Unbekannt'; }
 function buildTopDraftedPlayers(limit = 15) {
     const playersById = new Map((Array.isArray(playersData) ? playersData : []).map((p) => [String(p['player.id']), p]));
     const pickCounts = new Map();
@@ -1053,14 +1109,32 @@ function buildTopDraftedPlayers(limit = 15) {
         .sort((a, b) => b.drafts - a.drafts)
         .slice(0, limit);
 }
-
-const players = buildTopDraftedPlayers();
-
-if (!players.length) {
-    track.innerHTML = '<article class="player-card"><h3>Noch keine Draft-Daten gefunden</h3><p class="meta">Bitte zuerst Teams erstellen bzw. synchronisieren.</p></article>';
+function getEnrichedTeamPlayers(team, playersById) {
+    return (team?.players || []).map((p) => {
+        const id = String(p?.playerId || p?.id || '');
+        const full = playersById.get(id);
+        const points = getPlayerTotalPoints(p) || getPlayerTotalPoints(full);
+        return { id, isCaptain: !!(p?.isCaptain || p?.captain), points, full: full || {} };
+    });
 }
-
-const cards = players.map((p) => {
+function buildTopPlayersItems(limit = 15) {
+    const playersById = new Map((playersData || []).map((p) => [String(p['player.id']), p]));
+    return Array.from(playersById.values()).map((p) => ({...normalizePlayer(p), points:getPlayerTotalPoints(p)})).sort((a,b)=>b.points-a.points).slice(0,limit).map((p)=>({...p,bottomText:`${p.points} ${p.points===1?'Punkt':'Punkte'}`}));
+}
+function buildFanFavoriteItems(limit=15){ return buildTopDraftedPlayers(limit).map((p)=>({...p,bottomText:`${p.drafts.toLocaleString('de-DE')}x gedraftet`})); }
+function buildCaptainWatchItems(limit=15){
+    const teams = parseTeamsFromStorage(); const playersById = new Map((playersData || []).map((p)=>[String(p['player.id']),p])); const counts = new Map();
+    teams.forEach((t)=>getEnrichedTeamPlayers(t, playersById).forEach((p)=>{ if (!p.isCaptain || !playersById.has(p.id)) return; const x = counts.get(p.id)||{count:0,points:getPlayerTotalPoints(playersById.get(p.id))}; x.count++; counts.set(p.id,x); }));
+    return Array.from(counts.entries()).map(([id,v])=>({...normalizePlayer(playersById.get(id)), captainCount:v.count, points:v.points, bottomText:`${v.count}x Captain · ${v.points} ${v.points===1?'Punkt':'Punkte'}`})).sort((a,b)=>b.captainCount-a.captainCount||b.points-a.points).slice(0,limit);
+}
+function buildManagerRankingItems(limit=15){
+    const teams = parseTeamsFromStorage(); const playersById = new Map((playersData || []).map((p)=>[String(p['player.id']),p]));
+    return teams.map((t)=>{ const p=getEnrichedTeamPlayers(t,playersById).sort((a,b)=>b.points-a.points); return { manager:getManagerName(t), totalPoints:Number(t?.totalPoints ?? t?.points ?? t?.punkte ?? t?.score ?? p.reduce((s,x)=>s+x.points,0))||0, top:p.slice(0,5)}; })
+        .sort((a,b)=>b.totalPoints-a.totalPoints||a.manager.localeCompare(b.manager,'de')).slice(0,limit).map((t,i)=>({...t, rank:i+1}));
+}
+let players = [];
+let cards = [];
+function renderPlayerCard(p) {
     const el = document.createElement('article');
     el.className = 'player-card';
     el.dataset.playerName = p.name;
@@ -1073,12 +1147,33 @@ const cards = players.map((p) => {
             <h3 class="player-name">${escapeHtml(p.name)}</h3>
             <div class="meta-row"><img class="meta-icon flag-icon" loading="lazy" src="${escapeHtml(p.countryFlag)}" alt="Flagge ${escapeHtml(p.country)}"><span>${escapeHtml(p.country)}</span></div>
             <div class="meta-row"><img class="meta-icon club-icon" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}"><span>${escapeHtml(p.club)}</span></div>
-            <div class="drafts"><span>👥</span><strong>${p.drafts.toLocaleString('de-DE')}x</strong><span>gedraftet</span></div>
+            <div class="drafts"><span>👥</span><strong>${escapeHtml(p.bottomText || '')}</strong></div>
         </div>
     `;
-    track.appendChild(el);
     return el;
-});
+}
+function renderManagerCard(item){
+    const el = document.createElement('article'); el.className='player-card manager-carousel-card'; el.dataset.managerName=item.manager;
+    const slots = item.top.map((p,idx)=>{ const pos=idx===0?'manager-card-player-main':'manager-card-player-corner pos-'+idx; const n=escapeHtml(p.full?.Spielername||'Spieler'); const img=escapeHtml(getPlayerImage(p.full)); const badge=p.isCaptain?'<span class="captain-badge">C</span>':''; return `<div class="${pos}"><img loading="lazy" src="${img}" alt="${n}">${badge}</div>`; }).join('');
+    el.innerHTML = `<div class="manager-card-players">${slots}</div><div class="player-info manager-card-footer"><h3 class="player-name">#${item.rank} ${escapeHtml(item.manager)}</h3><div class="drafts"><strong>${item.totalPoints} Punkte</strong></div></div>`;
+    return el;
+}
+function renderCarouselItems(items, view){
+    track.innerHTML=''; players = items; cards = [];
+    if (!items.length) { const msg = view===CAROUSEL_VIEWS.CAPTAIN_WATCH?'Noch keine Captain-Daten verfügbar':view===CAROUSEL_VIEWS.TOP_PLAYERS?'Noch keine Spielerpunkte verfügbar':view===CAROUSEL_VIEWS.MANAGER_RANKING?'Noch keine Managerdaten verfügbar':'Noch keine Draft-Daten gefunden'; track.innerHTML = `<article class="player-card"><h3>${msg}</h3></article>`; return; }
+    cards = items.map((it)=> view===CAROUSEL_VIEWS.MANAGER_RANKING ? renderManagerCard(it) : renderPlayerCard(it)); cards.forEach((c)=>track.appendChild(c));
+    state.pos = 0; state.vel = 0; fitPlayerNames(); render();
+}
+function getActiveCarouselView(){ const saved = localStorage.getItem(CAROUSEL_VIEW_STORAGE_KEY); return VIEW_META.some((v)=>v.id===saved)?saved:CAROUSEL_VIEWS.FAN_FAVORITES; }
+function setActiveCarouselView(view){ localStorage.setItem(CAROUSEL_VIEW_STORAGE_KEY, view); initView(view); }
+function renderCarouselViewSwitcher(activeView){ viewSwitcher.innerHTML=''; VIEW_META.forEach((v)=>{ const b=document.createElement('button'); b.type='button'; b.className='carousel-view-button'+(v.id===activeView?' is-active':''); b.textContent=v.label; b.addEventListener('click',()=>setActiveCarouselView(v.id)); viewSwitcher.appendChild(b); }); }
+function initView(view){
+    renderCarouselViewSwitcher(view); const label = VIEW_META.find((v)=>v.id===view)?.label || 'Fan-Lieblinge'; carouselLabel.textContent = label;
+    if (view===CAROUSEL_VIEWS.TOP_PLAYERS) renderCarouselItems(buildTopPlayersItems(), view);
+    else if (view===CAROUSEL_VIEWS.CAPTAIN_WATCH) renderCarouselItems(buildCaptainWatchItems(), view);
+    else if (view===CAROUSEL_VIEWS.MANAGER_RANKING) renderCarouselItems(buildManagerRankingItems(), view);
+    else renderCarouselItems(buildFanFavoriteItems(), view);
+}
 
 function fitPlayerNames() {
     document.querySelectorAll('.player-name').forEach((nameEl) => {
@@ -1168,8 +1263,8 @@ function tick() {
         }
     }
 
-    if (state.pos >= players.length) state.pos -= players.length;
-    if (state.pos < 0) state.pos += players.length;
+    if (players.length && state.pos >= players.length) state.pos -= players.length;
+    if (players.length && state.pos < 0) state.pos += players.length;
 
     render();
     raf = requestAnimationFrame(tick);
@@ -1206,10 +1301,10 @@ function pointerMove(clientX, clientY) {
 
 function pointerUp(event) {
     if (state.drag && state.downCard && !state.moved && Math.abs(state.vel) < CLICK_VELOCITY_THRESHOLD) {
+        const managerName = state.downCard.dataset.managerName || '';
+        if (managerName) window.location.href = `teams.html?manager=${encodeURIComponent(managerName)}`;
         const playerName = state.downCard.dataset.playerName || '';
-        if (playerName) {
-            window.location.href = `spieleranalyse.html?player=${encodeURIComponent(playerName)}`;
-        }
+        if (!managerName && playerName) window.location.href = `spieleranalyse.html?player=${encodeURIComponent(playerName)}`;
     }
     state.drag = false;
     state.moved = false;
@@ -1236,11 +1331,8 @@ window.addEventListener('resize', () => {
     fitPlayerNames();
 }, {passive: true});
 resizeCarousel();
-fitPlayerNames();
-if (cards.length) {
-    render();
-    tick();
-}
+initView(getActiveCarouselView());
+if (!raf) tick();
 </script>
 </body>
 </html>
