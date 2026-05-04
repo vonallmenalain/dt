@@ -9,16 +9,20 @@
         :root {
             --dark-bg: #0d1117;
             --gold: #ffd700;
+            --card-w: clamp(180px, 42vw, 260px);
+            --card-h: clamp(250px, 54vw, 340px);
+            --overlap: clamp(72px, 14vw, 118px);
+            --max-tilt: 17deg;
+            --dur: 420ms;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             background: var(--dark-bg);
             color: #e6edf3;
             min-height: 100svh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
             overflow: hidden;
         }
@@ -27,13 +31,14 @@
             position: relative;
             min-height: 100svh;
             width: 100%;
-            display: flex;
+            display: grid;
+            grid-template-rows: auto 1fr;
             align-items: center;
-            justify-content: center;
+            justify-items: center;
             text-align: center;
-            padding: 24px;
-            box-sizing: border-box;
+            padding: 24px 10px 18px;
             overflow: hidden;
+            touch-action: pan-y;
         }
 
         .hero::before {
@@ -52,10 +57,10 @@
         .hero-title {
             position: relative;
             z-index: 1;
-            font-size: clamp(2.2rem, 6vw, 4rem);
+            font-size: clamp(2rem, 6vw, 3.8rem);
             font-weight: 900;
             line-height: 1.1;
-            margin: 0;
+            margin: 0 0 clamp(14px, 2.2vh, 28px);
             letter-spacing: -1px;
         }
 
@@ -72,6 +77,106 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        .carousel-wrap {
+            position: relative;
+            z-index: 2;
+            width: min(100%, 900px);
+            height: clamp(340px, 64vh, 500px);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+            -webkit-user-select: none;
+            user-select: none;
+            cursor: grab;
+        }
+
+        .carousel-wrap.dragging { cursor: grabbing; }
+
+        .player-card {
+            position: absolute;
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: 18px;
+            overflow: hidden;
+            background: linear-gradient(160deg, rgba(13, 22, 35, 0.95), rgba(10, 14, 22, 0.92));
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45);
+            transition: transform var(--dur) cubic-bezier(.2,.85,.2,1), opacity var(--dur) ease;
+            will-change: transform, opacity;
+            display: grid;
+            grid-template-rows: 62% auto;
+            backface-visibility: hidden;
+        }
+
+        .player-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(1.07) contrast(1.04);
+        }
+
+        .player-info {
+            padding: 12px 13px 14px;
+            display: grid;
+            gap: 5px;
+            text-align: left;
+        }
+
+        .player-name {
+            margin: 0;
+            font-size: clamp(0.95rem, 2.1vw, 1.1rem);
+            line-height: 1.15;
+            font-weight: 800;
+            color: #f8fbff;
+        }
+
+        .meta {
+            margin: 0;
+            font-size: clamp(0.78rem, 1.8vw, 0.9rem);
+            color: #afbdcc;
+        }
+
+        .drafts {
+            margin-top: 2px;
+            color: #ffe37a;
+            font-size: clamp(0.8rem, 2vw, 0.94rem);
+            font-weight: 700;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            min-width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(8, 16, 24, 0.8);
+            border: 1px solid rgba(255,255,255,0.18);
+            backdrop-filter: blur(5px);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.82rem;
+            color: rgba(230, 237, 243, 0.68);
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 560px) {
+            .hero { padding-inline: 6px; }
+            .hint { font-size: 0.72rem; }
+        }
     </style>
 </head>
 <body>
@@ -80,6 +185,136 @@
         <span class="gold-text">EM 2024</span><br>
         <span class="accent">DreamTeam</span>
     </h1>
+
+    <div class="carousel-wrap" id="carousel" aria-label="Karussell der meistgedrafteten Spieler"></div>
+    <p class="hint">Wische oder ziehe horizontal für das Endloskarussell.</p>
 </section>
+
+<script>
+(() => {
+    const players = [
+        { name: "Kylian Mbappé", country: "Frankreich", club: "Real Madrid", drafts: 18420, photo: "https://images.unsplash.com/photo-1521417531039-8f7b4f5f6c34?auto=format&fit=crop&w=600&q=80" },
+        { name: "Jude Bellingham", country: "England", club: "Real Madrid", drafts: 17690, photo: "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&w=600&q=80" },
+        { name: "Kevin De Bruyne", country: "Belgien", club: "Manchester City", drafts: 16980, photo: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=600&q=80" },
+        { name: "Harry Kane", country: "England", club: "Bayern München", drafts: 16340, photo: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=600&q=80" },
+        { name: "Florian Wirtz", country: "Deutschland", club: "Bayer Leverkusen", drafts: 15810, photo: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=600&q=80" },
+        { name: "Luka Modrić", country: "Kroatien", club: "Real Madrid", drafts: 15190, photo: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=600&q=80" },
+        { name: "Jamal Musiala", country: "Deutschland", club: "Bayern München", drafts: 14970, photo: "https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=600&q=80" },
+        { name: "Bruno Fernandes", country: "Portugal", club: "Manchester United", drafts: 14580, photo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=600&q=80" },
+        { name: "Pedri", country: "Spanien", club: "FC Barcelona", drafts: 14120, photo: "https://images.unsplash.com/photo-1519861531473-9200262188bf?auto=format&fit=crop&w=600&q=80" },
+        { name: "Bernardo Silva", country: "Portugal", club: "Manchester City", drafts: 13830, photo: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=600&q=80" },
+        { name: "Virgil van Dijk", country: "Niederlande", club: "Liverpool", drafts: 13210, photo: "https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&w=600&q=80" },
+        { name: "Rodri", country: "Spanien", club: "Manchester City", drafts: 12740, photo: "https://images.unsplash.com/photo-1471295253337-3ceaaedca402?auto=format&fit=crop&w=600&q=80" },
+        { name: "Bukayo Saka", country: "England", club: "Arsenal", drafts: 12200, photo: "https://images.unsplash.com/photo-1496354265829-17b1c7b7b63f?auto=format&fit=crop&w=600&q=80" },
+        { name: "Nico Williams", country: "Spanien", club: "Athletic Club", drafts: 11650, photo: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80" },
+        { name: "Kai Havertz", country: "Deutschland", club: "Arsenal", drafts: 11180, photo: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=600&q=80" }
+    ];
+
+    const wrap = document.getElementById('carousel');
+    const total = players.length;
+    let focus = 0;
+    let dragStartX = 0;
+    let dragCurrentX = 0;
+    let isDragging = false;
+
+    players.forEach((p, i) => {
+        const card = document.createElement('article');
+        card.className = 'player-card';
+        card.innerHTML = `
+            <img class="player-photo" src="${p.photo}" alt="${p.name}">
+            <div class="rank-badge">#${i + 1}</div>
+            <div class="player-info">
+                <h3 class="player-name">${p.name}</h3>
+                <p class="meta">${p.country} · ${p.club}</p>
+                <div class="drafts">${p.drafts.toLocaleString('de-DE')} Drafts</div>
+            </div>
+        `;
+        wrap.appendChild(card);
+    });
+
+    const cards = [...wrap.children];
+
+    const mod = (n, m) => ((n % m) + m) % m;
+
+    function shortestDelta(index, center) {
+        let d = index - center;
+        if (d > total / 2) d -= total;
+        if (d < -total / 2) d += total;
+        return d;
+    }
+
+    function render(offset = 0) {
+        cards.forEach((card, i) => {
+            const rel = shortestDelta(i, focus - offset);
+            const abs = Math.abs(rel);
+            const closeness = Math.max(0, 1 - abs / 5.2);
+            const x = rel * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--overlap'));
+            const scale = 0.68 + closeness * 0.38;
+            const rotateY = rel * -parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--max-tilt'));
+            const translateY = abs * 16;
+            const opacity = Math.max(0, 1 - abs * 0.19);
+
+            card.style.opacity = opacity.toFixed(3);
+            card.style.zIndex = String(1000 - Math.round(abs * 100));
+            card.style.transform = `translate3d(${x}px, ${translateY}px, 0) scale(${scale}) rotateY(${rotateY}deg)`;
+            card.style.pointerEvents = abs < 4 ? 'auto' : 'none';
+        });
+    }
+
+    function commitDrag(deltaX) {
+        const threshold = Math.max(35, wrap.clientWidth * 0.08);
+        if (Math.abs(deltaX) > threshold) {
+            focus = mod(focus + (deltaX < 0 ? 1 : -1), total);
+        }
+        render(0);
+    }
+
+    function onStart(x) {
+        isDragging = true;
+        dragStartX = x;
+        dragCurrentX = x;
+        wrap.classList.add('dragging');
+        cards.forEach(c => c.style.transition = 'none');
+    }
+
+    function onMove(x) {
+        if (!isDragging) return;
+        dragCurrentX = x;
+        const delta = dragCurrentX - dragStartX;
+        const offset = delta / Math.max(120, wrap.clientWidth * 0.23);
+        render(offset);
+    }
+
+    function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        wrap.classList.remove('dragging');
+        cards.forEach(c => c.style.transition = 'transform var(--dur) cubic-bezier(.2,.85,.2,1), opacity var(--dur) ease');
+        commitDrag(dragCurrentX - dragStartX);
+    }
+
+    wrap.addEventListener('pointerdown', (e) => {
+        wrap.setPointerCapture(e.pointerId);
+        onStart(e.clientX);
+    }, { passive: true });
+
+    wrap.addEventListener('pointermove', (e) => onMove(e.clientX), { passive: true });
+    wrap.addEventListener('pointerup', onEnd);
+    wrap.addEventListener('pointercancel', onEnd);
+    wrap.addEventListener('lostpointercapture', onEnd);
+
+    wrap.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaX) < Math.abs(e.deltaY) && Math.abs(e.deltaY) < 12) return;
+        e.preventDefault();
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        focus = mod(focus + (delta > 0 ? 1 : -1), total);
+        render();
+    }, { passive: false });
+
+    window.addEventListener('resize', () => render());
+
+    render();
+})();
+</script>
 </body>
 </html>
