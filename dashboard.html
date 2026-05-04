@@ -134,7 +134,7 @@
             flex-direction: column;
             align-items: center;
             position: relative;
-            border: 1px solid #eee;
+            border: none;
             box-sizing: border-box;
             justify-content: flex-start;
             padding-top: 15px;
@@ -187,7 +187,7 @@
             border-radius: 8px;
             overflow: hidden;
             background: #f8f9fa;
-            border: 1px solid #eee;
+            border: none;
             margin-bottom: 10px;
             transform: translateZ(20px);
             transition: transform 0.3s ease;
@@ -199,6 +199,8 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+            object-position: center;
+            display: block;
             transition: transform 0.3s ease;
         }
 
@@ -218,8 +220,11 @@
         .card-name {
             font-weight: bold;
             font-size: 13px;
-            line-height: 1.2;
-            min-height: 32px;
+            line-height: 1.25;
+            min-height: 36px;
+            padding: 0 4px;
+            box-sizing: border-box;
+            overflow-wrap: anywhere;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1221,9 +1226,12 @@
 
             .team-board .card-name {
                 font-size: 11px;
-                min-height: 26px;
+                min-height: 30px;
                 margin-bottom: 3px;
-                line-height: 1.1;
+                line-height: 1.2;
+                padding: 0 3px;
+                box-sizing: border-box;
+                overflow-wrap: anywhere;
             }
 
             .team-board .card-sub-info {
@@ -1280,7 +1288,7 @@
 
             #draft-top-picks .fan-podium .card-wrapper { width: 100%; height: 180px; }
             #draft-top-picks .fan-podium .avatar-wrapper { width: 50px; height: 50px; margin-top: 30px; margin-bottom: 5px; }
-            #draft-top-picks .fan-podium .card-name { font-size: 10px; min-height: 24px; margin-bottom: 2px; line-height: 1.1; }
+            #draft-top-picks .fan-podium .card-name { font-size: 10px; min-height: 28px; margin-bottom: 2px; line-height: 1.2; padding: 0 3px; box-sizing: border-box; overflow-wrap: anywhere; }
             #draft-top-picks .fan-podium .card-sub-info { font-size: 9px; padding: 2px; margin-bottom: 2px; width: 95%; }
             #draft-top-picks .fan-podium .small-icon { width: 14px; height: 10px; }
             #draft-top-picks .fan-podium .club { width: 12px; height: 12px; }
@@ -1295,7 +1303,7 @@
 
             .fan-rest .card-wrapper { width: 100%; height: 210px; }
             .fan-rest .avatar-wrapper { width: 60px; height: 60px; margin-bottom: 8px; }
-            .fan-rest .card-name { font-size: 11px; min-height: 26px; margin-bottom: 4px; }
+            .fan-rest .card-name { font-size: 11px; min-height: 30px; margin-bottom: 4px; line-height: 1.2; padding: 0 3px; box-sizing: border-box; overflow-wrap: anywhere; }
 
             .h2h-controls {
                 grid-template-columns: 1fr;
@@ -1319,9 +1327,12 @@
 
             .h2h-card-list .card-name {
                 font-size: 11px;
-                min-height: 26px;
+                min-height: 30px;
                 margin-bottom: 3px;
-                line-height: 1.1;
+                line-height: 1.2;
+                padding: 0 3px;
+                box-sizing: border-box;
+                overflow-wrap: anywhere;
             }
 
             .h2h-card-list .card-sub-info {
