@@ -159,17 +159,6 @@
             background: rgba(255,255,255,0.08);
         }
 
-        .draft-btn {
-            margin-top: 10px;
-            width: 100%;
-            border: 1px solid rgba(34,197,94,0.55);
-            background: linear-gradient(135deg, rgba(34,197,94,0.32), rgba(16,185,129,0.18));
-            color: #d9ffe7;
-            border-radius: 10px;
-            padding: 8px 10px;
-            font-weight: 700;
-            cursor: pointer;
-        }
 
         .drafts {
             margin-top: 8px;
@@ -213,42 +202,80 @@
     </div>
 </section>
 
+<script src="data.js"></script>
 <script>
-const players = [
-    {name: 'Cristiano Ronaldo', country: 'Portugal', countryFlag: 'https://media.api-sports.io/football/teams/27.png', club: 'Al Nassr', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 7142, img: 'https://media.api-sports.io/football/players/874.png'},
-    {name: 'Kylian Mbappé', country: 'France', countryFlag: 'https://media.api-sports.io/football/teams/2.png', club: 'Real Madrid', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 6983, img: 'https://media.api-sports.io/football/players/278.png'},
-    {name: 'Jamal Musiala', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Bayern München', clubLogo: 'https://media.api-sports.io/football/teams/157.png', drafts: 6820, img: 'https://media.api-sports.io/football/players/145272.png'},
-    {name: 'Jude Bellingham', country: 'England', countryFlag: 'https://media.api-sports.io/football/teams/10.png', club: 'Real Madrid', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 6618, img: 'https://media.api-sports.io/football/players/2937.png'},
-    {name: 'Florian Wirtz', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Bayer 04 Leverkusen', clubLogo: 'https://media.api-sports.io/football/teams/168.png', drafts: 6464, img: 'https://media.api-sports.io/football/players/284529.png'},
-    {name: 'Phil Foden', country: 'England', countryFlag: 'https://media.api-sports.io/football/teams/10.png', club: 'Manchester City', clubLogo: 'https://media.api-sports.io/football/teams/50.png', drafts: 6227, img: 'https://media.api-sports.io/football/players/978.png'},
-    {name: 'Toni Kroos', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Real Madrid', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 6095, img: 'https://media.api-sports.io/football/players/190.png'},
-    {name: 'Rodri', country: 'Spain', countryFlag: 'https://media.api-sports.io/football/teams/9.png', club: 'Manchester City', clubLogo: 'https://media.api-sports.io/football/teams/50.png', drafts: 5880, img: 'https://media.api-sports.io/football/players/546.png'},
-    {name: 'Rafael Leão', country: 'Portugal', countryFlag: 'https://media.api-sports.io/football/teams/27.png', club: 'AC Milan', clubLogo: 'https://media.api-sports.io/football/teams/489.png', drafts: 5724, img: 'https://media.api-sports.io/football/players/1614.png'},
-    {name: 'Kevin De Bruyne', country: 'Belgium', countryFlag: 'https://media.api-sports.io/football/teams/1.png', club: 'Manchester City', clubLogo: 'https://media.api-sports.io/football/teams/50.png', drafts: 5609, img: 'https://media.api-sports.io/football/players/629.png'},
-    {name: 'Pedri', country: 'Spain', countryFlag: 'https://media.api-sports.io/football/teams/9.png', club: 'FC Barcelona', clubLogo: 'https://media.api-sports.io/football/teams/529.png', drafts: 5463, img: 'https://media.api-sports.io/football/players/284513.png'},
-    {name: 'Kai Havertz', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Arsenal', clubLogo: 'https://media.api-sports.io/football/teams/42.png', drafts: 5314, img: 'https://media.api-sports.io/football/players/1218.png'},
-    {name: 'Virgil van Dijk', country: 'Netherlands', countryFlag: 'https://media.api-sports.io/football/teams/1118.png', club: 'Liverpool', clubLogo: 'https://media.api-sports.io/football/teams/40.png', drafts: 5217, img: 'https://media.api-sports.io/football/players/549.png'},
-    {name: 'Álvaro Morata', country: 'Spain', countryFlag: 'https://media.api-sports.io/football/teams/9.png', club: 'Atlético Madrid', clubLogo: 'https://media.api-sports.io/football/teams/530.png', drafts: 5108, img: 'https://media.api-sports.io/football/players/765.png'},
-    {name: 'Niclas Füllkrug', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Borussia Dortmund', clubLogo: 'https://media.api-sports.io/football/teams/165.png', drafts: 4985, img: 'https://media.api-sports.io/football/players/2907.png'}
-];
 
 const track = document.getElementById('track');
 const carousel = document.getElementById('carousel');
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function normalizePlayer(raw) {
+    return {
+        id: String(raw['player.id']),
+        name: raw.Spielername,
+        country: raw['Nationalteam.name'] || '',
+        countryFlag: raw['Nationalteam.logo'] || '',
+        club: raw['Club.name'] || '',
+        clubLogo: raw['Club.logo'] || '',
+        img: raw.Spielerfoto || ''
+    };
+}
+
+function parseTeamsFromStorage() {
+    const candidates = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || !key.endsWith('_teams')) continue;
+        try {
+            const parsed = JSON.parse(localStorage.getItem(key));
+            const teams = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.data) ? parsed.data : null);
+            if (Array.isArray(teams) && teams.length) candidates.push(teams);
+        } catch (_) {}
+    }
+    return candidates.sort((a, b) => b.length - a.length)[0] || [];
+}
+
+function buildTopDraftedPlayers(limit = 15) {
+    const playersById = new Map((Array.isArray(playersData) ? playersData : []).map((p) => [String(p['player.id']), p]));
+    const pickCounts = new Map();
+    const teams = parseTeamsFromStorage();
+
+    teams.forEach((team) => {
+        (team?.players || []).forEach((player) => {
+            const id = String(player?.playerId || '');
+            if (!id || !playersById.has(id)) return;
+            pickCounts.set(id, (pickCounts.get(id) || 0) + 1);
+        });
+    });
+
+    return Array.from(pickCounts.entries())
+        .map(([id, drafts]) => ({ ...normalizePlayer(playersById.get(id)), drafts }))
+        .sort((a, b) => b.drafts - a.drafts)
+        .slice(0, limit);
+}
+
+const players = buildTopDraftedPlayers();
+
+if (!players.length) {
+    track.innerHTML = '<article class="player-card"><h3>Noch keine Draft-Daten gefunden</h3><p class="meta">Bitte zuerst Teams erstellen bzw. synchronisieren.</p></article>';
+}
+
 const cards = players.map((p) => {
     const el = document.createElement('article');
     el.className = 'player-card';
     el.innerHTML = `
-        <img loading="lazy" src="${p.img}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <div class="meta-row"><img class="meta-icon" loading="lazy" src="${p.countryFlag}" alt="${p.country}"><span>${p.country}</span></div>
-        <div class="meta-row"><img class="meta-icon" loading="lazy" src="${p.clubLogo}" alt="${p.club}"><span>${p.club}</span></div>
-        <button class="draft-btn" type="button">Draft</button>
-        <div class="drafts">⚡ ${p.drafts.toLocaleString('de-DE')}x von Managern gewählt</div>
+        <img loading="lazy" src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}">
+        <h3>${escapeHtml(p.name)}</h3>
+        <div class="meta-row"><img class="meta-icon" loading="lazy" src="${escapeHtml(p.countryFlag)}" alt="${escapeHtml(p.country)}"><span>${escapeHtml(p.country)}</span></div>
+        <div class="meta-row"><img class="meta-icon" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="${escapeHtml(p.club)}"><span>${escapeHtml(p.club)}</span></div>
+        <div class="drafts">⚡ ${p.drafts.toLocaleString('de-DE')}x gewählt</div>
     `;
     track.appendChild(el);
     return el;
 });
-
 const state = {pos: 0, vel: 0, drag: false, lastX: 0, lastT: 0};
 let cardGap = 168;
 let raf = null;
@@ -262,6 +289,7 @@ function mod(a, n) { return ((a % n) + n) % n; }
 
 function render() {
     const n = cards.length;
+    if (!n) return;
     for (let i = 0; i < n; i++) {
         let delta = i - state.pos;
         delta = mod(delta + n / 2, n) - n / 2;
@@ -288,6 +316,8 @@ function render() {
 }
 
 function tick() {
+    if (!cards.length) return;
+
     if (!state.drag) {
         state.pos += state.vel;
         state.vel *= 0.92;
@@ -345,8 +375,10 @@ carousel.addEventListener('wheel', (e) => {
 
 window.addEventListener('resize', resizeCarousel, {passive: true});
 resizeCarousel();
-render();
-tick();
+if (cards.length) {
+    render();
+    tick();
+}
 </script>
 </body>
 </html>
