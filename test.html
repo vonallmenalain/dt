@@ -2,13 +2,21 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>DreamTeam - Testseite</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         :root {
             --dark-bg: #0d1117;
             --gold: #ffd700;
+            --card-w: clamp(178px, 36vw, 235px);
+            --card-h: clamp(252px, 51vw, 322px);
+            --blur: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -16,9 +24,6 @@
             background: var(--dark-bg);
             color: #e6edf3;
             min-height: 100svh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
             overflow: hidden;
         }
@@ -27,13 +32,12 @@
             position: relative;
             min-height: 100svh;
             width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 24px;
-            box-sizing: border-box;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            justify-items: center;
+            padding: max(16px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
             overflow: hidden;
+            touch-action: pan-y;
         }
 
         .hero::before {
@@ -43,20 +47,21 @@
             background:
                 radial-gradient(ellipse 90% 70% at 50% 110%, rgba(40,167,69,0.45) 0%, transparent 65%),
                 radial-gradient(ellipse 70% 50% at 50% 80%, rgba(40,167,69,0.25) 0%, transparent 55%),
-                radial-gradient(ellipse 60% 40% at 20% 0%, rgba(255,215,0,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 20% 0%, rgba(255,215,0,0.08) 0%, transparent 50%),
                 radial-gradient(ellipse 60% 40% at 80% 0%, rgba(40,167,69,0.18) 0%, transparent 50%),
-                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, #0d1f10 100%);
+                linear-gradient(180deg, #050a0e 0%, #0d1117 32%, #0d1f10 100%);
             z-index: 0;
         }
 
         .hero-title {
             position: relative;
-            z-index: 1;
-            font-size: clamp(2.2rem, 6vw, 4rem);
+            z-index: 2;
+            font-size: clamp(2.15rem, 5.6vw, 3.8rem);
             font-weight: 900;
-            line-height: 1.1;
-            margin: 0;
+            line-height: 1.05;
+            margin: 10px 0 0;
             letter-spacing: -1px;
+            text-align: center;
         }
 
         .gold-text {
@@ -72,6 +77,99 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        .carousel {
+            position: relative;
+            z-index: 2;
+            width: min(100%, 940px);
+            height: min(66svh, 510px);
+            margin-top: clamp(12px, 3vh, 22px);
+            perspective: 1100px;
+            isolation: isolate;
+            touch-action: pan-y;
+            user-select: none;
+            cursor: grab;
+        }
+
+        .carousel:active { cursor: grabbing; }
+
+        .track {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        .player-card {
+            position: absolute;
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: 20px;
+            overflow: hidden;
+            padding: 12px;
+            background:
+                linear-gradient(165deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 32%, rgba(7,13,20,0.85) 100%),
+                radial-gradient(circle at 20% 0%, rgba(255,215,0,0.2), transparent 50%);
+            border: 1px solid rgba(255,255,255,0.22);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(var(--blur));
+            transition: box-shadow 0.25s ease;
+            will-change: transform, opacity, filter;
+        }
+
+        .player-card img {
+            width: 100%;
+            height: 58%;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.18);
+            pointer-events: none;
+        }
+
+        .player-card h3 {
+            margin: 10px 0 3px;
+            font-size: clamp(1rem, 2.8vw, 1.12rem);
+        }
+
+        .meta {
+            margin: 0;
+            color: rgba(230,237,243,0.78);
+            font-size: 0.86rem;
+            line-height: 1.35;
+        }
+
+        .drafts {
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffe278;
+            border: 1px solid rgba(255,215,0,0.38);
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.68;
+            font-size: 0.78rem;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 560px) {
+            .carousel { height: min(63svh, 420px); }
+            .hint { bottom: 2px; }
+        }
     </style>
 </head>
 <body>
@@ -80,6 +178,145 @@
         <span class="gold-text">EM 2024</span><br>
         <span class="accent">DreamTeam</span>
     </h1>
+
+    <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
+        <div class="track" id="track"></div>
+        <div class="hint">Wische oder ziehe horizontal • Endlos</div>
+    </div>
 </section>
+
+<script>
+const players = [
+    {name: 'Kylian Mbappé', country: 'Frankreich', club: 'Real Madrid', drafts: 7142, img: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Jamal Musiala', country: 'Deutschland', club: 'Bayern München', drafts: 6983, img: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Jude Bellingham', country: 'England', club: 'Real Madrid', drafts: 6820, img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Florian Wirtz', country: 'Deutschland', club: 'Bayer 04 Leverkusen', drafts: 6618, img: 'https://images.unsplash.com/photo-1598881034666-09b65709f95d?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Phil Foden', country: 'England', club: 'Manchester City', drafts: 6464, img: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Toni Kroos', country: 'Deutschland', club: 'Real Madrid', drafts: 6227, img: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Rodri', country: 'Spanien', club: 'Manchester City', drafts: 6095, img: 'https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Rafael Leão', country: 'Portugal', club: 'AC Milan', drafts: 5880, img: 'https://images.unsplash.com/photo-1565992441121-4367c2967103?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Kevin De Bruyne', country: 'Belgien', club: 'Manchester City', drafts: 5724, img: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Pedri', country: 'Spanien', club: 'FC Barcelona', drafts: 5609, img: 'https://images.unsplash.com/photo-1486286701208-1d58e9338013?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Cristiano Ronaldo', country: 'Portugal', club: 'Al Nassr', drafts: 5463, img: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Kai Havertz', country: 'Deutschland', club: 'Arsenal', drafts: 5314, img: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Virgil van Dijk', country: 'Niederlande', club: 'Liverpool', drafts: 5217, img: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Álvaro Morata', country: 'Spanien', club: 'Atlético Madrid', drafts: 5108, img: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=700&q=80'},
+    {name: 'Niclas Füllkrug', country: 'Deutschland', club: 'Borussia Dortmund', drafts: 4985, img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=700&q=80'}
+];
+
+const track = document.getElementById('track');
+const carousel = document.getElementById('carousel');
+const cards = players.map((p) => {
+    const el = document.createElement('article');
+    el.className = 'player-card';
+    el.innerHTML = `
+        <img loading="lazy" src="${p.img}" alt="${p.name}">
+        <h3>${p.name}</h3>
+        <p class="meta">${p.country} • ${p.club}</p>
+        <div class="drafts">⚡ ${p.drafts.toLocaleString('de-DE')} Drafts</div>
+    `;
+    track.appendChild(el);
+    return el;
+});
+
+const state = {pos: 0, vel: 0, drag: false, lastX: 0, lastT: 0};
+let cardGap = 168;
+let raf = null;
+
+function resizeCarousel() {
+    const w = carousel.clientWidth;
+    cardGap = Math.max(128, Math.min(212, w * 0.26));
+}
+
+function mod(a, n) { return ((a % n) + n) % n; }
+
+function render() {
+    const n = cards.length;
+    for (let i = 0; i < n; i++) {
+        let delta = i - state.pos;
+        delta = mod(delta + n / 2, n) - n / 2;
+
+        const abs = Math.abs(delta);
+        const clamped = Math.min(abs, 4.6);
+        const x = delta * cardGap;
+        const scale = 1 - clamped * 0.12;
+        const z = 300 - clamped * 85;
+        const rotY = delta * -8;
+        const y = clamped * 9;
+        const op = 1 - clamped * 0.16;
+
+        const card = cards[i];
+        card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${rotY}deg) scale(${scale})`;
+        card.style.opacity = String(Math.max(0, op));
+        card.style.filter = `saturate(${1.1 - clamped * 0.1}) blur(${Math.max(0, clamped - 2.2) * 0.9}px)`;
+        card.style.zIndex = String(Math.round(1000 - clamped * 100));
+        card.style.boxShadow = abs < 0.38
+            ? '0 20px 50px rgba(0,0,0,0.58), 0 0 38px rgba(255,215,0,0.2)'
+            : '0 14px 36px rgba(0,0,0,0.42)';
+        card.style.pointerEvents = abs < 0.5 ? 'auto' : 'none';
+    }
+}
+
+function tick() {
+    if (!state.drag) {
+        state.pos += state.vel;
+        state.vel *= 0.92;
+        if (Math.abs(state.vel) < 0.0005) {
+            const target = Math.round(state.pos);
+            state.pos += (target - state.pos) * 0.08;
+        }
+    }
+
+    if (state.pos >= players.length) state.pos -= players.length;
+    if (state.pos < 0) state.pos += players.length;
+
+    render();
+    raf = requestAnimationFrame(tick);
+}
+
+function pointerDown(clientX) {
+    state.drag = true;
+    state.lastX = clientX;
+    state.lastT = performance.now();
+}
+
+function pointerMove(clientX) {
+    if (!state.drag) return;
+    const now = performance.now();
+    const dx = clientX - state.lastX;
+    const dt = Math.max(8, now - state.lastT);
+    const units = dx / cardGap;
+
+    state.pos -= units;
+    state.vel = (state.vel * 0.7) + ((-units / dt) * 16);
+
+    state.lastX = clientX;
+    state.lastT = now;
+}
+
+function pointerUp() {
+    state.drag = false;
+}
+
+carousel.addEventListener('pointerdown', (e) => {
+    carousel.setPointerCapture(e.pointerId);
+    pointerDown(e.clientX);
+});
+carousel.addEventListener('pointermove', (e) => pointerMove(e.clientX));
+carousel.addEventListener('pointerup', pointerUp);
+carousel.addEventListener('pointercancel', pointerUp);
+carousel.addEventListener('lostpointercapture', pointerUp);
+
+carousel.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const speed = (Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX) * 0.0012;
+    state.vel += speed;
+}, {passive: false});
+
+window.addEventListener('resize', resizeCarousel, {passive: true});
+resizeCarousel();
+render();
+tick();
+</script>
 </body>
 </html>
