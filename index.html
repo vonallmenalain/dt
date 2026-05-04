@@ -2536,7 +2536,7 @@
            3D PLAYER CAROUSEL – INFINITE ENDLESS
            =================================================== */
 
-        /* Carousel now sits inside a tile card under the hero title */
+        /* The carousel row has no panel/tile wrapper – cards stand freely */
         .carousel-section-header {
             padding: 0 16px;
             margin-bottom: 12px;
@@ -2546,11 +2546,8 @@
         .player-carousel-section {
             position: relative;
             padding: 0 0 8px;
-            margin-top: 10px;
-        }
-
-        .carousel-hero-tile {
-            margin-top: 8px;
+            margin-left: -20px;
+            margin-right: -20px;
         }
 
         /* The outer clips neighbours and hosts the edge fade overlays */
@@ -4306,36 +4303,6 @@
                 <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
                 <span class="accent" id="hero-post-title-accent">DreamTeam</span>
             </h1>
-
-            <div class="glass post-full carousel-hero-tile">
-                <div class="post-h">
-                    <div class="post-h-title">
-                        <span class="post-h-icon">🔥</span>
-                        Fan-Lieblinge
-                    </div>
-                </div>
-                <section class="player-carousel-section" aria-label="Fan-Lieblinge Karussell">
-                    <div class="carousel-outer">
-                        <div class="carousel-viewport" id="post-carousel-viewport" aria-label="Fan-Lieblinge" tabindex="0">
-                            <div class="carousel-track" id="post-carousel-track" role="list">
-                                <div class="carousel-slide is-center">
-                                    <div class="carousel-card">
-                                        <div class="empty-state">
-                                            <div class="empty-state-icon">⭐</div>
-                                            Lädt Fan-Lieblinge ...
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="carousel-nav" aria-label="Karussell Navigation">
-                        <button class="carousel-arrow" id="post-carousel-prev" type="button" aria-label="Vorherige Karte">‹</button>
-                        <div class="carousel-dots" id="post-carousel-dots" role="tablist" aria-label="Karussell Seiten"></div>
-                        <button class="carousel-arrow" id="post-carousel-next" type="button" aria-label="Nächste Karte">›</button>
-                    </div>
-                </section>
-            </div>
 
             <!-- KPI bar -->
             <div class="post-hero-kpis" role="list" aria-label="Live Statistiken">
