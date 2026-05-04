@@ -3993,6 +3993,12 @@
             .tm-best { font-size: 0.66rem; }
             #dashboard-post-area { padding: 0 14px 90px; }
             .post-fold { gap: 14px; }
+            .pick-item { gap: 8px; padding: 9px 4px; }
+            .pick-rank { min-width: 12px; font-size: 0.68rem; }
+            .pick-avatar-wrap,
+            .pick-avatar { width: 34px; height: 34px; }
+            .pick-pts { min-width: 34px; font-size: 0.86rem; }
+            .pick-meta { display: none; }
         }
 
         /* Scroll cue specifically for post-start */
@@ -4406,39 +4412,6 @@
                 </div>
             </div>
 
-            <!-- 5. Grösste Veränderungen der Rangliste -->
-            <div class="glass reveal" data-reveal>
-                <div class="post-h">
-                    <div class="post-h-title">
-                        <span class="post-h-icon cyan">📈</span>
-                        Grösste Bewegungen
-                    </div>
-                    <a class="post-h-link" href="rangliste.html?view=history">Verlauf →</a>
-                </div>
-                <div id="period-post-btns" role="tablist" aria-label="Zeitraum"></div>
-                <div id="tile-post-rank-jumps" aria-label="Rangveränderungen">
-                    <div class="skel" style="height:48px;margin-bottom:8px;border-radius:10px;"></div>
-                    <div class="skel" style="height:48px;margin-bottom:8px;border-radius:10px;"></div>
-                    <div class="skel" style="height:48px;margin-bottom:8px;border-radius:10px;"></div>
-                </div>
-            </div>
-
-            <!-- 6. Top Nationen -->
-            <div class="glass reveal" data-reveal>
-                <div class="post-h">
-                    <div class="post-h-title">
-                        <span class="post-h-icon">🌍</span>
-                        Beste Nationen
-                    </div>
-                    <a class="post-h-link" href="spieleranalyse.html?view=countries">Mehr →</a>
-                </div>
-                <div id="tile-post-top-nations" aria-label="Top Nationen nach Punkten">
-                    <div class="skel" style="height:38px;margin-bottom:8px;border-radius:10px;"></div>
-                    <div class="skel" style="height:38px;margin-bottom:8px;border-radius:10px;"></div>
-                    <div class="skel" style="height:38px;margin-bottom:8px;border-radius:10px;"></div>
-                </div>
-            </div>
-
             <!-- 7. Top & Flop Picks (gedraftete Spieler – beste & schlechteste) -->
             <div class="glass post-full reveal" data-reveal>
                 <div class="glass-deco" aria-hidden="true"></div>
@@ -4447,7 +4420,7 @@
                         <span class="post-h-icon">🎯</span>
                         Manager-Picks: Top &amp; Flop
                     </div>
-                    <span class="tf-block-sub">Wer hat sie gewählt?</span>
+                    
                 </div>
                 <div class="tf-grid">
                     <div>
