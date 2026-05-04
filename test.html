@@ -141,6 +141,36 @@
             line-height: 1.35;
         }
 
+        .meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 0.82rem;
+            color: rgba(230,237,243,0.82);
+        }
+
+        .meta-icon {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .draft-btn {
+            margin-top: 10px;
+            width: 100%;
+            border: 1px solid rgba(34,197,94,0.55);
+            background: linear-gradient(135deg, rgba(34,197,94,0.32), rgba(16,185,129,0.18));
+            color: #d9ffe7;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .drafts {
             margin-top: 8px;
             display: inline-flex;
@@ -168,7 +198,6 @@
 
         @media (max-width: 560px) {
             .carousel { height: min(63svh, 420px); }
-            .hint { bottom: 2px; }
         }
     </style>
 </head>
@@ -181,27 +210,26 @@
 
     <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
         <div class="track" id="track"></div>
-        <div class="hint">Wische oder ziehe horizontal • Endlos</div>
     </div>
 </section>
 
 <script>
 const players = [
-    {name: 'Kylian Mbappé', country: 'Frankreich', club: 'Real Madrid', drafts: 7142, img: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Jamal Musiala', country: 'Deutschland', club: 'Bayern München', drafts: 6983, img: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Jude Bellingham', country: 'England', club: 'Real Madrid', drafts: 6820, img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Florian Wirtz', country: 'Deutschland', club: 'Bayer 04 Leverkusen', drafts: 6618, img: 'https://images.unsplash.com/photo-1598881034666-09b65709f95d?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Phil Foden', country: 'England', club: 'Manchester City', drafts: 6464, img: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Toni Kroos', country: 'Deutschland', club: 'Real Madrid', drafts: 6227, img: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Rodri', country: 'Spanien', club: 'Manchester City', drafts: 6095, img: 'https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Rafael Leão', country: 'Portugal', club: 'AC Milan', drafts: 5880, img: 'https://images.unsplash.com/photo-1565992441121-4367c2967103?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Kevin De Bruyne', country: 'Belgien', club: 'Manchester City', drafts: 5724, img: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Pedri', country: 'Spanien', club: 'FC Barcelona', drafts: 5609, img: 'https://images.unsplash.com/photo-1486286701208-1d58e9338013?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Cristiano Ronaldo', country: 'Portugal', club: 'Al Nassr', drafts: 5463, img: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Kai Havertz', country: 'Deutschland', club: 'Arsenal', drafts: 5314, img: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Virgil van Dijk', country: 'Niederlande', club: 'Liverpool', drafts: 5217, img: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Álvaro Morata', country: 'Spanien', club: 'Atlético Madrid', drafts: 5108, img: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=700&q=80'},
-    {name: 'Niclas Füllkrug', country: 'Deutschland', club: 'Borussia Dortmund', drafts: 4985, img: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=700&q=80'}
+    {name: 'Cristiano Ronaldo', country: 'Portugal', countryFlag: 'https://media.api-sports.io/football/teams/27.png', club: 'Al Nassr', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 7142, img: 'https://media.api-sports.io/football/players/874.png'},
+    {name: 'Kylian Mbappé', country: 'France', countryFlag: 'https://media.api-sports.io/football/teams/2.png', club: 'Real Madrid', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 6983, img: 'https://media.api-sports.io/football/players/278.png'},
+    {name: 'Jamal Musiala', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Bayern München', clubLogo: 'https://media.api-sports.io/football/teams/157.png', drafts: 6820, img: 'https://media.api-sports.io/football/players/145272.png'},
+    {name: 'Jude Bellingham', country: 'England', countryFlag: 'https://media.api-sports.io/football/teams/10.png', club: 'Real Madrid', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 6618, img: 'https://media.api-sports.io/football/players/2937.png'},
+    {name: 'Florian Wirtz', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Bayer 04 Leverkusen', clubLogo: 'https://media.api-sports.io/football/teams/168.png', drafts: 6464, img: 'https://media.api-sports.io/football/players/284529.png'},
+    {name: 'Phil Foden', country: 'England', countryFlag: 'https://media.api-sports.io/football/teams/10.png', club: 'Manchester City', clubLogo: 'https://media.api-sports.io/football/teams/50.png', drafts: 6227, img: 'https://media.api-sports.io/football/players/978.png'},
+    {name: 'Toni Kroos', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Real Madrid', clubLogo: 'https://media.api-sports.io/football/teams/541.png', drafts: 6095, img: 'https://media.api-sports.io/football/players/190.png'},
+    {name: 'Rodri', country: 'Spain', countryFlag: 'https://media.api-sports.io/football/teams/9.png', club: 'Manchester City', clubLogo: 'https://media.api-sports.io/football/teams/50.png', drafts: 5880, img: 'https://media.api-sports.io/football/players/546.png'},
+    {name: 'Rafael Leão', country: 'Portugal', countryFlag: 'https://media.api-sports.io/football/teams/27.png', club: 'AC Milan', clubLogo: 'https://media.api-sports.io/football/teams/489.png', drafts: 5724, img: 'https://media.api-sports.io/football/players/1614.png'},
+    {name: 'Kevin De Bruyne', country: 'Belgium', countryFlag: 'https://media.api-sports.io/football/teams/1.png', club: 'Manchester City', clubLogo: 'https://media.api-sports.io/football/teams/50.png', drafts: 5609, img: 'https://media.api-sports.io/football/players/629.png'},
+    {name: 'Pedri', country: 'Spain', countryFlag: 'https://media.api-sports.io/football/teams/9.png', club: 'FC Barcelona', clubLogo: 'https://media.api-sports.io/football/teams/529.png', drafts: 5463, img: 'https://media.api-sports.io/football/players/284513.png'},
+    {name: 'Kai Havertz', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Arsenal', clubLogo: 'https://media.api-sports.io/football/teams/42.png', drafts: 5314, img: 'https://media.api-sports.io/football/players/1218.png'},
+    {name: 'Virgil van Dijk', country: 'Netherlands', countryFlag: 'https://media.api-sports.io/football/teams/1118.png', club: 'Liverpool', clubLogo: 'https://media.api-sports.io/football/teams/40.png', drafts: 5217, img: 'https://media.api-sports.io/football/players/549.png'},
+    {name: 'Álvaro Morata', country: 'Spain', countryFlag: 'https://media.api-sports.io/football/teams/9.png', club: 'Atlético Madrid', clubLogo: 'https://media.api-sports.io/football/teams/530.png', drafts: 5108, img: 'https://media.api-sports.io/football/players/765.png'},
+    {name: 'Niclas Füllkrug', country: 'Germany', countryFlag: 'https://media.api-sports.io/football/teams/25.png', club: 'Borussia Dortmund', clubLogo: 'https://media.api-sports.io/football/teams/165.png', drafts: 4985, img: 'https://media.api-sports.io/football/players/2907.png'}
 ];
 
 const track = document.getElementById('track');
@@ -212,8 +240,10 @@ const cards = players.map((p) => {
     el.innerHTML = `
         <img loading="lazy" src="${p.img}" alt="${p.name}">
         <h3>${p.name}</h3>
-        <p class="meta">${p.country} • ${p.club}</p>
-        <div class="drafts">⚡ ${p.drafts.toLocaleString('de-DE')} Drafts</div>
+        <div class="meta-row"><img class="meta-icon" loading="lazy" src="${p.countryFlag}" alt="${p.country}"><span>${p.country}</span></div>
+        <div class="meta-row"><img class="meta-icon" loading="lazy" src="${p.clubLogo}" alt="${p.club}"><span>${p.club}</span></div>
+        <button class="draft-btn" type="button">Draft</button>
+        <div class="drafts">⚡ ${p.drafts.toLocaleString('de-DE')}x von Managern gewählt</div>
     `;
     track.appendChild(el);
     return el;
