@@ -81,9 +81,9 @@
         .carousel {
             position: relative;
             z-index: 2;
-            width: min(100%, 940px);
+            width: min(88vw, 860px);
             height: min(66svh, 510px);
-            margin-top: clamp(12px, 3vh, 22px);
+            margin-top: clamp(8px, 2vh, 16px);
             perspective: 1100px;
             isolation: isolate;
             touch-action: pan-y;
@@ -92,6 +92,17 @@
         }
 
         .carousel:active { cursor: grabbing; }
+
+        .carousel-label {
+            position: relative;
+            z-index: 2;
+            margin: clamp(10px, 2.2vh, 18px) 0 0;
+            font-size: clamp(1.2rem, 3.2vw, 1.9rem);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #f8fbff;
+            text-transform: uppercase;
+        }
 
         .track {
             position: absolute;
@@ -277,6 +288,8 @@
         <span class="accent">DreamTeam</span>
     </h1>
 
+    <h2 class="carousel-label gold-text">Fan-Lieblinge</h2>
+
     <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
         <div class="track" id="track"></div>
     </div>
@@ -406,7 +419,7 @@ const CLICK_VELOCITY_THRESHOLD = 0.012;
 
 function resizeCarousel() {
     const w = carousel.clientWidth;
-    cardGap = Math.max(96, Math.min(156, w * 0.19));
+    cardGap = Math.max(88, Math.min(140, w * 0.165));
 }
 
 function mod(a, n) { return ((a % n) + n) % n; }
