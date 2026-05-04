@@ -124,23 +124,22 @@
         }
 
         .player-photo-wrap {
-            width: 82%;
-            height: 56%;
+            width: 78%;
+            aspect-ratio: 1 / 1;
             align-self: center;
             border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.3);
-            background: linear-gradient(180deg, #fcfdff 0%, #e8edf6 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.04);
             display: grid;
             place-items: center;
-            padding: 10px 8px;
+            padding: 0;
             overflow: hidden;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 10px rgba(8, 15, 27, 0.15);
         }
 
         .player-photo {
-            width: auto;
+            width: 100%;
             height: 100%;
-            max-width: 100%;
             object-fit: contain;
             object-position: center center;
             pointer-events: none;
@@ -155,12 +154,12 @@
 
         .player-name {
             margin: 0;
-            font-size: clamp(0.9rem, 2.3vw, 1rem);
-            line-height: 1.16;
+            font-size: clamp(0.84rem, 2.1vw, 0.96rem);
+            line-height: 1.24;
             font-weight: 800;
             color: #f8fbff;
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -241,9 +240,9 @@
             }
             .player-info { gap: 4px; }
             .player-name {
-                font-size: 0.82rem;
-                line-height: 1.2;
-                -webkit-line-clamp: 3;
+                font-size: 0.78rem;
+                line-height: 1.22;
+                -webkit-line-clamp: 4;
             }
             .meta-row {
                 font-size: 0.64rem;
