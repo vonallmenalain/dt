@@ -154,14 +154,18 @@
 
         .player-name {
             margin: 0;
-            font-size: clamp(0.84rem, 2.1vw, 0.96rem);
-            line-height: 1.24;
-            font-weight: 800;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            font-size: clamp(0.78rem, 1.9vw, 0.96rem);
+            line-height: 1.06;
+            font-weight: 900;
+            letter-spacing: -0.035em;
             color: #f8fbff;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            display: block;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
         }
 
         .meta-row {
@@ -241,8 +245,12 @@
             .player-info { gap: 4px; }
             .player-name {
                 font-size: 0.78rem;
-                line-height: 1.22;
-                -webkit-line-clamp: 4;
+                line-height: 1.06;
+                letter-spacing: -0.035em;
+                white-space: nowrap;
+                display: block;
+                overflow: visible;
+                text-overflow: clip;
             }
             .meta-row {
                 font-size: 0.64rem;
@@ -354,6 +362,32 @@ const cards = players.map((p) => {
     track.appendChild(el);
     return el;
 });
+
+function fitPlayerNames() {
+    document.querySelectorAll('.player-name').forEach((nameEl) => {
+        nameEl.style.fontSize = '';
+        nameEl.style.transform = '';
+        nameEl.style.transformOrigin = 'left center';
+        nameEl.style.whiteSpace = 'nowrap';
+        nameEl.style.display = 'block';
+
+        const computed = window.getComputedStyle(nameEl);
+        let size = parseFloat(computed.fontSize);
+        const minSize = 8.5;
+
+        while (nameEl.scrollWidth > nameEl.clientWidth && size > minSize) {
+            size -= 0.5;
+            nameEl.style.fontSize = `${size}px`;
+        }
+
+        if (nameEl.scrollWidth > nameEl.clientWidth && nameEl.scrollWidth > 0) {
+            const scale = nameEl.clientWidth / nameEl.scrollWidth;
+            nameEl.style.transform = `scaleX(${scale})`;
+            nameEl.style.transformOrigin = 'left center';
+        }
+    });
+}
+
 const state = {
     pos: 0,
     vel: 0,
@@ -480,8 +514,12 @@ carousel.addEventListener('wheel', (e) => {
     state.vel += speed;
 }, {passive: false});
 
-window.addEventListener('resize', resizeCarousel, {passive: true});
+window.addEventListener('resize', () => {
+    resizeCarousel();
+    fitPlayerNames();
+}, {passive: true});
 resizeCarousel();
+fitPlayerNames();
 if (cards.length) {
     render();
     tick();
