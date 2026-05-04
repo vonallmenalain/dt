@@ -315,6 +315,8 @@ if (!players.length) {
 const cards = players.map((p) => {
     const el = document.createElement('article');
     el.className = 'player-card';
+    el.dataset.playerName = p.name;
+    el.dataset.playerId = p.id;
     el.innerHTML = `
         <div class="player-photo-wrap">
             <img class="player-photo" loading="lazy" src="${escapeHtml(p.img)}" alt="Spielerfoto von ${escapeHtml(p.name)}">
@@ -329,9 +331,21 @@ const cards = players.map((p) => {
     track.appendChild(el);
     return el;
 });
-const state = {pos: 0, vel: 0, drag: false, lastX: 0, lastT: 0};
+const state = {
+    pos: 0,
+    vel: 0,
+    drag: false,
+    moved: false,
+    lastX: 0,
+    lastT: 0,
+    downX: 0,
+    downY: 0,
+    downCard: null
+};
 let cardGap = 168;
 let raf = null;
+const CLICK_MOVE_PX = 10;
+const CLICK_VELOCITY_THRESHOLD = 0.012;
 
 function resizeCarousel() {
     const w = carousel.clientWidth;
@@ -387,13 +401,17 @@ function tick() {
     raf = requestAnimationFrame(tick);
 }
 
-function pointerDown(clientX) {
+function pointerDown(clientX, clientY, target) {
     state.drag = true;
+    state.moved = false;
     state.lastX = clientX;
     state.lastT = performance.now();
+    state.downX = clientX;
+    state.downY = clientY;
+    state.downCard = target?.closest?.('.player-card') || null;
 }
 
-function pointerMove(clientX) {
+function pointerMove(clientX, clientY) {
     if (!state.drag) return;
     const now = performance.now();
     const dx = clientX - state.lastX;
@@ -402,20 +420,33 @@ function pointerMove(clientX) {
 
     state.pos -= units;
     state.vel = (state.vel * 0.7) + ((-units / dt) * 16);
+    if (!state.moved) {
+        const travelX = Math.abs(clientX - state.downX);
+        const travelY = Math.abs(clientY - state.downY);
+        if (travelX > CLICK_MOVE_PX || travelY > CLICK_MOVE_PX) state.moved = true;
+    }
 
     state.lastX = clientX;
     state.lastT = now;
 }
 
-function pointerUp() {
+function pointerUp(event) {
+    if (state.drag && state.downCard && !state.moved && Math.abs(state.vel) < CLICK_VELOCITY_THRESHOLD) {
+        const playerName = state.downCard.dataset.playerName || '';
+        if (playerName) {
+            window.location.href = `spieleranalyse.html?player=${encodeURIComponent(playerName)}`;
+        }
+    }
     state.drag = false;
+    state.moved = false;
+    state.downCard = null;
 }
 
 carousel.addEventListener('pointerdown', (e) => {
     carousel.setPointerCapture(e.pointerId);
-    pointerDown(e.clientX);
+    pointerDown(e.clientX, e.clientY, e.target);
 });
-carousel.addEventListener('pointermove', (e) => pointerMove(e.clientX));
+carousel.addEventListener('pointermove', (e) => pointerMove(e.clientX, e.clientY));
 carousel.addEventListener('pointerup', pointerUp);
 carousel.addEventListener('pointercancel', pointerUp);
 carousel.addEventListener('lostpointercapture', pointerUp);
