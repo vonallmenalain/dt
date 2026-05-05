@@ -813,20 +813,18 @@
         .champ-chaser {
             position: relative;
             display: grid;
-            grid-template-columns: 36px 1fr auto;
+            grid-template-columns: 1fr auto;
             align-items: center;
             gap: 10px;
             padding: 10px 14px 10px 10px;
             min-width: 0;
             text-align: left;
-            font-family: inherit;
             color: inherit;
             border-radius: 14px;
             background:
                 linear-gradient(135deg, rgba(29,39,59,0.92), rgba(13,18,31,0.95));
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 10px 24px rgba(0,0,0,0.4);
-            cursor: pointer;
             opacity: 0;
             transform: translateY(18px);
             transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
@@ -836,6 +834,28 @@
             transform: translateY(-4px);
             border-color: rgba(255,215,0,0.35);
             box-shadow: 0 14px 28px rgba(0,0,0,0.45), 0 0 22px rgba(255,215,0,0.15);
+        }
+
+        .champ-chaser .champ-chaser-team {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+            background: none;
+            border: 0;
+            color: inherit;
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .champ-chaser .champ-chaser-team:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
+            border-radius: 10px;
         }
 
         .champ-chaser .champ-rank-mini {
@@ -873,6 +893,26 @@
             font-weight: 900;
             color: #fde68a;
             font-size: 1rem;
+            font-family: inherit;
+            background: rgba(250,204,21,0.08);
+            border: 1px solid rgba(250,204,21,0.32);
+            border-radius: 999px;
+            padding: 4px 12px;
+            cursor: pointer;
+            text-align: right;
+            transition: background 0.2s ease, border-color 0.2s ease,
+                        box-shadow 0.2s ease, transform 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .champ-chaser .champ-chaser-points:hover {
+            background: rgba(250,204,21,0.18);
+            border-color: rgba(250,204,21,0.6);
+            box-shadow: 0 0 18px rgba(250,204,21,0.2);
+            transform: translateY(-1px);
+        }
+        .champ-chaser .champ-chaser-points:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
         }
         .champ-chaser .champ-chaser-points small {
             display: block;
@@ -1800,24 +1840,27 @@
         // selben Stil wie zuvor Platz 4 und 5, nur erweitert auf Top 10.
         rest.forEach((m, i) => {
             const rank = i + 4;
-            const row = document.createElement('button');
-            row.type = 'button';
+            const row = document.createElement('div');
             row.className = 'champ-chaser';
             row.dataset.rank = String(rank);
             row.style.setProperty('--chaser-delay', (3.7 + i * 0.18).toFixed(2) + 's');
-            row.setAttribute('aria-label', `Platz ${rank}: ${m.manager}, ${m.totalScore} Punkte. Zum Team.`);
             const chaserDisplayName = rank <= 7 ? firstNameOf(m.manager) : m.manager;
             row.innerHTML = `
-                <div class="champ-rank-mini">#${rank}</div>
-                <div class="champ-chaser-info">
-                    <span class="champ-chaser-name">${escapeHtml(chaserDisplayName)}</span>
-                </div>
-                <div class="champ-chaser-points">
+                <button type="button" class="champ-chaser-team"
+                        aria-label="Platz ${rank}: ${escapeHtml(m.manager)}. Zum Team.">
+                    <span class="champ-rank-mini">#${rank}</span>
+                    <span class="champ-chaser-info">
+                        <span class="champ-chaser-name">${escapeHtml(chaserDisplayName)}</span>
+                    </span>
+                </button>
+                <button type="button" class="champ-chaser-points"
+                        aria-label="${m.totalScore} Punkte. Gesamte Rangliste anzeigen.">
                     <span class="champ-points-value" data-target="${m.totalScore}">0</span>
                     <small>Pkt</small>
-                </div>
+                </button>
             `;
-            row.addEventListener('click', () => openManagerTeam(m));
+            row.querySelector('.champ-chaser-team').addEventListener('click', () => openManagerTeam(m));
+            row.querySelector('.champ-chaser-points').addEventListener('click', () => openRanking());
             chasers.appendChild(row);
         });
 
