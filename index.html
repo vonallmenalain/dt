@@ -1493,18 +1493,6 @@
             font-weight: 900;
         }
 
-        @media (hover: hover) and (pointer: fine) {
-            .player-card:hover {
-                box-shadow: 0 25px 50px rgba(0,0,0,0.6) !important;
-                border-color: rgba(255,215,0,0.5);
-            }
-
-            .player-card:hover .avatar-wrapper { transform: translateZ(44px); }
-            .player-card:hover .card-info { transform: translateZ(36px); }
-            .player-card:hover .card-pts { transform: translateZ(54px); }
-            .player-card:hover .captain-badge { transform: translateZ(54px) scale(1.1); }
-            .player-card:hover .card-avatar { transform: scale(1.12); }
-        }
 
         @media (pointer: coarse) {
             .player-card {
@@ -4224,22 +4212,6 @@
      ===================================================== -->
 <main class="dashboard-area" id="dashboard-area">
 
-    <!-- ── Row 1: Fan-Lieblinge ─────── -->
-    <div class="mb-section">
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">🔥</span> Fan-Lieblinge
-                </div>
-            </div>
-            <div class="pop-picks-scroll" id="tile-popular-picks" aria-label="Meistgewählte Spieler">
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-            </div>
-        </div>
-    </div>
 
     <!-- ── Row 2: Captain Watch + Beliebteste Vereine ── -->
     <div class="tile-grid tile-grid-2 mb-section prestart-two-col">
@@ -4445,23 +4417,6 @@
         <!-- ───────── Below-the-fold ───────── -->
         <div class="post-bottom">
 
-            <!-- 4. Fan-Lieblinge (most-drafted players, like pre-start) -->
-            <div class="glass post-full reveal" data-reveal>
-                <div class="glass-deco" style="left:-60px;right:auto;background:radial-gradient(circle, rgba(255,215,0,0.16), transparent 65%);" aria-hidden="true"></div>
-                <div class="post-h">
-                    <div class="post-h-title">
-                        <span class="post-h-icon">🔥</span>
-                        Fan-Lieblinge
-                    </div>
-                    <span class="tf-block-sub">Am meisten gedraftete Spieler</span>
-                </div>
-                <div class="pop-picks-scroll" id="tile-post-popular-picks" aria-label="Meistgewählte Spieler">
-                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                    <div class="card-wrapper"><div class="skel" style="height:185px;border-radius:12px;"></div></div>
-                </div>
-            </div>
 
             <!-- 7. Top & Flop Picks (gedraftete Spieler – beste & schlechteste) -->
             <div class="glass post-full reveal" data-reveal>
@@ -4600,7 +4555,6 @@
                 applyIndexViewMode();
             }
             // Re-trigger tilt for any newly visible cards
-            setTimeout(() => initCardTilt(), 80);
         });
     }
 
@@ -4981,96 +4935,6 @@
                 </a>
             `;
         }).join('');
-    }
-
-    /* =========================================================
-       POPULAR PICKS (3D Cards)
-       ========================================================= */
-    const CARD_BASE = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
-
-    function createPlayerCard3D(player, pickCount, delayIndex) {
-        const delay = prefersReducedMotion() ? '0s' : `${(delayIndex * 0.06).toFixed(2)}s`;
-        const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
-        return `
-            <div class="card-wrapper" data-delay="${delay}" style="animation-delay:${delay};" role="listitem">
-                <a href="${url}" class="player-card" aria-label="${escapeHtml(player.Spielername)}, ${pickCount}x gewählt">
-                    <div class="avatar-wrapper">
-                        <img src="${escapeHtml(player.Spielerfoto)}" class="card-avatar" alt="${escapeHtml(player.Spielername)}" loading="lazy">
-                    </div>
-                    <div class="card-info">
-                        <div class="card-name">${escapeHtml(player.Spielername)}</div>
-                        <div class="card-sub-info">
-                            ${player['Nationalteam.logo'] ? `<img src="${escapeHtml(player['Nationalteam.logo'])}" class="small-icon" alt="${escapeHtml(player['Nationalteam.name'] || '')}" loading="lazy">` : ''}
-                            <span>${escapeHtml(player['Nationalteam.name'] || '')}</span>
-                        </div>
-                        <div class="card-sub-info">
-                            ${player['Club.logo'] ? `<img src="${escapeHtml(player['Club.logo'])}" class="small-icon club" alt="${escapeHtml(player['Club.name'] || '')}" loading="lazy">` : ''}
-                            <span>${escapeHtml(player['Club.name'] || '')}</span>
-                        </div>
-                    </div>
-                </a>
-                <div class="card-draft-label">${pickCount}× gewählt</div>
-            </div>
-        `;
-    }
-
-    function renderPopularPicks(pickCounts, prefix) {
-        // prefix: '' → tile-popular-picks (Pre), 'post-' → tile-post-popular-picks (Post)
-        const container = $('tile-' + (prefix || '') + 'popular-picks');
-        if (!container) return;
-
-        const ranked = Object.entries(pickCounts)
-            .map(([id, cnt]) => ({ player: getPlayerById(id), cnt }))
-            .filter((x) => x.player)
-            .sort((a, b) => b.cnt - a.cnt)
-            .slice(0, 8);
-
-        if (!ranked.length) {
-            container.innerHTML = '<div class="empty-state" style="width:200px;flex-shrink:0;"><div class="empty-state-icon">🔥</div>Noch keine Picks</div>';
-            return;
-        }
-
-        container.setAttribute('role', 'list');
-        container.innerHTML = ranked.map(({ player, cnt }, i) =>
-            createPlayerCard3D(player, cnt, i)
-        ).join('');
-
-        initCardTilt(container);
-    }
-
-    /* =========================================================
-       VANILLATILT INIT
-       ========================================================= */
-    function initCardTilt(scope) {
-        if (!isDesktopHover() || typeof VanillaTilt === 'undefined') return;
-
-        const cards = (scope || document).querySelectorAll('.player-card');
-        cards.forEach((card) => {
-            if (card.vanillaTilt) card.vanillaTilt.destroy();
-            card.style.transform = CARD_BASE;
-        });
-
-        VanillaTilt.init(Array.from(cards), {
-            max: 14,
-            speed: 280,
-            glare: true,
-            'max-glare': 0.3,
-            scale: 1,
-            transition: true,
-            reset: true,
-            'reset-to-start': true,
-            gyroscope: false
-        });
-
-        cards.forEach((card) => {
-            if (!card.dataset.tiltReset) {
-                card.addEventListener('mouseleave', () => {
-                    try { card.vanillaTilt && card.vanillaTilt.reset(); } catch (e) {}
-                    requestAnimationFrame(() => { card.style.transform = CARD_BASE; });
-                });
-                card.dataset.tiltReset = '1';
-            }
-        });
     }
 
     /* =========================================================
@@ -5763,8 +5627,6 @@
         // Captain watch
         renderCaptainWatch(captainCounts, ptMap, '');
 
-        // Fan-Lieblinge (popular picks - 3D cards)
-        renderPopularPicks(pickCounts, '');
 
         // Beliebteste Vereine
         renderTopClubs(teams, '');
@@ -5777,8 +5639,6 @@
 
         // Spielplan ist in der Pre-Start-Ansicht bewusst deaktiviert.
 
-        // Trigger tilt for cards
-        setTimeout(() => initCardTilt(), 50);
     }
 
     /* =========================================================
@@ -6975,7 +6835,6 @@
                 pickCounts[id] = (pickCounts[id] || 0) + 1;
             });
         });
-        renderPopularPicks(pickCounts, 'post-');
 
         renderPeriodButtons(rankingHistoryCache.matchIds, 'post-');
 
@@ -6994,7 +6853,6 @@
 
         initScrollReveal();
 
-        setTimeout(() => initCardTilt(), 50);
     }
 
     /**
@@ -7102,10 +6960,6 @@
     document.addEventListener('DOMContentLoaded', init);
 
     // Re-init tilt on page show (back/forward cache)
-    window.addEventListener('pageshow', () => setTimeout(() => initCardTilt(), 100));
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') setTimeout(() => initCardTilt(), 80);
-    });
 })();
 </script>
 </body>
