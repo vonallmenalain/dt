@@ -290,6 +290,28 @@
             outline-offset: 3px;
         }
 
+
+        @media (max-width: 480px) {
+            .hero-secondary-btns {
+                width: 100%;
+                flex-wrap: nowrap;
+                gap: 6px;
+            }
+
+            .hero-secondary-btns .btn-pill {
+                flex: 1 1 0;
+                justify-content: center;
+                font-size: 0.72rem;
+                padding: 9px 8px;
+                white-space: nowrap;
+            }
+
+            .hero-cta-wrap {
+                gap: 12px;
+                margin-bottom: 18px;
+            }
+        }
+
         /* ===================================================
            HERO PLAYER CARD PREVIEW (Top 5 floating cards)
            =================================================== */
@@ -4480,20 +4502,6 @@
             <div class="gtile-header">
                 <div class="gtile-title">
                     <span class="section-title-accent" aria-hidden="true"></span>
-                    <span class="gtile-title-icon">👑</span> Captain Watch
-                </div>
-            </div>
-            <div id="tile-captain-watch" aria-label="Beliebteste Captains">
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
-            </div>
-        </div>
-
-        <div class="gtile">
-            <div class="gtile-header">
-                <div class="gtile-title">
-                    <span class="section-title-accent" aria-hidden="true"></span>
                     <span class="gtile-title-icon">🏢</span> Beliebteste Vereine
                 </div>
             </div>
@@ -4501,6 +4509,20 @@
                 <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
                 <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
                 <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
+            </div>
+        </div>
+
+        <div class="gtile">
+            <div class="gtile-header">
+                <div class="gtile-title">
+                    <span class="section-title-accent" aria-hidden="true"></span>
+                    <span class="gtile-title-icon">👑</span> Captain Watch
+                </div>
+            </div>
+            <div id="tile-captain-watch" aria-label="Beliebteste Captains">
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
             </div>
         </div>
     </div>
