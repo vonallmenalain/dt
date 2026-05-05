@@ -508,7 +508,6 @@
             gap: 10px;
             padding: 14px 12px 14px;
             border-radius: 22px;
-            cursor: pointer;
             user-select: none;
             font-family: inherit;
             color: inherit;
@@ -879,24 +878,25 @@
             letter-spacing: 0.06em;
         }
 
-        /* Intro-Animationen: dramatischer Aufbau über ~3 Sekunden.
+        /* Intro-Animationen: dramatischer Aufbau über ~4–5 Sekunden.
            Reihenfolge: erst Rang 3 (rechts), dann Rang 2 (links), zum Schluss
            steigt Rang 1 in der Mitte hoch und wird gekrönt. Danach kommen
-           die Verfolger (Rang 4 + 5) hinterher. */
+           die Verfolger (Rang 4 + 5) hinterher. Innerhalb jeder Hero-Karte
+           erscheinen Vorname → Top-Spieler → weitere Spieler → Punkte. */
         .champ-card[data-rank="1"] {
-            transform: translateY(120px) translateZ(-300px) scale(0.6);
+            transform: translateY(140px) translateZ(-320px) scale(0.58);
             transform-origin: 50% 100%;
-            animation: champ-fly-in-1 1.4s cubic-bezier(0.22, 0.85, 0.32, 1.05) 1.2s forwards;
+            animation: champ-fly-in-1 1.55s cubic-bezier(0.22, 0.85, 0.32, 1.05) 1.6s forwards;
         }
         .champ-card[data-rank="2"] {
-            transform: translateX(-260px) translateZ(-120px) rotateY(28deg) scale(0.65);
+            transform: translateX(-280px) translateZ(-130px) rotateY(28deg) scale(0.62);
             transform-origin: 100% 100%;
-            animation: champ-fly-in-2 1.1s cubic-bezier(0.22, 0.85, 0.32, 1.05) 0.55s forwards;
+            animation: champ-fly-in-2 1.25s cubic-bezier(0.22, 0.85, 0.32, 1.05) 0.85s forwards;
         }
         .champ-card[data-rank="3"] {
-            transform: translateX(260px) translateZ(-120px) rotateY(-28deg) scale(0.65);
+            transform: translateX(280px) translateZ(-130px) rotateY(-28deg) scale(0.62);
             transform-origin: 0% 100%;
-            animation: champ-fly-in-3 1.1s cubic-bezier(0.22, 0.85, 0.32, 1.05) 0.15s forwards;
+            animation: champ-fly-in-3 1.25s cubic-bezier(0.22, 0.85, 0.32, 1.05) 0.25s forwards;
         }
 
         @keyframes champ-fly-in-1 {
@@ -916,11 +916,11 @@
             100% { opacity: 1; transform: translateX(0) translateZ(-25px) rotateY(-14deg) scale(0.92); }
         }
 
-        /* Krone erscheint erst, nachdem Rang 1 oben angekommen ist (~2.4s) */
+        /* Krone erscheint erst, nachdem Rang 1 oben angekommen ist (~3.1s) */
         .champ-crown {
             opacity: 0;
-            animation: champ-crown-drop 0.8s cubic-bezier(0.22, 0.85, 0.32, 1.05) 2.4s forwards,
-                       champ-crown-bob 2.6s ease-in-out 3.2s infinite;
+            animation: champ-crown-drop 0.95s cubic-bezier(0.22, 0.85, 0.32, 1.05) 3.1s forwards,
+                       champ-crown-bob 2.8s ease-in-out 4.1s infinite;
         }
 
         @keyframes champ-crown-drop {
@@ -930,10 +930,10 @@
         }
 
         .champ-chaser[data-rank="4"] {
-            animation: champ-chaser-in 0.7s cubic-bezier(0.22, 0.85, 0.32, 1.05) 2.55s forwards;
+            animation: champ-chaser-in 0.8s cubic-bezier(0.22, 0.85, 0.32, 1.05) 3.7s forwards;
         }
         .champ-chaser[data-rank="5"] {
-            animation: champ-chaser-in 0.7s cubic-bezier(0.22, 0.85, 0.32, 1.05) 2.75s forwards;
+            animation: champ-chaser-in 0.8s cubic-bezier(0.22, 0.85, 0.32, 1.05) 3.95s forwards;
         }
 
         @keyframes champ-chaser-in {
@@ -975,6 +975,296 @@
             }
         }
 
+        /* ================================================================
+           NEW: Manager Hero Card Layout
+           Vorname (Hero) ─ Player Constellation ─ Punkte (Link)
+           Erhält das bestehende Podest und seine Animation, ersetzt nur
+           den Inhalt (Spieler-Liste) durch eine emotionale Sammelkarte.
+           ================================================================ */
+        .manager-hero-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: clamp(300px, 38vw, 380px);
+            padding: 18px 12px 14px;
+        }
+
+        .manager-firstname {
+            position: relative;
+            display: block;
+            margin: 0 0 2px;
+            padding: 4px 6px 6px;
+            font-weight: 950;
+            line-height: 0.96;
+            letter-spacing: -0.04em;
+            font-size: clamp(1.6rem, 4.6vw, 2.6rem);
+            color: #f8fbff;
+            text-shadow: 0 4px 22px rgba(0,0,0,0.55), 0 0 18px rgba(255,255,255,0.06);
+            cursor: pointer;
+            background: none;
+            border: 0;
+            font-family: inherit;
+            text-align: center;
+            width: 100%;
+            transition: transform 0.25s ease, color 0.25s ease, text-shadow 0.25s ease;
+            opacity: 0;
+            transform: translateY(-12px) scale(0.94);
+            -webkit-tap-highlight-color: transparent;
+            z-index: 6;
+            word-break: break-word;
+        }
+        .manager-firstname::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 38%;
+            height: 2px;
+            transform: translateX(-50%) scaleX(0);
+            transform-origin: 50% 50%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.65), transparent);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0.6;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .manager-firstname:hover { transform: translateY(-1px) scale(1.02); }
+        .manager-firstname:hover::after { transform: translateX(-50%) scaleX(1); opacity: 1; }
+        .manager-firstname:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 4px;
+            border-radius: 8px;
+        }
+        .champ-card[data-rank="1"] .manager-firstname {
+            color: #fef3c7;
+            font-size: clamp(1.85rem, 5.2vw, 3rem);
+            text-shadow: 0 4px 26px rgba(0,0,0,0.6), 0 0 22px rgba(255,215,0,0.35);
+        }
+        .champ-card[data-rank="2"] .manager-firstname { color: #f1f5f9; }
+        .champ-card[data-rank="3"] .manager-firstname { color: #fde7d4; }
+
+        /* Player Constellation – Top-Spieler in organischer Anordnung */
+        .manager-player-constellation {
+            position: relative;
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: clamp(150px, 20vw, 220px);
+            margin: 6px 0 8px;
+            isolation: isolate;
+        }
+
+        .manager-player-orb {
+            position: absolute;
+            border: 0;
+            padding: 0;
+            background: transparent;
+            font-family: inherit;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.22, 0.85, 0.4, 1.05),
+                        box-shadow 0.3s ease,
+                        filter 0.3s ease;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.4);
+            -webkit-tap-highlight-color: transparent;
+            will-change: transform, opacity;
+        }
+        .manager-player-orb-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 55%),
+                linear-gradient(160deg, #1e293b, #0f172a 70%);
+            border: 2px solid rgba(255,255,255,0.4);
+            box-shadow:
+                0 8px 22px rgba(0,0,0,0.55),
+                0 0 0 1px rgba(255,255,255,0.06) inset;
+            display: grid;
+            place-items: center;
+        }
+        .manager-player-orb-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .manager-player-orb-fallback {
+            font-weight: 900;
+            color: #f8fbff;
+            letter-spacing: -0.03em;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .manager-player-orb .orb-cap {
+            position: absolute;
+            right: -2px;
+            top: -2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: #0d1117;
+            background: linear-gradient(135deg, #ffe97a, #ffd700 55%, #c79500);
+            border: 1.5px solid rgba(13,17,23,0.6);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            z-index: 3;
+            pointer-events: none;
+        }
+        .manager-player-orb .orb-pts {
+            position: absolute;
+            left: 50%;
+            bottom: -8px;
+            transform: translateX(-50%);
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 900;
+            color: #0d1117;
+            background: linear-gradient(135deg, #fef9c3, #fde68a);
+            border: 1px solid rgba(0,0,0,0.25);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+            white-space: nowrap;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 4;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .manager-player-orb.has-pts .orb-pts { opacity: 1; }
+
+        /* Hauptspieler – zentral, gross, mit Glow */
+        .manager-main-player .manager-player-orb-inner {
+            border-color: rgba(255,215,0,0.7);
+            box-shadow:
+                0 0 0 3px rgba(255,215,0,0.18),
+                0 0 28px rgba(255,215,0,0.45),
+                0 14px 30px rgba(0,0,0,0.6);
+        }
+        .manager-main-player .manager-player-orb-fallback { font-size: clamp(1.3rem, 3.6vw, 2rem); }
+
+        /* Sekundäre Spieler (Plätze 2 + 3) – mittlere Grösse */
+        .manager-player-orb.size-md .manager-player-orb-inner {
+            border-color: rgba(255,255,255,0.55);
+            box-shadow:
+                0 0 0 2px rgba(255,255,255,0.08),
+                0 8px 22px rgba(0,0,0,0.55);
+        }
+        .manager-player-orb.size-md .manager-player-orb-fallback { font-size: clamp(0.85rem, 2.2vw, 1.15rem); }
+
+        /* Kleinere Spieler (Plätze 4–8) */
+        .manager-player-orb.size-sm .manager-player-orb-inner {
+            border-color: rgba(255,255,255,0.42);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+        }
+        .manager-player-orb.size-sm .manager-player-orb-fallback { font-size: clamp(0.65rem, 1.6vw, 0.85rem); }
+
+        @media (hover: hover) {
+            .manager-player-orb:hover {
+                transform: translate(-50%, -50%) scale(1.08) !important;
+                z-index: 9;
+                filter: brightness(1.08);
+            }
+            .manager-main-player:hover {
+                transform: translate(-50%, -50%) scale(1.05) !important;
+            }
+        }
+        .manager-player-orb:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
+        }
+
+        /* Punkte-Link unten – klickbar, optisch dezenter als Vorname */
+        .manager-points-link {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 5px;
+            font-weight: 900;
+            color: #fde68a;
+            font-size: clamp(0.95rem, 2.4vw, 1.25rem);
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 18px rgba(255,215,0,0.35);
+            align-self: center;
+            cursor: pointer;
+            background: rgba(250,204,21,0.08);
+            border: 1px solid rgba(250,204,21,0.32);
+            border-radius: 999px;
+            padding: 5px 14px;
+            text-decoration: none;
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            font-family: inherit;
+            opacity: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .manager-points-link:hover {
+            background: rgba(250,204,21,0.16);
+            border-color: rgba(250,204,21,0.55);
+            box-shadow: 0 0 18px rgba(250,204,21,0.18);
+            transform: translateY(-1px);
+        }
+        .manager-points-link:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
+        }
+        .manager-points-link small {
+            font-size: 0.62em;
+            font-weight: 700;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Innerhalb-der-Karte Animationen: Vorname → Top-Spieler → Orbs → Punkte.
+           Werden nur ausgespielt, wenn die Hülle (.champ-card) bereits eingeflogen
+           ist – die Verzögerungen laufen relativ zum Karten-Einflug, also über
+           Inline-Style (animation-delay) gesetzt. */
+        @keyframes manager-firstname-in {
+            0%   { opacity: 0; transform: translateY(-14px) scale(0.92); }
+            55%  { opacity: 1; transform: translateY(2px) scale(1.04); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes manager-orb-pop {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.35); }
+            65%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes manager-orb-float {
+            0%, 100% { transform: translate(-50%, calc(-50% - 2px)) scale(1); }
+            50%      { transform: translate(-50%, calc(-50% + 2px)) scale(1); }
+        }
+        @keyframes manager-points-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .champ-card.is-running .manager-firstname {
+            animation: manager-firstname-in 0.65s cubic-bezier(0.22, 0.85, 0.4, 1.05) var(--firstname-delay, 0.2s) forwards;
+        }
+        .champ-card.is-running .manager-player-orb {
+            animation: manager-orb-pop 0.55s cubic-bezier(0.22, 0.85, 0.4, 1.05) var(--orb-delay, 0.6s) forwards;
+        }
+        .champ-card.is-ready .manager-player-orb {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            animation: manager-orb-float 4.5s ease-in-out var(--orb-float-delay, 0s) infinite;
+        }
+        .champ-card.is-running .manager-points-link {
+            animation: manager-points-in 0.5s ease var(--points-delay, 1.4s) forwards;
+        }
+        .champ-card.is-ready .manager-firstname {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .champ-card.is-ready .manager-points-link {
+            opacity: 1;
+        }
+
         @media (max-width: 560px) {
             .champ-podium {
                 gap: 4px;
@@ -982,12 +1272,13 @@
             }
             .champ-card { padding: 10px 8px 12px; gap: 8px; border-radius: 18px; }
             .champ-card[data-rank="1"] { padding-bottom: 18px; }
-            .champ-top-players { padding: 6px; gap: 4px; }
-            .champ-top-player { grid-template-columns: 24px 1fr auto; gap: 6px; padding: 3px 4px; }
-            .champ-top-player .ctp-photo,
-            .champ-top-player .ctp-photo-fallback { width: 24px; height: 24px; }
-            .champ-top-player .ctp-name { font-size: 0.68rem; }
-            .champ-top-player .ctp-pts { font-size: 0.7rem; }
+            .manager-hero-card { min-height: clamp(240px, 56vw, 320px); padding: 12px 6px 10px; }
+            .manager-firstname { font-size: clamp(1.2rem, 6.6vw, 1.7rem); }
+            .champ-card[data-rank="1"] .manager-firstname { font-size: clamp(1.4rem, 7.6vw, 2.05rem); }
+            .manager-player-constellation { min-height: clamp(120px, 38vw, 180px); margin: 4px 0 6px; }
+            .manager-points-link { padding: 4px 10px; font-size: clamp(0.78rem, 3.2vw, 0.95rem); }
+            .manager-player-orb .orb-cap { width: 16px; height: 16px; font-size: 0.55rem; }
+            .manager-player-orb .orb-pts { font-size: 0.55rem; padding: 1px 5px; bottom: -6px; }
             .champ-chasers { gap: 8px; }
             .champ-chaser { min-width: 0; flex: 1 1 45%; padding: 8px 10px 8px 8px; }
         }
@@ -996,12 +1287,18 @@
             .champ-card,
             .champ-chaser,
             .champ-spotlight,
-            .champ-crown {
+            .champ-crown,
+            .manager-firstname,
+            .manager-player-orb,
+            .manager-points-link {
                 animation-duration: 0.001s !important;
                 animation-delay: 0s !important;
             }
             .champ-card { opacity: 1 !important; }
             .champ-chaser { opacity: 1 !important; transform: none !important; }
+            .manager-firstname,
+            .manager-points-link { opacity: 1 !important; transform: none !important; }
+            .manager-player-orb { opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
         }
 
         @media (max-width: 560px) {
@@ -1099,51 +1396,141 @@
         .map((part) => part[0]?.toUpperCase() || '')
         .join('') || '?';
 
-    // Liefert eine kompakte Darstellung des Spielernamens. Bei zu langen
-    // Doppelnamen wird der Vorname auf den ersten Buchstaben verkürzt
-    // (z. B. "Cristiano Ronaldo dos Santos" -> "C. dos Santos"), damit die
-    // Karten nicht zu breit werden.
-    const compactName = (fullName) => {
-        const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
-        if (parts.length <= 1) return fullName || '';
-        const last = parts.slice(1).join(' ');
-        if ((parts[0].length + last.length + 1) <= 18) return `${parts[0]} ${last}`;
-        return `${parts[0][0]}. ${last}`;
+    // Vorname-Extraktion für die Hero-Card-Überschrift. Akzeptiert sowohl
+    // "Vorname Nachname" als auch reine Vornamen ohne Nachnamen.
+    const firstNameOf = (fullName) => {
+        const trimmed = String(fullName || '').trim();
+        if (!trimmed) return 'Manager';
+        return trimmed.split(/\s+/)[0];
     };
 
-    // Anzahl gezeigter Top-Spieler je Podestplatz: Rang 1 erhält die größte
-    // Karte und damit Platz für 5 Spieler, Rang 2 + 3 zeigen 4 Spieler.
-    const TOP_PLAYERS_BY_RANK = { 1: 5, 2: 4, 3: 4 };
-
-    function topPlayersHtml(manager, rank) {
-        const limit = TOP_PLAYERS_BY_RANK[rank] || 4;
-        const players = (manager.mergedPlayers || [])
-            .filter((p) => Number.isFinite(p.pts))
-            .slice(0, limit);
-        if (players.length === 0) {
-            return `<div class="champ-avatar" aria-hidden="true">${escapeHtml(initials(manager.manager))}</div>`;
+    // Player-Avatar fΓΌr die Constellation. Liefert entweder ein <img> oder
+    // einen Initialen-Fallback. Beide haben dieselben Maße, damit das Layout
+    // bei fehlenden Bildern nicht springt.
+    function playerAvatarHtml(p) {
+        const fallback = escapeHtml(initials(p.name));
+        if (p.photo && /^https?:/i.test(p.photo)) {
+            return `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="${fallback}">`;
         }
-        const rows = players.map((p) => {
-            const fallbackInitials = escapeHtml(initials(p.name));
-            const photo = p.photo && /^https?:/i.test(p.photo)
-                ? `<img class="ctp-photo" src="${escapeHtml(p.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="${fallbackInitials}">`
-                : `<span class="ctp-photo-fallback" aria-hidden="true">${fallbackInitials}</span>`;
-            const captain = p.isCaptain ? '<span class="ctp-captain" title="Kapit&auml;n (&times;2)">C</span>' : '';
-            return `
-                <li class="champ-top-player">
-                    ${photo}
-                    <span class="ctp-name">${escapeHtml(compactName(p.name))}${captain}</span>
-                    <span class="ctp-pts">${Math.round(p.pts).toLocaleString('de-DE')}</span>
-                </li>
-            `;
-        }).join('');
-        return `<ul class="champ-top-players" aria-label="Top-Spieler">${rows}</ul>`;
+        return `<span class="manager-player-orb-fallback" aria-hidden="true">${fallback}</span>`;
     }
 
-    const navTo = (managerName) => {
-        if (!managerName) return;
-        window.location.href = `teams.html?manager=${encodeURIComponent(managerName)}`;
+    // Layout-Konstanten: Wie viele Spieler erscheinen je Podestrang und in
+    // welcher Konstellation (relative Koordinaten in % innerhalb des
+    // Constellation-Containers, Größe als Prozent der Containerbreite).
+    // Index 0 ist der punktbeste Spieler (zentral, am größten).
+    // Reihenfolge der Slots entspricht der Plat zierung Spieler 1..N.
+    const LAYOUTS = {
+        // Rang 1: Mehr Platz, bis zu 8 Spieler
+        1: [
+            { x: 50, y: 48, size: 56, cls: 'manager-main-player', z: 5 },
+            { x: 18, y: 30, size: 30, cls: 'size-md', z: 4 },
+            { x: 82, y: 30, size: 30, cls: 'size-md', z: 4 },
+            { x: 12, y: 72, size: 24, cls: 'size-sm', z: 3 },
+            { x: 88, y: 72, size: 24, cls: 'size-sm', z: 3 },
+            { x: 32, y: 88, size: 22, cls: 'size-sm', z: 3 },
+            { x: 68, y: 88, size: 22, cls: 'size-sm', z: 3 },
+            { x: 50, y: 14, size: 20, cls: 'size-sm', z: 2 }
+        ],
+        // Rang 2 + 3: Schmalere Karten, bis zu 6 Spieler
+        2: [
+            { x: 50, y: 48, size: 60, cls: 'manager-main-player', z: 5 },
+            { x: 20, y: 28, size: 32, cls: 'size-md', z: 4 },
+            { x: 82, y: 32, size: 32, cls: 'size-md', z: 4 },
+            { x: 16, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 84, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 50, y: 90, size: 22, cls: 'size-sm', z: 2 }
+        ],
+        3: [
+            { x: 50, y: 48, size: 60, cls: 'manager-main-player', z: 5 },
+            { x: 20, y: 28, size: 32, cls: 'size-md', z: 4 },
+            { x: 82, y: 32, size: 32, cls: 'size-md', z: 4 },
+            { x: 16, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 84, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 50, y: 90, size: 22, cls: 'size-sm', z: 2 }
+        ]
     };
+
+    // Erzeugt die Constellation aus den Top-Spielern eines Managers.
+    function buildConstellation(manager, rank) {
+        const layout = LAYOUTS[rank] || LAYOUTS[2];
+        const all = (manager.mergedPlayers || []).filter((p) => Number.isFinite(p.pts));
+        // Kein einziger Spieler → schöner Fallback mit Initialen des Managers
+        if (all.length === 0) {
+            return `
+                <div class="manager-player-constellation" aria-hidden="true">
+                    <button type="button" class="manager-player-orb manager-main-player" tabindex="-1"
+                            style="left:50%;top:50%;width:60%;aspect-ratio:1/1;z-index:5;">
+                        <span class="manager-player-orb-inner">
+                            <span class="manager-player-orb-fallback">${escapeHtml(initials(manager.manager))}</span>
+                        </span>
+                    </button>
+                </div>
+            `;
+        }
+
+        const players = all.slice(0, Math.min(layout.length, 8));
+        const orbs = players.map((p, idx) => {
+            const slot = layout[idx];
+            const cap = p.isCaptain ? '<span class="orb-cap" title="Kapitän (×2)">C</span>' : '';
+            const ptsText = Math.round(p.pts).toLocaleString('de-DE') + ' P';
+            const showPts = idx < 3;
+            const safeName = escapeHtml(p.name || 'Unbekannt');
+            const dataPid = p.id ? `data-player-id="${escapeHtml(p.id)}"` : '';
+            return `
+                <button type="button"
+                        class="manager-player-orb ${slot.cls} ${showPts ? 'has-pts' : ''}"
+                        style="left:${slot.x}%; top:${slot.y}%; width:${slot.size}%; aspect-ratio:1/1; z-index:${slot.z}; --orb-delay: ${(0.15 * idx + 0.55).toFixed(2)}s; --orb-float-delay: ${(idx * 0.4).toFixed(2)}s;"
+                        data-player-name="${safeName}"
+                        ${dataPid}
+                        data-action="player"
+                        aria-label="Spieler ${safeName}, ${ptsText}. Spieleranalyse öffnen.">
+                    <span class="manager-player-orb-inner">
+                        ${playerAvatarHtml(p)}
+                    </span>
+                    ${cap}
+                    ${showPts ? `<span class="orb-pts">${ptsText}</span>` : ''}
+                </button>
+            `;
+        }).join('');
+
+        return `<div class="manager-player-constellation">${orbs}</div>`;
+    }
+
+    // ── Klick-Ziele ───────────────────────────────────────────────────────
+    // Manager-Team öffnen (über bestehende teams.html-Logik). Falls ein
+    // Hostprojekt eine globale Funktion bereitstellt, bevorzugen wir diese.
+    function openManagerTeam(manager) {
+        const name = manager && manager.manager ? manager.manager : '';
+        if (!name) return;
+        if (typeof window.openManagerTeam === 'function' && window.openManagerTeam !== openManagerTeam) {
+            try { window.openManagerTeam(manager); return; } catch (_) { /* fallback */ }
+        }
+        window.location.href = `teams.html?manager=${encodeURIComponent(name)}`;
+    }
+    window.openManagerTeam = window.openManagerTeam || openManagerTeam;
+
+    // Spieleranalyse öffnen – wir verwenden dieselbe URL-Konvention wie
+    // rangliste.html und teams.html (?player=<Name>).
+    function openPlayerAnalysis(player) {
+        if (!player) return;
+        if (typeof window.openPlayerAnalysis === 'function' && window.openPlayerAnalysis !== openPlayerAnalysis) {
+            try { window.openPlayerAnalysis(player); return; } catch (_) { /* fallback */ }
+        }
+        const name = player.name || '';
+        if (!name) return;
+        window.location.href = `spieleranalyse.html?player=${encodeURIComponent(name)}`;
+    }
+    window.openPlayerAnalysis = window.openPlayerAnalysis || openPlayerAnalysis;
+
+    // Rangliste öffnen
+    function openRanking() {
+        if (typeof window.openRanking === 'function' && window.openRanking !== openRanking) {
+            try { window.openRanking(); return; } catch (_) { /* fallback */ }
+        }
+        window.location.href = 'rangliste.html';
+    }
+    window.openRanking = window.openRanking || openRanking;
 
     // ── Ranking-Berechnung (identisch zu rangliste.html) ──────────────────
 
@@ -1310,24 +1697,60 @@
 
         top3.forEach((m, i) => {
             const rank = i + 1;
-            const card = document.createElement('button');
-            card.type = 'button';
-            card.className = 'champ-card';
+            // Wir verwenden ein <div> statt <button>, damit Klicks gezielt
+            // auf die einzelnen Hero-Bestandteile (Vorname, Spieler-Orbs,
+            // Punkte) gehen können – die Karte selbst ist nicht mehr ein
+            // einziger Klickbereich.
+            const card = document.createElement('div');
+            card.className = 'champ-card manager-hero-card is-running';
             card.dataset.rank = String(rank);
             card.dataset.points = String(m.totalScore);
-            card.setAttribute('aria-label', `Platz ${rank}: ${m.manager}, ${m.totalScore} Punkte. Zum Team.`);
+            card.setAttribute('aria-label', `Platz ${rank}: ${m.manager}, ${m.totalScore} Punkte.`);
 
+            // Verzögerungen relativ zum Karten-Einflug: Rang 3 startet bei 0.25s,
+            // Rang 2 bei 0.85s und Rang 1 bei 1.6s. Innerhalb der Karte addieren
+            // wir den Karten-Delay zu den eigenen Animationsverzögerungen.
+            const baseDelay = rank === 1 ? 1.6 : rank === 2 ? 0.85 : 0.25;
+            const firstnameDelay = (baseDelay + 0.4).toFixed(2) + 's';
+            const pointsDelay    = (baseDelay + 1.6).toFixed(2) + 's';
+            card.style.setProperty('--firstname-delay', firstnameDelay);
+            card.style.setProperty('--points-delay', pointsDelay);
+
+            const firstName = escapeHtml(firstNameOf(m.manager));
             card.innerHTML = `
                 ${rank === 1 ? CROWN_SVG : ''}
                 <span class="champ-rank-badge">#${rank}</span>
-                ${topPlayersHtml(m, rank)}
-                <h3 class="champ-name">${escapeHtml(m.manager)}</h3>
-                <span class="champ-points">
+                <button type="button" class="manager-firstname"
+                        data-action="manager"
+                        aria-label="Team von ${escapeHtml(m.manager)} anzeigen">${firstName}</button>
+                ${buildConstellation(m, rank)}
+                <button type="button" class="manager-points-link"
+                        data-action="points"
+                        aria-label="Gesamte Rangliste anzeigen">
                     <span class="champ-points-value" data-target="${m.totalScore}">0</span>
                     <small>Pkt</small>
-                </span>
+                </button>
             `;
-            card.addEventListener('click', () => navTo(m.manager));
+
+            // Click-Delegation: Vorname → Team, Punkte → Rangliste, Orb → Spieleranalyse.
+            card.addEventListener('click', (ev) => {
+                const target = ev.target.closest('[data-action]');
+                if (!target || !card.contains(target)) return;
+                ev.preventDefault();
+                ev.stopPropagation();
+                const action = target.dataset.action;
+                if (action === 'manager') {
+                    openManagerTeam(m);
+                } else if (action === 'points') {
+                    openRanking();
+                } else if (action === 'player') {
+                    const playerName = target.dataset.playerName;
+                    const player = (m.mergedPlayers || []).find((p) => p.name === playerName);
+                    if (player) openPlayerAnalysis(player);
+                    else if (playerName) openPlayerAnalysis({ name: playerName });
+                }
+            });
+
             podium.appendChild(card);
         });
 
@@ -1348,17 +1771,17 @@
                     <small>Pkt</small>
                 </div>
             `;
-            row.addEventListener('click', () => navTo(m.manager));
+            row.addEventListener('click', () => openManagerTeam(m));
             chasers.appendChild(row);
         });
 
         // Spielerfoto-Fallback: Wenn das Foto nicht lädt, ersetzen wir das
         // <img> durch ein <span> mit den Initialen, das exakt dieselben Maße
         // hat. data-fallback hält dafür die vorbereiteten Initialen bereit.
-        podium.querySelectorAll('img.ctp-photo').forEach((img) => {
+        podium.querySelectorAll('.manager-player-orb-inner img').forEach((img) => {
             img.addEventListener('error', () => {
                 const fallback = document.createElement('span');
-                fallback.className = 'ctp-photo-fallback';
+                fallback.className = 'manager-player-orb-fallback';
                 fallback.setAttribute('aria-hidden', 'true');
                 fallback.textContent = img.dataset.fallback || '?';
                 img.replaceWith(fallback);
@@ -1368,23 +1791,27 @@
         // Punkte-Hochzähl-Animation: Reihenfolge entspricht dem Aufbau des
         // Podests (Rang 3 → Rang 2 → Rang 1 → Verfolger). Die Werte werden
         // pro Karte gezielt verzögert, damit der Counter zur Einflug-Animation
-        // passt (Gesamtdauer ~3 Sekunden).
+        // passt (Gesamtdauer ~4–5 Sekunden inkl. Innen-Animationen).
         const counterDelays = {
-            '3': 700, '2': 1100, '1': 1700, '4': 2700, '5': 2900
+            '3': 2300, '2': 2700, '1': 3500, '4': 3900, '5': 4150
         };
         document.querySelectorAll('.champ-points-value').forEach((el) => {
             const card = el.closest('[data-rank]');
             const rank = card ? card.dataset.rank : '0';
-            const delay = counterDelays[rank] ?? 1500;
-            animateCount(el, Number(el.dataset.target) || 0, 1400, delay);
+            const delay = counterDelays[rank] ?? 2500;
+            animateCount(el, Number(el.dataset.target) || 0, 1500, delay);
         });
 
-        // Nach Abschluss aller Intro-Animationen (~3s) Animationen abschalten,
-        // damit Hover-Transitions normal greifen.
+        // Nach Abschluss aller Intro-Animationen (~4.6s) Animationen abschalten,
+        // damit Hover-Transitions normal greifen und die Orbs in einen ruhigen
+        // Float-Loop übergehen.
         readyTimer = setTimeout(() => {
             readyTimer = null;
-            document.querySelectorAll('.champ-card').forEach((c) => c.classList.add('is-ready'));
-        }, 3200);
+            document.querySelectorAll('.champ-card').forEach((c) => {
+                c.classList.remove('is-running');
+                c.classList.add('is-ready');
+            });
+        }, 4600);
     }
 
     // ── Daten laden ───────────────────────────────────────────────────────
