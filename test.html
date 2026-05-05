@@ -912,11 +912,11 @@
 </head>
 <body>
 <!-- =====================================================================
-     HERO: „Live Champions Stage" – Prototyp / Test
-     Steht oberhalb des bestehenden Karussells. Verwendet Demo-/Mock-Daten,
-     da test.html bisher nur Spieler-Draft-Daten aus localStorage nutzt
-     und keine echten Manager-/Ranglisten-Daten lädt. Diese Daten lassen
-     sich später durch echte Werte ersetzen, ohne das Markup zu ändern.
+     HERO: „Live Champions Stage" – Top-Manager-Bereich
+     Steht oberhalb des bestehenden Karussells. Lädt die Rangliste über
+     denselben Cache- und Berechnungspfad wie rangliste.html / teams.html
+     (DreamTeamCache + identisches buildRanking-Verfahren), damit Punkte
+     und Reihenfolge der Manager überall exakt übereinstimmen.
      ===================================================================== -->
 <section class="champ-stage" aria-label="Top Manager">
     <div class="champ-spotlight" aria-hidden="true"></div>
@@ -1193,18 +1193,26 @@
     }
 
     // ── Daten laden ───────────────────────────────────────────────────────
+    // Wir verwenden exakt dieselben Cache-Optionen wie rangliste.html und
+    // teams.html (year + allowEmptyPoints:true), damit sich die Top-Manager-
+    // Sektion garantiert auf dieselben Quelldaten und denselben Cache-State
+    // stützt. Die Berechnungslogik (Punkte je Spieler, Captain ×2, Summe
+    // über alle Spieler, Tiebreak nach Manager-Name) ist bewusst 1:1 aus
+    // rangliste.html übernommen, damit die Reihenfolge und die Punkte
+    // überall identisch sind.
+
+    let metaUnsubscribe = null;
+    let isMetaRefreshRunning = false;
 
     async function initChampStage() {
         const db = APP.getDb();
 
-        // allowEmptyPoints:false → loadBundle always fetches from Firestore when
-        // the cached points object is empty (which would otherwise cause all-zero scores).
-        const CACHE_OPTIONS = { db, year: APP.year, allowEmptyPoints: false, log: false };
+        const CACHE_OPTIONS = { db, year: APP.year, allowEmptyPoints: true, log: false };
 
         // Pre-render from cache only when we actually have points data so managers
         // don't appear with 0 Punkte before the real fetch completes.
         try {
-            const cached = DreamTeamCache.getCachedBundle({ ...CACHE_OPTIONS, allowEmptyPoints: true });
+            const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
             if (cached.ok
                 && (cached.data.teams || []).length > 0
                 && hasRealPoints(cached.data.points)) {
@@ -1217,8 +1225,40 @@
             renderChampStage(buildRanking(fresh.data));
         } catch (err) {
             console.warn('[ChampStage] Fehler beim Laden der Rangliste:', err);
+            return;
+        }
+
+        // Live-Updates: dasselbe Meta-Abo wie auf rangliste.html / teams.html,
+        // damit Punkte- oder Team-Änderungen sofort übernommen werden und die
+        // Top-Manager-Sektion nicht von der Rangliste abweicht.
+        if (!metaUnsubscribe && typeof DreamTeamCache.subscribeToMeta === 'function') {
+            metaUnsubscribe = DreamTeamCache.subscribeToMeta({
+                ...CACHE_OPTIONS,
+                onChange: async ({ remoteMeta }) => {
+                    if (isMetaRefreshRunning) return;
+                    isMetaRefreshRunning = true;
+                    try {
+                        const updated = await DreamTeamCache.loadBundle({
+                            ...CACHE_OPTIONS,
+                            remoteMetaOverride: remoteMeta
+                        });
+                        renderChampStage(buildRanking(updated.data));
+                    } catch (err) {
+                        console.warn('[ChampStage] Meta-Refresh fehlgeschlagen:', err);
+                    } finally {
+                        isMetaRefreshRunning = false;
+                    }
+                },
+                onError: (err) => {
+                    console.warn('[ChampStage] Meta-Listener Fehler:', err);
+                }
+            });
         }
     }
+
+    window.addEventListener('beforeunload', () => {
+        if (typeof metaUnsubscribe === 'function') metaUnsubscribe();
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initChampStage);
