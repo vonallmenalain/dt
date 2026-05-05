@@ -812,36 +812,6 @@
             letter-spacing: 0.06em;
         }
 
-        /* 3D-Podest unter den Top 3 */
-        .champ-base {
-            position: absolute;
-            left: 50%;
-            bottom: 0;
-            transform: translateX(-50%) translateZ(-30px);
-            width: clamp(280px, 70%, 640px);
-            height: 38px;
-            border-radius: 18px 18px 6px 6px;
-            background:
-                linear-gradient(180deg, rgba(255,215,0,0.18) 0%, rgba(34,197,94,0.16) 60%, rgba(0,0,0,0.4) 100%);
-            border: 1px solid rgba(255,215,0,0.3);
-            box-shadow: 0 18px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
-            opacity: 0;
-            animation: champ-base-in 0.7s ease 0.05s forwards;
-        }
-        .champ-base::before {
-            content: "";
-            position: absolute;
-            inset: 6px 14px;
-            border-radius: 12px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0));
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-
-        @keyframes champ-base-in {
-            from { opacity: 0; transform: translateX(-50%) translateZ(-30px) scaleX(0.4); }
-            to   { opacity: 1; transform: translateX(-50%) translateZ(-30px) scaleX(1); }
-        }
-
         /* Intro-Animationen: jede Karte fliegt aus eigener Richtung in die Endposition.
            Die End-Positionen werden über `left` gesteuert, transform übernimmt nur
            Tiefe / Rotation / Zentrierung. */
@@ -919,7 +889,6 @@
         @media (prefers-reduced-motion: reduce) {
             .champ-card,
             .champ-chaser,
-            .champ-base,
             .champ-spotlight,
             .champ-crown {
                 animation-duration: 0.001s !important;
@@ -971,16 +940,14 @@
      und keine echten Manager-/Ranglisten-Daten lädt. Diese Daten lassen
      sich später durch echte Werte ersetzen, ohne das Markup zu ändern.
      ===================================================================== -->
-<section class="champ-stage" aria-label="Live Champions Stage – Top 5 Manager">
+<section class="champ-stage" aria-label="Top Manager">
     <div class="champ-spotlight" aria-hidden="true"></div>
 
     <header class="champ-header">
-        <span class="champ-eyebrow"><span class="live-dot" aria-hidden="true"></span>Live Champions Stage</span>
         <h2 class="champ-title">
-            <span class="gold-text">Top 5</span>
+            <span class="gold-text">Top</span>
             <span class="accent">Manager</span>
         </h2>
-        <p class="champ-subtitle">Die heissesten DreamTeam-Coaches – live nach Punkten gestaffelt</p>
     </header>
 
     <div class="champ-arena">
@@ -1050,11 +1017,6 @@
     const rest = demoTopManagers.filter((m) => m.rank >= 4).sort((a, b) => a.rank - b.rank);
 
     // 3D-Podest-Karten (Top 3)
-    const baseEl = document.createElement('div');
-    baseEl.className = 'champ-base';
-    baseEl.setAttribute('aria-hidden', 'true');
-    podium.appendChild(baseEl);
-
     top3.forEach((m) => {
         const card = document.createElement('button');
         card.type = 'button';
