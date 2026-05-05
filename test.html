@@ -1511,7 +1511,7 @@
             const slot = layout[idx];
             const cap = p.isCaptain ? '<span class="orb-cap" title="Kapitän (×2)">C</span>' : '';
             const ptsText = Math.round(p.pts).toLocaleString('de-DE') + ' P';
-            const showPts = idx < 3;
+            const showPts = idx === 0;
             const safeName = escapeHtml(p.name || 'Unbekannt');
             const dataPid = p.id ? `data-player-id="${escapeHtml(p.id)}"` : '';
             const orbDelay = (baseDelay + 0.55 + 0.15 * idx).toFixed(2) + 's';
@@ -1806,10 +1806,11 @@
             row.dataset.rank = String(rank);
             row.style.setProperty('--chaser-delay', (3.7 + i * 0.18).toFixed(2) + 's');
             row.setAttribute('aria-label', `Platz ${rank}: ${m.manager}, ${m.totalScore} Punkte. Zum Team.`);
+            const chaserDisplayName = rank <= 7 ? firstNameOf(m.manager) : m.manager;
             row.innerHTML = `
                 <div class="champ-rank-mini">#${rank}</div>
                 <div class="champ-chaser-info">
-                    <span class="champ-chaser-name">${escapeHtml(m.manager)}</span>
+                    <span class="champ-chaser-name">${escapeHtml(chaserDisplayName)}</span>
                 </div>
                 <div class="champ-chaser-points">
                     <span class="champ-points-value" data-target="${m.totalScore}">0</span>
