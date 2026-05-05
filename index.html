@@ -4094,46 +4094,307 @@
         }
 
 
-        .test-carousel-copy { display:flex; flex-direction:column; align-items:center; margin-top: 6px; }
-        .test-carousel-copy .carousel {
-            position: relative; z-index: 2; width: min(66vw, 620px); height: min(48svh, 360px); margin-top: 6px;
-            perspective: 1100px; isolation: isolate; touch-action: pan-y; user-select: none; cursor: grab;
+        /* ===================================================================
+           TCC-CAROUSEL – Identische 1:1-Kopie des Karussells aus test.html.
+           Bewusst eigener `tcc-`-Namespace, damit KEINE globalen Selektoren
+           aus dieser index.html (z. B. .player-card, .player-name,
+           .captain-badge, .meta-row …) hineinbluten und Animationen
+           verlangsamen oder das Layout brechen.
+           =================================================================== */
+        .test-carousel-copy {
+            --card-w: clamp(98px, 16.5vw, 128px);
+            --card-h: clamp(148px, 24.8vw, 188px);
+            --blur: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 6px;
         }
-        .test-carousel-copy .carousel:active { cursor: grabbing; }
-        .test-carousel-copy .track { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; transform-style:preserve-3d; will-change:transform; }
-        .test-carousel-copy .player-card { position:absolute; width: var(--card-w); height: var(--card-h); border-radius:20px; overflow:hidden; padding:9px; display:flex; flex-direction:column; gap:7px; background: linear-gradient(165deg, rgba(29,39,59,0.95) 0%, rgba(19,27,43,0.96) 65%, rgba(13,18,31,0.98) 100%), radial-gradient(circle at 20% 0%, rgba(255,215,0,0.14), transparent 52%); border:1px solid rgba(255,255,255,0.16); box-shadow:0 14px 40px rgba(0,0,0,0.5); backdrop-filter: blur(var(--blur)); will-change: transform, opacity, filter; }
-        .test-carousel-copy .player-photo-wrap { width:78%; aspect-ratio:1/1; align-self:center; border-radius:16px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.04); display:grid; place-items:center; padding:0; overflow:hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,0.6),0 4px 10px rgba(8,15,27,0.15); }
-        .test-carousel-copy .player-photo { width:100%; height:100%; object-fit:contain; object-position:center center; pointer-events:none; }
-        .test-carousel-copy .player-info { min-height:0; display:flex; flex-direction:column; gap:6px; }
-        .test-carousel-copy .player-name { margin:0; width:100%; max-width:100%; min-width:0; font-size:clamp(0.78rem, 1.9vw, 0.96rem); line-height:1.06; font-weight:900; letter-spacing:-0.035em; color:#f8fbff; display:block; white-space:nowrap; overflow:visible; text-overflow:clip; }
-        .test-carousel-copy .meta-row { display:flex; align-items:center; gap:7px; min-width:0; font-size:0.72rem; line-height:1.2; color:rgba(230,237,243,0.84); }
-        .test-carousel-copy .meta-row span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .test-carousel-copy .meta-icon { width:17px; height:17px; flex:0 0 17px; object-fit:contain; border-radius:0; border:0; background:transparent; padding:0; }
-        .test-carousel-copy .flag-icon { object-fit:cover; border-radius:0; }
-        .test-carousel-copy .drafts { margin-top:4px; width:fit-content; max-width:100%; display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; font-size:0.78rem; font-weight:700; background: linear-gradient(135deg, rgba(34,197,94,0.26), rgba(250,204,21,0.18)); color:#e8f7da; border:1px solid rgba(134,239,172,0.42); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .test-carousel-copy .drafts strong { color:#fef08a; font-weight:800; }
-        .test-carousel-copy .manager-carousel-card { justify-content:space-between; padding:12px 10px 14px; gap:12px; }
-        .test-carousel-copy .manager-card-rank { position:absolute; top:10px; left:10px; min-width:48px; padding:4px 10px; border-radius:999px; font-size:0.9rem; font-weight:950; letter-spacing:0.02em; color:#0b1020; background:linear-gradient(140deg,#fff0a8,#ffd700 55%,#ca9200); border:2px solid rgba(11,16,32,0.45); box-shadow:0 8px 18px rgba(0,0,0,0.48),0 0 0 2px rgba(255,215,0,0.22); z-index:2; }
-        .test-carousel-copy .manager-carousel-card[data-rank="2"] .manager-card-rank { background: linear-gradient(140deg, #f8fafc, #d3dce9 55%, #7b8ca3); }
-        .test-carousel-copy .manager-carousel-card[data-rank="3"] .manager-card-rank { background: linear-gradient(140deg, #f6dfca, #d69869 55%, #8d552a); color: #fff; }
-        .test-carousel-copy .manager-card-name { margin:38px 0 4px; text-align:center; font-weight:950; font-size:clamp(0.92rem,2.2vw,1.05rem); line-height:1.06; letter-spacing:-0.02em; color:#f8fbff; text-shadow:0 0 14px rgba(255,255,255,0.08); }
-        .test-carousel-copy .manager-card-points { align-self:center; padding:5px 10px; border-radius:999px; font-size:0.78rem; font-weight:900; color:#fde68a; background:rgba(250,204,21,0.12); border:1px solid rgba(250,204,21,0.42); }
-        .test-carousel-copy .manager-card-topplayers { margin-top:auto; display:flex; justify-content:center; align-items:flex-end; gap:0; width:100%; min-height:82px; }
-        .test-carousel-copy .manager-card-player { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0; width:54px; position:relative; }
-        .test-carousel-copy .manager-card-player-avatar { width:54px; height:54px; border-radius:50%; overflow:hidden; border:1.8px solid rgba(255,255,255,0.42); box-shadow:0 4px 10px rgba(0,0,0,0.35); position:relative; background:#0f172a; }
-        .test-carousel-copy .manager-card-player-avatar img { width:100%; height:100%; object-fit:cover; }
-        .test-carousel-copy .manager-card-player.rank-2, .test-carousel-copy .manager-card-player.rank-3 { transform:translateY(8px); z-index:1; }
-        .test-carousel-copy .manager-card-player.rank-1 { width:76px; z-index:3; margin:0 -8px; }
-        .test-carousel-copy .manager-card-player.rank-1 .manager-card-player-avatar { width:76px; height:76px; border-width:2.2px; border-color:rgba(255,215,0,0.62); box-shadow:0 0 0 2px rgba(255,215,0,0.26),0 8px 16px rgba(0,0,0,0.44); }
-        .test-carousel-copy .manager-card-player.rank-2 { z-index:2; margin-right:-5px; }
-        .test-carousel-copy .manager-card-player.rank-3 { z-index:1; margin-left:-5px; }
-        .test-carousel-copy .manager-card-player-name { width:100%; font-size:0.62rem; font-weight:700; line-height:1.05; text-align:center; color:rgba(230,237,243,0.92); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .test-carousel-copy .manager-card-player-points { font-size:0.62rem; font-weight:800; color:#86efac; line-height:1; }
-        .test-carousel-copy .captain-badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; background:#f97316; color:#fff; font-size:0.66rem; font-weight:900; display:grid; place-items:center; border:1px solid rgba(0,0,0,0.35); }
-        .test-carousel-copy .manager-carousel-card[data-rank="1"] { background: linear-gradient(165deg, rgba(74,57,11,0.95) 0%, rgba(54,39,10,0.96) 62%, rgba(33,24,8,0.98) 100%), radial-gradient(circle at 22% 0%, rgba(255,215,0,0.34), transparent 54%); border-color: rgba(255,215,0,0.45); }
-        .test-carousel-copy .manager-carousel-card[data-rank="2"] { background: linear-gradient(165deg, rgba(48,56,70,0.95) 0%, rgba(37,43,58,0.97) 62%, rgba(24,29,43,0.98) 100%), radial-gradient(circle at 22% 0%, rgba(226,232,240,0.28), transparent 54%); border-color: rgba(203,213,225,0.4); }
-        .test-carousel-copy .manager-carousel-card[data-rank="3"] { background: linear-gradient(165deg, rgba(70,44,30,0.95) 0%, rgba(58,36,24,0.97) 62%, rgba(41,26,18,0.98) 100%), radial-gradient(circle at 22% 0%, rgba(214,138,82,0.34), transparent 54%); border-color: rgba(214,138,82,0.42); }
-        @media (max-width: 560px) { .test-carousel-copy .carousel { height:min(63svh,420px); } .test-carousel-copy .player-card{padding:8px;gap:6px;} .test-carousel-copy .player-info{gap:4px;} .test-carousel-copy .player-name{font-size:0.78rem;line-height:1.06;letter-spacing:-0.035em;white-space:nowrap;display:block;overflow:visible;text-overflow:clip;} .test-carousel-copy .meta-row{font-size:0.64rem;line-height:1.15;gap:5px;} .test-carousel-copy .meta-icon{width:14px;height:14px;flex-basis:14px;} .test-carousel-copy .drafts{font-size:0.62rem;padding:4px 8px;gap:4px;} }
+        .tcc-carousel {
+            position: relative;
+            z-index: 2;
+            width: min(66vw, 620px);
+            height: min(48svh, 360px);
+            margin-top: 6px;
+            perspective: 1100px;
+            isolation: isolate;
+            touch-action: pan-y;
+            user-select: none;
+            cursor: grab;
+        }
+        .tcc-carousel:active { cursor: grabbing; }
+        .tcc-track {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+        .tcc-player-card {
+            position: absolute;
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: 20px;
+            overflow: hidden;
+            padding: 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            background:
+                linear-gradient(165deg, rgba(29,39,59,0.95) 0%, rgba(19,27,43,0.96) 65%, rgba(13,18,31,0.98) 100%),
+                radial-gradient(circle at 20% 0%, rgba(255,215,0,0.14), transparent 52%);
+            border: 1px solid rgba(255,255,255,0.16);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(var(--blur));
+            transition: box-shadow 0.25s ease;
+            will-change: transform, opacity, filter;
+        }
+        .tcc-player-photo-wrap {
+            width: 78%;
+            aspect-ratio: 1 / 1;
+            align-self: center;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.04);
+            display: grid;
+            place-items: center;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 10px rgba(8,15,27,0.15);
+        }
+        .tcc-player-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center center;
+            pointer-events: none;
+        }
+        .tcc-player-info {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .tcc-player-name {
+            margin: 0;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            font-size: clamp(0.78rem, 1.9vw, 0.96rem);
+            line-height: 1.06;
+            font-weight: 900;
+            letter-spacing: -0.035em;
+            color: #f8fbff;
+            display: block;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
+        }
+        .tcc-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 0;
+            font-size: 0.72rem;
+            line-height: 1.2;
+            color: rgba(230,237,243,0.84);
+        }
+        .tcc-meta-row span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tcc-meta-icon {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 17px;
+            object-fit: contain;
+            border-radius: 0;
+            border: 0;
+            background: transparent;
+            padding: 0;
+        }
+        .tcc-flag-icon { object-fit: cover; border-radius: 0; }
+        .tcc-drafts {
+            margin-top: 4px;
+            width: fit-content;
+            max-width: 100%;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(34,197,94,0.26), rgba(250,204,21,0.18));
+            color: #e8f7da;
+            border: 1px solid rgba(134,239,172,0.42);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tcc-drafts strong { color: #fef08a; font-weight: 800; }
+        .tcc-manager-carousel-card {
+            justify-content: space-between;
+            padding: 12px 10px 14px;
+            gap: 12px;
+        }
+        .tcc-manager-card-rank {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            min-width: 48px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 950;
+            letter-spacing: 0.02em;
+            color: #0b1020;
+            background: linear-gradient(140deg, #fff0a8, #ffd700 55%, #ca9200);
+            border: 2px solid rgba(11,16,32,0.45);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.48), 0 0 0 2px rgba(255,215,0,0.22);
+            z-index: 2;
+        }
+        .tcc-manager-carousel-card[data-rank="2"] .tcc-manager-card-rank { background: linear-gradient(140deg, #f8fafc, #d3dce9 55%, #7b8ca3); }
+        .tcc-manager-carousel-card[data-rank="3"] .tcc-manager-card-rank { background: linear-gradient(140deg, #f6dfca, #d69869 55%, #8d552a); color: #fff; }
+        .tcc-manager-card-name {
+            margin: 38px 0 4px;
+            text-align: center;
+            font-weight: 950;
+            font-size: clamp(0.92rem, 2.2vw, 1.05rem);
+            line-height: 1.06;
+            letter-spacing: -0.02em;
+            color: #f8fbff;
+            text-shadow: 0 0 14px rgba(255,255,255,0.08);
+        }
+        .tcc-manager-card-points {
+            align-self: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            color: #fde68a;
+            background: rgba(250,204,21,0.12);
+            border: 1px solid rgba(250,204,21,0.42);
+        }
+        .tcc-manager-card-topplayers {
+            margin-top: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 0;
+            width: 100%;
+            min-height: 82px;
+        }
+        .tcc-manager-card-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            min-width: 0;
+            width: 54px;
+            position: relative;
+        }
+        .tcc-manager-card-player-avatar {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1.8px solid rgba(255,255,255,0.42);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+            position: relative;
+            background: #0f172a;
+        }
+        .tcc-manager-card-player-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .tcc-manager-card-player.rank-2,
+        .tcc-manager-card-player.rank-3 {
+            transform: translateY(8px);
+            z-index: 1;
+        }
+        .tcc-manager-card-player.rank-1 {
+            width: 76px;
+            z-index: 3;
+            margin: 0 -8px;
+        }
+        .tcc-manager-card-player.rank-1 .tcc-manager-card-player-avatar {
+            width: 76px;
+            height: 76px;
+            border-width: 2.2px;
+            border-color: rgba(255,215,0,0.62);
+            box-shadow: 0 0 0 2px rgba(255,215,0,0.26), 0 8px 16px rgba(0,0,0,0.44);
+        }
+        .tcc-manager-card-player.rank-2 { z-index: 2; margin-right: -5px; }
+        .tcc-manager-card-player.rank-3 { z-index: 1; margin-left: -5px; }
+        .tcc-manager-card-player-name {
+            width: 100%;
+            font-size: 0.62rem;
+            font-weight: 700;
+            line-height: 1.05;
+            text-align: center;
+            color: rgba(230,237,243,0.92);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tcc-manager-card-player-points {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: #86efac;
+            line-height: 1;
+        }
+        .tcc-captain-badge {
+            position: absolute;
+            right: -2px;
+            bottom: -2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #f97316;
+            color: #fff;
+            font-size: 0.66rem;
+            font-weight: 900;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(0,0,0,0.35);
+        }
+        .tcc-manager-carousel-card[data-rank="1"] {
+            background:
+                linear-gradient(165deg, rgba(74,57,11,0.95) 0%, rgba(54,39,10,0.96) 62%, rgba(33,24,8,0.98) 100%),
+                radial-gradient(circle at 22% 0%, rgba(255,215,0,0.34), transparent 54%);
+            border-color: rgba(255,215,0,0.45);
+        }
+        .tcc-manager-carousel-card[data-rank="2"] {
+            background:
+                linear-gradient(165deg, rgba(48,56,70,0.95) 0%, rgba(37,43,58,0.97) 62%, rgba(24,29,43,0.98) 100%),
+                radial-gradient(circle at 22% 0%, rgba(226,232,240,0.28), transparent 54%);
+            border-color: rgba(203,213,225,0.4);
+        }
+        .tcc-manager-carousel-card[data-rank="3"] {
+            background:
+                linear-gradient(165deg, rgba(70,44,30,0.95) 0%, rgba(58,36,24,0.97) 62%, rgba(41,26,18,0.98) 100%),
+                radial-gradient(circle at 22% 0%, rgba(214,138,82,0.34), transparent 54%);
+            border-color: rgba(214,138,82,0.42);
+        }
+        @media (max-width: 560px) {
+            .tcc-carousel { height: min(63svh, 420px); }
+            .tcc-player-card { padding: 8px; gap: 6px; }
+            .tcc-player-info { gap: 4px; }
+            .tcc-player-name {
+                font-size: 0.78rem;
+                line-height: 1.06;
+                letter-spacing: -0.035em;
+                white-space: nowrap;
+                display: block;
+                overflow: visible;
+                text-overflow: clip;
+            }
+            .tcc-meta-row { font-size: 0.64rem; line-height: 1.15; gap: 5px; }
+            .tcc-meta-icon { width: 14px; height: 14px; flex-basis: 14px; }
+            .tcc-drafts { font-size: 0.62rem; padding: 4px 8px; gap: 4px; }
+        }
 
     </style>
 </head>
@@ -4196,8 +4457,8 @@
         </div>
 
         <section class="test-carousel-copy" id="test-carousel-copy" aria-label="Karussell der Fan-Lieblinge">
-            <div class="carousel" id="indexTestCarousel" aria-label="Fan-Lieblinge-Karussell">
-                <div class="track" id="indexTestCarouselTrack"></div>
+            <div class="tcc-carousel" id="indexTestCarousel" aria-label="Fan-Lieblinge-Karussell">
+                <div class="tcc-track" id="indexTestCarouselTrack"></div>
             </div>
         </section>
     </div>
@@ -6861,33 +7122,274 @@
      * Wird bei jedem Daten-Update aufgerufen.
      */
 
+    /* ===================================================================
+       TCC-CAROUSEL – 1:1 Port der Karussell-Logik aus test.html.
+       Wichtig: alle CSS-Klassen tragen den `tcc-`-Namespace, damit globale
+       index.html-Selektoren (.player-card, .player-name, .meta-row …)
+       keinerlei Eigenschaften (z. B. Transitions auf transform) überlagern,
+       die die Animation auf der Startseite zuvor hängen ließen.
+       =================================================================== */
     (() => {
         const root = document.getElementById('test-carousel-copy');
         if (!root) return;
-        // scoped test carousel copy
-        const track = root.querySelector('#indexTestCarouselTrack');
+        const track    = root.querySelector('#indexTestCarouselTrack');
         const carousel = root.querySelector('#indexTestCarousel');
-        const escapeHtml=(v)=>String(v??'').replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-        const normalizePlayer=(raw)=>({id:String(raw['player.id']),name:raw.Spielername,country:raw['Nationalteam.name']||'',countryFlag:raw['Nationalteam.logo']||'',club:raw['Club.name']||'',clubLogo:raw['Club.logo']||'',img:raw.Spielerfoto||''});
-        function parseTeamsFromStorage(){ const candidates=[]; for(let i=0;i<localStorage.length;i++){ const key=localStorage.key(i); if(!key||!key.endsWith('_teams')) continue; try{const parsed=JSON.parse(localStorage.getItem(key)); const teams=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.data)?parsed.data:null); if(Array.isArray(teams)&&teams.length) candidates.push(teams);}catch(_){}} return candidates.sort((a,b)=>b.length-a.length)[0]||[]; }
-        const getPlayerTotalPoints=(p)=>Number(p?.totalPoints??p?.totalScore??p?.points??p?.punkte??p?.score??p?.['Punkte']??0)||0; const getPlayerImage=(p)=>p?.photo||p?.image||p?.playerPhoto||p?.avatar||p?.Spielerfoto||''; const getManagerName=(t)=>t?.manager||t?.managerName||t?.name||'Unbekannt';
-        function buildTopDraftedPlayers(limit=15){ const playersById=new Map((Array.isArray(playersData)?playersData:[]).map((p)=>[String(p['player.id']),p])); const pickCounts=new Map(); parseTeamsFromStorage().forEach((team)=>{(team?.players||[]).forEach((player)=>{const id=String(player?.playerId||''); if(!id||!playersById.has(id)) return; pickCounts.set(id,(pickCounts.get(id)||0)+1);});}); return Array.from(pickCounts.entries()).map(([id,drafts])=>({...normalizePlayer(playersById.get(id)),drafts})).sort((a,b)=>b.drafts-a.drafts).slice(0,limit); }
-        function getEnrichedTeamPlayers(team, playersById){ return (team?.players||[]).map((p)=>{const id=String(p?.playerId||p?.id||''); const full=playersById.get(id); const points=getPlayerTotalPoints(p)||getPlayerTotalPoints(full); return {id,isCaptain:!!(p?.isCaptain||p?.captain),points,full:full||{}};}); }
-        const buildFanFavoriteItems=(limit=15)=>buildTopDraftedPlayers(limit).map((p)=>({...p,bottomText:''}));
-        let players=[],cards=[];function renderPlayerCard(p){const el=document.createElement('article');el.className='player-card';el.dataset.playerName=p.name;el.dataset.playerId=p.id;el.innerHTML=`<div class="player-photo-wrap"><img class="player-photo" loading="lazy" src="${escapeHtml(p.img)}" alt="Spielerfoto von ${escapeHtml(p.name)}"></div><div class="player-info"><h3 class="player-name">${escapeHtml(p.name)}</h3><div class="meta-row"><img class="meta-icon flag-icon" loading="lazy" src="${escapeHtml(p.countryFlag)}" alt="Flagge ${escapeHtml(p.country)}"><span>${escapeHtml(p.country)}</span></div><div class="meta-row"><img class="meta-icon club-icon" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}"><span>${escapeHtml(p.club)}</span></div>${p.bottomText?`<div class="drafts"><span>👥</span><strong>${escapeHtml(p.bottomText)}</strong></div>`:''}</div>`; return el;}
-        function renderManagerCard(item){const el=document.createElement('article');el.className='player-card manager-carousel-card';el.dataset.managerName=item.manager;el.dataset.rank=String(item.rank);const topPlayers=item.top.slice(0,3).map((p,idx)=>{const n=escapeHtml(p.full?.Spielername||'Spieler');const img=escapeHtml(getPlayerImage(p.full));const badge=p.isCaptain?'<span class="captain-badge">C</span>':'';const pts=Number(p.points||0);const visualRank=idx===0?'rank-1':idx===1?'rank-2':'rank-3';return `<div class="manager-card-player ${visualRank}"><div class="manager-card-player-avatar"><img loading="lazy" src="${img}" alt="${n}">${badge}</div><div class="manager-card-player-name">${n}</div><div class="manager-card-player-points">${pts} P</div></div>`;}).join('');el.innerHTML=`<div class="manager-card-rank">#${item.rank}</div><h3 class="manager-card-name">${escapeHtml(item.manager)}</h3><div class="manager-card-points">${item.totalPoints} Punkte</div><div class="manager-card-topplayers">${topPlayers}</div>`;return el;}
-        function renderCarouselItems(items){track.innerHTML='';players=items;cards=[];if(!items.length){track.innerHTML=`<article class="player-card"><h3>Noch keine Draft-Daten gefunden</h3></article>`;return;}cards=items.map((it)=>renderPlayerCard(it));cards.forEach((c)=>track.appendChild(c));state.pos=0;state.vel=0;fitPlayerNames();render();}
-        function initView(){renderCarouselItems(buildFanFavoriteItems());}
-        function fitPlayerNames(){root.querySelectorAll('.player-name').forEach((nameEl)=>{nameEl.style.fontSize='';nameEl.style.transform='';nameEl.style.transformOrigin='left center';nameEl.style.whiteSpace='nowrap';nameEl.style.display='block';let size=parseFloat(window.getComputedStyle(nameEl).fontSize);while(nameEl.scrollWidth>nameEl.clientWidth&&size>8.5){size-=0.5;nameEl.style.fontSize=`${size}px`;}if(nameEl.scrollWidth>nameEl.clientWidth&&nameEl.scrollWidth>0){const scale=nameEl.clientWidth/nameEl.scrollWidth;nameEl.style.transform=`scaleX(${scale})`;nameEl.style.transformOrigin='left center';}});}
-        const state={pos:0,vel:0,drag:false,moved:false,lastX:0,lastT:0,downX:0,downY:0,downCard:null};let cardGap=168;let raf=null;const CLICK_MOVE_PX=10;const CLICK_VELOCITY_THRESHOLD=0.012;
-        function resizeCarousel(){const w=carousel.clientWidth;cardGap=Math.max(64,Math.min(110,w*0.16));}const mod=(a,n)=>((a%n)+n)%n;
-        function render(){const n=cards.length;if(!n)return;for(let i=0;i<n;i++){let delta=i-state.pos;delta=mod(delta+n/2,n)-n/2;const abs=Math.abs(delta),clamped=Math.min(abs,4.6),x=delta*cardGap,scale=1-clamped*0.12,z=300-clamped*85,rotY=delta*-8,y=clamped*9,op=1-clamped*0.16;const card=cards[i];card.style.transform=`translate3d(${x}px, ${y}px, ${z}px) rotateY(${rotY}deg) scale(${scale})`;card.style.opacity=String(Math.max(0,op));card.style.filter=`saturate(${1.1-clamped*0.1}) blur(${Math.max(0,clamped-2.2)*0.9}px)`;card.style.zIndex=String(Math.round(1000-clamped*100));card.style.boxShadow=abs<0.38?'0 20px 50px rgba(0,0,0,0.58), 0 0 38px rgba(255,215,0,0.2)':'0 14px 36px rgba(0,0,0,0.42)';card.style.pointerEvents=abs<0.5?'auto':'none';}}
-        function tick(){if(!cards.length)return;if(!state.drag){state.pos+=state.vel;state.vel*=0.95;if(Math.abs(state.vel)<0.0005){const target=Math.round(state.pos);state.pos+=(target-state.pos)*0.12;}}if(players.length&&state.pos>=players.length)state.pos-=players.length;if(players.length&&state.pos<0)state.pos+=players.length;render();raf=requestAnimationFrame(tick);}
-        function pointerDown(clientX,clientY,target){state.drag=true;state.moved=false;state.lastX=clientX;state.lastT=performance.now();state.downX=clientX;state.downY=clientY;state.downCard=target?.closest?.('.player-card')||null;} function pointerMove(clientX,clientY){if(!state.drag)return;const now=performance.now();const dx=clientX-state.lastX;const dt=Math.max(8,now-state.lastT);const units=dx/cardGap;state.pos-=units;state.vel=(state.vel*0.7)+((-units/dt)*16);if(!state.moved){const travelX=Math.abs(clientX-state.downX),travelY=Math.abs(clientY-state.downY);if(travelX>CLICK_MOVE_PX||travelY>CLICK_MOVE_PX)state.moved=true;}state.lastX=clientX;state.lastT=now;}
-        function pointerUp(){state.drag=false;state.moved=false;state.downCard=null;}
-        carousel.addEventListener('pointerdown',(e)=>{carousel.setPointerCapture(e.pointerId);pointerDown(e.clientX,e.clientY,e.target);});carousel.addEventListener('pointermove',(e)=>pointerMove(e.clientX,e.clientY));carousel.addEventListener('pointerup',pointerUp);carousel.addEventListener('pointercancel',pointerUp);carousel.addEventListener('lostpointercapture',pointerUp);
-        carousel.addEventListener('wheel',(e)=>{e.preventDefault();const speed=(Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY:e.deltaX)*0.0012;state.vel+=speed;},{passive:false});
-        window.addEventListener('resize',()=>{resizeCarousel();fitPlayerNames();},{passive:true}); resizeCarousel(); initView(); if(!raf) tick();
+        if (!track || !carousel) return;
+
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[ch]));
+
+        function normalizePlayer(raw) {
+            return {
+                id: String(raw['player.id']),
+                name: raw.Spielername,
+                country: raw['Nationalteam.name'] || '',
+                countryFlag: raw['Nationalteam.logo'] || '',
+                club: raw['Club.name'] || '',
+                clubLogo: raw['Club.logo'] || '',
+                img: raw.Spielerfoto || ''
+            };
+        }
+
+        function parseTeamsFromStorage() {
+            const candidates = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key || !key.endsWith('_teams')) continue;
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(key));
+                    const teams = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.data) ? parsed.data : null);
+                    if (Array.isArray(teams) && teams.length) candidates.push(teams);
+                } catch (_) {}
+            }
+            return candidates.sort((a, b) => b.length - a.length)[0] || [];
+        }
+
+        function buildTopDraftedPlayers(limit = 15) {
+            const playersById = new Map((Array.isArray(window.playersData) ? window.playersData : []).map((p) => [String(p['player.id']), p]));
+            const pickCounts = new Map();
+            const teams = parseTeamsFromStorage();
+
+            teams.forEach((team) => {
+                (team?.players || []).forEach((player) => {
+                    const id = String(player?.playerId || '');
+                    if (!id || !playersById.has(id)) return;
+                    pickCounts.set(id, (pickCounts.get(id) || 0) + 1);
+                });
+            });
+
+            return Array.from(pickCounts.entries())
+                .map(([id, drafts]) => ({ ...normalizePlayer(playersById.get(id)), drafts }))
+                .sort((a, b) => b.drafts - a.drafts)
+                .slice(0, limit);
+        }
+
+        const buildFanFavoriteItems = (limit = 15) => buildTopDraftedPlayers(limit);
+
+        let players = [];
+        let cards = [];
+
+        function renderPlayerCard(p) {
+            const el = document.createElement('article');
+            el.className = 'tcc-player-card';
+            el.dataset.playerName = p.name;
+            el.dataset.playerId = p.id;
+            el.innerHTML = `
+                <div class="tcc-player-photo-wrap">
+                    <img class="tcc-player-photo" loading="lazy" src="${escapeHtml(p.img)}" alt="Spielerfoto von ${escapeHtml(p.name)}">
+                </div>
+                <div class="tcc-player-info">
+                    <h3 class="tcc-player-name">${escapeHtml(p.name)}</h3>
+                    <div class="tcc-meta-row"><img class="tcc-meta-icon tcc-flag-icon" loading="lazy" src="${escapeHtml(p.countryFlag)}" alt="Flagge ${escapeHtml(p.country)}"><span>${escapeHtml(p.country)}</span></div>
+                    <div class="tcc-meta-row"><img class="tcc-meta-icon" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}"><span>${escapeHtml(p.club)}</span></div>
+                </div>
+            `;
+            return el;
+        }
+
+        function renderCarouselItems(items) {
+            track.innerHTML = '';
+            players = items;
+            cards = [];
+            if (!items.length) {
+                track.innerHTML = `<article class="tcc-player-card"><h3>Noch keine Draft-Daten gefunden</h3></article>`;
+                return;
+            }
+            cards = items.map((it) => renderPlayerCard(it));
+            cards.forEach((c) => track.appendChild(c));
+            state.pos = 0;
+            state.vel = 0;
+            fitPlayerNames();
+            render();
+        }
+
+        function initCarousel() {
+            renderCarouselItems(buildFanFavoriteItems());
+        }
+
+        function fitPlayerNames() {
+            root.querySelectorAll('.tcc-player-name').forEach((nameEl) => {
+                nameEl.style.fontSize = '';
+                nameEl.style.transform = '';
+                nameEl.style.transformOrigin = 'left center';
+                nameEl.style.whiteSpace = 'nowrap';
+                nameEl.style.display = 'block';
+
+                const computed = window.getComputedStyle(nameEl);
+                let size = parseFloat(computed.fontSize);
+                const minSize = 8.5;
+
+                while (nameEl.scrollWidth > nameEl.clientWidth && size > minSize) {
+                    size -= 0.5;
+                    nameEl.style.fontSize = `${size}px`;
+                }
+
+                if (nameEl.scrollWidth > nameEl.clientWidth && nameEl.scrollWidth > 0) {
+                    const scale = nameEl.clientWidth / nameEl.scrollWidth;
+                    nameEl.style.transform = `scaleX(${scale})`;
+                    nameEl.style.transformOrigin = 'left center';
+                }
+            });
+        }
+
+        const state = {
+            pos: 0,
+            vel: 0,
+            drag: false,
+            moved: false,
+            lastX: 0,
+            lastT: 0,
+            downX: 0,
+            downY: 0,
+            downCard: null
+        };
+        let cardGap = 168;
+        let raf = null;
+        const CLICK_MOVE_PX = 10;
+        const CLICK_VELOCITY_THRESHOLD = 0.012;
+
+        function resizeCarousel() {
+            const w = carousel.clientWidth;
+            cardGap = Math.max(64, Math.min(110, w * 0.16));
+        }
+
+        function mod(a, n) { return ((a % n) + n) % n; }
+
+        function render() {
+            const n = cards.length;
+            if (!n) return;
+            for (let i = 0; i < n; i++) {
+                let delta = i - state.pos;
+                delta = mod(delta + n / 2, n) - n / 2;
+
+                const abs = Math.abs(delta);
+                const clamped = Math.min(abs, 4.6);
+                const x = delta * cardGap;
+                const scale = 1 - clamped * 0.12;
+                const z = 300 - clamped * 85;
+                const rotY = delta * -8;
+                const y = clamped * 9;
+                const op = 1 - clamped * 0.16;
+
+                const card = cards[i];
+                card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${rotY}deg) scale(${scale})`;
+                card.style.opacity = String(Math.max(0, op));
+                card.style.filter = `saturate(${1.1 - clamped * 0.1}) blur(${Math.max(0, clamped - 2.2) * 0.9}px)`;
+                card.style.zIndex = String(Math.round(1000 - clamped * 100));
+                card.style.boxShadow = abs < 0.38
+                    ? '0 20px 50px rgba(0,0,0,0.58), 0 0 38px rgba(255,215,0,0.2)'
+                    : '0 14px 36px rgba(0,0,0,0.42)';
+                card.style.pointerEvents = abs < 0.5 ? 'auto' : 'none';
+            }
+        }
+
+        function tick() {
+            if (!cards.length) return;
+
+            if (!state.drag) {
+                state.pos += state.vel;
+                state.vel *= 0.92;
+                if (Math.abs(state.vel) < 0.0005) {
+                    const target = Math.round(state.pos);
+                    state.pos += (target - state.pos) * 0.08;
+                }
+            }
+
+            if (players.length && state.pos >= players.length) state.pos -= players.length;
+            if (players.length && state.pos < 0) state.pos += players.length;
+
+            render();
+            raf = requestAnimationFrame(tick);
+        }
+
+        function pointerDown(clientX, clientY, target) {
+            state.drag = true;
+            state.moved = false;
+            state.lastX = clientX;
+            state.lastT = performance.now();
+            state.downX = clientX;
+            state.downY = clientY;
+            state.downCard = target?.closest?.('.tcc-player-card') || null;
+        }
+
+        function pointerMove(clientX, clientY) {
+            if (!state.drag) return;
+            const now = performance.now();
+            const dx = clientX - state.lastX;
+            const dt = Math.max(8, now - state.lastT);
+            const units = dx / cardGap;
+
+            state.pos -= units;
+            state.vel = (state.vel * 0.7) + ((-units / dt) * 16);
+            if (!state.moved) {
+                const travelX = Math.abs(clientX - state.downX);
+                const travelY = Math.abs(clientY - state.downY);
+                if (travelX > CLICK_MOVE_PX || travelY > CLICK_MOVE_PX) state.moved = true;
+            }
+
+            state.lastX = clientX;
+            state.lastT = now;
+        }
+
+        function pointerUp() {
+            if (state.drag && state.downCard && !state.moved && Math.abs(state.vel) < CLICK_VELOCITY_THRESHOLD) {
+                const managerName = state.downCard.dataset.managerName || '';
+                if (managerName) {
+                    window.location.href = `teams.html?manager=${encodeURIComponent(managerName)}`;
+                } else {
+                    const playerName = state.downCard.dataset.playerName || '';
+                    if (playerName) window.location.href = `spieleranalyse.html?player=${encodeURIComponent(playerName)}`;
+                }
+            }
+            state.drag = false;
+            state.moved = false;
+            state.downCard = null;
+        }
+
+        carousel.addEventListener('pointerdown', (e) => {
+            carousel.setPointerCapture(e.pointerId);
+            pointerDown(e.clientX, e.clientY, e.target);
+        });
+        carousel.addEventListener('pointermove', (e) => pointerMove(e.clientX, e.clientY));
+        carousel.addEventListener('pointerup', pointerUp);
+        carousel.addEventListener('pointercancel', pointerUp);
+        carousel.addEventListener('lostpointercapture', pointerUp);
+
+        carousel.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const speed = (Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX) * 0.0012;
+            state.vel += speed;
+        }, { passive: false });
+
+        window.addEventListener('resize', () => {
+            resizeCarousel();
+            fitPlayerNames();
+        }, { passive: true });
+
+        resizeCarousel();
+        initCarousel();
+        if (!raf) tick();
     })();
 
     function renderIndexHome(data) {
