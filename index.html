@@ -6765,7 +6765,9 @@
 
             if (teamObj) {
                 const ranked = (teamObj.players || [])
+                    .filter(Boolean)
                     .map((tp) => {
+                        if (!tp) return null;
                         const full = resolvePlayer(tp);
                         if (!full) return null;
                         const base = ptMap[String(full['player.id'])] || 0;
