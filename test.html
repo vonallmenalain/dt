@@ -147,13 +147,91 @@
             background: linear-gradient(135deg, #86efac, #22c55e);
             box-shadow: 0 0 0 1px rgba(134,239,172,0.7), 0 8px 22px rgba(34,197,94,0.3);
         }
-        .manager-card-players { position: relative; flex: 1; border-radius: 14px; background: rgba(255,255,255,0.03); }
-        .manager-card-player-main, .manager-card-player-corner { position: absolute; border-radius: 50%; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.35); background: #0f172a; }
-        .manager-card-player-main { width: 54%; aspect-ratio: 1/1; left: 23%; top: 23%; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-        .manager-card-player-corner { width: 28%; aspect-ratio: 1/1; }
-        .manager-card-player-corner.pos-1 { left: 5%; top: 5%; } .manager-card-player-corner.pos-2 { right: 5%; top: 5%; }
-        .manager-card-player-corner.pos-3 { left: 5%; bottom: 5%; } .manager-card-player-corner.pos-4 { right: 5%; bottom: 5%; }
-        .manager-card-player-main img, .manager-card-player-corner img { width:100%; height:100%; object-fit:cover; }
+        .manager-carousel-card {
+            justify-content: space-between;
+            padding: 12px 10px 10px;
+            gap: 10px;
+        }
+        .manager-card-rank {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            min-width: 48px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 950;
+            letter-spacing: 0.02em;
+            color: #0b1020;
+            background: linear-gradient(140deg, #fff0a8, #ffd700 55%, #ca9200);
+            border: 2px solid rgba(11,16,32,0.45);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.48), 0 0 0 2px rgba(255,215,0,0.22);
+            z-index: 2;
+        }
+        .manager-carousel-card[data-rank="2"] .manager-card-rank { background: linear-gradient(140deg, #f8fafc, #d3dce9 55%, #7b8ca3); }
+        .manager-carousel-card[data-rank="3"] .manager-card-rank { background: linear-gradient(140deg, #f6dfca, #d69869 55%, #8d552a); color: #fff; }
+        .manager-card-name {
+            margin: 26px 0 2px;
+            text-align: center;
+            font-weight: 950;
+            font-size: clamp(0.92rem, 2.2vw, 1.05rem);
+            line-height: 1.06;
+            letter-spacing: -0.02em;
+            color: #f8fbff;
+            text-shadow: 0 0 14px rgba(255,255,255,0.08);
+        }
+        .manager-card-points {
+            align-self: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            color: #fde68a;
+            background: rgba(250,204,21,0.12);
+            border: 1px solid rgba(250,204,21,0.42);
+        }
+        .manager-card-topplayers {
+            margin-top: auto;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 6px;
+            width: 100%;
+        }
+        .manager-card-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            min-width: 0;
+        }
+        .manager-card-player-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1.8px solid rgba(255,255,255,0.42);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+            position: relative;
+            background: #0f172a;
+        }
+        .manager-card-player-avatar img { width:100%; height:100%; object-fit:cover; }
+        .manager-card-player-name {
+            width: 100%;
+            font-size: 0.62rem;
+            font-weight: 700;
+            line-height: 1.05;
+            text-align: center;
+            color: rgba(230,237,243,0.92);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .manager-card-player-points {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: #86efac;
+            line-height: 1;
+        }
         .captain-badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; background:#f97316; color:#fff; font-size:0.66rem; font-weight:900; display:grid; place-items:center; border:1px solid rgba(0,0,0,0.35); }
 
         .track {
@@ -1153,9 +1231,15 @@ function renderPlayerCard(p) {
     return el;
 }
 function renderManagerCard(item){
-    const el = document.createElement('article'); el.className='player-card manager-carousel-card'; el.dataset.managerName=item.manager;
-    const slots = item.top.map((p,idx)=>{ const pos=idx===0?'manager-card-player-main':'manager-card-player-corner pos-'+idx; const n=escapeHtml(p.full?.Spielername||'Spieler'); const img=escapeHtml(getPlayerImage(p.full)); const badge=p.isCaptain?'<span class="captain-badge">C</span>':''; return `<div class="${pos}"><img loading="lazy" src="${img}" alt="${n}">${badge}</div>`; }).join('');
-    el.innerHTML = `<div class="manager-card-players">${slots}</div><div class="player-info manager-card-footer"><h3 class="player-name">#${item.rank} ${escapeHtml(item.manager)}</h3><div class="drafts"><strong>${item.totalPoints} Punkte</strong></div></div>`;
+    const el = document.createElement('article'); el.className='player-card manager-carousel-card'; el.dataset.managerName=item.manager; el.dataset.rank=String(item.rank);
+    const topPlayers = item.top.slice(0,3).map((p)=>{
+        const n = escapeHtml(p.full?.Spielername||'Spieler');
+        const img = escapeHtml(getPlayerImage(p.full));
+        const badge = p.isCaptain ? '<span class="captain-badge">C</span>' : '';
+        const pts = Number(p.points||0);
+        return `<div class="manager-card-player"><div class="manager-card-player-avatar"><img loading="lazy" src="${img}" alt="${n}">${badge}</div><div class="manager-card-player-name">${n}</div><div class="manager-card-player-points">${pts} P</div></div>`;
+    }).join('');
+    el.innerHTML = `<div class="manager-card-rank">#${item.rank}</div><h3 class="manager-card-name">${escapeHtml(item.manager)}</h3><div class="manager-card-points">${item.totalPoints} Punkte</div><div class="manager-card-topplayers">${topPlayers}</div>`;
     return el;
 }
 function renderCarouselItems(items, view){
