@@ -1656,7 +1656,10 @@
         const teams = Array.isArray(rawTeams) ? rawTeams : [];
 
         return teams.map(team => {
-            const mergedPlayers = (team.players || []).map((p, idx) => {
+            const mergedPlayers = (team.players || [])
+                .filter(Boolean)
+                .map((p, idx) => {
+                if (!p) return null;
                 let fullP = getPlayerById(p.playerId);
                 if (!fullP) fullP = playersData.find(pd => pd.Spielername === p.name) || null;
 
@@ -1677,7 +1680,8 @@
                     matchPoints: matchesMap,
                     matchCount
                 };
-            });
+            })
+                .filter(Boolean);
 
             mergedPlayers.sort((a, b) => b.pts - a.pts);
 
