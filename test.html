@@ -104,48 +104,6 @@
         }
 
         .carousel:active { cursor: grabbing; }
-        .carousel-label {
-            position: relative;
-            z-index: 2;
-            margin: clamp(6px, 1.2vh, 12px) 0 0;
-            font-size: clamp(1.2rem, 3.2vw, 1.9rem);
-            font-weight: 800;
-            letter-spacing: 0.02em;
-            color: #f8fbff;
-            text-transform: uppercase;
-        }
-        .carousel-view-switcher {
-            display: flex;
-            gap: 8px;
-            padding: 6px;
-            margin: 8px 0 10px;
-            border-radius: 999px;
-            background: linear-gradient(135deg, rgba(18,35,26,0.9), rgba(13,22,17,0.92));
-            border: 1px solid rgba(134,239,172,0.26);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.35);
-            width: min(92vw, 820px);
-            overflow-x: auto;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .carousel-view-switcher::-webkit-scrollbar { display: none; }
-        .carousel-view-button {
-            border: 0;
-            color: rgba(230,237,243,0.9);
-            background: transparent;
-            border-radius: 999px;
-            padding: 9px 14px;
-            font-weight: 800;
-            font-size: 0.82rem;
-            letter-spacing: 0.01em;
-            white-space: nowrap;
-            cursor: pointer;
-        }
-        .carousel-view-button.is-active {
-            color: #06210f;
-            background: linear-gradient(135deg, #86efac, #22c55e);
-            box-shadow: 0 0 0 1px rgba(134,239,172,0.7), 0 8px 22px rgba(34,197,94,0.3);
-        }
         .manager-carousel-card {
             justify-content: space-between;
             padding: 12px 10px 14px;
@@ -983,8 +941,6 @@
     </h1>
 
     <div class="hero-content">
-        <h2 class="carousel-label gold-text">Fan-Lieblinge</h2>
-        <div class="carousel-view-switcher" id="carouselViewSwitcher" aria-label="Karussell-Ansicht wählen"></div>
         <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
             <div class="track" id="track"></div>
         </div>
@@ -1287,16 +1243,6 @@
 
 const track = document.getElementById('track');
 const carousel = document.getElementById('carousel');
-const carouselLabel = document.querySelector('.carousel-label');
-const viewSwitcher = document.getElementById('carouselViewSwitcher');
-const CAROUSEL_VIEW_STORAGE_KEY = 'dreamteam_test_active_carousel_view';
-const CAROUSEL_VIEWS = { TOP_PLAYERS:'topPlayers', FAN_FAVORITES:'fanFavorites', CAPTAIN_WATCH:'captainWatch', MANAGER_RANKING:'managerRanking' };
-const VIEW_META = [
-    {id:CAROUSEL_VIEWS.TOP_PLAYERS,label:'Top Spieler'},
-    {id:CAROUSEL_VIEWS.FAN_FAVORITES,label:'Fan-Lieblinge'},
-    {id:CAROUSEL_VIEWS.CAPTAIN_WATCH,label:'Captain Watch'},
-    {id:CAROUSEL_VIEWS.MANAGER_RANKING,label:'Managerrangliste'}
-];
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -1428,21 +1374,14 @@ function renderManagerCard(item){
     el.innerHTML = `<div class="manager-card-rank">#${item.rank}</div><h3 class="manager-card-name">${escapeHtml(item.manager)}</h3><div class="manager-card-points">${item.totalPoints} Punkte</div><div class="manager-card-topplayers">${topPlayers}</div>`;
     return el;
 }
-function renderCarouselItems(items, view){
+function renderCarouselItems(items){
     track.innerHTML=''; players = items; cards = [];
-    if (!items.length) { const msg = view===CAROUSEL_VIEWS.CAPTAIN_WATCH?'Noch keine Captain-Daten verfügbar':view===CAROUSEL_VIEWS.TOP_PLAYERS?'Noch keine Spielerpunkte verfügbar':view===CAROUSEL_VIEWS.MANAGER_RANKING?'Noch keine Managerdaten verfügbar':'Noch keine Draft-Daten gefunden'; track.innerHTML = `<article class="player-card"><h3>${msg}</h3></article>`; return; }
-    cards = items.map((it)=> view===CAROUSEL_VIEWS.MANAGER_RANKING ? renderManagerCard(it) : renderPlayerCard(it)); cards.forEach((c)=>track.appendChild(c));
+    if (!items.length) { track.innerHTML = `<article class="player-card"><h3>Noch keine Draft-Daten gefunden</h3></article>`; return; }
+    cards = items.map((it)=>renderPlayerCard(it)); cards.forEach((c)=>track.appendChild(c));
     state.pos = 0; state.vel = 0; fitPlayerNames(); render();
 }
-function getActiveCarouselView(){ const saved = localStorage.getItem(CAROUSEL_VIEW_STORAGE_KEY); return VIEW_META.some((v)=>v.id===saved)?saved:CAROUSEL_VIEWS.FAN_FAVORITES; }
-function setActiveCarouselView(view){ localStorage.setItem(CAROUSEL_VIEW_STORAGE_KEY, view); initView(view); }
-function renderCarouselViewSwitcher(activeView){ viewSwitcher.innerHTML=''; VIEW_META.forEach((v)=>{ const b=document.createElement('button'); b.type='button'; b.className='carousel-view-button'+(v.id===activeView?' is-active':''); b.textContent=v.label; b.addEventListener('click',()=>setActiveCarouselView(v.id)); viewSwitcher.appendChild(b); }); }
-function initView(view){
-    renderCarouselViewSwitcher(view); const label = VIEW_META.find((v)=>v.id===view)?.label || 'Fan-Lieblinge'; carouselLabel.textContent = label;
-    if (view===CAROUSEL_VIEWS.TOP_PLAYERS) renderCarouselItems(buildTopPlayersItems(), view);
-    else if (view===CAROUSEL_VIEWS.CAPTAIN_WATCH) renderCarouselItems(buildCaptainWatchItems(), view);
-    else if (view===CAROUSEL_VIEWS.MANAGER_RANKING) renderCarouselItems(buildManagerRankingItems(), view);
-    else renderCarouselItems(buildFanFavoriteItems(), view);
+function initCarousel(){
+    renderCarouselItems(buildFanFavoriteItems());
 }
 
 function fitPlayerNames() {
@@ -1601,7 +1540,7 @@ window.addEventListener('resize', () => {
     fitPlayerNames();
 }, {passive: true});
 resizeCarousel();
-initView(getActiveCarouselView());
+initCarousel();
 if (!raf) tick();
 
 </script>
