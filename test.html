@@ -951,6 +951,35 @@
                 gap: 4px;
             }
         }
+
+
+        .elite-showcase {
+            position: relative;
+            z-index: 2;
+            margin: 28px auto 40px;
+            width: min(95vw, 1020px);
+            padding: clamp(14px, 2.6vw, 28px);
+            border-radius: 24px;
+            background: linear-gradient(145deg, rgba(8,16,30,0.95), rgba(14,35,26,0.9));
+            border: 1px solid rgba(134,239,172,0.26);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+            overflow: hidden;
+            perspective: 1100px;
+        }
+        .elite-showcase::before { content:""; position:absolute; inset:-30% -20% auto; height:70%; background:radial-gradient(circle, rgba(255,215,0,0.2), transparent 62%); pointer-events:none; }
+        .elite-head { display:flex; justify-content:space-between; align-items:end; gap:12px; margin-bottom:14px; }
+        .elite-title { margin:0; font-size:clamp(1.2rem,3vw,2rem); font-weight:900; letter-spacing:.01em; }
+        .elite-sub { margin:0; font-size:.82rem; color:rgba(230,237,243,.78); }
+        .elite-grid { display:grid; gap:10px; }
+        .elite-row { display:grid; grid-template-columns:56px 1fr auto; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; background:linear-gradient(120deg, rgba(16,23,33,.82), rgba(23,48,33,.62)); border:1px solid rgba(255,255,255,.08); transform:translateX(20px) rotateY(-10deg); opacity:0; animation:eliteIn .65s cubic-bezier(.2,.7,.2,1) forwards; }
+        .elite-row:nth-child(1){ animation-delay:.08s; } .elite-row:nth-child(2){ animation-delay:.14s; } .elite-row:nth-child(3){ animation-delay:.2s; } .elite-row:nth-child(4){ animation-delay:.26s; } .elite-row:nth-child(5){ animation-delay:.32s; } .elite-row:nth-child(6){ animation-delay:.38s; } .elite-row:nth-child(7){ animation-delay:.44s; }
+        .elite-rank { font-weight:950; font-size:1.04rem; color:#ffe79c; }
+        .elite-name { font-weight:860; color:#f8fbff; }
+        .elite-points { font-weight:900; color:#86efac; font-variant-numeric:tabular-nums; }
+        .elite-row.top3 { border-color: rgba(250,204,21,.45); background:linear-gradient(120deg, rgba(58,43,10,.62), rgba(23,48,33,.74)); }
+        @keyframes eliteIn { to { transform:translateX(0) rotateY(0); opacity:1; } }
+        @media (max-width: 560px){ .elite-head{align-items:start; flex-direction:column;} .elite-row{grid-template-columns:46px 1fr auto; padding:9px 10px;} .elite-rank{font-size:.94rem;} .elite-name{font-size:.9rem;} .elite-points{font-size:.84rem;} }
+
     </style>
 </head>
 <body>
@@ -990,6 +1019,14 @@
             <div class="track" id="track"></div>
         </div>
     </div>
+</section>
+
+<section class="elite-showcase" aria-label="Top 10 Manager Highlights">
+    <div class="elite-head">
+        <h2 class="elite-title"><span class="gold-text">Hall of Fame</span> <span class="accent">Top 10 Manager</span></h2>
+        <p class="elite-sub">Live-Ranking mit Rang, Name und aktuellen Punkten.</p>
+    </div>
+    <div class="elite-grid" id="eliteGrid" aria-live="polite"></div>
 </section>
 
 <!-- data.js muss als erstes geladen werden, damit window.playersData
@@ -1239,6 +1276,19 @@
         document.querySelectorAll('.champ-points-value').forEach((el, idx) => {
             animateCount(el, Number(el.dataset.target) || 0, 1100, 600 + idx * 120);
         });
+
+        const eliteGrid = document.getElementById('eliteGrid');
+        if (eliteGrid) {
+            const top10 = rankedManagers.slice(0, 10);
+            eliteGrid.innerHTML = top10.map((m, idx) => {
+                const rank = idx + 1;
+                return `<button type="button" class="elite-row ${rank <= 3 ? 'top3' : ''}" aria-label="Platz ${rank}: ${escapeHtml(m.manager)}, ${m.totalScore} Punkte" onclick="location.href='teams.html?manager=${encodeURIComponent(m.manager)}'">
+                    <span class="elite-rank">#${rank}</span>
+                    <span class="elite-name">${escapeHtml(m.manager)}</span>
+                    <span class="elite-points">${Number(m.totalScore || 0).toLocaleString('de-DE')} Pkt</span>
+                </button>`;
+            }).join('');
+        }
 
         // After intro animations finish, switch off animation so CSS :hover transitions
         // can take over (animation-layer transforms would otherwise block hover rules).
