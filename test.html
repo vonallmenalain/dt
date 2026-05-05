@@ -936,8 +936,9 @@
 
 
 
-<!-- data.js muss als erstes geladen werden, damit window.playersData
-     für alle nachfolgenden Scripts (ChampStage + Karussell) verfügbar ist. -->
+<!-- data.js muss als erstes geladen werden, damit playersData (deklariert
+     mit const auf oberster Skriptebene) für alle nachfolgenden klassischen
+     Scripts (ChampStage + Karussell) als Bezeichner verfügbar ist. -->
 <script src="data.js"></script>
 
 <!-- =====================================================================
@@ -978,7 +979,7 @@
     // ── Ranking-Berechnung (identisch zu rangliste.html) ──────────────────
 
     function getPlayerById(playerId) {
-        if (!window.playersData) return null;
+        if (typeof playersData === 'undefined' || !Array.isArray(playersData)) return null;
         return playersData.find((pd) => String(pd['player.id']) === String(playerId)) || null;
     }
 
@@ -1040,7 +1041,9 @@
         return (Array.isArray(rawTeams) ? rawTeams : []).map((team) => {
             const mergedPlayers = (team.players || []).map((p, idx) => {
                 let fullP = getPlayerById(p.playerId);
-                if (!fullP) fullP = (window.playersData || []).find((pd) => pd.Spielername === p.name) || null;
+                if (!fullP && typeof playersData !== 'undefined' && Array.isArray(playersData)) {
+                    fullP = playersData.find((pd) => pd.Spielername === p.name) || null;
+                }
                 const playerId = fullP ? String(fullP['player.id']) : `fallback-${idx}`;
                 const basePts = fullP ? (playerPointsMap[playerId] || 0) : 0;
                 const finalPts = p.isCaptain ? basePts * 2 : basePts;
