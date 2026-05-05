@@ -541,6 +541,20 @@
             throw new Error('DreamTeamCache: Keine gültigen Punktedaten verfügbar.');
         }
 
+        if (Object.keys(points || {}).length === 0) {
+            console.warn('Punkte-Daten leer geladen – Collection/Cache/Firestore prüfen');
+        }
+
+        console.info('[DreamTeamDebug]', {
+            origin: window.location.origin,
+            tournamentKey: cfg.tournamentKey,
+            teamsCollection: cfg.teamsCollection,
+            pointsCollection: cfg.pointsCollection,
+            teamsCount: Array.isArray(teams) ? teams.length : 0,
+            pointsCount: Object.keys(points || {}).length,
+            serviceWorkerCacheVersion: 'dreamteam-pwa-v2026-05-05'
+        });
+
         return {
             data: {
                 teams,
