@@ -38,12 +38,25 @@
             --text-muted: #8b949e;
         }
 
+        /* Lock horizontal scroll at the viewport level too, so any
+           position: fixed decorations (which are positioned against the
+           initial containing block and therefore NOT clipped by the
+           body's overflow-x: hidden) cannot push the page sideways on
+           mobile. Without this, the post-start view's fixed orbs/beams
+           extend past the right edge and a small horizontal scroll
+           appears, revealing the dark body background. */
+        html {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
         body {
             background: var(--dark-bg);
             color: var(--text-main);
             padding-top: 0;
             padding-bottom: 0;
             overflow-x: hidden;
+            max-width: 100%;
         }
 
         /* Hide the top navbar on index – we have our own hero nav */
