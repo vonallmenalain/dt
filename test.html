@@ -567,6 +567,7 @@
             backdrop-filter: blur(10px);
             transition: transform 0.35s cubic-bezier(0.22, 0.85, 0.4, 1.05),
                         box-shadow 0.35s ease,
+                        border-color 0.35s ease,
                         filter 0.35s ease;
             will-change: transform, opacity;
             opacity: 0;
@@ -871,10 +872,14 @@
                 box-shadow: 0 36px 70px rgba(0,0,0,0.65), 0 0 60px rgba(255,215,0,0.55), 0 0 0 1px rgba(255,215,0,0.5) inset;
             }
             .champ-card.is-ready[data-rank="2"]:hover {
-                transform: translateX(0) translateZ(0) rotateY(8deg) scale(0.97);
+                transform: translateX(0) translateZ(10px) rotateY(6deg) scale(0.97);
+                box-shadow: 0 28px 55px rgba(0,0,0,0.6), 0 0 40px rgba(203,213,225,0.35), 0 0 0 1px rgba(203,213,225,0.4) inset;
+                border-color: rgba(203,213,225,0.65);
             }
             .champ-card.is-ready[data-rank="3"]:hover {
-                transform: translateX(0) translateZ(0) rotateY(-8deg) scale(0.97);
+                transform: translateX(0) translateZ(10px) rotateY(-6deg) scale(0.97);
+                box-shadow: 0 28px 55px rgba(0,0,0,0.6), 0 0 40px rgba(214,138,82,0.4), 0 0 0 1px rgba(214,138,82,0.5) inset;
+                border-color: rgba(214,138,82,0.65);
             }
         }
 
@@ -970,6 +975,10 @@
         </div>
     </div>
 </section>
+
+<!-- data.js muss als erstes geladen werden, damit window.playersData
+     für alle nachfolgenden Scripts (ChampStage + Karussell) verfügbar ist. -->
+<script src="data.js"></script>
 
 <!-- =====================================================================
      Champions-Stage Script – lädt echte Ranglisten-Daten aus Firebase,
@@ -1250,7 +1259,6 @@
 })();
 </script>
 
-<script src="data.js"></script>
 <script>
 
 const track = document.getElementById('track');
