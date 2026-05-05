@@ -9,8 +9,8 @@
         :root {
             --dark-bg: #0d1117;
             --gold: #ffd700;
-            --card-w: clamp(125px, 25.2vw, 165px);
-            --card-h: clamp(176px, 35.7vw, 225px);
+            --card-w: clamp(98px, 16.5vw, 128px);
+            --card-h: clamp(148px, 24.8vw, 188px);
             --blur: 14px;
         }
 
@@ -93,8 +93,8 @@
         .carousel {
             position: relative;
             z-index: 2;
-            width: min(88vw, 860px);
-            height: min(66svh, 510px);
+            width: min(66vw, 620px);
+            height: min(48svh, 360px);
             margin-top: 6px;
             perspective: 1100px;
             isolation: isolate;
@@ -104,6 +104,13 @@
         }
 
         .carousel:active { cursor: grabbing; }
+        .secondary-carousel-wrap {
+            margin-top: 24px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
         .carousel-label {
             position: relative;
@@ -989,6 +996,12 @@
         <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
             <div class="track" id="track"></div>
         </div>
+        <div class="secondary-carousel-wrap">
+            <h2 class="carousel-label gold-text">Fan-Lieblinge (Kompakt)</h2>
+            <div class="carousel" id="carouselFanOnly" aria-label="Karussell der Fan-Lieblinge">
+                <div class="track" id="trackFanOnly"></div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -1288,6 +1301,8 @@
 
 const track = document.getElementById('track');
 const carousel = document.getElementById('carousel');
+const trackFanOnly = document.getElementById('trackFanOnly');
+const carouselFanOnly = document.getElementById('carouselFanOnly');
 const carouselLabel = document.querySelector('.carousel-label');
 const viewSwitcher = document.getElementById('carouselViewSwitcher');
 const CAROUSEL_VIEW_STORAGE_KEY = 'dreamteam_test_active_carousel_view';
@@ -1364,7 +1379,7 @@ function buildTopPlayersItems(limit = 15) {
     const playersById = new Map((playersData || []).map((p) => [String(p['player.id']), p]));
     return Array.from(playersById.values()).map((p) => ({...normalizePlayer(p), points:getPlayerTotalPoints(p)})).sort((a,b)=>b.points-a.points).slice(0,limit).map((p)=>({...p,bottomText:`${p.points} ${p.points===1?'Punkt':'Punkte'}`}));
 }
-function buildFanFavoriteItems(limit=15){ return buildTopDraftedPlayers(limit).map((p)=>({...p,bottomText:`${p.drafts.toLocaleString('de-DE')}x gedraftet`})); }
+function buildFanFavoriteItems(limit=15, withDraftInfo=true){ return buildTopDraftedPlayers(limit).map((p)=>({...p,bottomText: withDraftInfo ? `${p.drafts.toLocaleString('de-DE')}x gedraftet` : ''})); }
 function buildCaptainWatchItems(limit=15){
     const teams = parseTeamsFromStorage(); const playersById = new Map((playersData || []).map((p)=>[String(p['player.id']),p])); const counts = new Map();
     teams.forEach((t)=>getEnrichedTeamPlayers(t, playersById).forEach((p)=>{ if (!p.isCaptain || !playersById.has(p.id)) return; const x = counts.get(p.id)||{count:0,points:getPlayerTotalPoints(playersById.get(p.id))}; x.count++; counts.set(p.id,x); }));
@@ -1411,7 +1426,7 @@ function renderPlayerCard(p) {
             <h3 class="player-name">${escapeHtml(p.name)}</h3>
             <div class="meta-row"><img class="meta-icon flag-icon" loading="lazy" src="${escapeHtml(p.countryFlag)}" alt="Flagge ${escapeHtml(p.country)}"><span>${escapeHtml(p.country)}</span></div>
             <div class="meta-row"><img class="meta-icon club-icon" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}"><span>${escapeHtml(p.club)}</span></div>
-            <div class="drafts"><span>👥</span><strong>${escapeHtml(p.bottomText || '')}</strong></div>
+            ${p.bottomText ? `<div class="drafts"><span>👥</span><strong>${escapeHtml(p.bottomText)}</strong></div>` : ''}
         </div>
     `;
     return el;
@@ -1489,7 +1504,7 @@ const CLICK_VELOCITY_THRESHOLD = 0.012;
 
 function resizeCarousel() {
     const w = carousel.clientWidth;
-    cardGap = Math.max(88, Math.min(140, w * 0.165));
+    cardGap = Math.max(64, Math.min(110, w * 0.16));
 }
 
 function mod(a, n) { return ((a % n) + n) % n; }
@@ -1604,6 +1619,61 @@ window.addEventListener('resize', () => {
 resizeCarousel();
 initView(getActiveCarouselView());
 if (!raf) tick();
+
+// Zweites Karussell: nur Fan-Lieblinge, ohne Draft-Info auf den Karten.
+let playersFanOnly = [];
+let cardsFanOnly = [];
+const stateFanOnly = { pos: 0, vel: 0, drag: false, lastX: 0, lastT: 0 };
+let cardGapFanOnly = Math.max(64, Math.min(110, carouselFanOnly.clientWidth * 0.16));
+let rafFanOnly = null;
+
+function renderFanOnly() {
+    const n = cardsFanOnly.length;
+    if (!n) return;
+    for (let i = 0; i < n; i++) {
+        let delta = i - stateFanOnly.pos;
+        delta = mod(delta + n / 2, n) - n / 2;
+        const abs = Math.abs(delta);
+        const clamped = Math.min(abs, 4.6);
+        const x = delta * cardGapFanOnly;
+        const scale = 1 - clamped * 0.12;
+        const z = 300 - clamped * 85;
+        cardsFanOnly[i].style.transform = `translate3d(${x}px, ${clamped * 9}px, ${z}px) rotateY(${delta * -8}deg) scale(${scale})`;
+        cardsFanOnly[i].style.opacity = String(Math.max(0, 1 - clamped * 0.16));
+        cardsFanOnly[i].style.zIndex = String(Math.round(1000 - clamped * 100));
+    }
+}
+function tickFanOnly() {
+    if (!cardsFanOnly.length) return;
+    if (!stateFanOnly.drag) { stateFanOnly.pos += stateFanOnly.vel; stateFanOnly.vel *= 0.92; }
+    if (playersFanOnly.length && stateFanOnly.pos >= playersFanOnly.length) stateFanOnly.pos -= playersFanOnly.length;
+    if (playersFanOnly.length && stateFanOnly.pos < 0) stateFanOnly.pos += playersFanOnly.length;
+    renderFanOnly();
+    rafFanOnly = requestAnimationFrame(tickFanOnly);
+}
+function initFanOnlyCarousel() {
+    trackFanOnly.innerHTML = '';
+    playersFanOnly = buildFanFavoriteItems(15, false);
+    cardsFanOnly = playersFanOnly.map((it) => renderPlayerCard(it));
+    cardsFanOnly.forEach((c) => trackFanOnly.appendChild(c));
+    renderFanOnly();
+}
+carouselFanOnly.addEventListener('pointerdown', (e) => { carouselFanOnly.setPointerCapture(e.pointerId); stateFanOnly.drag = true; stateFanOnly.lastX = e.clientX; stateFanOnly.lastT = performance.now(); });
+carouselFanOnly.addEventListener('pointermove', (e) => {
+    if (!stateFanOnly.drag) return;
+    const now = performance.now();
+    const dx = e.clientX - stateFanOnly.lastX;
+    const dt = Math.max(8, now - stateFanOnly.lastT);
+    const units = dx / cardGapFanOnly;
+    stateFanOnly.pos -= units;
+    stateFanOnly.vel = (stateFanOnly.vel * 0.7) + ((-units / dt) * 16);
+    stateFanOnly.lastX = e.clientX;
+    stateFanOnly.lastT = now;
+});
+['pointerup','pointercancel','lostpointercapture'].forEach((ev) => carouselFanOnly.addEventListener(ev, () => { stateFanOnly.drag = false; }));
+window.addEventListener('resize', () => { cardGapFanOnly = Math.max(64, Math.min(110, carouselFanOnly.clientWidth * 0.16)); renderFanOnly(); }, {passive:true});
+initFanOnlyCarousel();
+if (!rafFanOnly) tickFanOnly();
 </script>
 </body>
 </html>
