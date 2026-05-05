@@ -934,8 +934,11 @@
 </head>
 <body>
 <!-- =====================================================================
-     HERO: „Live Champions Stage" – Top-Manager auf Basis derselben
-     Team-/Punktedaten wie in der Rangliste.
+     HERO: „Live Champions Stage" – Prototyp / Test
+     Steht oberhalb des bestehenden Karussells. Verwendet Demo-/Mock-Daten,
+     da test.html bisher nur Spieler-Draft-Daten aus localStorage nutzt
+     und keine echten Manager-/Ranglisten-Daten lädt. Diese Daten lassen
+     sich später durch echte Werte ersetzen, ohne das Markup zu ändern.
      ===================================================================== -->
 <section class="champ-stage" aria-label="Top Manager">
     <div class="champ-spotlight" aria-hidden="true"></div>
@@ -974,6 +977,16 @@
      ===================================================================== -->
 <script>
 (function () {
+    // Demo-/Mockdaten – sobald echte Manager-/Ranglistendaten in test.html
+    // vorhanden sind, kann dieses Array einfach ersetzt werden.
+    const demoTopManagers = [
+        { rank: 1, name: "Alain",   points: 184, trend: "Neu auf Podest", trendType: "up" },
+        { rank: 2, name: "Marco",   points: 176, trend: "+2 Plätze",      trendType: "up" },
+        { rank: 3, name: "Sandro",  points: 169, trend: "-1 Platz",       trendType: "down" },
+        { rank: 4, name: "Nico",    points: 158, trend: "+1 Platz",       trendType: "up" },
+        { rank: 5, name: "Patrick", points: 151, trend: "–",              trendType: "neutral" }
+    ];
+
     const podium  = document.getElementById('champPodium');
     const chasers = document.getElementById('champChasers');
     if (!podium || !chasers) return;
@@ -1000,49 +1013,8 @@
         window.location.href = `teams.html?manager=${encodeURIComponent(managerName)}`;
     };
 
-    const parseTeamsFromStorage = () => {
-        const teams = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!key || !key.endsWith('_teams')) continue;
-            try {
-                const parsed = JSON.parse(localStorage.getItem(key));
-                if (Array.isArray(parsed) && parsed.length) teams.push(...parsed);
-            } catch {}
-        }
-        return teams;
-    };
-
-    const getManagerName = (team) => team?.manager || team?.managerName || team?.name || 'Unbekannt';
-    const getTotalPoints = (team) => Number(team?.totalPoints ?? team?.totalScore ?? team?.points ?? team?.punkte ?? team?.score ?? 0) || 0;
-
-    const topManagers = (() => {
-        const teams = parseTeamsFromStorage();
-        if (!teams.length) return [];
-
-        const items = teams.map((team) => ({
-            rank: Number(team?.rank ?? team?.currentRank ?? 0) || null,
-            name: getManagerName(team),
-            points: getTotalPoints(team),
-            trend: '–',
-            trendType: 'neutral'
-        }));
-
-        const hasRealRank = items.some((item) => Number.isFinite(item.rank) && item.rank > 0);
-        const sorted = hasRealRank
-            ? items.sort((a, b) => (a.rank - b.rank) || (b.points - a.points) || a.name.localeCompare(b.name, 'de'))
-            : items.sort((a, b) => (b.points - a.points) || a.name.localeCompare(b.name, 'de'));
-
-        return sorted.slice(0, 5).map((item, idx) => ({
-            ...item,
-            rank: hasRealRank ? item.rank : idx + 1
-        }));
-    })();
-
-    if (!topManagers.length) return;
-
-    const top3 = topManagers.filter((m) => m.rank <= 3).sort((a, b) => a.rank - b.rank);
-    const rest = topManagers.filter((m) => m.rank >= 4).sort((a, b) => a.rank - b.rank);
+    const top3 = demoTopManagers.filter((m) => m.rank <= 3).sort((a, b) => a.rank - b.rank);
+    const rest = demoTopManagers.filter((m) => m.rank >= 4).sort((a, b) => a.rank - b.rank);
 
     // 3D-Podest-Karten (Top 3)
     top3.forEach((m) => {
