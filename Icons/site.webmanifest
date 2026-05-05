@@ -4,7 +4,7 @@
   "description": "DreamTeam als installierbare Webapp für dein Smartphone.",
   "start_url": "/index.html",
   "scope": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#eef2f3",
   "theme_color": "#28a745",
   "lang": "de-CH",
@@ -31,5 +31,9 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "display_override": [
+    "fullscreen",
+    "standalone"
   ]
 }
