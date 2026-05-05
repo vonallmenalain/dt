@@ -7166,8 +7166,75 @@
             return candidates.sort((a, b) => b.length - a.length)[0] || [];
         }
 
+        // Kuratierte Star-Liste als Fallback, damit das Karussell sofort
+        // beim Laden gefüllt ist – auch wenn (noch) keine lokalen Draft-Daten
+        // vorhanden sind. Reihenfolge bestimmt die Darstellungsreihenfolge.
+        const FALLBACK_PLAYER_NAMES = [
+            'Lamine Yamal',
+            'Kylian Mbappé',
+            'Jude Bellingham',
+            'Jamal Musiala',
+            'Vitinha',
+            'Harry Kane',
+            'Toni Kroos',
+            'Florian Wirtz',
+            'Antoine Griezmann',
+            'Bruno Fernandes',
+            'Phil Foden',
+            'Rodri',
+            'Bukayo Saka',
+            'Pedri',
+            'Cristiano Ronaldo'
+        ];
+
+        function getPlayersDataset() {
+            const fromWindow = Array.isArray(window.playersData) ? window.playersData : null;
+            if (fromWindow && fromWindow.length) return fromWindow;
+            // `playersData` wird in data.js mit `const` deklariert und ist
+            // dadurch nicht zwingend auf `window` verfügbar. Wir versuchen
+            // deshalb auch den globalen Bezeichner direkt zu lesen.
+            try {
+                if (typeof playersData !== 'undefined' && Array.isArray(playersData)) {
+                    return playersData;
+                }
+            } catch (_) {}
+            return [];
+        }
+
+        function buildFallbackItems(limit = 15) {
+            const dataset = getPlayersDataset();
+            if (!dataset.length) return [];
+            const byName = new Map(dataset.map((p) => [p.Spielername, p]));
+            const picked = [];
+            const pickedIds = new Set();
+
+            FALLBACK_PLAYER_NAMES.forEach((name) => {
+                const raw = byName.get(name);
+                if (!raw) return;
+                const id = String(raw['player.id']);
+                if (pickedIds.has(id)) return;
+                pickedIds.add(id);
+                picked.push(normalizePlayer(raw));
+            });
+
+            // Falls die kuratierte Liste zu klein ist (z. B. weil Namen nicht
+            // matchen), füllen wir mit weiteren Spielern aus dem Datensatz auf.
+            if (picked.length < limit) {
+                for (const raw of dataset) {
+                    if (picked.length >= limit) break;
+                    const id = String(raw['player.id']);
+                    if (pickedIds.has(id)) continue;
+                    pickedIds.add(id);
+                    picked.push(normalizePlayer(raw));
+                }
+            }
+
+            return picked.slice(0, limit);
+        }
+
         function buildTopDraftedPlayers(limit = 15) {
-            const playersById = new Map((Array.isArray(window.playersData) ? window.playersData : []).map((p) => [String(p['player.id']), p]));
+            const dataset = getPlayersDataset();
+            const playersById = new Map(dataset.map((p) => [String(p['player.id']), p]));
             const pickCounts = new Map();
             const teams = parseTeamsFromStorage();
 
@@ -7185,7 +7252,13 @@
                 .slice(0, limit);
         }
 
-        const buildFanFavoriteItems = (limit = 15) => buildTopDraftedPlayers(limit);
+        function buildFanFavoriteItems(limit = 15) {
+            const drafted = buildTopDraftedPlayers(limit);
+            if (drafted.length) return drafted;
+            // Kein einziger Draft im LocalStorage → kuratierter Fallback,
+            // damit das Karussell nie leer ist.
+            return buildFallbackItems(limit);
+        }
 
         let players = [];
         let cards = [];
@@ -7213,7 +7286,9 @@
             players = items;
             cards = [];
             if (!items.length) {
-                track.innerHTML = `<article class="tcc-player-card"><h3>Noch keine Draft-Daten gefunden</h3></article>`;
+                // Sollte dank Fallback nie eintreten – wir rendern bewusst keine
+                // sichtbare Fehlermeldung mehr, sondern lassen das Karussell leer
+                // (statt "Noch keine Draft-Daten gefunden" anzuzeigen).
                 return;
             }
             cards = items.map((it) => renderPlayerCard(it));
