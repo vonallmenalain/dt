@@ -951,6 +951,69 @@
                 gap: 4px;
             }
         }
+
+        .wow-leaderboard {
+            width: min(980px, 94vw);
+            margin: 18px auto 40px;
+            padding: clamp(14px, 2.8vw, 26px);
+            border-radius: 26px;
+            border: 1px solid rgba(134, 239, 172, 0.32);
+            background: radial-gradient(circle at 20% 0%, rgba(34,197,94,0.25), transparent 42%), linear-gradient(145deg, rgba(7,16,12,0.92), rgba(8,23,15,0.96));
+            box-shadow: 0 30px 90px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        .wow-leaderboard::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.06) 45%, transparent 58%);
+            transform: translateX(-120%);
+            animation: wow-sweep 5.5s ease-in-out infinite;
+        }
+        .wow-title { margin: 0 0 12px; text-align: center; font-size: clamp(1.35rem, 4.2vw, 2.2rem); font-weight: 950; }
+        .wow-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+        .wow-podium { display: grid; grid-template-columns: repeat(3, minmax(80px,1fr)); align-items: end; gap: 10px; }
+        .wow-podium-card {
+            padding: 10px 10px 12px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.16);
+            text-align: center;
+            backdrop-filter: blur(8px);
+            transform: translateY(26px) scale(0.96);
+            opacity: 0;
+            animation: wow-in .85s ease forwards;
+        }
+        .wow-podium-card.rank-1 { min-height: 198px; background: linear-gradient(170deg,#ffe79c,#ffc93d 38%,#946500); color:#1f1600; animation-delay: .15s; }
+        .wow-podium-card.rank-2 { min-height: 164px; background: linear-gradient(170deg,#f1f5f9,#9caec5 50%,#4b5f79); animation-delay: .28s; }
+        .wow-podium-card.rank-3 { min-height: 146px; background: linear-gradient(170deg,#f5d0a9,#bb7b47 45%,#6b3a14); animation-delay: .4s; }
+        .wow-rank { font-size: 1.6rem; font-weight: 900; }
+        .wow-name { font-weight: 900; margin-top: 4px; }
+        .wow-points { margin-top: 6px; font-weight: 800; font-size: .9rem; }
+        .wow-list { display: grid; gap: 8px; align-content: start; }
+        .wow-row {
+            display:flex; justify-content:space-between; align-items:center; gap: 8px;
+            padding: 10px 12px; border-radius: 13px; border:1px solid rgba(167,243,208,0.18);
+            background: linear-gradient(130deg, rgba(11,31,20,0.8), rgba(11,26,18,0.92));
+            opacity: 0; transform: translateX(30px);
+            animation: wow-row-in .65s ease forwards;
+        }
+        .wow-row small { color: #a7f3d0; font-weight: 800; }
+        .wow-row strong { color:#f8fafc; }
+        .wow-row em { color:#fcd34d; font-style:normal; font-weight: 900; }
+        @keyframes wow-in { to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes wow-row-in { to { opacity: 1; transform: translateX(0); } }
+        @keyframes wow-sweep { 0%,65%{transform:translateX(-120%)} 100%{transform:translateX(120%)} }
+        @media (max-width: 900px) { .wow-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 560px) {
+            .wow-podium-card.rank-1 { min-height: 172px; }
+            .wow-podium-card.rank-2 { min-height: 144px; }
+            .wow-podium-card.rank-3 { min-height: 132px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .wow-leaderboard::after, .wow-podium-card, .wow-row { animation: none !important; opacity: 1; transform: none; }
+        }
     </style>
 </head>
 <body>
@@ -992,6 +1055,14 @@
     </div>
 </section>
 
+<section class="wow-leaderboard" aria-label="Top Manager Rangliste">
+    <h2 class="wow-title"><span class="gold-text">Hall of Fame</span> <span class="accent">Top Manager</span></h2>
+    <div class="wow-grid">
+        <div class="wow-podium" id="wowPodium"></div>
+        <div class="wow-list" id="wowList"></div>
+    </div>
+</section>
+
 <!-- data.js muss als erstes geladen werden, damit window.playersData
      für alle nachfolgenden Scripts (ChampStage + Karussell) verfügbar ist. -->
 <script src="data.js"></script>
@@ -1004,6 +1075,29 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="cache.js"></script>
+<script>
+(() => {
+    const data = [
+        { rank: 1, manager: 'Sven König', points: 1782 },
+        { rank: 2, manager: 'Mara Blitz', points: 1736 },
+        { rank: 3, manager: 'Nico Adler', points: 1710 },
+        { rank: 4, manager: 'Lina Storm', points: 1688 },
+        { rank: 5, manager: 'Tobi Vega', points: 1667 },
+        { rank: 6, manager: 'Aylin Frost', points: 1642 },
+        { rank: 7, manager: 'Jules Prime', points: 1625 },
+        { rank: 8, manager: 'Rami Fox', points: 1606 }
+    ];
+    const podiumEl = document.getElementById('wowPodium');
+    const listEl = document.getElementById('wowList');
+    if (!podiumEl || !listEl) return;
+    data.slice(0, 3).sort((a,b)=>a.rank-b.rank).forEach((m) => {
+        podiumEl.insertAdjacentHTML('beforeend', `<article class="wow-podium-card rank-${m.rank}" aria-label="Rang ${m.rank}: ${m.manager}, ${m.points} Punkte"><div class="wow-rank">#${m.rank}</div><div class="wow-name">${m.manager}</div><div class="wow-points">${m.points} Punkte</div></article>`);
+    });
+    data.slice(3).forEach((m, index) => {
+        listEl.insertAdjacentHTML('beforeend', `<article class="wow-row" style="animation-delay:${0.52 + index * 0.1}s" aria-label="Rang ${m.rank}: ${m.manager}, ${m.points} Punkte"><small>#${m.rank}</small><strong>${m.manager}</strong><em>${m.points} Pkt</em></article>`);
+    });
+})();
+</script>
 <script>
 (function () {
     'use strict';
