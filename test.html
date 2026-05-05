@@ -954,12 +954,24 @@
     </style>
 </head>
 <body>
+
+<section class="hero">
+    <h1 class="hero-title">
+        <span class="gold-text">EM 2024</span><br>
+        <span class="accent">DreamTeam</span>
+    </h1>
+
+    <div class="hero-content">
+        <h2 class="carousel-label gold-text">Fan-Lieblinge</h2>
+        <div class="carousel-view-switcher" id="carouselViewSwitcher" aria-label="Karussell-Ansicht wählen"></div>
+        <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
+            <div class="track" id="track"></div>
+        </div>
+    </div>
+</section>
+
 <!-- =====================================================================
-     HERO: „Live Champions Stage" – Prototyp / Test
-     Steht oberhalb des bestehenden Karussells. Verwendet Demo-/Mock-Daten,
-     da test.html bisher nur Spieler-Draft-Daten aus localStorage nutzt
-     und keine echten Manager-/Ranglisten-Daten lädt. Diese Daten lassen
-     sich später durch echte Werte ersetzen, ohne das Markup zu ändern.
+     WOW-RANGLISTE unterhalb des Karussells
      ===================================================================== -->
 <section class="champ-stage" aria-label="Top Manager">
     <div class="champ-spotlight" aria-hidden="true"></div>
@@ -977,20 +989,6 @@
     </div>
 </section>
 
-<section class="hero">
-    <h1 class="hero-title">
-        <span class="gold-text">EM 2024</span><br>
-        <span class="accent">DreamTeam</span>
-    </h1>
-
-    <div class="hero-content">
-        <h2 class="carousel-label gold-text">Fan-Lieblinge</h2>
-        <div class="carousel-view-switcher" id="carouselViewSwitcher" aria-label="Karussell-Ansicht wählen"></div>
-        <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
-            <div class="track" id="track"></div>
-        </div>
-    </div>
-</section>
 
 <!-- data.js muss als erstes geladen werden, damit window.playersData
      für alle nachfolgenden Scripts (ChampStage + Karussell) verfügbar ist. -->
