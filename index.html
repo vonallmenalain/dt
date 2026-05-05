@@ -485,6 +485,29 @@
             font-size: 1.8rem;
             color: rgba(255,255,255,0.2);
         }
+        .hero-fan-carousel {
+            position: relative;
+            margin-top: 8px;
+            width: min(86vw, 560px);
+            height: clamp(156px, 28vw, 196px);
+            perspective: 1000px;
+            touch-action: pan-y;
+            overflow: hidden;
+        }
+        .hero-fan-carousel-track { position: absolute; inset: 0; }
+        .hero-fan-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: clamp(78px, 15vw, 108px);
+            aspect-ratio: 0.7;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.38);
+            background: #111827;
+        }
+        .hero-fan-card img { width:100%; height:100%; object-fit:cover; display:block; }
 
         /* ===================================================
            SCROLL INDICATOR
@@ -4166,28 +4189,8 @@
             </div>
         </div>
 
-        <!-- Floating player cards preview -->
-        <div class="hero-cards-preview" id="hero-cards-preview" aria-hidden="true">
-            <a class="hero-card-slot" id="hcs-0" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">👤</div>
-                <div class="hcs-name">–</div>
-            </a>
-            <a class="hero-card-slot" id="hcs-1" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">⭐</div>
-                <div class="hcs-name">–</div>
-            </a>
-            <a class="hero-card-slot" id="hcs-2" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">⭐</div>
-                <div class="hcs-name">–</div>
-            </a>
-            <a class="hero-card-slot" id="hcs-3" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">👤</div>
-                <div class="hcs-name">–</div>
-            </a>
-            <a class="hero-card-slot" id="hcs-4" href="spieleranalyse.html" style="text-decoration:none;color:inherit;">
-                <div class="hcs-empty">👤</div>
-                <div class="hcs-name">–</div>
-            </a>
+        <div class="hero-fan-carousel" id="hero-fan-carousel" aria-label="Karussell der 15 Fanlieblinge">
+            <div class="hero-fan-carousel-track" id="hero-fan-carousel-track"></div>
         </div>
     </div>
 
@@ -4836,6 +4839,36 @@
                 ${p['Nationalteam.logo'] ? `<img class="hcs-flag" src="${escapeHtml(p['Nationalteam.logo'])}" alt="${escapeHtml(p['Nationalteam.name'] || '')}" loading="lazy">` : ''}
                 ${!isPost && p['Club.logo'] ? `<img class="hcs-club" src="${escapeHtml(p['Club.logo'])}" alt="${escapeHtml(p['Club.name'] || '')}" loading="lazy">` : ''}
             `;
+        });
+    }
+    function renderPrestartFanCarousel(topPlayers) {
+        const track = $('hero-fan-carousel-track');
+        const viewport = $('hero-fan-carousel');
+        if (!track || !viewport) return;
+        const players = (Array.isArray(topPlayers) ? topPlayers : []).slice(0, 15);
+        if (!players.length) {
+            track.innerHTML = '';
+            return;
+        }
+        track.innerHTML = players.map((p) => `
+            <a class="hero-fan-card" href="spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}" aria-label="${escapeHtml(p.Spielername)}">
+                <img src="${escapeHtml(p.Spielerfoto || '')}" alt="${escapeHtml(p.Spielername)}" loading="lazy">
+            </a>
+        `).join('');
+        const cards = Array.from(track.querySelectorAll('.hero-fan-card'));
+        const centerIndex = 2; // 3.-beliebtester Spieler in der Mitte
+        const gap = Math.max(56, Math.min(96, viewport.clientWidth * 0.15));
+        cards.forEach((card, i) => {
+            const delta = i - centerIndex;
+            const depth = Math.min(Math.abs(delta), 7);
+            const x = delta * gap;
+            const z = -depth * 60;
+            const y = depth * 8;
+            const scale = 1 - depth * 0.06;
+            card.style.transform = `translate3d(${x}px, calc(-50% + ${y}px), ${z}px) rotateY(${delta * -8}deg) scale(${scale})`;
+            card.style.zIndex = String(100 - depth);
+            card.style.opacity = String(Math.max(0.35, 1 - depth * 0.1));
+            card.style.pointerEvents = depth > 4 ? 'none' : 'auto';
         });
     }
 
@@ -5737,6 +5770,7 @@
             ptMap,
             ''
         );
+        renderPrestartFanCarousel(topByPicks);
 
         // Captain watch
         renderCaptainWatch(captainCounts, ptMap, '');
