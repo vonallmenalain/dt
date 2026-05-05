@@ -1176,8 +1176,11 @@
     }
 
     let readyTimer = null;
+    let latestRankingTeams = [];
 
     function renderChampStage(rankedManagers) {
+        latestRankingTeams = Array.isArray(rankedManagers) ? rankedManagers : [];
+        window.__dtTestRankingTeams = latestRankingTeams;
         if (readyTimer !== null) {
             clearTimeout(readyTimer);
             readyTimer = null;
@@ -1368,7 +1371,26 @@ function buildCaptainWatchItems(limit=15){
     return Array.from(counts.entries()).map(([id,v])=>({...normalizePlayer(playersById.get(id)), captainCount:v.count, points:v.points, bottomText:`${v.count}x Captain · ${v.points} ${v.points===1?'Punkt':'Punkte'}`})).sort((a,b)=>b.captainCount-a.captainCount||b.points-a.points).slice(0,limit);
 }
 function buildManagerRankingItems(limit=15){
-    const teams = parseTeamsFromStorage(); const playersById = new Map((playersData || []).map((p)=>[String(p['player.id']),p]));
+    const liveRanking = Array.isArray(window.__dtTestRankingTeams) ? window.__dtTestRankingTeams : [];
+    if (liveRanking.length) {
+        return liveRanking.slice(0, limit).map((team, idx) => ({
+            manager: getManagerName(team),
+            totalPoints: Number(team?.totalScore ?? 0) || 0,
+            top: Array.isArray(team?.mergedPlayers) ? team.mergedPlayers.slice(0, 5).map((p) => ({
+                id: p.id,
+                isCaptain: !!p.isCaptain,
+                points: Number(p?.pts ?? 0) || 0,
+                full: {
+                    Spielername: p.name,
+                    Spielerfoto: p.photo
+                }
+            })) : [],
+            rank: idx + 1
+        }));
+    }
+
+    const teams = parseTeamsFromStorage();
+    const playersById = new Map((playersData || []).map((p)=>[String(p['player.id']),p]));
     const items = teams.map((t)=>{ const p=getEnrichedTeamPlayers(t,playersById).sort((a,b)=>b.points-a.points); return { manager:getManagerName(t), totalPoints:Number(t?.totalPoints ?? t?.totalScore ?? t?.points ?? t?.punkte ?? t?.score ?? p.reduce((s,x)=>s+x.points,0))||0, top:p.slice(0,5), storedRank: Number(t?.rank ?? t?.currentRank ?? 0) || null }; });
     const hasRealRank = items.some((x)=>x.storedRank && x.storedRank > 0);
     const sorted = hasRealRank ? items.sort((a,b)=>a.storedRank-b.storedRank||b.totalPoints-a.totalPoints) : items.sort((a,b)=>b.totalPoints-a.totalPoints||a.manager.localeCompare(b.manager,'de'));
