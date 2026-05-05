@@ -3644,15 +3644,12 @@
 
         @media (min-width: 980px) {
             .post-fold {
-                grid-template-columns: 1.15fr 0.85fr;
-                grid-template-areas:
-                    "managers matches"
-                    "players  matches";
+                grid-template-columns: 1fr;
                 gap: 18px;
             }
-            .post-fold .post-fold-managers  { grid-area: managers; }
-            .post-fold .post-fold-players   { grid-area: players; }
-            .post-fold .post-fold-matches   { grid-area: matches; }
+            .post-fold .post-fold-managers  { grid-area: auto; }
+            .post-fold .post-fold-players   { grid-area: auto; }
+            .post-fold .post-fold-matches   { grid-area: auto; }
         }
 
         /* Below-the-fold post sections */
@@ -4418,6 +4415,759 @@
             .tcc-drafts { font-size: 0.62rem; padding: 4px 8px; gap: 4px; }
         }
 
+        /* ================================================================
+           HERO: „Live Champions Stage" – Top-Manager-Bereich (Post-Start)
+           1:1 portiert aus test.html (Stand: cb58bd6). Eigener Namespace
+           `champ-` und `manager-` damit keine globalen Selektoren auf der
+           Index-Seite kollidieren.
+           ================================================================ */
+        .champ-stage {
+            position: relative;
+            width: 100%;
+            padding: 22px 16px 26px;
+            margin: 0 auto;
+            overflow: hidden;
+            isolation: isolate;
+            background:
+                radial-gradient(ellipse 70% 55% at 50% 10%, rgba(255,215,0,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 80% 60% at 50% 100%, rgba(34,197,94,0.30) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 40% at 15% 85%, rgba(40,167,69,0.28) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 85% 85%, rgba(40,167,69,0.28) 0%, transparent 60%);
+            border-top: 1px solid rgba(255,215,0,0.18);
+            border-bottom: 1px solid rgba(255,215,0,0.18);
+        }
+
+        .champ-stage::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 90px),
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 60px);
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 35%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 35%, transparent 80%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .champ-spotlight {
+            position: absolute;
+            top: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 60%;
+            background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(255,215,0,0.28), transparent 70%);
+            filter: blur(8px);
+            pointer-events: none;
+            z-index: 0;
+            animation: champ-spotlight-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes champ-spotlight-pulse {
+            0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(1); }
+            50%      { opacity: 0.95; transform: translateX(-50%) scale(1.05); }
+        }
+
+        .champ-header {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            margin: 0 auto 14px;
+            max-width: 920px;
+        }
+
+        .champ-title {
+            margin: 10px 0 4px;
+            font-size: clamp(1.7rem, 5vw, 3rem);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -1px;
+        }
+
+        .champ-title .gold-text {
+            background: linear-gradient(135deg, var(--gold), #fbbf24, #e5a800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .champ-title .accent {
+            background: linear-gradient(135deg, #4ade80, #22c55e, #16a34a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Stage – Podest mit 3D-Karten */
+        .champ-arena {
+            position: relative;
+            z-index: 2;
+            width: min(94vw, 940px);
+            margin: 0 auto;
+            perspective: 1600px;
+            perspective-origin: 50% 38%;
+        }
+
+        .champ-podium {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: clamp(6px, 1.6vw, 22px);
+            padding: 64px 4px 28px;
+            transform-style: preserve-3d;
+        }
+
+        .champ-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            padding: 14px 12px 14px;
+            border-radius: 22px;
+            user-select: none;
+            font-family: inherit;
+            color: inherit;
+            text-align: center;
+            transform-style: preserve-3d;
+            background:
+                linear-gradient(165deg, rgba(29,39,59,0.96) 0%, rgba(19,27,43,0.97) 60%, rgba(10,18,12,0.98) 100%),
+                radial-gradient(circle at 30% 0%, rgba(34,197,94,0.18), transparent 55%);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow:
+                0 24px 50px rgba(0,0,0,0.55),
+                0 0 0 1px rgba(255,255,255,0.04) inset;
+            backdrop-filter: blur(10px);
+            transition: transform 0.35s cubic-bezier(0.22, 0.85, 0.4, 1.05),
+                        box-shadow 0.35s ease,
+                        border-color 0.35s ease,
+                        filter 0.35s ease;
+            will-change: transform, opacity;
+            opacity: 0;
+        }
+
+        .champ-card:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 4px;
+        }
+
+        .champ-card .champ-rank-badge {
+            position: absolute;
+            top: -14px;
+            left: -14px;
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: #0d1117;
+            background: linear-gradient(135deg, #ffe97a, #ffd700 55%, #c79500);
+            border: 2px solid rgba(13,17,23,0.55);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.5), 0 0 0 3px rgba(255,215,0,0.18);
+            transform: translateZ(40px);
+        }
+
+        .champ-card[data-rank="2"] .champ-rank-badge {
+            background: linear-gradient(135deg, #f1f5f9, #cbd5e1 55%, #64748b);
+        }
+        .champ-card[data-rank="3"] .champ-rank-badge {
+            background: linear-gradient(135deg, #fcd9b6, #d68a52 55%, #8a4a26);
+            color: #fff;
+        }
+
+        /* Platzierungen – Flex-Reihenfolge erzeugt das Podest:
+           Rang 2 links, Rang 1 in der Mitte (höchste Karte), Rang 3 rechts. */
+        .champ-card[data-rank="1"] {
+            order: 2;
+            flex: 1 1 0;
+            max-width: clamp(190px, 32vw, 280px);
+            z-index: 5;
+            padding-bottom: 22px;
+            border-color: rgba(255,215,0,0.55);
+            background:
+                linear-gradient(165deg, rgba(40,33,18,0.95) 0%, rgba(20,17,8,0.97) 65%, rgba(10,8,4,0.98) 100%),
+                radial-gradient(circle at 30% 0%, rgba(255,215,0,0.32), transparent 55%);
+            box-shadow:
+                0 30px 60px rgba(0,0,0,0.6),
+                0 0 50px rgba(255,215,0,0.35),
+                0 0 0 1px rgba(255,215,0,0.4) inset;
+        }
+
+        .champ-card[data-rank="2"] {
+            order: 1;
+            flex: 1 1 0;
+            max-width: clamp(150px, 25vw, 220px);
+            z-index: 4;
+        }
+        .champ-card[data-rank="3"] {
+            order: 3;
+            flex: 1 1 0;
+            max-width: clamp(150px, 25vw, 220px);
+            z-index: 4;
+        }
+
+        /* Krone für #1 */
+        .champ-crown {
+            position: absolute;
+            top: -38px;
+            left: 50%;
+            transform: translate(-50%, 0) translateZ(50px);
+            width: clamp(46px, 9vw, 64px);
+            height: auto;
+            filter: drop-shadow(0 6px 14px rgba(255,215,0,0.55));
+            pointer-events: none;
+        }
+
+        @keyframes champ-crown-bob {
+            0%, 100% { transform: translate(-50%, 0) translateZ(50px); }
+            50%      { transform: translate(-50%, -6px) translateZ(50px); }
+        }
+
+        /* Verfolger-Karten Platz 4–10 (Top 10) */
+        .champ-chasers {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: clamp(8px, 2vw, 14px);
+            margin: 22px auto 0;
+            width: min(94vw, 940px);
+        }
+
+        .champ-chaser {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px 10px 10px;
+            min-width: 0;
+            text-align: left;
+            color: inherit;
+            border-radius: 14px;
+            background:
+                linear-gradient(135deg, rgba(29,39,59,0.92), rgba(13,18,31,0.95));
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+            opacity: 0;
+            transform: translateY(18px);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .champ-chaser:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,215,0,0.35);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.45), 0 0 22px rgba(255,215,0,0.15);
+        }
+
+        .champ-chaser .champ-chaser-team {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+            background: none;
+            border: 0;
+            color: inherit;
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .champ-chaser .champ-chaser-team:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
+            border-radius: 10px;
+        }
+
+        .champ-chaser .champ-rank-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: #f1f5f9;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .champ-chaser .champ-chaser-info {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .champ-chaser .champ-chaser-name {
+            font-weight: 800;
+            font-size: 0.92rem;
+            color: #f8fbff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .champ-chaser .champ-chaser-trend {
+            font-size: 0.7rem;
+            color: rgba(230,237,243,0.7);
+        }
+        .champ-chaser .champ-chaser-points {
+            font-weight: 900;
+            color: #fde68a;
+            font-size: 1rem;
+            font-family: inherit;
+            background: rgba(250,204,21,0.08);
+            border: 1px solid rgba(250,204,21,0.32);
+            border-radius: 999px;
+            padding: 4px 12px;
+            cursor: pointer;
+            text-align: right;
+            transition: background 0.2s ease, border-color 0.2s ease,
+                        box-shadow 0.2s ease, transform 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .champ-chaser .champ-chaser-points:hover {
+            background: rgba(250,204,21,0.18);
+            border-color: rgba(250,204,21,0.6);
+            box-shadow: 0 0 18px rgba(250,204,21,0.2);
+            transform: translateY(-1px);
+        }
+        .champ-chaser .champ-chaser-points:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
+        }
+        .champ-chaser .champ-chaser-points small {
+            display: block;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.55);
+            font-weight: 700;
+            text-align: right;
+            letter-spacing: 0.06em;
+        }
+
+        /* Intro-Animationen */
+        .champ-card[data-rank="1"] {
+            transform: translateY(140px) translateZ(-320px) scale(0.58);
+            transform-origin: 50% 100%;
+            animation: champ-fly-in-1 1.55s cubic-bezier(0.22, 0.85, 0.32, 1.05) 1.6s forwards;
+        }
+        .champ-card[data-rank="2"] {
+            transform: translateX(-280px) translateZ(-130px) rotateY(28deg) scale(0.62);
+            transform-origin: 100% 100%;
+            animation: champ-fly-in-2 1.25s cubic-bezier(0.22, 0.85, 0.32, 1.05) 0.85s forwards;
+        }
+        .champ-card[data-rank="3"] {
+            transform: translateX(280px) translateZ(-130px) rotateY(-28deg) scale(0.62);
+            transform-origin: 0% 100%;
+            animation: champ-fly-in-3 1.25s cubic-bezier(0.22, 0.85, 0.32, 1.05) 0.25s forwards;
+        }
+
+        @keyframes champ-fly-in-1 {
+            0%   { opacity: 0; transform: translateY(120px) translateZ(-300px) scale(0.6); }
+            55%  { opacity: 1; transform: translateY(-12px) translateZ(60px) scale(1.06); }
+            80%  { opacity: 1; transform: translateY(2px) translateZ(40px) scale(0.99); }
+            100% { opacity: 1; transform: translateY(0) translateZ(30px) scale(1); }
+        }
+        @keyframes champ-fly-in-2 {
+            0%   { opacity: 0; transform: translateX(-260px) translateZ(-120px) rotateY(28deg) scale(0.65); }
+            70%  { opacity: 1; transform: translateX(8px) translateZ(-10px) rotateY(10deg) scale(0.96); }
+            100% { opacity: 1; transform: translateX(0) translateZ(-25px) rotateY(14deg) scale(0.92); }
+        }
+        @keyframes champ-fly-in-3 {
+            0%   { opacity: 0; transform: translateX(260px) translateZ(-120px) rotateY(-28deg) scale(0.65); }
+            70%  { opacity: 1; transform: translateX(-8px) translateZ(-10px) rotateY(-10deg) scale(0.96); }
+            100% { opacity: 1; transform: translateX(0) translateZ(-25px) rotateY(-14deg) scale(0.92); }
+        }
+
+        /* Krone erscheint erst, nachdem Rang 1 oben angekommen ist (~3.1s) */
+        .champ-crown {
+            opacity: 0;
+            animation: champ-crown-drop 0.95s cubic-bezier(0.22, 0.85, 0.32, 1.05) 3.1s forwards,
+                       champ-crown-bob 2.8s ease-in-out 4.1s infinite;
+        }
+
+        @keyframes champ-crown-drop {
+            0%   { opacity: 0; transform: translate(-50%, -120px) translateZ(50px) scale(0.4) rotate(-25deg); }
+            60%  { opacity: 1; transform: translate(-50%, 8px) translateZ(50px) scale(1.1) rotate(8deg); }
+            100% { opacity: 1; transform: translate(-50%, 0) translateZ(50px) scale(1) rotate(0); }
+        }
+
+        .champ-chaser {
+            animation: champ-chaser-in 0.7s cubic-bezier(0.22, 0.85, 0.32, 1.05) var(--chaser-delay, 3.7s) forwards;
+        }
+
+        @keyframes champ-chaser-in {
+            from { opacity: 0; transform: translateY(24px) scale(0.94); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .champ-card.is-ready {
+            animation: none !important;
+            opacity: 1;
+        }
+        .champ-card.is-ready[data-rank="1"] {
+            transform: translateY(0) translateZ(30px) scale(1);
+        }
+        .champ-card.is-ready[data-rank="2"] {
+            transform: translateX(0) translateZ(-25px) rotateY(14deg) scale(0.92);
+        }
+        .champ-card.is-ready[data-rank="3"] {
+            transform: translateX(0) translateZ(-25px) rotateY(-14deg) scale(0.92);
+        }
+
+        /* Hover-Tilt für Top-Karten */
+        @media (hover: hover) {
+            .champ-card.is-ready[data-rank="1"]:hover {
+                transform: translateY(-6px) translateZ(60px) scale(1.04) !important;
+                box-shadow: 0 36px 70px rgba(0,0,0,0.65), 0 0 60px rgba(255,215,0,0.55), 0 0 0 1px rgba(255,215,0,0.5) inset;
+            }
+            .champ-card.is-ready[data-rank="2"]:hover {
+                transform: translateX(0) translateZ(15px) rotateY(6deg) scale(0.97) !important;
+                box-shadow: 0 28px 55px rgba(0,0,0,0.6), 0 0 40px rgba(203,213,225,0.35), 0 0 0 1px rgba(203,213,225,0.4) inset;
+                border-color: rgba(203,213,225,0.65);
+            }
+            .champ-card.is-ready[data-rank="3"]:hover {
+                transform: translateX(0) translateZ(15px) rotateY(-6deg) scale(0.97) !important;
+                box-shadow: 0 28px 55px rgba(0,0,0,0.6), 0 0 40px rgba(214,138,82,0.4), 0 0 0 1px rgba(214,138,82,0.5) inset;
+                border-color: rgba(214,138,82,0.65);
+            }
+        }
+
+        /* ================================================================
+           NEW: Manager Hero Card Layout
+           Vorname (Hero) ─ Player Constellation ─ Punkte (Link)
+           ================================================================ */
+        .manager-hero-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: clamp(300px, 38vw, 380px);
+            padding: 18px 12px 14px;
+        }
+
+        .manager-firstname {
+            position: relative;
+            display: block;
+            margin: 0 0 2px;
+            padding: 4px 6px 6px;
+            font-weight: 950;
+            line-height: 0.96;
+            letter-spacing: -0.04em;
+            font-size: clamp(1.6rem, 4.6vw, 2.6rem);
+            color: #f8fbff;
+            text-shadow: 0 4px 22px rgba(0,0,0,0.55), 0 0 18px rgba(255,255,255,0.06);
+            cursor: pointer;
+            background: none;
+            border: 0;
+            font-family: inherit;
+            text-align: center;
+            width: 100%;
+            transition: transform 0.25s ease, color 0.25s ease, text-shadow 0.25s ease;
+            opacity: 0;
+            transform: translateY(-12px) scale(0.94);
+            -webkit-tap-highlight-color: transparent;
+            z-index: 6;
+            word-break: break-word;
+        }
+        .manager-firstname::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 38%;
+            height: 2px;
+            transform: translateX(-50%) scaleX(0);
+            transform-origin: 50% 50%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.65), transparent);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0.6;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .manager-firstname:hover { transform: translateY(-1px) scale(1.02); }
+        .manager-firstname:hover::after { transform: translateX(-50%) scaleX(1); opacity: 1; }
+        .manager-firstname:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 4px;
+            border-radius: 8px;
+        }
+        .champ-card[data-rank="1"] .manager-firstname {
+            color: #fef3c7;
+            font-size: clamp(1.85rem, 5.2vw, 3rem);
+            text-shadow: 0 4px 26px rgba(0,0,0,0.6), 0 0 22px rgba(255,215,0,0.35);
+        }
+        .champ-card[data-rank="2"] .manager-firstname { color: #f1f5f9; }
+        .champ-card[data-rank="3"] .manager-firstname { color: #fde7d4; }
+
+        /* Player Constellation – Top-Spieler in organischer Anordnung */
+        .manager-player-constellation {
+            position: relative;
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: clamp(150px, 20vw, 220px);
+            margin: 6px 0 8px;
+            isolation: isolate;
+        }
+
+        .manager-player-orb {
+            position: absolute;
+            border: 0;
+            padding: 0;
+            background: transparent;
+            font-family: inherit;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.22, 0.85, 0.4, 1.05),
+                        box-shadow 0.3s ease,
+                        filter 0.3s ease;
+            opacity: 0;
+            translate: -50% -50%;
+            transform: scale(0.4);
+            transform-origin: 50% 50%;
+            -webkit-tap-highlight-color: transparent;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .manager-player-orb-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 55%),
+                linear-gradient(160deg, #1e293b, #0f172a 70%);
+            border: 2px solid rgba(255,255,255,0.4);
+            box-shadow:
+                0 8px 22px rgba(0,0,0,0.55),
+                0 0 0 1px rgba(255,255,255,0.06) inset;
+            display: grid;
+            place-items: center;
+        }
+        .manager-player-orb-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .manager-player-orb-fallback {
+            font-weight: 900;
+            color: #f8fbff;
+            letter-spacing: -0.03em;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .manager-player-orb .orb-cap {
+            position: absolute;
+            right: -2px;
+            top: -2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: #0d1117;
+            background: linear-gradient(135deg, #ffe97a, #ffd700 55%, #c79500);
+            border: 1.5px solid rgba(13,17,23,0.6);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            z-index: 3;
+            pointer-events: none;
+        }
+        .manager-player-orb .orb-pts {
+            position: absolute;
+            left: 50%;
+            bottom: -8px;
+            transform: translateX(-50%);
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 900;
+            color: #0d1117;
+            background: linear-gradient(135deg, #fef9c3, #fde68a);
+            border: 1px solid rgba(0,0,0,0.25);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+            white-space: nowrap;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 4;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .manager-player-orb.has-pts .orb-pts { opacity: 1; }
+
+        .manager-main-player .manager-player-orb-inner {
+            border-color: rgba(255,215,0,0.7);
+            box-shadow:
+                0 0 0 3px rgba(255,215,0,0.18),
+                0 0 28px rgba(255,215,0,0.45),
+                0 14px 30px rgba(0,0,0,0.6);
+        }
+        .manager-main-player .manager-player-orb-fallback { font-size: clamp(1.3rem, 3.6vw, 2rem); }
+
+        .manager-player-orb.size-md .manager-player-orb-inner {
+            border-color: rgba(255,255,255,0.55);
+            box-shadow:
+                0 0 0 2px rgba(255,255,255,0.08),
+                0 8px 22px rgba(0,0,0,0.55);
+        }
+        .manager-player-orb.size-md .manager-player-orb-fallback { font-size: clamp(0.85rem, 2.2vw, 1.15rem); }
+
+        .manager-player-orb.size-sm .manager-player-orb-inner {
+            border-color: rgba(255,255,255,0.42);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+        }
+        .manager-player-orb.size-sm .manager-player-orb-fallback { font-size: clamp(0.65rem, 1.6vw, 0.85rem); }
+
+        @media (hover: hover) {
+            .manager-player-orb:hover {
+                transform: scale(1.08) !important;
+                z-index: 9;
+                filter: brightness(1.08);
+            }
+            .manager-main-player:hover {
+                transform: scale(1.05) !important;
+            }
+        }
+        .manager-player-orb:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
+        }
+
+        .manager-points-link {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 5px;
+            font-weight: 900;
+            color: #fde68a;
+            font-size: clamp(0.95rem, 2.4vw, 1.25rem);
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 18px rgba(255,215,0,0.35);
+            align-self: center;
+            cursor: pointer;
+            background: rgba(250,204,21,0.08);
+            border: 1px solid rgba(250,204,21,0.32);
+            border-radius: 999px;
+            padding: 5px 14px;
+            text-decoration: none;
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            font-family: inherit;
+            opacity: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .manager-points-link:hover {
+            background: rgba(250,204,21,0.16);
+            border-color: rgba(250,204,21,0.55);
+            box-shadow: 0 0 18px rgba(250,204,21,0.18);
+            transform: translateY(-1px);
+        }
+        .manager-points-link:focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 3px;
+        }
+        .manager-points-link small {
+            font-size: 0.62em;
+            font-weight: 700;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        @keyframes manager-firstname-in {
+            0%   { opacity: 0; transform: translateY(-14px) scale(0.92); }
+            55%  { opacity: 1; transform: translateY(2px) scale(1.04); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes manager-orb-pop {
+            0%   { opacity: 0; transform: scale(0.35); }
+            65%  { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes manager-orb-float {
+            0%   { transform: translate3d(0, 0, 0) scale(1); }
+            25%  { transform: translate3d(0, -2px, 0) scale(1); }
+            75%  { transform: translate3d(0, 2px, 0) scale(1); }
+            100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+        @keyframes manager-points-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .champ-card.is-running .manager-firstname {
+            animation: manager-firstname-in 0.65s cubic-bezier(0.22, 0.85, 0.4, 1.05) var(--firstname-delay, 0.2s) forwards;
+        }
+        .champ-card.is-running .manager-player-orb {
+            animation: manager-orb-pop 0.55s cubic-bezier(0.22, 0.85, 0.4, 1.05) var(--orb-delay, 0.6s) forwards;
+        }
+        .champ-card.is-ready .manager-player-orb {
+            opacity: 1;
+            transform: scale(1);
+            animation: manager-orb-float 4.5s ease-in-out var(--orb-float-delay, 0s) infinite;
+        }
+        .champ-card.is-running .manager-points-link {
+            animation: manager-points-in 0.5s ease var(--points-delay, 1.4s) forwards;
+        }
+        .champ-card.is-ready .manager-firstname {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .champ-card.is-ready .manager-points-link {
+            opacity: 1;
+        }
+
+        @media (max-width: 560px) {
+            .champ-podium {
+                gap: 4px;
+                padding: 56px 0 22px;
+            }
+            .champ-card { padding: 10px 8px 12px; gap: 8px; border-radius: 18px; }
+            .champ-card[data-rank="1"] { padding-bottom: 18px; }
+            .manager-hero-card { min-height: clamp(240px, 56vw, 320px); padding: 12px 6px 10px; }
+            .manager-firstname { font-size: clamp(1.2rem, 6.6vw, 1.7rem); }
+            .champ-card[data-rank="1"] .manager-firstname { font-size: clamp(1.4rem, 7.6vw, 2.05rem); }
+            .manager-player-constellation { min-height: clamp(120px, 38vw, 180px); margin: 4px 0 6px; }
+            .manager-points-link { padding: 4px 10px; font-size: clamp(0.78rem, 3.2vw, 0.95rem); }
+            .manager-player-orb .orb-cap { width: 16px; height: 16px; font-size: 0.55rem; }
+            .manager-player-orb .orb-pts { font-size: 0.55rem; padding: 1px 5px; bottom: -6px; }
+            .champ-chasers {
+                grid-template-columns: 1fr;
+                gap: 6px;
+                margin-top: 16px;
+            }
+            .champ-chaser { padding: 8px 10px 8px 8px; }
+            .champ-chaser .champ-rank-mini { width: 30px; height: 30px; font-size: 0.85rem; }
+            .champ-chaser .champ-chaser-name { font-size: 0.85rem; }
+            .champ-chaser .champ-chaser-points { font-size: 0.92rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .champ-card,
+            .champ-chaser,
+            .champ-spotlight,
+            .champ-crown,
+            .manager-firstname,
+            .manager-player-orb,
+            .manager-points-link {
+                animation-duration: 0.001s !important;
+                animation-delay: 0s !important;
+            }
+            .champ-card { opacity: 1 !important; }
+            .champ-chaser { opacity: 1 !important; transform: none !important; }
+            .manager-firstname,
+            .manager-points-link { opacity: 1 !important; transform: none !important; }
+            .manager-player-orb { opacity: 1 !important; transform: scale(1) !important; }
+        }
+
     </style>
 </head>
 <body>
@@ -4581,38 +5331,38 @@
                 <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
                 <span class="accent" id="hero-post-title-accent">DreamTeam</span>
             </h1>
-
-            <!-- KPI bar -->
-            <div class="post-hero-kpis" role="list" aria-label="Live Statistiken">
-                <a href="rangliste.html" class="post-hero-kpi" role="listitem">
-                    <span class="post-hero-kpi-val gold" id="hs-post-leader">–</span>
-                    <span class="post-hero-kpi-label">👑 Leader</span>
-                </a>
-                <a href="rangliste.html" class="post-hero-kpi" role="listitem">
-                    <span class="post-hero-kpi-val" id="hs-post-leader-pts">–</span>
-                    <span class="post-hero-kpi-label">⭐ Top Punkte</span>
-                </a>
-                <a href="spieleranalyse.html" class="post-hero-kpi" role="listitem">
-                    <span class="post-hero-kpi-val" id="hs-post-top-player-pts">–</span>
-                    <span class="post-hero-kpi-label">🔥 Top Spieler</span>
-                </a>
-                <a href="teams.html" class="post-hero-kpi" role="listitem">
-                    <span class="post-hero-kpi-val" id="hs-post-teams">–</span>
-                    <span class="post-hero-kpi-label">🛡️ Teams</span>
-                </a>
-            </div>
-
-            <!-- Quick nav pills -->
-            <div class="post-hero-pills">
-                <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
-                <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler</a>
-                <a href="teams.html" class="btn-pill">🛡️ Teams</a>
-                <a href="punktesystem.html" class="btn-pill">📊 Punkte</a>
-            </div>
-
-            
         </div>
     </section>
+
+    <!-- =====================================================================
+         HERO: „Live Champions Stage" – Top-Manager-Bereich
+         1:1 portiert aus test.html. Lädt die Rangliste über denselben Cache-
+         und Berechnungspfad wie rangliste.html / teams.html, damit Punkte
+         und Reihenfolge der Manager überall exakt übereinstimmen.
+         ===================================================================== -->
+    <section class="champ-stage" aria-label="Top Manager">
+        <div class="champ-spotlight" aria-hidden="true"></div>
+
+        <header class="champ-header">
+            <h2 class="champ-title">
+                <span class="gold-text">Top</span>
+                <span class="accent">Manager</span>
+            </h2>
+        </header>
+
+        <div class="champ-arena">
+            <div class="champ-podium" id="champPodium" aria-live="polite"></div>
+            <div class="champ-chasers" id="champChasers"></div>
+        </div>
+    </section>
+
+    <!-- Quick nav pills (Auswahl: Rangliste, Spieler, Teams, Punkte) -->
+    <div class="post-hero-pills" style="margin-top: 22px; margin-bottom: 8px;">
+        <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
+        <a href="spieleranalyse.html" class="btn-pill">🔍 Spieler</a>
+        <a href="teams.html" class="btn-pill">🛡️ Teams</a>
+        <a href="punktesystem.html" class="btn-pill">📊 Punkte</a>
+    </div>
 
     <!-- LIVE DASHBOARD -->
     <main id="dashboard-post-area">
@@ -4620,26 +5370,7 @@
         <!-- ───────── Above-the-fold ───────── -->
         <section class="post-fold">
 
-            <!-- 1. Top Manager (with best picks) -->
-            <div class="glass post-fold-managers" id="post-managers-panel">
-                <div class="glass-deco" aria-hidden="true"></div>
-                <div class="post-h">
-                    <div class="post-h-title">
-                        <span class="post-h-icon gold">👑</span>
-                        Top Manager
-                    </div>
-                    <a class="post-h-link" href="rangliste.html">Rangliste →</a>
-                </div>
-                <div class="tm-list" id="tile-post-top-managers" aria-label="Top Manager mit besten Picks">
-                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
-                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
-                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
-                    <div class="skel" style="height:62px;margin-bottom:10px;border-radius:14px;"></div>
-                    <div class="skel" style="height:62px;border-radius:14px;"></div>
-                </div>
-            </div>
-
-            <!-- 2. Nächste Spiele -->
+            <!-- 1. Nächste Spiele -->
             <div class="glass post-fold-matches" id="post-matches-panel">
                 <div class="glass-deco" style="left:-60px;right:auto;background:radial-gradient(circle, rgba(255,215,0,0.15), transparent 65%);" aria-hidden="true"></div>
                 <div class="post-h">
@@ -7078,6 +7809,393 @@
     }
 
     /* =========================================================
+       CHAMP-STAGE – Top Manager Hero (1:1 portiert aus test.html)
+       Eigene Berechnungs- und Render-Logik im `champ-`/`manager-`
+       Namespace, damit die Reihenfolge und Punkte exakt identisch
+       zur rangliste.html / teams.html sind und das Markup nicht mit
+       anderen Index-Selektoren kollidiert.
+       ========================================================= */
+    const champEscapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+
+    const champInitials = (name) => String(name || '?')
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() || '')
+        .join('') || '?';
+
+    const champFirstNameOf = (fullName) => {
+        const trimmed = String(fullName || '').trim();
+        if (!trimmed) return 'Manager';
+        return trimmed.split(/\s+/)[0];
+    };
+
+    function champPlayerAvatarHtml(p) {
+        const fallback = champEscapeHtml(champInitials(p.name));
+        if (p.photo && /^https?:/i.test(p.photo)) {
+            return `<img src="${champEscapeHtml(p.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="${fallback}">`;
+        }
+        return `<span class="manager-player-orb-fallback" aria-hidden="true">${fallback}</span>`;
+    }
+
+    const CHAMP_LAYOUTS = {
+        1: [
+            { x: 50, y: 48, size: 56, cls: 'manager-main-player', z: 5 },
+            { x: 18, y: 30, size: 30, cls: 'size-md', z: 4 },
+            { x: 82, y: 30, size: 30, cls: 'size-md', z: 4 },
+            { x: 12, y: 72, size: 24, cls: 'size-sm', z: 3 },
+            { x: 88, y: 72, size: 24, cls: 'size-sm', z: 3 },
+            { x: 32, y: 88, size: 22, cls: 'size-sm', z: 3 },
+            { x: 68, y: 88, size: 22, cls: 'size-sm', z: 3 },
+            { x: 50, y: 14, size: 20, cls: 'size-sm', z: 2 }
+        ],
+        2: [
+            { x: 50, y: 48, size: 60, cls: 'manager-main-player', z: 5 },
+            { x: 20, y: 28, size: 32, cls: 'size-md', z: 4 },
+            { x: 82, y: 32, size: 32, cls: 'size-md', z: 4 },
+            { x: 16, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 84, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 50, y: 90, size: 22, cls: 'size-sm', z: 2 }
+        ],
+        3: [
+            { x: 50, y: 48, size: 60, cls: 'manager-main-player', z: 5 },
+            { x: 20, y: 28, size: 32, cls: 'size-md', z: 4 },
+            { x: 82, y: 32, size: 32, cls: 'size-md', z: 4 },
+            { x: 16, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 84, y: 78, size: 24, cls: 'size-sm', z: 3 },
+            { x: 50, y: 90, size: 22, cls: 'size-sm', z: 2 }
+        ]
+    };
+
+    function champBuildConstellation(manager, rank, baseDelay = 0) {
+        const layout = CHAMP_LAYOUTS[rank] || CHAMP_LAYOUTS[2];
+        const all = (manager.mergedPlayers || []).filter((p) => Number.isFinite(p.pts));
+        if (all.length === 0) {
+            return `
+                <div class="manager-player-constellation" aria-hidden="true">
+                    <button type="button" class="manager-player-orb manager-main-player" tabindex="-1"
+                            style="left:50%;top:50%;width:60%;aspect-ratio:1/1;z-index:5;">
+                        <span class="manager-player-orb-inner">
+                            <span class="manager-player-orb-fallback">${champEscapeHtml(champInitials(manager.manager))}</span>
+                        </span>
+                    </button>
+                </div>
+            `;
+        }
+
+        const players = all.slice(0, Math.min(layout.length, 8));
+        const orbs = players.map((p, idx) => {
+            const slot = layout[idx];
+            const cap = p.isCaptain ? '<span class="orb-cap" title="Kapitän (×2)">C</span>' : '';
+            const ptsText = Math.round(p.pts).toLocaleString('de-DE') + ' P';
+            const showPts = idx === 0;
+            const safeName = champEscapeHtml(p.name || 'Unbekannt');
+            const dataPid = p.id ? `data-player-id="${champEscapeHtml(p.id)}"` : '';
+            const orbDelay = (baseDelay + 0.55 + 0.15 * idx).toFixed(2) + 's';
+            const orbFloatDelay = (idx * 0.4).toFixed(2) + 's';
+            return `
+                <button type="button"
+                        class="manager-player-orb ${slot.cls} ${showPts ? 'has-pts' : ''}"
+                        style="left:${slot.x}%; top:${slot.y}%; width:${slot.size}%; aspect-ratio:1/1; z-index:${slot.z}; --orb-delay: ${orbDelay}; --orb-float-delay: ${orbFloatDelay};"
+                        data-player-name="${safeName}"
+                        ${dataPid}
+                        data-action="player"
+                        aria-label="Spieler ${safeName}, ${ptsText}. Spieleranalyse öffnen.">
+                    <span class="manager-player-orb-inner">
+                        ${champPlayerAvatarHtml(p)}
+                    </span>
+                    ${cap}
+                    ${showPts ? `<span class="orb-pts">${ptsText}</span>` : ''}
+                </button>
+            `;
+        }).join('');
+
+        return `<div class="manager-player-constellation">${orbs}</div>`;
+    }
+
+    function champOpenManagerTeam(manager) {
+        const name = manager && manager.manager ? manager.manager : '';
+        if (!name) return;
+        window.location.href = `teams.html?manager=${encodeURIComponent(name)}`;
+    }
+
+    function champOpenPlayerAnalysis(player) {
+        if (!player) return;
+        const name = player.name || '';
+        if (!name) return;
+        window.location.href = `spieleranalyse.html?player=${encodeURIComponent(name)}`;
+    }
+
+    function champOpenRanking() {
+        window.location.href = 'rangliste.html';
+    }
+
+    /* Ranking-Berechnung (identisch zu rangliste.html / test.html). */
+    function champBuildPlayerPointsMap(rawPoints) {
+        const map = {};
+        Object.entries(rawPoints || {}).forEach(([id, docData]) => {
+            map[String(id)] = docData && typeof docData.totalPoints === 'number' ? docData.totalPoints : 0;
+        });
+        return map;
+    }
+
+    function champExtractMatchData(rawPoints) {
+        const playerMatchPoints = {};
+        const nationStatus = {};
+        let maxNationGames = 0;
+        const matchIdsSet = new Set();
+
+        Object.entries(rawPoints || {}).forEach(([playerId, docData]) => {
+            const fullP = getPlayerById(playerId);
+            const nation = fullP ? fullP['Nationalteam.name'] : null;
+            const perMatch = {};
+
+            Object.entries(docData || {}).forEach(([key, val]) => {
+                if (!key.startsWith('Spiel_') || !val || typeof val !== 'object') return;
+                const matchId = Number(val.MatchID);
+                if (!Number.isFinite(matchId)) return;
+                matchIdsSet.add(matchId);
+                perMatch[matchId] = typeof val.TotalPunkte === 'number' ? val.TotalPunkte : 0;
+
+                if (nation) {
+                    if (!nationStatus[nation]) {
+                        nationStatus[nation] = { latestMatchId: -Infinity, outcome: 'draw', matchIds: new Set() };
+                    }
+                    nationStatus[nation].matchIds.add(matchId);
+                    if (matchId >= nationStatus[nation].latestMatchId) {
+                        let outcome = 'draw';
+                        const lineup = val.Aufstellung || {};
+                        if (typeof lineup.WIN === 'number' && lineup.WIN !== 0) outcome = 'win';
+                        else if (typeof lineup.LOSS === 'number' && lineup.LOSS !== 0) outcome = 'loss';
+                        else if (typeof lineup.DRAW === 'number' && lineup.DRAW !== 0) outcome = 'draw';
+                        nationStatus[nation].latestMatchId = matchId;
+                        nationStatus[nation].outcome = outcome;
+                    }
+                }
+            });
+
+            playerMatchPoints[String(playerId)] = perMatch;
+        });
+
+        Object.values(nationStatus).forEach((info) => {
+            info.totalGames = info.matchIds.size;
+            if (info.totalGames > maxNationGames) maxNationGames = info.totalGames;
+        });
+
+        return { playerMatchPoints, nationStatus, maxNationGames };
+    }
+
+    function champEnrichTeams(rawTeams, playerPointsMap, playerMatchPoints) {
+        return (Array.isArray(rawTeams) ? rawTeams : []).map((team) => {
+            const mergedPlayers = (team.players || []).map((p, idx) => {
+                let fullP = getPlayerById(p.playerId);
+                if (!fullP && Array.isArray(playersData)) {
+                    fullP = playersData.find((pd) => pd.Spielername === p.name) || null;
+                }
+                const playerId = fullP ? String(fullP['player.id']) : `fallback-${idx}`;
+                const basePts = fullP ? (playerPointsMap[playerId] || 0) : 0;
+                const finalPts = p.isCaptain ? basePts * 2 : basePts;
+                const matchesMap = fullP ? (playerMatchPoints[playerId] || {}) : {};
+                return {
+                    id: playerId,
+                    name: fullP ? fullP.Spielername : (p.name || 'Unbekannt'),
+                    pts: finalPts,
+                    basePts,
+                    isCaptain: !!p.isCaptain,
+                    photo: fullP ? (fullP.Spielerfoto || '') : '',
+                    nation: fullP ? (fullP['Nationalteam.name'] || '?') : '?',
+                    matchPoints: matchesMap,
+                    matchCount: Object.keys(matchesMap).length
+                };
+            });
+
+            mergedPlayers.sort((a, b) => b.pts - a.pts);
+            const totalScore = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+
+            return { ...team, manager: team.manager || 'Unbekannt', mergedPlayers, totalScore };
+        });
+    }
+
+    function champComputeRanking(teams) {
+        return [...teams].sort((a, b) => {
+            const diff = b.totalScore - a.totalScore;
+            if (diff !== 0) return diff;
+            return a.manager.localeCompare(b.manager, 'de');
+        });
+    }
+
+    function buildChampRanking(data) {
+        const rawPoints = data.points || {};
+        const playerPointsMap = champBuildPlayerPointsMap(rawPoints);
+        const { playerMatchPoints } = champExtractMatchData(rawPoints);
+        const enriched = champEnrichTeams(data.teams || [], playerPointsMap, playerMatchPoints);
+        return champComputeRanking(enriched);
+    }
+
+    const CHAMP_CROWN_SVG = `<svg class="champ-crown" viewBox="0 0 64 48" aria-hidden="true">
+        <defs>
+            <linearGradient id="champCrownGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#fff5b8"/>
+                <stop offset="55%" stop-color="#ffd700"/>
+                <stop offset="100%" stop-color="#b8860b"/>
+            </linearGradient>
+        </defs>
+        <path d="M4 14 L16 30 L32 6 L48 30 L60 14 L56 42 L8 42 Z"
+              fill="url(#champCrownGrad)"
+              stroke="rgba(0,0,0,0.35)" stroke-width="1.2" stroke-linejoin="round"/>
+        <circle cx="4"  cy="14" r="3.2" fill="#ff5d8f" stroke="rgba(0,0,0,0.35)" stroke-width="0.8"/>
+        <circle cx="32" cy="6"  r="3.6" fill="#7dd3fc" stroke="rgba(0,0,0,0.35)" stroke-width="0.8"/>
+        <circle cx="60" cy="14" r="3.2" fill="#86efac" stroke="rgba(0,0,0,0.35)" stroke-width="0.8"/>
+        <rect x="8" y="38" width="48" height="4" rx="1.5"
+              fill="#a16207" stroke="rgba(0,0,0,0.3)" stroke-width="0.6"/>
+    </svg>`;
+
+    function champAnimateCount(el, target, duration, delay) {
+        const start = performance.now() + delay;
+        const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+        const step = (now) => {
+            if (now < start) { requestAnimationFrame(step); return; }
+            const t = Math.min(1, (now - start) / duration);
+            const v = Math.round(target * easeOut(t));
+            el.textContent = v.toLocaleString('de-DE');
+            if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+
+    let champReadyTimer = null;
+
+    function renderChampStage(rankedManagers) {
+        const podium  = document.getElementById('champPodium');
+        const chasers = document.getElementById('champChasers');
+        if (!podium || !chasers) return;
+
+        if (champReadyTimer !== null) {
+            clearTimeout(champReadyTimer);
+            champReadyTimer = null;
+        }
+
+        podium.innerHTML = '';
+        chasers.innerHTML = '';
+
+        const top3 = rankedManagers.slice(0, 3);
+        const rest = rankedManagers.slice(3, 10);
+
+        top3.forEach((m, i) => {
+            const rank = i + 1;
+            const card = document.createElement('div');
+            card.className = 'champ-card manager-hero-card is-running';
+            card.dataset.rank = String(rank);
+            card.dataset.points = String(m.totalScore);
+            card.setAttribute('aria-label', `Platz ${rank}: ${m.manager}, ${m.totalScore} Punkte.`);
+
+            const baseDelay = rank === 1 ? 1.6 : rank === 2 ? 0.85 : 0.25;
+            const firstnameDelay = (baseDelay + 0.4).toFixed(2) + 's';
+            const pointsDelay    = (baseDelay + 1.6).toFixed(2) + 's';
+            card.style.setProperty('--firstname-delay', firstnameDelay);
+            card.style.setProperty('--points-delay', pointsDelay);
+
+            const firstName = champEscapeHtml(champFirstNameOf(m.manager));
+            card.innerHTML = `
+                ${rank === 1 ? CHAMP_CROWN_SVG : ''}
+                <span class="champ-rank-badge">#${rank}</span>
+                <button type="button" class="manager-firstname"
+                        data-action="manager"
+                        aria-label="Team von ${champEscapeHtml(m.manager)} anzeigen">${firstName}</button>
+                ${champBuildConstellation(m, rank, baseDelay)}
+                <button type="button" class="manager-points-link"
+                        data-action="points"
+                        aria-label="Gesamte Rangliste anzeigen">
+                    <span class="champ-points-value" data-target="${m.totalScore}">0</span>
+                    <small>Pkt</small>
+                </button>
+            `;
+
+            card.addEventListener('click', (ev) => {
+                const target = ev.target.closest('[data-action]');
+                if (!target || !card.contains(target)) return;
+                ev.preventDefault();
+                ev.stopPropagation();
+                const action = target.dataset.action;
+                if (action === 'manager') {
+                    champOpenManagerTeam(m);
+                } else if (action === 'points') {
+                    champOpenRanking();
+                } else if (action === 'player') {
+                    const playerName = target.dataset.playerName;
+                    const player = (m.mergedPlayers || []).find((p) => p.name === playerName);
+                    if (player) champOpenPlayerAnalysis(player);
+                    else if (playerName) champOpenPlayerAnalysis({ name: playerName });
+                }
+            });
+
+            podium.appendChild(card);
+        });
+
+        rest.forEach((m, i) => {
+            const rank = i + 4;
+            const row = document.createElement('div');
+            row.className = 'champ-chaser';
+            row.dataset.rank = String(rank);
+            row.style.setProperty('--chaser-delay', (3.7 + i * 0.18).toFixed(2) + 's');
+            const chaserDisplayName = rank <= 7 ? champFirstNameOf(m.manager) : m.manager;
+            row.innerHTML = `
+                <button type="button" class="champ-chaser-team"
+                        aria-label="Platz ${rank}: ${champEscapeHtml(m.manager)}. Zum Team.">
+                    <span class="champ-rank-mini">#${rank}</span>
+                    <span class="champ-chaser-info">
+                        <span class="champ-chaser-name">${champEscapeHtml(chaserDisplayName)}</span>
+                    </span>
+                </button>
+                <button type="button" class="champ-chaser-points"
+                        aria-label="${m.totalScore} Punkte. Gesamte Rangliste anzeigen.">
+                    <span class="champ-points-value" data-target="${m.totalScore}">0</span>
+                    <small>Pkt</small>
+                </button>
+            `;
+            row.querySelector('.champ-chaser-team').addEventListener('click', () => champOpenManagerTeam(m));
+            row.querySelector('.champ-chaser-points').addEventListener('click', () => champOpenRanking());
+            chasers.appendChild(row);
+        });
+
+        podium.querySelectorAll('.manager-player-orb-inner img').forEach((img) => {
+            img.addEventListener('error', () => {
+                const fallback = document.createElement('span');
+                fallback.className = 'manager-player-orb-fallback';
+                fallback.setAttribute('aria-hidden', 'true');
+                fallback.textContent = img.dataset.fallback || '?';
+                img.replaceWith(fallback);
+            }, { once: true });
+        });
+
+        const counterDelays = { '3': 2300, '2': 2700, '1': 3500 };
+        document.querySelectorAll('#indexHomePostStart .champ-points-value').forEach((el) => {
+            const card = el.closest('[data-rank]');
+            const rankStr = card ? card.dataset.rank : '0';
+            const rankNum = Number(rankStr);
+            let delay;
+            if (counterDelays[rankStr] !== undefined) {
+                delay = counterDelays[rankStr];
+            } else if (rankNum >= 4) {
+                delay = 3900 + (rankNum - 4) * 180;
+            } else {
+                delay = 2500;
+            }
+            champAnimateCount(el, Number(el.dataset.target) || 0, 1500, delay);
+        });
+
+        champReadyTimer = setTimeout(() => {
+            champReadyTimer = null;
+            document.querySelectorAll('#indexHomePostStart .champ-card').forEach((c) => {
+                c.classList.remove('is-running');
+                c.classList.add('is-ready');
+            });
+        }, 4600);
+    }
+
+    /* =========================================================
        POST START HOME – Render-Funktion (Live Dashboard)
        ========================================================= */
     function renderPostStartHome(data) {
@@ -7099,9 +8217,7 @@
             history: historyByManager.get(t.manager || 'Unbekannt') || []
         })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
 
-        renderPostHeroKpis(teams, ptMap, teamTotals, topPlayers);
-
-        renderPostTopManagers(teamTotals, ptMap, teams);
+        renderChampStage(buildChampRanking(data));
 
         renderNextMatchesTile(data, teams);
 
