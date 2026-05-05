@@ -1356,7 +1356,6 @@ function renderPlayerCard(p) {
             <h3 class="player-name">${escapeHtml(p.name)}</h3>
             <div class="meta-row"><img class="meta-icon flag-icon" loading="lazy" src="${escapeHtml(p.countryFlag)}" alt="Flagge ${escapeHtml(p.country)}"><span>${escapeHtml(p.country)}</span></div>
             <div class="meta-row"><img class="meta-icon club-icon" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}"><span>${escapeHtml(p.club)}</span></div>
-            ${p.bottomText ? `<div class="drafts"><span>👥</span><strong>${escapeHtml(p.bottomText)}</strong></div>` : ''}
         </div>
     `;
     return el;
