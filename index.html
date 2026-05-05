@@ -1638,33 +1638,6 @@
             color: rgba(74, 222, 128, 0.85);
         }
 
-        .dev-test-link {
-            position: fixed;
-            top: 8px;
-            left: 104px;
-            z-index: 9999;
-            font-size: 11px;
-            font-family: monospace;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.55);
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            opacity: 0.55;
-            transition: opacity 0.2s ease, background 0.2s ease;
-            line-height: 1.4;
-            text-decoration: none;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .dev-test-link:hover {
-            opacity: 0.9;
-            background: rgba(0, 0, 0, 0.8);
-        }
-
         /* ===================================================
            MANAGER LIST (team count expanded)
            =================================================== */
@@ -5132,6 +5105,27 @@
             .champ-chaser .champ-rank-mini { width: 30px; height: 30px; font-size: 0.85rem; }
             .champ-chaser .champ-chaser-name { font-size: 0.85rem; }
             .champ-chaser .champ-chaser-points { font-size: 0.92rem; }
+
+            /* FIX: Auf der Mobilversion können die 3D-Transforms (translateZ +
+               rotateY) der Podest-Karten dazu führen, dass die Karte für Rang 1
+               im Hit-Testing leicht über die Innenkanten der Karten 2 und 3
+               ragt. Tippt man dann auf eine an sich „freie" Stelle der Karten
+               2/3, landet das Tap-Event auf der Karten-Wrapper-Fläche von
+               Rang 1; weil dort kein [data-action]-Kind sitzt, verwirft der
+               delegierte Klick-Handler das Event und es passiert nichts.
+               Lösung: Wir machen die strukturelle Kartenfläche selbst
+               transparent für Pointer-Events. Die tatsächlich interaktiven
+               Kinder (Manager-Vorname, Punkte-Link, Spieler-Orbs) bleiben
+               klickbar – Klick-Events bubbeln nach wie vor zum bestehenden
+               Karten-Listener hoch. Hover-Effekte sind auf Touch-Geräten
+               ohnehin nicht aktiv (siehe @media (hover: hover)). */
+            .champ-card { pointer-events: none; }
+            .champ-card [data-action],
+            .champ-card .manager-player-orb,
+            .champ-card .manager-firstname,
+            .champ-card .manager-points-link {
+                pointer-events: auto;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -5164,7 +5158,6 @@
      localStorage-Key: dreamteamIndexViewMode
      ===================================================== -->
 <button class="dev-index-toggle" id="dev-index-toggle" title="DEV: Ansichtsmodus umschalten (auto / vor Start / nach Start)" aria-label="DEV: Ansichtsmodus umschalten">DEV: Auto</button>
-<a class="dev-test-link" href="test.html" title="TEST-Seite öffnen" aria-label="TEST-Seite öffnen">TEST</a>
 
 <!-- =====================================================
      PRE START HOME: Startseite vor Spielstart
