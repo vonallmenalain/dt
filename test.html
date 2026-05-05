@@ -104,14 +104,6 @@
         }
 
         .carousel:active { cursor: grabbing; }
-        .secondary-carousel-wrap {
-            margin-top: 24px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
         .carousel-label {
             position: relative;
             z-index: 2;
@@ -996,12 +988,6 @@
         <div class="carousel" id="carousel" aria-label="Karussell der meistgedrafteten Spieler">
             <div class="track" id="track"></div>
         </div>
-        <div class="secondary-carousel-wrap">
-            <h2 class="carousel-label gold-text">Fan-Lieblinge (Kompakt)</h2>
-            <div class="carousel" id="carouselFanOnly" aria-label="Karussell der Fan-Lieblinge">
-                <div class="track" id="trackFanOnly"></div>
-            </div>
-        </div>
     </div>
 </section>
 
@@ -1301,8 +1287,6 @@
 
 const track = document.getElementById('track');
 const carousel = document.getElementById('carousel');
-const trackFanOnly = document.getElementById('trackFanOnly');
-const carouselFanOnly = document.getElementById('carouselFanOnly');
 const carouselLabel = document.querySelector('.carousel-label');
 const viewSwitcher = document.getElementById('carouselViewSwitcher');
 const CAROUSEL_VIEW_STORAGE_KEY = 'dreamteam_test_active_carousel_view';
@@ -1620,60 +1604,6 @@ resizeCarousel();
 initView(getActiveCarouselView());
 if (!raf) tick();
 
-// Zweites Karussell: nur Fan-Lieblinge, ohne Draft-Info auf den Karten.
-let playersFanOnly = [];
-let cardsFanOnly = [];
-const stateFanOnly = { pos: 0, vel: 0, drag: false, lastX: 0, lastT: 0 };
-let cardGapFanOnly = Math.max(64, Math.min(110, carouselFanOnly.clientWidth * 0.16));
-let rafFanOnly = null;
-
-function renderFanOnly() {
-    const n = cardsFanOnly.length;
-    if (!n) return;
-    for (let i = 0; i < n; i++) {
-        let delta = i - stateFanOnly.pos;
-        delta = mod(delta + n / 2, n) - n / 2;
-        const abs = Math.abs(delta);
-        const clamped = Math.min(abs, 4.6);
-        const x = delta * cardGapFanOnly;
-        const scale = 1 - clamped * 0.12;
-        const z = 300 - clamped * 85;
-        cardsFanOnly[i].style.transform = `translate3d(${x}px, ${clamped * 9}px, ${z}px) rotateY(${delta * -8}deg) scale(${scale})`;
-        cardsFanOnly[i].style.opacity = String(Math.max(0, 1 - clamped * 0.16));
-        cardsFanOnly[i].style.zIndex = String(Math.round(1000 - clamped * 100));
-    }
-}
-function tickFanOnly() {
-    if (!cardsFanOnly.length) return;
-    if (!stateFanOnly.drag) { stateFanOnly.pos += stateFanOnly.vel; stateFanOnly.vel *= 0.92; }
-    if (playersFanOnly.length && stateFanOnly.pos >= playersFanOnly.length) stateFanOnly.pos -= playersFanOnly.length;
-    if (playersFanOnly.length && stateFanOnly.pos < 0) stateFanOnly.pos += playersFanOnly.length;
-    renderFanOnly();
-    rafFanOnly = requestAnimationFrame(tickFanOnly);
-}
-function initFanOnlyCarousel() {
-    trackFanOnly.innerHTML = '';
-    playersFanOnly = buildFanFavoriteItems(15, false);
-    cardsFanOnly = playersFanOnly.map((it) => renderPlayerCard(it));
-    cardsFanOnly.forEach((c) => trackFanOnly.appendChild(c));
-    renderFanOnly();
-}
-carouselFanOnly.addEventListener('pointerdown', (e) => { carouselFanOnly.setPointerCapture(e.pointerId); stateFanOnly.drag = true; stateFanOnly.lastX = e.clientX; stateFanOnly.lastT = performance.now(); });
-carouselFanOnly.addEventListener('pointermove', (e) => {
-    if (!stateFanOnly.drag) return;
-    const now = performance.now();
-    const dx = e.clientX - stateFanOnly.lastX;
-    const dt = Math.max(8, now - stateFanOnly.lastT);
-    const units = dx / cardGapFanOnly;
-    stateFanOnly.pos -= units;
-    stateFanOnly.vel = (stateFanOnly.vel * 0.7) + ((-units / dt) * 16);
-    stateFanOnly.lastX = e.clientX;
-    stateFanOnly.lastT = now;
-});
-['pointerup','pointercancel','lostpointercapture'].forEach((ev) => carouselFanOnly.addEventListener(ev, () => { stateFanOnly.drag = false; }));
-window.addEventListener('resize', () => { cardGapFanOnly = Math.max(64, Math.min(110, carouselFanOnly.clientWidth * 0.16)); renderFanOnly(); }, {passive:true});
-initFanOnlyCarousel();
-if (!rafFanOnly) tickFanOnly();
 </script>
 </body>
 </html>
