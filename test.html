@@ -794,15 +794,20 @@
             50%      { transform: translate(-50%, -6px) translateZ(50px); }
         }
 
-        /* Chaser-Karten Platz 4 + 5 */
+        /* Verfolger-Karten Platz 4–10 (Top 10).
+           Wir verwenden ein automatisch umbrechendes Grid: zwei Spalten
+           breit auf Desktop/Tablet (oder mehr, wenn der Platz reicht),
+           eine Spalte auf schmalen Mobil-Displays. So lassen sich alle
+           sieben Verfolger gleichmässig anzeigen, ohne dass der Bereich
+           überfüllt wirkt oder zu lange wird. */
         .champ-chasers {
             position: relative;
             z-index: 2;
-            display: flex;
-            justify-content: center;
-            gap: clamp(10px, 2.5vw, 22px);
-            margin-top: 18px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: clamp(8px, 2vw, 14px);
+            margin: 22px auto 0;
+            width: min(94vw, 940px);
         }
 
         .champ-chaser {
@@ -812,7 +817,7 @@
             align-items: center;
             gap: 10px;
             padding: 10px 14px 10px 10px;
-            min-width: clamp(180px, 38vw, 240px);
+            min-width: 0;
             text-align: left;
             font-family: inherit;
             color: inherit;
@@ -929,15 +934,16 @@
             100% { opacity: 1; transform: translate(-50%, 0) translateZ(50px) scale(1) rotate(0); }
         }
 
-        .champ-chaser[data-rank="4"] {
-            animation: champ-chaser-in 0.8s cubic-bezier(0.22, 0.85, 0.32, 1.05) 3.7s forwards;
-        }
-        .champ-chaser[data-rank="5"] {
-            animation: champ-chaser-in 0.8s cubic-bezier(0.22, 0.85, 0.32, 1.05) 3.95s forwards;
+        /* Generischer Einflug für alle Verfolger-Karten (Plätze 4–10).
+           Die individuelle Verzögerung wird per Inline-Style über
+           `--chaser-delay` gesetzt, damit die Karten nacheinander
+           erscheinen statt alle gleichzeitig. */
+        .champ-chaser {
+            animation: champ-chaser-in 0.7s cubic-bezier(0.22, 0.85, 0.32, 1.05) var(--chaser-delay, 3.7s) forwards;
         }
 
         @keyframes champ-chaser-in {
-            from { opacity: 0; transform: translateY(28px) scale(0.92); }
+            from { opacity: 0; transform: translateY(24px) scale(0.94); }
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
@@ -1066,9 +1072,20 @@
                         box-shadow 0.3s ease,
                         filter 0.3s ease;
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.4);
+            /* Centering läuft über die eigenständige `translate`-Property,
+               damit das `transform` ausschließlich von Pop-/Float-Animationen
+               und Hover-States verwendet wird. So entstehen keine
+               Verschiebungs-Sprünge beim Übergang zwischen den Animationen
+               und der Browser kann den Orb dauerhaft auf einer GPU-Schicht
+               kompositieren – die Float-Bewegung läuft dadurch von Anfang
+               an flüssig statt ruckhaft. */
+            translate: -50% -50%;
+            transform: scale(0.4);
+            transform-origin: 50% 50%;
             -webkit-tap-highlight-color: transparent;
             will-change: transform, opacity;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
         .manager-player-orb-inner {
             width: 100%;
@@ -1166,12 +1183,12 @@
 
         @media (hover: hover) {
             .manager-player-orb:hover {
-                transform: translate(-50%, -50%) scale(1.08) !important;
+                transform: scale(1.08) !important;
                 z-index: 9;
                 filter: brightness(1.08);
             }
             .manager-main-player:hover {
-                transform: translate(-50%, -50%) scale(1.05) !important;
+                transform: scale(1.05) !important;
             }
         }
         .manager-player-orb:focus-visible {
@@ -1230,13 +1247,20 @@
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes manager-orb-pop {
-            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.35); }
-            65%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            0%   { opacity: 0; transform: scale(0.35); }
+            65%  { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
         }
+        /* Float-Animation: arbeitet ausschließlich auf `transform` (Centering
+           liegt auf der separaten `translate`-Property). Dadurch ist die
+           Bewegung von Anfang an GPU-gestützt und flüssig. Start- und Endwert
+           sind identisch zum Pop-Endwert (scale 1, kein Y-Offset), damit kein
+           Sprung beim Übergang Pop → Float entsteht. */
         @keyframes manager-orb-float {
-            0%, 100% { transform: translate(-50%, calc(-50% - 2px)) scale(1); }
-            50%      { transform: translate(-50%, calc(-50% + 2px)) scale(1); }
+            0%   { transform: translate3d(0, 0, 0) scale(1); }
+            25%  { transform: translate3d(0, -2px, 0) scale(1); }
+            75%  { transform: translate3d(0, 2px, 0) scale(1); }
+            100% { transform: translate3d(0, 0, 0) scale(1); }
         }
         @keyframes manager-points-in {
             from { opacity: 0; transform: translateY(8px); }
@@ -1251,7 +1275,7 @@
         }
         .champ-card.is-ready .manager-player-orb {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
+            transform: scale(1);
             animation: manager-orb-float 4.5s ease-in-out var(--orb-float-delay, 0s) infinite;
         }
         .champ-card.is-running .manager-points-link {
@@ -1279,8 +1303,15 @@
             .manager-points-link { padding: 4px 10px; font-size: clamp(0.78rem, 3.2vw, 0.95rem); }
             .manager-player-orb .orb-cap { width: 16px; height: 16px; font-size: 0.55rem; }
             .manager-player-orb .orb-pts { font-size: 0.55rem; padding: 1px 5px; bottom: -6px; }
-            .champ-chasers { gap: 8px; }
-            .champ-chaser { min-width: 0; flex: 1 1 45%; padding: 8px 10px 8px 8px; }
+            .champ-chasers {
+                grid-template-columns: 1fr;
+                gap: 6px;
+                margin-top: 16px;
+            }
+            .champ-chaser { padding: 8px 10px 8px 8px; }
+            .champ-chaser .champ-rank-mini { width: 30px; height: 30px; font-size: 0.85rem; }
+            .champ-chaser .champ-chaser-name { font-size: 0.85rem; }
+            .champ-chaser .champ-chaser-points { font-size: 0.92rem; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1298,7 +1329,7 @@
             .champ-chaser { opacity: 1 !important; transform: none !important; }
             .manager-firstname,
             .manager-points-link { opacity: 1 !important; transform: none !important; }
-            .manager-player-orb { opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
+            .manager-player-orb { opacity: 1 !important; transform: scale(1) !important; }
         }
 
         @media (max-width: 560px) {
@@ -1452,7 +1483,13 @@
     };
 
     // Erzeugt die Constellation aus den Top-Spielern eines Managers.
-    function buildConstellation(manager, rank) {
+    // baseDelay = Karten-Einflug-Verzögerung in Sekunden. Damit Rang 1 dieselbe
+    // dramaturgische Reihenfolge zeigt wie Rang 2 und 3 (zuerst Hauptspieler im
+    // Zentrum, dann ein Spieler nach dem anderen rundherum), addieren wir
+    // baseDelay zur Orb-Verzögerung. So beginnen die Orbs erst dann zu poppen,
+    // wenn die jeweilige Karte sichtbar wird – nicht bereits unsichtbar
+    // hinter der Opacity-0-Karte.
+    function buildConstellation(manager, rank, baseDelay = 0) {
         const layout = LAYOUTS[rank] || LAYOUTS[2];
         const all = (manager.mergedPlayers || []).filter((p) => Number.isFinite(p.pts));
         // Kein einziger Spieler → schöner Fallback mit Initialen des Managers
@@ -1477,10 +1514,12 @@
             const showPts = idx < 3;
             const safeName = escapeHtml(p.name || 'Unbekannt');
             const dataPid = p.id ? `data-player-id="${escapeHtml(p.id)}"` : '';
+            const orbDelay = (baseDelay + 0.55 + 0.15 * idx).toFixed(2) + 's';
+            const orbFloatDelay = (idx * 0.4).toFixed(2) + 's';
             return `
                 <button type="button"
                         class="manager-player-orb ${slot.cls} ${showPts ? 'has-pts' : ''}"
-                        style="left:${slot.x}%; top:${slot.y}%; width:${slot.size}%; aspect-ratio:1/1; z-index:${slot.z}; --orb-delay: ${(0.15 * idx + 0.55).toFixed(2)}s; --orb-float-delay: ${(idx * 0.4).toFixed(2)}s;"
+                        style="left:${slot.x}%; top:${slot.y}%; width:${slot.size}%; aspect-ratio:1/1; z-index:${slot.z}; --orb-delay: ${orbDelay}; --orb-float-delay: ${orbFloatDelay};"
                         data-player-name="${safeName}"
                         ${dataPid}
                         data-action="player"
@@ -1693,7 +1732,9 @@
         chasers.innerHTML = '';
 
         const top3 = rankedManagers.slice(0, 3);
-        const rest = rankedManagers.slice(3, 5);
+        // Verfolger: bis zu 7 weitere Manager (Plätze 4–10), damit eine vollständige
+        // Top 10 sichtbar ist. Reihenfolge bleibt im selben kompakten Stil wie zuvor.
+        const rest = rankedManagers.slice(3, 10);
 
         top3.forEach((m, i) => {
             const rank = i + 1;
@@ -1723,7 +1764,7 @@
                 <button type="button" class="manager-firstname"
                         data-action="manager"
                         aria-label="Team von ${escapeHtml(m.manager)} anzeigen">${firstName}</button>
-                ${buildConstellation(m, rank)}
+                ${buildConstellation(m, rank, baseDelay)}
                 <button type="button" class="manager-points-link"
                         data-action="points"
                         aria-label="Gesamte Rangliste anzeigen">
@@ -1754,12 +1795,16 @@
             podium.appendChild(card);
         });
 
+        // Verfolger-Karten (Plätze 4–10). Wir verzögern jede Karte um 0.18s
+        // gegenüber der vorigen, damit sie sequenziell erscheinen – im
+        // selben Stil wie zuvor Platz 4 und 5, nur erweitert auf Top 10.
         rest.forEach((m, i) => {
             const rank = i + 4;
             const row = document.createElement('button');
             row.type = 'button';
             row.className = 'champ-chaser';
             row.dataset.rank = String(rank);
+            row.style.setProperty('--chaser-delay', (3.7 + i * 0.18).toFixed(2) + 's');
             row.setAttribute('aria-label', `Platz ${rank}: ${m.manager}, ${m.totalScore} Punkte. Zum Team.`);
             row.innerHTML = `
                 <div class="champ-rank-mini">#${rank}</div>
@@ -1791,20 +1836,29 @@
         // Punkte-Hochzähl-Animation: Reihenfolge entspricht dem Aufbau des
         // Podests (Rang 3 → Rang 2 → Rang 1 → Verfolger). Die Werte werden
         // pro Karte gezielt verzögert, damit der Counter zur Einflug-Animation
-        // passt (Gesamtdauer ~4–5 Sekunden inkl. Innen-Animationen).
+        // passt. Verfolger 4–10 erben einen Stagger von je +180ms.
         const counterDelays = {
-            '3': 2300, '2': 2700, '1': 3500, '4': 3900, '5': 4150
+            '3': 2300, '2': 2700, '1': 3500
         };
         document.querySelectorAll('.champ-points-value').forEach((el) => {
             const card = el.closest('[data-rank]');
-            const rank = card ? card.dataset.rank : '0';
-            const delay = counterDelays[rank] ?? 2500;
+            const rankStr = card ? card.dataset.rank : '0';
+            const rankNum = Number(rankStr);
+            let delay;
+            if (counterDelays[rankStr] !== undefined) {
+                delay = counterDelays[rankStr];
+            } else if (rankNum >= 4) {
+                delay = 3900 + (rankNum - 4) * 180;
+            } else {
+                delay = 2500;
+            }
             animateCount(el, Number(el.dataset.target) || 0, 1500, delay);
         });
 
-        // Nach Abschluss aller Intro-Animationen (~4.6s) Animationen abschalten,
-        // damit Hover-Transitions normal greifen und die Orbs in einen ruhigen
-        // Float-Loop übergehen.
+        // Nach Abschluss aller Intro-Animationen (Hero-Karten + Verfolger 4–10)
+        // Animationen abschalten, damit Hover-Transitions normal greifen und
+        // die Orbs in einen ruhigen Float-Loop übergehen. Die Hero-Karten sind
+        // nach ~4.6s fertig und können sofort in den Float-Modus wechseln.
         readyTimer = setTimeout(() => {
             readyTimer = null;
             document.querySelectorAll('.champ-card').forEach((c) => {
