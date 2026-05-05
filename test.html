@@ -149,8 +149,8 @@
         }
         .manager-carousel-card {
             justify-content: space-between;
-            padding: 12px 10px 10px;
-            gap: 10px;
+            padding: 12px 10px 14px;
+            gap: 12px;
         }
         .manager-card-rank {
             position: absolute;
@@ -171,7 +171,7 @@
         .manager-carousel-card[data-rank="2"] .manager-card-rank { background: linear-gradient(140deg, #f8fafc, #d3dce9 55%, #7b8ca3); }
         .manager-carousel-card[data-rank="3"] .manager-card-rank { background: linear-gradient(140deg, #f6dfca, #d69869 55%, #8d552a); color: #fff; }
         .manager-card-name {
-            margin: 26px 0 2px;
+            margin: 38px 0 4px;
             text-align: center;
             font-weight: 950;
             font-size: clamp(0.92rem, 2.2vw, 1.05rem);
@@ -192,10 +192,12 @@
         }
         .manager-card-topplayers {
             margin-top: auto;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0,1fr));
-            gap: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 0;
             width: 100%;
+            min-height: 82px;
         }
         .manager-card-player {
             display: flex;
@@ -203,10 +205,12 @@
             align-items: center;
             gap: 3px;
             min-width: 0;
+            width: 54px;
+            position: relative;
         }
         .manager-card-player-avatar {
-            width: 36px;
-            height: 36px;
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             overflow: hidden;
             border: 1.8px solid rgba(255,255,255,0.42);
@@ -215,6 +219,25 @@
             background: #0f172a;
         }
         .manager-card-player-avatar img { width:100%; height:100%; object-fit:cover; }
+        .manager-card-player.rank-2,
+        .manager-card-player.rank-3 {
+            transform: translateY(8px);
+            z-index: 1;
+        }
+        .manager-card-player.rank-1 {
+            width: 76px;
+            z-index: 3;
+            margin: 0 -8px;
+        }
+        .manager-card-player.rank-1 .manager-card-player-avatar {
+            width: 76px;
+            height: 76px;
+            border-width: 2.2px;
+            border-color: rgba(255,215,0,0.62);
+            box-shadow: 0 0 0 2px rgba(255,215,0,0.26), 0 8px 16px rgba(0,0,0,0.44);
+        }
+        .manager-card-player.rank-2 { z-index: 2; margin-right: -5px; }
+        .manager-card-player.rank-3 { z-index: 1; margin-left: -5px; }
         .manager-card-player-name {
             width: 100%;
             font-size: 0.62rem;
@@ -233,6 +256,24 @@
             line-height: 1;
         }
         .captain-badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; background:#f97316; color:#fff; font-size:0.66rem; font-weight:900; display:grid; place-items:center; border:1px solid rgba(0,0,0,0.35); }
+        .manager-carousel-card[data-rank="1"] {
+            background:
+                linear-gradient(165deg, rgba(74,57,11,0.95) 0%, rgba(54,39,10,0.96) 62%, rgba(33,24,8,0.98) 100%),
+                radial-gradient(circle at 22% 0%, rgba(255,215,0,0.34), transparent 54%);
+            border-color: rgba(255,215,0,0.45);
+        }
+        .manager-carousel-card[data-rank="2"] {
+            background:
+                linear-gradient(165deg, rgba(48,56,70,0.95) 0%, rgba(37,43,58,0.97) 62%, rgba(24,29,43,0.98) 100%),
+                radial-gradient(circle at 22% 0%, rgba(226,232,240,0.28), transparent 54%);
+            border-color: rgba(203,213,225,0.4);
+        }
+        .manager-carousel-card[data-rank="3"] {
+            background:
+                linear-gradient(165deg, rgba(70,44,30,0.95) 0%, rgba(58,36,24,0.97) 62%, rgba(41,26,18,0.98) 100%),
+                radial-gradient(circle at 22% 0%, rgba(214,138,82,0.34), transparent 54%);
+            border-color: rgba(214,138,82,0.42);
+        }
 
         .track {
             position: absolute;
@@ -1165,7 +1206,7 @@ function parseTeamsFromStorage() {
 }
 
 function getPlayerTotalPoints(player) {
-    return Number(player?.totalPoints ?? player?.points ?? player?.punkte ?? player?.score ?? player?.['Punkte'] ?? 0) || 0;
+    return Number(player?.totalPoints ?? player?.totalScore ?? player?.points ?? player?.punkte ?? player?.score ?? player?.['Punkte'] ?? 0) || 0;
 }
 function getPlayerImage(player){ return player?.photo || player?.image || player?.playerPhoto || player?.avatar || player?.Spielerfoto || ''; }
 function getManagerName(team){ return team?.manager || team?.managerName || team?.name || 'Unbekannt'; }
@@ -1207,8 +1248,10 @@ function buildCaptainWatchItems(limit=15){
 }
 function buildManagerRankingItems(limit=15){
     const teams = parseTeamsFromStorage(); const playersById = new Map((playersData || []).map((p)=>[String(p['player.id']),p]));
-    return teams.map((t)=>{ const p=getEnrichedTeamPlayers(t,playersById).sort((a,b)=>b.points-a.points); return { manager:getManagerName(t), totalPoints:Number(t?.totalPoints ?? t?.points ?? t?.punkte ?? t?.score ?? p.reduce((s,x)=>s+x.points,0))||0, top:p.slice(0,5)}; })
-        .sort((a,b)=>b.totalPoints-a.totalPoints||a.manager.localeCompare(b.manager,'de')).slice(0,limit).map((t,i)=>({...t, rank:i+1}));
+    const items = teams.map((t)=>{ const p=getEnrichedTeamPlayers(t,playersById).sort((a,b)=>b.points-a.points); return { manager:getManagerName(t), totalPoints:Number(t?.totalPoints ?? t?.totalScore ?? t?.points ?? t?.punkte ?? t?.score ?? p.reduce((s,x)=>s+x.points,0))||0, top:p.slice(0,5), storedRank: Number(t?.rank ?? t?.currentRank ?? 0) || null }; });
+    const hasRealRank = items.some((x)=>x.storedRank && x.storedRank > 0);
+    const sorted = hasRealRank ? items.sort((a,b)=>a.storedRank-b.storedRank||b.totalPoints-a.totalPoints) : items.sort((a,b)=>b.totalPoints-a.totalPoints||a.manager.localeCompare(b.manager,'de'));
+    return sorted.slice(0,limit).map((t,i)=>({...t, rank: hasRealRank ? t.storedRank : i+1}));
 }
 let players = [];
 let cards = [];
@@ -1232,12 +1275,13 @@ function renderPlayerCard(p) {
 }
 function renderManagerCard(item){
     const el = document.createElement('article'); el.className='player-card manager-carousel-card'; el.dataset.managerName=item.manager; el.dataset.rank=String(item.rank);
-    const topPlayers = item.top.slice(0,3).map((p)=>{
+    const topPlayers = item.top.slice(0,3).map((p, idx)=>{
         const n = escapeHtml(p.full?.Spielername||'Spieler');
         const img = escapeHtml(getPlayerImage(p.full));
         const badge = p.isCaptain ? '<span class="captain-badge">C</span>' : '';
         const pts = Number(p.points||0);
-        return `<div class="manager-card-player"><div class="manager-card-player-avatar"><img loading="lazy" src="${img}" alt="${n}">${badge}</div><div class="manager-card-player-name">${n}</div><div class="manager-card-player-points">${pts} P</div></div>`;
+        const visualRank = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : 'rank-3';
+        return `<div class="manager-card-player ${visualRank}"><div class="manager-card-player-avatar"><img loading="lazy" src="${img}" alt="${n}">${badge}</div><div class="manager-card-player-name">${n}</div><div class="manager-card-player-points">${pts} P</div></div>`;
     }).join('');
     el.innerHTML = `<div class="manager-card-rank">#${item.rank}</div><h3 class="manager-card-name">${escapeHtml(item.manager)}</h3><div class="manager-card-points">${item.totalPoints} Punkte</div><div class="manager-card-topplayers">${topPlayers}</div>`;
     return el;
