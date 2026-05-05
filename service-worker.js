@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dreamteam-pwa-v4';
+const CACHE_NAME = 'dreamteam-pwa-v2026-05-05';
 const APP_SHELL = [
   './',
   './index.html',
@@ -87,10 +87,24 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  const pathname = url.pathname.toLowerCase();
+  const isCriticalAsset = /\.(html|js|css|webmanifest)$/.test(pathname);
+  const isImageAsset = /\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$/.test(pathname);
+
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  event.respondWith(staleWhileRevalidate(request));
+  if (isCriticalAsset) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  if (isImageAsset) {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  event.respondWith(networkFirst(request));
 });

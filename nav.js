@@ -1,3 +1,40 @@
+(function resetDreamTeamStateIfRequested() {
+    try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('reset-cache') !== '1') return;
+
+        const keysToDelete = [];
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+            const key = window.localStorage.key(i);
+            if (key && key.toLowerCase().startsWith('dreamteam')) {
+                keysToDelete.push(key);
+            }
+        }
+        keysToDelete.forEach((key) => window.localStorage.removeItem(key));
+
+        Promise.resolve()
+            .then(async () => {
+                if ('caches' in window) {
+                    const cacheKeys = await caches.keys();
+                    await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
+                }
+            })
+            .then(async () => {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map((registration) => registration.unregister()));
+                }
+            })
+            .finally(() => {
+                url.searchParams.delete('reset-cache');
+                const target = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ''}${url.hash}`;
+                window.location.replace(target || '/');
+            });
+    } catch (err) {
+        console.error('[PWA] reset-cache fehlgeschlagen:', err);
+    }
+})();
+
 
 
 function registerServiceWorker() {
