@@ -2613,13 +2613,33 @@
     mobileFilterOverlay?.addEventListener('click', () => closeMobileFilter({ pushHistory: true }));
     mobileSidebarClose?.addEventListener('click', () => closeMobileFilter({ pushHistory: true }));
 
+    function getMobileFilterLabelMeta() {
+        if (currentView === 'countries') {
+            if (currentGameNationFilter && currentGameNationFilter !== 'ALL') {
+                return { text: currentGameNationFilter, flag: getNationFlag(currentGameNationFilter), prefix: '🌍' };
+            }
+            return { text: 'Land suchen', flag: '', prefix: '🌍' };
+        }
+        if (currentView === 'games') {
+            if (currentScheduleNationFilter && currentScheduleNationFilter !== 'ALL') {
+                return { text: currentScheduleNationFilter, flag: getNationFlag(currentScheduleNationFilter), prefix: '🌍' };
+            }
+            return { text: 'Land suchen', flag: '', prefix: '🌍' };
+        }
+        return { text: 'Spieler suchen', flag: '', prefix: '🔍' };
+    }
+
     function updateMobileFilterButtonLabel() {
-        let label;
-        if (currentView === 'countries') label = '🌍 Land suchen';
-        else if (currentView === 'games') label = '🌍 Land filtern';
-        else label = '🔍 Spieler suchen';
+        const meta = getMobileFilterLabelMeta();
+        const label = `${meta.prefix} ${meta.text}`;
         const span = mobileFilterBtn.querySelector('span');
-        if (span) span.textContent = label;
+        if (span) {
+            if (meta.flag) {
+                span.innerHTML = `<img src="${escapeHtml(meta.flag)}" alt="" style="width:18px;height:12px;border-radius:2px;object-fit:cover;vertical-align:-1px;margin-right:7px;">${escapeHtml(meta.text)}`;
+            } else {
+                span.textContent = label;
+            }
+        }
         mobileFilterBtn.setAttribute('aria-label', label);
     }
 
@@ -3086,7 +3106,6 @@
                 triggerHeroSwitch(() => showPlayerDetails(player));
                 updateUrl(false);
                 closeMobileFilter({ pushHistory: true });
-                scrollToHeroOnMobile();
 
                 requestAnimationFrame(() => {
                     const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
@@ -4057,7 +4076,6 @@
         updateUrl(push);
         updateMobileFilterButtonLabel();
         if (options.closeFilter !== false) closeMobileFilter();
-        scrollToGamesCountrySectionOnMobile();
     }
     window.selectGamesNation = selectGamesNation;
 
@@ -4068,7 +4086,6 @@
         setView('players', false);
         triggerHeroSwitch(() => showPlayerDetails(player));
         updateUrl(true);
-        scrollToHeroOnMobile();
     }
     window.openPlayerFromGames = openPlayerFromGames;
 
