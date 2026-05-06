@@ -1384,14 +1384,21 @@
         <h1 id="ranking-title" class="rl-hero-title">
             <span class="gold-text">Rangliste</span>
         </h1>
-        <div class="control-block rl-round-filter-block">
-            <label>Runden-Filter</label>
-            <div id="round-filter-select" class="multi-select">
-                <button type="button" id="round-filter-toggle" class="multi-select-toggle">
-                    <span id="round-filter-toggle-label">Alle Runden ausgewählt</span>
-                    <span class="arrow">▼</span>
-                </button>
-                <div id="round-filter-menu" class="multi-select-menu"></div>
+        <p class="rl-hero-subtitle">Wer führt das DreamTeam-Rennen an?</p>
+
+        <!-- Live stat chips – populated by JS -->
+        <div class="rl-hero-stats" id="rl-hero-stats" aria-label="Live-Statistiken" aria-live="polite">
+            <div class="rl-stat-chip" id="rl-chip-managers">
+                <div class="rl-stat-value" id="rl-val-managers">–</div>
+                <div class="rl-stat-label">Manager</div>
+            </div>
+            <div class="rl-stat-chip" id="rl-chip-leader">
+                <div class="rl-stat-value gold" id="rl-val-leader-pts">–</div>
+                <div class="rl-stat-label">Führender (Pkt.)</div>
+            </div>
+            <div class="rl-stat-chip" id="rl-chip-gap">
+                <div class="rl-stat-value" id="rl-val-gap">–</div>
+                <div class="rl-stat-label">Abstand 1 zu 2</div>
             </div>
         </div>
     </div>
@@ -1526,7 +1533,6 @@
     let historyChart = null;
     let chartMode = getStoredSessionValue(CHART_MODE_KEY, LEGACY_CHART_MODE_KEY) === "points" ? "points" : "rank";
     let currentView = "ranking";
-    let selectedRounds = [];
 
     const CACHE_OPTIONS = {
         db,
@@ -1545,16 +1551,6 @@
         "#f472b6",
         "#38bdf8",
         "#818cf8"
-    ];
-
-
-    const ROUND_OPTIONS = [
-        { id: "group_r1", label: "1. Runde Gruppenphase", from: 1, to: 12 },
-        { id: "group_r2", label: "2. Runde Gruppenphase", from: 13, to: 24 },
-        { id: "group_r3", label: "3. Runde Gruppenphase", from: 25, to: 36 },
-        { id: "quarterfinal", label: "Viertelfinale", from: 37, to: 40 },
-        { id: "semifinal", label: "Halbfinale", from: 41, to: 42 },
-        { id: "final", label: "Finale", from: 43, to: 43 }
     ];
 
     function getStoredSessionValue(primaryKey, legacyKey) {
@@ -1785,9 +1781,8 @@
     function buildRankingData(data) {
         const playerPointsMap = buildPlayerPointsMap(data.points || {});
         const { playerMatchPoints, nationStatus, maxNationGames, matchIds } = extractMatchData(data.points || {});
-        const filteredMatchIds = getSelectedMatchIds(matchIds);
         const enrichedTeams = enrichTeams(data.teams || [], playerPointsMap, playerMatchPoints, nationStatus, maxNationGames);
-        return computeRankingsWithHistory(enrichedTeams, filteredMatchIds);
+        return computeRankingsWithHistory(enrichedTeams, matchIds);
     }
 
     function generateAvatarsHTML(top3, isList) {
@@ -1876,35 +1871,24 @@
         });
     }
 
+    /* Update hero stat chips after data is loaded */
+    function updateHeroStats() {
+        const valManagers = document.getElementById("rl-val-managers");
+        const valLeaderPts = document.getElementById("rl-val-leader-pts");
+        const valGap = document.getElementById("rl-val-gap");
 
+        if (valManagers) valManagers.textContent = rankingTeams.length;
 
-    function getSelectedMatchIds(matchIds) {
-        const selected = selectedRounds.length ? selectedRounds : ROUND_OPTIONS.map(r => r.id);
-        return matchIds.filter((_, idx) => {
-            const gameNumber = idx + 1;
-            return ROUND_OPTIONS.some(r => selected.includes(r.id) && gameNumber >= r.from && gameNumber <= r.to);
-        });
-    }
-
-    function updateRoundFilterLabel() {
-        const label = document.getElementById("round-filter-toggle-label");
-        if (!label) return;
-        if (selectedRounds.length === 0 || selectedRounds.length === ROUND_OPTIONS.length) {
-            label.textContent = "Alle Runden ausgewählt";
-            return;
+        if (rankingTeams.length && valLeaderPts) {
+            valLeaderPts.textContent = rankingTeams[0].totalScore + " Pkt.";
         }
-        label.textContent = `${selectedRounds.length} Runden ausgewählt`;
-    }
 
-    function renderRoundFilterMenu() {
-        const menu = document.getElementById("round-filter-menu");
-        if (!menu) return;
-        const allSelected = selectedRounds.length === ROUND_OPTIONS.length;
-        menu.innerHTML = `
-            <label class="multi-option"><input type="checkbox" id="round-filter-toggle-all" ${allSelected ? "checked" : ""}><span>Alle an/ab wählen</span></label>
-            ${ROUND_OPTIONS.map(r => `<label class="multi-option"><input type="checkbox" value="${r.id}" ${selectedRounds.includes(r.id) ? "checked" : ""}><span>${r.label}</span></label>`).join("")}
-        `;
-        updateRoundFilterLabel();
+        if (rankingTeams.length >= 2 && valGap) {
+            const gap = rankingTeams[0].totalScore - rankingTeams[1].totalScore;
+            valGap.textContent = "+" + gap;
+        } else if (valGap) {
+            valGap.textContent = "–";
+        }
     }
 
     function renderRankingView() {
@@ -1922,6 +1906,7 @@
             return;
         }
 
+        updateHeroStats();
 
         podium.style.display = "flex";
 
@@ -2503,9 +2488,6 @@
     }
 
     function applyRankingData(data) {
-        window.__rankingRawData = data;
-        if (!selectedRounds.length) selectedRounds = ROUND_OPTIONS.map(r => r.id);
-        renderRoundFilterMenu();
         const result = buildRankingData(data);
 
         rankingTeams = result.teams;
@@ -2524,10 +2506,6 @@
     }
 
     function handleCompareMenuClickOutside(event) {
-        const roundWrapper = document.getElementById("round-filter-select");
-        if (roundWrapper && !roundWrapper.contains(event.target)) {
-            roundWrapper.classList.remove("open");
-        }
         const wrapper = document.getElementById("compare-multi-select");
         if (!wrapper.contains(event.target)) {
             wrapper.classList.remove("open");
@@ -2543,32 +2521,6 @@
             selectedCompareManagers = selectedCompareManagers.filter(name => name !== selectedMainManager);
             renderHistoryView();
             updateUrlState(false);
-        });
-
-        document.getElementById("round-filter-toggle").addEventListener("click", () => {
-            document.getElementById("round-filter-select").classList.toggle("open");
-        });
-
-        document.getElementById("round-filter-menu").addEventListener("change", (e) => {
-            const target = e.target;
-            if (!target || target.tagName !== "INPUT") return;
-
-            if (target.id === "round-filter-toggle-all") {
-                selectedRounds = target.checked ? ROUND_OPTIONS.map(r => r.id) : [];
-            } else {
-                if (target.checked) selectedRounds.push(target.value);
-                else selectedRounds = selectedRounds.filter(id => id !== target.value);
-            }
-
-            selectedRounds = [...new Set(selectedRounds)].filter(id => ROUND_OPTIONS.some(r => r.id === id));
-            const result = buildRankingData(window.__rankingRawData || {});
-            rankingTeams = result.teams;
-            historyLabels = result.labels;
-            teamsByManager = new Map(rankingTeams.map(team => [team.manager, team]));
-            renderRoundFilterMenu();
-            renderRankingView();
-            if (currentView === "history") renderHistoryView();
-            document.getElementById("round-filter-select").classList.add("open");
         });
 
         document.getElementById("compare-toggle").addEventListener("click", () => {
