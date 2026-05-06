@@ -123,6 +123,11 @@
             padding: 36px 24px 28px;
             box-sizing: border-box;
             animation: fadeSlideDown 0.55s ease both;
+            /* Hero ueber den nachfolgenden Toggle-Bar / Podest stapeln,
+               damit das offene Runden-Dropdown nicht hinter Geschwister-
+               Stacking-Contexts (backdrop-filter, transform) verschwindet. */
+            position: relative;
+            z-index: 30;
         }
 
         .rl-hero-badge {
@@ -228,6 +233,9 @@
             margin-top: 18px;
             margin-bottom: 4px;
             animation: fadeSlideDown 0.6s 0.1s ease both;
+            position: relative;
+            /* Sicherstellen, dass das offene Dropdown ueber Toggle-Bar / Podest liegt */
+            z-index: 60;
         }
 
         .rl-round-filter-label {
@@ -244,14 +252,36 @@
             flex: 1 1 280px;
         }
 
+        /* Spezifische Erhoehung fuer den Round-Filter Menue-Container,
+           damit er auch ueber Geschwister-Stacking-Contexts (z.B.
+           toggle-container mit backdrop-filter, animierte Hero-Bloecke)
+           sicher im Vordergrund liegt. */
+        #round-filter-menu {
+            z-index: 1000;
+        }
+
+        /* Container fuer den sticky Toggle-Knopf, damit auch der Hintergrund
+           fluid an der Oberseite des Scroll-Containers haftet und die
+           darunter liegenden Optionen sauber abdeckt. */
+        .round-filter-toggle-all-wrap {
+            position: sticky;
+            top: -8px;
+            z-index: 3;
+            background: var(--dark-surface);
+            margin: -8px -8px 8px -8px;
+            padding: 8px;
+            border-radius: 14px 14px 0 0;
+        }
+
         .round-filter-toggle-all {
             display: block;
             width: 100%;
-            margin: 2px 0 8px;
+            box-sizing: border-box;
+            margin: 0;
             padding: 9px 12px;
             border-radius: 10px;
             border: 1px solid rgba(34,197,94,0.35);
-            background: rgba(34,197,94,0.12);
+            background: rgba(34,197,94,0.16);
             color: var(--green-light);
             font-size: 0.78rem;
             font-weight: 800;
@@ -263,7 +293,7 @@
         }
 
         .round-filter-toggle-all:hover {
-            background: rgba(34,197,94,0.22);
+            background: rgba(34,197,94,0.26);
             border-color: rgba(74,222,128,0.55);
             color: #fff;
         }
@@ -292,6 +322,8 @@
             justify-content: center;
             margin-bottom: 36px;
             animation: fadeSlideDown 0.6s 0.15s ease both;
+            position: relative;
+            z-index: 5;
         }
 
         .toggle-container {
@@ -997,9 +1029,9 @@
             border: 1px solid var(--glass-border);
             border-radius: 14px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
-            max-height: 280px;
+            max-height: 380px;
             overflow-y: auto;
-            z-index: 100;
+            z-index: 200;
             padding: 8px;
         }
 
@@ -1461,7 +1493,9 @@
                     <span class="arrow">▼</span>
                 </button>
                 <div id="round-filter-menu" class="multi-select-menu">
-                    <button type="button" id="round-filter-toggle-all" class="round-filter-toggle-all">Alle abwählen</button>
+                    <div class="round-filter-toggle-all-wrap">
+                        <button type="button" id="round-filter-toggle-all" class="round-filter-toggle-all">Alle abwählen</button>
+                    </div>
                     <div id="round-filter-options"></div>
                 </div>
             </div>
@@ -1589,16 +1623,33 @@
     const ALL_ROUND_KEYS = ROUND_OPTIONS.map(o => o.key);
 
     function classifyRoundText(roundText) {
-        if (!roundText) return null;
-        const r = String(roundText).toLowerCase();
+        if (roundText === null || roundText === undefined) return null;
+        const r = String(roundText).toLowerCase().trim();
+        if (!r) return null;
 
-        if (/group\s*stage[^0-9]*1\b/.test(r) || /1\s*\.\s*spieltag/.test(r) || /matchday\s*1\b/.test(r)) return "GROUP_1";
-        if (/group\s*stage[^0-9]*2\b/.test(r) || /2\s*\.\s*spieltag/.test(r) || /matchday\s*2\b/.test(r)) return "GROUP_2";
-        if (/group\s*stage[^0-9]*3\b/.test(r) || /3\s*\.\s*spieltag/.test(r) || /matchday\s*3\b/.test(r)) return "GROUP_3";
-        if (/round\s*of\s*16/.test(r) || /achtelfinale/.test(r) || /1\/8[- ]?final/.test(r)) return "ROUND_16";
-        if (/quarter[- ]?final/.test(r) || /viertelfinale/.test(r) || /1\/4[- ]?final/.test(r)) return "QF";
-        if (/semi[- ]?final/.test(r) || /halbfinale/.test(r) || /1\/2[- ]?final/.test(r)) return "SF";
-        if (/3rd\s*place/.test(r) || /spiel\s*um\s*platz\s*3/.test(r) || /^final\b/.test(r) || /\bfinal\b/.test(r)) return "F";
+        // K.O.-Phase zuerst pruefen (sonst koennte z.B. "Final" mit
+        // "1st Round" verwechselt werden, wenn Group-Regex "1" fingert).
+        if (/round\s*of\s*16/.test(r) || /achtelfinale/.test(r) || /1\s*\/\s*8[- ]?\s*final/.test(r) || /\br\s*16\b/.test(r) || /\b1\/8\b/.test(r)) return "ROUND_16";
+        if (/quarter[- ]?final/.test(r) || /viertelfinale/.test(r) || /1\s*\/\s*4[- ]?\s*final/.test(r) || /\bqf\b/.test(r) || /\b1\/4\b/.test(r)) return "QF";
+        if (/semi[- ]?final/.test(r) || /halbfinale/.test(r) || /1\s*\/\s*2[- ]?\s*final/.test(r) || /\bsf\b/.test(r) || /\b1\/2\b/.test(r)) return "SF";
+        if (/3rd\s*[- ]?\s*place/.test(r) || /spiel\s*um\s*platz\s*3/.test(r) || /^final\b/.test(r) || /\bfinale?\b/.test(r)) return "F";
+
+        // Gruppenphase: tolerant gegenueber Formaten wie
+        //   "Group Stage - 1", "Group A - 1", "Group 1", "Matchday 1",
+        //   "1. Spieltag", "1st Round", "Round 1", "Vorrunde - 1".
+        const isGroup = /group/.test(r) || /spieltag/.test(r) || /matchday/.test(r) || /vorrunde/.test(r) || /^round\b/.test(r) || /\brunde\b/.test(r) || /round\s*\d/.test(r);
+        const numberMatch = r.match(/(\d+)/);
+        if (isGroup && numberMatch) {
+            const n = Number(numberMatch[1]);
+            if (n === 1) return "GROUP_1";
+            if (n === 2) return "GROUP_2";
+            if (n === 3) return "GROUP_3";
+        }
+
+        // Fallback: explizite "1st/2nd/3rd"-Formulierungen
+        if (/\b1(st)?\b/.test(r) && /round|spieltag|matchday|runde|group/.test(r)) return "GROUP_1";
+        if (/\b2(nd)?\b/.test(r) && /round|spieltag|matchday|runde|group/.test(r)) return "GROUP_2";
+        if (/\b3(rd)?\b/.test(r) && /round|spieltag|matchday|runde|group/.test(r)) return "GROUP_3";
 
         return null;
     }
@@ -1687,13 +1738,25 @@
 
     function buildMatchIdRoundMap(fixtures) {
         const map = new Map();
+        const unclassified = new Set();
         Object.entries(fixtures || {}).forEach(([docId, fixture]) => {
             if (!fixture || typeof fixture !== "object") return;
             const fid = fixture.fixtureId ?? docId;
             const roundText = (fixture.league && fixture.league.round) || "";
             const key = classifyRoundText(roundText);
             map.set(String(fid), { round: roundText, key });
+            if (!key && roundText) {
+                unclassified.add(roundText);
+            }
         });
+
+        if (unclassified.size > 0) {
+            console.warn(
+                "[Rangliste] Folgende Rundenbezeichnungen konnten nicht klassifiziert werden:",
+                Array.from(unclassified)
+            );
+        }
+
         return map;
     }
 
@@ -1704,11 +1767,46 @@
 
     function getFilteredMatchIds() {
         if (isAllRoundsSelected()) return null;
-        if (!matchIdRoundMap.size) return null;
-        return allMatchIdsRaw.filter(mid => {
+
+        // Falls die Fixtures-Sammlung leer ist, koennen wir nicht
+        // sinnvoll filtern -> kein Filter anwenden, damit die Rangliste
+        // nicht versehentlich auf 0 faellt.
+        if (!matchIdRoundMap.size) {
+            console.warn("[Rangliste] Runden-Filter ist gesetzt, aber Fixture-Daten fehlen – Filter wird ignoriert.");
+            return null;
+        }
+
+        const filtered = allMatchIdsRaw.filter(mid => {
             const info = matchIdRoundMap.get(String(mid));
             return info && info.key && selectedRoundKeys.has(info.key);
         });
+
+        // Diagnostik: zeige, wie viele Match-IDs aus den Punktdaten
+        // ueberhaupt in den Fixtures vorkommen / klassifiziert sind.
+        const unmatched = allMatchIdsRaw.filter(mid => !matchIdRoundMap.has(String(mid)));
+        const unclassifiedIds = allMatchIdsRaw.filter(mid => {
+            const info = matchIdRoundMap.get(String(mid));
+            return info && !info.key;
+        });
+
+        if (filtered.length === 0 && allMatchIdsRaw.length > 0) {
+            console.warn(
+                "[Rangliste] Keine Spiele entsprechen dem aktuellen Runden-Filter.",
+                {
+                    selectedRoundKeys: Array.from(selectedRoundKeys),
+                    totalPointsMatchIds: allMatchIdsRaw.length,
+                    unmatchedAgainstFixtures: unmatched.length,
+                    unclassifiedRoundTexts: unclassifiedIds.length,
+                    sampleRoundTexts: Array.from(new Set(
+                        Array.from(matchIdRoundMap.values())
+                            .map(v => v && v.round)
+                            .filter(Boolean)
+                    )).slice(0, 12)
+                }
+            );
+        }
+
+        return filtered;
     }
 
     function escapeHtml(value) {
@@ -2174,12 +2272,12 @@
         return `${selectedRoundKeys.size} von ${ALL_ROUND_KEYS.length} Runden`;
     }
 
-    function renderRoundFilter() {
-        const optionsEl = document.getElementById("round-filter-options");
-        const labelEl = document.getElementById("round-filter-label");
-        const toggleAllBtn = document.getElementById("round-filter-toggle-all");
+    let roundFilterOptionsRendered = false;
 
-        if (!optionsEl || !labelEl || !toggleAllBtn) return;
+    function renderRoundFilterOptionsOnce() {
+        const optionsEl = document.getElementById("round-filter-options");
+        if (!optionsEl) return;
+        if (roundFilterOptionsRendered) return;
 
         optionsEl.innerHTML = ROUND_OPTIONS.map(opt => {
             const checked = selectedRoundKeys.has(opt.key) ? "checked" : "";
@@ -2191,6 +2289,34 @@
             `;
         }).join("");
 
+        roundFilterOptionsRendered = true;
+    }
+
+    function syncRoundFilterCheckboxes() {
+        const optionsEl = document.getElementById("round-filter-options");
+        if (!optionsEl) return;
+        const inputs = optionsEl.querySelectorAll('input[type="checkbox"]');
+        inputs.forEach(input => {
+            const desired = selectedRoundKeys.has(input.value);
+            if (input.checked !== desired) {
+                input.checked = desired;
+            }
+        });
+    }
+
+    function renderRoundFilter() {
+        const optionsEl = document.getElementById("round-filter-options");
+        const labelEl = document.getElementById("round-filter-label");
+        const toggleAllBtn = document.getElementById("round-filter-toggle-all");
+
+        if (!optionsEl || !labelEl || !toggleAllBtn) return;
+
+        // Optionen nur einmal rendern. Spaetere State-Updates werden
+        // ohne DOM-Austausch ueber syncRoundFilterCheckboxes synchronisiert,
+        // damit Klicks waehrend laufender Interaktion nicht verloren gehen.
+        renderRoundFilterOptionsOnce();
+        syncRoundFilterCheckboxes();
+
         labelEl.textContent = getRoundFilterSummaryLabel();
         toggleAllBtn.textContent = isAllRoundsSelected() ? "Alle abwählen" : "Alle auswählen";
     }
@@ -2198,14 +2324,25 @@
     function bindRoundFilterEvents() {
         const wrapper = document.getElementById("round-filter-multi");
         const toggleBtn = document.getElementById("round-filter-toggle");
+        const menuEl = document.getElementById("round-filter-menu");
         const optionsEl = document.getElementById("round-filter-options");
         const toggleAllBtn = document.getElementById("round-filter-toggle-all");
 
-        if (!wrapper || !toggleBtn || !optionsEl || !toggleAllBtn) return;
+        if (!wrapper || !toggleBtn || !menuEl || !optionsEl || !toggleAllBtn) return;
 
         toggleBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             wrapper.classList.toggle("open");
+        });
+
+        // Klicks innerhalb des Menues sollen das Menue auf keinen Fall
+        // schliessen – auch nicht wenn ein nachgelagerter Re-Render
+        // den eigentlichen Klick-Target aus dem DOM entfernt.
+        menuEl.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+        menuEl.addEventListener("mousedown", (e) => {
+            e.stopPropagation();
         });
 
         optionsEl.addEventListener("change", (e) => {
@@ -2221,11 +2358,13 @@
 
             persistSelectedRoundKeys();
             recomputeAndRender();
+            // Menue offen halten, damit der User weitere Auswahl treffen kann.
             wrapper.classList.add("open");
         });
 
         toggleAllBtn.addEventListener("click", (e) => {
             e.stopPropagation();
+            e.preventDefault();
             if (isAllRoundsSelected()) {
                 selectedRoundKeys = new Set();
             } else {
@@ -2236,7 +2375,7 @@
             wrapper.classList.add("open");
         });
 
-        document.addEventListener("click", (event) => {
+        document.addEventListener("mousedown", (event) => {
             if (!wrapper.contains(event.target)) {
                 wrapper.classList.remove("open");
             }
@@ -2734,6 +2873,19 @@
 
         const { matchIds: extractedMatchIds } = extractMatchData(data.points || {});
         allMatchIdsRaw = extractedMatchIds;
+
+        // Diagnostik fuer manuelle Pruefung in der Browser-Konsole.
+        window.__ranglisteDebug = {
+            fixturesCount: Object.keys(data.fixtures || {}).length,
+            pointsMatchIdsCount: allMatchIdsRaw.length,
+            roundsByMatchId: Array.from(matchIdRoundMap.entries())
+                .map(([mid, info]) => ({ matchId: mid, round: info.round, key: info.key })),
+            uniqueRoundTexts: Array.from(new Set(
+                Array.from(matchIdRoundMap.values()).map(v => v && v.round).filter(Boolean)
+            )),
+            unmatchedPointMatchIds: allMatchIdsRaw.filter(mid => !matchIdRoundMap.has(String(mid))),
+            getSelectedRoundKeys: () => Array.from(selectedRoundKeys)
+        };
 
         recomputeAndRender();
 
