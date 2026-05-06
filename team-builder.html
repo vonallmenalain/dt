@@ -2935,6 +2935,33 @@
         /* Hide next-slot bar when closing */
         if (dom.pickerNextSlotBar) dom.pickerNextSlotBar.classList.remove('visible');
     }
+    const MOBILE_PICKER_POPUP_ID = 'team-builder-mobile-picker';
+    function isMobilePickerOpen() {
+        return !!dom.pickerHost?.classList.contains('mobile-open');
+    }
+    function pushMobilePickerState(dtPopupId) {
+        window.history.pushState({
+            ...(window.history.state && typeof window.history.state === 'object' ? window.history.state : {}),
+            dtPopupId,
+            currentEditingSlotId
+        }, '', window.location.href);
+    }
+    function openMobilePickerWithHistory(options = {}) {
+        const { pushHistory = true } = options;
+        const wasOpen = isMobilePickerOpen();
+        openMobilePicker();
+        if (pushHistory && isMobileView() && (!wasOpen || window.history.state?.dtPopupId !== MOBILE_PICKER_POPUP_ID)) {
+            pushMobilePickerState(MOBILE_PICKER_POPUP_ID);
+        }
+    }
+    function closeMobilePickerWithHistory(options = {}) {
+        const { pushHistory = true } = options;
+        const wasOpen = isMobilePickerOpen();
+        closeMobilePicker();
+        if (pushHistory && wasOpen && window.history.state?.dtPopupId === MOBILE_PICKER_POPUP_ID) {
+            pushMobilePickerState(null);
+        }
+    }
 
     /* =========================================================
        MOBILE FILTER CHIPS
@@ -3692,7 +3719,7 @@
         renderPickerPlayers(true);
 
         if (isMobileView()) {
-            openMobilePicker();
+            openMobilePickerWithHistory({ pushHistory: true });
         }
     }
 
@@ -4340,19 +4367,19 @@
         }
 
         /* Picker close */
-        if (dom.pickerCloseBtn) dom.pickerCloseBtn.addEventListener('click', closeMobilePicker);
+        if (dom.pickerCloseBtn) dom.pickerCloseBtn.addEventListener('click', () => closeMobilePickerWithHistory({ pushHistory: true }));
 
         if (dom.pickerHost) {
             dom.pickerHost.addEventListener('click', (e) => {
                 if (!isMobileView()) return;
-                if (e.target === dom.pickerHost) closeMobilePicker();
+                if (e.target === dom.pickerHost) closeMobilePickerWithHistory({ pushHistory: true });
             });
         }
 
         /* Escape key closes picker */
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && dom.pickerHost && dom.pickerHost.classList.contains('mobile-open')) {
-                closeMobilePicker();
+                closeMobilePickerWithHistory({ pushHistory: true });
             }
         });
 
@@ -4373,9 +4400,17 @@
 
         /* Resize */
         window.addEventListener('resize', () => {
-            if (!isMobileView()) closeMobilePicker();
+            if (!isMobileView()) closeMobilePickerWithHistory({ pushHistory: false });
             syncPanelHeights();
             fillPickerUntilScrollable();
+        });
+        window.addEventListener('popstate', (event) => {
+            if (event.state?.dtPopupId === MOBILE_PICKER_POPUP_ID && isMobileView()) {
+                const slotId = event.state.currentEditingSlotId;
+                if (slotId) openSlotPicker(slotId);
+                return;
+            }
+            closeMobilePickerWithHistory({ pushHistory: false });
         });
 
         /* Initial render */

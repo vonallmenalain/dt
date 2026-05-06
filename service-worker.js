@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dreamteam-pwa-v2026-05-05';
+const CACHE_NAME = 'dreamteam-pwa-v2026-05-06-mobile-popup-history';
 const APP_SHELL = [
   './',
   './index.html',

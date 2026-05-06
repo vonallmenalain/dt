@@ -2563,32 +2563,55 @@
     const mobileFilterOverlay = document.getElementById('mobile-filter-overlay');
     const mobileSidebarClose = document.getElementById('mobile-sidebar-close');
 
-    mobileFilterBtn.addEventListener('click', () => {
-        const isOpen = analysisSidebar.classList.toggle('mobile-open');
+    const MOBILE_FILTER_POPUP_ID = 'spieleranalyse-mobile-filter';
+    function isMobileFilterOpen() {
+        return !!analysisSidebar?.classList.contains('mobile-open');
+    }
+    function buildAnalysisHistoryState(extra = {}) {
+        return {
+            view: currentView,
+            player: currentPlayerName,
+            club: document.getElementById('club-filter')?.value || 'ALL',
+            gameNation: currentGameNationFilter,
+            scheduleNation: currentScheduleNationFilter,
+            openGame: currentOpenGameNumber,
+            gameSort: currentGamesSort,
+            ...(window.history.state && typeof window.history.state === 'object' ? window.history.state : {}),
+            ...extra
+        };
+    }
+    function setMobileFilterUi(isOpen) {
+        analysisSidebar.classList.toggle('mobile-open', isOpen);
         document.body.classList.toggle('mobile-filter-open', isOpen);
         mobileFilterBtn.classList.toggle('open', isOpen);
         mobileFilterBtn.setAttribute('aria-expanded', String(isOpen));
-
-        if (window.innerWidth <= 860 && isOpen) {
-            requestAnimationFrame(() => {
-                scrollElementToTop(analysisSidebar, { smooth: true });
-            });
+    }
+    function openMobileFilter({ pushHistory = true, scroll = true } = {}) {
+        if (window.innerWidth > 860) return;
+        const wasOpen = isMobileFilterOpen();
+        setMobileFilterUi(true);
+        if (pushHistory && (!wasOpen || window.history.state?.dtPopupId !== MOBILE_FILTER_POPUP_ID)) {
+            window.history.pushState(buildAnalysisHistoryState({ dtPopupId: MOBILE_FILTER_POPUP_ID }), '', window.location.href);
         }
-    });
-
-    function closeMobileFilter() {
-        if (analysisSidebar.classList.contains('mobile-open') && window.innerWidth <= 860) {
-            analysisSidebar.classList.remove('mobile-open');
-            document.body.classList.remove('mobile-filter-open');
-            mobileFilterBtn.classList.remove('open');
-            mobileFilterBtn.setAttribute('aria-expanded', 'false');
+        if (scroll) requestAnimationFrame(() => scrollElementToTop(analysisSidebar, { smooth: true }));
+    }
+    function closeMobileFilter({ pushHistory = true } = {}) {
+        const wasOpen = isMobileFilterOpen();
+        setMobileFilterUi(false);
+        if (!pushHistory || !wasOpen) return;
+        if (window.history.state?.dtPopupId === MOBILE_FILTER_POPUP_ID) {
+            window.history.pushState(buildAnalysisHistoryState({ dtPopupId: null }), '', window.location.href);
         }
     }
+    mobileFilterBtn.addEventListener('click', () => {
+        if (isMobileFilterOpen()) closeMobileFilter({ pushHistory: true });
+        else openMobileFilter({ pushHistory: true });
+    });
 
     
 
-    mobileFilterOverlay?.addEventListener('click', closeMobileFilter);
-    mobileSidebarClose?.addEventListener('click', closeMobileFilter);
+    mobileFilterOverlay?.addEventListener('click', () => closeMobileFilter({ pushHistory: true }));
+    mobileSidebarClose?.addEventListener('click', () => closeMobileFilter({ pushHistory: true }));
 
     function updateMobileFilterButtonLabel() {
         let label;
@@ -2646,13 +2669,10 @@
         }
 
         const url = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-        const stateObj = {
-            view: currentView,
-            player: currentPlayerName,
-            gameNation: currentGameNationFilter,
-            openGame: currentOpenGameNumber,
-            gameSort: currentGamesSort
-        };
+        const popupState = window.history.state?.dtPopupId !== undefined
+            ? { dtPopupId: window.history.state.dtPopupId }
+            : {};
+        const stateObj = buildAnalysisHistoryState(popupState);
 
         if (push) {
             window.history.pushState(stateObj, '', url);
@@ -2743,11 +2763,7 @@
     function jumpToFiltersOnMobile() {
         if (window.innerWidth > 860) return;
         const sidebar = analysisSidebar;
-        if (!sidebar.classList.contains('mobile-open')) {
-            analysisSidebar.classList.add('mobile-open');
-            mobileFilterBtn.classList.add('open');
-            mobileFilterBtn.setAttribute('aria-expanded', 'true');
-        }
+        if (!sidebar.classList.contains('mobile-open')) openMobileFilter({ pushHistory: true, scroll: false });
         sidebar.classList.remove('mobile-filter-highlight');
         void sidebar.offsetWidth;
         sidebar.classList.add('mobile-filter-highlight');
@@ -3069,7 +3085,7 @@
                 currentPlayerName = player.Spielername;
                 triggerHeroSwitch(() => showPlayerDetails(player));
                 updateUrl(false);
-                closeMobileFilter();
+                closeMobileFilter({ pushHistory: true });
                 scrollToHeroOnMobile();
 
                 requestAnimationFrame(() => {
@@ -3761,7 +3777,7 @@
         renderScheduleView();
         renderScheduleCountryList();
         updateUrl(false);
-        closeMobileFilter();
+        closeMobileFilter({ pushHistory: true });
     }
     window.selectScheduleNation = selectScheduleNation;
 
@@ -4190,7 +4206,7 @@
     document.getElementById('nation-filter').addEventListener('change', () => {
         applyFilters();
         updateUrl(false);
-        closeMobileFilter();
+        closeMobileFilter({ pushHistory: true });
         scrollToHeroOnMobile();
     });
     document.getElementById('club-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
@@ -4269,10 +4285,18 @@
         gamesCountryListScrollTop = document.getElementById('games-country-list').scrollTop;
     });
 
-    window.addEventListener('resize', syncSidebarHeight);
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 860) closeMobileFilter({ pushHistory: false });
+        syncSidebarHeight();
+    });
 
-    window.addEventListener('popstate', () => {
+    window.addEventListener('popstate', (event) => {
         if (!hasRenderedOnce) return;
+        if (event.state?.dtPopupId === MOBILE_FILTER_POPUP_ID && window.innerWidth <= 860) {
+            openMobileFilter({ pushHistory: false, scroll: false });
+            return;
+        }
+        closeMobileFilter({ pushHistory: false });
         applyDataset({ points: pointsData, teams: allTeams }, { preserveCurrentPlayer: false });
     });
 

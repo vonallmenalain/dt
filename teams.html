@@ -2272,6 +2272,19 @@
     /* =====================================================
        MODAL OPEN / CLOSE
        ===================================================== */
+    const TEAM_PICKER_POPUP_ID = 'teams-mobile-team-picker';
+    function isTeamPickerOpen() {
+        const overlay = document.getElementById('team-picker-overlay');
+        return !!overlay?.classList.contains('visible');
+    }
+    function buildTeamPickerState(dtPopupId) {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            ...(window.history.state && typeof window.history.state === 'object' ? window.history.state : {}),
+            dtPopupId,
+            manager: params.get('manager') || currentDisplayedManager || null
+        };
+    }
     function openTeamPickerModal() {
         const overlay = document.getElementById('team-picker-overlay');
         const btn     = document.getElementById('mobile-picker-btn');
@@ -2290,6 +2303,13 @@
             if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
         });
     }
+    function openTeamPickerModalWithHistory({ pushHistory = true } = {}) {
+        const wasOpen = isTeamPickerOpen();
+        openTeamPickerModal();
+        if (pushHistory && (!wasOpen || window.history.state?.dtPopupId !== TEAM_PICKER_POPUP_ID)) {
+            window.history.pushState(buildTeamPickerState(TEAM_PICKER_POPUP_ID), '', window.location.href);
+        }
+    }
 
     function closeTeamPickerModal() {
         const overlay = document.getElementById('team-picker-overlay');
@@ -2303,6 +2323,13 @@
             btn.focus();
         }
     }
+    function closeTeamPickerModalWithHistory({ pushHistory = true } = {}) {
+        const wasOpen = isTeamPickerOpen();
+        closeTeamPickerModal();
+        if (pushHistory && wasOpen && window.history.state?.dtPopupId === TEAM_PICKER_POPUP_ID) {
+            window.history.pushState(buildTeamPickerState(null), '', window.location.href);
+        }
+    }
 
     function initModalEvents() {
         if (modalPickerInitialized) return;
@@ -2314,25 +2341,32 @@
         const searchEl  = document.getElementById('team-picker-search');
 
         if (openBtn) {
-            openBtn.addEventListener('click', openTeamPickerModal);
+            openBtn.addEventListener('click', () => openTeamPickerModalWithHistory({ pushHistory: true }));
         }
 
         if (closeBtn) {
-            closeBtn.addEventListener('click', closeTeamPickerModal);
+            closeBtn.addEventListener('click', () => closeTeamPickerModalWithHistory({ pushHistory: true }));
         }
 
         // Close on backdrop click
         if (overlay) {
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) closeTeamPickerModal();
+                if (e.target === overlay) closeTeamPickerModalWithHistory({ pushHistory: true });
             });
         }
 
         // Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && overlay && overlay.classList.contains('visible')) {
-                closeTeamPickerModal();
+                closeTeamPickerModalWithHistory({ pushHistory: true });
             }
+        });
+        window.addEventListener('popstate', (event) => {
+            if (event.state?.dtPopupId === TEAM_PICKER_POPUP_ID) {
+                openTeamPickerModalWithHistory({ pushHistory: false });
+                return;
+            }
+            closeTeamPickerModalWithHistory({ pushHistory: false });
         });
 
         // Modal search filter
