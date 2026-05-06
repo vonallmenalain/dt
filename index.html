@@ -5514,6 +5514,68 @@
                 </div>
             </div>
 
+            <!-- ── Row: Beliebteste Vereine + Captain Watch (Duplikat aus Vor-Start) ── -->
+            <div class="tile-grid tile-grid-2 mb-section prestart-two-col">
+                <div class="gtile">
+                    <div class="gtile-header">
+                        <div class="gtile-title">
+                            <span class="section-title-accent" aria-hidden="true"></span>
+                            <span class="gtile-title-icon">🏢</span> Beliebteste Vereine
+                        </div>
+                    </div>
+                    <div id="tile-post-top-clubs" aria-label="Meistgewählte Vereine">
+                        <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
+                        <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
+                        <div class="skel" style="height:38px;margin-bottom:8px;border-radius:8px;"></div>
+                    </div>
+                </div>
+
+                <div class="gtile">
+                    <div class="gtile-header">
+                        <div class="gtile-title">
+                            <span class="section-title-accent" aria-hidden="true"></span>
+                            <span class="gtile-title-icon">👑</span> Captain Watch
+                        </div>
+                    </div>
+                    <div id="tile-post-captain-watch" aria-label="Beliebteste Captains">
+                        <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                        <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                        <div class="skel" style="height:44px;margin-bottom:8px;border-radius:8px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Row: Scouting Barometer + Team-Altersstruktur (Duplikat aus Vor-Start) ── -->
+            <div class="tile-grid tile-grid-2 mb-section prestart-two-col">
+                <div class="gtile">
+                    <div class="gtile-header">
+                        <div class="gtile-title">
+                            <span class="section-title-accent" aria-hidden="true"></span>
+                            <span class="gtile-title-icon">🔬</span> Scouting Barometer
+                        </div>
+                    </div>
+                    <div id="tile-post-scouting-barometer" aria-label="Scouting Barometer">
+                        <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                        <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                        <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                    </div>
+                </div>
+
+                <div class="gtile">
+                    <div class="gtile-header">
+                        <div class="gtile-title">
+                            <span class="section-title-accent" aria-hidden="true"></span>
+                            <span class="gtile-title-icon">🎂</span> Team-Altersstruktur
+                        </div>
+                    </div>
+                    <div id="tile-post-age-structure" aria-label="Team-Altersstruktur">
+                        <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                        <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                        <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -8295,6 +8357,22 @@
         renderTopNations(topNations, 'post-');
 
         renderManagerPicks(teams, ptMap, 'post-');
+
+        // Duplizierte Pre-Start-Kacheln auch im Post-Start anzeigen
+        const captainCountsPost = {};
+        teams.forEach((t) => {
+            (t.players || []).forEach((tp) => {
+                if (!tp || !tp.isCaptain) return;
+                const full = resolvePlayer(tp);
+                if (!full) return;
+                const id = String(full['player.id']);
+                captainCountsPost[id] = (captainCountsPost[id] || 0) + 1;
+            });
+        });
+        renderCaptainWatch(captainCountsPost, ptMap, 'post-');
+        renderTopClubs(teams, 'post-');
+        renderScoutingBarometer(teams, 'post-');
+        renderAgeStructure(teams, 'post-');
 
         initScrollReveal();
 

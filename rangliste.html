@@ -950,6 +950,20 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Wenn das Vergleich-Dropdown geöffnet ist, muss die Controls-Card
+           über den Geschwister-Karten (Summary, Chart) liegen – sonst landet
+           das Menü auf Mobile im Hintergrund. */
+        .history-controls-card:has(.multi-select.open) {
+            z-index: 50;
+        }
+
+        .multi-select.open {
+            position: relative;
+            z-index: 60;
         }
 
         .control-block label {
@@ -1225,6 +1239,21 @@
         @media (max-width: 1050px) {
             .history-top {
                 grid-template-columns: 1fr;
+            }
+
+            /* Auf Mobile/Tablet wird das Layout einspaltig – sicherstellen,
+               dass das geöffnete Vergleich-Dropdown die darunter liegenden
+               Karten überlagert und Klicks/Tipps die Optionen erreichen. */
+            .history-controls-card {
+                z-index: 50;
+            }
+
+            .history-controls-card:has(.multi-select.open) {
+                z-index: 100;
+            }
+
+            .multi-select-menu {
+                z-index: 1000;
             }
         }
 
@@ -1508,7 +1537,7 @@
     <div class="rl-toggle-wrap">
         <div class="toggle-container">
             <button id="btn-ranking" class="toggle-btn active" aria-pressed="true">Aktuelle Rangliste</button>
-            <button id="btn-history" class="toggle-btn" aria-pressed="false">Historie</button>
+            <button id="btn-history" class="toggle-btn" aria-pressed="false">Manager</button>
         </div>
     </div>
 
@@ -1529,12 +1558,12 @@
                 <div class="history-top">
                     <div class="history-card history-controls-card">
                         <div class="control-block">
-                            <label for="history-main-manager">Hauptmanager</label>
+                            <label for="history-main-manager">Manager</label>
                             <select id="history-main-manager" class="history-select"></select>
                         </div>
 
                         <div class="control-block">
-                            <label>Managervergleich</label>
+                            <label>Vergleich mit...</label>
                             <div id="compare-multi-select" class="multi-select">
                                 <button type="button" id="compare-toggle" class="multi-select-toggle">
                                     <span id="compare-toggle-label">Keine weiteren Manager gewählt</span>
