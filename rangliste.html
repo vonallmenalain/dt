@@ -218,6 +218,73 @@
         }
 
         /* =====================================================
+           ROUND FILTER (unter dem Titel)
+           ===================================================== */
+        .rl-round-filter {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+            margin-bottom: 4px;
+            animation: fadeSlideDown 0.6s 0.1s ease both;
+        }
+
+        .rl-round-filter-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .rl-round-filter-select {
+            min-width: 280px;
+            max-width: 420px;
+            flex: 1 1 280px;
+        }
+
+        .round-filter-toggle-all {
+            display: block;
+            width: 100%;
+            margin: 2px 0 8px;
+            padding: 9px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(34,197,94,0.35);
+            background: rgba(34,197,94,0.12);
+            color: var(--green-light);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+            font-family: inherit;
+        }
+
+        .round-filter-toggle-all:hover {
+            background: rgba(34,197,94,0.22);
+            border-color: rgba(74,222,128,0.55);
+            color: #fff;
+        }
+
+        .round-filter-toggle-all:focus-visible {
+            outline: 2px solid var(--green-light);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 600px) {
+            .rl-round-filter {
+                gap: 8px;
+            }
+
+            .rl-round-filter-select {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+
+        /* =====================================================
            TOGGLE – SEGMENT CONTROL
            ===================================================== */
         .rl-toggle-wrap {
@@ -1384,21 +1451,19 @@
         <h1 id="ranking-title" class="rl-hero-title">
             <span class="gold-text">Rangliste</span>
         </h1>
-        <p class="rl-hero-subtitle">Wer führt das DreamTeam-Rennen an?</p>
 
-        <!-- Live stat chips – populated by JS -->
-        <div class="rl-hero-stats" id="rl-hero-stats" aria-label="Live-Statistiken" aria-live="polite">
-            <div class="rl-stat-chip" id="rl-chip-managers">
-                <div class="rl-stat-value" id="rl-val-managers">–</div>
-                <div class="rl-stat-label">Manager</div>
-            </div>
-            <div class="rl-stat-chip" id="rl-chip-leader">
-                <div class="rl-stat-value gold" id="rl-val-leader-pts">–</div>
-                <div class="rl-stat-label">Führender (Pkt.)</div>
-            </div>
-            <div class="rl-stat-chip" id="rl-chip-gap">
-                <div class="rl-stat-value" id="rl-val-gap">–</div>
-                <div class="rl-stat-label">Abstand 1 zu 2</div>
+        <!-- Runden-Filter -->
+        <div class="rl-round-filter" aria-label="Runden-Filter">
+            <label class="rl-round-filter-label" for="round-filter-toggle">Runden</label>
+            <div id="round-filter-multi" class="multi-select rl-round-filter-select">
+                <button type="button" id="round-filter-toggle" class="multi-select-toggle">
+                    <span id="round-filter-label">Alle Runden</span>
+                    <span class="arrow">▼</span>
+                </button>
+                <div id="round-filter-menu" class="multi-select-menu">
+                    <button type="button" id="round-filter-toggle-all" class="round-filter-toggle-all">Alle abwählen</button>
+                    <div id="round-filter-options"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -1500,11 +1565,43 @@
     const HISTORY_MAIN_KEY = APP.storage.key("rangliste_history_main");
     const HISTORY_COMPARE_KEY = APP.storage.key("rangliste_history_compare");
     const CHART_MODE_KEY = APP.storage.key("rangliste_history_chart_mode");
+    const ROUND_FILTER_KEY = APP.storage.key("rangliste_round_filter");
 
     const LEGACY_VIEW_STATE_KEY = "rangliste_view_state";
     const LEGACY_HISTORY_MAIN_KEY = "rangliste_history_main";
     const LEGACY_HISTORY_COMPARE_KEY = "rangliste_history_compare";
     const LEGACY_CHART_MODE_KEY = "rangliste_history_chart_mode";
+    const LEGACY_ROUND_FILTER_KEY = "rangliste_round_filter";
+
+    /* =====================================================
+       ROUND FILTER – Konfiguration
+       ===================================================== */
+    const ROUND_OPTIONS = [
+        { key: "GROUP_1", label: "1. Runde Gruppenphase" },
+        { key: "GROUP_2", label: "2. Runde Gruppenphase" },
+        { key: "GROUP_3", label: "3. Runde Gruppenphase" },
+        { key: "ROUND_16", label: "Achtelfinale" },
+        { key: "QF",      label: "Viertelfinale" },
+        { key: "SF",      label: "Halbfinale" },
+        { key: "F",       label: "Finale" }
+    ];
+
+    const ALL_ROUND_KEYS = ROUND_OPTIONS.map(o => o.key);
+
+    function classifyRoundText(roundText) {
+        if (!roundText) return null;
+        const r = String(roundText).toLowerCase();
+
+        if (/group\s*stage[^0-9]*1\b/.test(r) || /1\s*\.\s*spieltag/.test(r) || /matchday\s*1\b/.test(r)) return "GROUP_1";
+        if (/group\s*stage[^0-9]*2\b/.test(r) || /2\s*\.\s*spieltag/.test(r) || /matchday\s*2\b/.test(r)) return "GROUP_2";
+        if (/group\s*stage[^0-9]*3\b/.test(r) || /3\s*\.\s*spieltag/.test(r) || /matchday\s*3\b/.test(r)) return "GROUP_3";
+        if (/round\s*of\s*16/.test(r) || /achtelfinale/.test(r) || /1\/8[- ]?final/.test(r)) return "ROUND_16";
+        if (/quarter[- ]?final/.test(r) || /viertelfinale/.test(r) || /1\/4[- ]?final/.test(r)) return "QF";
+        if (/semi[- ]?final/.test(r) || /halbfinale/.test(r) || /1\/2[- ]?final/.test(r)) return "SF";
+        if (/3rd\s*place/.test(r) || /spiel\s*um\s*platz\s*3/.test(r) || /^final\b/.test(r) || /\bfinal\b/.test(r)) return "F";
+
+        return null;
+    }
 
     const db = APP.getDb();
 
@@ -1534,6 +1631,11 @@
     let chartMode = getStoredSessionValue(CHART_MODE_KEY, LEGACY_CHART_MODE_KEY) === "points" ? "points" : "rank";
     let currentView = "ranking";
 
+    let lastRawData = null;
+    let matchIdRoundMap = new Map();
+    let allMatchIdsRaw = [];
+    let selectedRoundKeys = loadSelectedRoundKeys();
+
     const CACHE_OPTIONS = {
         db,
         year: TOURNAMENT_YEAR,
@@ -1560,6 +1662,53 @@
     function setStoredSessionValue(primaryKey, legacyKey, value) {
         sessionStorage.setItem(primaryKey, value);
         sessionStorage.setItem(legacyKey, value);
+    }
+
+    function loadSelectedRoundKeys() {
+        try {
+            const raw = getStoredSessionValue(ROUND_FILTER_KEY, LEGACY_ROUND_FILTER_KEY);
+            if (!raw) return new Set(ALL_ROUND_KEYS);
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return new Set(ALL_ROUND_KEYS);
+            const filtered = parsed.filter(k => ALL_ROUND_KEYS.includes(k));
+            return new Set(filtered.length ? filtered : ALL_ROUND_KEYS);
+        } catch (e) {
+            return new Set(ALL_ROUND_KEYS);
+        }
+    }
+
+    function persistSelectedRoundKeys() {
+        setStoredSessionValue(
+            ROUND_FILTER_KEY,
+            LEGACY_ROUND_FILTER_KEY,
+            JSON.stringify([...selectedRoundKeys])
+        );
+    }
+
+    function buildMatchIdRoundMap(fixtures) {
+        const map = new Map();
+        Object.entries(fixtures || {}).forEach(([docId, fixture]) => {
+            if (!fixture || typeof fixture !== "object") return;
+            const fid = fixture.fixtureId ?? docId;
+            const roundText = (fixture.league && fixture.league.round) || "";
+            const key = classifyRoundText(roundText);
+            map.set(String(fid), { round: roundText, key });
+        });
+        return map;
+    }
+
+    function isAllRoundsSelected() {
+        if (selectedRoundKeys.size !== ALL_ROUND_KEYS.length) return false;
+        return ALL_ROUND_KEYS.every(k => selectedRoundKeys.has(k));
+    }
+
+    function getFilteredMatchIds() {
+        if (isAllRoundsSelected()) return null;
+        if (!matchIdRoundMap.size) return null;
+        return allMatchIdsRaw.filter(mid => {
+            const info = matchIdRoundMap.get(String(mid));
+            return info && info.key && selectedRoundKeys.has(info.key);
+        });
     }
 
     function escapeHtml(value) {
@@ -1778,11 +1927,45 @@
         };
     }
 
-    function buildRankingData(data) {
-        const playerPointsMap = buildPlayerPointsMap(data.points || {});
-        const { playerMatchPoints, nationStatus, maxNationGames, matchIds } = extractMatchData(data.points || {});
-        const enrichedTeams = enrichTeams(data.teams || [], playerPointsMap, playerMatchPoints, nationStatus, maxNationGames);
-        return computeRankingsWithHistory(enrichedTeams, matchIds);
+    function buildRankingData(data, selectedMatchIds) {
+        const { playerMatchPoints, nationStatus, maxNationGames, matchIds: rawMatchIds } = extractMatchData(data.points || {});
+
+        const useFilter = Array.isArray(selectedMatchIds);
+        const useSet = useFilter ? new Set(selectedMatchIds.map(String)) : null;
+
+        const matchIds = useFilter
+            ? rawMatchIds.filter(mid => useSet.has(String(mid)))
+            : rawMatchIds;
+
+        let playerPointsMap;
+        let scopedPlayerMatchPoints;
+
+        if (useFilter) {
+            playerPointsMap = {};
+            scopedPlayerMatchPoints = {};
+
+            Object.entries(playerMatchPoints).forEach(([playerId, perMatch]) => {
+                const filtered = {};
+                let sum = 0;
+                Object.entries(perMatch || {}).forEach(([mid, pts]) => {
+                    if (useSet.has(String(mid))) {
+                        filtered[mid] = pts;
+                        sum += pts;
+                    }
+                });
+                scopedPlayerMatchPoints[playerId] = filtered;
+                playerPointsMap[playerId] = sum;
+            });
+        } else {
+            playerPointsMap = buildPlayerPointsMap(data.points || {});
+            scopedPlayerMatchPoints = playerMatchPoints;
+        }
+
+        const enrichedTeams = enrichTeams(data.teams || [], playerPointsMap, scopedPlayerMatchPoints, nationStatus, maxNationGames);
+        return {
+            ...computeRankingsWithHistory(enrichedTeams, matchIds),
+            rawMatchIds
+        };
     }
 
     function generateAvatarsHTML(top3, isList) {
@@ -1871,26 +2054,6 @@
         });
     }
 
-    /* Update hero stat chips after data is loaded */
-    function updateHeroStats() {
-        const valManagers = document.getElementById("rl-val-managers");
-        const valLeaderPts = document.getElementById("rl-val-leader-pts");
-        const valGap = document.getElementById("rl-val-gap");
-
-        if (valManagers) valManagers.textContent = rankingTeams.length;
-
-        if (rankingTeams.length && valLeaderPts) {
-            valLeaderPts.textContent = rankingTeams[0].totalScore + " Pkt.";
-        }
-
-        if (rankingTeams.length >= 2 && valGap) {
-            const gap = rankingTeams[0].totalScore - rankingTeams[1].totalScore;
-            valGap.textContent = "+" + gap;
-        } else if (valGap) {
-            valGap.textContent = "–";
-        }
-    }
-
     function renderRankingView() {
         const podium = document.getElementById("podium");
         const list = document.getElementById("rank-list");
@@ -1905,8 +2068,6 @@
             list.innerHTML = `<div style="text-align:center;padding:40px 20px;background:var(--dark-card);border:1px solid var(--glass-border);border-radius:16px;color:var(--text-muted);">Es wurden noch keine Teams für ${escapeHtml(TOURNAMENT_LABEL)} erstellt.</div>`;
             return;
         }
-
-        updateHeroStats();
 
         podium.style.display = "flex";
 
@@ -2000,6 +2161,86 @@
         document.getElementById("chart-mode-rank").classList.toggle("active", chartMode === "rank");
         document.getElementById("chart-mode-points").classList.toggle("active", chartMode === "points");
         document.querySelector(".history-chart-title").textContent = chartMode === "rank" ? "Rangentwicklung" : "Punkteentwicklung";
+    }
+
+    function getRoundFilterSummaryLabel() {
+        if (isAllRoundsSelected()) return "Alle Runden";
+        if (selectedRoundKeys.size === 0) return "Keine Runden gewählt";
+        if (selectedRoundKeys.size === 1) {
+            const key = [...selectedRoundKeys][0];
+            const opt = ROUND_OPTIONS.find(o => o.key === key);
+            return opt ? opt.label : "1 Runde gewählt";
+        }
+        return `${selectedRoundKeys.size} von ${ALL_ROUND_KEYS.length} Runden`;
+    }
+
+    function renderRoundFilter() {
+        const optionsEl = document.getElementById("round-filter-options");
+        const labelEl = document.getElementById("round-filter-label");
+        const toggleAllBtn = document.getElementById("round-filter-toggle-all");
+
+        if (!optionsEl || !labelEl || !toggleAllBtn) return;
+
+        optionsEl.innerHTML = ROUND_OPTIONS.map(opt => {
+            const checked = selectedRoundKeys.has(opt.key) ? "checked" : "";
+            return `
+                <label class="multi-option">
+                    <input type="checkbox" value="${escapeHtml(opt.key)}" ${checked}>
+                    <span>${escapeHtml(opt.label)}</span>
+                </label>
+            `;
+        }).join("");
+
+        labelEl.textContent = getRoundFilterSummaryLabel();
+        toggleAllBtn.textContent = isAllRoundsSelected() ? "Alle abwählen" : "Alle auswählen";
+    }
+
+    function bindRoundFilterEvents() {
+        const wrapper = document.getElementById("round-filter-multi");
+        const toggleBtn = document.getElementById("round-filter-toggle");
+        const optionsEl = document.getElementById("round-filter-options");
+        const toggleAllBtn = document.getElementById("round-filter-toggle-all");
+
+        if (!wrapper || !toggleBtn || !optionsEl || !toggleAllBtn) return;
+
+        toggleBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            wrapper.classList.toggle("open");
+        });
+
+        optionsEl.addEventListener("change", (e) => {
+            const target = e.target;
+            if (!target || target.tagName !== "INPUT") return;
+
+            const key = target.value;
+            if (target.checked) {
+                selectedRoundKeys.add(key);
+            } else {
+                selectedRoundKeys.delete(key);
+            }
+
+            persistSelectedRoundKeys();
+            recomputeAndRender();
+            wrapper.classList.add("open");
+        });
+
+        toggleAllBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (isAllRoundsSelected()) {
+                selectedRoundKeys = new Set();
+            } else {
+                selectedRoundKeys = new Set(ALL_ROUND_KEYS);
+            }
+            persistSelectedRoundKeys();
+            recomputeAndRender();
+            wrapper.classList.add("open");
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!wrapper.contains(event.target)) {
+                wrapper.classList.remove("open");
+            }
+        });
     }
 
     function renderHistoryControls() {
@@ -2488,13 +2729,13 @@
     }
 
     function applyRankingData(data) {
-        const result = buildRankingData(data);
+        lastRawData = data;
+        matchIdRoundMap = buildMatchIdRoundMap(data.fixtures || {});
 
-        rankingTeams = result.teams;
-        historyLabels = result.labels;
-        teamsByManager = new Map(rankingTeams.map(team => [team.manager, team]));
+        const { matchIds: extractedMatchIds } = extractMatchData(data.points || {});
+        allMatchIdsRaw = extractedMatchIds;
 
-        renderRankingView();
+        recomputeAndRender();
 
         const stateFromUrl = getStateFromUrl();
         applyStateObject(stateFromUrl, true);
@@ -2505,6 +2746,26 @@
         hasRenderedOnce = true;
     }
 
+    function recomputeAndRender() {
+        if (!lastRawData) return;
+
+        const filteredMatchIds = getFilteredMatchIds();
+        const result = buildRankingData(lastRawData, filteredMatchIds);
+
+        rankingTeams = result.teams;
+        historyLabels = result.labels;
+        teamsByManager = new Map(rankingTeams.map(team => [team.manager, team]));
+
+        renderRankingView();
+        renderRoundFilter();
+
+        if (currentView === "history") {
+            renderHistoryView();
+        } else {
+            renderHistoryControls();
+        }
+    }
+
     function handleCompareMenuClickOutside(event) {
         const wrapper = document.getElementById("compare-multi-select");
         if (!wrapper.contains(event.target)) {
@@ -2513,6 +2774,9 @@
     }
 
     function bindStaticEvents() {
+        bindRoundFilterEvents();
+        renderRoundFilter();
+
         document.getElementById("btn-ranking").addEventListener("click", () => switchTab("ranking", true));
         document.getElementById("btn-history").addEventListener("click", () => switchTab("history", true));
 
