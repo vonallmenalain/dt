@@ -3796,6 +3796,7 @@
         renderScheduleView();
         renderScheduleCountryList();
         updateUrl(false);
+        updateMobileFilterButtonLabel();
         closeMobileFilter({ pushHistory: true });
     }
     window.selectScheduleNation = selectScheduleNation;
@@ -4272,6 +4273,7 @@
         renderScheduleView();
         renderScheduleCountryList();
         updateUrl(false);
+        updateMobileFilterButtonLabel();
     });
 
     document.getElementById('schedule-sort-name').addEventListener('click', () => {
