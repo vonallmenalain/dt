@@ -5074,6 +5074,15 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* Flacher 2D-Einflug für die Mobilversion (siehe Fix-Block weiter unten).
+           Verzichtet bewusst auf translateZ / rotateY, damit die Karten strikt
+           innerhalb ihrer Flexbox-Spalten bleiben und sich keine Hit-Areas
+           überlappen können. */
+        @keyframes champ-card-mobile-in {
+            from { opacity: 0; transform: translateY(28px) scale(0.92); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         .champ-card.is-running .manager-firstname {
             animation: manager-firstname-in 0.65s cubic-bezier(0.22, 0.85, 0.4, 1.05) var(--firstname-delay, 0.2s) forwards;
         }
@@ -5120,20 +5129,66 @@
             .champ-chaser .champ-chaser-name { font-size: 0.85rem; }
             .champ-chaser .champ-chaser-points { font-size: 0.92rem; }
 
-            /* FIX: Auf der Mobilversion können die 3D-Transforms (translateZ +
-               rotateY) der Podest-Karten dazu führen, dass die Karte für Rang 1
-               im Hit-Testing leicht über die Innenkanten der Karten 2 und 3
-               ragt. Tippt man dann auf eine an sich „freie" Stelle der Karten
-               2/3, landet das Tap-Event auf der Karten-Wrapper-Fläche von
-               Rang 1; weil dort kein [data-action]-Kind sitzt, verwirft der
-               delegierte Klick-Handler das Event und es passiert nichts.
-               Lösung: Wir machen die strukturelle Kartenfläche selbst
-               transparent für Pointer-Events. Die tatsächlich interaktiven
-               Kinder (Manager-Vorname, Punkte-Link, Spieler-Orbs) bleiben
-               klickbar – Klick-Events bubbeln nach wie vor zum bestehenden
-               Karten-Listener hoch. Hover-Effekte sind auf Touch-Geräten
-               ohnehin nicht aktiv (siehe @media (hover: hover)). */
+            /* FIX (Mobil): Auf kleinen Screens haben Rang 2 und 3 in der
+               Top-Manager-Sektion bislang keine zuverlässig klickbaren
+               Trefferflächen mehr gehabt. Ursache war eine Kombination aus
+               zwei Effekten:
+
+                 1. Die Bühne nutzt `perspective: 1600px` und die Karten
+                    `transform-style: preserve-3d`. Rang 1 erhält in der
+                    Ruhelage `translateZ(30px)`, Rang 2/3 bekommen
+                    `rotateY(±14deg) translateZ(-25px)`. Dadurch projiziert
+                    Rang 1 visuell *über* die Innenkanten von Rang 2 und 3 –
+                    und zwar inklusive Hit-Test-Fläche, weil das Browser-
+                    Hit-Testing der projizierten 3D-Geometrie folgt.
+
+                 2. Der vorherige Versuch, das Problem mit
+                    `pointer-events: none` auf `.champ-card` zu lösen, war
+                    unvollständig: `pointer-events: none` deaktiviert nur die
+                    Karte selbst als Hit-Test-Ziel. Nachfahren ohne explizit
+                    gesetzten Wert (z. B. das `.manager-player-constellation`-
+                    `<div>`, das den Großteil der Kartenfläche füllt) bleiben
+                    weiterhin trefferbar – sie schlucken Klicks geräuschlos,
+                    weil sie kein `[data-action]` tragen.
+
+               Lösung (zweistufig):
+
+                 a) 3D auf Mobil komplett flach legen. Ohne Perspektive und
+                    ohne `translateZ`/`rotateY` bleiben die Karten exakt
+                    innerhalb ihrer Flexbox-Spalten – Rang 1 kann geometrisch
+                    nicht mehr in die Bereiche von Rang 2/3 hineinragen. Der
+                    Eintritts-Effekt bleibt als 2D-Fade-Up erhalten.
+
+                 b) Die strukturelle Kartenhülle und insbesondere der
+                    Constellation-Wrapper werden für Pointer-Events
+                    transparent geschaltet. Klickbar sind dann nur noch die
+                    tatsächlich interaktiven Kinder (Manager-Vorname,
+                    Punkte-Link, Spieler-Orbs). Klicks landen entweder
+                    direkt auf dem Ziel und bubbeln zum delegierten
+                    Karten-Listener, oder sie laufen ins Leere statt eine
+                    Nachbarkarte zu blockieren. */
+            .champ-arena { perspective: none; }
+            .champ-podium { transform-style: flat; }
+            .champ-card { transform-style: flat; }
+
+            .champ-card[data-rank="1"],
+            .champ-card[data-rank="2"],
+            .champ-card[data-rank="3"] {
+                animation: champ-card-mobile-in 0.6s cubic-bezier(0.22, 0.85, 0.32, 1.05) forwards !important;
+                transform: translateY(28px) scale(0.92);
+            }
+            .champ-card[data-rank="1"] { animation-delay: 1s !important; }
+            .champ-card[data-rank="2"] { animation-delay: 0.55s !important; }
+            .champ-card[data-rank="3"] { animation-delay: 0.2s !important; }
+
+            .champ-card.is-ready[data-rank="1"],
+            .champ-card.is-ready[data-rank="2"],
+            .champ-card.is-ready[data-rank="3"] {
+                transform: none !important;
+            }
+
             .champ-card { pointer-events: none; }
+            .champ-card .manager-player-constellation { pointer-events: none; }
             .champ-card [data-action],
             .champ-card .manager-player-orb,
             .champ-card .manager-firstname,
