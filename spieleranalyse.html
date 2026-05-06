@@ -4203,12 +4203,7 @@
 
     document.getElementById('search-input').addEventListener('input', () => { applyFilters(); updateUrl(false); });
     document.getElementById('pos-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
-    document.getElementById('nation-filter').addEventListener('change', () => {
-        applyFilters();
-        updateUrl(false);
-        closeMobileFilter({ pushHistory: true });
-        scrollToHeroOnMobile();
-    });
+    document.getElementById('nation-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
     document.getElementById('club-filter').addEventListener('change', () => { applyFilters(); updateUrl(false); });
 
     document.getElementById('reset-filters').addEventListener('click', () => {
