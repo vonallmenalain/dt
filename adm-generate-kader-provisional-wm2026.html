@@ -1407,13 +1407,42 @@ Beispiel:
         }
     }
 
+    function hasDotAbbreviationInName(name) {
+        const n = String(name || '').trim();
+        if (!n) return false;
+        return /\b[A-ZÄÖÜ][\.\u00B7]/.test(n);
+    }
+
     function playerNeedsDetailFetch(p) {
         if (!p || !p.id) return false;
         const dn = buildFullDisplayName(p);
-        const abbrev = isProbablyAbbreviatedName(p.name || dn);
+        const abbrev = hasDotAbbreviationInName(p.name || dn);
         const missingNames = !String(p.firstname || '').trim() || !String(p.lastname || '').trim();
-        const thin = !(p.photo) || p.height === '-' || !p.height || !(p.birthDate);
+        const missingCore =
+            !String(p.photo || '').trim() ||
+            !String(p.birthDate || '').trim() ||
+            !String(cleanHeight(p.height) || '').trim() ||
+            !String(cleanWeight(p.weight) || '').trim() ||
+            !String((p.club && p.club.name) || '').trim() ||
+            !String((p.club && p.club.logo) || '').trim() ||
+            !String(p.position || '').trim();
+        const thin = missingCore;
         return abbrev || missingNames || thin;
+    }
+
+    function playerHasRequiredExportData(p) {
+        if (!p || !p.id) return false;
+        const playerName = String(p.name || '').trim();
+        const photo = String(p.photo || '').trim();
+        const position = String(p.position || '').trim();
+        const teamName = String(p.teamName || '').trim();
+        const teamLogo = String(p.teamLogo || '').trim();
+        const clubName = String((p.club && p.club.name) || '').trim();
+        const clubLogo = String((p.club && p.club.logo) || '').trim();
+        const birthDate = String(p.birthDate || '').trim();
+        const height = String(cleanHeight(p.height) || '').trim();
+        const weight = String(cleanWeight(p.weight) || '').trim();
+        return !!(playerName && photo && position && teamName && teamLogo && clubName && clubLogo && birthDate && height && weight);
     }
 
     async function enrichPlayerNamesPhase(apiKey) {
@@ -1427,6 +1456,8 @@ Beispiel:
         let stillBad = 0;
         state.namesImproved = 0;
         const list = [...state.players.values()].filter(p => p && p.id);
+        const needBefore = list.filter(playerNeedsDetailFetch).length;
+        log(`Details-Queue: ${needBefore} von ${list.length} Spielern benötigen Nachladen.`, 'log-info');
 
         for (const p of list) {
             if (state.aborted) break;
@@ -1437,6 +1468,8 @@ Beispiel:
 
             checked += 1;
             let mergedAny = false;
+            const pendingNow = Math.max(needBefore - checked, 0);
+            log(`   Fortschritt Namen: geladen ${checked}/${needBefore}, ausstehend ${pendingNow} (ID ${p.id})`, 'log-muted');
 
             if (playerDetailCache.has(p.id)) {
                 const cached = playerDetailCache.get(p.id);
@@ -1478,7 +1511,36 @@ Beispiel:
 
         state.namesImproved = improved;
         log(`Details: ${checked} Spieler geprüft, ${improved} Namen verbessert, ${stillBad} weiterhin abgekürzt/unklar.`, 'log-info');
+        const remainingNeed = [...state.players.values()].filter(playerNeedsDetailFetch).length;
+        log(`Details-Status: ${needBefore - remainingNeed} abgeschlossen, ${remainingNeed} noch offen.`, 'log-info');
         updateStats();
+    }
+
+    function filterOutIncompletePlayers() {
+        let removed = 0;
+        const removedExamples = [];
+        const next = new Map();
+        const nextNameIndex = new Map();
+        for (const [key, p] of state.players) {
+            if (playerHasRequiredExportData(p)) {
+                next.set(key, p);
+                if (!p.id) nextNameIndex.set(makeFallbackKey(p.name, p.teamId), key);
+            } else {
+                removed += 1;
+                if (removedExamples.length < 20) {
+                    removedExamples.push(`${p && p.id ? `ID ${p.id}` : key} (${p && p.name ? p.name : 'Unbekannt'})`);
+                }
+            }
+        }
+        state.players = next;
+        state.nameIndex = nextNameIndex;
+        recomputeSourceCounts();
+        if (removed > 0) {
+            log(`⚠️ ${removed} Spieler entfernt, da Pflichtdaten unvollständig sind (inkl. Club/Bio).`, 'log-warning');
+            log(`   Beispiele: ${removedExamples.join(', ')}${removed > removedExamples.length ? ' …' : ''}`, 'log-muted');
+        } else {
+            log(`✅ Alle Spieler enthalten vollständige Pflichtdaten (inkl. Club/Bio).`, 'log-success');
+        }
     }
 
     function pickClub(allStats, nationalTeamId) {
@@ -1820,13 +1882,6 @@ Beispiel:
                         } catch (err) {
                             log(`  D ⚠️ Spieler ${pid} (Team ${teamId}) konnte nicht geladen werden: ${err.message}`, "log-warning");
                             state.failedPlayers.push({ playerId: pid, teamId, error: err.message });
-                            upsertPlayer({
-                                id: pid,
-                                name: `Spieler ${pid}`,
-                                position: "",
-                                photo: "",
-                                club: { name: "Unbekannt", logo: "" }
-                            }, 'manual_player_id', team);
                         }
                         await delay(120);
                     }
@@ -1848,6 +1903,8 @@ Beispiel:
             if (!state.aborted) {
                 await enrichPlayerNamesPhase(apiKey);
             }
+
+            filterOutIncompletePlayers();
 
             recomputeSourceCounts();
 
