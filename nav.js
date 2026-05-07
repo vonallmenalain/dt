@@ -62,19 +62,24 @@ function registerServiceWorker() {
  *  DEV TOURNAMENT SWITCHER
  *
  *  Kleiner, bewusst unauffälliger Dev-Knopf, mit dem zwischen den in
- *  tournament-config.js definierten Turnieren (z.B. EM 2024 / WM 2026)
+ *  tournament-config.js definierten Turnieren (EM 2024 / WM 2026)
  *  gewechselt werden kann.
+ *
+ *  Wichtig:
+ *  - Der eigentliche Standard kommt aus dem Domain-Mapping in
+ *    tournament-config.js (em24dt.alae.app → EM 2024,
+ *    dt.alae.app → WM 2026).
+ *  - Der Dev-Knopf dient nur noch als TEST-OVERRIDE und schreibt
+ *    seine Auswahl host-spezifisch in localStorage
+ *    (`dreamteam_dev_override_${hostname}`).
+ *  - Wenn ein Override aktiv ist, zeigt der Knopf das deutlich an
+ *    ("Dev Override: ...") und erlaubt mit "↺ Domain-Default" das
+ *    Zurücksetzen auf die domain-basierte Standardwahl.
  *
  *  Sichtbarkeit:
  *  - Standardmässig sichtbar, deutlich als "DEV:" markiert.
  *  - Kann mit ?dev=0 oder localStorage["dreamteam_hide_dev"]="1" versteckt
- *    werden, falls die App produktiv ausgeliefert wird.
- *
- *  Wirkung:
- *  - Klick öffnet ein kleines Dropdown mit allen verfügbaren Turnieren.
- *  - Wechsel speichert das gewählte Turnier in localStorage und lädt die
- *    Seite mit ?tournament=<key> neu, damit Firestore-Collections,
- *    LocalStorage-Prefix und Daten-Datei sauber zum neuen Turnier passen.
+ *    werden.
  * ============================================================================= */
 function buildDevTournamentSwitcher(APP) {
     if (!APP || typeof APP.tournaments !== 'object') return;
@@ -88,6 +93,13 @@ function buildDevTournamentSwitcher(APP) {
     }
 
     if (document.getElementById('dev-tournament-switcher')) return;
+
+    const overrideActive = typeof APP.isDevOverrideActive === 'function'
+        ? APP.isDevOverrideActive()
+        : false;
+    const urlOverrideActive = typeof APP.isUrlOverrideActive === 'function'
+        ? APP.isUrlOverrideActive()
+        : false;
 
     const wrapper = document.createElement('div');
     wrapper.id = 'dev-tournament-switcher';
@@ -104,9 +116,13 @@ function buildDevTournamentSwitcher(APP) {
         alignItems: 'center',
         gap: '6px',
         padding: '3px 8px',
-        background: 'rgba(20, 20, 20, 0.78)',
-        color: '#ffd166',
-        border: '1px solid rgba(255, 209, 102, 0.35)',
+        background: overrideActive
+            ? 'rgba(80, 20, 20, 0.85)'
+            : 'rgba(20, 20, 20, 0.78)',
+        color: overrideActive ? '#ffb4a2' : '#ffd166',
+        border: overrideActive
+            ? '1px solid rgba(255, 120, 120, 0.55)'
+            : '1px solid rgba(255, 209, 102, 0.35)',
         borderRadius: '999px',
         fontFamily: 'system-ui, -apple-system, Segoe UI, sans-serif',
         fontSize: '11px',
@@ -116,28 +132,34 @@ function buildDevTournamentSwitcher(APP) {
         backdropFilter: 'blur(6px)',
         pointerEvents: 'auto',
         userSelect: 'none',
-        opacity: '0.85'
+        opacity: '0.9'
     });
 
     const label = document.createElement('span');
-    label.textContent = 'DEV';
+    label.textContent = overrideActive ? 'DEV OVERRIDE' : 'DEV';
     Object.assign(label.style, {
-        background: '#ffd166',
+        background: overrideActive ? '#ff6b6b' : '#ffd166',
         color: '#1a1a1a',
         padding: '1px 6px',
         borderRadius: '999px',
         fontSize: '10px',
         fontWeight: '800',
-        letterSpacing: '0.5px'
+        letterSpacing: '0.5px',
+        whiteSpace: 'nowrap'
     });
+    label.title = overrideActive
+        ? `Dev Override aktiv – Domain-Default wäre: ${APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel || APP.domainDefaultKey}`
+        : `Domain-Default: ${APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel || APP.domainDefaultKey}`;
 
     const select = document.createElement('select');
     select.id = 'dev-tournament-select';
     select.setAttribute('aria-label', 'Aktives Turnier wählen');
     Object.assign(select.style, {
         background: 'transparent',
-        color: '#ffd166',
-        border: '1px solid rgba(255, 209, 102, 0.4)',
+        color: overrideActive ? '#ffb4a2' : '#ffd166',
+        border: overrideActive
+            ? '1px solid rgba(255, 120, 120, 0.55)'
+            : '1px solid rgba(255, 209, 102, 0.4)',
         borderRadius: '999px',
         padding: '2px 8px',
         fontSize: '11px',
@@ -150,14 +172,31 @@ function buildDevTournamentSwitcher(APP) {
     const tournamentKeys = allowedTournamentKeys.filter((key) => APP.tournaments[key]);
     if (!tournamentKeys.length) return;
 
+    const RESET_VALUE = '__reset_to_domain_default__';
+    const domainDefaultKey = APP.domainDefaultKey;
+
     tournamentKeys.forEach((key) => {
         const t = APP.tournaments[key];
         const option = document.createElement('option');
         option.value = key;
-        option.textContent = t && t.shortLabel ? t.shortLabel : key;
+        const baseLabel = t && t.shortLabel ? t.shortLabel : key;
+        const isDomainDefault = key === domainDefaultKey;
+        const prefix = overrideActive && key === APP.activeTournamentKey
+            ? 'Dev Override: '
+            : (isDomainDefault ? '★ ' : 'Dev: ');
+        option.textContent = `${prefix}${baseLabel}${isDomainDefault ? ' (Domain)' : ''}`;
         option.style.color = '#111';
         select.appendChild(option);
     });
+
+    // Reset-Option, nur sichtbar wenn ein Dev-Override tatsächlich aktiv ist.
+    if (overrideActive) {
+        const resetOption = document.createElement('option');
+        resetOption.value = RESET_VALUE;
+        resetOption.textContent = '↺ Zurück auf Domain-Default';
+        resetOption.style.color = '#111';
+        select.appendChild(resetOption);
+    }
 
     select.value = tournamentKeys.includes(APP.activeTournamentKey)
         ? APP.activeTournamentKey
@@ -165,7 +204,17 @@ function buildDevTournamentSwitcher(APP) {
 
     select.addEventListener('change', (event) => {
         const next = event.target.value;
-        if (!next || next === APP.activeTournamentKey) return;
+        if (!next) return;
+
+        if (next === RESET_VALUE) {
+            if (typeof APP.resetToDomainDefault === 'function') {
+                APP.resetToDomainDefault();
+            }
+            return;
+        }
+
+        if (next === APP.activeTournamentKey && !urlOverrideActive) return;
+
         if (typeof APP.setActiveTournament === 'function') {
             APP.setActiveTournament(next);
         }
@@ -173,6 +222,33 @@ function buildDevTournamentSwitcher(APP) {
 
     wrapper.appendChild(label);
     wrapper.appendChild(select);
+
+    // Kleiner Reset-Knopf zusätzlich zur Dropdown-Option, nur wenn Override aktiv.
+    if (overrideActive) {
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.setAttribute('aria-label', 'Dev Override entfernen und Domain-Default verwenden');
+        resetBtn.title = 'Override entfernen → Domain-Default';
+        resetBtn.textContent = '↺';
+        Object.assign(resetBtn.style, {
+            background: 'transparent',
+            color: '#ffb4a2',
+            border: '1px solid rgba(255, 120, 120, 0.55)',
+            borderRadius: '999px',
+            padding: '0 6px',
+            fontSize: '11px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            outline: 'none',
+            lineHeight: '1.6'
+        });
+        resetBtn.addEventListener('click', () => {
+            if (typeof APP.resetToDomainDefault === 'function') {
+                APP.resetToDomainDefault();
+            }
+        });
+        wrapper.appendChild(resetBtn);
+    }
 
     document.body.appendChild(wrapper);
 }
@@ -268,7 +344,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.setAttribute("data-tournament-label", APP.tournamentLabel || "");
 
     console.log("[nav] APP_CONFIG geladen:", {
+        hostname: APP.hostname,
+        domainDefaultKey: APP.domainDefaultKey,
         activeTournamentKey: APP.activeTournamentKey,
+        devOverrideActive: typeof APP.isDevOverrideActive === "function" ? APP.isDevOverrideActive() : false,
+        urlOverrideActive: typeof APP.isUrlOverrideActive === "function" ? APP.isUrlOverrideActive() : false,
         brandName: APP.brandName,
         pageTitlePrefix: APP.pageTitlePrefix
     });
