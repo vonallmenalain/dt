@@ -10,11 +10,12 @@
  *  Voraussetzung: tournament-config.js muss VOR data.js eingebunden sein,
  *  damit window.APP_CONFIG.data.fileName() die richtige Datei zurückgibt.
  *
- *  Fallback: Falls APP_CONFIG nicht vorhanden ist, wird data-em2024.js
- *  geladen, damit nichts ohne globale playersData-Variable bleibt.
+ *  Fallback: Falls APP_CONFIG nicht vorhanden ist, wird das aktuelle
+ *  Default-Turnier (data-wm2026.js) geladen, damit nichts ohne globale
+ *  playersData-Variable bleibt.
  * ============================================================================= */
 (function () {
-  var fileName = "data-em2024.js";
+  var fileName = "data-wm2026.js";
   try {
     if (window.APP_CONFIG && window.APP_CONFIG.data && typeof window.APP_CONFIG.data.fileName === "function") {
       var resolved = window.APP_CONFIG.data.fileName();
@@ -23,9 +24,9 @@
       }
     }
   } catch (err) {
-    // Wenn etwas schiefläuft, verwenden wir bewusst den EM-2024-Default,
+    // Wenn etwas schiefläuft, verwenden wir bewusst den WM-2026-Default,
     // damit die App nicht ohne playersData-Variable bricht.
-    fileName = "data-em2024.js";
+    fileName = "data-wm2026.js";
   }
 
   // Synchron via document.write – funktioniert auch statisch auf Netlify

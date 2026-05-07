@@ -5240,7 +5240,7 @@
     <div class="hero-content">
         <h1 class="hero-title">
             Baue dein<br>
-            <span class="gold-text" id="hero-title-label">EM 2024</span><br>
+            <span class="gold-text" id="hero-title-label">&nbsp;</span><br>
             <span class="accent" id="hero-title-accent">DreamTeam</span>
         </h1>
 
@@ -5374,7 +5374,7 @@
         <div class="hero-content">
             
             <h1 class="hero-title hero-title-post">
-                <span class="gold-text" id="hero-post-title-label">EM 2024</span><br>
+                <span class="gold-text" id="hero-post-title-label">&nbsp;</span><br>
                 <span class="accent" id="hero-post-title-accent">DreamTeam</span>
             </h1>
         </div>
@@ -8747,7 +8747,11 @@
             const CACHE_OPTS = {
                 db: APP.getDb(),
                 year: APP.year,
-                allowEmptyPoints: false,
+                // Vor Turnierstart liegen noch keine Spieler-Punkte vor
+                // (z. B. WM 2026 vor dem Eröffnungsspiel). Die Kacheln
+                // arbeiten in diesem Fall mit 0 Punkten und Default-States,
+                // statt dass die ganze Seite mit einem Fehler abbricht.
+                allowEmptyPoints: true,
                 allowEmptyFixtures: true,
                 log: false
             };

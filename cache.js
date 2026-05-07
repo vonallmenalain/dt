@@ -533,15 +533,27 @@
             saveMeta(remoteMeta, cfg);
         }
 
+        // Vor Turnierstart können Teams- und Punkte-Collections noch komplett
+        // leer sein (z. B. WM 2026 vor dem ersten Spiel). Wenn der Aufrufer
+        // leere Datensätze ausdrücklich erlaubt, liefern wir in diesen
+        // Fällen leere Defaults zurück, statt mit einem Fehler abzubrechen.
         if (!isValidTeamsData(teams, cfg.allowEmptyTeams)) {
-            throw new Error('DreamTeamCache: Keine gültigen Teamdaten verfügbar.');
+            if (cfg.allowEmptyTeams) {
+                teams = [];
+            } else {
+                throw new Error('DreamTeamCache: Keine gültigen Teamdaten verfügbar.');
+            }
         }
 
         if (!isValidPointsData(points, cfg.allowEmptyPoints)) {
-            throw new Error('DreamTeamCache: Keine gültigen Punktedaten verfügbar.');
+            if (cfg.allowEmptyPoints) {
+                points = {};
+            } else {
+                throw new Error('DreamTeamCache: Keine gültigen Punktedaten verfügbar.');
+            }
         }
 
-        if (Object.keys(points || {}).length === 0) {
+        if (Object.keys(points || {}).length === 0 && !cfg.allowEmptyPoints) {
             console.warn('Punkte-Daten leer geladen – Collection/Cache/Firestore prüfen');
         }
 
@@ -552,7 +564,7 @@
             pointsCollection: cfg.pointsCollection,
             teamsCount: Array.isArray(teams) ? teams.length : 0,
             pointsCount: Object.keys(points || {}).length,
-            serviceWorkerCacheVersion: 'dreamteam-pwa-v2026-05-05'
+            serviceWorkerCacheVersion: 'dreamteam-pwa-v2026-05-07-wm2026-default'
         });
 
         return {

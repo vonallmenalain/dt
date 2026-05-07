@@ -9,7 +9,7 @@
  *    EM-2024-spezifischen Assets als WM-2026-Inhalt anzeigt.
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt.
  * ============================================================================= */
-const CACHE_NAME = 'dreamteam-pwa-v2026-05-07-multi-tournament';
+const CACHE_NAME = 'dreamteam-pwa-v2026-05-07-wm2026-default';
 const APP_SHELL = [
   './',
   './index.html',
