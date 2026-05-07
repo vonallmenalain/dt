@@ -1652,7 +1652,11 @@
     function mergeTeamPlayer(p, idx = 0) {
         const fullP = findFullPlayer(p.playerId, p.name);
         const slotNum = p.slot ? parseInt(String(p.slot).replace('slot-', ''), 10) : -1;
-        const pos = normalizePosition(p.pos || (fullP ? fullP.Position : 'UNKNOWN'));
+        // Live-Position aus playersData bevorzugen, damit manuelle Overrides aus
+        // position-overrides.js auch in bereits gespeicherten Teams sofort
+        // greifen. Auf den im Team gespeicherten p.pos fallen wir nur zurück,
+        // wenn der Spieler nicht mehr im aktuellen Kader gefunden wird.
+        const pos = normalizePosition((fullP && fullP.Position) || p.pos || 'UNKNOWN');
         const basePts = fullP ? (livePointsData[String(fullP['player.id'])] || 0) : 0;
         const finalPts = p.isCaptain ? basePts * 2 : basePts;
 
