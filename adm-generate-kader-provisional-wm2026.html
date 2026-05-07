@@ -584,6 +584,25 @@ Beispiel:
 25: 1234, 5678, 9999
 2: 11111, 22222"></textarea>
         <div class="hint">Diese Spieler werden mit Quelle <code>manual_player_id</code> markiert und erhalten Confidence-Level <strong>manual</strong>.</div>
+
+        <div class="section-title" style="margin-top:18px;">💾 Firestore-Upload (Filter)</div>
+        <div class="hint" style="margin-bottom:10px;">
+            Gilt nur beim Speichern nach Firebase. Die Vorschau oben listet weiterhin den gesamten Pool; hier steuerst du, welche Datensätze tatsächlich geschrieben werden.
+        </div>
+        <div class="checkbox-row" style="flex-wrap:wrap;">
+            <span style="font-weight:bold; margin-right:8px;">Confidence einschließen:</span>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:600;"><input type="checkbox" id="saveConfHigh" checked> high</label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:600;"><input type="checkbox" id="saveConfMedium" checked> medium</label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:600;"><input type="checkbox" id="saveConfLow" checked> low</label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:600;"><input type="checkbox" id="saveConfManual" checked> manual</label>
+        </div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="saveRequirePhoto">
+            <label for="saveRequirePhoto">
+                Nur Spieler mit Profilbild speichern
+                <span class="hint-inline">Spieler ohne Bild-URL werden beim Upload übersprungen.</span>
+            </label>
+        </div>
     </div>
 
     <h2>▶️ Ablauf</h2>
@@ -745,6 +764,11 @@ Beispiel:
     const filterNation = $('filterNation');
     const filterSource = $('filterSource');
     const filterConfidence = $('filterConfidence');
+    const saveConfHigh = $('saveConfHigh');
+    const saveConfMedium = $('saveConfMedium');
+    const saveConfLow = $('saveConfLow');
+    const saveConfManual = $('saveConfManual');
+    const saveRequirePhoto = $('saveRequirePhoto');
     const filterSearch = $('filterSearch');
     const targetCollectionEl = $('target-collection');
     const metaDocumentEl = $('meta-document');
@@ -1200,6 +1224,69 @@ Beispiel:
         if (s.length < 3) return false;
         if (isProbablyAbbreviatedName(s)) return false;
         return true;
+    }
+
+    function stripAccents(s) {
+        return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function isJuniorSuffixToken(tok) {
+        const n = stripAccents(tok || '').toLowerCase().replace(/\./g, '');
+        return n === 'junior' || n === 'jr';
+    }
+
+    /**
+     * Kompakter Medien-/Listenname: erstes Vornamen-Wort + Hauptnachname
+     * (Medien übliche Kurzform, z. B. „Kylian Mbappé“, „Vinícius Júnior“, „Rodrygo“).
+     */
+    function shortNameFromFullName(full) {
+        const raw = String(full || '').trim();
+        if (!raw) return 'Unbekannt';
+        const t = raw.split(/\s+/).filter(Boolean);
+        if (t.length <= 1) return raw;
+        const last = t[t.length - 1];
+        if (isJuniorSuffixToken(last)) {
+            return `${t[0]} ${last}`.replace(/\s+/g, ' ').trim();
+        }
+        const hasPtParticle = t.slice(1).some(x =>
+            /^(de|da|dos|das|do)$/i.test(stripAccents(x))
+        );
+        if (t.length >= 4 && hasPtParticle) {
+            return t[0];
+        }
+        if (t.length === 3) {
+            return `${t[0]} ${t[1]}`.replace(/\s+/g, ' ').trim();
+        }
+        if (t.length === 4) {
+            return `${t[0]} ${t[2]}`.replace(/\s+/g, ' ').trim();
+        }
+        if (t.length >= 5) {
+            return `${t[0]} ${t[t.length - 1]}`.replace(/\s+/g, ' ').trim();
+        }
+        return `${t[0]} ${t[1]}`.replace(/\s+/g, ' ').trim();
+    }
+
+    function buildShortDisplayName(playerLike) {
+        if (!playerLike) return 'Unbekannt';
+        const fn = String(playerLike.firstname || '').trim();
+        const ln = String(playerLike.lastname || '').trim();
+        const fnTokens = fn.split(/\s+/).filter(Boolean);
+        const lnTokens = ln.split(/\s+/).filter(Boolean);
+
+        if (fnTokens.length && lnTokens.length) {
+            const given = fnTokens[0];
+            const lastTok = lnTokens[lnTokens.length - 1];
+            if (isJuniorSuffixToken(lastTok)) {
+                return `${given} ${lastTok}`.replace(/\s+/g, ' ').trim();
+            }
+            if (fnTokens.length === 1 && lnTokens.length >= 3 &&
+                lnTokens.some(x => /^(de|da|dos|das|do)$/i.test(stripAccents(x)))) {
+                return given;
+            }
+            return `${given} ${lnTokens[0]}`.replace(/\s+/g, ' ').trim();
+        }
+
+        return shortNameFromFullName(buildFullDisplayName(playerLike));
     }
 
     /**
@@ -1837,7 +1924,8 @@ Beispiel:
     }
 
     function firestorePlayerDisplayName(p) {
-        return (p && (p.fullName || p.displayName || p.name)) || "Unbekannt";
+        if (!p) return "Unbekannt";
+        return buildShortDisplayName(p);
     }
 
     function countAbbreviatedNamesInPool() {
@@ -1845,6 +1933,33 @@ Beispiel:
         for (const [, p] of state.players) {
             const d = firestorePlayerDisplayName(p);
             if (isProbablyAbbreviatedName(d)) n += 1;
+        }
+        return n;
+    }
+
+    function confidenceIncludedForSave(level) {
+        const lv = level || 'low';
+        if (lv === 'high') return !!(saveConfHigh && saveConfHigh.checked);
+        if (lv === 'medium') return !!(saveConfMedium && saveConfMedium.checked);
+        if (lv === 'low') return !!(saveConfLow && saveConfLow.checked);
+        if (lv === 'manual') return !!(saveConfManual && saveConfManual.checked);
+        return true;
+    }
+
+    function playerPassesFirestoreUploadFilters(p) {
+        if (!p) return false;
+        if (!confidenceIncludedForSave(p.confidenceLevel)) return false;
+        if (saveRequirePhoto && saveRequirePhoto.checked) {
+            const ph = String(p.photo || '').trim();
+            if (!ph) return false;
+        }
+        return true;
+    }
+
+    function countPlayersEligibleForFirestoreSave() {
+        let n = 0;
+        for (const [, p] of state.players) {
+            if (playerPassesFirestoreUploadFilters(p)) n += 1;
         }
         return n;
     }
@@ -2304,7 +2419,8 @@ Beispiel:
 
         if (dryRun) {
             log("\n🧪 TESTLAUF AKTIV – es wird NICHTS in Firestore gespeichert oder gelöscht.", "log-warning");
-            log(`   Würde ${state.players.size} Spieler in Collection "${FIRESTORE_TARGET_COLLECTION}" schreiben.`, "log-info");
+            const eligible = countPlayersEligibleForFirestoreSave();
+            log(`   Würde ${eligible} von ${state.players.size} Spieler in Collection "${FIRESTORE_TARGET_COLLECTION}" schreiben (Upload-Filter: Confidence + optional Profilbild).`, "log-info");
             log(`   Würde Meta-Doc "${META_COLLECTION}/${META_PROVISIONAL_DOC_ID}" aktualisieren.`, "log-info");
             buildAndDumpDryRunSummary();
             return;
@@ -2372,16 +2488,26 @@ Finale/offizielle Spieler werden NIE gelöscht.`
             }
 
             // 2) Players schreiben
-            logHeader(`Schreibe ${state.players.size} Spieler in "${FIRESTORE_TARGET_COLLECTION}"`);
+            const saveEligible = countPlayersEligibleForFirestoreSave();
+            logHeader(`Schreibe ${saveEligible} Spieler in "${FIRESTORE_TARGET_COLLECTION}" (von ${state.players.size} im Pool, nach Upload-Filter)`);
             let batch = db.batch();
             let opCount = 0;
             let totalWritten = 0;
+            let skippedByFilter = 0;
             const tsServer = FieldValue.serverTimestamp();
             const importedAtIso = new Date().toISOString();
+
+            if (saveEligible === 0 && state.players.size > 0) {
+                log(`⚠️ Kein Spieler erfüllt die aktuellen Upload-Filter (Confidence / Profilbild) – es werden 0 Dokumente geschrieben.`, "log-warning");
+            }
 
             for (const [, p] of state.players) {
                 if (!p.id) {
                     log(`  ⚠️ Spieler ohne ID übersprungen: ${p.name}`, "log-warning");
+                    continue;
+                }
+                if (!playerPassesFirestoreUploadFilters(p)) {
+                    skippedByFilter += 1;
                     continue;
                 }
 
@@ -2393,7 +2519,7 @@ Finale/offizielle Spieler werden NIE gelöscht.`
                 const displayName = firestorePlayerDisplayName(p);
                 const payload = {
                     "player.id": p.id,
-                    "Spielername": p.fullName || p.displayName || p.name || "Unbekannt",
+                    "Spielername": displayName,
                     "Vorname": p.firstname || "",
                     "Nachname": p.lastname || "",
                     "NameQuelle": p.nameSource || "",
@@ -2445,6 +2571,9 @@ Finale/offizielle Spieler werden NIE gelöscht.`
             }
             if (opCount > 0) await batch.commit();
 
+            if (skippedByFilter > 0) {
+                log(`  ℹ️ ${skippedByFilter} Spieler wegen Upload-Filter (Confidence / Profilbild) nicht geschrieben.`, "log-info");
+            }
             log(`✅ ${totalWritten} Spieler-Dokumente geschrieben.`, "log-success");
 
             // 3) Meta-Dokument schreiben
@@ -2467,6 +2596,15 @@ Finale/offizielle Spieler werden NIE gelöscht.`
                 importedAtIso,
                 totalTeams: state.teams.length,
                 totalPlayers: state.players.size,
+                firestoreUploadPlayersWritten: totalWritten,
+                firestoreUploadSkippedByFilter: skippedByFilter,
+                firestoreUploadFilters: {
+                    confidenceIncludeHigh: !!(saveConfHigh && saveConfHigh.checked),
+                    confidenceIncludeMedium: !!(saveConfMedium && saveConfMedium.checked),
+                    confidenceIncludeLow: !!(saveConfLow && saveConfLow.checked),
+                    confidenceIncludeManual: !!(saveConfManual && saveConfManual.checked),
+                    requireProfilePhoto: !!(saveRequirePhoto && saveRequirePhoto.checked)
+                },
                 totalPlayersByTeam: state.countsByTeam,
                 totalBySource: state.countsBySource,
                 warnings: state.warnings,
@@ -2501,7 +2639,9 @@ Finale/offizielle Spieler werden NIE gelöscht.`
         recomputeSourceCounts();
         log(`\n🧪 TESTLAUF (Dry Run) – Zusammenfassung:`, "log-warning");
         logFinalPoolSummary();
-        log(`Confidence-Verteilung:`, "log-info");
+        const eligible = countPlayersEligibleForFirestoreSave();
+        log(`Nach aktuellem Upload-Filter würden ${eligible} von ${state.players.size} Spieler geschrieben werden.`, "log-info");
+        log(`Confidence-Verteilung (gesamter Pool):`, "log-info");
         const conf = { high: 0, medium: 0, low: 0, manual: 0 };
         for (const [, p] of state.players) {
             if (p.confidenceLevel) conf[p.confidenceLevel] = (conf[p.confidenceLevel] || 0) + 1;
