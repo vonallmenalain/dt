@@ -551,6 +551,33 @@
             </label>
         </div>
 
+        <div class="checkbox-row">
+            <input type="checkbox" id="optSlowApi" checked>
+            <label for="optSlowApi">
+                Langsamer API-Modus / robuste Retries
+                <span class="hint-inline">Empfohlen: Mindestabstand zwischen Calls, Pausen pro Team und automatische Wiederholungen bei temporären Fehlern.</span>
+            </label>
+        </div>
+
+        <div class="checkbox-row">
+            <input type="checkbox" id="optFullNames" checked>
+            <label for="optFullNames">
+                Vollständige Namen nachladen (/players Details)
+                <span class="hint-inline">Kurzformen wie „K. De Bruyne“ werden per API-Details zu voller Länge ergänzt, falls verfügbar.</span>
+            </label>
+        </div>
+
+        <div class="info-grid" style="margin-top:12px; grid-template-columns: 1fr 1fr;">
+            <div class="info-item">
+                <label for="optMinPlayersRescue" style="margin:0;">Min. Spieler pro Team für Nachfassrunde</label>
+                <input type="number" id="optMinPlayersRescue" value="35" min="0" max="200" style="margin-top:6px;">
+            </div>
+            <div class="info-item">
+                <label for="optRescueFixturesLast" style="margin:0;">Letzte Spiele in Nachfassrunde (Lineups)</label>
+                <input type="number" id="optRescueFixturesLast" value="30" min="5" max="60" style="margin-top:6px;">
+            </div>
+        </div>
+
         <label for="manualPlayerIds" style="margin-top:14px;">Manuelle Spieler-IDs ergänzen (optional)</label>
         <textarea id="manualPlayerIds" placeholder="Format: TEAM_ID: PLAYER_ID, PLAYER_ID, PLAYER_ID
 Beispiel:
@@ -675,9 +702,19 @@ Beispiel:
     const API_KEY_STORAGE_KEY = "dreamteam_api_football_key";
     const API_BASE = "https://v3.football.api-sports.io";
 
-    document.title = "WM 2026 DreamTeam – Provisorischer Kadergenerator";
+    /** Mindest-Spieler pro Team, unter dem die Nachfassrunde greift (UI überschreibt Default). */
+    const MIN_PLAYERS_PER_TEAM_DEFAULT = 35;
+    const RESCUE_FIXTURES_LAST = 30;
+    const NORMAL_FIXTURES_LAST = 15;
+    const LINEUP_COOLDOWN_EVERY_TEAMS = 10;
+    const SOURCE_C_LINEUP_SKIP_IF_PLAYERS_GE = 50;
+    const DETAIL_SEASONS = [2025, 2024, 2026];
 
-    // ─────────────────────────────────────────────────────────
+    const apiCache = new Map();
+    const playerDetailCache = new Map();
+    let lastApiRequestEndTime = 0;
+
+    document.title = "WM 2026 DreamTeam – Provisorischer Kadergenerator";
     //  DOM-Referenzen
     // ─────────────────────────────────────────────────────────
     const $ = (id) => document.getElementById(id);
@@ -693,6 +730,10 @@ Beispiel:
     const optDeleteExistingProvisional = $('optDeleteExistingProvisional');
     const optLimitPerTeam = $('optLimitPerTeam');
     const optLimitValue = $('optLimitValue');
+    const optSlowApi = $('optSlowApi');
+    const optFullNames = $('optFullNames');
+    const optMinPlayersRescue = $('optMinPlayersRescue');
+    const optRescueFixturesLast = $('optRescueFixturesLast');
     const manualPlayerIdsEl = $('manualPlayerIds');
     const logBox = $('logBox');
     const progressBar = $('progressBar');
@@ -770,6 +811,9 @@ Beispiel:
         players: new Map(),   // playerId -> playerObj
         nameIndex: new Map(), // normalizedName|teamId -> playerId (Fallback-Dedup)
         apiCalls: 0,
+        apiRetryCount: 0,
+        apiFailedCalls: 0,
+        namesImproved: 0,
         warnings: 0,
         aborted: false,
         running: false,
@@ -781,7 +825,9 @@ Beispiel:
             manual_player_id: 0
         },
         failedTeams: [],
-        failedPlayers: []
+        failedPlayers: [],
+        /** teamId -> [{ source, message }] — nur nach erstem Lauf / Rescue für Auswertung */
+        teamSourceErrors: new Map()
     };
 
     function setRunning(running) {
@@ -796,6 +842,9 @@ Beispiel:
         state.players = new Map();
         state.nameIndex = new Map();
         state.apiCalls = 0;
+        state.apiRetryCount = 0;
+        state.apiFailedCalls = 0;
+        state.namesImproved = 0;
         state.warnings = 0;
         state.aborted = false;
         state.countsByTeam = {};
@@ -807,6 +856,10 @@ Beispiel:
         };
         state.failedTeams = [];
         state.failedPlayers = [];
+        state.teamSourceErrors = new Map();
+        apiCache.clear();
+        playerDetailCache.clear();
+        lastApiRequestEndTime = 0;
         updateStats();
         progressBar.style.width = '0%';
     }
@@ -819,7 +872,7 @@ Beispiel:
     }
 
     // ─────────────────────────────────────────────────────────
-    //  API-Helpers (mit beiden Headern, robust)
+    //  API-Helpers: Retry, Timeout, Backoff, Rate-Limit, Cache
     // ─────────────────────────────────────────────────────────
     function buildHeaders(apiKey) {
         return {
@@ -829,29 +882,258 @@ Beispiel:
         };
     }
 
-    async function apiGet(apiKey, path) {
-        const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-        state.apiCalls += 1;
-        if (state.apiCalls % 5 === 0) updateStats();
+    function isSlowApiMode() {
+        return !!(optSlowApi && optSlowApi.checked);
+    }
 
-        const res = await fetch(url, { method: 'GET', headers: buildHeaders(apiKey) });
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status} ${res.statusText} bei ${path}`);
+    function randomBetween(min, max) {
+        return min + Math.floor(Math.random() * (max - min + 1));
+    }
+
+    async function globalApiPacing() {
+        if (!isSlowApiMode()) {
+            const minG = 80;
+            const maxG = 180;
+            const target = lastApiRequestEndTime + randomBetween(minG, maxG);
+            const wait = Math.max(0, target - Date.now());
+            if (wait > 0) await delay(wait);
+            return;
         }
-        const data = await res.json();
+        const minG = 400;
+        const maxG = 800;
+        const target = lastApiRequestEndTime + randomBetween(minG, maxG);
+        const wait = Math.max(0, target - Date.now());
+        if (wait > 0) await delay(wait);
+    }
+
+    function backoffDelayMs(attemptIndex) {
+        const schedule = [0, 1000, 2500, 5000, 10000];
+        const base = schedule[Math.min(attemptIndex, schedule.length - 1)];
+        const jitter = Math.floor(Math.random() * 400);
+        return base + jitter;
+    }
+
+    function isRetryableHttpStatus(status) {
+        if (status === 429) return true;
+        if (status === 500 || status === 502 || status === 503 || status === 504) return true;
+        return false;
+    }
+
+    function isNetworkError(err) {
+        if (!err) return false;
+        if (err.name === 'TypeError') return true;
+        const m = String(err.message || err).toLowerCase();
+        if (m.includes('failed to fetch') || m.includes('networkerror') || m.includes('aborted') || m.includes('load failed')) {
+            return true;
+        }
+        return false;
+    }
+
+    function isRetryableApiErrorText(msg) {
+        if (!msg) return false;
+        const t = String(msg).toLowerCase();
+        if (t.includes('rate') && t.includes('limit')) return true;
+        if (t.includes('too many')) return true;
+        if (t.includes('temporar') || t.includes('timeout') || t.includes('time out')) return true;
+        if (t.includes('try again') || t.includes('retry')) return true;
+        if (t.includes('unavailable') || t.includes('service')) return true;
+        return false;
+    }
+
+    function throwIfApiResponseErrors(data) {
         if (data && data.errors && typeof data.errors === 'object') {
             const errKeys = Object.keys(data.errors);
             if (errKeys.length > 0) {
                 const errMsg = errKeys.map(k => `${k}: ${data.errors[k]}`).join('; ');
-                throw new Error(`API-Error: ${errMsg}`);
+                const e = new Error(`API-Error: ${errMsg}`);
+                e._apiErrorText = errMsg;
+                throw e;
             }
         }
-        return data;
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  Normalisierung (Position, Name)
-    // ─────────────────────────────────────────────────────────
+    /**
+     * @param {string} apiKey
+     * @param {string} path - Pfad inkl. Query; dient als Cache-Key
+     * @param {object} [options]
+     * @param {number} [options.timeoutMs=28000]
+     * @param {number} [options.maxAttempts=5]
+     * @param {boolean} [options.useCache=true]
+     * @param {boolean} [options.skipPacing=false]
+     */
+    async function apiGetWithRetry(apiKey, path, options = {}) {
+        const timeoutMs = options.timeoutMs != null ? options.timeoutMs : 28000;
+        const maxAttempts = options.maxAttempts != null ? options.maxAttempts : 5;
+        const useCache = options.useCache !== false;
+
+        if (useCache && apiCache.has(path)) {
+            return apiCache.get(path);
+        }
+
+        if (!options.skipPacing) {
+            await globalApiPacing();
+        }
+
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            if (state.aborted) throw new Error('Abgebrochen');
+
+            const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+            state.apiCalls += 1;
+            if (state.apiCalls % 5 === 0) updateStats();
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+            try {
+                const res = await fetch(url, { method: 'GET', headers: buildHeaders(apiKey), signal: controller.signal });
+                clearTimeout(timer);
+                lastApiRequestEndTime = Date.now();
+
+                if (isRetryableHttpStatus(res.status)) {
+                    const err = new Error(`HTTP ${res.status} ${res.statusText || ''} bei ${path}`.trim());
+                    lastError = err;
+                    if (attempt < maxAttempts) {
+                        state.apiRetryCount += 1;
+                        const waitMs = backoffDelayMs(attempt);
+                        const why = res.status === 429 ? `HTTP ${res.status}` : `HTTP ${res.status}`;
+                        log(`Retry ${attempt}/${maxAttempts} für ${path} nach ${why} – warte ${waitMs}ms`, 'log-warning');
+                        await delay(waitMs);
+                        continue;
+                    }
+                    state.apiFailedCalls += 1;
+                    throw err;
+                }
+
+                if (!res.ok) {
+                    const err = new Error(`HTTP ${res.status} ${res.statusText || ''} bei ${path}`.trim());
+                    if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+                        state.apiFailedCalls += 1;
+                        throw err;
+                    }
+                    lastError = err;
+                    if (attempt < maxAttempts) {
+                        state.apiRetryCount += 1;
+                        const waitMs = backoffDelayMs(attempt);
+                        log(`Retry ${attempt}/${maxAttempts} für ${path} nach HTTP ${res.status} – warte ${waitMs}ms`, 'log-warning');
+                        await delay(waitMs);
+                        continue;
+                    }
+                    state.apiFailedCalls += 1;
+                    throw err;
+                }
+
+                const data = await res.json();
+
+                try {
+                    throwIfApiResponseErrors(data);
+                } catch (apiErr) {
+                    if (isRetryableApiErrorText(apiErr.message || apiErr._apiErrorText) && attempt < maxAttempts) {
+                        lastError = apiErr;
+                        state.apiRetryCount += 1;
+                        const waitMs = backoffDelayMs(attempt);
+                        log(`Retry ${attempt}/${maxAttempts} für ${path} nach ${apiErr.message} – warte ${waitMs}ms`, 'log-warning');
+                        await delay(waitMs);
+                        continue;
+                    }
+                    state.apiFailedCalls += 1;
+                    throw apiErr;
+                }
+
+                if (useCache) {
+                    apiCache.set(path, data);
+                }
+                return data;
+            } catch (err) {
+                clearTimeout(timer);
+                lastApiRequestEndTime = Date.now();
+                lastError = err;
+
+                const aborted = err && (err.name === 'AbortError' || (String(err.message || '').toLowerCase().includes('aborted')));
+                if (aborted) {
+                    const e2 = new Error(err.message || 'Request timeout / aborted');
+                    if (attempt < maxAttempts) {
+                        state.apiRetryCount += 1;
+                        const waitMs = backoffDelayMs(attempt);
+                        log(`Retry ${attempt}/${maxAttempts} für ${path} nach Timeout/Abort – warte ${waitMs}ms`, 'log-warning');
+                        await delay(waitMs);
+                        continue;
+                    }
+                    state.apiFailedCalls += 1;
+                    throw e2;
+                }
+
+                if (isNetworkError(err) && attempt < maxAttempts) {
+                    state.apiRetryCount += 1;
+                    const waitMs = backoffDelayMs(attempt);
+                    const why = (err && err.message) ? err.message : 'Failed to fetch';
+                    log(`Retry ${attempt}/${maxAttempts} für ${path} nach ${why} – warte ${waitMs}ms`, 'log-warning');
+                    await delay(waitMs);
+                    continue;
+                }
+
+                state.apiFailedCalls += 1;
+                throw err;
+            }
+        }
+
+        throw lastError || new Error(`API-Aufruf nach ${maxAttempts} Versuchen fehlgeschlagen: ${path}`);
+    }
+
+    async function apiGet(apiKey, path, fetchOptions) {
+        return apiGetWithRetry(apiKey, path, fetchOptions || {});
+    }
+
+    function recordTeamSourceFailure(team, source, err) {
+        const tid = team && team.id;
+        if (tid == null) return;
+        const msg = (err && err.message) ? err.message : String(err);
+        if (!state.teamSourceErrors.has(tid)) state.teamSourceErrors.set(tid, []);
+        state.teamSourceErrors.get(tid).push({ source, message: msg });
+    }
+
+    function isRetriableSourceFailure(err) {
+        const msg = (err && err.message) ? err.message : String(err || '');
+        if (isNetworkError(err)) return true;
+        if (/^HTTP 429\b/.test(msg) || msg.includes(' 429 ')) return true;
+        if (/HTTP 5\d\d\b/.test(msg)) return true;
+        if (isRetryableApiErrorText(msg)) return true;
+        return false;
+    }
+
+    function getMinPlayersThreshold() {
+        const v = Number(optMinPlayersRescue && optMinPlayersRescue.value);
+        if (Number.isFinite(v) && v >= 0) return v;
+        return MIN_PLAYERS_PER_TEAM_DEFAULT;
+    }
+
+    function getRescueFixturesLast() {
+        const v = Number(optRescueFixturesLast && optRescueFixturesLast.value);
+        if (Number.isFinite(v) && v >= 5) return Math.min(60, Math.floor(v));
+        return RESCUE_FIXTURES_LAST;
+    }
+
+    function countPlayersForTeam(teamId) {
+        let n = 0;
+        for (const [, p] of state.players) {
+            if (p.teamId === teamId) n += 1;
+        }
+        return n;
+    }
+
+    async function pauseAfterTeam(teamIndex) {
+        if (state.aborted) return;
+        if (!isSlowApiMode()) {
+            await delay(randomBetween(150, 350));
+            return;
+        }
+        await delay(randomBetween(800, 1500));
+        if ((teamIndex + 1) % LINEUP_COOLDOWN_EVERY_TEAMS === 0) {
+            log(`⏳ Cooldown nach ${LINEUP_COOLDOWN_EVERY_TEAMS} Teams: 5s Pause`, 'log-muted');
+            await delay(5000);
+        }
+    }
     function normalizePosition(pos) {
         const value = String(pos || '').trim().toUpperCase();
         if (!value) return "";
@@ -900,6 +1182,216 @@ Beispiel:
             cleanName = `${first} ${last}`;
         }
         return cleanName;
+    }
+
+    function isProbablyAbbreviatedName(name) {
+        if (!name || typeof name !== 'string') return false;
+        const s = name.trim();
+        if (!s) return false;
+        if (/^[A-ZÀ-ÖØ-Ý]\.\s+/.test(s)) return true;
+        if (/\b[A-ZÀ-ÖØ-Ý]\.$/.test(s)) return true;
+        if (/^[A-ZÀ-ÖØ-Ý]\.$/.test(s)) return true;
+        return false;
+    }
+
+    function nameLooksFull(name) {
+        if (!name || typeof name !== 'string') return false;
+        const s = name.trim();
+        if (s.length < 3) return false;
+        if (isProbablyAbbreviatedName(s)) return false;
+        return true;
+    }
+
+    /**
+     * Baut den bestmöglichen Anzeigenamen; Mononyme bleiben erhalten.
+     */
+    function buildFullDisplayName(playerLike) {
+        if (!playerLike) return "Unbekannt";
+        const first = String(playerLike.firstname || '').trim();
+        const last = String(playerLike.lastname || '').trim();
+        const n = String(playerLike.name || '').trim();
+        if (first && last) {
+            return `${first} ${last}`.replace(/\s+/g, ' ').trim();
+        }
+        if (first && n) {
+            if (isProbablyAbbreviatedName(n)) {
+                const parts = n.split(/\s+/);
+                if (parts.length >= 2) {
+                    const rest = parts.slice(1).join(' ');
+                    if (rest) return `${first} ${rest}`.replace(/\s+/g, ' ').trim();
+                }
+            }
+        }
+        if (n) return n;
+        if (first) return first;
+        if (last) return last;
+        return "Unbekannt";
+    }
+
+    function updateNameIndexAfterRename(player, oldName) {
+        if (player && player.id) return;
+        const teamId = player && player.teamId;
+        if (oldName) {
+            const oldKey = makeFallbackKey(oldName, teamId);
+            if (state.nameIndex.get(oldKey) && state.nameIndex.get(oldKey) === (player._mapKey || null)) {
+                state.nameIndex.delete(oldKey);
+            }
+        }
+        if (player && player.name) {
+            const newKey = makeFallbackKey(player.name, teamId);
+            const key = player._mapKey || (player.id != null ? player.id : `noid_${newKey}`);
+            if (!player.id) {
+                state.nameIndex.set(newKey, key);
+            }
+        }
+    }
+
+    function mergePlayerDetails(existing, detailRow, team) {
+        if (!existing || !detailRow) return;
+        const fp = detailRow.player || {};
+        const stats = Array.isArray(detailRow.statistics) && detailRow.statistics[0] ? detailRow.statistics[0] : {};
+        const gamesPos = (stats.games && stats.games.position) || "";
+        const nationalId = team && team.id;
+        const club = pickClub(detailRow.statistics || [], nationalId);
+
+        const candidate = {
+            name: buildFullDisplayName({
+                name: expandShortName(fp.name, fp.firstname),
+                firstname: fp.firstname,
+                lastname: fp.lastname
+            }),
+            firstname: fp.firstname || '',
+            lastname: fp.lastname || '',
+            photo: fp.photo || '',
+            birthDate: (fp.birth && fp.birth.date) || '',
+            birthCountry: (fp.birth && fp.birth.country) || '',
+            birthPlace: (fp.birth && fp.birth.place) || '',
+            nationality: fp.nationality || '',
+            height: cleanHeight(fp.height),
+            weight: cleanWeight(fp.weight),
+            club: club,
+            apiPosition: gamesPos || existing.apiPosition,
+            position: gamesPos || existing.position
+        };
+
+        const oldName = existing.name;
+        Object.assign(existing, {
+            firstname: candidate.firstname || existing.firstname,
+            lastname: candidate.lastname || existing.lastname,
+            photo: existing.photo || candidate.photo,
+            birthDate: existing.birthDate || candidate.birthDate,
+            birthCountry: existing.birthCountry || candidate.birthCountry,
+            birthPlace: existing.birthPlace || candidate.birthPlace,
+            nationality: existing.nationality || candidate.nationality,
+            height: (existing.height && existing.height !== '-') ? existing.height : candidate.height,
+            weight: (existing.weight && existing.weight !== '-') ? existing.weight : candidate.weight,
+            club: (existing.club && existing.club.name) ? existing.club : candidate.club
+        });
+
+        if ((!existing.apiPosition || existing.apiPosition === '') && candidate.apiPosition) {
+            existing.apiPosition = normalizePosition(candidate.apiPosition);
+        }
+        if ((!existing.position || existing.position === '') && candidate.position) {
+            existing.position = normalizePosition(getFinalPosition(existing.id, candidate.position));
+        }
+
+        const mergedDisplay = buildFullDisplayName({
+            name: candidate.name,
+            firstname: existing.firstname,
+            lastname: existing.lastname
+        });
+        const apiRawName = fp.name ? expandShortName(fp.name, fp.firstname) : '';
+        let chosenName = mergedDisplay;
+        if (fp.name && nameLooksFull(fp.name) && (!nameLooksFull(existing.name || '') || fp.name.length > (existing.name || '').length)) {
+            chosenName = buildFullDisplayName({
+                name: apiRawName || fp.name,
+                firstname: fp.firstname,
+                lastname: fp.lastname
+            });
+        }
+        const prevAbbrev = isProbablyAbbreviatedName(existing.name || '');
+        if (nameLooksFull(chosenName) || chosenName.length > (existing.name || '').length) {
+            existing.name = chosenName;
+            existing.fullName = chosenName;
+            existing.displayName = chosenName;
+            existing.nameSource = 'players_detail';
+            existing.nameWasAbbreviated = !!(prevAbbrev && !isProbablyAbbreviatedName(chosenName));
+            updateNameIndexAfterRename(existing, oldName);
+        }
+    }
+
+    function playerNeedsDetailFetch(p) {
+        if (!p || !p.id) return false;
+        const dn = buildFullDisplayName(p);
+        const abbrev = isProbablyAbbreviatedName(p.name || dn);
+        const missingNames = !String(p.firstname || '').trim() || !String(p.lastname || '').trim();
+        const thin = !(p.photo) || p.height === '-' || !p.height || !(p.birthDate);
+        return abbrev || missingNames || thin;
+    }
+
+    async function enrichPlayerNamesPhase(apiKey) {
+        if (!optFullNames || !optFullNames.checked) {
+            log('PHASE: Spieler-Details / volle Namen — übersprungen (Option aus).', 'log-muted');
+            return;
+        }
+        logHeader('PHASE: Spieler-Details / volle Namen nachladen');
+        let checked = 0;
+        let improved = 0;
+        let stillBad = 0;
+        state.namesImproved = 0;
+        const list = [...state.players.values()].filter(p => p && p.id);
+
+        for (const p of list) {
+            if (state.aborted) break;
+            if (!playerNeedsDetailFetch(p)) continue;
+
+            const beforeName = firestorePlayerDisplayName(p);
+            const wasAbbrev = isProbablyAbbreviatedName(beforeName);
+
+            checked += 1;
+            let mergedAny = false;
+
+            if (playerDetailCache.has(p.id)) {
+                const cached = playerDetailCache.get(p.id);
+                const team = state.teams.find(t => t.id === p.teamId) || { id: p.teamId, name: p.teamName };
+                mergePlayerDetails(p, cached, team);
+                mergedAny = true;
+            } else {
+                const team = state.teams.find(t => t.id === p.teamId) || { id: p.teamId, name: p.teamName };
+                for (const season of DETAIL_SEASONS) {
+                    if (state.aborted) break;
+                    const path = `/players?id=${p.id}&season=${season}`;
+                    try {
+                        const data = await apiGet(apiKey, path, { useCache: true });
+                        const arr = (data && Array.isArray(data.response)) ? data.response : [];
+                        if (arr.length > 0) {
+                            playerDetailCache.set(p.id, arr[0]);
+                            mergePlayerDetails(p, arr[0], team);
+                            mergedAny = true;
+                            break;
+                        }
+                    } catch (e) {
+                        log(`  ⚠️ Detail ID ${p.id} Saison ${season}: ${e.message}`, 'log-muted');
+                    }
+                    if (isSlowApiMode()) await delay(randomBetween(250, 450));
+                    else await delay(randomBetween(80, 160));
+                }
+            }
+
+            const afterName = firestorePlayerDisplayName(p);
+            p.fullName = afterName;
+            p.displayName = afterName;
+            if (mergedAny && wasAbbrev && !isProbablyAbbreviatedName(afterName)) {
+                improved += 1;
+            }
+            if (isProbablyAbbreviatedName(afterName)) {
+                stillBad += 1;
+            }
+        }
+
+        state.namesImproved = improved;
+        log(`Details: ${checked} Spieler geprüft, ${improved} Namen verbessert, ${stillBad} weiterhin abgekürzt/unklar.`, 'log-info');
+        updateStats();
     }
 
     function pickClub(allStats, nationalTeamId) {
@@ -1006,17 +1498,23 @@ Beispiel:
                 existing.confidenceScore += Math.round(scoreToAdd / 4);
             }
             mergeMissingFields(existing, candidate);
+            const disp = buildFullDisplayName(existing);
+            existing.fullName = disp;
+            existing.displayName = disp;
             existing.confidenceLevel = computeConfidenceLevel(existing.confidenceScore, existing.squadSources);
             existing.squadSource = pickPrimarySource(existing.squadSources);
             return existing;
         }
 
         const finalPosition = getFinalPosition(candidate.id, candidate.apiPosition || candidate.position);
+        const dispName = buildFullDisplayName(candidate);
         const player = {
             id: candidate.id,
-            name: candidate.name,
+            name: dispName,
             firstname: candidate.firstname,
             lastname: candidate.lastname,
+            fullName: dispName,
+            displayName: dispName,
             photo: candidate.photo,
             apiPosition: normalizePosition(candidate.apiPosition || candidate.position),
             position: finalPosition,
@@ -1041,6 +1539,7 @@ Beispiel:
         };
 
         const key = candidate.id || `noid_${makeFallbackKey(candidate.name, teamId)}`;
+        player._mapKey = key;
         state.players.set(key, player);
 
         if (!candidate.id) {
@@ -1050,13 +1549,28 @@ Beispiel:
     }
 
     function mergeMissingFields(existing, incoming) {
-        const fields = ['name', 'firstname', 'lastname', 'photo', 'birthDate', 'birthCountry',
+        const oldName = existing.name;
+        const fields = ['firstname', 'lastname', 'photo', 'birthDate', 'birthCountry',
             'birthPlace', 'nationality', 'height', 'weight', 'flag', 'teamName', 'teamLogo', 'country'];
         fields.forEach(f => {
-            if ((!existing[f] || existing[f] === "Unbekannt" || existing[f] === "-") && incoming[f]) {
+            if ((!existing[f] || existing[f] === "-") && incoming[f]) {
                 existing[f] = incoming[f];
             }
         });
+
+        if (incoming.name && incoming.name !== "Unbekannt") {
+            const inc = incoming.name;
+            if (!existing.name || existing.name === "Unbekannt") {
+                existing.name = inc;
+            } else if (nameLooksFull(inc) && !nameLooksFull(existing.name)) {
+                existing.name = inc;
+            } else if (isProbablyAbbreviatedName(existing.name) && !isProbablyAbbreviatedName(inc)) {
+                existing.name = inc;
+            } else if (String(inc).trim().length > String(existing.name || "").trim().length && nameLooksFull(inc)) {
+                existing.name = inc;
+            }
+        }
+
         if ((!existing.club || !existing.club.name) && incoming.club && incoming.club.name) {
             existing.club = incoming.club;
         }
@@ -1074,6 +1588,17 @@ Beispiel:
         }
         if (existing.age == null && incoming.age != null) {
             existing.age = incoming.age;
+        }
+
+        const disp = buildFullDisplayName(existing);
+        existing.fullName = disp;
+        existing.displayName = disp;
+        if (disp && disp !== "Unbekannt") {
+            existing.name = disp;
+        }
+
+        if (!existing.id && oldName && oldName !== existing.name) {
+            updateNameIndexAfterRename(existing, oldName);
         }
     }
 
@@ -1151,7 +1676,6 @@ Beispiel:
                 state.countsByTeam[team.id] = state.countsByTeam[team.id] || 0;
                 log(`\n[${i + 1}/${totalTeams}] 🏳️ ${team.name} (ID ${team.id})`, "log-info");
 
-                // ── QUELLE A: WM-2026 Spieler-Endpoint ──
                 try {
                     const beforeCount = state.players.size;
                     await fetchSourceA(apiKey, team);
@@ -1160,9 +1684,9 @@ Beispiel:
                 } catch (err) {
                     log(`  A ⚠️ worldcup_2026_players fehlgeschlagen: ${err.message}`, "log-warning");
                     state.failedTeams.push({ team: team.name, source: 'worldcup_2026_players', error: err.message });
+                    recordTeamSourceFailure(team, 'worldcup_2026_players', err);
                 }
 
-                // ── QUELLE B: Aktuelles Nationalteam-Squad ──
                 try {
                     const beforeCount = state.players.size;
                     await fetchSourceB(apiKey, team);
@@ -1171,28 +1695,28 @@ Beispiel:
                 } catch (err) {
                     log(`  B ⚠️ national_team_squad fehlgeschlagen: ${err.message}`, "log-warning");
                     state.failedTeams.push({ team: team.name, source: 'national_team_squad', error: err.message });
+                    recordTeamSourceFailure(team, 'national_team_squad', err);
                 }
 
-                // ── QUELLE C: Letzte Lineups (optional) ──
                 if (optRecentLineups.checked) {
                     try {
                         const beforeCount = state.players.size;
-                        await fetchSourceC(apiKey, team);
+                        await fetchSourceC(apiKey, team, { rescueMode: false, lastFixtures: NORMAL_FIXTURES_LAST });
                         const added = state.players.size - beforeCount;
                         log(`  C › recent_national_lineups: +${added} neue Spieler`, "log-success");
                     } catch (err) {
-                        log(`  C ⚠️ Lineup-Ergänzung für ${team.name} übersprungen / fehlgeschlagen: ${err.message}`, "log-warning");
+                        log(`  C ⚠️ Lineup-Ergänzung fehlgeschlagen: ${err.message}`, "log-warning");
                         state.failedTeams.push({ team: team.name, source: 'recent_national_lineups', error: err.message });
+                        recordTeamSourceFailure(team, 'recent_national_lineups', err);
                     }
                 }
 
                 progressBar.style.width = `${Math.round(((i + 1) / totalTeams) * 100)}%`;
                 updateStats();
                 renderPreview();
-                await delay(150);
+                await pauseAfterTeam(i);
             }
 
-            // ── QUELLE D: Manuelle Player-IDs (nach den Teams) ──
             const manualMap = parseManualPlayerIds(manualPlayerIdsEl.value);
             const manualEntries = Object.entries(manualMap);
             if (manualEntries.length > 0 && !state.aborted) {
@@ -1209,7 +1733,6 @@ Beispiel:
                         } catch (err) {
                             log(`  D ⚠️ Spieler ${pid} (Team ${teamId}) konnte nicht geladen werden: ${err.message}`, "log-warning");
                             state.failedPlayers.push({ playerId: pid, teamId, error: err.message });
-                            // Trotzdem als manueller Spieler aufnehmen, damit die ID nicht verloren geht.
                             upsertPlayer({
                                 id: pid,
                                 name: `Spieler ${pid}`,
@@ -1224,7 +1747,10 @@ Beispiel:
                 renderPreview();
             }
 
-            // Optional: pro Team begrenzen
+            if (!state.aborted) {
+                await runRescuePhase(apiKey);
+            }
+
             if (optLimitPerTeam.checked) {
                 const limit = Math.max(1, Number(optLimitValue.value) || 60);
                 applyPerTeamLimit(limit);
@@ -1232,11 +1758,16 @@ Beispiel:
                 renderPreview();
             }
 
-            // Quellen-Summe
+            if (!state.aborted) {
+                await enrichPlayerNamesPhase(apiKey);
+            }
+
             recomputeSourceCounts();
 
-            log(`\n🎯 Pool fertig: ${state.players.size} Spieler aus ${state.teams.length} Teams.`, "log-success");
+            log(`\n🎯 Pool-Lauf abgeschlossen: ${state.players.size} Spieler aus ${state.teams.length} Teams.`, "log-success");
             log(`   Quellen-Verteilung: A=${state.countsBySource.worldcup_2026_players}, B=${state.countsBySource.national_team_squad}, C=${state.countsBySource.recent_national_lineups}, D=${state.countsBySource.manual_player_id}`, "log-info");
+
+            logFinalPoolSummary();
 
             updateStats();
             renderPreview();
@@ -1282,13 +1813,166 @@ Beispiel:
         for (const [, list] of grouped) {
             list.sort((a, b) => (b.confidenceScore || 0) - (a.confidenceScore || 0));
             list.slice(0, limit).forEach(p => {
-                const key = p.id || `noid_${makeFallbackKey(p.name, p.teamId)}`;
+                const key = p._mapKey || p.id || `noid_${makeFallbackKey(p.name, p.teamId)}`;
                 newMap.set(key, p);
+                p._mapKey = key;
                 if (!p.id) newNameIndex.set(makeFallbackKey(p.name, p.teamId), key);
             });
         }
         state.players = newMap;
         state.nameIndex = newNameIndex;
+    }
+
+    function buildRescueTeamList() {
+        recomputeSourceCounts();
+        const minP = getMinPlayersThreshold();
+        const set = new Set();
+        for (const t of state.teams) {
+            const c = state.countsByTeam[String(t.id)] || 0;
+            const errs = state.teamSourceErrors.get(t.id) || [];
+            const failed = errs.some(e => isRetriableSourceFailure({ message: e.message }));
+            if (c === 0 || c < minP || failed) set.add(t.id);
+        }
+        return state.teams.filter(t => set.has(t.id));
+    }
+
+    function firestorePlayerDisplayName(p) {
+        return (p && (p.fullName || p.displayName || p.name)) || "Unbekannt";
+    }
+
+    function countAbbreviatedNamesInPool() {
+        let n = 0;
+        for (const [, p] of state.players) {
+            const d = firestorePlayerDisplayName(p);
+            if (isProbablyAbbreviatedName(d)) n += 1;
+        }
+        return n;
+    }
+
+    async function runRescuePhase(apiKey) {
+        const targets = buildRescueTeamList();
+        if (targets.length === 0) {
+            log("Nachfassrunde: keine Teams erkannt (Zähler & Fehler ok).", "log-muted");
+            return;
+        }
+        logHeader(`PHASE: Nachfass / Rescue (${targets.length} Teams)`);
+        log("⏳ Cooldown 10s vor Nachfassrunde …", "log-warning");
+        await delay(10000);
+        if (state.aborted) return;
+
+        let idx = 0;
+        for (const team of targets) {
+            if (state.aborted) break;
+            idx += 1;
+            log(`\n🔁 [${idx}/${targets.length}] Rescue: ${team.name} (ID ${team.id})`, "log-info");
+
+            await delay(randomBetween(1200, 1800));
+            try {
+                const before = state.players.size;
+                await fetchSourceB(apiKey, team);
+                log(`  Rescue B › +${state.players.size - before} Spieler (Squad erneut)`, "log-success");
+            } catch (e) {
+                log(`  Rescue B ⚠️ ${e.message}`, "log-warning");
+                recordTeamSourceFailure(team, 'national_team_squad', e);
+                state.failedTeams.push({ team: team.name, source: 'national_team_squad_rescue', error: e.message });
+            }
+
+            if (optRecentLineups.checked) {
+                await delay(randomBetween(1200, 1800));
+                try {
+                    const before = state.players.size;
+                    await fetchSourceC(apiKey, team, { rescueMode: true, lastFixtures: getRescueFixturesLast() });
+                    log(`  Rescue C › +${state.players.size - before} Spieler (Lineups last=${getRescueFixturesLast()})`, "log-success");
+                } catch (e) {
+                    log(`  Rescue C ⚠️ ${e.message}`, "log-warning");
+                    recordTeamSourceFailure(team, 'recent_national_lineups', e);
+                    state.failedTeams.push({ team: team.name, source: 'recent_national_lineups_rescue', error: e.message });
+                }
+            }
+
+            await delay(randomBetween(1200, 1800));
+            try {
+                const before = state.players.size;
+                await fetchSourceA(apiKey, team);
+                const add = state.players.size - before;
+                if (add > 0) log(`  Rescue A (optional) › +${add} Spieler`, "log-success");
+            } catch (e) {
+                log(`  Rescue A (optional) übersprungen: ${e.message}`, "log-muted");
+            }
+
+            updateStats();
+            renderPreview();
+            await delay(randomBetween(800, 1400));
+        }
+
+        recomputeSourceCounts();
+        log("✅ Nachfassrunde abgeschlossen.", "log-success");
+    }
+
+    function logFinalPoolSummary() {
+        recomputeSourceCounts();
+        const minP = getMinPlayersThreshold();
+        const zeroTeams = [];
+        const underMin = [];
+        const abbrev = countAbbreviatedNamesInPool();
+        for (const t of state.teams) {
+            const c = state.countsByTeam[String(t.id)] || 0;
+            if (c === 0) zeroTeams.push(`${t.name} (${t.id})`);
+            else if (c < minP) underMin.push(`${t.name}: ${c} (< ${minP})`);
+        }
+
+        logHeader("Zusammenfassung Spielerpool");
+        log(`Gesamt Spieler: ${state.players.size} | Teams: ${state.teams.length}`, "log-info");
+        log(`Quellen: A=${state.countsBySource.worldcup_2026_players}, B=${state.countsBySource.national_team_squad}, C=${state.countsBySource.recent_national_lineups}, D=${state.countsBySource.manual_player_id}`, "log-info");
+        log(`API: HTTP-Versuche gezählt in „API-Calls“=${state.apiCalls} | Retries=${state.apiRetryCount} | endgültig fehlgeschlagen=${state.apiFailedCalls}`, "log-info");
+        log(`Namen: verbessert (Details)=${state.namesImproved} | noch abgekürzt/unklar≈${abbrev}`, "log-info");
+
+        if (zeroTeams.length) {
+            log(`⚠️ Teams mit 0 Spielern (${zeroTeams.length}): ${zeroTeams.join("; ")}`, "log-error");
+        } else {
+            log("Keine Teams mit 0 Spielern.", "log-success");
+        }
+        if (underMin.length) {
+            log(`⚠️ Teams unter MIN (${minP}): ${underMin.join(" | ")}`, "log-warning");
+        } else {
+            log(`Alle Teams ≥ ${minP} Spieler (oder MIN=0).`, "log-success");
+        }
+
+        log("Quellenfehler je Team (Auszug):", "log-info");
+        const entries = [...state.teamSourceErrors.entries()].filter(([, arr]) => arr && arr.length);
+        if (entries.length === 0) log("  (keine gemerkten Fehler)", "log-muted");
+        else entries.slice(0, 24).forEach(([tid, arr]) => {
+            const name = (state.teams.find(x => x.id === Number(tid)) || {}).name || tid;
+            log(`  • ${name}: ${arr.map(e => `${e.source}: ${e.message}`).join(" · ")}`, "log-muted");
+        });
+        if (entries.length > 24) log(`  … ${entries.length - 24} weitere Teams mit Fehl-Einträgen`, "log-muted");
+
+        logNationDistributionFull();
+    }
+
+    function logNationDistributionFull() {
+        const map = new Map();
+        for (const t of state.teams) {
+            map.set(t.id, { name: t.name, count: 0 });
+        }
+        for (const [, p] of state.players) {
+            const id = p.teamId;
+            if (!map.has(id)) map.set(id, { name: p.teamName || `Team ${id}`, count: 0 });
+            map.get(id).count += 1;
+        }
+        const minP = getMinPlayersThreshold();
+        log("Nation / Spieler (alle Teams):", "log-info");
+        const rows = [...map.entries()].map(([id, v]) => {
+            let tag = "";
+            if (v.count === 0) tag = " ⚠️ LEER";
+            else if (v.count < minP) tag = ` ⚠️ < MIN (${minP})`;
+            return `  • ${v.name} [${id}]: ${v.count}${tag}`;
+        });
+        rows.sort((a, b) => a.localeCompare(b, "de"));
+        rows.forEach(line => {
+            if (line.includes("LEER") || line.includes("< MIN")) log(line, "log-warning");
+            else log(line, "log-muted");
+        });
     }
 
     // ─────────────────────────────────────────────────────────
@@ -1330,7 +2014,8 @@ Beispiel:
             }
             totalPages = (data && data.paging && data.paging.total) || 1;
             page += 1;
-            await delay(120);
+            if (isSlowApiMode()) await delay(randomBetween(100, 200));
+            else await delay(randomBetween(40, 100));
         }
     }
 
@@ -1360,25 +2045,58 @@ Beispiel:
     }
 
     // ─────────────────────────────────────────────────────────
-    //  QUELLE C: Letzte Lineups (optional, robust)
+    //  QUELLE C: Letzte Lineups (optional, mit Rescue-Modus)
     // ─────────────────────────────────────────────────────────
-    async function fetchSourceC(apiKey, team) {
-        // Letzte ~15 Spiele des Teams
-        const fixturesData = await apiGet(apiKey, `/fixtures?team=${team.id}&last=15`);
-        const fixtures = (fixturesData && Array.isArray(fixturesData.response)) ? fixturesData.response : [];
-        if (fixtures.length === 0) return;
+    /**
+     * @param {object} [options]
+     * @param {number} [options.lastFixtures] – Default: NORMAL_FIXTURES_LAST bzw. RESCUE bei rescueMode
+     * @param {boolean} [options.rescueMode]
+     */
+    async function fetchSourceC(apiKey, team, options) {
+        const opt = options || {};
+        const rescueMode = !!opt.rescueMode;
+        const lastFromSettings = getRescueFixturesLast();
+        const last = rescueMode
+            ? (opt.lastFixtures != null ? opt.lastFixtures : lastFromSettings)
+            : (opt.lastFixtures != null ? opt.lastFixtures : NORMAL_FIXTURES_LAST);
 
-        // Pro Spiel die Lineups holen.
+        const limitPerTeam = optLimitPerTeam.checked ? Math.max(1, Number(optLimitValue.value) || 60) : null;
+        let fixturesChecked = 0;
+        let lineupsOk = 0;
+        let lineupsFail = 0;
+        const teamId = team.id;
+
+        const fixturesPath = `/fixtures?team=${teamId}&last=${last}`;
+        const fixturesData = await apiGet(apiKey, fixturesPath);
+        const fixtures = (fixturesData && Array.isArray(fixturesData.response)) ? fixturesData.response : [];
+        if (fixtures.length === 0) {
+            log(`  C › Keine Fixtures für let=${last}.`, "log-muted");
+            return;
+        }
+
         for (const fx of fixtures) {
             if (state.aborted) return;
+            const cnt = countPlayersForTeam(teamId);
+            if (limitPerTeam != null && cnt >= limitPerTeam) {
+                log(`  C › Team hat Limit (${limitPerTeam}) erreicht – weitere Lineups übersprungen.`, "log-muted");
+                break;
+            }
+            if (!optLimitPerTeam.checked && cnt >= SOURCE_C_LINEUP_SKIP_THRESHOLD) {
+                log(`  C › team ${teamId} hat ≥${SOURCE_C_LINEUP_SKIP_THRESHOLD} Spieler – restliche Lineups übersprungen (API sparen).`, "log-muted");
+                break;
+            }
+
             const fixtureId = fx && fx.fixture && fx.fixture.id;
             if (!fixtureId) continue;
+            fixturesChecked += 1;
+
             try {
                 const lineupData = await apiGet(apiKey, `/fixtures/lineups?fixture=${fixtureId}`);
                 const lineups = (lineupData && Array.isArray(lineupData.response)) ? lineupData.response : [];
+                let gotForThisFix = false;
                 for (const lu of lineups) {
                     const luTeamId = lu && lu.team && lu.team.id;
-                    if (luTeamId !== team.id) continue;
+                    if (luTeamId !== teamId) continue;
                     const startXI = (lu.startXI || []).map(x => x.player).filter(Boolean);
                     const subs = (lu.substitutes || []).map(x => x.player).filter(Boolean);
                     const all = startXI.concat(subs);
@@ -1387,19 +2105,29 @@ Beispiel:
                         upsertPlayer({
                             id: pl.id,
                             name: pl.name || "Unbekannt",
+                            firstname: pl.firstname || "",
+                            lastname: pl.lastname || "",
                             position: pl.pos || "",
                             apiPosition: pl.pos || "",
                             number: pl.number,
-                            photo: "",
+                            photo: pl.photo || "",
                             club: { name: "", logo: "" }
                         }, 'recent_national_lineups', team);
                     }
+                    gotForThisFix = true;
                 }
+                if (gotForThisFix) lineupsOk += 1;
             } catch (e) {
-                log(`    C ↪︎ Lineup für Fixture ${fixtureId} übersprungen: ${e.message}`, "log-muted");
+                lineupsFail += 1;
+                log(`    C ↪︎ Lineup Fixture ${fixtureId} übersprungen: ${e.message}`, "log-muted");
             }
-            await delay(80);
+
+            const pauseLo = rescueMode ? 250 : 120;
+            const pauseHi = rescueMode ? 500 : 220;
+            await delay(randomBetween(pauseLo, pauseHi));
         }
+
+        log(`  C › Fixtures geprüft: ${fixturesChecked}, Lineups mit Daten: ${lineupsOk}, fehlgeschlagen: ${lineupsFail} (last=${last}${rescueMode ? ', rescue' : ''})`, "log-muted");
     }
 
     // ─────────────────────────────────────────────────────────
@@ -1513,7 +2241,8 @@ Beispiel:
             if (sourceVal && !(p.squadSources || []).includes(sourceVal)) continue;
             if (confVal && p.confidenceLevel !== confVal) continue;
             if (search) {
-                const haystack = `${p.name} ${(p.club && p.club.name) || ''}`.toLowerCase();
+                const disp = firestorePlayerDisplayName(p);
+                const haystack = `${disp} ${p.name || ''} ${(p.club && p.club.name) || ''}`.toLowerCase();
                 if (!haystack.includes(search)) continue;
             }
             list.push(p);
@@ -1521,7 +2250,7 @@ Beispiel:
         list.sort((a, b) => {
             const c = String(a.teamName || '').localeCompare(String(b.teamName || ''), 'de');
             if (c !== 0) return c;
-            return String(a.name || '').localeCompare(String(b.name || ''), 'de');
+            return String(firestorePlayerDisplayName(a) || '').localeCompare(String(firestorePlayerDisplayName(b) || ''), 'de');
         });
 
         if (list.length === 0) {
@@ -1540,7 +2269,7 @@ Beispiel:
             const flag = p.flag ? `<img class="flag" src="${escapeHtml(p.flag)}" alt="">` : (p.teamLogo ? `<img class="flag" src="${escapeHtml(p.teamLogo)}" alt="">` : '');
             return `<tr>
                 <td>${flag}${escapeHtml(p.teamName || '-')}</td>
-                <td><div class="player-cell">${photoSrc}<span>${escapeHtml(p.name)}</span></div></td>
+                <td><div class="player-cell">${photoSrc}<span>${escapeHtml(firestorePlayerDisplayName(p))}</span></div></td>
                 <td>${escapeHtml(p.position || p.apiPosition || '-')}</td>
                 <td>${sources}</td>
                 <td><span class="${confClass}">${escapeHtml(p.confidenceLevel)}</span> <span class="log-muted">(${p.confidenceScore})</span></td>
@@ -1661,9 +2390,14 @@ Finale/offizielle Spieler werden NIE gelöscht.`
                 const docId = String(p.id);
                 const ref = db.collection(FIRESTORE_TARGET_COLLECTION).doc(docId);
 
+                const displayName = firestorePlayerDisplayName(p);
                 const payload = {
                     "player.id": p.id,
-                    "Spielername": p.name || "Unbekannt",
+                    "Spielername": p.fullName || p.displayName || p.name || "Unbekannt",
+                    "Vorname": p.firstname || "",
+                    "Nachname": p.lastname || "",
+                    "NameQuelle": p.nameSource || "",
+                    "NameWarAbgekuerzt": !!isProbablyAbbreviatedName(displayName),
                     "Spielerfoto": p.photo || "",
                     "Position": finalPosition,
                     "ApiPosition": p.apiPosition || "",
@@ -1715,6 +2449,10 @@ Finale/offizielle Spieler werden NIE gelöscht.`
 
             // 3) Meta-Dokument schreiben
             recomputeSourceCounts();
+            const teamSourceErrorsObj = {};
+            for (const [k, v] of state.teamSourceErrors) {
+                teamSourceErrorsObj[String(k)] = v;
+            }
             const metaRef = db.collection(META_COLLECTION).doc(META_PROVISIONAL_DOC_ID);
             const metaPayload = {
                 tournamentKey: TOURNAMENT_KEY,
@@ -1732,13 +2470,21 @@ Finale/offizielle Spieler werden NIE gelöscht.`
                 totalPlayersByTeam: state.countsByTeam,
                 totalBySource: state.countsBySource,
                 warnings: state.warnings,
+                apiCalls: state.apiCalls,
+                apiRetryCount: state.apiRetryCount,
+                apiFailedCalls: state.apiFailedCalls,
+                namesImprovedCount: state.namesImproved,
+                abbreviatedNamesRemaining: countAbbreviatedNamesInPool(),
                 failedTeams: state.failedTeams,
                 failedPlayers: state.failedPlayers,
+                teamSourceErrors: teamSourceErrorsObj,
                 targetCollection: FIRESTORE_TARGET_COLLECTION,
                 lastCheckedAt: tsServer
             };
             await metaRef.set(metaPayload, { merge: true });
             log(`✅ Meta-Doc ${META_COLLECTION}/${META_PROVISIONAL_DOC_ID} aktualisiert.`, "log-success");
+
+            logFinalPoolSummary();
 
             log(`\n🎉 FERTIG – Provisorisches WM-2026-Kader importiert.`, "log-success");
             alert(`Provisorisches WM-2026-Kader gespeichert.\n${totalWritten} Spieler in "${FIRESTORE_TARGET_COLLECTION}".`);
@@ -1753,19 +2499,13 @@ Finale/offizielle Spieler werden NIE gelöscht.`
 
     function buildAndDumpDryRunSummary() {
         recomputeSourceCounts();
-        const nations = {};
-        for (const [, p] of state.players) {
-            const k = p.teamName || `Team ${p.teamId}`;
-            nations[k] = (nations[k] || 0) + 1;
-        }
-        log(`Nation/Spieler-Verteilung (Top 12):`, "log-info");
-        Object.entries(nations)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 12)
-            .forEach(([k, v]) => log(`  • ${k}: ${v}`, "log-muted"));
+        log(`\n🧪 TESTLAUF (Dry Run) – Zusammenfassung:`, "log-warning");
+        logFinalPoolSummary();
         log(`Confidence-Verteilung:`, "log-info");
         const conf = { high: 0, medium: 0, low: 0, manual: 0 };
-        for (const [, p] of state.players) conf[p.confidenceLevel] = (conf[p.confidenceLevel] || 0) + 1;
+        for (const [, p] of state.players) {
+            if (p.confidenceLevel) conf[p.confidenceLevel] = (conf[p.confidenceLevel] || 0) + 1;
+        }
         Object.entries(conf).forEach(([k, v]) => log(`  • ${k}: ${v}`, "log-muted"));
     }
 
