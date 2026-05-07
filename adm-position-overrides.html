@@ -519,6 +519,11 @@
                     Lädt das aktive Turnier aus <strong>tournament-config.js</strong>, zeigt alle Spieler aus <strong>data.js</strong>
                     und verwaltet manuelle Positionsanpassungen aus <strong>position-overrides.js</strong>.
                 </p>
+                <p class="subtitle" id="pageIntegrationNote" style="margin-top:10px;">
+                    Sobald der generierte Code in <strong>position-overrides.js</strong> übernommen ist, greifen die
+                    Anpassungen <strong>direkt in der gesamten App</strong> (Dashboard, Team-Builder, Teams, Analyse,
+                    Rangliste) – ein Neu-Generieren der Kader-Datei ist dafür nicht nötig.
+                </p>
             </div>
             <div class="hero-actions">
                 <button class="btn-secondary" id="resetDraftBtn">↩️ Entwürfe verwerfen</button>
@@ -682,7 +687,12 @@
         .map(player => ({
             ...player,
             _id: String(player['player.id']),
-            _basePosition: normalizePosition(player.Position),
+            // Wichtig: data.js wendet zur Laufzeit Overrides auf player.Position
+            // an. Damit der Editor immer die echte Original-Position als
+            // Basis kennt, lesen wir bevorzugt PositionOriginal (gesetzt von
+            // data.js, wenn ein Override aktiv ist) und fallen sonst auf
+            // Position zurück.
+            _basePosition: normalizePosition(player.PositionOriginal || player.Position),
             _nation: String(player['Nationalteam.name'] || '').trim(),
             _club: String(player['Club.name'] || '').trim(),
             _name: String(player.Spielername || '').trim()
@@ -703,6 +713,14 @@
         }
         if (els.pageIntro) {
             els.pageIntro.innerHTML = `Lädt <strong>${TOURNAMENT.shortLabel}</strong> automatisch aus <strong>tournament-config.js</strong>, zeigt alle Spieler aus <strong>data.js</strong> und verwaltet manuelle Positionsanpassungen aus <strong>position-overrides.js</strong>.`;
+        }
+        const integrationNoteEl = document.getElementById('pageIntegrationNote');
+        if (integrationNoteEl) {
+            integrationNoteEl.innerHTML =
+                `Sobald der generierte Code in <strong>position-overrides.js</strong> übernommen ist, greifen die ` +
+                `Positionsanpassungen für <strong>${TOURNAMENT.shortLabel}</strong> direkt in der gesamten App ` +
+                `(Dashboard, Team-Builder, Teams, Analyse, Rangliste) – ein Neu-Generieren der ` +
+                `<strong>${TOURNAMENT.dataFile || 'Kader-Datei'}</strong> ist dafür nicht nötig.`;
         }
 
         els.statTournament.textContent = `${TOURNAMENT.shortLabel} (${TOURNAMENT_KEY})`;
@@ -815,7 +833,12 @@
     }
 
     function getBasePosition(player) {
-        return normalizePosition(player?._basePosition || player?.Position || '');
+        return normalizePosition(
+            player?._basePosition
+            || player?.PositionOriginal
+            || player?.Position
+            || ''
+        );
     }
 
     function getDraftOverride(playerId) {
