@@ -751,12 +751,16 @@
             return { name: "Vereinslos", logo: "" };
         }
 
+        // Wichtig: `team.national` kommt in der API-Football-Antwort nicht
+        // konsistent zurück (manchmal `false`, manchmal `null`/`undefined`).
+        // Deshalb akzeptieren wir alles, was nicht explizit `national === true`
+        // ist, und filtern Nationalteam-Einträge zusätzlich über die ID.
         const isClubEntry = (s) =>
             s && s.team &&
             s.team.id !== nationalTeamId &&
+            s.team.national !== true &&
             s.league &&
-            Number(s.league.id) !== Number(COMPETITION_ID) &&
-            s.team.national === false;
+            Number(s.league.id) !== Number(COMPETITION_ID);
 
         // Bevorzuge die jüngste Saison-Reihenfolge in seasonsTried.
         for (const season of seasonsTried) {
@@ -777,7 +781,7 @@
         // Letzter Fallback: irgendein Team, das nicht das Nationalteam ist.
         const fallback = allStats.find(s =>
             s && s.team && s.team.id !== nationalTeamId &&
-            s.league && Number(s.league.id) !== Number(COMPETITION_ID)
+            s.team.national !== true
         );
         if (fallback && fallback.team?.name) {
             return { name: fallback.team.name, logo: fallback.team.logo || "" };
@@ -786,16 +790,36 @@
         return { name: "Vereinslos", logo: "" };
     }
 
-    /* ---------- Spielerdetails laden (mit Saison-Fallback) -------------- */
+    /* ---------- Spielerdetails laden (mit Saison-Fallback) --------------
+     *
+     * Wichtig: `/players?id=X&season=Y` liefert auch dann ein
+     * `response`-Array zurück, wenn der Spieler in dieser Saison
+     * gar nicht eingesetzt wurde – dann ist `statistics` leer und
+     * wir verlieren die Verein-Info ("Vereinslos").
+     * Deshalb sammeln wir die Statistiken aus ALLEN angefragten Saisons
+     * und behalten den ersten gefundenen Player-Block.
+     */
 
     async function loadPlayerDetail(playerId, seasons) {
         const tried = [];
+        let firstPlayer = null;
+        const combinedStats = [];
+
         for (const season of seasons) {
             tried.push(season);
             try {
                 const data = await apiGet(`/players?id=${playerId}&season=${encodeURIComponent(season)}`);
                 if (data.response && data.response.length > 0) {
-                    return { detail: data.response[0], seasonsTried: tried };
+                    const entry = data.response[0];
+                    if (!firstPlayer && entry.player) firstPlayer = entry.player;
+                    if (Array.isArray(entry.statistics)) {
+                        for (const stat of entry.statistics) {
+                            if (stat && stat.league && (stat.league.season == null || stat.league.season === "")) {
+                                stat.league.season = season;
+                            }
+                            combinedStats.push(stat);
+                        }
+                    }
                 }
             } catch (e) {
                 // Probier die nächste Saison.
@@ -803,15 +827,30 @@
             await delay(RATE_DELAY);
         }
 
-        // Allerletzter Versuch ohne Saison-Filter (gibt zumindest player.* zurück).
-        try {
-            const data = await apiGet(`/players?id=${playerId}`);
-            if (data.response && data.response.length > 0) {
-                return { detail: data.response[0], seasonsTried: tried };
-            }
-        } catch (e) {}
+        // Allerletzter Versuch ohne Saison-Filter, falls wir noch immer
+        // keinen Player-Block (oder gar keine Stats) haben.
+        if (!firstPlayer || combinedStats.length === 0) {
+            try {
+                const data = await apiGet(`/players?id=${playerId}`);
+                if (data.response && data.response.length > 0) {
+                    const entry = data.response[0];
+                    if (!firstPlayer && entry.player) firstPlayer = entry.player;
+                    if (Array.isArray(entry.statistics)) {
+                        for (const stat of entry.statistics) {
+                            combinedStats.push(stat);
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
 
-        return { detail: null, seasonsTried: tried };
+        if (!firstPlayer) {
+            return { detail: null, seasonsTried: tried };
+        }
+        return {
+            detail: { player: firstPlayer, statistics: combinedStats },
+            seasonsTried: tried
+        };
     }
 
     /* ---------- Hauptlauf ---------------------------------------------- */
