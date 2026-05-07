@@ -11,6 +11,16 @@ window.POSITION_OVERRIDES = {
     },
 
     wm2026: {
+        "17": "ATTACKER", // Christian Pulišić
+        "247": "ATTACKER", // Cody Gakpo
+        "207": "ATTACKER", // Ivan Perišić
+        "1422": "ATTACKER", // Jérémy Doku
+        "978": "ATTACKER", // Kai Havertz
+        "386828": "ATTACKER", // Lamine Yamal
+        "153": "ATTACKER", // Masour Dembélé
+        "1496": "ATTACKER", // Raphinha
+        "10009": "ATTACKER", // Rodrygo
+        "510": "ATTACKER", // Serge Gnabry
         "762": "ATTACKER" // Vinícius Júnior
     },
 
