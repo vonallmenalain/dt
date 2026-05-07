@@ -296,7 +296,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-bottom: 15px;
             display: none;
@@ -407,6 +407,9 @@
             (<code>/players/squads</code>) jedes für die WM 2026 qualifizierten Teams.
             Für jeden Spieler werden zusätzlich Geburtsdatum, Grösse, Gewicht und
             der aktuelle Verein über <code>/players?id=…</code> geladen.
+            <br><br>
+            <strong>Filter:</strong> Spieler ohne Vornamen oder ohne Profilbild
+            werden NICHT in <code>data-wm2026.js</code> exportiert.
         </div>
 
         <div class="storage-note">
@@ -431,6 +434,10 @@
         <div class="stat-card">
             <div class="stat-value" id="statCompleted">0</div>
             <div class="stat-label">Vollständig</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statSkipped">0</div>
+            <div class="stat-label">Übersprungen</div>
         </div>
     </div>
 
@@ -500,6 +507,7 @@
     const statSquads = document.getElementById('statSquads');
     const statPlayers = document.getElementById('statPlayers');
     const statCompleted = document.getElementById('statCompleted');
+    const statSkipped = document.getElementById('statSkipped');
 
     function log(msg, type = '') {
         const now = new Date().toLocaleTimeString();
@@ -571,16 +579,19 @@
 
     /* ---------- Verbessertes Namens-Cleaning ----------------------------- */
     /*
-     * Heuristik:
-     *  1. Wenn der API-Name keine Abkürzung enthält ("." NICHT vorhanden) und
-     *     nicht offensichtlich überlang ist (≤ 3 Wörter), übernehmen wir ihn
-     *     1:1 ("Harry Kane", "Kevin De Bruyne").
-     *  2. Wenn der API-Name Abkürzungen enthält (z.B. "F. Valverde"), bauen
-     *     wir den Namen aus firstname (1. Wort) + Rest hinter dem Punkt.
-     *  3. Wenn der API-Name sehr lang ist (≥ 4 Wörter), kürzen wir auf
-     *     "<1. Wort firstname> <bevorzugtes Nachnamen-Token>". Dabei wird der
-     *     bekannteste Teil des Nachnamens identifiziert (siehe pickSurname).
-     *  4. Sonst Fallback auf "<firstname[0]> <lastname>".
+     * Heuristik (Reihenfolge wichtig):
+     *  1. Abgekürzte Namen wie "F. Valverde" oder "K. Mbappé" werden zu
+     *     "<1. Wort firstname> <Teil hinter dem Punkt>" umgebaut
+     *     ("Federico Valverde", "Kylian Mbappé").
+     *  2. API-Name = einzelnes Wort (z.B. "Marquinhos", "Pedri", "Rodrygo",
+     *     "Casemiro", "Vinicius Jr") ist in API-Football der gewünschte
+     *     Künstler-/Anzeigename. Wir übernehmen ihn 1:1 und hängen NICHT
+     *     den Vornamen davor (Stage-Name-Konvention).
+     *  3. Genau 2 Wörter im API-Namen ("Harry Kane", "Cristiano Ronaldo")
+     *     werden 1:1 übernommen.
+     *  4. Bei mehrteiligem Vor- oder Nachnamen wird auf
+     *     "<1. Vorname> <bevorzugter Nachname>" gekürzt.
+     *  5. Sonst Fallback auf "<firstname[0]> <lastname>".
      */
 
     /*
@@ -680,15 +691,15 @@
 
         const apiTokens = apiName.split(/\s+/).filter(Boolean);
 
-        // 2) Genau 2 Wörter im API-Namen → das ist die "Stage Name"-Form
+        // 2) API-Name = nur ein einzelnes Wort (z.B. "Marquinhos", "Pedri",
+        //    "Rodrygo", "Casemiro"). Das ist in API-Football der bevorzugte
+        //    Stage-/Künstlername — 1:1 übernehmen, NICHT den Vornamen davor
+        //    hängen.
+        if (apiTokens.length === 1) return apiTokens[0];
+
+        // 3) Genau 2 Wörter im API-Namen → das ist die "Stage Name"-Form
         //    (z.B. "Cristiano Ronaldo", "Harry Kane", "Granit Xhaka").
         if (apiTokens.length === 2) return apiName;
-
-        // 3) API-Name = nur ein einzelnes Wort (z.B. "Casemiro")
-        //    → Vornamen davor hängen: "Carlos Casemiro".
-        if (apiTokens.length === 1 && firstWord && apiTokens[0].toLowerCase() !== firstWord.toLowerCase()) {
-            return `${firstWord} ${apiTokens[0]}`.trim();
-        }
 
         // 4) Wenn Vor- oder Nachname mehrteilig ist, auf
         //    "<1. Vorname> <bevorzugter Nachname>" kürzen.
@@ -748,12 +759,16 @@
             return { name: "Vereinslos", logo: "" };
         }
 
+        // Wichtig: `team.national` kommt in der API-Football-Antwort nicht
+        // konsistent zurück (manchmal `false`, manchmal `null`/`undefined`).
+        // Deshalb akzeptieren wir alles, was nicht explizit `national === true`
+        // ist, und filtern Nationalteam-Einträge zusätzlich über die ID.
         const isClubEntry = (s) =>
             s && s.team &&
             s.team.id !== nationalTeamId &&
+            s.team.national !== true &&
             s.league &&
-            Number(s.league.id) !== Number(COMPETITION_ID) &&
-            s.team.national === false;
+            Number(s.league.id) !== Number(COMPETITION_ID);
 
         // Bevorzuge die jüngste Saison-Reihenfolge in seasonsTried.
         for (const season of seasonsTried) {
@@ -774,7 +789,7 @@
         // Letzter Fallback: irgendein Team, das nicht das Nationalteam ist.
         const fallback = allStats.find(s =>
             s && s.team && s.team.id !== nationalTeamId &&
-            s.league && Number(s.league.id) !== Number(COMPETITION_ID)
+            s.team.national !== true
         );
         if (fallback && fallback.team?.name) {
             return { name: fallback.team.name, logo: fallback.team.logo || "" };
@@ -783,16 +798,36 @@
         return { name: "Vereinslos", logo: "" };
     }
 
-    /* ---------- Spielerdetails laden (mit Saison-Fallback) -------------- */
+    /* ---------- Spielerdetails laden (mit Saison-Fallback) --------------
+     *
+     * Wichtig: `/players?id=X&season=Y` liefert auch dann ein
+     * `response`-Array zurück, wenn der Spieler in dieser Saison
+     * gar nicht eingesetzt wurde – dann ist `statistics` leer und
+     * wir verlieren die Verein-Info ("Vereinslos").
+     * Deshalb sammeln wir die Statistiken aus ALLEN angefragten Saisons
+     * und behalten den ersten gefundenen Player-Block.
+     */
 
     async function loadPlayerDetail(playerId, seasons) {
         const tried = [];
+        let firstPlayer = null;
+        const combinedStats = [];
+
         for (const season of seasons) {
             tried.push(season);
             try {
                 const data = await apiGet(`/players?id=${playerId}&season=${encodeURIComponent(season)}`);
                 if (data.response && data.response.length > 0) {
-                    return { detail: data.response[0], seasonsTried: tried };
+                    const entry = data.response[0];
+                    if (!firstPlayer && entry.player) firstPlayer = entry.player;
+                    if (Array.isArray(entry.statistics)) {
+                        for (const stat of entry.statistics) {
+                            if (stat && stat.league && (stat.league.season == null || stat.league.season === "")) {
+                                stat.league.season = season;
+                            }
+                            combinedStats.push(stat);
+                        }
+                    }
                 }
             } catch (e) {
                 // Probier die nächste Saison.
@@ -800,15 +835,30 @@
             await delay(RATE_DELAY);
         }
 
-        // Allerletzter Versuch ohne Saison-Filter (gibt zumindest player.* zurück).
-        try {
-            const data = await apiGet(`/players?id=${playerId}`);
-            if (data.response && data.response.length > 0) {
-                return { detail: data.response[0], seasonsTried: tried };
-            }
-        } catch (e) {}
+        // Allerletzter Versuch ohne Saison-Filter, falls wir noch immer
+        // keinen Player-Block (oder gar keine Stats) haben.
+        if (!firstPlayer || combinedStats.length === 0) {
+            try {
+                const data = await apiGet(`/players?id=${playerId}`);
+                if (data.response && data.response.length > 0) {
+                    const entry = data.response[0];
+                    if (!firstPlayer && entry.player) firstPlayer = entry.player;
+                    if (Array.isArray(entry.statistics)) {
+                        for (const stat of entry.statistics) {
+                            combinedStats.push(stat);
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
 
-        return { detail: null, seasonsTried: tried };
+        if (!firstPlayer) {
+            return { detail: null, seasonsTried: tried };
+        }
+        return {
+            detail: { player: firstPlayer, statistics: combinedStats },
+            seasonsTried: tried
+        };
     }
 
     /* ---------- Hauptlauf ---------------------------------------------- */
@@ -844,6 +894,7 @@
         setStat(statSquads, 0);
         setStat(statPlayers, 0);
         setStat(statCompleted, 0);
+        setStat(statSkipped, 0);
 
         try {
             log(`🌍 Ziel: WM 2026 → Datei: ${TARGET_DATA_FILE}`, "log-info");
@@ -924,58 +975,70 @@
 
             const finalData = [];
             const total = squadEntries.length;
+            let skippedCount = 0;
+            const skipReasons = { noDetail: 0, noFirstname: 0, noPhoto: 0 };
 
             for (let i = 0; i < total; i++) {
                 const entry = squadEntries[i];
                 try {
                     const { detail, seasonsTried } = await loadPlayerDetail(entry.playerId, seasons);
 
+                    // (A) Komplett ohne Details → überspringen, da kein Vorname
+                    //     ermittelt werden kann.
                     if (!detail || !detail.player) {
-                        log(`  ⚠️ Keine Details für ${entry.squadName} (id=${entry.playerId}) – Squad-Daten als Fallback.`, "log-warning");
-
-                        const positionInfo = getFinalPosition(entry.playerId, entry.squadPosition);
-                        finalData.push({
-                            "player.id": entry.playerId,
-                            "Spielername": entry.squadName || "Unbekannt",
-                            "Spielerfoto": entry.squadPhoto || `https://media.api-sports.io/football/players/${entry.playerId}.png`,
-                            "Position": positionInfo.finalPosition,
-                            "Nationalteam.name": entry.nationalTeam.name || "",
-                            "Nationalteam.logo": entry.nationalTeam.logo || "",
-                            "Club.name": "Vereinslos",
-                            "Club.logo": "",
-                            "Geburtsdatum": "-",
-                            "Groesse": "-",
-                            "Gewicht": "-"
-                        });
+                        skippedCount++;
+                        skipReasons.noDetail++;
+                        setStat(statSkipped, skippedCount);
+                        log(`  ⏭️ Übersprungen (keine Details): ${entry.squadName || entry.playerId}`, "log-warning");
                     } else {
                         const fullPlayer = detail.player;
                         const allStats = detail.statistics || [];
 
-                        const cleanName = buildCleanName(fullPlayer) || entry.squadName || "Unbekannt";
+                        const firstnameRaw = String(fullPlayer.firstname || "").trim();
+                        const photoRaw = String(fullPlayer.photo || entry.squadPhoto || "").trim();
 
-                        // Position: bevorzugt aus Statistik, sonst aus Squad-Daten.
-                        const apiPos = (allStats[0]?.games?.position) || entry.squadPosition || "";
-                        const positionInfo = getFinalPosition(fullPlayer.id, apiPos);
-
-                        if (positionInfo.overrideUsed) {
-                            log(`  🛠️ Override: ${cleanName} → ${positionInfo.finalPosition}`, "log-warning");
+                        // (B) Kein Vorname gefunden → Spieler nicht exportieren.
+                        if (!firstnameRaw) {
+                            skippedCount++;
+                            skipReasons.noFirstname++;
+                            setStat(statSkipped, skippedCount);
+                            const label = fullPlayer.name || entry.squadName || entry.playerId;
+                            log(`  ⏭️ Übersprungen (kein Vorname): ${label}`, "log-warning");
                         }
+                        // (C) Kein Profilbild → Spieler nicht exportieren.
+                        else if (!photoRaw) {
+                            skippedCount++;
+                            skipReasons.noPhoto++;
+                            setStat(statSkipped, skippedCount);
+                            const label = fullPlayer.name || entry.squadName || entry.playerId;
+                            log(`  ⏭️ Übersprungen (kein Profilbild): ${label}`, "log-warning");
+                        } else {
+                            const cleanName = buildCleanName(fullPlayer) || entry.squadName || "Unbekannt";
 
-                        const clubInfo = pickClubFromStats(allStats, entry.nationalTeam.id, seasonsTried);
+                            // Position: bevorzugt aus Statistik, sonst aus Squad-Daten.
+                            const apiPos = (allStats[0]?.games?.position) || entry.squadPosition || "";
+                            const positionInfo = getFinalPosition(fullPlayer.id, apiPos);
 
-                        finalData.push({
-                            "player.id": fullPlayer.id,
-                            "Spielername": cleanName,
-                            "Spielerfoto": fullPlayer.photo || entry.squadPhoto || "",
-                            "Position": positionInfo.finalPosition,
-                            "Nationalteam.name": entry.nationalTeam.name || "",
-                            "Nationalteam.logo": entry.nationalTeam.logo || "",
-                            "Club.name": clubInfo.name,
-                            "Club.logo": clubInfo.logo,
-                            "Geburtsdatum": fullPlayer.birth?.date || "-",
-                            "Groesse": cleanHeight(fullPlayer.height),
-                            "Gewicht": cleanWeight(fullPlayer.weight)
-                        });
+                            if (positionInfo.overrideUsed) {
+                                log(`  🛠️ Override: ${cleanName} → ${positionInfo.finalPosition}`, "log-warning");
+                            }
+
+                            const clubInfo = pickClubFromStats(allStats, entry.nationalTeam.id, seasonsTried);
+
+                            finalData.push({
+                                "player.id": fullPlayer.id,
+                                "Spielername": cleanName,
+                                "Spielerfoto": photoRaw,
+                                "Position": positionInfo.finalPosition,
+                                "Nationalteam.name": entry.nationalTeam.name || "",
+                                "Nationalteam.logo": entry.nationalTeam.logo || "",
+                                "Club.name": clubInfo.name,
+                                "Club.logo": clubInfo.logo,
+                                "Geburtsdatum": fullPlayer.birth?.date || "-",
+                                "Groesse": cleanHeight(fullPlayer.height),
+                                "Gewicht": cleanWeight(fullPlayer.weight)
+                            });
+                        }
                     }
 
                     setStat(statCompleted, finalData.length);
@@ -983,13 +1046,23 @@
                     progressBar.style.width = pct + '%';
 
                     if ((i + 1) % 20 === 0 || i === total - 1) {
-                        const lastName = finalData[finalData.length - 1]?.Spielername || 'Unbekannt';
-                        log(`[${i + 1}/${total}] ✔️ ${lastName}`);
+                        const lastName = finalData[finalData.length - 1]?.Spielername || '-';
+                        log(`[${i + 1}/${total}] ✔️ ${lastName} (übersprungen bisher: ${skippedCount})`);
                     }
                 } catch (e) {
                     log(`  ❌ Fehler bei ${entry.squadName} (id=${entry.playerId}): ${e.message}`, "log-error");
                 }
                 await delay(RATE_DELAY);
+            }
+
+            if (skippedCount > 0) {
+                log(
+                    `\n⏭️ ${skippedCount} Spieler übersprungen ` +
+                    `(keine Details: ${skipReasons.noDetail}, ` +
+                    `kein Vorname: ${skipReasons.noFirstname}, ` +
+                    `kein Profilbild: ${skipReasons.noPhoto}).`,
+                    "log-warning"
+                );
             }
 
             /* ----- Sortierung wie data-em2024.js ----- */
