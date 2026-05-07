@@ -146,7 +146,10 @@ function buildDevTournamentSwitcher(APP) {
         outline: 'none'
     });
 
-    const tournamentKeys = Object.keys(APP.tournaments);
+    const allowedTournamentKeys = ['em2024', 'wm2026'];
+    const tournamentKeys = allowedTournamentKeys.filter((key) => APP.tournaments[key]);
+    if (!tournamentKeys.length) return;
+
     tournamentKeys.forEach((key) => {
         const t = APP.tournaments[key];
         const option = document.createElement('option');
@@ -156,7 +159,9 @@ function buildDevTournamentSwitcher(APP) {
         select.appendChild(option);
     });
 
-    select.value = APP.activeTournamentKey || tournamentKeys[0];
+    select.value = tournamentKeys.includes(APP.activeTournamentKey)
+        ? APP.activeTournamentKey
+        : tournamentKeys[0];
 
     select.addEventListener('change', (event) => {
         const next = event.target.value;
