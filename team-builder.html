@@ -4198,7 +4198,10 @@
 
             showToast('🎉 Team erfolgreich gespeichert!');
             setTimeout(() => {
-                window.location.href = 'teams.html?manager=' + encodeURIComponent(name);
+                const targetUrl = new URL('teams.html', window.location.href);
+                targetUrl.searchParams.set('manager', name);
+                if (APP && APP.key) targetUrl.searchParams.set('tournament', APP.key);
+                window.location.href = targetUrl.toString();
             }, 600);
 
         } catch (e) {

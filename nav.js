@@ -180,6 +180,18 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+
+    function withTournamentParam(href) {
+        if (!href) return href;
+        try {
+            const url = new URL(href, window.location.href);
+            if (APP && APP.key) url.searchParams.set('tournament', APP.key);
+            return `${url.pathname.split('/').pop() || 'index.html'}${url.search ? url.search : ''}${url.hash || ''}`;
+        } catch (_) {
+            return href;
+        }
+    }
+
     const navItems = [
         { href: "index.html", label: "🏠 Dashboard", shortLabel: "Dashboard", icon: "🏠" },
         { href: "team-builder.html", label: "➕ Team erstellen", shortLabel: "Team", icon: "➕" },
@@ -190,12 +202,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     const topNavLinks = navItems
-        .map(item => `<a href="${item.href}" class="nav-item">${item.label}</a>`)
+        .map(item => `<a href="${withTournamentParam(item.href)}" class="nav-item">${item.label}</a>`)
         .join("");
 
     const bottomNavLinks = navItems
         .map(item => `
-            <a href="${item.href}" class="nav-item">
+            <a href="${withTournamentParam(item.href)}" class="nav-item">
                 <span class="icon">${item.icon}</span>
                 <span>${item.shortLabel}</span>
             </a>
@@ -210,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const navHTML = `
         <nav class="navbar">
-            <a href="index.html" class="navbar-brand" aria-label="${brandAria}">
+            <a href="${withTournamentParam('index.html')}" class="navbar-brand" aria-label="${brandAria}">
                 <span class="brand-gold">${brandShortLabel}</span>
                 <span class="brand-green">${brandSecondary}</span>
             </a>
@@ -231,11 +243,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     navLinks.forEach(link => {
         const href = link.getAttribute("href");
-        if (href === currentPage) {
+        let hrefPage = href;
+        try {
+            hrefPage = new URL(href, window.location.href).pathname.split("/").pop() || "index.html";
+        } catch (_) {
+            hrefPage = href;
+        }
+
+        if (hrefPage === currentPage) {
             link.classList.add("active");
         }
         // Also mark index.html active when on root "/"
-        if ((currentPage === "" || currentPage === "/") && href === "index.html") {
+        if ((currentPage === "" || currentPage === "/") && hrefPage === "index.html") {
             link.classList.add("active");
         }
     });
