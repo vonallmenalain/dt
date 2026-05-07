@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Kader Generator Provisorisch WM 2026</title>
+  <style>
+    body{font-family:Segoe UI,Tahoma,sans-serif;background:#1a1a1a;color:#fff;margin:0;padding:16px}
+    .wrap{max-width:1300px;margin:0 auto;background:#2d2d2d;border:1px solid #444;border-radius:12px;padding:20px}
+    .row{display:grid;gap:10px}.row.cols{grid-template-columns:repeat(4,minmax(140px,1fr))}
+    input,select,button,textarea{border-radius:6px;border:1px solid #555;background:#111;color:#eee;padding:10px;box-sizing:border-box}
+    button{cursor:pointer;background:#3b4c5c} button.primary{background:#e67e22;font-weight:700}
+    .log{height:200px;overflow:auto;background:#000;border:1px solid #444;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap}
+    .table-wrap{overflow:auto;border:1px solid #444;margin-top:12px}
+    table{border-collapse:collapse;min-width:1200px;width:100%} th,td{border-bottom:1px solid #444;padding:6px 8px;font-size:12px}
+    .badge{padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px}
+    .safe{background:#1f7a3f}.mid{background:#7a5f1f}.low{background:#7a1f1f}.warn{color:#f1c40f;font-weight:700}
+    textarea{width:100%;height:260px;margin-top:10px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏆 Provisorischer Kader-Generator – WM 2026</h1>
+  <div class="row cols">
+    <input type="password" id="apiKey" placeholder="RapidAPI Key" />
+    <input id="search" placeholder="Suche Spieler" />
+    <select id="teamFilter"><option value="">Alle Nationalteams</option></select>
+    <select id="posFilter"><option value="">Alle Positionen</option><option>GOALKEEPER</option><option>DEFENDER</option><option>MIDFIELDER</option><option>ATTACKER</option></select>
+  </div>
+  <div class="row cols" style="margin-top:8px">
+    <label><input type="checkbox" id="cSafe" checked> Sicher exportieren</label>
+    <label><input type="checkbox" id="cMid" checked> mittlere Sicherheit exportieren</label>
+    <label><input type="checkbox" id="cLow"> tiefere Sicherheit exportieren</label>
+    <label><input type="checkbox" id="includeHelpers"> Hilfsfelder im Export</label>
+  </div>
+  <div class="row cols" style="margin-top:8px">
+    <button id="start" class="primary">🚀 Generieren</button>
+    <button id="selAll">Alle sichtbaren auswählen</button>
+    <button id="unselAll">Alle sichtbaren abwählen</button>
+    <button id="refreshExport">Export aktualisieren</button>
+  </div>
+  <p id="stats"></p>
+  <div class="table-wrap"><table id="tbl"><thead><tr><th>Export</th><th>Foto</th><th>Name</th><th>Pos</th><th>Team</th><th>Club</th><th>Geb.</th><th>Gr.</th><th>Gew.</th><th>Sicherheit</th><th>Score</th><th>Quellen</th><th>Grund</th><th>Name prüfen</th></tr></thead><tbody></tbody></table></div>
+  <textarea id="export" readonly></textarea>
+  <button id="copy">📋 Export kopieren</button>
+  <div class="log" id="log"></div>
+</div>
+<script src="tournament-config.js"></script>
+<script src="admin-api-key-storage.js"></script>
+<script>
+const APP=window.APP_CONFIG;const WM=(APP?.tournaments?.wm2026)||{key:'wm2026',shortLabel:'WM 2026',name:'Weltmeisterschaft 2026',api:{competitionId:1,season:'2026'}};
+const apiStore=window.AdminApiKeyStorage.createApiKeySessionStore('dreamteam_api_football_key',{logger:log});
+const state={all:[],view:[]};
+function log(m){const el=document.getElementById('log');el.textContent+=`[${new Date().toLocaleTimeString()}] ${m}\n`;el.scrollTop=el.scrollHeight}
+const delay=(ms)=>new Promise(r=>setTimeout(r,ms));
+function normalizePosition(p){p=String(p||'').toUpperCase();if(['GOALKEEPER','GK','G'].includes(p))return'GOALKEEPER';if(['DEFENDER','D','DF'].includes(p))return'DEFENDER';if(['MIDFIELDER','M','MF'].includes(p))return'MIDFIELDER';if(['ATTACKER','FORWARD','F','FW'].includes(p))return'ATTACKER';return p||''}
+function clean(v,u){return v?String(v).replace(u,'').trim():''}
+function isAbbreviatedName(n){if(!n) return false; return /\b[A-ZÀ-ÖØ-Ý]\./.test(n) || /^[A-ZÀ-ÖØ-Ý]\.?\s+/.test(n.trim())}
+function buildBestPlayerName(c){const fn=(c.firstname||'').trim(),ln=(c.lastname||'').trim();if(fn&&ln)return `${fn} ${ln}`.trim();const names=[c.name,c.altName,c.squadName].filter(Boolean).sort((a,b)=>b.length-a.length);return names[0]||''}
+async function api(path,key,retry=true){const opt={method:'GET',headers:{'x-rapidapi-key':key,'x-rapidapi-host':'v3.football.api-sports.io'}};try{const r=await fetch('https://v3.football.api-sports.io/'+path,opt);const d=await r.json();if(d.errors&&Object.keys(d.errors).length) throw new Error(JSON.stringify(d.errors));return d;}catch(e){if(retry){await delay(400);return api(path,key,false)}throw e;}}
+async function getTeams(key){const d=await api(`teams?league=1&season=2026`,key);return (d.response||[]).map(x=>x.team).filter(Boolean)}
+async function getWMPlayers(teamId,key){let p=1,t=1,out=[];while(p<=t){const d=await api(`players?league=1&season=2026&team=${teamId}&page=${p}`,key);t=d.paging?.total||1;out.push(...(d.response||[]));p++;await delay(120)}return out}
+async function getSquad(teamId,key){const d=await api(`players/squads?team=${teamId}`,key);return d.response?.[0]?.players||[]}
+async function getRecentFixtures(teamId,key){const d=await api(`fixtures?team=${teamId}&last=12`,key);return (d.response||[]).map(f=>f.fixture?.id).filter(Boolean)}
+function mergeCandidate(a,b){const pick=(x,y)=>x||y;return {...a,...b,'Spielername':(buildBestPlayerName(b).length>buildBestPlayerName(a).length?buildBestPlayerName(b):buildBestPlayerName(a))||a['Spielername']||b['Spielername'],'Club.name':(a['Club.name']&&a['Club.name']!==a['Nationalteam.name'])?a['Club.name']:pick(b['Club.name'],a['Club.name']),'Club.logo':pick(a['Club.logo'],b['Club.logo']),sources:[...new Set([...(a.sources||[]),...(b.sources||[])])],startsFound:(a.startsFound||0)+(b.startsFound||0),appearancesFound:(a.appearancesFound||0)+(b.appearancesFound||0),benchFound:(a.benchFound||0)+(b.benchFound||0)} }
+function score(c){let s=0;if(c.sources.includes('wmPlayers'))s+=95;if(c.sources.includes('squad'))s+=45;s+=Math.min(60,(c.startsFound||0)*12);s+=Math.min(35,(c.benchFound||0)*7);s+=Math.min(30,(c.appearancesFound||0)*8);if(c['Geburtsdatum']&&c['Groesse']&&c['Gewicht'])s+=5;if(isAbbreviatedName(c['Spielername']))s-=10;if(!c['Club.name'])s-=10;return s}
+function label(s){if(s>=70)return'Sicher';if(s>=35)return'mittlere Sicherheit';return'tiefere Sicherheit'}
+async function run(){const key=document.getElementById('apiKey').value.trim();if(!key)return alert('API key fehlt');apiStore.save(key);state.all=[];log('Start Team-Abfrage');const teams=await getTeams(key);log(`Anzahl Teams: ${teams.length}`);const map=new Map();for(const t of teams){log(`Team: ${t.name}`);let wm=[],sq=[],fx=[];try{wm=await getWMPlayers(t.id,key)}catch(e){log(`Fehler wm players ${t.name}: ${e.message}`)}try{sq=await getSquad(t.id,key)}catch(e){log(`Fehler squad ${t.name}: ${e.message}`)}try{fx=await getRecentFixtures(t.id,key)}catch(e){log(`Fehler fixtures ${t.name}: ${e.message}`)}let fromLineups=0;
+ for(const item of wm){const p=item.player||{},st=item.statistics?.[0]||{};const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name,firstname:p.firstname,lastname:p.lastname}),"Spielerfoto":p.photo||"","Position":normalizePosition(st.games?.position||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":(st.team?.id!==t.id?st.team?.name:'')||"","Club.logo":(st.team?.id!==t.id?st.team?.logo:'')||"","Geburtsdatum":p.birth?.date||"","Groesse":clean(p.height,' cm'),"Gewicht":clean(p.weight,' kg'),sources:['wmPlayers'],startsFound:0,benchFound:0,appearancesFound:0};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|${c['Geburtsdatum']}`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}
+ for(const p of sq){const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name,firstname:p.firstname,lastname:p.lastname,squadName:p.name}),"Spielerfoto":p.photo||"","Position":normalizePosition(p.position||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",sources:['squad'],startsFound:0,benchFound:0,appearancesFound:0};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}
+ for(const fid of fx){try{const d=await api(`fixtures/lineups?fixture=${fid}`,key);for(const l of (d.response||[])){if(Number(l.team?.id)!==Number(t.id)) continue;for(const sp of (l.startXI||[])){fromLineups++;const p=sp.player||{};const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name}),"Spielerfoto":"","Position":normalizePosition(p.pos||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",sources:['lineup'],startsFound:1,benchFound:0,appearancesFound:1};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}for(const sb of (l.substitutes||[])){const p=sb.player||{};const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name}),"Spielerfoto":"","Position":normalizePosition(p.pos||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",sources:['lineup'],startsFound:0,benchFound:1,appearancesFound:0};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}}await delay(100)}catch(e){log(`Fehler lineup fixture ${fid}: ${e.message}`)}}
+ log(`WM:${wm.length} Squad:${sq.length} Lineup:${fromLineups} Total:${map.size}`);await delay(120)}
+ state.all=[...map.values()].map(c=>{const sc=score(c);const lbl=label(sc);return {...c,score:sc,confidenceLabel:lbl,reason:`${lbl} – Quellen: ${(c.sources||[]).join(', ')}; Starts ${c.startsFound||0}, Bank ${c.benchFound||0}`}}).sort((a,b)=>a['Nationalteam.name'].localeCompare(b['Nationalteam.name'])||a['Spielername'].localeCompare(b['Spielername']));
+ updateFilters(); render();}
+function updateFilters(){const teams=[...new Set(state.all.map(x=>x['Nationalteam.name']).filter(Boolean))].sort();const sel=document.getElementById('teamFilter');sel.innerHTML='<option value="">Alle Nationalteams</option>'+teams.map(t=>`<option>${t}</option>`).join('')}
+function getVisible(){const s=document.getElementById('search').value.toLowerCase(),tf=document.getElementById('teamFilter').value,pf=document.getElementById('posFilter').value;return state.all.filter(x=>(!s||x['Spielername'].toLowerCase().includes(s))&&(!tf||x['Nationalteam.name']===tf)&&(!pf||x['Position']===pf));}
+function render(){const vis=getVisible();state.view=vis;const tb=document.querySelector('#tbl tbody');tb.innerHTML=vis.map((x,i)=>`<tr><td><input type="checkbox" data-i="${i}" ${x.sel!==false?'checked':''}></td><td>${x['Spielerfoto']?`<img src="${x['Spielerfoto']}" width="28">`:''}</td><td>${x['Spielername']}</td><td>${x['Position']}</td><td>${x['Nationalteam.name']}</td><td>${x['Club.name']||'<span class="warn">-</span>'}</td><td>${x['Geburtsdatum']||'<span class="warn">-</span>'}</td><td>${x['Groesse']||'<span class="warn">-</span>'}</td><td>${x['Gewicht']||'<span class="warn">-</span>'}</td><td><span class="badge ${x.confidenceLabel==='Sicher'?'safe':x.confidenceLabel==='mittlere Sicherheit'?'mid':'low'}">${x.confidenceLabel}</span></td><td>${x.score}</td><td>${x.sources.join(',')}</td><td>${x.reason}</td><td>${isAbbreviatedName(x['Spielername'])?'<span class="warn">⚠️</span>':''}</td></tr>`).join('');tb.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=()=>{vis[Number(c.dataset.i)].sel=c.checked;refreshExport()});refreshExport()}
+function refreshExport(){const includeHelpers=document.getElementById('includeHelpers').checked;const allowed=new Set();if(document.getElementById('cSafe').checked)allowed.add('Sicher');if(document.getElementById('cMid').checked)allowed.add('mittlere Sicherheit');if(document.getElementById('cLow').checked)allowed.add('tiefere Sicherheit');const exp=state.view.filter(x=>x.sel!==false&&allowed.has(x.confidenceLabel)).map(x=>{const base={"player.id":x['player.id']||0,"Spielername":x['Spielername']||"","Spielerfoto":x['Spielerfoto']||"","Position":x['Position']||"","Nationalteam.name":x['Nationalteam.name']||"","Nationalteam.logo":x['Nationalteam.logo']||"","Club.name":x['Club.name']||"","Club.logo":x['Club.logo']||"","Geburtsdatum":x['Geburtsdatum']||"","Groesse":x['Groesse']||"","Gewicht":x['Gewicht']||""};if(includeHelpers){base.confidence=x.score;base.confidenceLabel=x.confidenceLabel;base.sources=x.sources;base.reason=x.reason;base.appearancesFound=x.appearancesFound||0;base.startsFound=x.startsFound||0}return base});document.getElementById('export').value=`const playersData = ${JSON.stringify(exp,null,2)};\n\nwindow.playersData = playersData;`;const s=state.all;document.getElementById('stats').textContent=`Total gefunden: ${s.length} | exportiert: ${exp.length} | Sicher: ${s.filter(x=>x.confidenceLabel==='Sicher').length} | mittlere: ${s.filter(x=>x.confidenceLabel==='mittlere Sicherheit').length} | tiefere: ${s.filter(x=>x.confidenceLabel==='tiefere Sicherheit').length} | Name unvollständig: ${s.filter(x=>isAbbreviatedName(x['Spielername'])).length} | ohne Club: ${s.filter(x=>!x['Club.name']).length} | fehlende Bio: ${s.filter(x=>!x['Geburtsdatum']||!x['Groesse']||!x['Gewicht']).length}`}
+document.getElementById('start').onclick=run;document.getElementById('search').oninput=render;document.getElementById('teamFilter').onchange=render;document.getElementById('posFilter').onchange=render;document.getElementById('cSafe').onchange=refreshExport;document.getElementById('cMid').onchange=refreshExport;document.getElementById('cLow').onchange=refreshExport;document.getElementById('includeHelpers').onchange=refreshExport;document.getElementById('selAll').onclick=()=>{state.view.forEach(x=>x.sel=true);render()};document.getElementById('unselAll').onclick=()=>{state.view.forEach(x=>x.sel=false);render()};document.getElementById('refreshExport').onclick=refreshExport;document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(document.getElementById('export').value);alert('Export kopiert')};
+apiStore.hydrateInput(document.getElementById('apiKey'));
+</script>
+</body>
+</html>
