@@ -4099,9 +4099,11 @@
         const override = localStorage.getItem('dreamteamIndexViewMode') || 'auto';
         if (override === 'pre') return false;
         if (override === 'post') return true;
+        // Startzeitpunkt kommt zentral aus APP_CONFIG.DREAMTEAM_START
+        // (turnierspezifisch in tournament-config.js gepflegt).
         const start = (window.APP_CONFIG && window.APP_CONFIG.DREAMTEAM_START)
             ? window.APP_CONFIG.DREAMTEAM_START
-            : new Date('2024-06-14T21:00:00+02:00');
+            : new Date();
         return new Date() >= start;
     }
 

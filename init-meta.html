@@ -211,9 +211,8 @@
         <div id="status"></div>
 
         <div class="hint">
-            Solange in <strong>tournament-config.js</strong> das aktive Turnier auf <strong>wm2022</strong> steht,
-            wird hier auch nur das Meta-Dokument für <strong>WM 2022</strong> angelegt.  
-            Wenn du später auf <strong>em2024</strong> oder <strong>wm2026</strong> wechselst, diese Seite einfach nochmals ausführen.
+            Es wird immer nur das Meta-Dokument für das <strong id="hint-tournament-label">aktive Turnier</strong> angelegt.
+            Beim Wechsel via Dev-Switcher (z.B. EM 2024 ↔ WM 2026) diese Seite einfach nochmals ausführen.
         </div>
 
         <h3>Es wird dieses Dokument gespeichert:</h3>
@@ -276,6 +275,11 @@
 
         if (pointsCollectionEl) {
             pointsCollectionEl.textContent = pointsCollection;
+        }
+
+        const hintLabelEl = document.getElementById("hint-tournament-label");
+        if (hintLabelEl) {
+            hintLabelEl.textContent = `${tournament.shortLabel} (${tournament.key})`;
         }
 
         function buildPayload() {

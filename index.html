@@ -5601,12 +5601,13 @@
        Werte: "auto" | "pre" | "post"
        ========================================================= */
 
-    // Startzeitpunkt aus APP_CONFIG lesen (definiert in tournament-config.js)
-    // Fallback falls APP_CONFIG noch nicht geladen: Konstante direkt verwenden.
+    // Startzeitpunkt aus APP_CONFIG lesen (turnierspezifisch in tournament-config.js).
+    // Fallback (sollte praktisch nie greifen, da tournament-config.js vor index.html geladen wird):
+    // wir geben das aktuelle Datum zurück, damit kein Turnier hart kodiert ist.
     function getDreamteamStart() {
         return (window.APP_CONFIG && window.APP_CONFIG.DREAMTEAM_START)
             ? window.APP_CONFIG.DREAMTEAM_START
-            : new Date("2026-06-11T21:00:00+02:00");
+            : new Date();
     }
 
     const DEV_TOGGLE_KEY = "dreamteamIndexViewMode";
@@ -7410,7 +7411,9 @@
         if (!value) return '';
         const s = String(value).trim().toLowerCase();
 
-        // Direct alias map for known EM 2024 teams
+        // Direct alias map for common Nationalmannschafts-Bezeichnungen
+        // (turnierübergreifend; deckt aktuell vor allem die EM-2024-Teilnehmer ab,
+        // wird bei Bedarf für WM 2026 erweitert)
         const aliases = {
             // Albanian
             'albania': 'albania', 'albanien': 'albania', 'alb': 'albania',
@@ -7522,30 +7525,13 @@
        NEXT MATCHES (Post-Start) with drafted players
        ========================================================= */
 
-    // Test data: first 3 games of EM 2024 (Testzwecke)
-    const EM2024_TEST_FIXTURES = [
-        {
-            id: 'em2024_test_1',
-            teamA: 'Germany', homeLogo: 'https://media.api-sports.io/football/teams/25.png',
-            teamB: 'Scotland', awayLogo: 'https://media.api-sports.io/football/teams/1108.png',
-            date: '2024-06-14T21:00:00+02:00', venue: 'Allianz Arena', venueCity: 'München',
-            statusShort: 'NS'
-        },
-        {
-            id: 'em2024_test_2',
-            teamA: 'Hungary', homeLogo: 'https://media.api-sports.io/football/teams/769.png',
-            teamB: 'Switzerland', awayLogo: 'https://media.api-sports.io/football/teams/15.png',
-            date: '2024-06-15T15:00:00+02:00', venue: 'RheinEnergieStadion', venueCity: 'Köln',
-            statusShort: 'NS'
-        },
-        {
-            id: 'em2024_test_3',
-            teamA: 'Spain', homeLogo: 'https://media.api-sports.io/football/teams/9.png',
-            teamB: 'Croatia', awayLogo: 'https://media.api-sports.io/football/teams/3.png',
-            date: '2024-06-15T18:00:00+02:00', venue: 'Olympiastadion', venueCity: 'Berlin',
-            statusShort: 'NS'
-        }
-    ];
+    // Fallback-Spiele werden zentral pro Turnier in tournament-config.js
+    // gepflegt (APP_CONFIG.fallbackFixtures). Nur verwendet, wenn keine
+    // echten Spiele aus Firestore/Cache verfügbar sind.
+    function getTournamentFallbackFixtures() {
+        const list = (window.APP_CONFIG && window.APP_CONFIG.fallbackFixtures) || [];
+        return Array.isArray(list) ? list : [];
+    }
 
     function renderNextMatchesTile(data, teams) {
         const container = $('tile-post-next-matches');
@@ -7583,9 +7569,9 @@
             return da - db2;
         }).slice(0, 3);
 
-        // If no real upcoming data available, use EM 2024 test fixtures
+        // If no real upcoming data available, use turnier-spezifische Fallbacks
         if (!upcoming.length) {
-            upcoming = EM2024_TEST_FIXTURES;
+            upcoming = getTournamentFallbackFixtures();
         }
 
         if (!upcoming.length) {

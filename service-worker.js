@@ -1,4 +1,15 @@
-const CACHE_NAME = 'dreamteam-pwa-v2026-05-06-mobile-popup-history';
+/* =============================================================================
+ *  service-worker.js
+ *
+ *  Multi-Tournament-aware PWA Service Worker.
+ *
+ *  Wichtig:
+ *  - Die Cache-Version wurde bewusst erhöht, damit der Browser nach dem
+ *    Multi-Tournament-Umbau einen frischen Stand zieht und keine alten
+ *    EM-2024-spezifischen Assets als WM-2026-Inhalt anzeigt.
+ *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt.
+ * ============================================================================= */
+const CACHE_NAME = 'dreamteam-pwa-v2026-05-07-multi-tournament';
 const APP_SHELL = [
   './',
   './index.html',
@@ -12,6 +23,9 @@ const APP_SHELL = [
   './nav.js',
   './tournament-config.js',
   './data.js',
+  './data-em2024.js',
+  './data-wm2026.js',
+  './position-overrides.js',
   './cache.js',
   './Icons/site.webmanifest',
   './Icons/favicon.ico',
