@@ -9,13 +9,13 @@
  *  Aktives Turnier wird in dieser Reihenfolge bestimmt:
  *    1. URL-Parameter ?tournament=em2024|wm2026|...
  *    2. Dev-Auswahl in localStorage (`dreamteam_active_tournament`)
- *    3. Default (`em2024`)
+ *    3. Default (`wm2026`)
  *
  *  Ungültige Werte fallen sicher auf das Default-Turnier zurück.
  * ============================================================================= */
 
 window.APP_CONFIG = (() => {
-  const DEFAULT_TOURNAMENT_KEY = "em2024";
+  const DEFAULT_TOURNAMENT_KEY = "wm2026";
   const ACTIVE_TOURNAMENT_STORAGE_KEY = "dreamteam_active_tournament";
   const URL_PARAM_NAME = "tournament";
 

@@ -1602,7 +1602,11 @@
     const CACHE_OPTIONS = {
         db,
         year: TOURNAMENT_YEAR,
-        allowEmptyPoints: false,
+        // Vor Turnierstart (z. B. WM 2026 vor dem ersten Spiel) gibt es
+        // noch keine Spieler-Punkte. Das Dashboard zeigt dann 0-Punkte
+        // und konzentriert sich auf die Draft-Ansicht, anstatt mit
+        // einer Fehlermeldung abzubrechen.
+        allowEmptyPoints: true,
         log: false
     };
 

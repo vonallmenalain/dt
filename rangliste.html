@@ -1719,7 +1719,10 @@
     const CACHE_OPTIONS = {
         db,
         year: TOURNAMENT_YEAR,
-        allowEmptyPoints: false,
+        // Vor Turnierstart liegen noch keine Punkte vor. Die Rangliste
+        // zeigt dann lediglich die bereits eingereichten Teams mit 0
+        // Punkten, anstatt mit einem Fehler abzubrechen.
+        allowEmptyPoints: true,
         log: false
     };
 
