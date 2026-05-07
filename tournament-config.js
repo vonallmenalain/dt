@@ -6,18 +6,82 @@
  *  Firestore-Collections, LocalStorage-/Cache-Prefixes, Spielstartzeitpunkt,
  *  Fallback-Spiele) an EINEM Ort.
  *
+ *  Domain-Mapping (Standard pro Netlify-Site / Domain):
+ *    - em24dt.alae.app  →  em2024 (EM 2024 DreamTeam)
+ *    - dt.alae.app      →  wm2026 (WM 2026 DreamTeam)
+ *    - localhost / 127.0.0.1 / Deploy Previews / unbekannte Hosts
+ *      →  Fallback (`wm2026`)
+ *
  *  Aktives Turnier wird in dieser Reihenfolge bestimmt:
- *    1. URL-Parameter ?tournament=em2024|wm2026|...
- *    2. Dev-Auswahl in localStorage (`dreamteam_active_tournament`)
- *    3. Default (`wm2026`)
+ *    1. URL-Parameter ?tournament=em2024|wm2026|...   (Test-Override, nicht
+ *       persistent – wirkt nur auf den aktuellen Seitenaufruf)
+ *    2. Host-spezifischer Dev-Override aus localStorage
+ *       (`dreamteam_dev_override_${hostname}`)
+ *    3. Domain-Mapping (DOMAIN_TOURNAMENT_MAP)
+ *    4. Genereller Fallback (`wm2026`)
  *
  *  Ungültige Werte fallen sicher auf das Default-Turnier zurück.
+ *
+ *  Wichtig: Damit dieselbe Codebasis auf mehreren Netlify-Domains
+ *  unterschiedliche Turniere ausspielen kann, gibt es bewusst KEINEN
+ *  globalen Default ausserhalb dieser Datei. Jede andere Stelle muss
+ *  `APP_CONFIG.activeTournamentKey` / `APP_CONFIG.activeTournament`
+ *  abfragen, statt selbst hart "em2024" oder "wm2026" zu wählen.
  * ============================================================================= */
 
 window.APP_CONFIG = (() => {
-  const DEFAULT_TOURNAMENT_KEY = "wm2026";
-  const ACTIVE_TOURNAMENT_STORAGE_KEY = "dreamteam_active_tournament";
+  // Ultimativer Fallback, falls keine Domain-Zuordnung greift (z. B. lokal
+  // oder auf Deploy-Previews). Bewusst nur an dieser einen Stelle hart
+  // gesetzt – alle anderen Module sollen den aktiven Key konsumieren.
+  const FALLBACK_TOURNAMENT_KEY = "wm2026";
+
   const URL_PARAM_NAME = "tournament";
+
+  /* ─────────────────────────────────────────────────────────
+   * Domain → Turnier Mapping.
+   * Diese Map ist die einzige Quelle der Wahrheit für die
+   * Auswahl des Standard-Turniers pro Domain.
+   * ───────────────────────────────────────────────────────── */
+  const DOMAIN_TOURNAMENT_MAP = {
+    "em24dt.alae.app": "em2024",
+    "dt.alae.app": "wm2026"
+  };
+
+  /* ─────────────────────────────────────────────────────────
+   * LocalStorage-Schlüssel für den Dev-Override.
+   *
+   * Bewusst HOST-spezifisch, damit eine alte Test-Auswahl auf
+   * dem Mobile-Client nicht über Domains hinweg "klebt"
+   * (z. B. nicht versehentlich em2024 auf dt.alae.app erzwingt).
+   *
+   * Alte/generische Keys aus früheren Iterationen werden beim
+   * ersten Laden migriert/aufgeräumt – siehe `cleanupLegacyKeys()`.
+   * ───────────────────────────────────────────────────────── */
+  function currentHostname() {
+    try {
+      if (typeof window === "undefined" || !window.location) return "";
+      return String(window.location.hostname || "").toLowerCase();
+    } catch (err) {
+      return "";
+    }
+  }
+
+  function devOverrideStorageKey(hostname) {
+    const host = (hostname || currentHostname() || "unknown").toLowerCase();
+    return `dreamteam_dev_override_${host}`;
+  }
+
+  // Alte/generische Keys, die früher (vor dem Domain-Mapping) das
+  // aktive Turnier global gespeichert haben. Diese würden auf einer
+  // anderen Domain das falsche Turnier aufzwingen und werden deshalb
+  // bewusst entfernt.
+  const LEGACY_GLOBAL_OVERRIDE_KEYS = [
+    "dreamteam_active_tournament",
+    "selectedTournament",
+    "activeTournament",
+    "dreamteam_tournament",
+    "tournamentOverride"
+  ];
 
   /* ─────────────────────────────────────────────────────────
    * Fallback-Spiele pro Turnier (für leere Datenstände / Dev).
@@ -255,8 +319,14 @@ window.APP_CONFIG = (() => {
 
   /* ─────────────────────────────────────────────────────────
    * Aktives Turnier robust auflösen.
-   * Reihenfolge: URL-Parameter > LocalStorage > Default.
-   * Ungültige Werte werden ignoriert.
+   *
+   * Reihenfolge:
+   *   1. URL-Parameter ?tournament=<key>     (volatile Test-Override)
+   *   2. Host-spezifischer Dev-Override       (localStorage)
+   *   3. Domain-Mapping (DOMAIN_TOURNAMENT_MAP)
+   *   4. Globaler Fallback (FALLBACK_TOURNAMENT_KEY)
+   *
+   * Ungültige Werte (unbekannter Key) werden ignoriert.
    * ───────────────────────────────────────────────────────── */
   function readUrlTournamentKey() {
     try {
@@ -269,43 +339,100 @@ window.APP_CONFIG = (() => {
     }
   }
 
-  function readStoredTournamentKey() {
+  function readDevOverrideKey() {
     try {
       if (typeof window === "undefined" || !window.localStorage) return null;
-      const value = window.localStorage.getItem(ACTIVE_TOURNAMENT_STORAGE_KEY);
+      const value = window.localStorage.getItem(devOverrideStorageKey());
       return value ? value.trim().toLowerCase() : null;
     } catch (err) {
       return null;
     }
   }
 
-  function persistTournamentKey(key) {
+  function persistDevOverrideKey(key) {
     try {
       if (typeof window === "undefined" || !window.localStorage) return;
-      window.localStorage.setItem(ACTIVE_TOURNAMENT_STORAGE_KEY, key);
+      window.localStorage.setItem(devOverrideStorageKey(), key);
     } catch (err) {
       // Storage kann in Privacy-Modi blockiert sein – kein Hard-Fail.
     }
   }
 
-  function resolveActiveTournamentKey() {
+  function clearDevOverride() {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) return;
+      window.localStorage.removeItem(devOverrideStorageKey());
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  // Einmal-Aufräumen alter, nicht host-spezifischer Override-Keys.
+  // Wichtig, damit auf Mobile-Clients keine alte Auswahl die Domain
+  // überstimmt (z. B. EM 2024 auf dt.alae.app sichtbar machen).
+  function cleanupLegacyKeys() {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) return;
+      LEGACY_GLOBAL_OVERRIDE_KEYS.forEach((legacyKey) => {
+        if (window.localStorage.getItem(legacyKey) !== null) {
+          window.localStorage.removeItem(legacyKey);
+        }
+      });
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  function getDomainTournamentKey(hostname) {
+    const host = (hostname || currentHostname() || "").toLowerCase();
+    if (!host) return null;
+    if (Object.prototype.hasOwnProperty.call(DOMAIN_TOURNAMENT_MAP, host)) {
+      const mapped = DOMAIN_TOURNAMENT_MAP[host];
+      return mapped && TOURNAMENTS[mapped] ? mapped : null;
+    }
+    return null;
+  }
+
+  /**
+   * Liefert das standardmässig zur aktuellen Domain gehörende Turnier
+   * (ohne Berücksichtigung von URL- oder Dev-Override).
+   * Wenn die Domain nicht im Mapping enthalten ist, wird der globale
+   * Fallback zurückgegeben.
+   */
+  function resolveDomainDefaultKey() {
+    const fromDomain = getDomainTournamentKey();
+    if (fromDomain) return fromDomain;
+    return FALLBACK_TOURNAMENT_KEY;
+  }
+
+  /**
+   * Zentrale Auflösung des aktiven Turnier-Keys.
+   * Reihenfolge: URL > host-spezifischer Dev-Override > Domain > Fallback.
+   */
+  function resolveTournamentKey() {
+    cleanupLegacyKeys();
+
     const fromUrl = readUrlTournamentKey();
     if (fromUrl && TOURNAMENTS[fromUrl]) {
-      // URL-Auswahl persistieren, damit nachfolgende Seitenaufrufe
-      // konsistent dasselbe Turnier zeigen.
-      persistTournamentKey(fromUrl);
+      // Bewusst NICHT persistieren – ?tournament= ist ein einmaliger
+      // Test-Override und darf den Domain-Default nicht dauerhaft
+      // umstellen.
       return fromUrl;
     }
 
-    const fromStorage = readStoredTournamentKey();
-    if (fromStorage && TOURNAMENTS[fromStorage]) {
-      return fromStorage;
+    const fromOverride = readDevOverrideKey();
+    if (fromOverride && TOURNAMENTS[fromOverride]) {
+      return fromOverride;
     }
 
-    return DEFAULT_TOURNAMENT_KEY;
+    return resolveDomainDefaultKey();
   }
 
-  let ACTIVE_TOURNAMENT_KEY = resolveActiveTournamentKey();
+  // Backwards-Kompatibilität: Andere Aufrufer dürfen weiterhin
+  // `resolveActiveTournamentKey()` benutzen.
+  const resolveActiveTournamentKey = resolveTournamentKey;
+
+  let ACTIVE_TOURNAMENT_KEY = resolveTournamentKey();
 
   /* ─────────────────────────────────────────────────────────
    * Firebase-Konfiguration (Projekt-weit identisch).
@@ -409,9 +536,13 @@ window.APP_CONFIG = (() => {
   }
 
   /* ─────────────────────────────────────────────────────────
-   * Dev-Switch: Aktives Turnier wechseln.
-   * Speichert Auswahl in localStorage und lädt die Seite neu.
-   * Optional kann zusätzlich der URL-Parameter aktualisiert werden.
+   * Dev-Switch: Aktives Turnier per Dev-Override wechseln.
+   *
+   * Speichert die Auswahl host-spezifisch in localStorage
+   * (`dreamteam_dev_override_${hostname}`) und lädt die Seite neu.
+   *
+   * Wichtig: Der Override gilt nur für die aktuelle Domain. Auf
+   * jeder anderen Domain bleibt der domain-basierte Standard aktiv.
    * ───────────────────────────────────────────────────────── */
   function setActiveTournament(key, options) {
     const opts = options || {};
@@ -422,7 +553,14 @@ window.APP_CONFIG = (() => {
       return false;
     }
 
-    persistTournamentKey(normalized);
+    // Wenn die Wahl exakt dem Domain-Default entspricht, brauchen wir
+    // keinen aktiven Override. Wir entfernen einen evtl. bestehenden
+    // Override, damit der Indicator "Domain-Default" wieder korrekt ist.
+    if (normalized === resolveDomainDefaultKey()) {
+      clearDevOverride();
+    } else {
+      persistDevOverrideKey(normalized);
+    }
 
     if (opts.reload === false) {
       ACTIVE_TOURNAMENT_KEY = normalized;
@@ -431,9 +569,9 @@ window.APP_CONFIG = (() => {
 
     try {
       const url = new URL(window.location.href);
-      if (opts.updateUrl !== false) {
-        url.searchParams.set(URL_PARAM_NAME, normalized);
-      }
+      // ?tournament=... bewusst entfernen, damit der frisch gesetzte
+      // Override nicht mit einer alten URL-Selektion kollidiert.
+      url.searchParams.delete(URL_PARAM_NAME);
       window.location.replace(url.toString());
     } catch (err) {
       window.location.reload();
@@ -442,8 +580,47 @@ window.APP_CONFIG = (() => {
     return true;
   }
 
+  /**
+   * Setzt das aktive Turnier zurück auf den Domain-Default.
+   * Entfernt den host-spezifischen Dev-Override und lädt neu.
+   */
+  function resetToDomainDefault(options) {
+    const opts = options || {};
+    clearDevOverride();
+
+    if (opts.reload === false) {
+      ACTIVE_TOURNAMENT_KEY = resolveDomainDefaultKey();
+      return true;
+    }
+
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(URL_PARAM_NAME);
+      window.location.replace(url.toString());
+    } catch (err) {
+      window.location.reload();
+    }
+
+    return true;
+  }
+
+  function isDevOverrideActive() {
+    const override = readDevOverrideKey();
+    if (!override || !TOURNAMENTS[override]) return false;
+    return override !== resolveDomainDefaultKey();
+  }
+
+  function isUrlOverrideActive() {
+    const fromUrl = readUrlTournamentKey();
+    if (!fromUrl || !TOURNAMENTS[fromUrl]) return false;
+    // URL-Override gilt als "aktiv", wenn er vom Resultat nach Override-
+    // Auflösung abweicht – also wenn er real gerade verwendet wird.
+    return ACTIVE_TOURNAMENT_KEY === fromUrl;
+  }
+
   return {
     tournaments: TOURNAMENTS,
+    domainTournamentMap: DOMAIN_TOURNAMENT_MAP,
 
     get activeTournamentKey() {
       return ACTIVE_TOURNAMENT_KEY;
@@ -452,6 +629,25 @@ window.APP_CONFIG = (() => {
     get activeTournament() {
       return getActiveTournament();
     },
+
+    get domainDefaultKey() {
+      return resolveDomainDefaultKey();
+    },
+
+    get domainDefaultTournament() {
+      return TOURNAMENTS[resolveDomainDefaultKey()] || TOURNAMENTS[FALLBACK_TOURNAMENT_KEY];
+    },
+
+    get hostname() {
+      return currentHostname();
+    },
+
+    isDevOverrideActive,
+    isUrlOverrideActive,
+    resolveTournamentKey,
+    getDomainTournamentKey,
+    resetToDomainDefault,
+    clearDevOverride,
 
     get key() {
       return getActiveTournament().key;
@@ -598,7 +794,16 @@ window.APP_CONFIG = (() => {
     },
 
     storage: {
-      activeTournamentKey: ACTIVE_TOURNAMENT_STORAGE_KEY,
+      get devOverrideKey() {
+        return devOverrideStorageKey();
+      },
+
+      // Backwards-Kompatibilität für Aufrufer, die früher den
+      // generischen Key abgefragt haben. Zeigt nun den host-spezifischen
+      // Override-Key.
+      get activeTournamentKey() {
+        return devOverrideStorageKey();
+      },
 
       appPrefix() {
         return getActiveTournament().storagePrefix || `dreamteam_${getActiveTournament().key}`;
