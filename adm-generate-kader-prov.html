@@ -39,10 +39,19 @@
     <button id="unselAll">Alle sichtbaren abwählen</button>
     <button id="refreshExport">Export aktualisieren</button>
   </div>
+  <p style="margin:10px 0 0 0;font-size:13px;color:#bdc3c7;line-height:1.5">
+    💡 Wenn du diesen Generator regelmässig laufen lässt, kannst du das Browser-UI komplett überspringen und stattdessen
+    <code>node tools/generate-kader-prov.js</code> ausführen. Das Script schreibt die <code>data-wm2026.js</code>
+    direkt im Repo (Strategie <code>auto</code> = realistische WM-Teilnehmer, <code>safe-mid</code> entspricht
+    diesem manuellen Filter aus Sicher + mittlere Sicherheit). Siehe <code>--help</code> für alle Flags.
+  </p>
   <p id="stats"></p>
   <div class="table-wrap"><table id="tbl"><thead><tr><th>Export</th><th>Foto</th><th>Name</th><th>Pos</th><th>Team</th><th>Club</th><th>Geb.</th><th>Gr.</th><th>Gew.</th><th>Sicherheit</th><th>Score</th><th>Quellen</th><th>Grund</th><th>Name prüfen</th></tr></thead><tbody></tbody></table></div>
   <textarea id="export" readonly></textarea>
-  <button id="copy">📋 Export kopieren</button>
+  <div class="row cols" style="margin-top:6px">
+    <button id="copy">📋 Export kopieren</button>
+    <button id="download">💾 Als data-wm2026.js herunterladen</button>
+  </div>
   <div class="log" id="log"></div>
 </div>
 <script src="tournament-config.js"></script>
@@ -401,6 +410,14 @@ function getVisible(){const s=document.getElementById('search').value.toLowerCas
 function render(){const vis=getVisible();state.view=vis;const tb=document.querySelector('#tbl tbody');tb.innerHTML=vis.map((x,i)=>`<tr><td><input type="checkbox" data-i="${i}" ${x.sel!==false?'checked':''}></td><td>${x['Spielerfoto']?`<img src="${x['Spielerfoto']}" width="28">`:''}</td><td>${x['Spielername']}</td><td>${x['Position']}</td><td>${x['Nationalteam.name']}</td><td>${x['Club.name']||'<span class="warn">-</span>'}</td><td>${x['Geburtsdatum']||'<span class="warn">-</span>'}</td><td>${x['Groesse']||'<span class="warn">-</span>'}</td><td>${x['Gewicht']||'<span class="warn">-</span>'}</td><td><span class="badge ${x.confidenceLabel==='Sicher'?'safe':x.confidenceLabel==='mittlere Sicherheit'?'mid':'low'}">${x.confidenceLabel}</span></td><td>${x.score}</td><td>${x.sources.join(',')}</td><td>${x.reason}</td><td>${isAbbreviatedName(x['Spielername'])?'<span class="warn">⚠️</span>':''}</td></tr>`).join('');tb.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=()=>{vis[Number(c.dataset.i)].sel=c.checked;refreshExport()});refreshExport()}
 function refreshExport(){const includeHelpers=document.getElementById('includeHelpers').checked;const allowed=new Set();if(document.getElementById('cSafe').checked)allowed.add('Sicher');if(document.getElementById('cMid').checked)allowed.add('mittlere Sicherheit');if(document.getElementById('cLow').checked)allowed.add('tiefere Sicherheit');const exp=state.view.filter(x=>x.sel!==false&&allowed.has(x.confidenceLabel)).map(x=>{const base={"player.id":x['player.id']||0,"Spielername":x['Spielername']||"","Spielerfoto":x['Spielerfoto']||"","Position":x['Position']||"","Nationalteam.name":x['Nationalteam.name']||"","Nationalteam.logo":x['Nationalteam.logo']||"","Club.name":x['Club.name']||"","Club.logo":x['Club.logo']||"","Geburtsdatum":x['Geburtsdatum']||"","Groesse":x['Groesse']||"","Gewicht":x['Gewicht']||""};if(includeHelpers){base.confidence=x.score;base.confidenceLabel=x.confidenceLabel;base.sources=x.sources;base.reason=x.reason;base.appearancesFound=x.appearancesFound||0;base.startsFound=x.startsFound||0}return base});document.getElementById('export').value=`const playersData = ${JSON.stringify(exp,null,2)};\n\nwindow.playersData = playersData;`;const s=state.all;document.getElementById('stats').textContent=`Total gefunden: ${s.length} | exportiert: ${exp.length} | Sicher: ${s.filter(x=>x.confidenceLabel==='Sicher').length} | mittlere: ${s.filter(x=>x.confidenceLabel==='mittlere Sicherheit').length} | tiefere: ${s.filter(x=>x.confidenceLabel==='tiefere Sicherheit').length} | Name unvollständig: ${s.filter(x=>isAbbreviatedName(x['Spielername'])).length} | ohne Club: ${s.filter(x=>!x['Club.name']).length} | fehlende Bio: ${s.filter(x=>!x['Geburtsdatum']||!x['Groesse']||!x['Gewicht']).length}`}
 document.getElementById('start').onclick=run;document.getElementById('search').oninput=render;document.getElementById('teamFilter').onchange=render;document.getElementById('posFilter').onchange=render;document.getElementById('cSafe').onchange=refreshExport;document.getElementById('cMid').onchange=refreshExport;document.getElementById('cLow').onchange=refreshExport;document.getElementById('includeHelpers').onchange=refreshExport;document.getElementById('selAll').onclick=()=>{state.view.forEach(x=>x.sel=true);render()};document.getElementById('unselAll').onclick=()=>{state.view.forEach(x=>x.sel=false);render()};document.getElementById('refreshExport').onclick=refreshExport;document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(document.getElementById('export').value);alert('Export kopiert')};
+document.getElementById('download').onclick=()=>{
+  const blob=new Blob([document.getElementById('export').value],{type:'text/javascript;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='data-wm2026.js';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},0);
+};
 apiStore.hydrateInput(document.getElementById('apiKey'));
 </script>
 </body>
