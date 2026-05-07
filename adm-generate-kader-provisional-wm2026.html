@@ -2196,8 +2196,8 @@ Beispiel:
                 log(`  C › Team hat Limit (${limitPerTeam}) erreicht – weitere Lineups übersprungen.`, "log-muted");
                 break;
             }
-            if (!optLimitPerTeam.checked && cnt >= SOURCE_C_LINEUP_SKIP_THRESHOLD) {
-                log(`  C › team ${teamId} hat ≥${SOURCE_C_LINEUP_SKIP_THRESHOLD} Spieler – restliche Lineups übersprungen (API sparen).`, "log-muted");
+            if (!optLimitPerTeam.checked && cnt >= SOURCE_C_LINEUP_SKIP_IF_PLAYERS_GE) {
+                log(`  C › team ${teamId} hat ≥${SOURCE_C_LINEUP_SKIP_IF_PLAYERS_GE} Spieler – restliche Lineups übersprungen (API sparen).`, "log-muted");
                 break;
             }
 
