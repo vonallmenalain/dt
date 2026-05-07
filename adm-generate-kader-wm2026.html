@@ -571,16 +571,19 @@
 
     /* ---------- Verbessertes Namens-Cleaning ----------------------------- */
     /*
-     * Heuristik:
-     *  1. Wenn der API-Name keine Abkürzung enthält ("." NICHT vorhanden) und
-     *     nicht offensichtlich überlang ist (≤ 3 Wörter), übernehmen wir ihn
-     *     1:1 ("Harry Kane", "Kevin De Bruyne").
-     *  2. Wenn der API-Name Abkürzungen enthält (z.B. "F. Valverde"), bauen
-     *     wir den Namen aus firstname (1. Wort) + Rest hinter dem Punkt.
-     *  3. Wenn der API-Name sehr lang ist (≥ 4 Wörter), kürzen wir auf
-     *     "<1. Wort firstname> <bevorzugtes Nachnamen-Token>". Dabei wird der
-     *     bekannteste Teil des Nachnamens identifiziert (siehe pickSurname).
-     *  4. Sonst Fallback auf "<firstname[0]> <lastname>".
+     * Heuristik (Reihenfolge wichtig):
+     *  1. Abgekürzte Namen wie "F. Valverde" oder "K. Mbappé" werden zu
+     *     "<1. Wort firstname> <Teil hinter dem Punkt>" umgebaut
+     *     ("Federico Valverde", "Kylian Mbappé").
+     *  2. API-Name = einzelnes Wort (z.B. "Marquinhos", "Pedri", "Rodrygo",
+     *     "Casemiro", "Vinicius Jr") ist in API-Football der gewünschte
+     *     Künstler-/Anzeigename. Wir übernehmen ihn 1:1 und hängen NICHT
+     *     den Vornamen davor (Stage-Name-Konvention).
+     *  3. Genau 2 Wörter im API-Namen ("Harry Kane", "Cristiano Ronaldo")
+     *     werden 1:1 übernommen.
+     *  4. Bei mehrteiligem Vor- oder Nachnamen wird auf
+     *     "<1. Vorname> <bevorzugter Nachname>" gekürzt.
+     *  5. Sonst Fallback auf "<firstname[0]> <lastname>".
      */
 
     /*
@@ -680,15 +683,15 @@
 
         const apiTokens = apiName.split(/\s+/).filter(Boolean);
 
-        // 2) Genau 2 Wörter im API-Namen → das ist die "Stage Name"-Form
+        // 2) API-Name = nur ein einzelnes Wort (z.B. "Marquinhos", "Pedri",
+        //    "Rodrygo", "Casemiro"). Das ist in API-Football der bevorzugte
+        //    Stage-/Künstlername — 1:1 übernehmen, NICHT den Vornamen davor
+        //    hängen.
+        if (apiTokens.length === 1) return apiTokens[0];
+
+        // 3) Genau 2 Wörter im API-Namen → das ist die "Stage Name"-Form
         //    (z.B. "Cristiano Ronaldo", "Harry Kane", "Granit Xhaka").
         if (apiTokens.length === 2) return apiName;
-
-        // 3) API-Name = nur ein einzelnes Wort (z.B. "Casemiro")
-        //    → Vornamen davor hängen: "Carlos Casemiro".
-        if (apiTokens.length === 1 && firstWord && apiTokens[0].toLowerCase() !== firstWord.toLowerCase()) {
-            return `${firstWord} ${apiTokens[0]}`.trim();
-        }
 
         // 4) Wenn Vor- oder Nachname mehrteilig ist, auf
         //    "<1. Vorname> <bevorzugter Nachname>" kürzen.
