@@ -564,7 +564,7 @@
             pointsCollection: cfg.pointsCollection,
             teamsCount: Array.isArray(teams) ? teams.length : 0,
             pointsCount: Object.keys(points || {}).length,
-            serviceWorkerCacheVersion: 'dreamteam-pwa-v2026-05-07-wm2026-default'
+            serviceWorkerCacheVersion: 'dreamteam-pwa-v2026-05-07-wm2026-position-overrides-saved-teams'
         });
 
         return {
