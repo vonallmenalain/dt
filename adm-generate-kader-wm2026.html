@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - WM 2026 Provisorischer Kader-Generator</title>
+    <meta name="theme-color" content="#28a745">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DreamTeam">
+    <link rel="manifest" href="Icons/site.webmanifest">
+    <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="Icons/favicon-48x48.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Icons/apple-touch-icon.png">
+    <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
+    <meta name="msapplication-config" content="Icons/browserconfig.xml">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .admin-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+        }
+
+        h1 {
+            color: #f1c40f;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #f1c40f;
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .page-intro {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background: #22313f;
+            border: 1px solid #4b6584;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 18px;
+        }
+
+        .info-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #95a5a6;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: #ecf0f1;
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        .lock-banner {
+            background: #1f3320;
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .setup-box {
+            background: #3d3d3d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+            background: #1a1a1a;
+            color: #f1c40f;
+            font-family: monospace;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+
+        .btn-start {
+            background-color: #e67e22;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background-color: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .btn-start:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: #3b4c5c;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b6075;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #a93226;
+            transform: translateY(-2px);
+        }
+
+        .btn-copy {
+            background-color: #27ae60;
+            color: white;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .btn-copy:hover {
+            background-color: #219653;
+        }
+
+        .btn-download {
+            background-color: #2980b9;
+            color: white;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .btn-download:hover {
+            background-color: #1f6391;
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .button-row button {
+            margin-top: 0;
+        }
+
+        .options-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .options-row label {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .options-row input[type="text"],
+        .options-row input[type="number"] {
+            margin-top: 6px;
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+
+        .log-box {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            height: 360px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            font-size: 13px;
+        }
+
+        .log-error { color: #e74c3c; }
+        .log-success { color: #2ecc71; }
+        .log-warning { color: #f1c40f; }
+        .log-info { color: #3498db; }
+
+        .progress-container {
+            width: 100%;
+            background-color: #111;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            height: 25px;
+            border: 1px solid #444;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #f1c40f, #e67e22);
+            transition: width 0.3s;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            background: #1a1a1a;
+            color: #f1f1f1;
+            border: 1px solid #f1c40f;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            display: none;
+            margin-top: 20px;
+            box-sizing: border-box;
+        }
+
+        .hint {
+            margin-top: 14px;
+            color: #bdc3c7;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .storage-note {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #95a5a6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .stats-grid.visible { display: grid; }
+
+        .stat-card {
+            background: #1f1f1f;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 700px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-row {
+                grid-template-columns: 1fr;
+            }
+
+            .options-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h1 id="page-title">🌍 WM 2026 Kader-Generator</h1>
+    <p id="page-intro" class="page-intro">
+        Erstellt eine <strong>provisorische Kaderliste der FIFA WM 2026</strong>
+        und schreibt das Ergebnis exakt im Format der EM-2024-Daten direkt in
+        <strong>data-wm2026.js</strong>.
+    </p>
+
+    <div class="lock-banner">
+        🔒 Diese Seite ist fest auf <strong>WM 2026</strong> gelockt – es können
+        keine Daten von EM 2024 oder anderen Turnieren überschrieben werden.
+    </div>
+
+    <div class="info-box">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Ziel-Turnier</div>
+                <div class="info-value">WM 2026 (FIFA World Cup 2026)</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Ziel-Datei</div>
+                <div class="info-value">data-wm2026.js</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">API Wettbewerb</div>
+                <div class="info-value" id="api-competition">league=1</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Saison</div>
+                <div class="info-value" id="tournament-season">2026</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="setup-box">
+        <label for="apiKey">RapidAPI-Key (Football v3):</label>
+        <input type="password" id="apiKey" placeholder="Hier deinen API-Key einfügen..." autocomplete="off">
+
+        <div class="button-row">
+            <button id="toggleKeyVisibilityBtn" type="button" class="btn-secondary">👁️ Key anzeigen</button>
+            <button id="clearSavedKeyBtn" type="button" class="btn-danger">🗑️ Gespeicherten Key löschen</button>
+        </div>
+
+        <div class="options-row">
+            <div>
+                <label for="seasonsFallback">Saison-Fallbacks (für Spielerdetails):</label>
+                <input type="text" id="seasonsFallback" value="2026,2025,2024">
+            </div>
+            <div>
+                <label for="rateLimitDelay">Pause zwischen API-Calls (ms):</label>
+                <input type="number" id="rateLimitDelay" value="180" min="0" max="2000" step="20">
+            </div>
+        </div>
+
+        <button id="btnStart" class="btn-start">🚀 Provisorischen WM-2026-Kader generieren</button>
+
+        <div class="hint">
+            Der Generator nutzt die <strong>aktuellen Nationalmannschafts-Squads</strong>
+            (<code>/players/squads</code>) jedes für die WM 2026 qualifizierten Teams.
+            Für jeden Spieler werden zusätzlich Geburtsdatum, Grösse, Gewicht und
+            der aktuelle Verein über <code>/players?id=…</code> geladen.
+        </div>
+
+        <div class="storage-note">
+            Es wird derselbe Session-API-Key verwendet wie in
+            <strong>adm-upload-points.html</strong> und <strong>adm-generate-kader.html</strong>.
+        </div>
+    </div>
+
+    <div id="statsGrid" class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="statTeams">0</div>
+            <div class="stat-label">Teams</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statSquads">0</div>
+            <div class="stat-label">Squads geladen</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statPlayers">0</div>
+            <div class="stat-label">Spieler total</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statCompleted">0</div>
+            <div class="stat-label">Vollständig</div>
+        </div>
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="logBox" class="log-box">System bereit. API-Key eingeben oder automatisch laden lassen…</div>
+
+    <textarea id="finalCodeBox" spellcheck="false" readonly></textarea>
+
+    <button id="btnDownload" class="btn-download">💾 data-wm2026.js herunterladen</button>
+    <button id="btnCopy" class="btn-copy">📋 Code für data-wm2026.js kopieren</button>
+</div>
+
+<script src="tournament-config.js"></script>
+<script src="position-overrides.js"></script>
+<script src="admin-api-key-storage.js"></script>
+<script>
+    /* =========================================================================
+     * Diese Seite ist BEWUSST fest auf das Turnier "wm2026" gelockt.
+     * Sie nutzt die API-Konfiguration aus tournament-config.js[wm2026]
+     * direkt – unabhängig vom aktuell aktiven Dev-Turnier. So kann das Ergebnis
+     * niemals versehentlich data-em2024.js (oder ein anderes Turnier) treffen.
+     * =======================================================================*/
+
+    const APP = window.APP_CONFIG;
+    if (!APP) {
+        throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor dieser Seite.");
+    }
+
+    const WM2026 = APP.tournaments && APP.tournaments.wm2026;
+    if (!WM2026) {
+        throw new Error("Turnier-Konfiguration für 'wm2026' fehlt in tournament-config.js.");
+    }
+
+    const TARGET_DATA_FILE = WM2026.dataFile || "data-wm2026.js";
+    const COMPETITION_PARAM = (WM2026.api && WM2026.api.competitionParam) || "league";
+    const COMPETITION_ID = (WM2026.api && WM2026.api.competitionId) ?? 1;
+    const PRIMARY_SEASON = (WM2026.api && WM2026.api.season) || "2026";
+    const API_KEY_STORAGE_KEY = "dreamteam_api_football_key";
+    const API_HOST = "v3.football.api-sports.io";
+    const API_BASE = `https://${API_HOST}`;
+
+    document.title = `${WM2026.pageTitlePrefix || "WM 2026 DreamTeam"} - Kader Generator`;
+
+    const apiCompetitionEl = document.getElementById('api-competition');
+    const tournamentSeasonEl = document.getElementById('tournament-season');
+    if (apiCompetitionEl) apiCompetitionEl.textContent = `${COMPETITION_PARAM}=${COMPETITION_ID}`;
+    if (tournamentSeasonEl) tournamentSeasonEl.textContent = PRIMARY_SEASON;
+
+    const btnStart = document.getElementById('btnStart');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnDownload = document.getElementById('btnDownload');
+    const logBox = document.getElementById('logBox');
+    const finalCodeBox = document.getElementById('finalCodeBox');
+    const apiKeyInput = document.getElementById('apiKey');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const toggleKeyVisibilityBtn = document.getElementById('toggleKeyVisibilityBtn');
+    const clearSavedKeyBtn = document.getElementById('clearSavedKeyBtn');
+    const seasonsFallbackInput = document.getElementById('seasonsFallback');
+    const rateLimitInput = document.getElementById('rateLimitDelay');
+
+    const statsGrid = document.getElementById('statsGrid');
+    const statTeams = document.getElementById('statTeams');
+    const statSquads = document.getElementById('statSquads');
+    const statPlayers = document.getElementById('statPlayers');
+    const statCompleted = document.getElementById('statCompleted');
+
+    function log(msg, type = '') {
+        const now = new Date().toLocaleTimeString();
+        logBox.innerHTML += `<div class="${type}">[${now}] ${msg}</div>`;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    const apiKeyStore = window.AdminApiKeyStorage.createApiKeySessionStore(
+        API_KEY_STORAGE_KEY,
+        { logger: log }
+    );
+
+    function loadSavedApiKey() {
+        apiKeyStore.hydrateInput(apiKeyInput);
+    }
+
+    function saveApiKey(key) {
+        apiKeyStore.save(key);
+    }
+
+    function clearSavedApiKey() {
+        const didClear = apiKeyStore.clear();
+        apiKeyInput.value = "";
+        apiKeyInput.type = "password";
+        toggleKeyVisibilityBtn.textContent = "👁️ Key anzeigen";
+        if (didClear) log("🗑️ Session-API-Key wurde gelöscht.", "log-warning");
+    }
+
+    /* ---------- Position-Normalisierung & Overrides ---------------------- */
+
+    function normalizePosition(pos) {
+        const value = String(pos || '').trim().toUpperCase();
+        if (!value) return "";
+        if (value === 'GOALKEEPER' || value === 'GK' || value === 'TORWART' || value === 'KEEPER') return 'GOALKEEPER';
+        if (value === 'DEFENDER' || value === 'DF' || value === 'VERTEIDIGER' || value === 'DEFENCE') return 'DEFENDER';
+        if (value === 'MIDFIELDER' || value === 'MF' || value === 'MITTELFELD' || value === 'MIDFIELD') return 'MIDFIELDER';
+        if (value === 'FORWARD' || value === 'ATTACKER' || value === 'FW' || value === 'STÜRMER' || value === 'STUERMER' || value === 'ATTACK') return 'ATTACKER';
+        return value;
+    }
+
+    function getPositionOverride(playerId) {
+        const allOverrides = window.POSITION_OVERRIDES || {};
+        const tournamentOverrides = allOverrides.wm2026 || {};
+        return tournamentOverrides[String(playerId)] || null;
+    }
+
+    function getFinalPosition(playerId, apiPosition) {
+        const override = getPositionOverride(playerId);
+        return {
+            finalPosition: normalizePosition(override || apiPosition || ""),
+            overrideUsed: !!override,
+            apiPosition: normalizePosition(apiPosition || "")
+        };
+    }
+
+    /* ---------- Höhe / Gewicht ------------------------------------------ */
+
+    function cleanHeight(value) {
+        if (!value) return "-";
+        return String(value).replace(' cm', '').trim();
+    }
+
+    function cleanWeight(value) {
+        if (!value) return "-";
+        return String(value).replace(' kg', '').trim();
+    }
+
+    /* ---------- Verbessertes Namens-Cleaning ----------------------------- */
+    /*
+     * Heuristik:
+     *  1. Wenn der API-Name keine Abkürzung enthält ("." NICHT vorhanden) und
+     *     nicht offensichtlich überlang ist (≤ 3 Wörter), übernehmen wir ihn
+     *     1:1 ("Harry Kane", "Kevin De Bruyne").
+     *  2. Wenn der API-Name Abkürzungen enthält (z.B. "F. Valverde"), bauen
+     *     wir den Namen aus firstname (1. Wort) + Rest hinter dem Punkt.
+     *  3. Wenn der API-Name sehr lang ist (≥ 4 Wörter), kürzen wir auf
+     *     "<1. Wort firstname> <bevorzugtes Nachnamen-Token>". Dabei wird der
+     *     bekannteste Teil des Nachnamens identifiziert (siehe pickSurname).
+     *  4. Sonst Fallback auf "<firstname[0]> <lastname>".
+     */
+
+    /*
+     * Partikel-Liste für zusammengesetzte Nachnamen (De Bruyne, van Dijk, …).
+     * Diese Wörter werden NIE als eigenständiger Nachname gewählt, sondern
+     * gehören immer zum nachfolgenden Wort.
+     */
+    const NAME_PARTICLES = new Set([
+        'de','del','della','dello','da','das','dos','di','du',
+        'van','von','vom','der','den','ter','ten','het',
+        'le','la','les','lo',
+        'al','el','bin','ben','ibn','abu',
+        'mc','mac','o\u2019','o\'',
+        'st','st.','saint',
+        'auf','zu','zum','zur','am','im'
+    ]);
+
+    /*
+     * "Honorifics" / Suffixe, die in Südamerika & Iberien zum Künstlernamen
+     * werden ("Vinícius Júnior", "Ronaldinho Jr.", "Marcos Filho").
+     * Steht ein Suffix am Ende des Nachnamens, ist es typischerweise der
+     * gewünschte Anzeige-Nachname.
+     */
+    const NAME_SUFFIXES = new Set([
+        'jr','jr.','junior','j\u00fanior',
+        'sr','sr.','senior','s\u00e9nior',
+        'filho','neto','segundo','tercero','terceiro',
+        'ii','iii','iv'
+    ]);
+
+    function normalizeWord(w) {
+        return String(w || "").toLowerCase().replace(/[\.,]/g, '');
+    }
+
+    function isParticle(word) {
+        return NAME_PARTICLES.has(normalizeWord(word));
+    }
+
+    function isSuffix(word) {
+        return NAME_SUFFIXES.has(normalizeWord(word));
+    }
+
+    /*
+     * pickSurname:
+     *   Wählt aus einem ggf. mehrteiligen Nachnamen den "gebräuchlichen"
+     *   Nachnamen, optional mit erhaltenem Partikel.
+     *   Strategien (in Reihenfolge):
+     *     a) 1 Wort               → 1:1 zurückgeben.
+     *     b) Letztes Wort = Suffix (Júnior/Filho/Jr.) → genau dieses Suffix.
+     *     c) Es gibt einen Partikel-Block direkt vor dem letzten Wort
+     *        (z.B. "De Bruyne", "van Dijk", "De La Cruz")
+     *        → Partikelkette + letztes Wort behalten.
+     *     d) Sonst: bevorzuge das ERSTE nicht-Partikel-Wort
+     *        (Iberische Konvention: "Federico Valverde Dipetta" → "Valverde").
+     */
+    function pickSurname(lastname) {
+        const parts = String(lastname || "").trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return "";
+        if (parts.length === 1) return parts[0];
+
+        const last = parts[parts.length - 1];
+
+        // (b) Suffix am Ende?
+        if (isSuffix(last)) return last;
+
+        // (c) Partikel direkt vor dem letzten Wort?
+        if (parts.length >= 2 && isParticle(parts[parts.length - 2])) {
+            let startIdx = parts.length - 2;
+            while (startIdx > 0 && isParticle(parts[startIdx - 1])) {
+                startIdx -= 1;
+            }
+            return parts.slice(startIdx).join(' ');
+        }
+
+        // (d) Erstes Nicht-Partikel-Wort.
+        for (const p of parts) {
+            if (!isParticle(p)) return p;
+        }
+
+        return last;
+    }
+
+    function buildCleanName(player) {
+        const apiName = String(player?.name || "").trim();
+        const firstname = String(player?.firstname || "").trim();
+        const lastname = String(player?.lastname || "").trim();
+
+        const firstWord = (firstname.split(/\s+/).filter(Boolean)[0]) || "";
+
+        // 1) Abgekürzte Namen wie "F. Valverde", "K. Mbappé"
+        if (apiName.includes('.')) {
+            const tailRaw = apiName.split('.').pop().trim();
+            const tail = tailRaw || (lastname ? pickSurname(lastname) : "");
+            const result = `${firstWord} ${tail}`.trim();
+            if (result) return result;
+        }
+
+        const apiTokens = apiName.split(/\s+/).filter(Boolean);
+
+        // 2) Genau 2 Wörter im API-Namen → das ist die "Stage Name"-Form
+        //    (z.B. "Cristiano Ronaldo", "Harry Kane", "Granit Xhaka").
+        if (apiTokens.length === 2) return apiName;
+
+        // 3) API-Name = nur ein einzelnes Wort (z.B. "Casemiro")
+        //    → Vornamen davor hängen: "Carlos Casemiro".
+        if (apiTokens.length === 1 && firstWord && apiTokens[0].toLowerCase() !== firstWord.toLowerCase()) {
+            return `${firstWord} ${apiTokens[0]}`.trim();
+        }
+
+        // 4) Wenn Vor- oder Nachname mehrteilig ist, auf
+        //    "<1. Vorname> <bevorzugter Nachname>" kürzen.
+        const lastnameTokens = lastname.split(/\s+/).filter(Boolean);
+        const firstnameTokens = firstname.split(/\s+/).filter(Boolean);
+
+        if (firstnameTokens.length >= 2 || lastnameTokens.length >= 2) {
+            const first = firstWord || apiTokens[0] || "";
+            const surname = lastname ? pickSurname(lastname) : (apiTokens[apiTokens.length - 1] || "");
+            const result = `${first} ${surname}`.trim();
+            if (result) return result;
+        }
+
+        // 5) Fallback: Vorname + Nachname rekonstruieren.
+        if (firstname || lastname) {
+            return `${firstWord} ${lastname || ''}`.trim();
+        }
+
+        return apiName || "Unbekannt";
+    }
+
+    /* ---------- API-Helper ---------------------------------------------- */
+
+    let API_KEY = "";
+    let RATE_DELAY = 180;
+
+    function buildHeaders() {
+        return {
+            method: 'GET',
+            headers: {
+                "x-rapidapi-key": API_KEY,
+                "x-rapidapi-host": API_HOST
+            }
+        };
+    }
+
+    async function apiGet(path) {
+        const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+        const res = await fetch(url, buildHeaders());
+        let data;
+        try {
+            data = await res.json();
+        } catch (e) {
+            throw new Error(`Ungültige JSON-Antwort von ${url}`);
+        }
+        if (data && data.errors && Object.keys(data.errors).length > 0 &&
+            !(Array.isArray(data.errors) && data.errors.length === 0)) {
+            throw new Error(JSON.stringify(data.errors));
+        }
+        return data;
+    }
+
+    /* ---------- Verein-Auswahl aus mehreren Saisons --------------------- */
+
+    function pickClubFromStats(allStats, nationalTeamId, seasonsTried) {
+        if (!Array.isArray(allStats) || allStats.length === 0) {
+            return { name: "Vereinslos", logo: "" };
+        }
+
+        const isClubEntry = (s) =>
+            s && s.team &&
+            s.team.id !== nationalTeamId &&
+            s.league &&
+            Number(s.league.id) !== Number(COMPETITION_ID) &&
+            s.team.national === false;
+
+        // Bevorzuge die jüngste Saison-Reihenfolge in seasonsTried.
+        for (const season of seasonsTried) {
+            const match = allStats.find(s =>
+                isClubEntry(s) && String(s.league?.season) === String(season)
+            );
+            if (match && match.team?.name) {
+                return { name: match.team.name, logo: match.team.logo || "" };
+            }
+        }
+
+        // Fallback: ersten echten Verein nehmen.
+        const firstReal = allStats.find(isClubEntry);
+        if (firstReal && firstReal.team?.name) {
+            return { name: firstReal.team.name, logo: firstReal.team.logo || "" };
+        }
+
+        // Letzter Fallback: irgendein Team, das nicht das Nationalteam ist.
+        const fallback = allStats.find(s =>
+            s && s.team && s.team.id !== nationalTeamId &&
+            s.league && Number(s.league.id) !== Number(COMPETITION_ID)
+        );
+        if (fallback && fallback.team?.name) {
+            return { name: fallback.team.name, logo: fallback.team.logo || "" };
+        }
+
+        return { name: "Vereinslos", logo: "" };
+    }
+
+    /* ---------- Spielerdetails laden (mit Saison-Fallback) -------------- */
+
+    async function loadPlayerDetail(playerId, seasons) {
+        const tried = [];
+        for (const season of seasons) {
+            tried.push(season);
+            try {
+                const data = await apiGet(`/players?id=${playerId}&season=${encodeURIComponent(season)}`);
+                if (data.response && data.response.length > 0) {
+                    return { detail: data.response[0], seasonsTried: tried };
+                }
+            } catch (e) {
+                // Probier die nächste Saison.
+            }
+            await delay(RATE_DELAY);
+        }
+
+        // Allerletzter Versuch ohne Saison-Filter (gibt zumindest player.* zurück).
+        try {
+            const data = await apiGet(`/players?id=${playerId}`);
+            if (data.response && data.response.length > 0) {
+                return { detail: data.response[0], seasonsTried: tried };
+            }
+        } catch (e) {}
+
+        return { detail: null, seasonsTried: tried };
+    }
+
+    /* ---------- Hauptlauf ---------------------------------------------- */
+
+    function setStat(el, value) { if (el) el.textContent = String(value); }
+
+    btnStart.addEventListener('click', async () => {
+        API_KEY = apiKeyInput.value.trim();
+        if (!API_KEY) {
+            alert("Bitte API Key eingeben!");
+            return;
+        }
+
+        RATE_DELAY = Math.max(0, Math.min(2000, parseInt(rateLimitInput.value, 10) || 180));
+
+        const seasons = String(seasonsFallbackInput.value || "")
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+        if (seasons.length === 0) seasons.push(PRIMARY_SEASON);
+
+        saveApiKey(API_KEY);
+
+        btnStart.disabled = true;
+        logBox.innerHTML = "";
+        finalCodeBox.style.display = 'none';
+        btnCopy.style.display = 'none';
+        btnDownload.style.display = 'none';
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        statsGrid.classList.add('visible');
+        setStat(statTeams, 0);
+        setStat(statSquads, 0);
+        setStat(statPlayers, 0);
+        setStat(statCompleted, 0);
+
+        try {
+            log(`🌍 Ziel: WM 2026 → Datei: ${TARGET_DATA_FILE}`, "log-info");
+            log(`API: ${COMPETITION_PARAM}=${COMPETITION_ID}, season=${PRIMARY_SEASON}`, "log-info");
+            log(`Saison-Fallbacks für Spielerdetails: ${seasons.join(', ')}\n`, "log-info");
+
+            /* ----- PHASE 1: Qualifizierte Teams ----- */
+            log(`--- PHASE 1: Lade WM-2026-Teams (${COMPETITION_PARAM}=${COMPETITION_ID}, season=${PRIMARY_SEASON}) ---`, "log-warning");
+
+            const teamsData = await apiGet(
+                `/teams?${COMPETITION_PARAM}=${COMPETITION_ID}&season=${encodeURIComponent(PRIMARY_SEASON)}`
+            );
+
+            if (!teamsData.response || !Array.isArray(teamsData.response) || teamsData.response.length === 0) {
+                throw new Error(
+                    `Keine Teams für WM 2026 gefunden. Prüfe deinen API-Plan (Free-Plan unterstützt manche Endpunkte nicht).`
+                );
+            }
+
+            const teamsList = teamsData.response
+                .map(t => ({ id: t.team?.id, name: t.team?.name, logo: t.team?.logo }))
+                .filter(t => t.id);
+
+            setStat(statTeams, teamsList.length);
+            log(`✅ ${teamsList.length} qualifizierte Teams gefunden.\n`, "log-success");
+
+            /* ----- PHASE 2: Squads pro Team ----- */
+            log(`--- PHASE 2: Lade aktuellen Nationalmannschafts-Squad pro Team ---`, "log-warning");
+
+            const squadEntries = []; // {playerId, position, nationalTeam:{id,name,logo}}
+            const seenPlayerIds = new Set();
+            let squadsLoaded = 0;
+
+            for (let i = 0; i < teamsList.length; i++) {
+                const team = teamsList[i];
+                try {
+                    const sq = await apiGet(`/players/squads?team=${team.id}`);
+                    const entry = sq.response && sq.response[0];
+                    const players = (entry && entry.players) || [];
+
+                    if (players.length === 0) {
+                        log(`⚠️ Squad leer für ${team.name} (id=${team.id}).`, "log-warning");
+                    }
+
+                    for (const p of players) {
+                        if (!p || !p.id) continue;
+                        if (seenPlayerIds.has(p.id)) continue;
+                        seenPlayerIds.add(p.id);
+                        squadEntries.push({
+                            playerId: p.id,
+                            squadPosition: p.position || "",
+                            squadName: p.name || "",
+                            squadPhoto: p.photo || "",
+                            nationalTeam: { id: team.id, name: team.name, logo: team.logo }
+                        });
+                    }
+
+                    squadsLoaded++;
+                    setStat(statSquads, squadsLoaded);
+                    setStat(statPlayers, squadEntries.length);
+                    log(`  [${i + 1}/${teamsList.length}] ${team.name}: ${players.length} Spieler`);
+                } catch (e) {
+                    log(`⚠️ Fehler beim Squad von ${team.name}: ${e.message}`, "log-error");
+                }
+                await delay(RATE_DELAY);
+            }
+
+            log(`\n✅ ${squadEntries.length} eindeutige Spieler aus ${squadsLoaded} Squads gesammelt.\n`, "log-success");
+
+            if (squadEntries.length === 0) {
+                throw new Error(
+                    "Keine Spieler in den Squads gefunden. Vermutlich unterstützt dein API-Plan den Endpunkt /players/squads nicht."
+                );
+            }
+
+            /* ----- PHASE 3: Spielerdetails laden ----- */
+            log(`--- PHASE 3: Lade Spielerdetails (Verein, Geburtsdatum, Grösse, Gewicht) ---`, "log-warning");
+
+            const finalData = [];
+            const total = squadEntries.length;
+
+            for (let i = 0; i < total; i++) {
+                const entry = squadEntries[i];
+                try {
+                    const { detail, seasonsTried } = await loadPlayerDetail(entry.playerId, seasons);
+
+                    if (!detail || !detail.player) {
+                        log(`  ⚠️ Keine Details für ${entry.squadName} (id=${entry.playerId}) – Squad-Daten als Fallback.`, "log-warning");
+
+                        const positionInfo = getFinalPosition(entry.playerId, entry.squadPosition);
+                        finalData.push({
+                            "player.id": entry.playerId,
+                            "Spielername": entry.squadName || "Unbekannt",
+                            "Spielerfoto": entry.squadPhoto || `https://media.api-sports.io/football/players/${entry.playerId}.png`,
+                            "Position": positionInfo.finalPosition,
+                            "Nationalteam.name": entry.nationalTeam.name || "",
+                            "Nationalteam.logo": entry.nationalTeam.logo || "",
+                            "Club.name": "Vereinslos",
+                            "Club.logo": "",
+                            "Geburtsdatum": "-",
+                            "Groesse": "-",
+                            "Gewicht": "-"
+                        });
+                    } else {
+                        const fullPlayer = detail.player;
+                        const allStats = detail.statistics || [];
+
+                        const cleanName = buildCleanName(fullPlayer) || entry.squadName || "Unbekannt";
+
+                        // Position: bevorzugt aus Statistik, sonst aus Squad-Daten.
+                        const apiPos = (allStats[0]?.games?.position) || entry.squadPosition || "";
+                        const positionInfo = getFinalPosition(fullPlayer.id, apiPos);
+
+                        if (positionInfo.overrideUsed) {
+                            log(`  🛠️ Override: ${cleanName} → ${positionInfo.finalPosition}`, "log-warning");
+                        }
+
+                        const clubInfo = pickClubFromStats(allStats, entry.nationalTeam.id, seasonsTried);
+
+                        finalData.push({
+                            "player.id": fullPlayer.id,
+                            "Spielername": cleanName,
+                            "Spielerfoto": fullPlayer.photo || entry.squadPhoto || "",
+                            "Position": positionInfo.finalPosition,
+                            "Nationalteam.name": entry.nationalTeam.name || "",
+                            "Nationalteam.logo": entry.nationalTeam.logo || "",
+                            "Club.name": clubInfo.name,
+                            "Club.logo": clubInfo.logo,
+                            "Geburtsdatum": fullPlayer.birth?.date || "-",
+                            "Groesse": cleanHeight(fullPlayer.height),
+                            "Gewicht": cleanWeight(fullPlayer.weight)
+                        });
+                    }
+
+                    setStat(statCompleted, finalData.length);
+                    const pct = Math.round(((i + 1) / total) * 100);
+                    progressBar.style.width = pct + '%';
+
+                    if ((i + 1) % 20 === 0 || i === total - 1) {
+                        const lastName = finalData[finalData.length - 1]?.Spielername || 'Unbekannt';
+                        log(`[${i + 1}/${total}] ✔️ ${lastName}`);
+                    }
+                } catch (e) {
+                    log(`  ❌ Fehler bei ${entry.squadName} (id=${entry.playerId}): ${e.message}`, "log-error");
+                }
+                await delay(RATE_DELAY);
+            }
+
+            /* ----- Sortierung wie data-em2024.js ----- */
+            finalData.sort((a, b) => {
+                const nationCompare = String(a["Nationalteam.name"] || "").localeCompare(
+                    String(b["Nationalteam.name"] || ""), 'de'
+                );
+                if (nationCompare !== 0) return nationCompare;
+                return String(a["Spielername"] || "").localeCompare(String(b["Spielername"] || ""), 'de');
+            });
+
+            log(`\n✅ Provisorischer WM-2026-Kader fertig: ${finalData.length} Spieler aus ${squadsLoaded} Teams.`, "log-success");
+
+            /* ----- Datei-Inhalt im exakten data-em2024.js-Format bauen ----- */
+            const jsonStr = JSON.stringify(finalData, null, 4);
+            const generatedAt = new Date().toLocaleString();
+            const finalCode =
+`// WM 2026 Kader (PROVISORISCH)
+// Turnier: ${WM2026.name || "Weltmeisterschaft 2026"}
+// Quelle: API-Football /players/squads pro qualifiziertem Team
+// Generiert am: ${generatedAt}
+
+const playersData = ${jsonStr};`;
+
+            finalCodeBox.value = finalCode;
+            finalCodeBox.style.display = 'block';
+            btnCopy.style.display = 'block';
+            btnDownload.style.display = 'block';
+
+            log(`\n💾 Kopiere den Code in ${TARGET_DATA_FILE} oder lade die Datei direkt herunter.`, "log-info");
+
+        } catch (err) {
+            log(`❌ KRITISCHER FEHLER: ${err.message}`, "log-error");
+        } finally {
+            btnStart.disabled = false;
+        }
+    });
+
+    btnCopy.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(finalCodeBox.value);
+        } catch (err) {
+            finalCodeBox.select();
+            document.execCommand('copy');
+        }
+        btnCopy.innerText = "✅ IN ZWISCHENABLAGE KOPIERT!";
+        btnCopy.style.backgroundColor = "#2ecc71";
+        setTimeout(() => {
+            btnCopy.innerText = "📋 Code für data-wm2026.js kopieren";
+            btnCopy.style.backgroundColor = "#27ae60";
+        }, 4000);
+    });
+
+    btnDownload.addEventListener('click', () => {
+        const blob = new Blob([finalCodeBox.value], { type: 'application/javascript;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = TARGET_DATA_FILE;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        btnDownload.innerText = `✅ ${TARGET_DATA_FILE} HERUNTERGELADEN!`;
+        btnDownload.style.backgroundColor = "#27ae60";
+        setTimeout(() => {
+            btnDownload.innerText = `💾 ${TARGET_DATA_FILE} herunterladen`;
+            btnDownload.style.backgroundColor = "#2980b9";
+        }, 4000);
+    });
+
+    toggleKeyVisibilityBtn.addEventListener('click', () => {
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            toggleKeyVisibilityBtn.textContent = '🙈 Key verbergen';
+        } else {
+            apiKeyInput.type = 'password';
+            toggleKeyVisibilityBtn.textContent = '👁️ Key anzeigen';
+        }
+    });
+
+    clearSavedKeyBtn.addEventListener('click', clearSavedApiKey);
+
+    loadSavedApiKey();
+</script>
+
+</body>
+</html>
