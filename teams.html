@@ -2372,6 +2372,19 @@
                 return;
             }
             closeTeamPickerModalWithHistory({ pushHistory: false });
+
+            // Re-apply the manager from the URL so that pressing back/forward actually
+            // restores the previously displayed team instead of leaving the UI out of sync.
+            const params = new URLSearchParams(window.location.search);
+            const managerFromUrl = params.get('manager');
+            if (managerFromUrl && Array.isArray(allTeams) && allTeams.length) {
+                const targetTeam = allTeams.find(t => t.manager === managerFromUrl);
+                const currentlyDisplayedEl = document.getElementById('display-manager-name');
+                const currentlyDisplayed = currentlyDisplayedEl ? currentlyDisplayedEl.textContent.trim() : '';
+                if (targetTeam && targetTeam.manager !== currentlyDisplayed) {
+                    selectManager(targetTeam);
+                }
+            }
         });
 
         // Modal search filter

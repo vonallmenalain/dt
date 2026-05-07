@@ -4098,8 +4098,9 @@
         currentGameNationFilter = nation || 'ALL';
         currentOpenGameNumber = null;
         renderGamesView();
-        if (currentView !== 'countries') setView('countries', false);
-        updateUrl(push);
+        // Use a single history operation: push when navigating between selections so the
+        // back button returns to the previous nation/view, otherwise just replace.
+        setView('countries', push);
         updateMobileFilterButtonLabel();
         if (options.closeFilter !== false) closeMobileFilter();
     }
@@ -4109,20 +4110,38 @@
         const player = playersData.find(p => p.Spielername === playerName);
         if (!player) return;
         currentPlayerName = playerName;
-        setView('players', false);
+        // Push a new history entry when switching from Spiele/Länder into the Spieler view,
+        // so the browser back button returns to the originating view.
+        setView('players', true);
         triggerHeroSwitch(() => showPlayerDetails(player));
-        updateUrl(true);
+        // On mobile, ensure the player hero card is positioned at the top of the screen
+        // instead of leaving the user stranded mid-statistics.
+        scrollToPlayerTop();
     }
     window.openPlayerFromGames = openPlayerFromGames;
+
+    // Scroll the player hero card to the top on mobile, or scroll the window to top on desktop
+    // so the player profile is the first thing the user sees after switching views.
+    function scrollToPlayerTop() {
+        if (window.innerWidth <= 860) {
+            scrollToHeroOnMobile();
+            return;
+        }
+        const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+        window.scrollTo({ top: 0, behavior });
+    }
 
     function openGamesViewWithNation(nation, matchNumber = null) {
         const countryList = document.getElementById('games-country-list');
         if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
         currentGameNationFilter = nation || 'ALL';
         currentOpenGameNumber = matchNumber || null;
-        setView('countries', false);
+        // Push a new history entry so the back button returns to the originating view
+        // (typically the Spieler profile the user came from).
+        setView('countries', true);
         renderGamesView();
-        updateUrl(true);
+        // Scroll to the top of the country/match section on mobile for a clean jump.
+        scrollToGamesCountrySectionOnMobile();
     }
     window.openGamesViewWithNation = openGamesViewWithNation;
 
