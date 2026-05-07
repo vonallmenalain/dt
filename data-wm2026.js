@@ -17,6 +17,22 @@
 //   - Alejandro Garnacho (Argentinien, Chelsea)
 //   - Tyler Adams (USA, Bournemouth) — USMNT-Kapitän
 //   - Tippfehler "Christian Pulišić" korrigiert zu "Christian Pulisic"
+//
+// Fix vom 7.5.2026 (Folge-Commit):
+//   - Marcos Llorente (Spanien, Atlético Madrid) entfernt.
+//     Grund: Sein Eintrag trug die falsche `player.id` 753 (das ist die
+//     API-Sports-ID von Martin Ødegaard). Solange Ødegaard nicht im Datensatz
+//     war, fiel der Fehler nicht auf, weil "753.png" schlicht als Llorente-
+//     Foto angezeigt wurde. Mit dem Hinzufügen von Ødegaard im selben Tag
+//     hatten plötzlich zwei Spieler dieselbe ID und damit dasselbe Profilbild
+//     (Ødegaards Foto). Eine doppelte `player.id` bricht ausserdem die
+//     Eindeutigkeit in `team-builder.html` (Map keyed by id) und beim
+//     Punkte-Upload (`adm-upload-points.html`, Stats werden per id gemappt).
+//     Da Llorente seit 2022 nicht mehr für Spanien spielt und nicht im
+//     offiziellen API-Squad steht, wird er hier ersatzlos entfernt.
+//     Sollte er ins WM-2026-Aufgebot zurückkehren, kann er via
+//     `adm-generate-kader-wm2026.html` mit korrekter API-Sports-ID
+//     nachgeneriert werden.
 
 const playersData = [
     {
@@ -17204,19 +17220,6 @@ const playersData = [
         "Geburtsdatum": "1998-07-22",
         "Groesse": "174",
         "Gewicht": "66"
-    },
-    {
-        "player.id": 753,
-        "Spielername": "Marcos Llorente",
-        "Spielerfoto": "https://media.api-sports.io/football/players/753.png",
-        "Position": "MIDFIELDER",
-        "Nationalteam.name": "Spain",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
-        "Club.name": "Atletico Madrid",
-        "Club.logo": "https://media.api-sports.io/football/teams/530.png",
-        "Geburtsdatum": "1995-01-30",
-        "Groesse": "183",
-        "Gewicht": "74"
     },
     {
         "player.id": 47315,
