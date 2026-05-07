@@ -2483,6 +2483,9 @@
     let playerSelectedMap = new Map();
     let gamesCountryStats = [];
     let gamesCountryStatsMap = new Map();
+    // Cache the most recently applied fixtures so popstate-triggered re-renders
+    // (e.g. Browser-Back) keep the schedule available without requiring a reload.
+    let lastFixtures = null;
 
     const CACHE_OPTIONS = {
         db: APP.getDb(),
@@ -3897,14 +3900,36 @@
         });
 
         function getScheduleDraftedPlayers(m, teamName) {
-            // Try to find the matching matchCatalog entry by teamA/teamB name
+            // Prefer drafted players from a played match (matchCatalog) – has actual match-day points/lineup
             const mc = matchCatalog.find(c =>
                 (c.teamA === m.teamA && c.teamB === m.teamB) ||
                 (c.teamA === m.teamB && c.teamB === m.teamA)
             );
-            if (!mc) return [];
-            const key = `${mc.rawMatchId}__${teamName}`;
-            return draftedByMatchTeam.get(key) || [];
+            if (mc) {
+                const key = `${mc.rawMatchId}__${teamName}`;
+                const drafted = draftedByMatchTeam.get(key);
+                if (drafted && drafted.length) return drafted;
+            }
+            // Fallback for upcoming matches (no points data yet): list all drafted players
+            // whose nationality matches the team. Mirrors how index.html "Nächste Spiele" works.
+            if (!teamName || teamName === '-') return [];
+            const fallback = [];
+            playersData.forEach(p => {
+                if ((p['Nationalteam.name'] || '') !== teamName) return;
+                if (!isPlayerDrafted(p['player.id'])) return;
+                fallback.push({
+                    playerId: String(p['player.id']),
+                    name: p.Spielername,
+                    nation: p['Nationalteam.name'],
+                    club: p['Club.name'] || 'Vereinslos',
+                    position: translatePosition(p.Position),
+                    photo: p.Spielerfoto || '',
+                    totalPoints: 0,
+                    drafted: true
+                });
+            });
+            fallback.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+            return fallback;
         }
 
         function renderScheduleAvatars(players, alignRight = false) {
@@ -4120,12 +4145,21 @@
         pointsData = data.points || {};
         allTeams = Array.isArray(data.teams) ? data.teams : [];
 
+        // Preserve fixtures across calls so popstate (e.g. Browser-Back from Länder)
+        // does not lose the schedule and trigger "Kein Spielplan verfügbar".
+        if (data.fixtures !== undefined) {
+            lastFixtures = data.fixtures;
+        }
+        const dataForSchedule = (data.fixtures !== undefined)
+            ? data
+            : { ...data, fixtures: lastFixtures };
+
         buildPlayerSelectedMap();
         calculatePerfectTeamIds();
         initStaticFilters();
         buildGamesCountryStats();
         buildMatchCatalog();
-        buildScheduleCatalog(data);
+        buildScheduleCatalog(dataForSchedule);
         buildScheduleNationList();
 
         const state = getStateFromUrl();
@@ -4311,7 +4345,10 @@
             return;
         }
         closeMobileFilter({ pushHistory: false });
-        applyDataset({ points: pointsData, teams: allTeams }, { preserveCurrentPlayer: false });
+        applyDataset(
+            { points: pointsData, teams: allTeams, fixtures: lastFixtures },
+            { preserveCurrentPlayer: false }
+        );
     });
 
     /* =========================================================
