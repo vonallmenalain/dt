@@ -2,6 +2,21 @@
 // Turnier: Weltmeisterschaft 2026
 // Quelle: API-Football /players/squads pro qualifiziertem Team
 // Generiert am: 7.5.2026, 18:40:51
+//
+// Manuell ergänzt am 7.5.2026:
+//   - Martin Ødegaard (Norwegen, Arsenal) — Kapitän, häufig wegen Verletzung
+//     nicht im aktuellen API-Squad
+//   - Jamal Musiala (Deutschland, Bayern München) — nach Langzeitverletzung
+//   - Niclas Füllkrug (Deutschland, West Ham)
+//   - Trent Alexander-Arnold (England, Real Madrid)
+//   - Romelu Lukaku (Belgien, Napoli) — Belgiens Rekordtorschütze
+//   - Dani Carvajal (Spanien, Real Madrid)
+//   - Nico Williams (Spanien, Athletic Club)
+//   - Gavi (Spanien, Barcelona) — Comeback nach Kreuzbandriss
+//   - Alisson Becker (Brasilien, Liverpool)
+//   - Alejandro Garnacho (Argentinien, Chelsea)
+//   - Tyler Adams (USA, Bournemouth) — USMNT-Kapitän
+//   - Tippfehler "Christian Pulišić" korrigiert zu "Christian Pulisic"
 
 const playersData = [
     {
@@ -406,6 +421,19 @@ const playersData = [
         "Geburtsdatum": "2004-01-16",
         "Groesse": "180",
         "Gewicht": "73"
+    },
+    {
+        "player.id": 9000003,
+        "Spielername": "Alejandro Garnacho",
+        "Spielerfoto": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Alejandro_Garnacho_7_August_2022_%28cropped%29.jpg",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Argentina",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/26.png",
+        "Club.name": "Chelsea",
+        "Club.logo": "https://media.api-sports.io/football/teams/49.png",
+        "Geburtsdatum": "2004-07-01",
+        "Groesse": "180",
+        "Gewicht": "70"
     },
     {
         "player.id": 6716,
@@ -1955,6 +1983,19 @@ const playersData = [
         "Gewicht": "74"
     },
     {
+        "player.id": 907,
+        "Spielername": "Romelu Lukaku",
+        "Spielerfoto": "https://media.api-sports.io/football/players/907.png",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Belgium",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/1.png",
+        "Club.name": "Napoli",
+        "Club.logo": "https://media.api-sports.io/football/teams/492.png",
+        "Geburtsdatum": "1993-05-13",
+        "Groesse": "191",
+        "Gewicht": "93"
+    },
+    {
         "player.id": 271276,
         "Spielername": "Romeo Vermant",
         "Spielerfoto": "https://media.api-sports.io/football/players/271276.png",
@@ -2369,6 +2410,19 @@ const playersData = [
         "Geburtsdatum": "1991-01-26",
         "Groesse": "180",
         "Gewicht": "80"
+    },
+    {
+        "player.id": 280,
+        "Spielername": "Alisson Becker",
+        "Spielerfoto": "https://media.api-sports.io/football/players/280.png",
+        "Position": "GOALKEEPER",
+        "Nationalteam.name": "Brazil",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
+        "Club.name": "Liverpool",
+        "Club.logo": "https://media.api-sports.io/football/teams/40.png",
+        "Geburtsdatum": "1992-10-02",
+        "Groesse": "193",
+        "Gewicht": "91"
     },
     {
         "player.id": 265784,
@@ -7038,6 +7092,19 @@ const playersData = [
         "Gewicht": "88"
     },
     {
+        "player.id": 283,
+        "Spielername": "Trent Alexander-Arnold",
+        "Spielerfoto": "https://media.api-sports.io/football/players/283.png",
+        "Position": "DEFENDER",
+        "Nationalteam.name": "England",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/10.png",
+        "Club.name": "Real Madrid",
+        "Club.logo": "https://media.api-sports.io/football/teams/541.png",
+        "Geburtsdatum": "1998-10-07",
+        "Groesse": "175",
+        "Gewicht": "67"
+    },
+    {
         "player.id": 19720,
         "Spielername": "Trevoh Chalobah",
         "Spielerfoto": "https://media.api-sports.io/football/players/19720.png",
@@ -7688,6 +7755,19 @@ const playersData = [
         "Gewicht": "84"
     },
     {
+        "player.id": 181812,
+        "Spielername": "Jamal Musiala",
+        "Spielerfoto": "https://media.api-sports.io/football/players/181812.png",
+        "Position": "MIDFIELDER",
+        "Nationalteam.name": "Germany",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
+        "Club.name": "Bayern München",
+        "Club.logo": "https://media.api-sports.io/football/teams/157.png",
+        "Geburtsdatum": "2003-02-26",
+        "Groesse": "184",
+        "Gewicht": "72"
+    },
+    {
         "player.id": 128533,
         "Spielername": "Jamie Leweling",
         "Spielerfoto": "https://media.api-sports.io/football/players/128533.png",
@@ -7894,6 +7974,19 @@ const playersData = [
         "Geburtsdatum": "2002-02-14",
         "Groesse": "198",
         "Gewicht": "90"
+    },
+    {
+        "player.id": 25391,
+        "Spielername": "Niclas Füllkrug",
+        "Spielerfoto": "https://media.api-sports.io/football/players/25391.png",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Germany",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
+        "Club.name": "West Ham",
+        "Club.logo": "https://media.api-sports.io/football/teams/48.png",
+        "Geburtsdatum": "1993-02-09",
+        "Groesse": "189",
+        "Gewicht": "83"
     },
     {
         "player.id": 26243,
@@ -12914,6 +13007,19 @@ const playersData = [
         "Gewicht": "76"
     },
     {
+        "player.id": 753,
+        "Spielername": "Martin Ødegaard",
+        "Spielerfoto": "https://media.api-sports.io/football/players/753.png",
+        "Position": "MIDFIELDER",
+        "Nationalteam.name": "Norway",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/1090.png",
+        "Club.name": "Arsenal",
+        "Club.logo": "https://media.api-sports.io/football/teams/42.png",
+        "Geburtsdatum": "1998-12-17",
+        "Groesse": "178",
+        "Gewicht": "68"
+    },
+    {
         "player.id": 57429,
         "Spielername": "Mathias Dyngeland",
         "Spielerfoto": "https://media.api-sports.io/football/players/57429.png",
@@ -16931,6 +17037,19 @@ const playersData = [
         "Gewicht": "78"
     },
     {
+        "player.id": 733,
+        "Spielername": "Dani Carvajal",
+        "Spielerfoto": "https://media.api-sports.io/football/players/733.png",
+        "Position": "DEFENDER",
+        "Nationalteam.name": "Spain",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
+        "Club.name": "Real Madrid",
+        "Club.logo": "https://media.api-sports.io/football/teams/541.png",
+        "Geburtsdatum": "1992-01-11",
+        "Groesse": "173",
+        "Gewicht": "73"
+    },
+    {
         "player.id": 1323,
         "Spielername": "Dani Olmo",
         "Spielerfoto": "https://media.api-sports.io/football/players/1323.png",
@@ -17020,6 +17139,19 @@ const playersData = [
         "Geburtsdatum": "2000-02-29",
         "Groesse": "182",
         "Gewicht": "80"
+    },
+    {
+        "player.id": 9000001,
+        "Spielername": "Gavi",
+        "Spielerfoto": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Gavi_%28footballer%29.jpg",
+        "Position": "MIDFIELDER",
+        "Nationalteam.name": "Spain",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
+        "Club.name": "Barcelona",
+        "Club.logo": "https://media.api-sports.io/football/teams/529.png",
+        "Geburtsdatum": "2004-08-05",
+        "Groesse": "173",
+        "Gewicht": "70"
     },
     {
         "player.id": 443162,
@@ -17124,6 +17256,19 @@ const playersData = [
         "Geburtsdatum": "1997-04-21",
         "Groesse": "181",
         "Gewicht": "79"
+    },
+    {
+        "player.id": 183799,
+        "Spielername": "Nico Williams",
+        "Spielerfoto": "https://media.api-sports.io/football/players/183799.png",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Spain",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
+        "Club.name": "Athletic Club",
+        "Club.logo": "https://media.api-sports.io/football/teams/531.png",
+        "Geburtsdatum": "2002-07-12",
+        "Groesse": "181",
+        "Gewicht": "67"
     },
     {
         "player.id": 336594,
@@ -19493,7 +19638,7 @@ const playersData = [
     },
     {
         "player.id": 17,
-        "Spielername": "Christian Pulišić",
+        "Spielername": "Christian Pulisic",
         "Spielerfoto": "https://media.api-sports.io/football/players/17.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "USA",
@@ -19854,6 +19999,19 @@ const playersData = [
         "Geburtsdatum": "2000-02-22",
         "Groesse": "183",
         "Gewicht": "66"
+    },
+    {
+        "player.id": 9000002,
+        "Spielername": "Tyler Adams",
+        "Spielerfoto": "https://upload.wikimedia.org/wikipedia/commons/8/81/Tyler_Adams_WC2022.jpg",
+        "Position": "MIDFIELDER",
+        "Nationalteam.name": "USA",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/2384.png",
+        "Club.name": "Bournemouth",
+        "Club.logo": "https://media.api-sports.io/football/teams/35.png",
+        "Geburtsdatum": "1999-02-14",
+        "Groesse": "175",
+        "Gewicht": "70"
     },
     {
         "player.id": 415,
