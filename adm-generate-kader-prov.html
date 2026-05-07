@@ -57,22 +57,138 @@ function normalizePosition(p){p=String(p||'').toUpperCase();if(['GOALKEEPER','GK
 function clean(v,u){return v?String(v).replace(u,'').trim():''}
 function stripUnit(value){return String(value||"").replace(/[^\d]/g,"")}
 function isAbbreviatedName(n){if(!n) return false; return /\b[A-ZÀ-ÖØ-Ý]\./.test(n) || /^[A-ZÀ-ÖØ-Ý]\.?\s+/.test(n.trim())}
-function buildBestPlayerName(candidate,detailPlayer){const current=(candidate?.['Spielername']||candidate?.name||'').trim();const fn=(detailPlayer?.firstname||candidate?.firstname||'').trim(),ln=(detailPlayer?.lastname||candidate?.lastname||'').trim();if(fn&&ln)return `${fn} ${ln}`.trim();const detailName=(detailPlayer?.name||'').trim();if(detailName&&(!current||isAbbreviatedName(current)||detailName.length>current.length))return detailName;const names=[current,candidate?.altName,candidate?.squadName,candidate?.name].filter(Boolean).map(v=>String(v).trim()).sort((a,b)=>b.length-a.length);return names[0]||''}
+// Build a short, canonical "Firstname Lastname" form (e.g. "Federico Valverde",
+// "Kylian Mbappé"). The API often returns long official names like
+// "Federico Santiago Valverde Dipetta" or "Kylian Mbappé Lottin" via
+// firstname/lastname; we shorten to the first given name + the primary surname.
+function buildShortPlayerName(input){
+  const nm=String((input&&input.name)||'').trim();
+  const fn=String((input&&input.firstname)||'').trim();
+  const ln=String((input&&input.lastname)||'').trim();
+  // Single-token display names ("Pedri", "Rodri", "Neymar", "Bellingham"…).
+  // We only treat them as aliases when the token does NOT appear in the
+  // lastname – otherwise we expand to "Firstname Surname".
+  if(nm && !nm.includes('.')){
+    const tokens=nm.split(/\s+/).filter(Boolean);
+    if(tokens.length===1){
+      const single=tokens[0];
+      const lnTokens=ln.split(/\s+/).filter(Boolean).map(s=>s.toLowerCase());
+      const fnFirst=fn.split(/\s+/).filter(Boolean)[0]||'';
+      if(fnFirst && lnTokens.includes(single.toLowerCase()) && fnFirst.toLowerCase()!==single.toLowerCase()){
+        return `${fnFirst} ${single}`;
+      }
+      return single;
+    }
+    if(tokens.length===2) return tokens.join(' ');
+  }
+  const firstNamePart=(fn.split(/\s+/).filter(Boolean)[0])||(nm.split(/\s+/).filter(Boolean)[0])||'';
+  let surnamePart='';
+  // Prefer the surname from "F. Valverde" / "K. Mbappé Lottin" → first word after the dot.
+  if(nm.includes('.')){
+    const afterDot=nm.split('.').pop().trim();
+    if(afterDot) surnamePart=afterDot.split(/\s+/).filter(Boolean)[0]||'';
+  }
+  if(!surnamePart && ln){
+    surnamePart=ln.split(/\s+/).filter(Boolean)[0]||'';
+  }
+  if(!surnamePart && nm){
+    const tokens=nm.replace(/\./g,' ').split(/\s+/).filter(Boolean);
+    surnamePart=tokens[tokens.length-1]||'';
+  }
+  if(firstNamePart && surnamePart && firstNamePart.toLowerCase()!==surnamePart.toLowerCase()){
+    return `${firstNamePart} ${surnamePart}`;
+  }
+  return surnamePart||firstNamePart||nm;
+}
+// Backwards-compatible wrapper used at older call sites.
+function buildBestPlayerName(candidate,detailPlayer){
+  return buildShortPlayerName({
+    name:(detailPlayer&&detailPlayer.name)||(candidate&&(candidate.rawName||candidate.name||candidate['Spielername']))||'',
+    firstname:(detailPlayer&&detailPlayer.firstname)||(candidate&&candidate.firstname)||'',
+    lastname:(detailPlayer&&detailPlayer.lastname)||(candidate&&candidate.lastname)||''
+  });
+}
 async function api(path,key,retry=true){const opt={method:'GET',headers:{'x-rapidapi-key':key,'x-rapidapi-host':'v3.football.api-sports.io'}};try{const r=await fetch('https://v3.football.api-sports.io/'+path,opt);const d=await r.json();if(d.errors&&Object.keys(d.errors).length) throw new Error(JSON.stringify(d.errors));return d;}catch(e){if(retry){await delay(400);return api(path,key,false)}throw e;}}
 async function getTeams(key){const d=await api(`teams?league=1&season=2026`,key);return (d.response||[]).map(x=>x.team).filter(Boolean)}
-async function getWMPlayers(teamId,key){let p=1,t=1,out=[];while(p<=t){const d=await api(`players?league=1&season=2026&team=${teamId}&page=${p}`,key);t=d.paging?.total||1;out.push(...(d.response||[]));p++;await delay(120)}return out}
+async function getWMPlayers(teamId,key){
+  let p=1,t=1,out=[],skipped=0;
+  while(p<=t){
+    const d=await api(`players?league=1&season=2026&team=${teamId}&page=${p}`,key);
+    t=d.paging?.total||1;
+    for(const item of (d.response||[])){
+      // The /players?team= endpoint can occasionally surface rows whose primary
+      // statistic team is NOT the requested team (e.g. opponents from shared
+      // fixtures). Including them stamps the wrong nationality on stars like
+      // Mbappé/Barcola, so we drop those rows. Rows without any team id are
+      // kept because they would otherwise filter out perfectly valid players.
+      const stTeamId=Number(item?.statistics?.[0]?.team?.id||0);
+      if(!stTeamId||stTeamId===Number(teamId)){
+        out.push(item);
+      }else{
+        skipped++;
+      }
+    }
+    p++;
+    await delay(120);
+  }
+  if(skipped) log(`Team ${teamId}: ${skipped} Spieler aus fremden Statistik-Teams verworfen`);
+  return out;
+}
 async function getSquad(teamId,key){const d=await api(`players/squads?team=${teamId}`,key);return d.response?.[0]?.players||[]}
 async function getRecentFixtures(teamId,key){const d=await api(`fixtures?team=${teamId}&last=12`,key);return (d.response||[]).map(f=>f.fixture?.id).filter(Boolean)}
-function mergeCandidate(a,b){const pick=(x,y)=>x||y;return {...a,...b,'Spielername':(buildBestPlayerName(b).length>buildBestPlayerName(a).length?buildBestPlayerName(b):buildBestPlayerName(a))||a['Spielername']||b['Spielername'],'Club.name':(a['Club.name']&&a['Club.name']!==a['Nationalteam.name'])?a['Club.name']:pick(b['Club.name'],a['Club.name']),'Club.logo':pick(a['Club.logo'],b['Club.logo']),sources:[...new Set([...(a.sources||[]),...(b.sources||[])])],startsFound:(a.startsFound||0)+(b.startsFound||0),appearancesFound:(a.appearancesFound||0)+(b.appearancesFound||0),benchFound:(a.benchFound||0)+(b.benchFound||0)} }
+function mergeCandidate(a,b){
+  const pick=(x,y)=>x||y;
+  const merged={...a,...b};
+  // Preserve raw name fields so we can recompute the short name.
+  merged.firstname=pick(a.firstname,b.firstname)||'';
+  merged.lastname=pick(a.lastname,b.lastname)||'';
+  merged.rawName=pick(a.rawName,b.rawName)||'';
+  merged['Spielername']=buildShortPlayerName({
+    name:merged.rawName||a['Spielername']||b['Spielername']||'',
+    firstname:merged.firstname,
+    lastname:merged.lastname
+  })||a['Spielername']||b['Spielername']||'';
+  // CRITICAL: Once a nationality is set, do NOT silently override it. The
+  // earlier confident source wins; differing follow-ups are logged as warnings
+  // (the post-enrichment step then validates against the API nationality).
+  if(a['Nationalteam.name']&&b['Nationalteam.name']&&a['Nationalteam.name']!==b['Nationalteam.name']){
+    log(`⚠️ Nationalitäts-Konflikt für ${merged['Spielername']||a['Spielername']||b['Spielername']} (id ${a['player.id']||b['player.id']}): ${a['Nationalteam.name']} vs ${b['Nationalteam.name']} – behalte ${a['Nationalteam.name']}`);
+  }
+  merged['Nationalteam.name']=a['Nationalteam.name']||b['Nationalteam.name']||'';
+  merged['Nationalteam.logo']=a['Nationalteam.logo']||b['Nationalteam.logo']||'';
+  // Keep an existing club entry unless it accidentally equals the (possibly wrong) NT name.
+  merged['Club.name']=(a['Club.name']&&a['Club.name']!==a['Nationalteam.name'])?a['Club.name']:pick(b['Club.name'],a['Club.name']);
+  merged['Club.logo']=pick(a['Club.logo'],b['Club.logo']);
+  merged.sources=[...new Set([...(a.sources||[]),...(b.sources||[])])];
+  merged.startsFound=(a.startsFound||0)+(b.startsFound||0);
+  merged.appearancesFound=(a.appearancesFound||0)+(b.appearancesFound||0);
+  merged.benchFound=(a.benchFound||0)+(b.benchFound||0);
+  return merged;
+}
 function score(c){let s=0;if(c.sources.includes('wmPlayers'))s+=95;if(c.sources.includes('squad'))s+=45;s+=Math.min(60,(c.startsFound||0)*12);s+=Math.min(35,(c.benchFound||0)*7);s+=Math.min(30,(c.appearancesFound||0)*8);if(c['Geburtsdatum']&&c['Groesse']&&c['Gewicht'])s+=5;if(isAbbreviatedName(c['Spielername']))s-=10;if(!c['Club.name'])s-=10;return s}
 function label(s){if(s>=70)return'Sicher';if(s>=35)return'mittlere Sicherheit';return'tiefere Sicherheit'}
 function isNationalTeam(statTeam,nationalTeam){if(!statTeam)return false;const ntName=String(nationalTeam?.name||'').trim().toLowerCase();const ntId=Number(nationalTeam?.id||0);const stName=String(statTeam?.name||'').trim().toLowerCase();const stId=Number(statTeam?.id||0);return (ntId&&stId&&ntId===stId)||(ntName&&stName&&ntName===stName)}
-function pickBestClubFromStatistics(statistics,nationalTeam){if(!Array.isArray(statistics)||!statistics.length)return null;const ranked=statistics.map(st=>{const team=st?.team||{};const isNt=isNationalTeam(team,nationalTeam);const filled=(team?.name?1:0)+(team?.logo?1:0);const apps=Number(st?.games?.appearences||0);return {team,isNt,filled,apps}}).filter(x=>!x.isNt&&x.team&&(x.team.name||x.team.logo)).sort((a,b)=>(b.filled-a.filled)||(b.apps-a.apps));return ranked[0]?.team||null}
+function pickBestClubFromStatistics(statistics,nationalTeam){
+  if(!Array.isArray(statistics)||!statistics.length)return null;
+  const ranked=statistics.map(st=>{
+    const team=st?.team||{};
+    // Exclude the player's own national team AND any team flagged as a
+    // national side. This prevents the "Club.name: France" failure mode where
+    // a mis-tagged nationality let the actual NT slip through as the club.
+    const isNt=isNationalTeam(team,nationalTeam)||team?.national===true;
+    const filled=(team?.name?1:0)+(team?.logo?1:0);
+    const apps=Number(st?.games?.appearences||0);
+    return {team,isNt,filled,apps};
+  }).filter(x=>!x.isNt&&x.team&&(x.team.name||x.team.logo))
+    .sort((a,b)=>(b.filled-a.filled)||(b.apps-a.apps));
+  return ranked[0]?.team||null;
+}
 async function fetchPlayerSeasonDetails(playerId,season,key){return api(`players?id=${playerId}&season=${season}`,key)}
-async function enrichPlayerDetails(candidate,nationalTeam,key){
+async function enrichPlayerDetails(candidate,nationalTeam,key,teamByName){
   if(!candidate?.['player.id']) return {...candidate};
   const seasons=['2026','2025','2024'];
-  let mergedPlayer=null,mergedPosition='',clubName='',clubLogo='';
+  let mergedPlayer=null,mergedPosition='';
+  const allStats=[];
   for(const season of seasons){
     try{
       const d=await fetchPlayerSeasonDetails(candidate['player.id'],season,key);
@@ -82,59 +198,204 @@ async function enrichPlayerDetails(candidate,nationalTeam,key){
       const pl=row.player||{};
       if(!mergedPlayer) mergedPlayer={...pl}; else mergedPlayer={...pl,...mergedPlayer};
       mergedPosition=mergedPosition||normalizePosition(row?.statistics?.[0]?.games?.position||'');
-      if(!clubName||!clubLogo){
-        const club=pickBestClubFromStatistics(row?.statistics||[],nationalTeam);
-        if(club){
-          clubName=clubName||club.name||"";
-          clubLogo=clubLogo||club.logo||"";
-        }
-      }
+      allStats.push(...(row?.statistics||[]));
     }catch(e){log(`Detail-Fehler Spieler ${candidate['player.id']} Season ${season}: ${e.message}`)}
     await delay(80);
   }
-  const bestName=buildBestPlayerName(candidate,mergedPlayer);
+
+  // Determine the most reliable nationality. The API's player.nationality is
+  // the authoritative source ("France" for Mbappé regardless of which team
+  // iteration first picked him up). When it maps to a known WM team we use it
+  // to overwrite a wrong Nationalteam.name set during ingestion.
+  let correctedNT=null;
+  const apiNationality=String(mergedPlayer?.nationality||'').trim();
+  if(apiNationality && teamByName){
+    const found=teamByName.get(apiNationality.toLowerCase());
+    if(found){
+      const cur=String(candidate['Nationalteam.name']||'').trim().toLowerCase();
+      if(cur && cur!==apiNationality.toLowerCase()){
+        correctedNT=found;
+        log(`⚠️ Korrigiere Nationalität für ${mergedPlayer?.name||candidate['Spielername']}: ${candidate['Nationalteam.name']} → ${found.name}`);
+      }
+    }
+  }
+  const finalNTName=(correctedNT&&correctedNT.name)||candidate['Nationalteam.name']||'';
+  const finalNTLogo=(correctedNT&&correctedNT.logo)||candidate['Nationalteam.logo']||'';
+
+  // Pick the best club using the (possibly corrected) NT and a hard filter
+  // against any team flagged as a national side.
+  const ntForClub={id:correctedNT?.id||0,name:finalNTName};
+  const clubFromStats=pickBestClubFromStatistics(allStats,ntForClub);
+  let clubName=candidate['Club.name']||'';
+  let clubLogo=candidate['Club.logo']||'';
+  // If the existing club value accidentally matches the NT (the "Club: France"
+  // bug), drop it and re-pick from stats.
+  if(clubName && finalNTName && clubName.trim().toLowerCase()===finalNTName.trim().toLowerCase()){
+    clubName='';
+    clubLogo='';
+  }
+  if(!clubName && clubFromStats){
+    clubName=clubFromStats.name||'';
+    clubLogo=clubLogo||clubFromStats.logo||'';
+  }
+
+  const fn=mergedPlayer?.firstname||candidate?.firstname||'';
+  const ln=mergedPlayer?.lastname||candidate?.lastname||'';
+  const rawName=mergedPlayer?.name||candidate?.rawName||candidate?.['Spielername']||'';
+  const bestName=buildShortPlayerName({name:rawName,firstname:fn,lastname:ln});
+
   return {
     ...candidate,
+    firstname:fn,
+    lastname:ln,
+    rawName,
     "Spielername": bestName||candidate['Spielername']||"",
     "Spielerfoto": candidate['Spielerfoto']||mergedPlayer?.photo||"",
     "Position": candidate['Position']||mergedPosition||"",
-    "Club.name": (!isNationalTeam({id:0,name:clubName},nationalTeam)?(candidate['Club.name']||clubName||""):"")||"",
-    "Club.logo": candidate['Club.logo']||clubLogo||"",
+    "Nationalteam.name": finalNTName,
+    "Nationalteam.logo": finalNTLogo,
+    "Club.name": clubName||"",
+    "Club.logo": clubLogo||"",
     "Geburtsdatum": candidate['Geburtsdatum']||mergedPlayer?.birth?.date||"",
     "Groesse": candidate['Groesse']||stripUnit(mergedPlayer?.height),
     "Gewicht": candidate['Gewicht']||stripUnit(mergedPlayer?.weight)
   };
 }
-async function enrichAllPlayers(candidates,key){
+async function enrichAllPlayers(candidates,key,teamByName){
   const total=candidates.length;log(`Starte Detail-Enrichment für ${total} Spieler`);
   const out=[];let i=0;
-  const stats={photos:0,clubs:0,birth:0,height:0,weight:0,replacedNames:0};
+  const stats={photos:0,clubs:0,birth:0,height:0,weight:0,replacedNames:0,fixedNationalities:0};
   for(const c of candidates){
     const before={...c};
-    const enriched=await enrichPlayerDetails(c,{id:0,name:c['Nationalteam.name']},key);
+    const enriched=await enrichPlayerDetails(c,{id:0,name:c['Nationalteam.name']},key,teamByName);
     if(!before['Spielerfoto']&&enriched['Spielerfoto'])stats.photos++;
     if(!before['Club.name']&&enriched['Club.name'])stats.clubs++;
     if(!before['Geburtsdatum']&&enriched['Geburtsdatum'])stats.birth++;
     if(!before['Groesse']&&enriched['Groesse'])stats.height++;
     if(!before['Gewicht']&&enriched['Gewicht'])stats.weight++;
     if(isAbbreviatedName(before['Spielername'])&&!isAbbreviatedName(enriched['Spielername']))stats.replacedNames++;
+    if(before['Nationalteam.name']&&enriched['Nationalteam.name']&&before['Nationalteam.name']!==enriched['Nationalteam.name'])stats.fixedNationalities++;
     out.push(enriched);i++;
     if(i%25===0||i===total)log(`Detail-Enrichment: ${i} / ${total} Spieler verarbeitet`);
   }
   const stillShort=out.filter(x=>isAbbreviatedName(x['Spielername'])).length;
   const withoutClub=out.filter(x=>!x['Club.name']).length;
   log(`Enrichment ergänzt: Fotos ${stats.photos}, Clubs ${stats.clubs}, Geburtsdaten ${stats.birth}, Grössen ${stats.height}, Gewichte ${stats.weight}`);
-  log(`Namen ersetzt: ${stats.replacedNames}, weiter unvollständig: ${stillShort}, weiter ohne Club: ${withoutClub}`);
+  log(`Namen ersetzt: ${stats.replacedNames}, Nationalitäten korrigiert: ${stats.fixedNationalities}, weiter unvollständig: ${stillShort}, weiter ohne Club: ${withoutClub}`);
   return out;
 }
-async function run(){const key=document.getElementById('apiKey').value.trim();if(!key)return alert('API key fehlt');apiStore.save(key);state.all=[];log('Start Team-Abfrage');const teams=await getTeams(key);log(`Anzahl Teams: ${teams.length}`);const map=new Map();for(const t of teams){log(`Team: ${t.name}`);let wm=[],sq=[],fx=[];try{wm=await getWMPlayers(t.id,key)}catch(e){log(`Fehler wm players ${t.name}: ${e.message}`)}try{sq=await getSquad(t.id,key)}catch(e){log(`Fehler squad ${t.name}: ${e.message}`)}try{fx=await getRecentFixtures(t.id,key)}catch(e){log(`Fehler fixtures ${t.name}: ${e.message}`)}let fromLineups=0;
- for(const item of wm){const p=item.player||{},st=item.statistics?.[0]||{};const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name,firstname:p.firstname,lastname:p.lastname}),"Spielerfoto":p.photo||"","Position":normalizePosition(st.games?.position||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":(st.team?.id!==t.id?st.team?.name:'')||"","Club.logo":(st.team?.id!==t.id?st.team?.logo:'')||"","Geburtsdatum":p.birth?.date||"","Groesse":clean(p.height,' cm'),"Gewicht":clean(p.weight,' kg'),sources:['wmPlayers'],startsFound:0,benchFound:0,appearancesFound:0};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|${c['Geburtsdatum']}`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}
- for(const p of sq){const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name,firstname:p.firstname,lastname:p.lastname,squadName:p.name}),"Spielerfoto":p.photo||"","Position":normalizePosition(p.position||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",sources:['squad'],startsFound:0,benchFound:0,appearancesFound:0};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}
- for(const fid of fx){try{const d=await api(`fixtures/lineups?fixture=${fid}`,key);for(const l of (d.response||[])){if(Number(l.team?.id)!==Number(t.id)) continue;for(const sp of (l.startXI||[])){fromLineups++;const p=sp.player||{};const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name}),"Spielerfoto":"","Position":normalizePosition(p.pos||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",sources:['lineup'],startsFound:1,benchFound:0,appearancesFound:1};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}for(const sb of (l.substitutes||[])){const p=sb.player||{};const c={"player.id":p.id||0,"Spielername":buildBestPlayerName({name:p.name}),"Spielerfoto":"","Position":normalizePosition(p.pos||''),"Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"","Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",sources:['lineup'],startsFound:0,benchFound:1,appearancesFound:0};const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c)}}await delay(100)}catch(e){log(`Fehler lineup fixture ${fid}: ${e.message}`)}}
- log(`WM:${wm.length} Squad:${sq.length} Lineup:${fromLineups} Total:${map.size}`);await delay(120)}
- const enriched=await enrichAllPlayers([...map.values()],key);
- state.all=enriched.map(c=>{const sc=score(c);const lbl=label(sc);return {...c,score:sc,confidenceLabel:lbl,reason:`${lbl} – Quellen: ${(c.sources||[]).join(', ')}; Starts ${c.startsFound||0}, Bank ${c.benchFound||0}`}}).sort((a,b)=>a['Nationalteam.name'].localeCompare(b['Nationalteam.name'])||a['Spielername'].localeCompare(b['Spielername']));
- updateFilters(); render();}
+async function run(){
+  const key=document.getElementById('apiKey').value.trim();
+  if(!key) return alert('API key fehlt');
+  apiStore.save(key);
+  state.all=[];
+  log('Start Team-Abfrage');
+  const teams=await getTeams(key);
+  log(`Anzahl Teams: ${teams.length}`);
+  // Lookup used to translate a player's API nationality (e.g. "France") back
+  // to the corresponding WM team object, so we can correct mis-tagged entries.
+  const teamByName=new Map();
+  for(const t of teams){
+    if(t&&t.name) teamByName.set(String(t.name).trim().toLowerCase(), t);
+  }
+  const map=new Map();
+  for(const t of teams){
+    log(`Team: ${t.name}`);
+    let wm=[],sq=[],fx=[];
+    try{wm=await getWMPlayers(t.id,key)}catch(e){log(`Fehler wm players ${t.name}: ${e.message}`)}
+    try{sq=await getSquad(t.id,key)}catch(e){log(`Fehler squad ${t.name}: ${e.message}`)}
+    try{fx=await getRecentFixtures(t.id,key)}catch(e){log(`Fehler fixtures ${t.name}: ${e.message}`)}
+    let fromLineups=0;
+    for(const item of wm){
+      const p=item.player||{},st=item.statistics?.[0]||{};
+      // Trust the iterated team for nationality (we've already filtered the
+      // /players response to rows whose stat team matches this team).
+      const c={
+        "player.id":p.id||0,
+        firstname:p.firstname||'',
+        lastname:p.lastname||'',
+        rawName:p.name||'',
+        "Spielername":buildShortPlayerName({name:p.name,firstname:p.firstname,lastname:p.lastname}),
+        "Spielerfoto":p.photo||"",
+        "Position":normalizePosition(st.games?.position||''),
+        "Nationalteam.name":t.name||"",
+        "Nationalteam.logo":t.logo||"",
+        "Club.name":(st.team?.id!==t.id?(st.team?.name||''):'')||"",
+        "Club.logo":(st.team?.id!==t.id?(st.team?.logo||''):'')||"",
+        "Geburtsdatum":p.birth?.date||"",
+        "Groesse":clean(p.height,' cm'),
+        "Gewicht":clean(p.weight,' kg'),
+        sources:['wmPlayers'],startsFound:0,benchFound:0,appearancesFound:0
+      };
+      const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|${c['Geburtsdatum']}`;
+      map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c);
+    }
+    for(const p of sq){
+      const c={
+        "player.id":p.id||0,
+        firstname:p.firstname||'',
+        lastname:p.lastname||'',
+        rawName:p.name||'',
+        "Spielername":buildShortPlayerName({name:p.name,firstname:p.firstname,lastname:p.lastname}),
+        "Spielerfoto":p.photo||"",
+        "Position":normalizePosition(p.position||''),
+        "Nationalteam.name":t.name||"",
+        "Nationalteam.logo":t.logo||"",
+        "Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",
+        sources:['squad'],startsFound:0,benchFound:0,appearancesFound:0
+      };
+      const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;
+      map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c);
+    }
+    for(const fid of fx){
+      try{
+        const d=await api(`fixtures/lineups?fixture=${fid}`,key);
+        for(const l of (d.response||[])){
+          if(Number(l.team?.id)!==Number(t.id)) continue;
+          for(const sp of (l.startXI||[])){
+            fromLineups++;
+            const p=sp.player||{};
+            const c={
+              "player.id":p.id||0,
+              firstname:'',lastname:'',rawName:p.name||'',
+              "Spielername":buildShortPlayerName({name:p.name}),
+              "Spielerfoto":"","Position":normalizePosition(p.pos||''),
+              "Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"",
+              "Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",
+              sources:['lineup'],startsFound:1,benchFound:0,appearancesFound:1
+            };
+            const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;
+            map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c);
+          }
+          for(const sb of (l.substitutes||[])){
+            const p=sb.player||{};
+            const c={
+              "player.id":p.id||0,
+              firstname:'',lastname:'',rawName:p.name||'',
+              "Spielername":buildShortPlayerName({name:p.name}),
+              "Spielerfoto":"","Position":normalizePosition(p.pos||''),
+              "Nationalteam.name":t.name||"","Nationalteam.logo":t.logo||"",
+              "Club.name":"","Club.logo":"","Geburtsdatum":"","Groesse":"","Gewicht":"",
+              sources:['lineup'],startsFound:0,benchFound:1,appearancesFound:0
+            };
+            const k=c['player.id']?`id:${c['player.id']}`:`${c['Spielername'].toLowerCase()}|${t.name}|`;
+            map.set(k,map.has(k)?mergeCandidate(map.get(k),c):c);
+          }
+        }
+        await delay(100);
+      }catch(e){log(`Fehler lineup fixture ${fid}: ${e.message}`)}
+    }
+    log(`WM:${wm.length} Squad:${sq.length} Lineup:${fromLineups} Total:${map.size}`);
+    await delay(120);
+  }
+  const enriched=await enrichAllPlayers([...map.values()],key,teamByName);
+  state.all=enriched.map(c=>{
+    const sc=score(c);const lbl=label(sc);
+    return {...c,score:sc,confidenceLabel:lbl,reason:`${lbl} – Quellen: ${(c.sources||[]).join(', ')}; Starts ${c.startsFound||0}, Bank ${c.benchFound||0}`};
+  }).sort((a,b)=>a['Nationalteam.name'].localeCompare(b['Nationalteam.name'])||a['Spielername'].localeCompare(b['Spielername']));
+  updateFilters();
+  render();
+}
 function updateFilters(){const teams=[...new Set(state.all.map(x=>x['Nationalteam.name']).filter(Boolean))].sort();const sel=document.getElementById('teamFilter');sel.innerHTML='<option value="">Alle Nationalteams</option>'+teams.map(t=>`<option>${t}</option>`).join('')}
 function getVisible(){const s=document.getElementById('search').value.toLowerCase(),tf=document.getElementById('teamFilter').value,pf=document.getElementById('posFilter').value;return state.all.filter(x=>(!s||x['Spielername'].toLowerCase().includes(s))&&(!tf||x['Nationalteam.name']===tf)&&(!pf||x['Position']===pf));}
 function render(){const vis=getVisible();state.view=vis;const tb=document.querySelector('#tbl tbody');tb.innerHTML=vis.map((x,i)=>`<tr><td><input type="checkbox" data-i="${i}" ${x.sel!==false?'checked':''}></td><td>${x['Spielerfoto']?`<img src="${x['Spielerfoto']}" width="28">`:''}</td><td>${x['Spielername']}</td><td>${x['Position']}</td><td>${x['Nationalteam.name']}</td><td>${x['Club.name']||'<span class="warn">-</span>'}</td><td>${x['Geburtsdatum']||'<span class="warn">-</span>'}</td><td>${x['Groesse']||'<span class="warn">-</span>'}</td><td>${x['Gewicht']||'<span class="warn">-</span>'}</td><td><span class="badge ${x.confidenceLabel==='Sicher'?'safe':x.confidenceLabel==='mittlere Sicherheit'?'mid':'low'}">${x.confidenceLabel}</span></td><td>${x.score}</td><td>${x.sources.join(',')}</td><td>${x.reason}</td><td>${isAbbreviatedName(x['Spielername'])?'<span class="warn">⚠️</span>':''}</td></tr>`).join('');tb.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=()=>{vis[Number(c.dataset.i)].sel=c.checked;refreshExport()});refreshExport()}
