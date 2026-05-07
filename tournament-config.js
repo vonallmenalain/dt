@@ -1,4 +1,105 @@
+/* =============================================================================
+ *  tournament-config.js
+ *
+ *  Zentrale Steuerung für die DreamTeam-App im Multi-Tournament-Modus.
+ *  Definiert alle turnierspezifischen Werte (Labels, Daten-Dateien, API-Werte,
+ *  Firestore-Collections, LocalStorage-/Cache-Prefixes, Spielstartzeitpunkt,
+ *  Fallback-Spiele) an EINEM Ort.
+ *
+ *  Aktives Turnier wird in dieser Reihenfolge bestimmt:
+ *    1. URL-Parameter ?tournament=em2024|wm2026|...
+ *    2. Dev-Auswahl in localStorage (`dreamteam_active_tournament`)
+ *    3. Default (`em2024`)
+ *
+ *  Ungültige Werte fallen sicher auf das Default-Turnier zurück.
+ * ============================================================================= */
+
 window.APP_CONFIG = (() => {
+  const DEFAULT_TOURNAMENT_KEY = "em2024";
+  const ACTIVE_TOURNAMENT_STORAGE_KEY = "dreamteam_active_tournament";
+  const URL_PARAM_NAME = "tournament";
+
+  /* ─────────────────────────────────────────────────────────
+   * Fallback-Spiele pro Turnier (für leere Datenstände / Dev).
+   * Echte Spiele aus Firestore haben Vorrang.
+   * ───────────────────────────────────────────────────────── */
+  const FALLBACK_FIXTURES_EM2024 = [
+    {
+      id: "em2024_test_1",
+      teamA: "Germany",
+      homeLogo: "https://media.api-sports.io/football/teams/25.png",
+      teamB: "Scotland",
+      awayLogo: "https://media.api-sports.io/football/teams/1108.png",
+      date: "2024-06-14T21:00:00+02:00",
+      venue: "Allianz Arena",
+      venueCity: "München",
+      statusShort: "NS"
+    },
+    {
+      id: "em2024_test_2",
+      teamA: "Hungary",
+      homeLogo: "https://media.api-sports.io/football/teams/769.png",
+      teamB: "Switzerland",
+      awayLogo: "https://media.api-sports.io/football/teams/15.png",
+      date: "2024-06-15T15:00:00+02:00",
+      venue: "RheinEnergieStadion",
+      venueCity: "Köln",
+      statusShort: "NS"
+    },
+    {
+      id: "em2024_test_3",
+      teamA: "Spain",
+      homeLogo: "https://media.api-sports.io/football/teams/9.png",
+      teamB: "Croatia",
+      awayLogo: "https://media.api-sports.io/football/teams/3.png",
+      date: "2024-06-15T18:00:00+02:00",
+      venue: "Olympiastadion",
+      venueCity: "Berlin",
+      statusShort: "NS"
+    }
+  ];
+
+  // Provisorische Platzhalter-Spiele für WM 2026 – werden ersetzt,
+  // sobald echte Daten aus der API/Firestore vorliegen.
+  const FALLBACK_FIXTURES_WM2026 = [
+    {
+      id: "wm2026_placeholder_1",
+      teamA: "TBD",
+      homeLogo: "",
+      teamB: "TBD",
+      awayLogo: "",
+      date: "2026-06-11T21:00:00+02:00",
+      venue: "Estadio Azteca",
+      venueCity: "Mexico City",
+      statusShort: "NS"
+    },
+    {
+      id: "wm2026_placeholder_2",
+      teamA: "TBD",
+      homeLogo: "",
+      teamB: "TBD",
+      awayLogo: "",
+      date: "2026-06-12T18:00:00+02:00",
+      venue: "MetLife Stadium",
+      venueCity: "East Rutherford",
+      statusShort: "NS"
+    },
+    {
+      id: "wm2026_placeholder_3",
+      teamA: "TBD",
+      homeLogo: "",
+      teamB: "TBD",
+      awayLogo: "",
+      date: "2026-06-12T21:00:00+02:00",
+      venue: "BC Place",
+      venueCity: "Vancouver",
+      statusShort: "NS"
+    }
+  ];
+
+  /* ─────────────────────────────────────────────────────────
+   * Definition aller bekannten Turniere
+   * ───────────────────────────────────────────────────────── */
   const TOURNAMENTS = {
     wm2022: {
       key: "wm2022",
@@ -6,14 +107,29 @@ window.APP_CONFIG = (() => {
       year: "2022",
       name: "Weltmeisterschaft 2022",
       shortLabel: "WM 2022",
+      longLabel: "FIFA World Cup 2022",
       brandName: "DreamTeam WM 2022",
       pageTitlePrefix: "WM 2022 DreamTeam",
-      dataFile: "data.js",
+      competitionName: "FIFA World Cup",
+      timezone: "Europe/Zurich",
+      // Spielstart laut alter Konfiguration: WM 2022 begann am 20.11.2022.
+      DREAMTEAM_START: "2022-11-20T17:00:00+01:00",
+      storagePrefix: "dreamteam_wm2022",
+      cachePrefix: "dreamteam-wm2022",
+      dataFile: "data-wm2022.js",
       api: {
         competitionParam: "league",
         competitionId: 1,
         season: "2022"
-      }
+      },
+      firestore: {
+        metaCollection: "app_meta",
+        metaDocId: "turnier_wm2022",
+        teamsCollection: "Teams WM 2022",
+        pointsCollection: "Punkte Spieler WM 2022",
+        fixturesCollection: "Spiele WM 2022"
+      },
+      fallbackFixtures: []
     },
 
     em2024: {
@@ -22,14 +138,28 @@ window.APP_CONFIG = (() => {
       year: "2024",
       name: "Europameisterschaft 2024",
       shortLabel: "EM 2024",
+      longLabel: "UEFA Euro 2024",
       brandName: "DreamTeam EM 2024",
       pageTitlePrefix: "EM 2024 DreamTeam",
-      dataFile: "data.js",
+      competitionName: "UEFA Euro",
+      timezone: "Europe/Zurich",
+      DREAMTEAM_START: "2024-06-14T21:00:00+02:00",
+      storagePrefix: "dreamteam_em2024",
+      cachePrefix: "dreamteam-em2024",
+      dataFile: "data-em2024.js",
       api: {
         competitionParam: "league",
         competitionId: 4,
         season: "2024"
-      }
+      },
+      firestore: {
+        metaCollection: "app_meta",
+        metaDocId: "turnier_em2024",
+        teamsCollection: "Teams EM 2024",
+        pointsCollection: "Punkte Spieler EM 2024",
+        fixturesCollection: "Spiele EM 2024"
+      },
+      fallbackFixtures: FALLBACK_FIXTURES_EM2024
     },
 
     wm2026: {
@@ -38,14 +168,28 @@ window.APP_CONFIG = (() => {
       year: "2026",
       name: "Weltmeisterschaft 2026",
       shortLabel: "WM 2026",
+      longLabel: "FIFA World Cup 2026",
       brandName: "DreamTeam WM 2026",
       pageTitlePrefix: "WM 2026 DreamTeam",
-      dataFile: "data.js",
+      competitionName: "FIFA World Cup",
+      timezone: "Europe/Zurich",
+      DREAMTEAM_START: "2026-06-11T21:00:00+02:00",
+      storagePrefix: "dreamteam_wm2026",
+      cachePrefix: "dreamteam-wm2026",
+      dataFile: "data-wm2026.js",
       api: {
         competitionParam: "league",
         competitionId: 1,
         season: "2026"
-      }
+      },
+      firestore: {
+        metaCollection: "app_meta",
+        metaDocId: "turnier_wm2026",
+        teamsCollection: "Teams WM 2026",
+        pointsCollection: "Punkte Spieler WM 2026",
+        fixturesCollection: "Spiele WM 2026"
+      },
+      fallbackFixtures: FALLBACK_FIXTURES_WM2026
     },
 
     em2028: {
@@ -54,14 +198,28 @@ window.APP_CONFIG = (() => {
       year: "2028",
       name: "Europameisterschaft 2028",
       shortLabel: "EM 2028",
+      longLabel: "UEFA Euro 2028",
       brandName: "DreamTeam EM 2028",
       pageTitlePrefix: "EM 2028 DreamTeam",
-      dataFile: "data.js",
+      competitionName: "UEFA Euro",
+      timezone: "Europe/Zurich",
+      DREAMTEAM_START: "2028-06-09T21:00:00+02:00",
+      storagePrefix: "dreamteam_em2028",
+      cachePrefix: "dreamteam-em2028",
+      dataFile: "data-em2028.js",
       api: {
         competitionParam: "league",
         competitionId: 4,
         season: "2028"
-      }
+      },
+      firestore: {
+        metaCollection: "app_meta",
+        metaDocId: "turnier_em2028",
+        teamsCollection: "Teams EM 2028",
+        pointsCollection: "Punkte Spieler EM 2028",
+        fixturesCollection: "Spiele EM 2028"
+      },
+      fallbackFixtures: []
     },
 
     wm2030: {
@@ -70,27 +228,88 @@ window.APP_CONFIG = (() => {
       year: "2030",
       name: "Weltmeisterschaft 2030",
       shortLabel: "WM 2030",
+      longLabel: "FIFA World Cup 2030",
       brandName: "DreamTeam WM 2030",
       pageTitlePrefix: "WM 2030 DreamTeam",
-      dataFile: "data.js",
+      competitionName: "FIFA World Cup",
+      timezone: "Europe/Zurich",
+      DREAMTEAM_START: "2030-06-08T21:00:00+02:00",
+      storagePrefix: "dreamteam_wm2030",
+      cachePrefix: "dreamteam-wm2030",
+      dataFile: "data-wm2030.js",
       api: {
         competitionParam: "league",
         competitionId: 1,
         season: "2030"
-      }
+      },
+      firestore: {
+        metaCollection: "app_meta",
+        metaDocId: "turnier_wm2030",
+        teamsCollection: "Teams WM 2030",
+        pointsCollection: "Punkte Spieler WM 2030",
+        fixturesCollection: "Spiele WM 2030"
+      },
+      fallbackFixtures: []
     }
   };
 
-  const ACTIVE_TOURNAMENT_KEY = "em2024";
+  /* ─────────────────────────────────────────────────────────
+   * Aktives Turnier robust auflösen.
+   * Reihenfolge: URL-Parameter > LocalStorage > Default.
+   * Ungültige Werte werden ignoriert.
+   * ───────────────────────────────────────────────────────── */
+  function readUrlTournamentKey() {
+    try {
+      if (typeof window === "undefined" || !window.location) return null;
+      const params = new URLSearchParams(window.location.search);
+      const value = params.get(URL_PARAM_NAME);
+      return value ? value.trim().toLowerCase() : null;
+    } catch (err) {
+      return null;
+    }
+  }
 
-  // ─────────────────────────────────────────────────────────
-  // DREAMTEAM SPIELSTART – Umschaltzeitpunkt Pre/Post-Start
-  // WM 2026: Start am 11. Juni 2026, 21:00 Uhr Schweizer Zeit
-  // Zeitzone: Europe/Zurich (CEST = UTC+2 im Sommer)
-  // Zum Ändern: Datum & Uhrzeit hier anpassen.
-  // ─────────────────────────────────────────────────────────
-  const DREAMTEAM_START = new Date("2026-06-11T21:00:00+02:00");
+  function readStoredTournamentKey() {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) return null;
+      const value = window.localStorage.getItem(ACTIVE_TOURNAMENT_STORAGE_KEY);
+      return value ? value.trim().toLowerCase() : null;
+    } catch (err) {
+      return null;
+    }
+  }
 
+  function persistTournamentKey(key) {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) return;
+      window.localStorage.setItem(ACTIVE_TOURNAMENT_STORAGE_KEY, key);
+    } catch (err) {
+      // Storage kann in Privacy-Modi blockiert sein – kein Hard-Fail.
+    }
+  }
+
+  function resolveActiveTournamentKey() {
+    const fromUrl = readUrlTournamentKey();
+    if (fromUrl && TOURNAMENTS[fromUrl]) {
+      // URL-Auswahl persistieren, damit nachfolgende Seitenaufrufe
+      // konsistent dasselbe Turnier zeigen.
+      persistTournamentKey(fromUrl);
+      return fromUrl;
+    }
+
+    const fromStorage = readStoredTournamentKey();
+    if (fromStorage && TOURNAMENTS[fromStorage]) {
+      return fromStorage;
+    }
+
+    return DEFAULT_TOURNAMENT_KEY;
+  }
+
+  let ACTIVE_TOURNAMENT_KEY = resolveActiveTournamentKey();
+
+  /* ─────────────────────────────────────────────────────────
+   * Firebase-Konfiguration (Projekt-weit identisch).
+   * ───────────────────────────────────────────────────────── */
   const firebaseConfig = {
     apiKey: "AIzaSyAOrgxmb_NZM1H_HZpMG1XfK9azDgV2zCQ",
     authDomain: "dreamteam-d2121.firebaseapp.com",
@@ -100,6 +319,9 @@ window.APP_CONFIG = (() => {
     appId: "1:1044159021561:web:89c88336b707ab1f4dbd28"
   };
 
+  /* ─────────────────────────────────────────────────────────
+   * Punkteregeln & Labels (turnierübergreifend identisch).
+   * ───────────────────────────────────────────────────────── */
   const rules = {
     START: 5,
     SUBBED_IN: 2,
@@ -155,17 +377,20 @@ window.APP_CONFIG = (() => {
   function getActiveTournament() {
     const tournament = TOURNAMENTS[ACTIVE_TOURNAMENT_KEY];
     if (!tournament) {
-      throw new Error(`Unbekanntes Turnier: ${ACTIVE_TOURNAMENT_KEY}`);
+      // Notfall-Fallback – sollte nie eintreten, da Auflösung validiert.
+      return TOURNAMENTS[DEFAULT_TOURNAMENT_KEY];
     }
     return tournament;
   }
 
   function requireCompetitionId() {
     const tournament = getActiveTournament();
-    const id = tournament.api?.competitionId;
+    const id = tournament.api && tournament.api.competitionId;
 
     if (id === null || id === undefined || id === "") {
-      throw new Error(`Für ${tournament.shortLabel} ist noch keine API competitionId gesetzt.`);
+      throw new Error(
+        `Für ${tournament.shortLabel} ist noch keine API competitionId gesetzt.`
+      );
     }
 
     return id;
@@ -183,9 +408,46 @@ window.APP_CONFIG = (() => {
     return window.firebase.firestore();
   }
 
+  /* ─────────────────────────────────────────────────────────
+   * Dev-Switch: Aktives Turnier wechseln.
+   * Speichert Auswahl in localStorage und lädt die Seite neu.
+   * Optional kann zusätzlich der URL-Parameter aktualisiert werden.
+   * ───────────────────────────────────────────────────────── */
+  function setActiveTournament(key, options) {
+    const opts = options || {};
+    const normalized = (key || "").toLowerCase();
+
+    if (!TOURNAMENTS[normalized]) {
+      console.warn(`[APP_CONFIG] Unbekanntes Turnier: ${key}`);
+      return false;
+    }
+
+    persistTournamentKey(normalized);
+
+    if (opts.reload === false) {
+      ACTIVE_TOURNAMENT_KEY = normalized;
+      return true;
+    }
+
+    try {
+      const url = new URL(window.location.href);
+      if (opts.updateUrl !== false) {
+        url.searchParams.set(URL_PARAM_NAME, normalized);
+      }
+      window.location.replace(url.toString());
+    } catch (err) {
+      window.location.reload();
+    }
+
+    return true;
+  }
+
   return {
     tournaments: TOURNAMENTS,
-    activeTournamentKey: ACTIVE_TOURNAMENT_KEY,
+
+    get activeTournamentKey() {
+      return ACTIVE_TOURNAMENT_KEY;
+    },
 
     get activeTournament() {
       return getActiveTournament();
@@ -211,6 +473,10 @@ window.APP_CONFIG = (() => {
       return getActiveTournament().shortLabel;
     },
 
+    get longLabel() {
+      return getActiveTournament().longLabel || getActiveTournament().name;
+    },
+
     get brandName() {
       return getActiveTournament().brandName;
     },
@@ -223,10 +489,28 @@ window.APP_CONFIG = (() => {
       return getActiveTournament().shortLabel;
     },
 
+    get competitionName() {
+      return getActiveTournament().competitionName || "";
+    },
+
+    get timezone() {
+      return getActiveTournament().timezone || "Europe/Zurich";
+    },
+
+    get DREAMTEAM_START() {
+      const raw = getActiveTournament().DREAMTEAM_START;
+      // Konsistent als Date-Objekt zurückgeben, wie es alte Aufrufer erwarten.
+      return raw instanceof Date ? raw : new Date(raw);
+    },
+
+    get fallbackFixtures() {
+      const list = getActiveTournament().fallbackFixtures;
+      return Array.isArray(list) ? list : [];
+    },
+
     firebaseConfig,
     rules,
     ruleLabels,
-    DREAMTEAM_START,
 
     api: {
       get competitionParam() {
@@ -242,7 +526,7 @@ window.APP_CONFIG = (() => {
       },
 
       isConfigured() {
-        const id = getActiveTournament().api?.competitionId;
+        const id = getActiveTournament().api && getActiveTournament().api.competitionId;
         return id !== null && id !== undefined && id !== "";
       },
 
@@ -280,28 +564,44 @@ window.APP_CONFIG = (() => {
     },
 
     firestore: {
-      metaCollection: "app_meta",
+      get metaCollection() {
+        return (
+          (getActiveTournament().firestore &&
+            getActiveTournament().firestore.metaCollection) ||
+          "app_meta"
+        );
+      },
 
       metaDocId() {
+        const fs = getActiveTournament().firestore;
+        if (fs && fs.metaDocId) return fs.metaDocId;
         return `turnier_${getActiveTournament().key}`;
       },
 
       teamsCollection() {
+        const fs = getActiveTournament().firestore;
+        if (fs && fs.teamsCollection) return fs.teamsCollection;
         return `Teams ${getActiveTournament().shortLabel}`;
       },
 
       pointsCollection() {
+        const fs = getActiveTournament().firestore;
+        if (fs && fs.pointsCollection) return fs.pointsCollection;
         return `Punkte Spieler ${getActiveTournament().shortLabel}`;
       },
 
       fixturesCollection() {
+        const fs = getActiveTournament().firestore;
+        if (fs && fs.fixturesCollection) return fs.fixturesCollection;
         return `Spiele ${getActiveTournament().shortLabel}`;
       }
     },
 
     storage: {
+      activeTournamentKey: ACTIVE_TOURNAMENT_STORAGE_KEY,
+
       appPrefix() {
-        return `dreamteam_${getActiveTournament().key}`;
+        return getActiveTournament().storagePrefix || `dreamteam_${getActiveTournament().key}`;
       },
 
       key(name) {
@@ -313,15 +613,25 @@ window.APP_CONFIG = (() => {
       }
     },
 
-    data: {
-      mode: "single-current-file",
-      currentFile: "data.js",
-
-      fileName() {
-        return this.currentFile;
+    cache: {
+      get prefix() {
+        return getActiveTournament().cachePrefix || `dreamteam-${getActiveTournament().key}`;
       }
     },
 
+    data: {
+      mode: "per-tournament-file",
+
+      fileName() {
+        return getActiveTournament().dataFile || "data.js";
+      },
+
+      get currentFile() {
+        return this.fileName();
+      }
+    },
+
+    setActiveTournament,
     getDb
   };
 })();
