@@ -4,12 +4,22 @@
  *  Multi-Tournament-aware PWA Service Worker.
  *
  *  Wichtig:
+ *  - Service Worker laufen pro Origin/Domain getrennt. Trotzdem wird der
+ *    Cache-Name HOSTBASIERT vergeben, damit:
+ *      * em24dt.alae.app  → Cache `dreamteam-em24dt.alae.app-vYYYY-MM-DD-...`
+ *      * dt.alae.app      → Cache `dreamteam-dt.alae.app-vYYYY-MM-DD-...`
+ *      * localhost / Deploy Previews → eigener Cache pro Hostname
+ *    So gibt es selbst bei einem versehentlichen Domain-Switch oder einem
+ *    Pflegezugriff via anderer Sub-Domain keine vermischten Inhalte.
  *  - Die Cache-Version wurde bewusst erhöht, damit der Browser nach dem
- *    Multi-Tournament-Umbau einen frischen Stand zieht und keine alten
- *    EM-2024-spezifischen Assets als WM-2026-Inhalt anzeigt.
- *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt.
+ *    Domain-Mapping-Umbau einen frischen Stand zieht und keine alten
+ *    Assets aus dem Vor-Umbau-Cache als neuer Inhalt erscheinen.
+ *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
+ *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_NAME = 'dreamteam-pwa-v2026-05-07-wm2026-position-overrides-saved-teams';
+const CACHE_VERSION = 'v2026-05-07-domain-mapping';
+const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
+const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
   './',
   './index.html',
@@ -59,7 +69,10 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
       keys
-        .filter(key => key !== CACHE_NAME)
+        // Alle alten dreamteam-* Caches dieser Domain entfernen (z.B.
+        // ehemalige fixe `dreamteam-pwa-v...`-Caches und ältere
+        // host-spezifische Versionen). Der jeweils aktuelle Cache bleibt.
+        .filter(key => key !== CACHE_NAME && /^dreamteam[-_]/i.test(key))
         .map(key => caches.delete(key))
     )).then(() => self.clients.claim())
   );

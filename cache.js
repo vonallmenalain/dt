@@ -559,12 +559,14 @@
 
         console.info('[DreamTeamDebug]', {
             origin: window.location.origin,
+            hostname: window.location.hostname,
             tournamentKey: cfg.tournamentKey,
+            domainDefaultKey: window.APP_CONFIG && window.APP_CONFIG.domainDefaultKey,
+            devOverrideActive: !!(window.APP_CONFIG && typeof window.APP_CONFIG.isDevOverrideActive === 'function' && window.APP_CONFIG.isDevOverrideActive()),
             teamsCollection: cfg.teamsCollection,
             pointsCollection: cfg.pointsCollection,
             teamsCount: Array.isArray(teams) ? teams.length : 0,
-            pointsCount: Object.keys(points || {}).length,
-            serviceWorkerCacheVersion: 'dreamteam-pwa-v2026-05-07-wm2026-position-overrides-saved-teams'
+            pointsCount: Object.keys(points || {}).length
         });
 
         return {

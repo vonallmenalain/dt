@@ -25,12 +25,33 @@
  *    benutzt diesen Wert als Basis, damit sie sich nicht selbst täuscht
  *    und weiterhin die "echte" Original-Position anzeigt.
  *
- *  Fallback: Falls APP_CONFIG nicht vorhanden ist, wird das aktuelle
- *  Default-Turnier (data-wm2026.js) geladen.
+ *  Fallback: Falls APP_CONFIG nicht vorhanden ist, wird – in Anlehnung an
+ *  das Domain-Mapping in tournament-config.js – versucht, anhand von
+ *  window.location.hostname die richtige Datei zu wählen. Ist das
+ *  nicht möglich, wird das aktuelle Default-Turnier (data-wm2026.js)
+ *  geladen.
  * ============================================================================= */
 (function () {
+  // Notfall-Fallback (entspricht dem FALLBACK_TOURNAMENT_KEY in
+  // tournament-config.js, falls dort etwas schiefläuft).
   var fileName = "data-wm2026.js";
   var activeKey = "wm2026";
+
+  function fallbackFromHostname() {
+    try {
+      if (typeof window === "undefined" || !window.location) return null;
+      var host = String(window.location.hostname || "").toLowerCase();
+      if (host === "em24dt.alae.app") {
+        return { key: "em2024", file: "data-em2024.js" };
+      }
+      if (host === "dt.alae.app") {
+        return { key: "wm2026", file: "data-wm2026.js" };
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   try {
     if (window.APP_CONFIG && window.APP_CONFIG.data && typeof window.APP_CONFIG.data.fileName === "function") {
@@ -43,12 +64,24 @@
       activeKey = window.APP_CONFIG.activeTournamentKey;
     } else if (window.APP_CONFIG && typeof window.APP_CONFIG.key === "string") {
       activeKey = window.APP_CONFIG.key;
+    } else {
+      // APP_CONFIG nicht vorhanden – Hostname-Fallback verwenden,
+      // damit em24dt.alae.app nicht versehentlich WM-2026-Daten lädt.
+      var hostFallback = fallbackFromHostname();
+      if (hostFallback) {
+        fileName = hostFallback.file;
+        activeKey = hostFallback.key;
+      }
     }
   } catch (err) {
-    // Wenn etwas schiefläuft, bewusst auf den WM-2026-Default zurückfallen,
-    // damit die App nicht ohne playersData-Variable bricht.
-    fileName = "data-wm2026.js";
-    activeKey = "wm2026";
+    var hostFallback2 = fallbackFromHostname();
+    if (hostFallback2) {
+      fileName = hostFallback2.file;
+      activeKey = hostFallback2.key;
+    } else {
+      fileName = "data-wm2026.js";
+      activeKey = "wm2026";
+    }
   }
 
   // 1) Per-Turnier Kaderdaten (synchron) – stellt globales `playersData` bereit.
