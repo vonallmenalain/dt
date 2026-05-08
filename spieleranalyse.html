@@ -5810,6 +5810,10 @@
         const showEmptyNotice = hideEqualActive && !hasDifferences;
         out.innerHTML = `
             <div class="cmp-player-grid">${cardA}${cardB}</div>
+            ${ranks.length ? `<div class="analysis-card"><div class="analysis-card-body">
+                <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Position-Ranking</div>
+                ${ranks.map(r => `<div style="margin:4px 0;color:var(--text-main);font-size:0.92rem;">📌 ${escapeHtml(r)}</div>`).join('')}
+            </div></div>` : ''}
             <div class="analysis-card cmp-stats-card${hideEqualActive ? ' is-hide-equal' : ''}">
                 <div class="analysis-card-header">
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📊 Statistik-Vergleich</div>
@@ -5826,10 +5830,6 @@
                     <div class="cmp-stats-empty"${showEmptyNotice ? '' : ' hidden'}>Keine Unterschiede – alle Werte sind identisch.</div>
                 </div>
             </div>
-            ${ranks.length ? `<div class="analysis-card"><div class="analysis-card-body">
-                <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Position-Ranking</div>
-                ${ranks.map(r => `<div style="margin:4px 0;color:var(--text-main);font-size:0.92rem;">📌 ${escapeHtml(r)}</div>`).join('')}
-            </div></div>` : ''}
             <div class="cmp-storyline">
                 <div class="cmp-storyline-title">📖 Fazit</div>
                 ${escapeHtml(story)}
