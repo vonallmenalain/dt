@@ -1408,6 +1408,8 @@
             color: #fff;
             box-shadow: 0 4px 14px rgba(34,197,94,0.35);
         }
+        .cmp-pill-label-short { display: none; }
+        .cmp-pill-label-full { display: inline; }
         .cmp-tab-panel { animation: fadeSlideDown 0.35s ease both; }
         .cmp-tab-panel[hidden] { display: none; }
 
@@ -2010,6 +2012,11 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.25);
             z-index: 2;
         }
+        .cmp-cap-avatar .cmp-cap-c-badge.star {
+            background: linear-gradient(135deg, #4ade80, #16a34a);
+            color: #fff;
+            font-size: 12px;
+        }
         .cmp-cap-side {
             display: flex;
             flex-direction: column;
@@ -2352,21 +2359,44 @@
         }
         .cmp-alt-row {
             display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 10px;
+            grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto;
+            gap: 12px;
             align-items: center;
             background: var(--dark-card-2);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 11px 12px;
         }
-        .cmp-alt-row .col {
+        .cmp-alt-side {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .cmp-alt-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            flex: 0 0 auto;
+            display: block;
+        }
+        .cmp-alt-photo-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        .cmp-alt-info {
             display: flex;
             flex-direction: column;
             gap: 2px;
             min-width: 0;
         }
-        .cmp-alt-row .col-name {
+        .cmp-alt-name {
             font-size: 0.88rem;
             font-weight: 700;
             color: var(--text-main);
@@ -2374,29 +2404,62 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .cmp-alt-row .col-meta {
+        .cmp-alt-name.is-best { color: var(--green-light); }
+        .cmp-alt-meta {
             font-size: 0.72rem;
             color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .cmp-alt-row .col-pts {
-            font-size: 0.95rem;
+        .cmp-alt-pts {
+            font-size: 0.85rem;
             font-weight: 800;
+            color: var(--text-muted);
         }
+        .cmp-alt-pts.is-best { color: var(--green-light); }
         .cmp-alt-arrow {
             color: var(--text-muted);
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             text-align: center;
+            justify-self: center;
+            align-self: center;
+            line-height: 1;
         }
         .cmp-alt-diff {
             font-weight: 900;
             font-size: 1rem;
-            text-align: right;
+            text-align: center;
+            justify-self: center;
+            align-self: center;
             min-width: 56px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            line-height: 1.1;
         }
-        .cmp-alt-diff.pos { color: var(--green-light); }
-        .cmp-alt-diff.neg { color: var(--red-soft); }
+        .cmp-alt-diff.pos {
+            color: var(--green-light);
+            background: rgba(34,197,94,0.14);
+            border: 1px solid rgba(34,197,94,0.3);
+        }
+        .cmp-alt-diff.neg {
+            color: var(--red-soft);
+            background: rgba(248,113,113,0.14);
+            border: 1px solid rgba(248,113,113,0.3);
+        }
         .cmp-alt-diff.zero { color: var(--text-muted); }
+
+        /* What-if Captain note (centered) */
+        .cmp-whatif-note {
+            margin-top: 12px;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .cmp-whatif-note.is-warn { color: var(--gold); }
+        .cmp-whatif-note strong { color: var(--gold); }
 
         .cmp-pos-grid {
             display: grid;
@@ -2515,13 +2578,25 @@
             .cmp-alt-row {
                 grid-template-columns: 1fr 1fr;
                 grid-template-rows: auto auto;
+                gap: 8px 10px;
             }
             .cmp-alt-arrow { display: none; }
-            .cmp-alt-diff { grid-column: 1 / -1; text-align: center; }
+            .cmp-alt-diff {
+                grid-column: 1 / -1;
+                justify-self: center;
+                text-align: center;
+            }
+            .cmp-alt-photo { width: 34px; height: 34px; }
+            .cmp-alt-side { gap: 8px; }
+            .cmp-alt-name { font-size: 0.82rem; }
+            .cmp-alt-meta { font-size: 0.66rem; }
+            .cmp-alt-pts { font-size: 0.78rem; }
             .cmp-stat-row { grid-template-columns: 1fr 1fr 1fr; }
             .cmp-stat-row .label { font-size: 0.66rem; }
             .cmp-pill-nav { padding: 4px; }
             .cmp-pill { padding: 10px 12px; font-size: 0.82rem; }
+            .cmp-pill-label-full { display: none; }
+            .cmp-pill-label-short { display: inline; }
             .cmp-hero { padding: 18px 16px; }
             .cmp-hero-title { font-size: 1.2rem; }
         }
@@ -3612,7 +3687,7 @@
                 <div class="cmp-pill-nav" role="tablist" aria-label="Vergleichsart wählen">
                     <button type="button" class="cmp-pill active" data-cmp-tab="manager" role="tab" aria-selected="true">👤 Manager-Duell</button>
                     <button type="button" class="cmp-pill" data-cmp-tab="player" role="tab" aria-selected="false">⚽ Spieler-Duell</button>
-                    <button type="button" class="cmp-pill" data-cmp-tab="whatif" role="tab" aria-selected="false">💭 Was wäre möglich?</button>
+                    <button type="button" class="cmp-pill" data-cmp-tab="whatif" role="tab" aria-selected="false"><span class="cmp-pill-emoji" aria-hidden="true">💭</span> <span class="cmp-pill-label-full">Was wäre möglich?</span><span class="cmp-pill-label-short">Optimum</span></button>
                 </div>
 
                 <!-- Manager-Duell -->
@@ -6052,7 +6127,9 @@
                     name: other.Spielername,
                     pos: cmpNormalizePosition(other.Position),
                     pts: getPlayerBasePoints(other['player.id']),
-                    samePos: cmpNormalizePosition(other.Position) === p.pos
+                    samePos: cmpNormalizePosition(other.Position) === p.pos,
+                    photo: other.Spielerfoto || '',
+                    nation: other['Nationalteam.name'] || ''
                 }))
                 .sort((a, b) => b.pts - a.pts);
             const best = candidates.length ? candidates[0] : null;
@@ -6120,24 +6197,39 @@
                 </div>
             </div>`;
 
+        const renderWhatIfCapAvatar = (player, badgeChar, badgeClass) => {
+            const photo = player && player.photo
+                ? `<img src="${escapeHtml(player.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+                : `<div class="cmp-cap-photo-fallback">⚽</div>`;
+            const badge = badgeChar
+                ? `<div class="cmp-cap-c-badge ${badgeClass || ''}" aria-hidden="true">${badgeChar}</div>`
+                : '';
+            return `<div class="cmp-cap-avatar">${photo}${badge}</div>`;
+        };
+
         const captainHtml = `
             <div class="analysis-card">
                 <div class="analysis-card-header">
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>👑 Captain-Optimierung</div>
                 </div>
                 <div class="analysis-card-body">
-                    <div class="cmp-row">
-                        <div class="cmp-row-side">
+                    <div class="cmp-cap-row cmp-whatif-cap-row">
+                        ${renderWhatIfCapAvatar(currentCaptain, 'C')}
+                        <div class="cmp-cap-side">
                             <span class="cmp-row-name">${currentCaptain ? escapeHtml(currentCaptain.name) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts">${captainBonusCurrent} Bonus</span>
                         </div>
-                        <div class="cmp-row-center">→</div>
-                        <div class="cmp-row-side right">
+                        <div class="cmp-cap-center">
+                            <span class="cmp-cap-arrow ${captainMissed > 0 ? 'loss' : ''}" aria-hidden="true">→</span>
+                            <span class="cmp-cap-diff ${captainMissed > 0 ? 'win' : 'draw'}" aria-label="Differenz +${captainMissed} Punkte">${captainMissed > 0 ? `+${captainMissed}` : '±0'}</span>
+                        </div>
+                        <div class="cmp-cap-side right">
                             <span class="cmp-row-name">${bestPlayer ? escapeHtml(bestPlayer.name) : '–'}</span>
                             <span class="cmp-row-pts ${captainMissed > 0 ? 'win' : 'draw'}">${captainBonusBest} Bonus</span>
                         </div>
+                        ${renderWhatIfCapAvatar(bestPlayer, '★', 'star')}
                     </div>
-                    <div style="margin-top:10px;color:${captainMissed > 0 ? 'var(--gold)' : 'var(--text-muted)'};font-size:0.92rem;font-weight:700;">
+                    <div class="cmp-whatif-note ${captainMissed > 0 ? 'is-warn' : ''}">
                         ${captainMissed > 0
                             ? `Verpasste Captain-Punkte: <strong>+${captainMissed}</strong>`
                             : `Du hast den optimalen Captain gewählt.`}
@@ -6165,6 +6257,10 @@
                 </div>
             </div>`;
 
+        const renderAltAvatar = (photo) => photo
+            ? `<img class="cmp-alt-photo" src="${escapeHtml(photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
+            : `<div class="cmp-alt-photo cmp-alt-photo-fallback">⚽</div>`;
+
         const topMissedHtml = `
             <div class="analysis-card">
                 <div class="analysis-card-header">
@@ -6172,21 +6268,27 @@
                 </div>
                 <div class="analysis-card-body">
                     ${topMissed.length === 0
-                        ? `<div style="color:var(--text-muted);font-style:italic;">Du hast aus jedem Land den besten positionsgleichen Spieler gewählt – starke Auswahl!</div>`
+                        ? `<div style="color:var(--text-muted);font-style:italic;text-align:center;">Du hast aus jedem Land den besten positionsgleichen Spieler gewählt – starke Auswahl!</div>`
                         : `<div class="cmp-alt-list">${topMissed.map(item => `
                             <div class="cmp-alt-row">
-                                <div class="col">
-                                    <div class="col-name">${escapeHtml(item.player.name)}</div>
-                                    <div class="col-meta">${escapeHtml(POSITION_LABELS[item.player.pos] || translatePosition(item.player.pos))} · ${escapeHtml(item.player.nation)}</div>
-                                    <div class="col-pts" style="color:var(--text-muted);">${item.player.basePts} Pkt.</div>
+                                <div class="cmp-alt-side">
+                                    ${renderAltAvatar(item.player.photo)}
+                                    <div class="cmp-alt-info">
+                                        <div class="cmp-alt-name">${escapeHtml(item.player.name)}</div>
+                                        <div class="cmp-alt-meta">${escapeHtml(POSITION_LABELS[item.player.pos] || translatePosition(item.player.pos))} · ${escapeHtml(item.player.nation)}</div>
+                                        <div class="cmp-alt-pts">${item.player.basePts} Pkt.</div>
+                                    </div>
                                 </div>
-                                <div class="cmp-alt-arrow">→</div>
-                                <div class="col">
-                                    <div class="col-name" style="color:var(--green-light);">${escapeHtml(item.bestSamePos.name)}</div>
-                                    <div class="col-meta">gleiche Nation & Position</div>
-                                    <div class="col-pts" style="color:var(--green-light);">${item.bestSamePos.pts} Pkt.</div>
+                                <div class="cmp-alt-arrow" aria-hidden="true">→</div>
+                                <div class="cmp-alt-side">
+                                    ${renderAltAvatar(item.bestSamePos.photo)}
+                                    <div class="cmp-alt-info">
+                                        <div class="cmp-alt-name is-best">${escapeHtml(item.bestSamePos.name)}</div>
+                                        <div class="cmp-alt-meta">gleiche Nation &amp; Position</div>
+                                        <div class="cmp-alt-pts is-best">${item.bestSamePos.pts} Pkt.</div>
+                                    </div>
                                 </div>
-                                <div class="cmp-alt-diff pos">+${item.diff}</div>
+                                <div class="cmp-alt-diff pos" aria-label="Differenz +${item.diff} Punkte">+${item.diff}</div>
                             </div>`).join('')}</div>`}
                 </div>
             </div>`;
@@ -6229,7 +6331,7 @@
                 ${escapeHtml(story)}
             </div>`;
 
-        out.innerHTML = summaryHtml + captainHtml + positionTilesHtml + topMissedHtml + picksHtml + storyHtml;
+        out.innerHTML = summaryHtml + positionTilesHtml + captainHtml + topMissedHtml + picksHtml + storyHtml;
     }
 
     function computePerfectLightTeam() {
