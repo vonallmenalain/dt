@@ -6501,7 +6501,6 @@
             selectedNations.add(p['Nationalteam.name']);
         }
 
-        // Find captain = highest pts player in starting lineup
         const starters = [
             ...teamSlots.GK.slice(0, startSlots.GK),
             ...teamSlots.DEF.slice(0, startSlots.DEF),
@@ -6515,9 +6514,12 @@
             ...teamSlots.ATT.slice(startSlots.ATT)
         ];
 
-        const captain = starters.reduce((best, p) => (!best || p.pts > best.pts) ? p : best, null);
+        // Captain = highest scoring player across all 15 (matches manager scoring rules,
+        // where bench points also count towards the team total).
+        const allPicked = [...starters, ...benchers];
+        const captain = allPicked.reduce((best, p) => (!best || p.pts > best.pts) ? p : best, null);
         const captainId = captain ? String(captain['player.id']) : null;
-        const maxPts = starters.reduce((sum, p) => sum + (String(p['player.id']) === captainId ? p.pts * 2 : p.pts), 0);
+        const maxPts = allPicked.reduce((sum, p) => sum + (String(p['player.id']) === captainId ? p.pts * 2 : p.pts), 0);
 
         // Meta header
         if (metaContainer) {
