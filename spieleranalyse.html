@@ -2488,6 +2488,21 @@
         .cmp-pos-tile-value.pos { color: var(--green-light); }
         .cmp-pos-tile-value.neg { color: var(--red-soft); }
         .cmp-pos-tile-value.zero { color: var(--text-muted); }
+        .cmp-pos-meta {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+        .cmp-pos-sum {
+            margin-top: 12px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .cmp-pos-sum strong.pos { color: var(--green-light); }
+        .cmp-pos-sum strong.neg { color: var(--red-soft); }
+        .cmp-pos-sum strong.zero { color: var(--text-muted); }
 
         @media (max-width: 600px) {
             .cmp-picker-grid {
@@ -6137,30 +6152,47 @@
             return { player: p, best, bestSamePos };
         });
 
-        // Calculate missed points by position (same-position, same-nation alternatives only)
-        const missedByPosition = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0 };
-        altsSameNation.forEach(item => {
-            const cur = item.player.basePts;
-            const altPts = item.bestSamePos ? item.bestSamePos.pts : cur;
-            const diff = altPts - cur;
-            if (diff > 0 && missedByPosition[item.player.pos] !== undefined) {
-                missedByPosition[item.player.pos] += diff;
-            }
-        });
-
-        // Captain optimization
-        const currentCaptain = team.captain;
-        const bestPlayer = team.players.slice().sort((a, b) => b.basePts - a.basePts)[0] || null;
-        const captainBonusCurrent = currentCaptain ? currentCaptain.basePts : 0;
-        const captainBonusBest = bestPlayer ? bestPlayer.basePts : 0;
-        const captainMissed = Math.max(0, captainBonusBest - captainBonusCurrent);
-
-        // "Perfect team light" within nation rules
+        // "Perfect team light" within nation rules (1 player per nation, fixed slots)
         const perfectLight = computePerfectLightTeam();
         const perfectScore = perfectLight.score;
         const teamScore = team.totalScore;
         const maxPercent = perfectScore > 0 ? Math.round((teamScore / perfectScore) * 100) : 0;
         const totalMissed = Math.max(0, perfectScore - teamScore);
+
+        // Per-position diff vs. perfect team (signed). Both teams have the same
+        // slot composition (GK 2 / DEF 4 / MID 5 / ATT 4), so summing these per-
+        // position diffs plus the captain-bonus diff equals `totalMissed`.
+        const currentBaseByPos = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0 };
+        team.players.forEach(p => {
+            if (currentBaseByPos[p.pos] !== undefined) currentBaseByPos[p.pos] += p.basePts;
+        });
+        const perfectBaseByPos = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0 };
+        perfectLight.players.forEach(p => {
+            if (perfectBaseByPos[p.pos] !== undefined) perfectBaseByPos[p.pos] += p.pts;
+        });
+        // Positive diff = perfect is better than current = missed points.
+        // Negative diff = your team is stronger than perfect in this position
+        // (possible because nation-allocation forces trade-offs between slots).
+        const missedByPosition = {
+            GOALKEEPER: perfectBaseByPos.GOALKEEPER - currentBaseByPos.GOALKEEPER,
+            DEFENDER:   perfectBaseByPos.DEFENDER   - currentBaseByPos.DEFENDER,
+            MIDFIELDER: perfectBaseByPos.MIDFIELDER - currentBaseByPos.MIDFIELDER,
+            ATTACKER:   perfectBaseByPos.ATTACKER   - currentBaseByPos.ATTACKER
+        };
+
+        // Captain comparison: bonus delta to perfect-team captain so that
+        // Σ missedByPosition + captainMissed == totalMissed.
+        const currentCaptain = team.captain;
+        const captainBonusCurrent = currentCaptain ? currentCaptain.basePts : 0;
+        const captainBonusBest = perfectLight.captain ? perfectLight.captain.pts : 0;
+        const captainMissed = Math.max(0, captainBonusBest - captainBonusCurrent);
+
+        // Best captain pick *within* the current squad – used by the
+        // "Captain-Optimierung" card as actionable advice ("with the players
+        // you actually own, who should you have captained?").
+        const bestPlayer = team.players.slice().sort((a, b) => b.basePts - a.basePts)[0] || null;
+        const captainBonusBestOwn = bestPlayer ? bestPlayer.basePts : 0;
+        const captainMissedOwn = Math.max(0, captainBonusBestOwn - captainBonusCurrent);
 
         // Top alternatives (biggest missed picks)
         const topMissed = altsSameNation
@@ -6220,39 +6252,56 @@
                             <span class="cmp-row-pts">${captainBonusCurrent} Bonus</span>
                         </div>
                         <div class="cmp-cap-center">
-                            <span class="cmp-cap-arrow ${captainMissed > 0 ? 'loss' : ''}" aria-hidden="true">→</span>
-                            <span class="cmp-cap-diff ${captainMissed > 0 ? 'win' : 'draw'}" aria-label="Differenz +${captainMissed} Punkte">${captainMissed > 0 ? `+${captainMissed}` : '±0'}</span>
+                            <span class="cmp-cap-arrow ${captainMissedOwn > 0 ? 'loss' : ''}" aria-hidden="true">→</span>
+                            <span class="cmp-cap-diff ${captainMissedOwn > 0 ? 'win' : 'draw'}" aria-label="Differenz +${captainMissedOwn} Punkte">${captainMissedOwn > 0 ? `+${captainMissedOwn}` : '±0'}</span>
                         </div>
                         <div class="cmp-cap-side right">
                             <span class="cmp-row-name">${bestPlayer ? escapeHtml(bestPlayer.name) : '–'}</span>
-                            <span class="cmp-row-pts ${captainMissed > 0 ? 'win' : 'draw'}">${captainBonusBest} Bonus</span>
+                            <span class="cmp-row-pts ${captainMissedOwn > 0 ? 'win' : 'draw'}">${captainBonusBestOwn} Bonus</span>
                         </div>
                         ${renderWhatIfCapAvatar(bestPlayer, '★', 'star')}
                     </div>
-                    <div class="cmp-whatif-note ${captainMissed > 0 ? 'is-warn' : ''}">
-                        ${captainMissed > 0
-                            ? `Verpasste Captain-Punkte: <strong>+${captainMissed}</strong>`
-                            : `Du hast den optimalen Captain gewählt.`}
+                    <div class="cmp-whatif-note ${captainMissedOwn > 0 ? 'is-warn' : ''}">
+                        ${captainMissedOwn > 0
+                            ? `Verpasste Captain-Punkte mit deinem Kader: <strong>+${captainMissedOwn}</strong>`
+                            : `Du hast aus deinem Kader den optimalen Captain gewählt.`}
                     </div>
                 </div>
             </div>`;
 
+        const renderDiffTileValue = (diff) => {
+            if (diff > 0) return `<div class="cmp-pos-tile-value neg">-${diff}</div>`;
+            if (diff < 0) return `<div class="cmp-pos-tile-value pos">+${Math.abs(diff)}</div>`;
+            return `<div class="cmp-pos-tile-value zero">±0</div>`;
+        };
+        const positionDiffSum = POSITION_KEYS.reduce((s, p) => s + (missedByPosition[p] || 0), 0)
+            + (captainMissed || 0);
         const positionTilesHtml = `
             <div class="analysis-card">
                 <div class="analysis-card-header">
-                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📍 Verpasste Punkte nach Position</div>
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📍 Differenz zum perfekten Team nach Position</div>
                 </div>
                 <div class="analysis-card-body">
+                    <div class="cmp-pos-meta">
+                        Vergleich pro Positions-Slot zwischen deinem Kader und dem theoretisch perfekten Team
+                        (1 Spieler pro Nation, gleiche Slot-Aufteilung). Negative Werte zeigen verpasste Punkte,
+                        positive Werte bedeuten, dass du in dieser Position stärker bist als das Perfect-Team –
+                        was auf Kosten anderer Positionen gegangen sein kann.
+                    </div>
                     <div class="cmp-pos-grid">
                         ${POSITION_KEYS.map(pos => `
                             <div class="cmp-pos-tile">
                                 <div class="cmp-pos-tile-label">${POSITION_ICONS[pos] || ''} ${POSITION_LABELS[pos]}</div>
-                                <div class="cmp-pos-tile-value ${missedByPosition[pos] > 0 ? 'neg' : 'zero'}">${missedByPosition[pos] > 0 ? '-' + missedByPosition[pos] : '0'}</div>
+                                ${renderDiffTileValue(missedByPosition[pos] || 0)}
                             </div>`).join('')}
                         <div class="cmp-pos-tile">
-                            <div class="cmp-pos-tile-label">👑 Captain</div>
-                            <div class="cmp-pos-tile-value ${captainMissed > 0 ? 'neg' : 'zero'}">${captainMissed > 0 ? '-' + captainMissed : '0'}</div>
+                            <div class="cmp-pos-tile-label">👑 Captain-Bonus</div>
+                            ${renderDiffTileValue(captainMissed || 0)}
                         </div>
+                    </div>
+                    <div class="cmp-pos-sum">
+                        Summe: <strong class="${positionDiffSum > 0 ? 'neg' : (positionDiffSum < 0 ? 'pos' : 'zero')}">${positionDiffSum > 0 ? '-' + positionDiffSum : (positionDiffSum < 0 ? '+' + Math.abs(positionDiffSum) : '±0')}</strong>
+                        — entspricht den oben angezeigten ${totalMissed > 0 ? `<strong>${totalMissed}</strong> verpassten Punkten` : 'verpassten Punkten'}.
                     </div>
                 </div>
             </div>`;
@@ -6363,14 +6412,21 @@
 
     function buildWhatIfStoryline(team, missedByPosition, captainMissed, totalMissed, percent, topMissed) {
         const parts = [];
+        // missedByPosition values are signed (positive = missed, negative = stronger than perfect team).
         const worstPos = POSITION_KEYS
             .map(p => ({ pos: p, missed: missedByPosition[p] || 0 }))
             .sort((a, b) => b.missed - a.missed)[0];
         if (worstPos && worstPos.missed > 0) {
-            parts.push(`Dein grösstes verpasstes Potenzial lag im Bereich ${POSITION_LABELS[worstPos.pos]} (${worstPos.missed} Punkte).`);
+            parts.push(`Dein grösstes verpasstes Potenzial lag im Bereich ${POSITION_LABELS[worstPos.pos]} (${worstPos.missed} Punkte gegenüber dem perfekten Team).`);
+        }
+        const bestPos = POSITION_KEYS
+            .map(p => ({ pos: p, missed: missedByPosition[p] || 0 }))
+            .sort((a, b) => a.missed - b.missed)[0];
+        if (bestPos && bestPos.missed < 0) {
+            parts.push(`Dafür warst du im Bereich ${POSITION_LABELS[bestPos.pos]} sogar ${Math.abs(bestPos.missed)} Punkte stärker als das Perfect-Team.`);
         }
         if (captainMissed > 0) {
-            parts.push(`Eine andere Captain-Wahl hätte dir ${captainMissed} Punkte mehr gebracht.`);
+            parts.push(`Eine andere Captain-Wahl hätte dir bis zu ${captainMissed} Bonuspunkte mehr gebracht.`);
         }
         if (topMissed && topMissed.length) {
             const top = topMissed[0];
