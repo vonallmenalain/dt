@@ -61,9 +61,11 @@ function registerServiceWorker() {
 /* =============================================================================
  *  DEV TOURNAMENT SWITCHER
  *
- *  Kleiner, bewusst unauffälliger Dev-Knopf, mit dem zwischen den in
- *  tournament-config.js definierten Turnieren (EM 2024 / WM 2026)
- *  gewechselt werden kann.
+ *  Sehr unauffälliger Dev-Knopf oben links (neben dem ggf. vorhandenen
+ *  "DEV: Auto/Vor Start/Nach Start"-Toggle in index.html). Beschriftet nur
+ *  mit "Dev". Erst beim Klick öffnet sich ein kleines Popover, in dem
+ *  zwischen den in tournament-config.js definierten Turnieren
+ *  (EM 2024 / WM 2026) gewechselt werden kann.
  *
  *  Wichtig:
  *  - Der eigentliche Standard kommt aus dem Domain-Mapping in
@@ -72,12 +74,12 @@ function registerServiceWorker() {
  *  - Der Dev-Knopf dient nur noch als TEST-OVERRIDE und schreibt
  *    seine Auswahl host-spezifisch in localStorage
  *    (`dreamteam_dev_override_${hostname}`).
- *  - Wenn ein Override aktiv ist, zeigt der Knopf das deutlich an
- *    ("Dev Override: ...") und erlaubt mit "↺ Domain-Default" das
- *    Zurücksetzen auf die domain-basierte Standardwahl.
+ *  - Wenn ein Override aktiv ist, zeigt der Knopf das per Farbakzent an
+ *    und erlaubt mit "↺ Domain-Default" das Zurücksetzen auf die
+ *    domain-basierte Standardwahl.
  *
  *  Sichtbarkeit:
- *  - Standardmässig sichtbar, deutlich als "DEV:" markiert.
+ *  - Standardmässig sichtbar.
  *  - Kann mit ?dev=0 oder localStorage["dreamteam_hide_dev"]="1" versteckt
  *    werden.
  * ============================================================================= */
@@ -94,6 +96,10 @@ function buildDevTournamentSwitcher(APP) {
 
     if (document.getElementById('dev-tournament-switcher')) return;
 
+    const allowedTournamentKeys = ['em2024', 'wm2026'];
+    const tournamentKeys = allowedTournamentKeys.filter((key) => APP.tournaments[key]);
+    if (!tournamentKeys.length) return;
+
     const overrideActive = typeof APP.isDevOverrideActive === 'function'
         ? APP.isDevOverrideActive()
         : false;
@@ -101,156 +107,233 @@ function buildDevTournamentSwitcher(APP) {
         ? APP.isUrlOverrideActive()
         : false;
 
-    const wrapper = document.createElement('div');
-    wrapper.id = 'dev-tournament-switcher';
-    wrapper.setAttribute('role', 'group');
-    wrapper.setAttribute('aria-label', 'Dev: Turnier wechseln');
-    // Position bewusst unter der Navbar (Navbar ist 80px hoch, position:fixed),
-    // damit weder das Brand-Logo noch die Navi-Links überdeckt werden.
-    Object.assign(wrapper.style, {
-        position: 'fixed',
-        top: '88px',
-        left: '8px',
-        zIndex: '9999',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '3px 8px',
-        background: overrideActive
-            ? 'rgba(80, 20, 20, 0.85)'
-            : 'rgba(20, 20, 20, 0.78)',
-        color: overrideActive ? '#ffb4a2' : '#ffd166',
-        border: overrideActive
-            ? '1px solid rgba(255, 120, 120, 0.55)'
-            : '1px solid rgba(255, 209, 102, 0.35)',
-        borderRadius: '999px',
-        fontFamily: 'system-ui, -apple-system, Segoe UI, sans-serif',
-        fontSize: '11px',
-        fontWeight: '600',
-        letterSpacing: '0.3px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-        backdropFilter: 'blur(6px)',
-        pointerEvents: 'auto',
-        userSelect: 'none',
-        opacity: '0.9'
-    });
-
-    const label = document.createElement('span');
-    label.textContent = overrideActive ? 'DEV OVERRIDE' : 'DEV';
-    Object.assign(label.style, {
-        background: overrideActive ? '#ff6b6b' : '#ffd166',
-        color: '#1a1a1a',
-        padding: '1px 6px',
-        borderRadius: '999px',
-        fontSize: '10px',
-        fontWeight: '800',
-        letterSpacing: '0.5px',
-        whiteSpace: 'nowrap'
-    });
-    label.title = overrideActive
-        ? `Dev Override aktiv – Domain-Default wäre: ${APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel || APP.domainDefaultKey}`
-        : `Domain-Default: ${APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel || APP.domainDefaultKey}`;
-
-    const select = document.createElement('select');
-    select.id = 'dev-tournament-select';
-    select.setAttribute('aria-label', 'Aktives Turnier wählen');
-    Object.assign(select.style, {
-        background: 'transparent',
-        color: overrideActive ? '#ffb4a2' : '#ffd166',
-        border: overrideActive
-            ? '1px solid rgba(255, 120, 120, 0.55)'
-            : '1px solid rgba(255, 209, 102, 0.4)',
-        borderRadius: '999px',
-        padding: '2px 8px',
-        fontSize: '11px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        outline: 'none'
-    });
-
-    const allowedTournamentKeys = ['em2024', 'wm2026'];
-    const tournamentKeys = allowedTournamentKeys.filter((key) => APP.tournaments[key]);
-    if (!tournamentKeys.length) return;
-
     const RESET_VALUE = '__reset_to_domain_default__';
     const domainDefaultKey = APP.domainDefaultKey;
+    const domainDefaultLabel = (APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel)
+        || domainDefaultKey
+        || '–';
+
+    // Container nimmt Button + Popover auf, damit beides gemeinsam positioniert
+    // werden kann (oben links, neben einem evtl. vorhandenen #dev-index-toggle).
+    const wrapper = document.createElement('div');
+    wrapper.id = 'dev-tournament-switcher';
+    Object.assign(wrapper.style, {
+        position: 'fixed',
+        top: '8px',
+        left: '8px',
+        zIndex: '9999',
+        fontFamily: 'monospace, system-ui, -apple-system, Segoe UI, sans-serif',
+        userSelect: 'none',
+        WebkitUserSelect: 'none'
+    });
+
+    // Falls der DEV-Ansichtsmodus-Knopf (#dev-index-toggle, nur auf index.html)
+    // existiert, setzen wir den Turnier-Switcher direkt rechts daneben.
+    function placeNextToIndexToggle() {
+        const toggle = document.getElementById('dev-index-toggle');
+        if (!toggle) return;
+        const rect = toggle.getBoundingClientRect();
+        if (!rect || !rect.width) return;
+        wrapper.style.left = `${Math.round(rect.right + 6)}px`;
+        wrapper.style.top = `${Math.round(rect.top)}px`;
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'dev-tournament-toggle';
+    button.textContent = 'Dev';
+    button.setAttribute('aria-haspopup', 'menu');
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute(
+        'aria-label',
+        overrideActive
+            ? `Dev: Turnier wechseln (Override aktiv, Domain-Default: ${domainDefaultLabel})`
+            : `Dev: Turnier wechseln (Domain-Default: ${domainDefaultLabel})`
+    );
+    button.title = overrideActive
+        ? `Dev Override aktiv – Domain-Default: ${domainDefaultLabel}`
+        : `Domain-Default: ${domainDefaultLabel}`;
+    Object.assign(button.style, {
+        fontSize: '11px',
+        fontFamily: 'monospace',
+        fontWeight: '700',
+        padding: '4px 8px',
+        borderRadius: '6px',
+        border: overrideActive
+            ? '1px solid rgba(255, 120, 120, 0.55)'
+            : '1px solid rgba(255, 255, 255, 0.2)',
+        background: 'rgba(0, 0, 0, 0.55)',
+        color: overrideActive ? 'rgba(255, 180, 162, 0.95)' : 'rgba(255, 255, 255, 0.7)',
+        cursor: 'pointer',
+        opacity: '0.55',
+        transition: 'opacity 0.2s ease, background 0.2s ease',
+        lineHeight: '1.4',
+        letterSpacing: '0.3px'
+    });
+    button.addEventListener('mouseenter', () => {
+        button.style.opacity = '0.9';
+        button.style.background = 'rgba(0, 0, 0, 0.8)';
+    });
+    button.addEventListener('mouseleave', () => {
+        button.style.opacity = '0.55';
+        button.style.background = 'rgba(0, 0, 0, 0.55)';
+    });
+
+    // Popover mit den Auswahl-Optionen, standardmässig versteckt.
+    const popover = document.createElement('div');
+    popover.id = 'dev-tournament-popover';
+    popover.setAttribute('role', 'menu');
+    Object.assign(popover.style, {
+        position: 'absolute',
+        top: 'calc(100% + 6px)',
+        left: '0',
+        minWidth: '180px',
+        padding: '6px',
+        display: 'none',
+        flexDirection: 'column',
+        gap: '2px',
+        background: 'rgba(20, 20, 20, 0.95)',
+        border: overrideActive
+            ? '1px solid rgba(255, 120, 120, 0.55)'
+            : '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '8px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+        backdropFilter: 'blur(6px)',
+        fontSize: '11px',
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.85)'
+    });
+
+    // Header zeigt den Domain-Default zur Orientierung.
+    const header = document.createElement('div');
+    header.textContent = overrideActive
+        ? `Dev Override aktiv (Default: ${domainDefaultLabel})`
+        : `Domain-Default: ${domainDefaultLabel}`;
+    Object.assign(header.style, {
+        padding: '4px 8px 6px',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        marginBottom: '4px',
+        fontSize: '10px',
+        fontWeight: '700',
+        letterSpacing: '0.3px',
+        color: overrideActive ? '#ffb4a2' : '#ffd166',
+        textTransform: 'uppercase'
+    });
+    popover.appendChild(header);
+
+    function closePopover() {
+        popover.style.display = 'none';
+        button.setAttribute('aria-expanded', 'false');
+    }
+
+    function openPopover() {
+        placeNextToIndexToggle();
+        popover.style.display = 'flex';
+        button.setAttribute('aria-expanded', 'true');
+    }
+
+    function makeItem({ text, isActive, isDomain, accent, onClick }) {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.setAttribute('role', 'menuitem');
+        item.textContent = text;
+        Object.assign(item.style, {
+            display: 'block',
+            width: '100%',
+            textAlign: 'left',
+            padding: '6px 8px',
+            borderRadius: '6px',
+            border: '1px solid transparent',
+            background: isActive ? 'rgba(255, 209, 102, 0.12)' : 'transparent',
+            color: accent || (isActive ? '#ffd166' : 'rgba(255,255,255,0.85)'),
+            fontSize: '11px',
+            fontWeight: isActive ? '800' : '600',
+            cursor: 'pointer',
+            outline: 'none',
+            lineHeight: '1.3'
+        });
+        if (isDomain) {
+            item.style.borderColor = 'rgba(255, 209, 102, 0.35)';
+        }
+        item.addEventListener('mouseenter', () => {
+            item.style.background = 'rgba(255,255,255,0.08)';
+        });
+        item.addEventListener('mouseleave', () => {
+            item.style.background = isActive ? 'rgba(255, 209, 102, 0.12)' : 'transparent';
+        });
+        item.addEventListener('click', (event) => {
+            event.stopPropagation();
+            try {
+                onClick();
+            } finally {
+                closePopover();
+            }
+        });
+        return item;
+    }
 
     tournamentKeys.forEach((key) => {
         const t = APP.tournaments[key];
-        const option = document.createElement('option');
-        option.value = key;
         const baseLabel = t && t.shortLabel ? t.shortLabel : key;
         const isDomainDefault = key === domainDefaultKey;
-        const prefix = overrideActive && key === APP.activeTournamentKey
-            ? 'Dev Override: '
-            : (isDomainDefault ? '★ ' : 'Dev: ');
-        option.textContent = `${prefix}${baseLabel}${isDomainDefault ? ' (Domain)' : ''}`;
-        option.style.color = '#111';
-        select.appendChild(option);
+        const isActive = key === APP.activeTournamentKey;
+        const marks = [];
+        if (isDomainDefault) marks.push('★ Domain');
+        if (isActive) marks.push(overrideActive ? 'Override aktiv' : 'aktiv');
+        const suffix = marks.length ? ` — ${marks.join(' · ')}` : '';
+        popover.appendChild(makeItem({
+            text: `${baseLabel}${suffix}`,
+            isActive,
+            isDomain: isDomainDefault,
+            onClick: () => {
+                if (isActive && !urlOverrideActive) return;
+                if (typeof APP.setActiveTournament === 'function') {
+                    APP.setActiveTournament(key);
+                }
+            }
+        }));
     });
 
-    // Reset-Option, nur sichtbar wenn ein Dev-Override tatsächlich aktiv ist.
     if (overrideActive) {
-        const resetOption = document.createElement('option');
-        resetOption.value = RESET_VALUE;
-        resetOption.textContent = '↺ Zurück auf Domain-Default';
-        resetOption.style.color = '#111';
-        select.appendChild(resetOption);
+        popover.appendChild(makeItem({
+            text: '↺ Zurück auf Domain-Default',
+            accent: '#ffb4a2',
+            onClick: () => {
+                if (typeof APP.resetToDomainDefault === 'function') {
+                    APP.resetToDomainDefault();
+                }
+            }
+        }));
     }
 
-    select.value = tournamentKeys.includes(APP.activeTournamentKey)
-        ? APP.activeTournamentKey
-        : tournamentKeys[0];
-
-    select.addEventListener('change', (event) => {
-        const next = event.target.value;
-        if (!next) return;
-
-        if (next === RESET_VALUE) {
-            if (typeof APP.resetToDomainDefault === 'function') {
-                APP.resetToDomainDefault();
-            }
-            return;
-        }
-
-        if (next === APP.activeTournamentKey && !urlOverrideActive) return;
-
-        if (typeof APP.setActiveTournament === 'function') {
-            APP.setActiveTournament(next);
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (popover.style.display === 'none') {
+            openPopover();
+        } else {
+            closePopover();
         }
     });
 
-    wrapper.appendChild(label);
-    wrapper.appendChild(select);
+    document.addEventListener('click', (event) => {
+        if (!wrapper.contains(event.target)) closePopover();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closePopover();
+    });
+    window.addEventListener('resize', () => {
+        if (popover.style.display !== 'none') placeNextToIndexToggle();
+    });
 
-    // Kleiner Reset-Knopf zusätzlich zur Dropdown-Option, nur wenn Override aktiv.
-    if (overrideActive) {
-        const resetBtn = document.createElement('button');
-        resetBtn.type = 'button';
-        resetBtn.setAttribute('aria-label', 'Dev Override entfernen und Domain-Default verwenden');
-        resetBtn.title = 'Override entfernen → Domain-Default';
-        resetBtn.textContent = '↺';
-        Object.assign(resetBtn.style, {
-            background: 'transparent',
-            color: '#ffb4a2',
-            border: '1px solid rgba(255, 120, 120, 0.55)',
-            borderRadius: '999px',
-            padding: '0 6px',
-            fontSize: '11px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            outline: 'none',
-            lineHeight: '1.6'
-        });
-        resetBtn.addEventListener('click', () => {
-            if (typeof APP.resetToDomainDefault === 'function') {
-                APP.resetToDomainDefault();
-            }
-        });
-        wrapper.appendChild(resetBtn);
-    }
-
+    wrapper.appendChild(button);
+    wrapper.appendChild(popover);
     document.body.appendChild(wrapper);
+
+    // Initiale Positionierung neben #dev-index-toggle, falls vorhanden.
+    placeNextToIndexToggle();
+    // Kleiner Retry, falls der index-Toggle erst nach uns gerendert wird.
+    setTimeout(placeNextToIndexToggle, 0);
+    setTimeout(placeNextToIndexToggle, 250);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
