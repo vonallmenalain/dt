@@ -1820,6 +1820,23 @@
         }
         .cmp-pos-arrow.win { color: var(--green-light); background: rgba(34,197,94,0.14); }
         .cmp-pos-arrow.loss { color: var(--red-soft); background: rgba(248,113,113,0.14); }
+        .cmp-pos-center-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            justify-self: center;
+        }
+        .cmp-pos-diff {
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 0.2px;
+            color: var(--text-muted);
+        }
+        .cmp-pos-diff.win { color: var(--green-light); }
+        .cmp-pos-diff.loss { color: var(--red-soft); }
+        .cmp-pos-diff.draw { color: var(--text-muted); }
         .cmp-pos-chevron {
             position: absolute;
             top: 10px;
@@ -2299,6 +2316,7 @@
             .cmp-pos-summary { gap: 6px; }
             .cmp-pos-pts { font-size: 1.05rem; }
             .cmp-pos-arrow { padding: 2px 6px; font-size: 0.7rem; min-width: 24px; }
+            .cmp-pos-diff { font-size: 0.68rem; }
             .cmp-pos-chevron { font-size: 0.75rem; top: 9px; right: 10px; }
             .cmp-pos-players { padding: 2px 8px 10px; gap: 5px; }
             .cmp-player-row { padding: 6px 8px; gap: 6px; }
@@ -2379,6 +2397,7 @@
             .cmp-pos-label { font-size: 0.78rem; padding: 0 20px; }
             .cmp-pos-pts { font-size: 0.98rem; }
             .cmp-pos-arrow { padding: 2px 5px; font-size: 0.65rem; min-width: 22px; }
+            .cmp-pos-diff { font-size: 0.62rem; }
             .cmp-player-row { padding: 5px 6px; gap: 5px; }
             .cmp-player-row > .side { gap: 5px; }
             .cmp-player-photo-sm { width: 24px; height: 24px; }
@@ -5388,6 +5407,9 @@
             const arrowCls = w === 'draw' ? '' : (w === 'a' ? 'win' : 'loss');
             const ptsAClass = w === 'a' ? 'win' : (w === 'b' ? 'loss' : 'draw');
             const ptsBClass = w === 'b' ? 'win' : (w === 'a' ? 'loss' : 'draw');
+            const posDiff = ptsA - ptsB;
+            const posDiffCls = posDiff > 0 ? 'win' : (posDiff < 0 ? 'loss' : 'draw');
+            const posDiffText = posDiff === 0 ? '±0' : (posDiff > 0 ? `+${posDiff}` : `${posDiff}`);
 
             const playersA = a.players.filter(p => p.pos === pos).sort((x, y) => (y.pts || 0) - (x.pts || 0));
             const playersB = b.players.filter(p => p.pos === pos).sort((x, y) => (y.pts || 0) - (x.pts || 0));
@@ -5428,7 +5450,10 @@
                         <span class="cmp-pos-label">${headerLabel}</span>
                         <span class="cmp-pos-summary">
                             <span class="cmp-pos-pts ${ptsAClass}">${ptsA}</span>
-                            <span class="cmp-pos-arrow ${arrowCls}" aria-hidden="true">${arrowSym}</span>
+                            <span class="cmp-pos-center-col">
+                                <span class="cmp-pos-arrow ${arrowCls}" aria-hidden="true">${arrowSym}</span>
+                                <span class="cmp-pos-diff ${posDiffCls}" aria-label="Differenz ${posDiffText} Punkte">${posDiffText}</span>
+                            </span>
                             <span class="cmp-pos-pts ${ptsBClass}">${ptsB}</span>
                         </span>
                         <span class="cmp-pos-chevron" aria-hidden="true">▾</span>
