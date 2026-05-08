@@ -1339,6 +1339,661 @@
         }
 
         /* =====================================================
+           COMPARISONS VIEW
+           ===================================================== */
+        .cmp-hero {
+            background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(22,163,74,0.06));
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 18px;
+            padding: 22px 22px 20px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cmp-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at top right, rgba(74,222,128,0.18), transparent 60%);
+            pointer-events: none;
+        }
+        .cmp-hero-title {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: var(--text-main);
+            letter-spacing: 0.3px;
+            position: relative;
+        }
+        .cmp-hero-subtitle {
+            margin-top: 6px;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            font-weight: 600;
+            position: relative;
+        }
+        .cmp-pill-nav {
+            display: flex;
+            gap: 8px;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 5px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .cmp-pill-nav::-webkit-scrollbar { display: none; }
+        .cmp-pill {
+            flex: 1 1 0;
+            min-width: max-content;
+            padding: 11px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 28px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.22s, color 0.22s, box-shadow 0.22s;
+            white-space: nowrap;
+            min-height: 44px;
+        }
+        .cmp-pill:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 3px;
+        }
+        .cmp-pill.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(34,197,94,0.35);
+        }
+        .cmp-tab-panel { animation: fadeSlideDown 0.35s ease both; }
+        .cmp-tab-panel[hidden] { display: none; }
+
+        .cmp-pickers .analysis-card-body { padding: 16px 18px; }
+        .cmp-picker-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 14px;
+            align-items: end;
+        }
+        .cmp-picker-grid--single { grid-template-columns: 1fr; }
+        .cmp-picker-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .cmp-picker-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+        .cmp-vs-divider {
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: var(--green-light);
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.3);
+            border-radius: 999px;
+            padding: 8px 14px;
+            align-self: end;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        .cmp-select, .cmp-input {
+            width: 100%;
+            background: var(--dark-card-2);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            min-height: 48px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .cmp-select:focus, .cmp-input:focus {
+            border-color: rgba(74,222,128,0.55);
+            box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
+        }
+        .cmp-quick-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .cmp-quick-btn {
+            background: var(--dark-card-2);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-size: 0.83rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, color 0.2s;
+            min-height: 40px;
+        }
+        .cmp-quick-btn:hover {
+            border-color: rgba(74,222,128,0.45);
+            color: var(--green-light);
+        }
+        .cmp-quick-btn:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 2px;
+        }
+
+        .cmp-empty {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            padding: 32px 18px;
+            border: 1px dashed var(--glass-border);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.02);
+        }
+        .cmp-empty-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.65;
+        }
+
+        /* Hero head-to-head */
+        .cmp-h2h-hero {
+            background: linear-gradient(135deg, rgba(28,35,51,0.95), rgba(22,27,34,0.95));
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cmp-h2h-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 14px;
+            align-items: center;
+        }
+        .cmp-h2h-side {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            min-width: 0;
+        }
+        .cmp-h2h-side.is-winner .cmp-h2h-name {
+            color: var(--gold);
+        }
+        .cmp-h2h-avatar {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1.5rem;
+            color: #fff;
+            box-shadow: 0 8px 22px rgba(34,197,94,0.35);
+        }
+        .cmp-h2h-name {
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .cmp-h2h-pts {
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+        .cmp-h2h-rank {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .cmp-h2h-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .cmp-vs-bubble {
+            background: rgba(34,197,94,0.15);
+            color: var(--green-light);
+            border: 1px solid rgba(34,197,94,0.35);
+            border-radius: 999px;
+            padding: 7px 13px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+        .cmp-diff-badge {
+            background: rgba(255,215,0,0.15);
+            color: var(--gold);
+            border: 1px solid rgba(255,215,0,0.35);
+            border-radius: 999px;
+            padding: 5px 11px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+        .cmp-diff-badge.draw {
+            background: rgba(255,255,255,0.06);
+            color: var(--text-muted);
+            border-color: var(--glass-border);
+        }
+        .cmp-winner-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1c1300;
+            border-radius: 999px;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            box-shadow: 0 4px 12px rgba(251,191,36,0.35);
+        }
+
+        /* Position breakdown rows */
+        .cmp-row-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .cmp-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            align-items: center;
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+        .cmp-row-label {
+            grid-column: 1 / -1;
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .cmp-row-side {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .cmp-row-side.right { text-align: right; align-items: flex-end; }
+        .cmp-row-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .cmp-row-pts {
+            font-size: 1.1rem;
+            font-weight: 900;
+        }
+        .cmp-row-pts.win { color: var(--green-light); }
+        .cmp-row-pts.loss { color: var(--red-soft); }
+        .cmp-row-pts.draw { color: var(--text-main); }
+        .cmp-row-center {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.04);
+            border-radius: 999px;
+            padding: 4px 10px;
+            text-align: center;
+        }
+        .cmp-row-center.win { color: var(--green-light); background: rgba(34,197,94,0.12); }
+        .cmp-row-center.loss { color: var(--red-soft); background: rgba(248,113,113,0.12); }
+
+        /* Storyline */
+        .cmp-storyline {
+            background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(22,163,74,0.04));
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+        .cmp-storyline-title {
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--green-light);
+            margin-bottom: 8px;
+        }
+
+        /* Differential players list */
+        .cmp-diff-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .cmp-diff-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+        .cmp-diff-item img {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            background: var(--dark-card);
+        }
+        .cmp-diff-info { flex: 1; min-width: 0; }
+        .cmp-diff-name {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cmp-diff-meta {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+        .cmp-diff-pts {
+            font-weight: 900;
+            font-size: 1rem;
+        }
+        .cmp-diff-pts.pos { color: var(--green-light); }
+        .cmp-diff-pts.neg { color: var(--red-soft); }
+
+        /* Player duell card */
+        .cmp-player-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .cmp-player-card {
+            background: linear-gradient(180deg, rgba(28,35,51,0.95), rgba(22,27,34,0.95));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px 14px 14px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cmp-player-card.is-winner {
+            border-color: rgba(255,215,0,0.55);
+            box-shadow: 0 12px 30px rgba(255,215,0,0.12);
+        }
+        .cmp-player-photo {
+            width: 96px; height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--dark-card);
+            border: 2px solid rgba(255,255,255,0.06);
+        }
+        .cmp-player-name {
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+        .cmp-player-pos {
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--green-light);
+        }
+        .cmp-player-meta {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .cmp-player-meta img {
+            width: 18px; height: 12px; object-fit: cover; border-radius: 2px;
+        }
+        .cmp-player-club-logo {
+            width: 16px !important; height: 16px !important; border-radius: 50% !important;
+            object-fit: contain !important;
+        }
+        .cmp-player-pts {
+            font-size: 1.85rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+        .cmp-player-badges {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 6px;
+        }
+        .cmp-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.07);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            white-space: nowrap;
+        }
+        .cmp-badge.elite { background: rgba(255,215,0,0.16); color: var(--gold); border-color: rgba(255,215,0,0.4); }
+        .cmp-badge.over  { background: rgba(34,197,94,0.16); color: var(--green-light); border-color: rgba(34,197,94,0.4); }
+        .cmp-badge.solid { background: rgba(96,165,250,0.16); color: #93c5fd; border-color: rgba(96,165,250,0.4); }
+        .cmp-badge.weak  { background: rgba(248,113,113,0.16); color: var(--red-soft); border-color: rgba(248,113,113,0.4); }
+        .cmp-badge.gem   { background: rgba(167,139,250,0.16); color: #c4b5fd; border-color: rgba(167,139,250,0.4); }
+        .cmp-badge.over-hyped { background: rgba(251,146,60,0.16); color: #fdba74; border-color: rgba(251,146,60,0.4); }
+
+        /* Player stats grid */
+        .cmp-stat-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .cmp-stat-row:last-child { border-bottom: none; }
+        .cmp-stat-row .label {
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+        .cmp-stat-row .stat-val {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+        .cmp-stat-row .stat-val.left { text-align: left; }
+        .cmp-stat-row .stat-val.right { text-align: right; }
+        .cmp-stat-row .stat-val.win { color: var(--green-light); }
+        .cmp-stat-row .stat-val.loss { color: var(--text-muted); }
+
+        /* What-if specific */
+        .cmp-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .cmp-summary-tile {
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px 12px;
+            text-align: center;
+        }
+        .cmp-summary-tile.accent {
+            background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(22,163,74,0.06));
+            border-color: rgba(34,197,94,0.35);
+        }
+        .cmp-summary-tile.warn {
+            background: linear-gradient(135deg, rgba(248,113,113,0.16), rgba(248,113,113,0.04));
+            border-color: rgba(248,113,113,0.3);
+        }
+        .cmp-summary-tile.gold {
+            background: linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,215,0,0.04));
+            border-color: rgba(255,215,0,0.35);
+        }
+        .cmp-summary-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .cmp-summary-value {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+        .cmp-summary-value.pos { color: var(--green-light); }
+        .cmp-summary-value.neg { color: var(--red-soft); }
+        .cmp-summary-value.gold { color: var(--gold); }
+
+        .cmp-alt-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .cmp-alt-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 11px 12px;
+        }
+        .cmp-alt-row .col {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .cmp-alt-row .col-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cmp-alt-row .col-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        .cmp-alt-row .col-pts {
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+        .cmp-alt-arrow {
+            color: var(--text-muted);
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .cmp-alt-diff {
+            font-weight: 900;
+            font-size: 1rem;
+            text-align: right;
+            min-width: 56px;
+        }
+        .cmp-alt-diff.pos { color: var(--green-light); }
+        .cmp-alt-diff.neg { color: var(--red-soft); }
+        .cmp-alt-diff.zero { color: var(--text-muted); }
+
+        .cmp-pos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .cmp-pos-tile {
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            text-align: center;
+        }
+        .cmp-pos-tile-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .cmp-pos-tile-value {
+            font-size: 1.25rem;
+            font-weight: 900;
+        }
+        .cmp-pos-tile-value.pos { color: var(--green-light); }
+        .cmp-pos-tile-value.neg { color: var(--red-soft); }
+        .cmp-pos-tile-value.zero { color: var(--text-muted); }
+
+        @media (max-width: 600px) {
+            .cmp-picker-grid {
+                grid-template-columns: 1fr;
+            }
+            .cmp-vs-divider { justify-self: center; margin-bottom: 0; }
+            .cmp-h2h-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .cmp-h2h-side { padding: 6px 0; }
+            .cmp-row {
+                grid-template-columns: 1fr auto 1fr;
+            }
+            .cmp-summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .cmp-player-grid { grid-template-columns: 1fr; }
+            .cmp-alt-row {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto;
+            }
+            .cmp-alt-arrow { display: none; }
+            .cmp-alt-diff { grid-column: 1 / -1; text-align: center; }
+            .cmp-stat-row { grid-template-columns: 1fr 1fr 1fr; }
+            .cmp-stat-row .label { font-size: 0.66rem; }
+            .cmp-pill-nav { padding: 4px; }
+            .cmp-pill { padding: 10px 12px; font-size: 0.82rem; }
+            .cmp-hero { padding: 18px 16px; }
+            .cmp-hero-title { font-size: 1.2rem; }
+        }
+
+        /* =====================================================
            GAMES VIEW COMPONENTS
            ===================================================== */
         .games-top-card {
@@ -2188,7 +2843,7 @@
     <div class="analysis-header">
         <div class="view-toggle" role="tablist" aria-label="Analyse-Bereiche">
             <button id="btn-view-players" class="view-btn active" type="button" role="tab" aria-selected="true">⚽ Spieler</button>
-            <button id="btn-view-countries" class="view-btn" type="button" role="tab" aria-selected="false">🌍 Länder</button>
+            <button id="btn-view-comparisons" class="view-btn" type="button" role="tab" aria-selected="false">⚔️ Vergleiche</button>
             <button id="btn-view-games" class="view-btn" type="button" role="tab" aria-selected="false">📅 Spiele</button>
         </div>
     </div>
@@ -2233,25 +2888,6 @@
 
                     <div id="player-list" class="player-list" role="list" aria-label="Spielerliste">
                         <div class="list-empty">Lade Spieler... ⏳</div>
-                    </div>
-                </div>
-
-                <!-- Games sidebar -->
-                <div id="sidebar-games" class="sidebar-view">
-                    <div class="sidebar-filter-block">
-                        <div class="filter-section">
-                            <button id="games-reset-filters" class="reset-btn" aria-label="Land zurücksetzen">Land zurücksetzen</button>
-                        </div>
-                    </div>
-
-                    <div class="sort-section">
-                        <button class="sort-btn" id="games-sort-name" aria-label="Länder alphabetisch sortieren">A–Z</button>
-                        <button class="sort-btn active" id="games-sort-pts" aria-label="Länder nach Punkten sortieren">Punkte</button>
-                    </div>
-
-                    <div class="sidebar-mini-title">Länder</div>
-                    <div id="games-country-list" class="games-country-list" role="list" aria-label="Länderliste">
-                        <div class="sidebar-empty">Lade Länder... ⏳</div>
                     </div>
                 </div>
 
@@ -2406,11 +3042,96 @@
             </div>
             <!-- /view-players -->
 
-            <!-- ─── COUNTRIES VIEW ────────────────────────────── -->
-            <div id="view-countries" class="main-view">
-                <div id="games-top-card" class="games-top-card"></div>
-                <div id="games-list" class="games-list">
-                    <div class="games-empty">Lade Spiele... ⏳</div>
+            <!-- ─── COMPARISONS VIEW ──────────────────────────── -->
+            <div id="view-comparisons" class="main-view">
+                <div class="cmp-hero">
+                    <div class="cmp-hero-title">⚔️ Vergleiche</div>
+                    <div class="cmp-hero-subtitle">Manager-Duelle, Spieler-Duelle und verpasste Punkte auf einen Blick.</div>
+                </div>
+                <div class="cmp-pill-nav" role="tablist" aria-label="Vergleichsart wählen">
+                    <button type="button" class="cmp-pill active" data-cmp-tab="manager" role="tab" aria-selected="true">👤 Manager-Duell</button>
+                    <button type="button" class="cmp-pill" data-cmp-tab="player" role="tab" aria-selected="false">⚽ Spieler-Duell</button>
+                    <button type="button" class="cmp-pill" data-cmp-tab="whatif" role="tab" aria-selected="false">💭 Was wäre möglich?</button>
+                </div>
+
+                <!-- Manager-Duell -->
+                <div id="cmp-tab-manager" class="cmp-tab-panel active" role="tabpanel">
+                    <div class="analysis-card cmp-pickers">
+                        <div class="analysis-card-header">
+                            <div class="analysis-card-title">
+                                <span class="act-accent" aria-hidden="true"></span>
+                                Manager wählen
+                            </div>
+                        </div>
+                        <div class="analysis-card-body">
+                            <div class="cmp-picker-grid">
+                                <label class="cmp-picker-field">
+                                    <span class="cmp-picker-label">Manager A</span>
+                                    <select id="cmp-mgr-a" class="cmp-select" aria-label="Manager A auswählen"></select>
+                                </label>
+                                <div class="cmp-vs-divider" aria-hidden="true">VS</div>
+                                <label class="cmp-picker-field">
+                                    <span class="cmp-picker-label">Manager B</span>
+                                    <select id="cmp-mgr-b" class="cmp-select" aria-label="Manager B auswählen"></select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="cmp-mgr-result"></div>
+                </div>
+
+                <!-- Spieler-Duell -->
+                <div id="cmp-tab-player" class="cmp-tab-panel" role="tabpanel" hidden>
+                    <div class="analysis-card cmp-pickers">
+                        <div class="analysis-card-header">
+                            <div class="analysis-card-title">
+                                <span class="act-accent" aria-hidden="true"></span>
+                                Spieler wählen
+                            </div>
+                        </div>
+                        <div class="analysis-card-body">
+                            <div class="cmp-picker-grid">
+                                <label class="cmp-picker-field">
+                                    <span class="cmp-picker-label">Spieler A</span>
+                                    <input type="text" id="cmp-pl-a-search" class="cmp-input" placeholder="Name eingeben..." aria-label="Spieler A suchen" autocomplete="off">
+                                    <select id="cmp-pl-a" class="cmp-select" aria-label="Spieler A auswählen"></select>
+                                </label>
+                                <div class="cmp-vs-divider" aria-hidden="true">VS</div>
+                                <label class="cmp-picker-field">
+                                    <span class="cmp-picker-label">Spieler B</span>
+                                    <input type="text" id="cmp-pl-b-search" class="cmp-input" placeholder="Name eingeben..." aria-label="Spieler B suchen" autocomplete="off">
+                                    <select id="cmp-pl-b" class="cmp-select" aria-label="Spieler B auswählen"></select>
+                                </label>
+                            </div>
+                            <div class="cmp-quick-row" role="group" aria-label="Schnellvergleich gegen Spieler A">
+                                <button type="button" class="cmp-quick-btn" data-quick="best">🏆 Bester gleicher Position</button>
+                                <button type="button" class="cmp-quick-btn" data-quick="avg">📊 Durchschnitt gleicher Position</button>
+                                <button type="button" class="cmp-quick-btn" data-quick="top10">🔝 Top 10 gleicher Position</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="cmp-pl-result"></div>
+                </div>
+
+                <!-- Was wäre möglich gewesen -->
+                <div id="cmp-tab-whatif" class="cmp-tab-panel" role="tabpanel" hidden>
+                    <div class="analysis-card cmp-pickers">
+                        <div class="analysis-card-header">
+                            <div class="analysis-card-title">
+                                <span class="act-accent" aria-hidden="true"></span>
+                                Manager auswählen
+                            </div>
+                        </div>
+                        <div class="analysis-card-body">
+                            <div class="cmp-picker-grid cmp-picker-grid--single">
+                                <label class="cmp-picker-field">
+                                    <span class="cmp-picker-label">Manager</span>
+                                    <select id="cmp-whatif-mgr" class="cmp-select" aria-label="Manager auswählen"></select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="cmp-whatif-result"></div>
                 </div>
             </div>
 
@@ -2459,7 +3180,6 @@
     let pointsData = {};
     let perfectTeamIds = new Set();
     let currentSort = 'pts';
-    let currentGamesSort = 'pts';
     let metaUnsubscribe = null;
     let isMetaRefreshRunning = false;
     let hasRenderedOnce = false;
@@ -2468,21 +3188,26 @@
     let filteredPlayersCache = [];
     let renderedPlayerCount = 0;
     let playerListScrollTop = 0;
-    let gamesCountryListScrollTop = 0;
 
     let currentView = 'players';
     let scheduleCatalog = [];
     let currentPlayerName = null;
-    let currentGameNationFilter = 'ALL';
     let currentScheduleNationFilter = 'ALL';
     let scheduleNationList = [];
-    let currentOpenGameNumber = null;
 
     let matchCatalog = [];
     let matchByNumber = new Map();
     let playerSelectedMap = new Map();
-    let gamesCountryStats = [];
-    let gamesCountryStatsMap = new Map();
+
+    // Comparisons view state
+    let currentCmpTab = 'manager';
+    let cmpMgrA = '';
+    let cmpMgrB = '';
+    let cmpPlayerA = '';
+    let cmpPlayerB = '';
+    let cmpWhatIfMgr = '';
+    let enrichedTeamsCache = [];
+    let positionAggregatesCache = null;
     // Cache the most recently applied fixtures so popstate-triggered re-renders
     // (e.g. Browser-Back) keep the schedule available without requiring a reload.
     let lastFixtures = null;
@@ -2575,10 +3300,9 @@
             view: currentView,
             player: currentPlayerName,
             club: document.getElementById('club-filter')?.value || 'ALL',
-            gameNation: currentGameNationFilter,
             scheduleNation: currentScheduleNationFilter,
-            openGame: currentOpenGameNumber,
-            gameSort: currentGamesSort,
+            cmpTab: currentCmpTab,
+            cmpMgrA, cmpMgrB, cmpPlayerA, cmpPlayerB, cmpWhatIfMgr,
             ...(window.history.state && typeof window.history.state === 'object' ? window.history.state : {}),
             ...extra
         };
@@ -2617,11 +3341,8 @@
     mobileSidebarClose?.addEventListener('click', () => closeMobileFilter({ pushHistory: true }));
 
     function getMobileFilterLabelMeta() {
-        if (currentView === 'countries') {
-            if (currentGameNationFilter && currentGameNationFilter !== 'ALL') {
-                return { text: currentGameNationFilter, flag: getNationFlag(currentGameNationFilter), prefix: '🌍' };
-            }
-            return { text: 'Land suchen', flag: '', prefix: '🌍' };
+        if (currentView === 'comparisons') {
+            return { text: 'Vergleich wählen', flag: '', prefix: '⚔️' };
         }
         if (currentView === 'games') {
             if (currentScheduleNationFilter && currentScheduleNationFilter !== 'ALL') {
@@ -2651,31 +3372,35 @@
        ========================================================= */
     function getStateFromUrl() {
         const params = new URLSearchParams(window.location.search);
+        let viewParam = params.get('view');
+        // Backward compatibility: legacy "countries" links from other pages
+        // now redirect to the new comparisons section.
+        if (viewParam === 'countries') viewParam = 'comparisons';
         return {
-            view: ['players','countries','games'].includes(params.get('view')) ? params.get('view') : 'players',
+            view: ['players','comparisons','games'].includes(viewParam) ? viewParam : 'players',
             player: params.get('player') || null,
             club: params.get('club') || 'ALL',
-            gameNation: params.get('gameNation') || 'ALL',
             scheduleNation: params.get('scheduleNation') || 'ALL',
-            openGame: params.get('openGame') || null,
-            gameSort: params.get('gameSort') === 'name' ? 'name' : 'pts'
+            cmpTab: ['manager','player','whatif'].includes(params.get('cmpTab')) ? params.get('cmpTab') : 'manager',
+            cmpMgrA: params.get('cmpMgrA') || '',
+            cmpMgrB: params.get('cmpMgrB') || '',
+            cmpPlayerA: params.get('cmpPlayerA') || '',
+            cmpPlayerB: params.get('cmpPlayerB') || '',
+            cmpWhatIfMgr: params.get('cmpWhatIfMgr') || ''
         };
     }
 
     function updateUrl(push = false) {
         const params = new URLSearchParams();
 
-        if (currentView === 'countries') {
-            params.set('view', 'countries');
-            if (currentGameNationFilter && currentGameNationFilter !== 'ALL') {
-                params.set('gameNation', currentGameNationFilter);
-            }
-            if (currentOpenGameNumber) {
-                params.set('openGame', String(currentOpenGameNumber));
-            }
-            if (currentGamesSort !== 'pts') {
-                params.set('gameSort', currentGamesSort);
-            }
+        if (currentView === 'comparisons') {
+            params.set('view', 'comparisons');
+            if (currentCmpTab && currentCmpTab !== 'manager') params.set('cmpTab', currentCmpTab);
+            if (cmpMgrA) params.set('cmpMgrA', cmpMgrA);
+            if (cmpMgrB) params.set('cmpMgrB', cmpMgrB);
+            if (cmpPlayerA) params.set('cmpPlayerA', cmpPlayerA);
+            if (cmpPlayerB) params.set('cmpPlayerB', cmpPlayerB);
+            if (cmpWhatIfMgr) params.set('cmpWhatIfMgr', cmpWhatIfMgr);
         } else if (currentView === 'games') {
             params.set('view', 'games');
             if (currentScheduleNationFilter && currentScheduleNationFilter !== 'ALL') {
@@ -2708,25 +3433,39 @@
        VIEW SWITCHING
        ========================================================= */
     function setView(viewName, push = false) {
-        currentView = ['players','countries','games'].includes(viewName) ? viewName : 'players';
+        currentView = ['players','comparisons','games'].includes(viewName) ? viewName : 'players';
 
         document.getElementById('btn-view-players').classList.toggle('active', currentView === 'players');
-        document.getElementById('btn-view-countries').classList.toggle('active', currentView === 'countries');
+        document.getElementById('btn-view-comparisons').classList.toggle('active', currentView === 'comparisons');
         document.getElementById('btn-view-games').classList.toggle('active', currentView === 'games');
         document.getElementById('btn-view-players').setAttribute('aria-selected', String(currentView === 'players'));
-        document.getElementById('btn-view-countries').setAttribute('aria-selected', String(currentView === 'countries'));
+        document.getElementById('btn-view-comparisons').setAttribute('aria-selected', String(currentView === 'comparisons'));
         document.getElementById('btn-view-games').setAttribute('aria-selected', String(currentView === 'games'));
         document.getElementById('view-players').classList.toggle('active', currentView === 'players');
-        document.getElementById('view-countries').classList.toggle('active', currentView === 'countries');
+        document.getElementById('view-comparisons').classList.toggle('active', currentView === 'comparisons');
         document.getElementById('view-games').classList.toggle('active', currentView === 'games');
         document.getElementById('sidebar-players').classList.toggle('active', currentView === 'players');
-        document.getElementById('sidebar-games').classList.toggle('active', currentView === 'countries');
         document.getElementById('sidebar-schedule').classList.toggle('active', currentView === 'games');
+
+        // The comparisons view brings its own UI inside the main panel and
+        // does not rely on the analysis sidebar. Hide the mobile filter
+        // button in that case so users do not see an empty filter sheet.
+        const mobileBtn = document.getElementById('mobile-filter-btn');
+        if (mobileBtn) {
+            mobileBtn.style.display = (currentView === 'comparisons') ? 'none' : '';
+        }
+        const sidebarEl = document.getElementById('analysis-sidebar');
+        if (sidebarEl) {
+            sidebarEl.style.display = (currentView === 'comparisons') ? 'none' : '';
+        }
 
         // Render schedule when switching to games view
         if (currentView === 'games') {
             renderScheduleView();
             renderScheduleCountryList();
+        }
+        if (currentView === 'comparisons') {
+            renderComparisonsView();
         }
 
         updateUrl(push);
@@ -2774,13 +3513,6 @@
         setTimeout(() => {
             scrollElementToTop(hero, { smooth: true });
         }, 80);
-    }
-
-    function scrollToGamesCountrySectionOnMobile() {
-        if (window.innerWidth > 860) return;
-        const countryCard = document.getElementById('games-top-card');
-        if (!countryCard) return;
-        requestAnimationFrame(() => scrollElementToTop(countryCard, { smooth: true }));
     }
 
     function jumpToFiltersOnMobile() {
@@ -2948,25 +3680,6 @@
     /* =========================================================
        COUNTRY STATS
        ========================================================= */
-    function buildGamesCountryStats() {
-        const map = new Map();
-        playersData.forEach(player => {
-            const nation = player['Nationalteam.name'];
-            if (!nation) return;
-            const playerId = String(player['player.id']);
-            const totalPoints = pointsData[playerId]?.totalPoints || 0;
-            if (!map.has(nation)) {
-                map.set(nation, { nation, flag: player['Nationalteam.logo'] || '', totalPoints: 0, playerCount: 0 });
-            }
-            const entry = map.get(nation);
-            if (!entry.flag && player['Nationalteam.logo']) entry.flag = player['Nationalteam.logo'];
-            entry.totalPoints += totalPoints;
-            entry.playerCount += 1;
-        });
-        gamesCountryStats = Array.from(map.values());
-        gamesCountryStatsMap = new Map(gamesCountryStats.map(entry => [entry.nation, entry]));
-    }
-
     /* =========================================================
        MATCH CATALOG
        ========================================================= */
@@ -3519,234 +4232,6 @@
     }
 
     /* =========================================================
-       GAMES VIEW
-       ========================================================= */
-    function getSelectedGamesCountryStats() {
-        if (currentGameNationFilter === 'ALL') return null;
-        return gamesCountryStatsMap.get(currentGameNationFilter) || null;
-    }
-
-    function getSortedGamesCountryStats() {
-        const items = [...gamesCountryStats];
-        if (currentGamesSort === 'name') {
-            items.sort((a, b) => a.nation.localeCompare(b.nation, 'de'));
-        } else {
-            items.sort((a, b) => {
-                if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-                return a.nation.localeCompare(b.nation, 'de');
-            });
-        }
-        return items;
-    }
-
-    function getGamesScoreClass(match) {
-        if (currentGameNationFilter === 'ALL') return 'draw';
-        const outcome = match.outcomeByNation?.[currentGameNationFilter];
-        if (outcome === 'win') return 'win';
-        if (outcome === 'loss') return 'loss';
-        if (outcome === 'draw') return 'draw';
-        const parsed = parseResultString(match.resultText || '');
-        if (!parsed) return 'draw';
-        if (currentGameNationFilter === parsed.homeName) {
-            if (parsed.homeGoals > parsed.awayGoals) return 'win';
-            if (parsed.homeGoals < parsed.awayGoals) return 'loss';
-            return 'draw';
-        }
-        if (currentGameNationFilter === parsed.awayName) {
-            if (parsed.awayGoals > parsed.homeGoals) return 'win';
-            if (parsed.awayGoals < parsed.homeGoals) return 'loss';
-            return 'draw';
-        }
-        return 'draw';
-    }
-
-    function restoreGamesCountryListScroll(targetScrollTop = gamesCountryListScrollTop) {
-        const list = document.getElementById('games-country-list');
-        if (!list) return;
-        const desiredScrollTop = Math.max(0, Number(targetScrollTop) || 0);
-        const maxScrollTop = Math.max(0, list.scrollHeight - list.clientHeight);
-        list.scrollTop = Math.min(desiredScrollTop, maxScrollTop);
-        gamesCountryListScrollTop = list.scrollTop;
-    }
-
-    function renderGamesCountryList(preserveScroll = true) {
-        const list = document.getElementById('games-country-list');
-        const countries = getSortedGamesCountryStats();
-        const preservedScrollTop = preserveScroll ? gamesCountryListScrollTop : 0;
-
-        if (!countries.length) {
-            gamesCountryListScrollTop = 0;
-            list.innerHTML = '<div class="sidebar-empty">Keine Länder gefunden.</div>';
-            return;
-        }
-
-        list.innerHTML = countries.map(entry => {
-            const nationEncoded = encodeURIComponent(entry.nation);
-            const flagHtml = entry.flag
-                ? `<img src="${entry.flag}" class="games-country-flag-small" alt="${escapeHtml(entry.nation)}" loading="lazy">`
-                : `<span class="games-country-flag-small" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
-            return `
-                <div class="games-country-item ${currentGameNationFilter === entry.nation ? 'active' : ''}"
-                     role="listitem"
-                     onclick="selectGamesNation(decodeURIComponent('${nationEncoded}'))"
-                     aria-label="${escapeHtml(entry.nation)}, ${formatPoints(entry.totalPoints)} Punkte">
-                    <div class="games-country-left">
-                        ${flagHtml}
-                        <div class="games-country-name-small">${escapeHtml(entry.nation)}</div>
-                    </div>
-                    <div class="games-country-total-small ${entry.totalPoints < 0 ? 'neg' : ''}">${formatPoints(entry.totalPoints)}</div>
-                </div>
-            `;
-        }).join('');
-
-        requestAnimationFrame(() => restoreGamesCountryListScroll(preservedScrollTop));
-    }
-
-    function renderGamesTopCard() {
-        const card = document.getElementById('games-top-card');
-        const stats = getSelectedGamesCountryStats();
-
-        if (!stats) {
-            card.innerHTML = `
-                <div class="games-country-summary">
-                    <div class="games-country-main">
-                        <div class="games-country-placeholder">🌍</div>
-                        <div class="games-country-text">
-                            <div class="games-country-label">Land</div>
-                            <h2 class="games-country-name">Kein Land ausgewählt</h2>
-                            <p class="games-country-subtitle">Links ein Land wählen oder alle Spiele des Turniers durchsuchen.</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const flagHtml = stats.flag
-            ? `<img src="${stats.flag}" class="games-country-flag-large" alt="${escapeHtml(stats.nation)}">`
-            : `<div class="games-country-placeholder">🏳️</div>`;
-
-        card.innerHTML = `
-            <div class="games-country-summary">
-                <div class="games-country-main">
-                    ${flagHtml}
-                    <div class="games-country-text">
-                        <div class="games-country-label">Land</div>
-                        <h2 class="games-country-name">${escapeHtml(stats.nation)}</h2>
-                        <p class="games-country-subtitle">Alle Spiele und Spieler dieses Landes im Überblick.</p>
-                    </div>
-                </div>
-                <div class="games-country-points-box">
-                    <div class="games-country-points-label">Total Punkte</div>
-                    <div class="games-country-points-value ${stats.totalPoints < 0 ? 'neg' : ''}">${formatPoints(stats.totalPoints)}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    function buildFilteredGames() {
-        return matchCatalog.filter(match => {
-            if (currentGameNationFilter === 'ALL') return true;
-            return match.teamA === currentGameNationFilter || match.teamB === currentGameNationFilter;
-        });
-    }
-
-    function renderGamesView() {
-        const list = document.getElementById('games-list');
-        let games = buildFilteredGames();
-
-        if (currentOpenGameNumber && !games.some(match => String(match.number) === String(currentOpenGameNumber))) {
-            currentOpenGameNumber = null;
-        }
-
-        renderGamesCountryList();
-        renderGamesTopCard();
-
-        if (!games.length) {
-            list.innerHTML = '<div class="games-empty">Keine Spiele für dieses Land gefunden.</div>';
-            syncSidebarHeight();
-            return;
-        }
-
-        list.innerHTML = games.map(match => {
-            const visual = getNeutralMatchVisual(match.resultText, match.teamA, match.teamB);
-            const scoreClass = getGamesScoreClass(match);
-
-            const leftFlagHtml = visual.leftFlag
-                ? `<img src="${visual.leftFlag}" class="match-flag" alt="${escapeHtml(visual.leftName)}" loading="lazy">`
-                : `<span class="match-flag" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
-            const rightFlagHtml = visual.rightFlag
-                ? `<img src="${visual.rightFlag}" class="match-flag" alt="${escapeHtml(visual.rightName)}" loading="lazy">`
-                : `<span class="match-flag" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
-
-            const bodyA = renderGamesTeamPlayers(match.teamA, match.playersByNation[match.teamA] || []);
-            const bodyB = renderGamesTeamPlayers(match.teamB, match.playersByNation[match.teamB] || []);
-
-            return `
-                <div class="games-match-card">
-                    <div class="games-match-header" onclick="openGameCard('${match.number}')" aria-expanded="${String(currentOpenGameNumber) === String(match.number)}">
-                        <div class="games-match-number">Spiel ${match.number}</div>
-                        <div class="games-match-duel">
-                            <div class="games-team">
-                                ${leftFlagHtml}
-                                <span class="games-team-name">${escapeHtml(visual.leftName)}</span>
-                            </div>
-                            <div class="games-score ${scoreClass}">${visual.leftGoals} : ${visual.rightGoals}</div>
-                            <div class="games-team right">
-                                <span class="games-team-name">${escapeHtml(visual.rightName)}</span>
-                                ${rightFlagHtml}
-                            </div>
-                        </div>
-                        <div class="games-match-toggle" aria-hidden="true">${String(currentOpenGameNumber) === String(match.number) ? '▲' : '▼'}</div>
-                    </div>
-                    <div class="games-match-body" style="display:${String(currentOpenGameNumber) === String(match.number) ? 'block' : 'none'};">
-                        <div class="games-teams-grid">
-                            <div class="games-team-card">
-                                <div class="games-team-card-header">${leftFlagHtml}<span>${escapeHtml(match.teamA)}</span></div>
-                                <div class="games-player-list">${bodyA}</div>
-                            </div>
-                            <div class="games-team-card">
-                                <div class="games-team-card-header">${rightFlagHtml}<span>${escapeHtml(match.teamB)}</span></div>
-                                <div class="games-player-list">${bodyB}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        syncSidebarHeight();
-    }
-
-    function renderGamesTeamPlayers(teamName, players) {
-        if (!players.length) return '<div class="games-empty">Keine Spieler-Daten vorhanden.</div>';
-        return players.map(player => {
-            const playerEncoded = encodeURIComponent(player.name);
-            const photoHtml = player.photo && !player.photo.includes('placeholder')
-                ? `<img src="${escapeHtml(player.photo)}" class="games-player-photo" alt="${escapeHtml(player.name)}" loading="lazy" onerror="this.style.display='none'">`
-                : '';
-            return `
-                <button type="button" class="games-player-row ${player.drafted ? 'drafted' : ''}"
-                        onclick="openPlayerFromGames(decodeURIComponent('${playerEncoded}'))"
-                        aria-label="${escapeHtml(player.name)}, ${formatPoints(player.totalPoints)} Punkte">
-                    <div class="games-player-left">
-                        ${photoHtml}
-                        <div class="games-player-info">
-                            <div class="games-player-name">${escapeHtml(player.name)}</div>
-                            <div class="games-player-meta">${escapeHtml(player.position)} • ${escapeHtml(player.club)}</div>
-                        </div>
-                    </div>
-                    <div class="games-player-right">
-                        ${player.drafted ? `<span class="games-picked-badge" aria-label="Wurde gedraftet">Gewählt</span>` : ''}
-                        <span class="games-player-points ${player.totalPoints < 0 ? 'neg' : ''}">${formatPoints(player.totalPoints)}</span>
-                    </div>
-                </button>
-            `;
-        }).join('');
-    }
-
-
-    /* =========================================================
        SCHEDULE NATION FILTER
        ========================================================= */
     function buildScheduleNationList() {
@@ -4076,52 +4561,1157 @@
     }
 
     /* =========================================================
+       COMPARISONS VIEW (Manager-Duell, Spieler-Duell, What-If)
+       ========================================================= */
+    const POSITION_KEYS = ['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'ATTACKER'];
+    const POSITION_LABELS = {
+        GOALKEEPER: 'Torhüter',
+        DEFENDER: 'Verteidiger',
+        MIDFIELDER: 'Mittelfeld',
+        ATTACKER: 'Sturm'
+    };
+    const POSITION_ICONS = {
+        GOALKEEPER: '🧤',
+        DEFENDER: '🛡️',
+        MIDFIELDER: '🎯',
+        ATTACKER: '⚽',
+        BENCH: '🪑'
+    };
+
+    function cmpNormalizePosition(pos) {
+        const upper = String(pos || '').toUpperCase();
+        if (upper === 'FORWARD') return 'ATTACKER';
+        if (POSITION_KEYS.includes(upper)) return upper;
+        return 'UNKNOWN';
+    }
+
+    function getPlayerBasePoints(playerId) {
+        const doc = pointsData[String(playerId)];
+        return doc && typeof doc.totalPoints === 'number' ? doc.totalPoints : 0;
+    }
+
+    function invalidateComparisonCaches() {
+        enrichedTeamsCache = [];
+        positionAggregatesCache = null;
+    }
+
+    // Build enriched team data (similar to teams.html / rangliste.html)
+    function getEnrichedTeams() {
+        if (enrichedTeamsCache && enrichedTeamsCache.length) return enrichedTeamsCache;
+        const teams = (allTeams || []).map(team => {
+            const merged = (team.players || []).map((p, idx) => {
+                let fullP = playersData.find(pd => String(pd['player.id']) === String(p.playerId));
+                if (!fullP) fullP = playersData.find(pd => pd.Spielername === p.name);
+                const pos = cmpNormalizePosition((fullP && fullP.Position) || p.pos || 'UNKNOWN');
+                const slotNum = p.slot ? parseInt(String(p.slot).replace('slot-', ''), 10) : -1;
+                const basePts = fullP ? getPlayerBasePoints(fullP['player.id']) : 0;
+                const finalPts = p.isCaptain ? basePts * 2 : basePts;
+                return {
+                    name: p.name,
+                    playerId: fullP ? String(fullP['player.id']) : null,
+                    pos,
+                    slotNum,
+                    isCaptain: !!p.isCaptain,
+                    basePts,
+                    pts: finalPts,
+                    photo: fullP ? fullP.Spielerfoto : '',
+                    nation: fullP ? fullP['Nationalteam.name'] : '?',
+                    flag: fullP ? fullP['Nationalteam.logo'] : '',
+                    club: fullP ? (fullP['Club.name'] || '') : '',
+                    clubLogo: fullP ? (fullP['Club.logo'] || '') : ''
+                };
+            }).sort((a, b) => a.slotNum - b.slotNum);
+
+            const totalScore = merged.reduce((s, p) => s + p.pts, 0);
+            const positionTotals = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0, BENCH: 0 };
+            merged.forEach(player => {
+                if (positionTotals[player.pos] !== undefined) positionTotals[player.pos] += player.pts;
+                if (player.slotNum >= 11) positionTotals.BENCH += player.pts;
+            });
+            const captain = merged.find(p => p.isCaptain) || null;
+            return {
+                manager: team.manager || 'Unbekannt',
+                players: merged,
+                totalScore,
+                positionTotals,
+                captain
+            };
+        });
+
+        // Compute ranks by total score (1 = highest)
+        const ranking = [...teams].sort((a, b) => {
+            if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+            return a.manager.localeCompare(b.manager, 'de');
+        });
+        ranking.forEach((t, i) => { t.rank = i + 1; });
+
+        teams.sort((a, b) => a.manager.localeCompare(b.manager, 'de'));
+        enrichedTeamsCache = teams;
+        return enrichedTeamsCache;
+    }
+
+    function getEnrichedTeamByManager(name) {
+        if (!name) return null;
+        return getEnrichedTeams().find(t => t.manager === name) || null;
+    }
+
+    // Build aggregates over all players for spieler-duell comparisons
+    function getPositionAggregates() {
+        if (positionAggregatesCache) return positionAggregatesCache;
+        const buckets = { GOALKEEPER: [], DEFENDER: [], MIDFIELDER: [], ATTACKER: [] };
+        playersData.forEach(p => {
+            const pos = cmpNormalizePosition(p.Position);
+            if (!buckets[pos]) return;
+            const id = String(p['player.id']);
+            const pts = getPlayerBasePoints(id);
+            buckets[pos].push({ id, name: p.Spielername, pts, raw: p });
+        });
+        Object.keys(buckets).forEach(pos => {
+            buckets[pos].sort((a, b) => b.pts - a.pts);
+        });
+        positionAggregatesCache = buckets;
+        return buckets;
+    }
+
+    function getPositionRank(playerId) {
+        const player = getPlayerById(playerId);
+        if (!player) return null;
+        const pos = cmpNormalizePosition(player.Position);
+        const bucket = getPositionAggregates()[pos];
+        if (!bucket) return null;
+        const idx = bucket.findIndex(p => p.id === String(playerId));
+        if (idx < 0) return null;
+        return { rank: idx + 1, total: bucket.length, position: pos };
+    }
+
+    function getAverageByPosition(pos) {
+        const bucket = getPositionAggregates()[pos];
+        if (!bucket || !bucket.length) return 0;
+        const sum = bucket.reduce((s, p) => s + p.pts, 0);
+        return sum / bucket.length;
+    }
+
+    function getBestByPosition(pos) {
+        const bucket = getPositionAggregates()[pos];
+        if (!bucket || !bucket.length) return null;
+        return bucket[0];
+    }
+
+    function getTopNAverageByPosition(pos, n = 10) {
+        const bucket = getPositionAggregates()[pos];
+        if (!bucket || !bucket.length) return 0;
+        const slice = bucket.slice(0, Math.min(n, bucket.length));
+        const sum = slice.reduce((s, p) => s + p.pts, 0);
+        return sum / slice.length;
+    }
+
+    function buildPlayerStats(playerId) {
+        const player = getPlayerById(playerId);
+        if (!player) return null;
+        const doc = pointsData[String(playerId)] || {};
+
+        const pos = cmpNormalizePosition(player.Position);
+        const stats = {
+            player,
+            id: String(playerId),
+            position: pos,
+            positionLabel: translatePosition(player.Position),
+            nation: player['Nationalteam.name'] || '–',
+            nationFlag: player['Nationalteam.logo'] || '',
+            club: player['Club.name'] || '–',
+            clubLogo: player['Club.logo'] || '',
+            photo: player.Spielerfoto || '',
+            totalPoints: typeof doc.totalPoints === 'number' ? doc.totalPoints : 0,
+            goals: 0, assists: 0, starts: 0, subbedIn: 0, subbedOut: 0,
+            yellow: 0, red: 0,
+            penGoals: 0, penMissed: 0, penSaved: 0, penCommitted: 0, penWon: 0,
+            wins: 0, draws: 0, losses: 0,
+            ownGoals: 0,
+            games: 0
+        };
+
+        // Count drafted by managers (popularity)
+        stats.draftCount = playerSelectedMap.get(String(playerId)) || 0;
+        let captainCount = 0;
+        (allTeams || []).forEach(team => {
+            (team.players || []).forEach(tp => {
+                if (String(tp.playerId) === String(playerId) && tp.isCaptain) captainCount++;
+            });
+        });
+        stats.captainCount = captainCount;
+
+        Object.entries(doc).forEach(([key, val]) => {
+            if (key.startsWith('Spiel_') && typeof val === 'object' && val) {
+                stats.games += 1;
+                return;
+            }
+            if (typeof val !== 'number' || !RULES[key]) return;
+            const count = Math.round(val / RULES[key]);
+            if (['GOAL_GK', 'GOAL_DEF', 'GOAL_MID', 'GOAL_ATT'].includes(key)) stats.goals += count;
+            if (['ASSIST_GK_DEF', 'ASSIST_MID', 'ASSIST_ATT'].includes(key)) stats.assists += count;
+            if (key === 'START') stats.starts += count;
+            if (key === 'SUBBED_IN') stats.subbedIn += count;
+            if (key === 'SUBBED_OUT') stats.subbedOut += count;
+            if (key === 'YELLOW_CARD') stats.yellow += count;
+            if (key === 'RED_CARD') stats.red += count;
+            if (key === 'PEN_SAVED') stats.penSaved += count;
+            if (key === 'PEN_MISSED') stats.penMissed += count;
+            if (key === 'PEN_COMMITED') stats.penCommitted += count;
+            if (key === 'PEN_WON') stats.penWon += count;
+            if (key === 'WIN') stats.wins += count;
+            if (key === 'DRAW') stats.draws += count;
+            if (key === 'LOSS') stats.losses += count;
+            if (key === 'OWN_GOAL') stats.ownGoals += count;
+        });
+
+        stats.appearances = stats.starts + stats.subbedIn;
+        stats.pointsPerGame = stats.appearances > 0
+            ? Math.round((stats.totalPoints / stats.appearances) * 10) / 10
+            : null;
+
+        return stats;
+    }
+
+    function classifyPlayerBadge(stats) {
+        const badges = [];
+        const rankInfo = getPositionRank(stats.id);
+        if (rankInfo) {
+            const avg = getAverageByPosition(rankInfo.position);
+            if (rankInfo.rank === 1) badges.push({ cls: 'elite', text: '👑 Bester ' + POSITION_LABELS[rankInfo.position] });
+            else if (rankInfo.rank <= 10) badges.push({ cls: 'elite', text: 'Top 10 ' + POSITION_LABELS[rankInfo.position] });
+            else if (stats.totalPoints > avg * 1.25) badges.push({ cls: 'over', text: 'Über Durchschnitt' });
+            else if (stats.totalPoints >= avg * 0.9) badges.push({ cls: 'solid', text: 'Solide' });
+            else if (stats.totalPoints < avg * 0.5 && avg > 0) badges.push({ cls: 'weak', text: 'Enttäuschung' });
+        }
+        if (stats.draftCount >= 3 && stats.totalPoints > 0 && rankInfo && rankInfo.rank > 30) {
+            badges.push({ cls: 'over-hyped', text: 'Overhyped' });
+        }
+        if (stats.draftCount === 0 && stats.totalPoints > 30) {
+            badges.push({ cls: 'gem', text: 'Hidden Gem' });
+        }
+        return badges;
+    }
+
+    function populateComparisonPickers() {
+        const teams = getEnrichedTeams();
+        const managerOptions = teams.map(t => `<option value="${escapeHtml(t.manager)}">${escapeHtml(t.manager)}</option>`).join('');
+
+        const ensureOptions = (sel, includeBlank = true) => {
+            if (!sel) return;
+            sel.innerHTML = (includeBlank ? '<option value="">— wählen —</option>' : '') + managerOptions;
+        };
+
+        ensureOptions(document.getElementById('cmp-mgr-a'));
+        ensureOptions(document.getElementById('cmp-mgr-b'));
+        ensureOptions(document.getElementById('cmp-whatif-mgr'));
+
+        // Restore existing selections
+        const restoreSelect = (id, val) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (val && Array.from(el.options).some(o => o.value === val)) el.value = val;
+        };
+        restoreSelect('cmp-mgr-a', cmpMgrA);
+        restoreSelect('cmp-mgr-b', cmpMgrB);
+        restoreSelect('cmp-whatif-mgr', cmpWhatIfMgr);
+
+        // Player selects: full player list
+        populatePlayerSelect('cmp-pl-a', cmpPlayerA);
+        populatePlayerSelect('cmp-pl-b', cmpPlayerB);
+    }
+
+    function populatePlayerSelect(selectId, currentValue, filterText = '') {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        const term = (filterText || '').toLowerCase().trim();
+        const sorted = [...playersData]
+            .filter(p => {
+                if (!term) return true;
+                const n = (p.Spielername || '').toLowerCase();
+                return n.includes(term);
+            })
+            .sort((a, b) => (a.Spielername || '').localeCompare(b.Spielername || '', 'de'));
+        const options = sorted.map(p => {
+            const id = String(p['player.id']);
+            const label = `${p.Spielername} — ${translatePosition(p.Position)} (${p['Nationalteam.name'] || '?'})`;
+            return `<option value="${escapeHtml(id)}">${escapeHtml(label)}</option>`;
+        }).join('');
+        sel.innerHTML = '<option value="">— wählen —</option>' + options;
+        if (currentValue && Array.from(sel.options).some(o => o.value === String(currentValue))) {
+            sel.value = String(currentValue);
+        }
+    }
+
+    function setComparisonTab(tab, push = false) {
+        if (!['manager', 'player', 'whatif'].includes(tab)) tab = 'manager';
+        currentCmpTab = tab;
+        document.querySelectorAll('.cmp-pill').forEach(btn => {
+            const isActive = btn.dataset.cmpTab === tab;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', String(isActive));
+        });
+        ['manager', 'player', 'whatif'].forEach(t => {
+            const panel = document.getElementById('cmp-tab-' + t);
+            if (!panel) return;
+            const isActive = t === tab;
+            panel.hidden = !isActive;
+            panel.classList.toggle('active', isActive);
+        });
+        renderComparisonsView();
+        updateUrl(push);
+    }
+
+    function renderComparisonsView() {
+        if (!document.getElementById('view-comparisons')) return;
+        if (currentCmpTab === 'manager') renderManagerDuell();
+        else if (currentCmpTab === 'player') renderPlayerDuell();
+        else if (currentCmpTab === 'whatif') renderWhatIfAnalysis();
+    }
+
+    /* ---------- Manager-Duell ---------- */
+    function renderManagerDuell() {
+        const out = document.getElementById('cmp-mgr-result');
+        if (!out) return;
+
+        const a = getEnrichedTeamByManager(cmpMgrA);
+        const b = getEnrichedTeamByManager(cmpMgrB);
+
+        if (!a && !b) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">⚔️</span>
+                    Wähle zwei Manager für dein erstes Duell.
+                </div>`;
+            return;
+        }
+        if (!a || !b) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">👥</span>
+                    Wähle einen zweiten Manager für das Duell.
+                </div>`;
+            return;
+        }
+        if (a.manager === b.manager) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">🤝</span>
+                    Bitte zwei unterschiedliche Manager wählen.
+                </div>`;
+            return;
+        }
+
+        const initialA = (a.manager.charAt(0) || '?').toUpperCase();
+        const initialB = (b.manager.charAt(0) || '?').toUpperCase();
+        const diff = a.totalScore - b.totalScore;
+        const winner = diff > 0 ? 'a' : (diff < 0 ? 'b' : 'draw');
+        const diffAbs = Math.abs(diff);
+        const diffBadgeClass = winner === 'draw' ? 'draw' : '';
+        const diffText = winner === 'draw' ? 'Unentschieden' : `${diff > 0 ? 'A' : 'B'} +${diffAbs} Pkt.`;
+
+        const heroHtml = `
+            <div class="cmp-h2h-hero">
+                <div class="cmp-h2h-grid">
+                    <div class="cmp-h2h-side ${winner === 'a' ? 'is-winner' : ''}">
+                        <div class="cmp-h2h-avatar">${escapeHtml(initialA)}</div>
+                        <div class="cmp-h2h-name">${escapeHtml(a.manager)}</div>
+                        <div class="cmp-h2h-pts">${a.totalScore}</div>
+                        <div class="cmp-h2h-rank">Rang #${a.rank ?? '–'}</div>
+                        ${winner === 'a' ? '<span class="cmp-winner-badge">🏆 Sieger</span>' : ''}
+                    </div>
+                    <div class="cmp-h2h-center">
+                        <span class="cmp-vs-bubble">VS</span>
+                        <span class="cmp-diff-badge ${diffBadgeClass}">${escapeHtml(diffText)}</span>
+                    </div>
+                    <div class="cmp-h2h-side ${winner === 'b' ? 'is-winner' : ''}">
+                        <div class="cmp-h2h-avatar">${escapeHtml(initialB)}</div>
+                        <div class="cmp-h2h-name">${escapeHtml(b.manager)}</div>
+                        <div class="cmp-h2h-pts">${b.totalScore}</div>
+                        <div class="cmp-h2h-rank">Rang #${b.rank ?? '–'}</div>
+                        ${winner === 'b' ? '<span class="cmp-winner-badge">🏆 Sieger</span>' : ''}
+                    </div>
+                </div>
+            </div>`;
+
+        // Captain comparison
+        const capA = a.captain;
+        const capB = b.captain;
+        const capPtsA = capA ? capA.pts : 0;
+        const capPtsB = capB ? capB.pts : 0;
+        const capDiff = capPtsA - capPtsB;
+        const capWinner = capDiff > 0 ? 'a' : (capDiff < 0 ? 'b' : 'draw');
+
+        const captainCard = `
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>👑 Captain-Duell</div>
+                </div>
+                <div class="analysis-card-body">
+                    <div class="cmp-row">
+                        <div class="cmp-row-side">
+                            <span class="cmp-row-name">${capA ? escapeHtml(capA.name) : '— kein Captain —'}</span>
+                            <span class="cmp-row-pts ${capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw')}">${capPtsA} Pkt.</span>
+                        </div>
+                        <div class="cmp-row-center ${capWinner === 'draw' ? '' : (capWinner === 'a' ? 'win' : 'loss')}">${capWinner === 'draw' ? '=' : (capWinner === 'a' ? '◀' : '▶')}</div>
+                        <div class="cmp-row-side right">
+                            <span class="cmp-row-name">${capB ? escapeHtml(capB.name) : '— kein Captain —'}</span>
+                            <span class="cmp-row-pts ${capWinner === 'b' ? 'win' : (capWinner === 'a' ? 'loss' : 'draw')}">${capPtsB} Pkt.</span>
+                        </div>
+                    </div>
+                    ${(capA && capB) ? `<div style="margin-top:10px;color:var(--text-muted);font-size:0.86rem;">
+                        ${capWinner === 'draw'
+                            ? 'Beide Captains lieferten gleich viele Punkte.'
+                            : `Der Captain von <strong>${escapeHtml(capWinner === 'a' ? a.manager : b.manager)}</strong> brachte ${Math.abs(capDiff)} Punkte mehr.`}
+                    </div>` : ''}
+                </div>
+            </div>`;
+
+        // Position breakdown
+        const benchA = a.positionTotals.BENCH;
+        const benchB = b.positionTotals.BENCH;
+        const positionRows = POSITION_KEYS.map(pos => {
+            const ptsA = a.positionTotals[pos] || 0;
+            const ptsB = b.positionTotals[pos] || 0;
+            const w = ptsA > ptsB ? 'a' : (ptsA < ptsB ? 'b' : 'draw');
+            return `
+                <div class="cmp-row">
+                    <div class="cmp-row-label">${POSITION_ICONS[pos] || ''} ${POSITION_LABELS[pos]}</div>
+                    <div class="cmp-row-side">
+                        <span class="cmp-row-pts ${w === 'a' ? 'win' : (w === 'b' ? 'loss' : 'draw')}">${ptsA}</span>
+                    </div>
+                    <div class="cmp-row-center ${w === 'draw' ? '' : (w === 'a' ? 'win' : 'loss')}">${w === 'draw' ? '=' : (w === 'a' ? '◀' : '▶')}</div>
+                    <div class="cmp-row-side right">
+                        <span class="cmp-row-pts ${w === 'b' ? 'win' : (w === 'a' ? 'loss' : 'draw')}">${ptsB}</span>
+                    </div>
+                </div>`;
+        }).join('') + (benchA || benchB ? `
+            <div class="cmp-row">
+                <div class="cmp-row-label">${POSITION_ICONS.BENCH} Ersatzbank</div>
+                <div class="cmp-row-side">
+                    <span class="cmp-row-pts ${benchA > benchB ? 'win' : (benchA < benchB ? 'loss' : 'draw')}">${benchA}</span>
+                </div>
+                <div class="cmp-row-center ${benchA === benchB ? '' : (benchA > benchB ? 'win' : 'loss')}">${benchA === benchB ? '=' : (benchA > benchB ? '◀' : '▶')}</div>
+                <div class="cmp-row-side right">
+                    <span class="cmp-row-pts ${benchB > benchA ? 'win' : (benchA > benchB ? 'loss' : 'draw')}">${benchB}</span>
+                </div>
+            </div>` : '');
+
+        const positionsCard = `
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📊 Punkte nach Position</div>
+                </div>
+                <div class="analysis-card-body">
+                    <div class="cmp-row-list">${positionRows}</div>
+                </div>
+            </div>`;
+
+        // Matchwinner / differential players
+        const playersByIdA = new Map(a.players.filter(p => p.playerId).map(p => [p.playerId, p]));
+        const playersByIdB = new Map(b.players.filter(p => p.playerId).map(p => [p.playerId, p]));
+        const sharedIds = new Set([...playersByIdA.keys()].filter(id => playersByIdB.has(id)));
+
+        const topUniqueA = a.players
+            .filter(p => p.playerId && !sharedIds.has(p.playerId))
+            .sort((x, y) => y.pts - x.pts).slice(0, 3);
+        const topUniqueB = b.players
+            .filter(p => p.playerId && !sharedIds.has(p.playerId))
+            .sort((x, y) => y.pts - x.pts).slice(0, 3);
+
+        const renderMiniList = (items, side) => {
+            if (!items.length) return `<div style="color:var(--text-muted);font-size:0.85rem;padding:8px 4px;">Keine unterschiedlichen Spieler.</div>`;
+            return `<div class="cmp-diff-list">${items.map(p => `
+                <div class="cmp-diff-item">
+                    ${p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>'}
+                    <div class="cmp-diff-info">
+                        <div class="cmp-diff-name">${escapeHtml(p.name)}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
+                        <div class="cmp-diff-meta">${escapeHtml(POSITION_LABELS[p.pos] || translatePosition(p.pos))} · ${escapeHtml(p.nation || '')}</div>
+                    </div>
+                    <div class="cmp-diff-pts ${p.pts > 0 ? 'pos' : (p.pts < 0 ? 'neg' : '')}">${formatPoints(p.pts)}</div>
+                </div>`).join('')}</div>`;
+        };
+
+        const matchwinnerCard = `
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>🔥 Matchwinner & Differenzspieler</div>
+                </div>
+                <div class="analysis-card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">${escapeHtml(a.manager)}</div>
+                            ${renderMiniList(topUniqueA, 'a')}
+                        </div>
+                        <div>
+                            <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">${escapeHtml(b.manager)}</div>
+                            ${renderMiniList(topUniqueB, 'b')}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        // Shared players
+        let sharedHtml = '';
+        if (sharedIds.size > 0) {
+            const sharedRows = [...sharedIds].map(id => {
+                const pa = playersByIdA.get(id);
+                const pb = playersByIdB.get(id);
+                const captainSide = pa.isCaptain && !pb.isCaptain ? 'a' : (pb.isCaptain && !pa.isCaptain ? 'b' : (pa.isCaptain && pb.isCaptain ? 'both' : 'none'));
+                const note = captainSide === 'a' ? `Captain bei ${escapeHtml(a.manager)} → doppelte Punkte`
+                    : captainSide === 'b' ? `Captain bei ${escapeHtml(b.manager)} → doppelte Punkte`
+                    : captainSide === 'both' ? 'Beide haben ihn als Captain'
+                    : `Gleiche Basispunkte für beide`;
+                return `
+                    <div class="cmp-row">
+                        <div class="cmp-row-label">${escapeHtml(pa.name)} <span style="color:var(--text-muted);font-weight:600;">· ${escapeHtml(POSITION_LABELS[pa.pos] || translatePosition(pa.pos))}</span></div>
+                        <div class="cmp-row-side">
+                            <span class="cmp-row-pts ${pa.pts > pb.pts ? 'win' : (pa.pts < pb.pts ? 'loss' : 'draw')}">${pa.pts}${pa.isCaptain ? ' (C)' : ''}</span>
+                        </div>
+                        <div class="cmp-row-center">${note}</div>
+                        <div class="cmp-row-side right">
+                            <span class="cmp-row-pts ${pb.pts > pa.pts ? 'win' : (pa.pts > pb.pts ? 'loss' : 'draw')}">${pb.pts}${pb.isCaptain ? ' (C)' : ''}</span>
+                        </div>
+                    </div>`;
+            }).slice(0, 8).join('');
+            sharedHtml = `
+                <div class="analysis-card">
+                    <div class="analysis-card-header">
+                        <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>🤝 Gemeinsame Spieler (${sharedIds.size})</div>
+                    </div>
+                    <div class="analysis-card-body">
+                        <div class="cmp-row-list">${sharedRows}</div>
+                        ${sharedIds.size > 8 ? `<div style="margin-top:8px;color:var(--text-muted);font-size:0.82rem;">… und ${sharedIds.size - 8} weitere gemeinsame Spieler.</div>` : ''}
+                    </div>
+                </div>`;
+        }
+
+        // Storyline
+        const story = buildManagerStoryline(a, b);
+        const storyCard = `
+            <div class="cmp-storyline">
+                <div class="cmp-storyline-title">📖 Story des Duells</div>
+                ${escapeHtml(story)}
+            </div>`;
+
+        out.innerHTML = heroHtml + captainCard + positionsCard + matchwinnerCard + sharedHtml + storyCard;
+    }
+
+    function buildManagerStoryline(a, b) {
+        if (!a || !b) return '';
+        const totalDiff = a.totalScore - b.totalScore;
+        const winner = totalDiff > 0 ? a : (totalDiff < 0 ? b : null);
+        const loser = totalDiff > 0 ? b : (totalDiff < 0 ? a : null);
+        if (!winner) return `${a.manager} und ${b.manager} stehen nach Gesamtpunkten exakt gleich – ein perfektes Unentschieden.`;
+
+        const capDiff = (a.captain ? a.captain.pts : 0) - (b.captain ? b.captain.pts : 0);
+        const capWinner = Math.abs(capDiff) > Math.abs(totalDiff) * 0.4
+            ? (capDiff > 0 ? a : b)
+            : null;
+
+        const positionDiffs = POSITION_KEYS.map(pos => ({
+            pos,
+            diff: (a.positionTotals[pos] || 0) - (b.positionTotals[pos] || 0)
+        }));
+        const winnerPosDiffs = totalDiff > 0
+            ? positionDiffs.filter(d => d.diff > 0).sort((x, y) => y.diff - x.diff)
+            : positionDiffs.filter(d => d.diff < 0).sort((x, y) => x.diff - y.diff);
+        const dominantPos = winnerPosDiffs[0];
+
+        const parts = [];
+        parts.push(`${winner.manager} gewinnt das Duell mit ${Math.abs(totalDiff)} Punkten Vorsprung.`);
+        if (capWinner) {
+            parts.push(`Der stärkere Captain (${capWinner.captain ? capWinner.captain.name : '–'}) entschied das Duell entscheidend.`);
+        } else if (dominantPos) {
+            parts.push(`Vor allem ${POSITION_LABELS[dominantPos.pos]} machte den Unterschied (${Math.abs(dominantPos.diff)} Pkt. mehr).`);
+        }
+        if (Math.abs(totalDiff) <= 10) {
+            parts.push('Ein extrem enges Duell – jede einzelne Aktion zählte.');
+        }
+        return parts.join(' ');
+    }
+
+    /* ---------- Spieler-Duell ---------- */
+    function renderPlayerDuell() {
+        const out = document.getElementById('cmp-pl-result');
+        if (!out) return;
+
+        let stA = cmpPlayerA ? buildPlayerStats(cmpPlayerA) : null;
+        let stB = null;
+
+        // Special "virtual" comparisons handled via cmpPlayerB tokens (e.g. avg:GOALKEEPER)
+        if (cmpPlayerB && cmpPlayerB.startsWith('virtual:')) {
+            stB = buildVirtualOpponent(cmpPlayerB, stA);
+        } else if (cmpPlayerB) {
+            stB = buildPlayerStats(cmpPlayerB);
+        }
+
+        if (!stA && !stB) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">⚽</span>
+                    Wähle zwei Spieler für den Vergleich.
+                </div>`;
+            return;
+        }
+        if (!stB) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">🆚</span>
+                    Wähle einen zweiten Spieler oder nutze einen Schnellvergleich.
+                </div>`;
+            return;
+        }
+        if (!stA) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">🆚</span>
+                    Wähle Spieler A für den Vergleich.
+                </div>`;
+            return;
+        }
+
+        const winner = stA.totalPoints > stB.totalPoints ? 'a'
+            : (stA.totalPoints < stB.totalPoints ? 'b' : 'draw');
+
+        const cardA = renderPlayerCardForCmp(stA, winner === 'a');
+        const cardB = renderPlayerCardForCmp(stB, winner === 'b');
+
+        const statRows = renderPlayerStatRows(stA, stB);
+
+        const story = buildPlayerStoryline(stA, stB);
+
+        const ranks = [];
+        if (!stA.virtual) {
+            const r = getPositionRank(stA.id);
+            if (r) ranks.push(`${stA.player.Spielername}: Rang ${r.rank} von ${r.total} ${POSITION_LABELS[r.position]}`);
+        }
+        if (!stB.virtual) {
+            const r = getPositionRank(stB.id);
+            if (r) ranks.push(`${stB.player.Spielername}: Rang ${r.rank} von ${r.total} ${POSITION_LABELS[r.position]}`);
+        }
+
+        out.innerHTML = `
+            <div class="cmp-player-grid">${cardA}${cardB}</div>
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📊 Statistik-Vergleich</div>
+                </div>
+                <div class="analysis-card-body" style="padding:6px 6px;">${statRows}</div>
+            </div>
+            ${ranks.length ? `<div class="analysis-card"><div class="analysis-card-body">
+                <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Position-Ranking</div>
+                ${ranks.map(r => `<div style="margin:4px 0;color:var(--text-main);font-size:0.92rem;">📌 ${escapeHtml(r)}</div>`).join('')}
+            </div></div>` : ''}
+            <div class="cmp-storyline">
+                <div class="cmp-storyline-title">📖 Fazit</div>
+                ${escapeHtml(story)}
+            </div>`;
+    }
+
+    function buildVirtualOpponent(token, refStats) {
+        if (!refStats) return null;
+        const [, kind, posOverride] = token.split(':');
+        const pos = posOverride || refStats.position;
+        if (kind === 'avg') {
+            const avg = getAverageByPosition(pos);
+            return {
+                virtual: true,
+                player: { Spielername: `Ø Durchschnitt ${POSITION_LABELS[pos] || pos}` },
+                id: 'virtual-avg',
+                position: pos,
+                positionLabel: POSITION_LABELS[pos] || pos,
+                nation: 'Alle',
+                nationFlag: '',
+                club: '–',
+                clubLogo: '',
+                photo: '',
+                totalPoints: Math.round(avg),
+                goals: '–', assists: '–', starts: '–', subbedIn: '–', subbedOut: '–',
+                yellow: '–', red: '–',
+                penGoals: '–', penMissed: '–', penSaved: '–', penCommitted: '–', penWon: '–',
+                wins: '–', draws: '–', losses: '–',
+                ownGoals: '–',
+                games: '–', appearances: '–', pointsPerGame: null,
+                draftCount: '–', captainCount: '–'
+            };
+        }
+        if (kind === 'top10') {
+            const avg = getTopNAverageByPosition(pos, 10);
+            return {
+                virtual: true,
+                player: { Spielername: `Ø Top 10 ${POSITION_LABELS[pos] || pos}` },
+                id: 'virtual-top10',
+                position: pos,
+                positionLabel: POSITION_LABELS[pos] || pos,
+                nation: 'Top 10',
+                nationFlag: '',
+                club: '–',
+                clubLogo: '',
+                photo: '',
+                totalPoints: Math.round(avg),
+                goals: '–', assists: '–', starts: '–', subbedIn: '–', subbedOut: '–',
+                yellow: '–', red: '–',
+                penGoals: '–', penMissed: '–', penSaved: '–', penCommitted: '–', penWon: '–',
+                wins: '–', draws: '–', losses: '–', ownGoals: '–',
+                games: '–', appearances: '–', pointsPerGame: null,
+                draftCount: '–', captainCount: '–'
+            };
+        }
+        if (kind === 'best') {
+            const best = getBestByPosition(pos);
+            if (!best) return null;
+            return buildPlayerStats(best.id);
+        }
+        return null;
+    }
+
+    function renderPlayerCardForCmp(stats, isWinner) {
+        const photo = stats.photo && !String(stats.photo).includes('placeholder')
+            ? `<img src="${escapeHtml(stats.photo)}" class="cmp-player-photo" alt="${escapeHtml(stats.player.Spielername)}" loading="lazy" onerror="this.style.display='none'">`
+            : `<div class="cmp-player-photo" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">${stats.virtual ? '📊' : '⚽'}</div>`;
+
+        const flag = stats.nationFlag ? `<img src="${escapeHtml(stats.nationFlag)}" alt="">` : '';
+        const clubLogo = stats.clubLogo ? `<img src="${escapeHtml(stats.clubLogo)}" alt="" class="cmp-player-club-logo">` : '';
+        const badges = stats.virtual ? [] : classifyPlayerBadge(stats);
+        const badgesHtml = badges.length
+            ? `<div class="cmp-player-badges">${badges.map(b => `<span class="cmp-badge ${b.cls}">${escapeHtml(b.text)}</span>`).join('')}</div>`
+            : '';
+        return `
+            <div class="cmp-player-card ${isWinner ? 'is-winner' : ''}">
+                ${isWinner ? '<span class="cmp-winner-badge" style="position:absolute;top:10px;right:10px;">🏆 Sieger</span>' : ''}
+                ${photo}
+                <div class="cmp-player-pos">${escapeHtml(stats.positionLabel || '')}</div>
+                <div class="cmp-player-name">${escapeHtml(stats.player.Spielername || '–')}</div>
+                <div class="cmp-player-meta">
+                    ${flag} <span>${escapeHtml(stats.nation || '–')}</span>
+                    ${clubLogo} <span>${escapeHtml(stats.club || '–')}</span>
+                </div>
+                <div class="cmp-player-pts">${stats.totalPoints} Pkt.</div>
+                ${badgesHtml}
+            </div>`;
+    }
+
+    function renderPlayerStatRows(a, b) {
+        const cmpNum = (x, y) => {
+            const numX = Number(x), numY = Number(y);
+            if (Number.isNaN(numX) || Number.isNaN(numY)) return 'draw';
+            if (numX > numY) return 'a';
+            if (numX < numY) return 'b';
+            return 'draw';
+        };
+        const cmpLow = (x, y) => {
+            const r = cmpNum(x, y);
+            if (r === 'a') return 'b';
+            if (r === 'b') return 'a';
+            return 'draw';
+        };
+        const fmtVal = (v) => v === '–' || v === undefined || v === null ? '–' : v;
+
+        const rows = [
+            { label: 'Gesamtpunkte', a: a.totalPoints, b: b.totalPoints, cmp: cmpNum },
+            { label: 'Position', a: a.positionLabel, b: b.positionLabel, cmp: () => 'draw' },
+            { label: 'Nation', a: a.nation, b: b.nation, cmp: () => 'draw' },
+            { label: 'Club', a: a.club, b: b.club, cmp: () => 'draw' },
+            { label: 'Tore', a: a.goals, b: b.goals, cmp: cmpNum },
+            { label: 'Assists', a: a.assists, b: b.assists, cmp: cmpNum },
+            { label: 'Spiele (≈)', a: a.games, b: b.games, cmp: cmpNum },
+            { label: 'Startelf', a: a.starts, b: b.starts, cmp: cmpNum },
+            { label: 'Eingewechselt', a: a.subbedIn, b: b.subbedIn, cmp: cmpNum },
+            { label: 'Ausgewechselt', a: a.subbedOut, b: b.subbedOut, cmp: cmpLow },
+            { label: 'Gelbe Karten', a: a.yellow, b: b.yellow, cmp: cmpLow },
+            { label: 'Rote Karten', a: a.red, b: b.red, cmp: cmpLow },
+            { label: 'Eigentore', a: a.ownGoals, b: b.ownGoals, cmp: cmpLow },
+            { label: 'Elfm. gehalten', a: a.penSaved, b: b.penSaved, cmp: cmpNum },
+            { label: 'Elfm. verschossen', a: a.penMissed, b: b.penMissed, cmp: cmpLow },
+            { label: 'Elfm. herausg.', a: a.penWon, b: b.penWon, cmp: cmpNum },
+            { label: 'Elfm. verursacht', a: a.penCommitted, b: b.penCommitted, cmp: cmpLow },
+            { label: 'Siege', a: a.wins, b: b.wins, cmp: cmpNum },
+            { label: 'Unentschieden', a: a.draws, b: b.draws, cmp: () => 'draw' },
+            { label: 'Niederlagen', a: a.losses, b: b.losses, cmp: cmpLow },
+            { label: 'Pkt. pro Einsatz', a: a.pointsPerGame ?? '–', b: b.pointsPerGame ?? '–', cmp: cmpNum },
+            { label: 'Drafts (Beliebtheit)', a: a.draftCount, b: b.draftCount, cmp: cmpNum },
+            { label: 'Captain-Wahlen', a: a.captainCount, b: b.captainCount, cmp: cmpNum }
+        ];
+
+        return rows.map(r => {
+            const winner = r.cmp(r.a, r.b);
+            const valA = fmtVal(r.a);
+            const valB = fmtVal(r.b);
+            const skipHighlight = valA === '–' || valB === '–';
+            const clsA = !skipHighlight && winner === 'a' ? 'win' : '';
+            const clsB = !skipHighlight && winner === 'b' ? 'win' : '';
+            return `
+                <div class="cmp-stat-row">
+                    <span class="stat-val left ${clsA}">${escapeHtml(String(valA))}</span>
+                    <span class="label">${escapeHtml(r.label)}</span>
+                    <span class="stat-val right ${clsB}">${escapeHtml(String(valB))}</span>
+                </div>`;
+        }).join('');
+    }
+
+    function buildPlayerStoryline(a, b) {
+        if (!a || !b) return '';
+        const diff = a.totalPoints - b.totalPoints;
+        const winnerName = diff > 0 ? a.player.Spielername : (diff < 0 ? b.player.Spielername : null);
+
+        if (b.virtual) {
+            const factor = b.totalPoints > 0 ? Math.round((a.totalPoints / b.totalPoints) * 100) : 0;
+            if (diff > 0) {
+                return `${a.player.Spielername} liegt ${diff} Punkte über ${b.player.Spielername} und erreicht ${factor}% dieses Wertes – ein klar überdurchschnittlicher Spieler seiner Position.`;
+            }
+            if (diff < 0) {
+                return `${a.player.Spielername} liegt ${Math.abs(diff)} Punkte unter ${b.player.Spielername} und erreicht nur ${factor}% – noch Luft nach oben.`;
+            }
+            return `${a.player.Spielername} entspricht exakt dem Wert von ${b.player.Spielername}.`;
+        }
+
+        if (!winnerName) {
+            return `${a.player.Spielername} und ${b.player.Spielername} sind in der Gesamtbilanz exakt gleichauf.`;
+        }
+        const parts = [`${winnerName} gewinnt das Duell mit ${Math.abs(diff)} Punkten Vorsprung.`];
+        const goalDiff = (Number(a.goals) || 0) - (Number(b.goals) || 0);
+        const assistDiff = (Number(a.assists) || 0) - (Number(b.assists) || 0);
+        if (Math.abs(goalDiff) >= 2) {
+            parts.push(`Der Vorsprung kommt vor allem durch ${goalDiff > 0 ? a.player.Spielername : b.player.Spielername}'s ${Math.abs(goalDiff)} Tore mehr.`);
+        } else if (Math.abs(assistDiff) >= 2) {
+            parts.push(`Die zusätzlichen Assists machten den Unterschied.`);
+        } else if (((Number(a.yellow) + Number(a.red) * 2) || 0) !== ((Number(b.yellow) + Number(b.red) * 2) || 0)) {
+            parts.push(`Auch Disziplin spielte eine Rolle – Karten kosten wertvolle Punkte.`);
+        }
+        return parts.join(' ');
+    }
+
+    /* ---------- Was wäre möglich gewesen ---------- */
+    function renderWhatIfAnalysis() {
+        const out = document.getElementById('cmp-whatif-result');
+        if (!out) return;
+
+        const team = getEnrichedTeamByManager(cmpWhatIfMgr);
+        if (!team) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">💭</span>
+                    Wähle einen Manager, um verpasste Punkte zu analysieren.
+                </div>`;
+            return;
+        }
+
+        // Best alternative same-nation per player
+        const altsSameNation = team.players.filter(p => p.playerId).map(p => {
+            const candidates = playersData
+                .filter(other => (other['Nationalteam.name'] || '') === (p.nation || '') && String(other['player.id']) !== p.playerId)
+                .map(other => ({
+                    id: String(other['player.id']),
+                    name: other.Spielername,
+                    pos: cmpNormalizePosition(other.Position),
+                    pts: getPlayerBasePoints(other['player.id']),
+                    samePos: cmpNormalizePosition(other.Position) === p.pos
+                }))
+                .sort((a, b) => b.pts - a.pts);
+            const best = candidates.length ? candidates[0] : null;
+            const bestSamePos = candidates.find(c => c.samePos) || null;
+            return { player: p, best, bestSamePos };
+        });
+
+        // Calculate missed points by position (same-position, same-nation alternatives only)
+        const missedByPosition = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0 };
+        altsSameNation.forEach(item => {
+            const cur = item.player.basePts;
+            const altPts = item.bestSamePos ? item.bestSamePos.pts : cur;
+            const diff = altPts - cur;
+            if (diff > 0 && missedByPosition[item.player.pos] !== undefined) {
+                missedByPosition[item.player.pos] += diff;
+            }
+        });
+
+        // Captain optimization
+        const currentCaptain = team.captain;
+        const bestPlayer = team.players.slice().sort((a, b) => b.basePts - a.basePts)[0] || null;
+        const captainBonusCurrent = currentCaptain ? currentCaptain.basePts : 0;
+        const captainBonusBest = bestPlayer ? bestPlayer.basePts : 0;
+        const captainMissed = Math.max(0, captainBonusBest - captainBonusCurrent);
+
+        // "Perfect team light" within nation rules
+        const perfectLight = computePerfectLightTeam();
+        const perfectScore = perfectLight.score;
+        const teamScore = team.totalScore;
+        const maxPercent = perfectScore > 0 ? Math.round((teamScore / perfectScore) * 100) : 0;
+        const totalMissed = Math.max(0, perfectScore - teamScore);
+
+        // Top alternatives (biggest missed picks)
+        const topMissed = altsSameNation
+            .map(item => ({
+                ...item,
+                diff: item.bestSamePos ? item.bestSamePos.pts - item.player.basePts : 0
+            }))
+            .filter(x => x.diff > 0)
+            .sort((a, b) => b.diff - a.diff)
+            .slice(0, 8);
+
+        // Best & worst picks of the manager
+        const sortedPicks = team.players.slice().sort((a, b) => b.basePts - a.basePts);
+        const bestPicks = sortedPicks.slice(0, 3);
+        const worstPicks = sortedPicks.slice(-3).reverse();
+
+        const summaryHtml = `
+            <div class="cmp-summary-grid">
+                <div class="cmp-summary-tile accent">
+                    <div class="cmp-summary-label">Aktuelle Punkte</div>
+                    <div class="cmp-summary-value">${teamScore}</div>
+                </div>
+                <div class="cmp-summary-tile gold">
+                    <div class="cmp-summary-label">Mögliches Maximum</div>
+                    <div class="cmp-summary-value gold">${perfectScore}</div>
+                </div>
+                <div class="cmp-summary-tile warn">
+                    <div class="cmp-summary-label">Verpasste Punkte</div>
+                    <div class="cmp-summary-value neg">${totalMissed}</div>
+                </div>
+                <div class="cmp-summary-tile">
+                    <div class="cmp-summary-label">Quote vom Maximum</div>
+                    <div class="cmp-summary-value">${maxPercent}%</div>
+                </div>
+            </div>`;
+
+        const captainHtml = `
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>👑 Captain-Optimierung</div>
+                </div>
+                <div class="analysis-card-body">
+                    <div class="cmp-row">
+                        <div class="cmp-row-side">
+                            <span class="cmp-row-name">${currentCaptain ? escapeHtml(currentCaptain.name) : '— kein Captain —'}</span>
+                            <span class="cmp-row-pts">${captainBonusCurrent} Bonus</span>
+                        </div>
+                        <div class="cmp-row-center">→</div>
+                        <div class="cmp-row-side right">
+                            <span class="cmp-row-name">${bestPlayer ? escapeHtml(bestPlayer.name) : '–'}</span>
+                            <span class="cmp-row-pts ${captainMissed > 0 ? 'win' : 'draw'}">${captainBonusBest} Bonus</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;color:${captainMissed > 0 ? 'var(--gold)' : 'var(--text-muted)'};font-size:0.92rem;font-weight:700;">
+                        ${captainMissed > 0
+                            ? `Verpasste Captain-Punkte: <strong>+${captainMissed}</strong>`
+                            : `Du hast den optimalen Captain gewählt.`}
+                    </div>
+                </div>
+            </div>`;
+
+        const positionTilesHtml = `
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📍 Verpasste Punkte nach Position</div>
+                </div>
+                <div class="analysis-card-body">
+                    <div class="cmp-pos-grid">
+                        ${POSITION_KEYS.map(pos => `
+                            <div class="cmp-pos-tile">
+                                <div class="cmp-pos-tile-label">${POSITION_ICONS[pos] || ''} ${POSITION_LABELS[pos]}</div>
+                                <div class="cmp-pos-tile-value ${missedByPosition[pos] > 0 ? 'neg' : 'zero'}">${missedByPosition[pos] > 0 ? '-' + missedByPosition[pos] : '0'}</div>
+                            </div>`).join('')}
+                        <div class="cmp-pos-tile">
+                            <div class="cmp-pos-tile-label">👑 Captain</div>
+                            <div class="cmp-pos-tile-value ${captainMissed > 0 ? 'neg' : 'zero'}">${captainMissed > 0 ? '-' + captainMissed : '0'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        const topMissedHtml = `
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>🔄 Grösste verpasste Alternativen</div>
+                </div>
+                <div class="analysis-card-body">
+                    ${topMissed.length === 0
+                        ? `<div style="color:var(--text-muted);font-style:italic;">Du hast aus jedem Land den besten positionsgleichen Spieler gewählt – starke Auswahl!</div>`
+                        : `<div class="cmp-alt-list">${topMissed.map(item => `
+                            <div class="cmp-alt-row">
+                                <div class="col">
+                                    <div class="col-name">${escapeHtml(item.player.name)}</div>
+                                    <div class="col-meta">${escapeHtml(POSITION_LABELS[item.player.pos] || translatePosition(item.player.pos))} · ${escapeHtml(item.player.nation)}</div>
+                                    <div class="col-pts" style="color:var(--text-muted);">${item.player.basePts} Pkt.</div>
+                                </div>
+                                <div class="cmp-alt-arrow">→</div>
+                                <div class="col">
+                                    <div class="col-name" style="color:var(--green-light);">${escapeHtml(item.bestSamePos.name)}</div>
+                                    <div class="col-meta">gleiche Nation & Position</div>
+                                    <div class="col-pts" style="color:var(--green-light);">${item.bestSamePos.pts} Pkt.</div>
+                                </div>
+                                <div class="cmp-alt-diff pos">+${item.diff}</div>
+                            </div>`).join('')}</div>`}
+                </div>
+            </div>`;
+
+        // Best/worst picks card
+        const renderPickRow = (p) => `
+            <div class="cmp-diff-item">
+                ${p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>'}
+                <div class="cmp-diff-info">
+                    <div class="cmp-diff-name">${escapeHtml(p.name)}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
+                    <div class="cmp-diff-meta">${escapeHtml(POSITION_LABELS[p.pos] || translatePosition(p.pos))} · ${escapeHtml(p.nation || '')}</div>
+                </div>
+                <div class="cmp-diff-pts ${p.basePts > 0 ? 'pos' : (p.basePts < 0 ? 'neg' : '')}">${formatPoints(p.basePts)}</div>
+            </div>`;
+
+        const picksHtml = `
+            <div class="analysis-card">
+                <div class="analysis-card-header">
+                    <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>🌟 Beste & schwächste Picks</div>
+                </div>
+                <div class="analysis-card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <div style="font-size:0.78rem;font-weight:800;color:var(--green-light);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">Top 3 Picks</div>
+                            <div class="cmp-diff-list">${bestPicks.map(renderPickRow).join('')}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.78rem;font-weight:800;color:var(--red-soft);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">Schwächste 3</div>
+                            <div class="cmp-diff-list">${worstPicks.map(renderPickRow).join('')}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        // Storyline
+        const story = buildWhatIfStoryline(team, missedByPosition, captainMissed, totalMissed, maxPercent, topMissed);
+        const storyHtml = `
+            <div class="cmp-storyline">
+                <div class="cmp-storyline-title">📖 Deine Story</div>
+                ${escapeHtml(story)}
+            </div>`;
+
+        out.innerHTML = summaryHtml + captainHtml + positionTilesHtml + topMissedHtml + picksHtml + storyHtml;
+    }
+
+    function computePerfectLightTeam() {
+        // Greedy: highest-points players per position with one-per-nation constraint.
+        // Mirrors the existing perfect-team logic for consistency.
+        const all = playersData.map(p => ({
+            id: String(p['player.id']),
+            nation: p['Nationalteam.name'] || '',
+            pos: cmpNormalizePosition(p.Position),
+            pts: getPlayerBasePoints(p['player.id']),
+            name: p.Spielername
+        }));
+        const slots = { GOALKEEPER: [], DEFENDER: [], MIDFIELDER: [], ATTACKER: [] };
+        const max = { GOALKEEPER: 2, DEFENDER: 4, MIDFIELDER: 5, ATTACKER: 4 };
+        const usedNations = new Set();
+        const sorted = [...all].sort((a, b) => b.pts - a.pts);
+        for (const p of sorted) {
+            if (!slots[p.pos] || slots[p.pos].length >= max[p.pos]) continue;
+            if (p.nation && usedNations.has(p.nation)) continue;
+            slots[p.pos].push(p);
+            if (p.nation) usedNations.add(p.nation);
+        }
+        const all15 = [].concat(slots.GOALKEEPER, slots.DEFENDER, slots.MIDFIELDER, slots.ATTACKER);
+        // Captain = best of these
+        const captain = all15.slice().sort((a, b) => b.pts - a.pts)[0] || null;
+        const score = all15.reduce((s, p) => s + p.pts, 0) + (captain ? captain.pts : 0);
+        return { players: all15, captain, score };
+    }
+
+    function buildWhatIfStoryline(team, missedByPosition, captainMissed, totalMissed, percent, topMissed) {
+        const parts = [];
+        const worstPos = POSITION_KEYS
+            .map(p => ({ pos: p, missed: missedByPosition[p] || 0 }))
+            .sort((a, b) => b.missed - a.missed)[0];
+        if (worstPos && worstPos.missed > 0) {
+            parts.push(`Dein grösstes verpasstes Potenzial lag im Bereich ${POSITION_LABELS[worstPos.pos]} (${worstPos.missed} Punkte).`);
+        }
+        if (captainMissed > 0) {
+            parts.push(`Eine andere Captain-Wahl hätte dir ${captainMissed} Punkte mehr gebracht.`);
+        }
+        if (topMissed && topMissed.length) {
+            const top = topMissed[0];
+            parts.push(`Die grösste verpasste Alternative: ${top.bestSamePos.name} statt ${top.player.name} (+${top.diff} Punkte).`);
+        }
+        parts.push(`Insgesamt hast du ${percent}% der theoretisch möglichen Punkte erreicht.`);
+        if (totalMissed === 0) {
+            parts.push('Beachtlich – kaum Verbesserungspotenzial!');
+        }
+        return parts.join(' ');
+    }
+
+    /* ---------- Wire up event listeners (one-time) ---------- */
+    function initComparisonsEventsOnce() {
+        if (initComparisonsEventsOnce.done) return;
+        initComparisonsEventsOnce.done = true;
+
+        document.querySelectorAll('.cmp-pill').forEach(btn => {
+            btn.addEventListener('click', () => setComparisonTab(btn.dataset.cmpTab, true));
+        });
+
+        const onMgrChange = (which) => {
+            const sel = document.getElementById('cmp-mgr-' + which);
+            if (!sel) return;
+            sel.addEventListener('change', () => {
+                if (which === 'a') cmpMgrA = sel.value;
+                else cmpMgrB = sel.value;
+                renderManagerDuell();
+                updateUrl(false);
+            });
+        };
+        onMgrChange('a'); onMgrChange('b');
+
+        const wireSearch = (sideKey) => {
+            const search = document.getElementById('cmp-pl-' + sideKey + '-search');
+            const sel = document.getElementById('cmp-pl-' + sideKey);
+            if (!search || !sel) return;
+            search.addEventListener('input', () => {
+                populatePlayerSelect('cmp-pl-' + sideKey, sideKey === 'a' ? cmpPlayerA : cmpPlayerB, search.value);
+            });
+            sel.addEventListener('change', () => {
+                if (sideKey === 'a') cmpPlayerA = sel.value;
+                else cmpPlayerB = sel.value;
+                renderPlayerDuell();
+                updateUrl(false);
+            });
+        };
+        wireSearch('a'); wireSearch('b');
+
+        document.querySelectorAll('.cmp-quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!cmpPlayerA) return;
+                const stA = buildPlayerStats(cmpPlayerA);
+                if (!stA) return;
+                const kind = btn.dataset.quick;
+                cmpPlayerB = `virtual:${kind}:${stA.position}`;
+                if (kind === 'best') {
+                    const best = getBestByPosition(stA.position);
+                    if (best && best.id !== stA.id) cmpPlayerB = best.id;
+                }
+                renderPlayerDuell();
+                updateUrl(false);
+            });
+        });
+
+        const whatIfSel = document.getElementById('cmp-whatif-mgr');
+        if (whatIfSel) {
+            whatIfSel.addEventListener('change', () => {
+                cmpWhatIfMgr = whatIfSel.value;
+                renderWhatIfAnalysis();
+                updateUrl(false);
+            });
+        }
+    }
+
+    /* =========================================================
        GLOBAL FUNCTIONS (called from inline HTML)
        ========================================================= */
-    function openGameCard(gameNumber, push = false) {
-        if (String(currentOpenGameNumber) === String(gameNumber)) {
-            currentOpenGameNumber = null;
-        } else {
-            currentOpenGameNumber = String(gameNumber);
-        }
-        renderGamesView();
-        renderScheduleView();
-        if (currentView !== 'countries') setView('countries', false);
-        updateUrl(push);
-        updateMobileFilterButtonLabel();
-    }
-    window.openGameCard = openGameCard;
-
-    function selectGamesNation(nation, push = true, options = {}) {
-        const countryList = document.getElementById('games-country-list');
-        if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
-        currentGameNationFilter = nation || 'ALL';
-        currentOpenGameNumber = null;
-        renderGamesView();
-        // Use a single history operation: push when navigating between selections so the
-        // back button returns to the previous nation/view, otherwise just replace.
-        setView('countries', push);
-        updateMobileFilterButtonLabel();
-        if (options.closeFilter !== false) closeMobileFilter();
-    }
-    window.selectGamesNation = selectGamesNation;
-
     function openPlayerFromGames(playerName) {
         const player = playersData.find(p => p.Spielername === playerName);
         if (!player) return;
         currentPlayerName = playerName;
-        // Push a new history entry when switching from Spiele/Länder into the Spieler view,
+        // Push a new history entry when switching from Spiele into the Spieler view,
         // so the browser back button returns to the originating view.
         setView('players', true);
         triggerHeroSwitch(() => showPlayerDetails(player));
-        // On mobile, ensure the player hero card is positioned at the top of the screen
-        // instead of leaving the user stranded mid-statistics.
         scrollToPlayerTop();
     }
     window.openPlayerFromGames = openPlayerFromGames;
 
-    // Scroll the player hero card to the top on mobile, or scroll the window to top on desktop
-    // so the player profile is the first thing the user sees after switching views.
     function scrollToPlayerTop() {
         if (window.innerWidth <= 860) {
             scrollToHeroOnMobile();
@@ -4131,17 +5721,14 @@
         window.scrollTo({ top: 0, behavior });
     }
 
+    // Backward compatible: clicking a country in the Spieler-Detail
+    // navigates the user to the Spielplan view filtered by that nation,
+    // since the dedicated Länder view has been replaced by Vergleiche.
     function openGamesViewWithNation(nation, matchNumber = null) {
-        const countryList = document.getElementById('games-country-list');
-        if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
-        currentGameNationFilter = nation || 'ALL';
-        currentOpenGameNumber = matchNumber || null;
-        // Push a new history entry so the back button returns to the originating view
-        // (typically the Spieler profile the user came from).
-        setView('countries', true);
-        renderGamesView();
-        // Scroll to the top of the country/match section on mobile for a clean jump.
-        scrollToGamesCountrySectionOnMobile();
+        currentScheduleNationFilter = nation || 'ALL';
+        setView('games', true);
+        renderScheduleView();
+        renderScheduleCountryList();
     }
     window.openGamesViewWithNation = openGamesViewWithNation;
 
@@ -4176,22 +5763,22 @@
         buildPlayerSelectedMap();
         calculatePerfectTeamIds();
         initStaticFilters();
-        buildGamesCountryStats();
         buildMatchCatalog();
         buildScheduleCatalog(dataForSchedule);
         buildScheduleNationList();
+        invalidateComparisonCaches();
 
         const state = getStateFromUrl();
 
         currentView = state.view;
-        currentGameNationFilter = state.gameNation || 'ALL';
         currentScheduleNationFilter = state.scheduleNation || 'ALL';
-        currentOpenGameNumber = state.openGame || null;
-        currentGamesSort = state.gameSort || 'pts';
 
-        if (currentGameNationFilter !== 'ALL' && !gamesCountryStatsMap.has(currentGameNationFilter)) {
-            currentGameNationFilter = 'ALL';
-        }
+        currentCmpTab = state.cmpTab || 'manager';
+        cmpMgrA = state.cmpMgrA || '';
+        cmpMgrB = state.cmpMgrB || '';
+        cmpPlayerA = state.cmpPlayerA || '';
+        cmpPlayerB = state.cmpPlayerB || '';
+        cmpWhatIfMgr = state.cmpWhatIfMgr || '';
 
         if (!preserveCurrentPlayer) {
             currentPlayerName = state.player || null;
@@ -4204,11 +5791,22 @@
             clubFilterEl.value = state.club;
         }
 
-        document.getElementById('games-sort-name').classList.toggle('active', currentGamesSort === 'name');
-        document.getElementById('games-sort-pts').classList.toggle('active', currentGamesSort === 'pts');
-
         const filteredData = applyFilters();
-        renderGamesView();
+        populateComparisonPickers();
+
+        // Sync comparison tab pills state without pushing history.
+        document.querySelectorAll('.cmp-pill').forEach(btn => {
+            const isActive = btn.dataset.cmpTab === currentCmpTab;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', String(isActive));
+        });
+        ['manager', 'player', 'whatif'].forEach(t => {
+            const panel = document.getElementById('cmp-tab-' + t);
+            if (!panel) return;
+            const isActive = t === currentCmpTab;
+            panel.hidden = !isActive;
+            panel.classList.toggle('active', isActive);
+        });
 
         let targetPlayer = null;
         if (currentPlayerName) {
@@ -4235,7 +5833,7 @@
        EVENT LISTENERS
        ========================================================= */
     document.getElementById('btn-view-players').addEventListener('click', () => setView('players', true));
-    document.getElementById('btn-view-countries').addEventListener('click', () => setView('countries', true));
+    document.getElementById('btn-view-comparisons').addEventListener('click', () => setView('comparisons', true));
     document.getElementById('btn-view-games').addEventListener('click', () => setView('games', true));
 
     document.getElementById('tile-nation').addEventListener('click', () => {
@@ -4299,28 +5897,6 @@
         applyFilters(); updateUrl(false);
     });
 
-    document.getElementById('games-sort-name').addEventListener('click', () => {
-        currentGamesSort = 'name';
-        document.getElementById('games-sort-name').classList.add('active');
-        document.getElementById('games-sort-pts').classList.remove('active');
-        renderGamesView(); updateUrl(false);
-    });
-
-    document.getElementById('games-sort-pts').addEventListener('click', () => {
-        currentGamesSort = 'pts';
-        document.getElementById('games-sort-pts').classList.add('active');
-        document.getElementById('games-sort-name').classList.remove('active');
-        renderGamesView(); updateUrl(false);
-    });
-
-    document.getElementById('games-reset-filters').addEventListener('click', () => {
-        const countryList = document.getElementById('games-country-list');
-        if (countryList) gamesCountryListScrollTop = countryList.scrollTop;
-        currentGameNationFilter = 'ALL';
-        currentOpenGameNumber = null;
-        renderGamesView(); updateUrl(true);
-    });
-
     document.getElementById('schedule-reset-filters').addEventListener('click', () => {
         currentScheduleNationFilter = 'ALL';
         renderScheduleView();
@@ -4348,10 +5924,6 @@
         if (list.scrollTop + list.clientHeight >= list.scrollHeight - 80) appendNextPlayerBatch();
     });
 
-    document.getElementById('games-country-list').addEventListener('scroll', () => {
-        gamesCountryListScrollTop = document.getElementById('games-country-list').scrollTop;
-    });
-
     window.addEventListener('resize', () => {
         if (window.innerWidth > 860) closeMobileFilter({ pushHistory: false });
         syncSidebarHeight();
@@ -4375,6 +5947,7 @@
        ========================================================= */
     async function init() {
         try {
+            initComparisonsEventsOnce();
             // bootstrap() ersetzt die alte Sequenz `getCachedBundle +
             // loadBundle + subscribeToMeta`. Damit sparen wir einen
             // Meta-Read pro Seitenaufruf, ohne die Live-Aktualität zu
@@ -4396,8 +5969,6 @@
                         console.error('Meta-Listener Fehler:', err);
                         if (!hasRenderedOnce) {
                             document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
-                            document.getElementById('games-country-list').innerHTML = '<div class="sidebar-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
-                            document.getElementById('games-list').innerHTML = '<div class="games-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
                         }
                     }
                 });
@@ -4406,8 +5977,6 @@
             console.error(e);
             if (!hasRenderedOnce) {
                 document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
-                document.getElementById('games-country-list').innerHTML = '<div class="sidebar-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
-                document.getElementById('games-list').innerHTML = '<div class="games-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
             }
         }
     }
