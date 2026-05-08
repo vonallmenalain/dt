@@ -2351,6 +2351,23 @@
         .cmp-summary-value.pos { color: var(--green-light); }
         .cmp-summary-value.neg { color: var(--red-soft); }
         .cmp-summary-value.gold { color: var(--gold); }
+        .cmp-summary-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 14px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .cmp-summary-link:hover,
+        .cmp-summary-link:focus-visible {
+            outline: none;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 22px rgba(34,197,94,0.25);
+        }
+        .cmp-summary-link:hover .cmp-summary-tile,
+        .cmp-summary-link:focus-visible .cmp-summary-tile {
+            border-color: rgba(34,197,94,0.6);
+        }
 
         .cmp-alt-list {
             display: flex;
@@ -2488,21 +2505,48 @@
         .cmp-pos-tile-value.pos { color: var(--green-light); }
         .cmp-pos-tile-value.neg { color: var(--red-soft); }
         .cmp-pos-tile-value.zero { color: var(--text-muted); }
-        .cmp-pos-meta {
-            color: var(--text-muted);
-            font-size: 0.82rem;
-            line-height: 1.4;
-            margin-bottom: 12px;
+
+        /* Clickable links inside the comparison view */
+        .cmp-link {
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.15s ease, text-shadow 0.15s ease;
         }
-        .cmp-pos-sum {
-            margin-top: 12px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            text-align: center;
+        .cmp-link:hover,
+        .cmp-link:focus-visible {
+            color: var(--green-light);
+            text-decoration: underline;
+            text-decoration-color: currentColor;
+            text-underline-offset: 3px;
+            outline: none;
         }
-        .cmp-pos-sum strong.pos { color: var(--green-light); }
-        .cmp-pos-sum strong.neg { color: var(--red-soft); }
-        .cmp-pos-sum strong.zero { color: var(--text-muted); }
+        .cmp-link.is-points:hover,
+        .cmp-link.is-points:focus-visible {
+            color: var(--green-light);
+            text-shadow: 0 0 12px rgba(34,197,94,0.35);
+        }
+        .cmp-img-link {
+            display: inline-block;
+            cursor: pointer;
+            border-radius: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        }
+        .cmp-img-link img,
+        .cmp-img-link > div {
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        }
+        .cmp-img-link:hover,
+        .cmp-img-link:focus-visible {
+            outline: none;
+        }
+        .cmp-img-link:hover img,
+        .cmp-img-link:focus-visible img,
+        .cmp-img-link:hover > div,
+        .cmp-img-link:focus-visible > div {
+            transform: scale(1.06);
+            box-shadow: 0 6px 18px rgba(34,197,94,0.35);
+        }
 
         @media (max-width: 600px) {
             .cmp-picker-grid {
@@ -3927,6 +3971,42 @@
         return String(text ?? '')
             .replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    /* ---------- Comparison link helpers ---------- */
+    function cmpPlayerHref(name) {
+        if (!name) return '';
+        return `spieleranalyse.html?player=${encodeURIComponent(name)}`;
+    }
+    function cmpManagerHref(name) {
+        if (!name) return '';
+        return `teams.html?manager=${encodeURIComponent(name)}`;
+    }
+    function cmpRankingHref(manager) {
+        return manager ? `rangliste.html?focus=${encodeURIComponent(manager)}` : 'rangliste.html';
+    }
+    function cmpPlayerLink(name, inner, extraClass = '') {
+        if (!name) return inner;
+        const cls = ('cmp-link cmp-link-player ' + extraClass).trim();
+        return `<a href="${cmpPlayerHref(name)}" class="${cls}" title="${escapeHtml(name)} in der Spieler-Analyse öffnen">${inner}</a>`;
+    }
+    function cmpManagerLink(name, inner, extraClass = '') {
+        if (!name) return inner;
+        const cls = ('cmp-link cmp-link-manager ' + extraClass).trim();
+        return `<a href="${cmpManagerHref(name)}" class="${cls}" title="Team von ${escapeHtml(name)} ansehen">${inner}</a>`;
+    }
+    function cmpRankingLink(inner, extraClass = '', manager = '') {
+        const cls = ('cmp-link cmp-link-ranking ' + extraClass).trim();
+        const title = manager ? `${escapeHtml(manager)} in der Rangliste anzeigen` : 'Rangliste öffnen';
+        return `<a href="${cmpRankingHref(manager)}" class="${cls}" title="${title}">${inner}</a>`;
+    }
+    function cmpPlayerImgLink(name, inner) {
+        if (!name) return inner;
+        return `<a href="${cmpPlayerHref(name)}" class="cmp-img-link" aria-label="${escapeHtml(name)} in der Spieler-Analyse öffnen" title="${escapeHtml(name)} in der Spieler-Analyse öffnen">${inner}</a>`;
+    }
+    function cmpManagerImgLink(name, inner) {
+        if (!name) return inner;
+        return `<a href="${cmpManagerHref(name)}" class="cmp-img-link" aria-label="Team von ${escapeHtml(name)} ansehen" title="Team von ${escapeHtml(name)} ansehen">${inner}</a>`;
     }
 
     function formatPoints(value) {
@@ -5579,10 +5659,10 @@
             <div class="cmp-h2h-hero">
                 <div class="cmp-h2h-grid">
                     <div class="cmp-h2h-side ${winner === 'a' ? 'is-winner' : ''}">
-                        <div class="cmp-h2h-avatar">${escapeHtml(initialA)}</div>
-                        <div class="cmp-h2h-name">${escapeHtml(a.manager)}</div>
-                        <div class="cmp-h2h-pts">${a.totalScore}</div>
-                        <div class="cmp-h2h-rank">Rang #${a.rank ?? '–'}</div>
+                        ${cmpManagerImgLink(a.manager, `<div class="cmp-h2h-avatar">${escapeHtml(initialA)}</div>`)}
+                        <div class="cmp-h2h-name">${cmpManagerLink(a.manager, escapeHtml(a.manager))}</div>
+                        <div class="cmp-h2h-pts">${cmpRankingLink(String(a.totalScore), 'is-points', a.manager)}</div>
+                        <div class="cmp-h2h-rank">${cmpRankingLink('Rang #' + (a.rank ?? '–'), '', a.manager)}</div>
                         ${winner === 'a' ? '<span class="cmp-winner-badge">🏆 Sieger</span>' : ''}
                     </div>
                     <div class="cmp-h2h-center">
@@ -5590,10 +5670,10 @@
                         <span class="cmp-diff-badge ${diffBadgeClass}">${escapeHtml(diffText)}</span>
                     </div>
                     <div class="cmp-h2h-side ${winner === 'b' ? 'is-winner' : ''}">
-                        <div class="cmp-h2h-avatar">${escapeHtml(initialB)}</div>
-                        <div class="cmp-h2h-name">${escapeHtml(b.manager)}</div>
-                        <div class="cmp-h2h-pts">${b.totalScore}</div>
-                        <div class="cmp-h2h-rank">Rang #${b.rank ?? '–'}</div>
+                        ${cmpManagerImgLink(b.manager, `<div class="cmp-h2h-avatar">${escapeHtml(initialB)}</div>`)}
+                        <div class="cmp-h2h-name">${cmpManagerLink(b.manager, escapeHtml(b.manager))}</div>
+                        <div class="cmp-h2h-pts">${cmpRankingLink(String(b.totalScore), 'is-points', b.manager)}</div>
+                        <div class="cmp-h2h-rank">${cmpRankingLink('Rang #' + (b.rank ?? '–'), '', b.manager)}</div>
                         ${winner === 'b' ? '<span class="cmp-winner-badge">🏆 Sieger</span>' : ''}
                     </div>
                 </div>
@@ -5616,7 +5696,8 @@
             const photo = cap && cap.photo
                 ? `<img src="${escapeHtml(cap.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
                 : `<div class="cmp-cap-photo-fallback">⚽</div>`;
-            return `<div class="cmp-cap-avatar">${photo}<div class="cmp-cap-c-badge" aria-label="Captain">C</div></div>`;
+            const inner = `<div class="cmp-cap-avatar">${photo}<div class="cmp-cap-c-badge" aria-label="Captain">C</div></div>`;
+            return cap && cap.name ? cmpPlayerImgLink(cap.name, inner) : inner;
         };
 
         const captainCard = `
@@ -5628,7 +5709,7 @@
                     <div class="cmp-cap-row">
                         ${renderCapAvatar(capA)}
                         <div class="cmp-cap-side">
-                            <span class="cmp-row-name">${capA ? escapeHtml(capA.name) : '— kein Captain —'}</span>
+                            <span class="cmp-row-name">${capA ? cmpPlayerLink(capA.name, escapeHtml(capA.name)) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts ${capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw')}">${capPtsA} Pkt.</span>
                         </div>
                         <div class="cmp-cap-center">
@@ -5636,7 +5717,7 @@
                             <span class="cmp-cap-diff ${capDiffCls}" aria-label="Differenz ${capDiffText} Punkte">${capDiffText}</span>
                         </div>
                         <div class="cmp-cap-side right">
-                            <span class="cmp-row-name">${capB ? escapeHtml(capB.name) : '— kein Captain —'}</span>
+                            <span class="cmp-row-name">${capB ? cmpPlayerLink(capB.name, escapeHtml(capB.name)) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts ${capWinner === 'b' ? 'win' : (capWinner === 'a' ? 'loss' : 'draw')}">${capPtsB} Pkt.</span>
                         </div>
                         ${renderCapAvatar(capB)}
@@ -5644,7 +5725,7 @@
                     ${(capA && capB) ? `<div style="margin-top:10px;color:var(--text-muted);font-size:0.86rem;">
                         ${capWinner === 'draw'
                             ? 'Beide Captains lieferten gleich viele Punkte.'
-                            : `Der Captain von <strong>${escapeHtml(capWinner === 'a' ? a.manager : b.manager)}</strong> brachte ${capDiffAbs} Punkte mehr.`}
+                            : `Der Captain von <strong>${cmpManagerLink(capWinner === 'a' ? a.manager : b.manager, escapeHtml(capWinner === 'a' ? a.manager : b.manager))}</strong> brachte ${capDiffAbs} Punkte mehr.`}
                     </div>` : ''}
                 </div>
             </div>`;
@@ -5655,14 +5736,16 @@
             if (!p) {
                 return `<div class="side ${side}"><span class="cmp-player-empty">— kein Spieler —</span></div>`;
             }
-            const photoHtml = p.photo
+            const photoInner = p.photo
                 ? `<img class="cmp-player-photo-sm" src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
                 : `<div class="cmp-player-photo-sm cmp-player-photo-fallback">⚽</div>`;
+            const photoHtml = cmpPlayerImgLink(p.name, photoInner);
             const captainTag = p.isCaptain ? '<span class="cmp-cap-tag" title="Captain">C</span>' : '';
             const meta = p.slotNum >= 11 ? 'Bank' : (p.nation || '');
+            const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name));
             const info = `
                 <div class="cmp-player-info-mini">
-                    <span class="cmp-player-name-mini">${escapeHtml(p.name)}${captainTag}</span>
+                    <span class="cmp-player-name-mini">${nameLinked}${captainTag}</span>
                     ${meta ? `<span class="cmp-player-meta-mini">${escapeHtml(meta)}</span>` : ''}
                 </div>`;
             const pts = `<span class="cmp-player-pts-mini ${ptsClass}">${p.pts}</span>`;
@@ -5760,15 +5843,22 @@
         const renderMiniList = (items, side) => {
             const itemCls = side === 'b' ? 'cmp-diff-item is-right' : 'cmp-diff-item';
             if (!items.length) return `<div style="color:var(--text-muted);font-size:0.85rem;padding:8px 4px;">Keine unterschiedlichen Spieler.</div>`;
-            return `<div class="cmp-diff-list">${items.map(p => `
+            return `<div class="cmp-diff-list">${items.map(p => {
+                const photoInner = p.photo
+                    ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+                    : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>';
+                const photoLinked = cmpPlayerImgLink(p.name, photoInner);
+                const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name));
+                return `
                 <div class="${itemCls}">
-                    ${p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>'}
+                    ${photoLinked}
                     <div class="cmp-diff-info">
-                        <div class="cmp-diff-name">${escapeHtml(p.name)}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
+                        <div class="cmp-diff-name">${nameLinked}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
                         <div class="cmp-diff-meta">${escapeHtml(POSITION_LABELS[p.pos] || translatePosition(p.pos))} · ${escapeHtml(p.nation || '')}</div>
                     </div>
                     <div class="cmp-diff-pts ${p.pts > 0 ? 'pos' : (p.pts < 0 ? 'neg' : '')}">${formatPoints(p.pts)}</div>
-                </div>`).join('')}</div>`;
+                </div>`;
+            }).join('')}</div>`;
         };
 
         const matchwinnerCard = `
@@ -5779,11 +5869,11 @@
                 <div class="analysis-card-body">
                     <div class="cmp-matchwinner-grid">
                         <div class="cmp-matchwinner-col">
-                            <div class="cmp-matchwinner-heading">${escapeHtml(a.manager)}</div>
+                            <div class="cmp-matchwinner-heading">${cmpManagerLink(a.manager, escapeHtml(a.manager))}</div>
                             ${renderMiniList(topUniqueA, 'a')}
                         </div>
                         <div class="cmp-matchwinner-col" style="text-align:right;">
-                            <div class="cmp-matchwinner-heading">${escapeHtml(b.manager)}</div>
+                            <div class="cmp-matchwinner-heading">${cmpManagerLink(b.manager, escapeHtml(b.manager))}</div>
                             ${renderMiniList(topUniqueB, 'b')}
                         </div>
                     </div>
@@ -6002,9 +6092,13 @@
     }
 
     function renderPlayerCardForCmp(stats, isWinner) {
-        const photo = stats.photo && !String(stats.photo).includes('placeholder')
+        const photoInner = stats.photo && !String(stats.photo).includes('placeholder')
             ? `<img src="${escapeHtml(stats.photo)}" class="cmp-player-photo" alt="${escapeHtml(stats.player.Spielername)}" loading="lazy" onerror="this.style.display='none'">`
             : `<div class="cmp-player-photo" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">${stats.virtual ? '📊' : '⚽'}</div>`;
+        const playerName = stats.player.Spielername || '';
+        const photo = stats.virtual ? photoInner : cmpPlayerImgLink(playerName, photoInner);
+        const nameDisplay = escapeHtml(playerName || '–');
+        const nameHtml = stats.virtual ? nameDisplay : cmpPlayerLink(playerName, nameDisplay);
 
         const flag = stats.nationFlag ? `<img src="${escapeHtml(stats.nationFlag)}" alt="">` : '';
         const clubLogo = stats.clubLogo ? `<img src="${escapeHtml(stats.clubLogo)}" alt="" class="cmp-player-club-logo">` : '';
@@ -6017,7 +6111,7 @@
                 ${isWinner ? '<span class="cmp-winner-badge" style="position:absolute;top:10px;right:10px;">🏆 Sieger</span>' : ''}
                 ${photo}
                 <div class="cmp-player-pos">${escapeHtml(stats.positionLabel || '')}</div>
-                <div class="cmp-player-name">${escapeHtml(stats.player.Spielername || '–')}</div>
+                <div class="cmp-player-name">${nameHtml}</div>
                 <div class="cmp-player-meta">
                     <span class="cmp-meta-row">${flag}<span>${escapeHtml(stats.nation || '–')}</span></span>
                     <span class="cmp-meta-row">${clubLogo}<span>${escapeHtml(stats.club || '–')}</span></span>
@@ -6211,10 +6305,11 @@
 
         const summaryHtml = `
             <div class="cmp-summary-grid">
+                ${cmpRankingLink(`
                 <div class="cmp-summary-tile accent">
                     <div class="cmp-summary-label">Aktuelle Punkte</div>
                     <div class="cmp-summary-value">${teamScore}</div>
-                </div>
+                </div>`, 'cmp-summary-link', team.manager)}
                 <div class="cmp-summary-tile gold">
                     <div class="cmp-summary-label">Mögliches Maximum</div>
                     <div class="cmp-summary-value gold">${perfectScore}</div>
@@ -6236,7 +6331,8 @@
             const badge = badgeChar
                 ? `<div class="cmp-cap-c-badge ${badgeClass || ''}" aria-hidden="true">${badgeChar}</div>`
                 : '';
-            return `<div class="cmp-cap-avatar">${photo}${badge}</div>`;
+            const inner = `<div class="cmp-cap-avatar">${photo}${badge}</div>`;
+            return player && player.name ? cmpPlayerImgLink(player.name, inner) : inner;
         };
 
         const captainHtml = `
@@ -6248,7 +6344,7 @@
                     <div class="cmp-cap-row cmp-whatif-cap-row">
                         ${renderWhatIfCapAvatar(currentCaptain, 'C')}
                         <div class="cmp-cap-side">
-                            <span class="cmp-row-name">${currentCaptain ? escapeHtml(currentCaptain.name) : '— kein Captain —'}</span>
+                            <span class="cmp-row-name">${currentCaptain ? cmpPlayerLink(currentCaptain.name, escapeHtml(currentCaptain.name)) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts">${captainBonusCurrent} Bonus</span>
                         </div>
                         <div class="cmp-cap-center">
@@ -6256,7 +6352,7 @@
                             <span class="cmp-cap-diff ${captainMissedOwn > 0 ? 'win' : 'draw'}" aria-label="Differenz +${captainMissedOwn} Punkte">${captainMissedOwn > 0 ? `+${captainMissedOwn}` : '±0'}</span>
                         </div>
                         <div class="cmp-cap-side right">
-                            <span class="cmp-row-name">${bestPlayer ? escapeHtml(bestPlayer.name) : '–'}</span>
+                            <span class="cmp-row-name">${bestPlayer ? cmpPlayerLink(bestPlayer.name, escapeHtml(bestPlayer.name)) : '–'}</span>
                             <span class="cmp-row-pts ${captainMissedOwn > 0 ? 'win' : 'draw'}">${captainBonusBestOwn} Bonus</span>
                         </div>
                         ${renderWhatIfCapAvatar(bestPlayer, '★', 'star')}
@@ -6274,20 +6370,12 @@
             if (diff < 0) return `<div class="cmp-pos-tile-value pos">+${Math.abs(diff)}</div>`;
             return `<div class="cmp-pos-tile-value zero">±0</div>`;
         };
-        const positionDiffSum = POSITION_KEYS.reduce((s, p) => s + (missedByPosition[p] || 0), 0)
-            + (captainMissed || 0);
         const positionTilesHtml = `
             <div class="analysis-card">
                 <div class="analysis-card-header">
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📍 Differenz zum perfekten Team nach Position</div>
                 </div>
                 <div class="analysis-card-body">
-                    <div class="cmp-pos-meta">
-                        Vergleich pro Positions-Slot zwischen deinem Kader und dem theoretisch perfekten Team
-                        (1 Spieler pro Nation, gleiche Slot-Aufteilung). Negative Werte zeigen verpasste Punkte,
-                        positive Werte bedeuten, dass du in dieser Position stärker bist als das Perfect-Team –
-                        was auf Kosten anderer Positionen gegangen sein kann.
-                    </div>
                     <div class="cmp-pos-grid">
                         ${POSITION_KEYS.map(pos => `
                             <div class="cmp-pos-tile">
@@ -6299,16 +6387,15 @@
                             ${renderDiffTileValue(captainMissed || 0)}
                         </div>
                     </div>
-                    <div class="cmp-pos-sum">
-                        Summe: <strong class="${positionDiffSum > 0 ? 'neg' : (positionDiffSum < 0 ? 'pos' : 'zero')}">${positionDiffSum > 0 ? '-' + positionDiffSum : (positionDiffSum < 0 ? '+' + Math.abs(positionDiffSum) : '±0')}</strong>
-                        — entspricht den oben angezeigten ${totalMissed > 0 ? `<strong>${totalMissed}</strong> verpassten Punkten` : 'verpassten Punkten'}.
-                    </div>
                 </div>
             </div>`;
 
-        const renderAltAvatar = (photo) => photo
-            ? `<img class="cmp-alt-photo" src="${escapeHtml(photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
-            : `<div class="cmp-alt-photo cmp-alt-photo-fallback">⚽</div>`;
+        const renderAltAvatar = (photo, name) => {
+            const inner = photo
+                ? `<img class="cmp-alt-photo" src="${escapeHtml(photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
+                : `<div class="cmp-alt-photo cmp-alt-photo-fallback">⚽</div>`;
+            return name ? cmpPlayerImgLink(name, inner) : inner;
+        };
 
         const topMissedHtml = `
             <div class="analysis-card">
@@ -6321,18 +6408,18 @@
                         : `<div class="cmp-alt-list">${topMissed.map(item => `
                             <div class="cmp-alt-row">
                                 <div class="cmp-alt-side">
-                                    ${renderAltAvatar(item.player.photo)}
+                                    ${renderAltAvatar(item.player.photo, item.player.name)}
                                     <div class="cmp-alt-info">
-                                        <div class="cmp-alt-name">${escapeHtml(item.player.name)}</div>
+                                        <div class="cmp-alt-name">${cmpPlayerLink(item.player.name, escapeHtml(item.player.name))}</div>
                                         <div class="cmp-alt-meta">${escapeHtml(POSITION_LABELS[item.player.pos] || translatePosition(item.player.pos))} · ${escapeHtml(item.player.nation)}</div>
                                         <div class="cmp-alt-pts">${item.player.basePts} Pkt.</div>
                                     </div>
                                 </div>
                                 <div class="cmp-alt-arrow" aria-hidden="true">→</div>
                                 <div class="cmp-alt-side">
-                                    ${renderAltAvatar(item.bestSamePos.photo)}
+                                    ${renderAltAvatar(item.bestSamePos.photo, item.bestSamePos.name)}
                                     <div class="cmp-alt-info">
-                                        <div class="cmp-alt-name is-best">${escapeHtml(item.bestSamePos.name)}</div>
+                                        <div class="cmp-alt-name is-best">${cmpPlayerLink(item.bestSamePos.name, escapeHtml(item.bestSamePos.name))}</div>
                                         <div class="cmp-alt-meta">gleiche Nation &amp; Position</div>
                                         <div class="cmp-alt-pts is-best">${item.bestSamePos.pts} Pkt.</div>
                                     </div>
@@ -6343,15 +6430,22 @@
             </div>`;
 
         // Best/worst picks card
-        const renderPickRow = (p) => `
+        const renderPickRow = (p) => {
+            const photoInner = p.photo
+                ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+                : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>';
+            const photoLinked = cmpPlayerImgLink(p.name, photoInner);
+            const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name));
+            return `
             <div class="cmp-diff-item">
-                ${p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>'}
+                ${photoLinked}
                 <div class="cmp-diff-info">
-                    <div class="cmp-diff-name">${escapeHtml(p.name)}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
+                    <div class="cmp-diff-name">${nameLinked}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
                     <div class="cmp-diff-meta">${escapeHtml(POSITION_LABELS[p.pos] || translatePosition(p.pos))} · ${escapeHtml(p.nation || '')}</div>
                 </div>
                 <div class="cmp-diff-pts ${p.basePts > 0 ? 'pos' : (p.basePts < 0 ? 'neg' : '')}">${formatPoints(p.basePts)}</div>
             </div>`;
+        };
 
         const picksHtml = `
             <div class="analysis-card">
