@@ -4371,40 +4371,34 @@
     });
 
     /* =========================================================
-       META REFRESH
-       ========================================================= */
-    async function refreshFromMeta(remoteMeta) {
-        if (isMetaRefreshRunning) return;
-        isMetaRefreshRunning = true;
-        try {
-            const updated = await DreamTeamCache.loadBundle({ ...CACHE_OPTIONS, remoteMetaOverride: remoteMeta });
-            applyDataset(updated.data, { preserveCurrentPlayer: true });
-        } catch (err) {
-            console.error('Meta-Refresh fehlgeschlagen:', err);
-        } finally {
-            isMetaRefreshRunning = false;
-        }
-    }
-
-    /* =========================================================
        INIT
        ========================================================= */
     async function init() {
         try {
-            const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
-            if (cached.ok) applyDataset(cached.data, { preserveCurrentPlayer: false });
-
-            const fresh = await DreamTeamCache.loadBundle(CACHE_OPTIONS);
-            applyDataset(fresh.data, { preserveCurrentPlayer: true });
-
+            // bootstrap() ersetzt die alte Sequenz `getCachedBundle +
+            // loadBundle + subscribeToMeta`. Damit sparen wir einen
+            // Meta-Read pro Seitenaufruf, ohne die Live-Aktualität zu
+            // verlieren.
             if (!metaUnsubscribe) {
-                metaUnsubscribe = DreamTeamCache.subscribeToMeta({
+                metaUnsubscribe = await DreamTeamCache.bootstrap({
                     ...CACHE_OPTIONS,
-                    onChange: async ({ remoteMeta }) => {
-                        await refreshFromMeta(remoteMeta);
+                    onCachedReady: (data) => applyDataset(data, { preserveCurrentPlayer: false }),
+                    onUpdate: (data) => {
+                        if (isMetaRefreshRunning) return;
+                        isMetaRefreshRunning = true;
+                        try {
+                            applyDataset(data, { preserveCurrentPlayer: hasRenderedOnce });
+                        } finally {
+                            isMetaRefreshRunning = false;
+                        }
                     },
                     onError: (err) => {
                         console.error('Meta-Listener Fehler:', err);
+                        if (!hasRenderedOnce) {
+                            document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
+                            document.getElementById('games-country-list').innerHTML = '<div class="sidebar-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
+                            document.getElementById('games-list').innerHTML = '<div class="games-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
+                        }
                     }
                 });
             }
