@@ -5293,7 +5293,9 @@
         const winner = diff > 0 ? 'a' : (diff < 0 ? 'b' : 'draw');
         const diffAbs = Math.abs(diff);
         const diffBadgeClass = winner === 'draw' ? 'draw' : '';
-        const diffText = winner === 'draw' ? 'Unentschieden' : `${diff > 0 ? 'A' : 'B'} +${diffAbs} Pkt.`;
+        const winnerManagerName = winner === 'a' ? a.manager : (winner === 'b' ? b.manager : '');
+        const winnerFirstName = (winnerManagerName || '').trim().split(/\s+/)[0] || '';
+        const diffText = winner === 'draw' ? 'Unentschieden' : `${winnerFirstName} +${diffAbs} Pkt.`;
 
         const heroHtml = `
             <div class="cmp-h2h-hero">
@@ -5384,8 +5386,8 @@
             const ptsAClass = w === 'a' ? 'win' : (w === 'b' ? 'loss' : 'draw');
             const ptsBClass = w === 'b' ? 'win' : (w === 'a' ? 'loss' : 'draw');
 
-            const playersA = a.players.filter(p => p.pos === pos).sort((x, y) => x.slotNum - y.slotNum);
-            const playersB = b.players.filter(p => p.pos === pos).sort((x, y) => x.slotNum - y.slotNum);
+            const playersA = a.players.filter(p => p.pos === pos).sort((x, y) => (y.pts || 0) - (x.pts || 0));
+            const playersB = b.players.filter(p => p.pos === pos).sort((x, y) => (y.pts || 0) - (x.pts || 0));
             const maxLen = Math.max(playersA.length, playersB.length);
 
             let playerRowsHtml = '';
@@ -5439,7 +5441,6 @@
                 </div>
                 <div class="analysis-card-body">
                     <div class="cmp-row-list">${positionBlocks}</div>
-                    <div style="margin-top:8px;color:var(--text-muted);font-size:0.78rem;">Tippe auf eine Position, um den Direktvergleich der Spieler zu öffnen. Inkl. Ersatzbank.</div>
                 </div>
             </div>`;
 
@@ -5495,7 +5496,7 @@
                 ${escapeHtml(story)}
             </div>`;
 
-        out.innerHTML = heroHtml + captainCard + positionsCard + matchwinnerCard + storyCard;
+        out.innerHTML = heroHtml + positionsCard + captainCard + matchwinnerCard + storyCard;
 
         wireCmpPositionToggles(out);
     }
