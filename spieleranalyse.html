@@ -1722,6 +1722,25 @@
         .cmp-diff-pts.pos { color: var(--green-light); }
         .cmp-diff-pts.neg { color: var(--red-soft); }
 
+        /* Matchwinner / Differenzspieler two-column layout */
+        .cmp-matchwinner-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .cmp-matchwinner-col { min-width: 0; }
+        .cmp-matchwinner-heading {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         /* Player duell card */
         .cmp-player-grid {
             display: grid;
@@ -1969,16 +1988,55 @@
                 grid-template-columns: 1fr;
             }
             .cmp-vs-divider { justify-self: center; margin-bottom: 0; }
+            /* Keep manager head-to-head side-by-side on mobile */
+            .cmp-h2h-hero { padding: 14px 10px; }
             .cmp-h2h-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
+                grid-template-columns: 1fr auto 1fr;
+                gap: 6px;
             }
-            .cmp-h2h-side { padding: 6px 0; }
+            .cmp-h2h-side { padding: 4px 0; gap: 4px; }
+            .cmp-h2h-avatar {
+                width: 44px; height: 44px;
+                font-size: 1.05rem;
+            }
+            .cmp-h2h-name { font-size: 0.82rem; }
+            .cmp-h2h-pts { font-size: 1.25rem; }
+            .cmp-h2h-rank { font-size: 0.7rem; }
+            .cmp-h2h-center { gap: 5px; }
+            .cmp-vs-bubble { padding: 4px 9px; font-size: 0.7rem; letter-spacing: 0.6px; }
+            .cmp-diff-badge { padding: 3px 8px; font-size: 0.7rem; }
+            .cmp-winner-badge { padding: 2px 7px; font-size: 0.62rem; }
             .cmp-row {
                 grid-template-columns: 1fr auto 1fr;
             }
             .cmp-summary-grid { grid-template-columns: repeat(2, 1fr); }
-            .cmp-player-grid { grid-template-columns: 1fr; }
+            /* Keep player duell cards side-by-side on mobile */
+            .cmp-player-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .cmp-player-card { padding: 12px 8px 10px; gap: 6px; }
+            .cmp-player-photo { width: 64px; height: 64px; }
+            .cmp-player-name { font-size: 0.85rem; }
+            .cmp-player-pts { font-size: 1.4rem; }
+            .cmp-player-meta { font-size: 0.7rem; gap: 4px; }
+            /* Matchwinner & Differenzspieler — keep side-by-side, prevent cut-off */
+            .cmp-matchwinner-grid { gap: 6px; }
+            .cmp-matchwinner-heading { font-size: 0.7rem; margin-bottom: 6px; }
+            .cmp-matchwinner-grid .cmp-diff-list { gap: 6px; }
+            .cmp-matchwinner-grid .cmp-diff-item {
+                padding: 8px 8px;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .cmp-matchwinner-grid .cmp-diff-item img,
+            .cmp-matchwinner-grid .cmp-diff-item > div:first-child:not(.cmp-diff-info) { display: none; }
+            .cmp-matchwinner-grid .cmp-diff-name {
+                font-size: 0.8rem;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                line-height: 1.15;
+            }
+            .cmp-matchwinner-grid .cmp-diff-meta { font-size: 0.68rem; line-height: 1.2; }
+            .cmp-matchwinner-grid .cmp-diff-pts { font-size: 0.9rem; }
             .cmp-alt-row {
                 grid-template-columns: 1fr 1fr;
                 grid-template-rows: auto auto;
@@ -1991,6 +2049,16 @@
             .cmp-pill { padding: 10px 12px; font-size: 0.82rem; }
             .cmp-hero { padding: 18px 16px; }
             .cmp-hero-title { font-size: 1.2rem; }
+        }
+
+        @media (max-width: 380px) {
+            .cmp-h2h-avatar { width: 38px; height: 38px; font-size: 0.95rem; }
+            .cmp-h2h-pts { font-size: 1.1rem; }
+            .cmp-h2h-name { font-size: 0.76rem; }
+            .cmp-vs-bubble { padding: 3px 7px; font-size: 0.62rem; }
+            .cmp-diff-badge { padding: 2px 6px; font-size: 0.62rem; }
+            .cmp-player-photo { width: 54px; height: 54px; }
+            .cmp-player-pts { font-size: 1.2rem; }
         }
 
         /* =====================================================
@@ -4966,9 +5034,7 @@
                 </div>
             </div>`;
 
-        // Position breakdown
-        const benchA = a.positionTotals.BENCH;
-        const benchB = b.positionTotals.BENCH;
+        // Position breakdown (bench players are already included in their respective position totals)
         const positionRows = POSITION_KEYS.map(pos => {
             const ptsA = a.positionTotals[pos] || 0;
             const ptsB = b.positionTotals[pos] || 0;
@@ -4984,17 +5050,7 @@
                         <span class="cmp-row-pts ${w === 'b' ? 'win' : (w === 'a' ? 'loss' : 'draw')}">${ptsB}</span>
                     </div>
                 </div>`;
-        }).join('') + (benchA || benchB ? `
-            <div class="cmp-row">
-                <div class="cmp-row-label">${POSITION_ICONS.BENCH} Ersatzbank</div>
-                <div class="cmp-row-side">
-                    <span class="cmp-row-pts ${benchA > benchB ? 'win' : (benchA < benchB ? 'loss' : 'draw')}">${benchA}</span>
-                </div>
-                <div class="cmp-row-center ${benchA === benchB ? '' : (benchA > benchB ? 'win' : 'loss')}">${benchA === benchB ? '=' : (benchA > benchB ? '◀' : '▶')}</div>
-                <div class="cmp-row-side right">
-                    <span class="cmp-row-pts ${benchB > benchA ? 'win' : (benchA > benchB ? 'loss' : 'draw')}">${benchB}</span>
-                </div>
-            </div>` : '');
+        }).join('');
 
         const positionsCard = `
             <div class="analysis-card">
@@ -5003,6 +5059,7 @@
                 </div>
                 <div class="analysis-card-body">
                     <div class="cmp-row-list">${positionRows}</div>
+                    <div style="margin-top:8px;color:var(--text-muted);font-size:0.78rem;">Inkl. Ersatzbank (Bank-Spieler werden ihrer jeweiligen Position zugerechnet).</div>
                 </div>
             </div>`;
 
@@ -5037,13 +5094,13 @@
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>🔥 Matchwinner & Differenzspieler</div>
                 </div>
                 <div class="analysis-card-body">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div>
-                            <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">${escapeHtml(a.manager)}</div>
+                    <div class="cmp-matchwinner-grid">
+                        <div class="cmp-matchwinner-col">
+                            <div class="cmp-matchwinner-heading">${escapeHtml(a.manager)}</div>
                             ${renderMiniList(topUniqueA, 'a')}
                         </div>
-                        <div>
-                            <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">${escapeHtml(b.manager)}</div>
+                        <div class="cmp-matchwinner-col">
+                            <div class="cmp-matchwinner-heading">${escapeHtml(b.manager)}</div>
                             ${renderMiniList(topUniqueB, 'b')}
                         </div>
                     </div>
