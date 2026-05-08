@@ -5159,6 +5159,20 @@
         return doc && typeof doc.totalPoints === 'number' ? doc.totalPoints : 0;
     }
 
+    // An "Einsatz" is counted as either being in the starting line-up
+    // (START) or coming on from the bench (SUBBED_IN) in any tournament match.
+    function getPlayerAppearances(playerId) {
+        const doc = pointsData[String(playerId)];
+        if (!doc) return 0;
+        const startPts = RULES.START || 1;
+        const subInPts = RULES.SUBBED_IN || 1;
+        const startVal = typeof doc.START === 'number' ? doc.START : 0;
+        const subVal = typeof doc.SUBBED_IN === 'number' ? doc.SUBBED_IN : 0;
+        const starts = startPts ? Math.round(startVal / startPts) : 0;
+        const subs = subInPts ? Math.round(subVal / subInPts) : 0;
+        return starts + subs;
+    }
+
     function invalidateComparisonCaches() {
         enrichedTeamsCache = [];
         positionAggregatesCache = null;
@@ -5224,7 +5238,10 @@
         return getEnrichedTeams().find(t => t.manager === name) || null;
     }
 
-    // Build aggregates over all players for spieler-duell comparisons
+    // Build aggregates over all players for spieler-duell comparisons.
+    // Only players with at least one tournament appearance (Einsatz) are
+    // included so position averages, top-N and "best" calculations are not
+    // diluted by squad members that never played.
     function getPositionAggregates() {
         if (positionAggregatesCache) return positionAggregatesCache;
         const buckets = { GOALKEEPER: [], DEFENDER: [], MIDFIELDER: [], ATTACKER: [] };
@@ -5232,6 +5249,7 @@
             const pos = cmpNormalizePosition(p.Position);
             if (!buckets[pos]) return;
             const id = String(p['player.id']);
+            if (getPlayerAppearances(id) <= 0) return;
             const pts = getPlayerBasePoints(id);
             buckets[pos].push({ id, name: p.Spielername, pts, raw: p });
         });
