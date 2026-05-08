@@ -1575,6 +1575,13 @@
             outline: 2px solid #4ade80;
             outline-offset: 2px;
         }
+        .cmp-quick-btn.cmp-quick-back {
+            border-color: rgba(74,222,128,0.45);
+            color: var(--green-light);
+        }
+        .cmp-quick-btn.cmp-quick-back:hover {
+            background: rgba(74,222,128,0.12);
+        }
 
         .cmp-empty {
             text-align: center;
@@ -3290,6 +3297,7 @@
                                 <button type="button" class="cmp-quick-btn" data-quick="best">🏆 Bester gleicher Position</button>
                                 <button type="button" class="cmp-quick-btn" data-quick="avg">📊 Durchschnitt gleicher Position</button>
                                 <button type="button" class="cmp-quick-btn" data-quick="top10">🔝 Top 10 gleicher Position</button>
+                                <button type="button" class="cmp-quick-btn cmp-quick-back" id="cmp-pl-b-restore" hidden>↩ Zurück zu Spieler B</button>
                             </div>
                         </div>
                     </div>
@@ -3388,6 +3396,9 @@
     let cmpMgrB = '';
     let cmpPlayerA = '';
     let cmpPlayerB = '';
+    // Previous Spieler-B Auswahl, damit nach einem Schnellvergleich
+    // (z.B. "Bester gleicher Position") wieder zurückgewechselt werden kann.
+    let cmpPlayerBPrev = '';
     let cmpWhatIfMgr = '';
     let enrichedTeamsCache = [];
     let positionAggregatesCache = null;
@@ -5161,7 +5172,6 @@
                 </div>
                 <div class="analysis-card-body">
                     <div class="cmp-row-list">${positionRows}</div>
-                    <div style="margin-top:8px;color:var(--text-muted);font-size:0.78rem;">Inkl. Ersatzbank (Bank-Spieler werden ihrer jeweiligen Position zugerechnet).</div>
                 </div>
             </div>`;
 
@@ -5290,7 +5300,34 @@
     }
 
     /* ---------- Spieler-Duell ---------- */
+    function getPlayerComboLabel(value) {
+        if (!value) return '';
+        if (String(value).startsWith('virtual:')) {
+            const [, kind, pos] = String(value).split(':');
+            const posLabel = POSITION_LABELS[pos] || pos || '';
+            if (kind === 'avg') return `Ø Durchschnitt ${posLabel}`;
+            if (kind === 'top10') return `Ø Top 10 ${posLabel}`;
+            if (kind === 'best') return `Bester ${posLabel}`;
+            return 'vorherige Auswahl';
+        }
+        const player = playersData.find(p => String(p['player.id']) === String(value));
+        return player ? (player.Spielername || 'vorherige Auswahl') : 'vorherige Auswahl';
+    }
+
+    function updatePlayerBackButton() {
+        const btn = document.getElementById('cmp-pl-b-restore');
+        if (!btn) return;
+        if (cmpPlayerBPrev && cmpPlayerBPrev !== cmpPlayerB) {
+            const label = getPlayerComboLabel(cmpPlayerBPrev);
+            btn.textContent = `↩ Zurück zu ${label}`;
+            btn.hidden = false;
+        } else {
+            btn.hidden = true;
+        }
+    }
+
     function renderPlayerDuell() {
+        updatePlayerBackButton();
         const out = document.getElementById('cmp-pl-result');
         if (!out) return;
 
@@ -5872,6 +5909,7 @@
         const choose = (player) => {
             if (!player) return;
             setStateValue(String(player['player.id']));
+            if (sideKey === 'b') cmpPlayerBPrev = '';
             input.value = player.Spielername || '';
             closeDropdown();
             updateClear();
@@ -5881,6 +5919,7 @@
 
         const clearSelection = (focus = true) => {
             setStateValue('');
+            if (sideKey === 'b') cmpPlayerBPrev = '';
             input.value = '';
             updateClear();
             closeDropdown();
@@ -5995,22 +6034,39 @@
         setupPlayerCombo('a');
         setupPlayerCombo('b');
 
-        document.querySelectorAll('.cmp-quick-btn').forEach(btn => {
+        document.querySelectorAll('.cmp-quick-btn[data-quick]').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!cmpPlayerA) return;
                 const stA = buildPlayerStats(cmpPlayerA);
                 if (!stA) return;
                 const kind = btn.dataset.quick;
-                cmpPlayerB = `virtual:${kind}:${stA.position}`;
+                let newValue = `virtual:${kind}:${stA.position}`;
                 if (kind === 'best') {
                     const best = getBestByPosition(stA.position);
-                    if (best && best.id !== stA.id) cmpPlayerB = best.id;
+                    if (best && best.id !== stA.id) newValue = best.id;
                 }
+                if (cmpPlayerB && cmpPlayerB !== newValue) {
+                    cmpPlayerBPrev = cmpPlayerB;
+                }
+                cmpPlayerB = newValue;
                 syncPlayerCombo('b', cmpPlayerB);
                 renderPlayerDuell();
                 updateUrl(false);
             });
         });
+
+        const restoreBtn = document.getElementById('cmp-pl-b-restore');
+        if (restoreBtn) {
+            restoreBtn.addEventListener('click', () => {
+                if (!cmpPlayerBPrev) return;
+                const restored = cmpPlayerBPrev;
+                cmpPlayerBPrev = '';
+                cmpPlayerB = restored;
+                syncPlayerCombo('b', cmpPlayerB);
+                renderPlayerDuell();
+                updateUrl(false);
+            });
+        }
 
         const whatIfSel = document.getElementById('cmp-whatif-mgr');
         if (whatIfSel) {
@@ -6103,6 +6159,7 @@
         cmpMgrB = state.cmpMgrB || '';
         cmpPlayerA = state.cmpPlayerA || '';
         cmpPlayerB = state.cmpPlayerB || '';
+        cmpPlayerBPrev = '';
         cmpWhatIfMgr = state.cmpWhatIfMgr || '';
 
         if (!preserveCurrentPlayer) {
