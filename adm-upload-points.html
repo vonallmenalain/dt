@@ -234,7 +234,7 @@
 <div class="admin-container">
     <h1 id="page-title">📡 Punkte-Zentrale (API-Sports Fetcher)</h1>
     <p id="page-intro">
-        Holt die Match-Daten des aktiven Turniers, ordnet sie den Player IDs aus der data.js zu
+        Holt die Match-Daten des aktiven Turniers, ordnet sie den Player IDs aus der Kader-Datei zu
         und schreibt die Ergebnisse inkl. Spiel-Historie in Firebase.
     </p>
 
@@ -247,6 +247,14 @@
             <div class="info-item">
                 <div class="info-label">API Wettbewerb</div>
                 <div class="info-value" id="api-competition">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Kader-Datei</div>
+                <div class="info-value" id="data-file">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Spieler im Kader</div>
+                <div class="info-value" id="player-count">-</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Punkte Collection</div>
@@ -318,8 +326,19 @@
     const pageIntroEl = document.getElementById('page-intro');
     const activeTournamentEl = document.getElementById('active-tournament');
     const apiCompetitionEl = document.getElementById('api-competition');
+    const dataFileEl = document.getElementById('data-file');
+    const playerCountEl = document.getElementById('player-count');
     const pointsCollectionEl = document.getElementById('points-collection');
     const metaDocumentEl = document.getElementById('meta-document');
+
+    // Dateiname des aktiven Kaders (z. B. "data-wm2026.js" für WM 2026,
+    // "data-em2024.js" für EM 2024). Fallback auf "data.js" falls die
+    // tournament-config.js diesen Eintrag (noch) nicht liefert. Der
+    // Shim data.js lädt zur Laufzeit ohnehin genau diese Datei – wir
+    // zeigen sie hier nur transparent in der UI an.
+    const ACTIVE_DATA_FILE = (APP.data && typeof APP.data.fileName === "function" && APP.data.fileName())
+        || TOURNAMENT.dataFile
+        || "data.js";
 
     const apiKeyInput = document.getElementById('apiKey');
     const toggleKeyVisibilityBtn = document.getElementById('toggleKeyVisibilityBtn');
@@ -334,7 +353,7 @@
     }
 
     if (pageIntroEl) {
-        pageIntroEl.textContent = `Holt die Match-Daten für ${TOURNAMENT.name}, ordnet sie den Player IDs aus der data.js zu und schreibt die Ergebnisse inkl. Spiel-Historie in Firebase.`;
+        pageIntroEl.innerHTML = `Holt die Match-Daten für <strong>${TOURNAMENT.name}</strong>, ordnet sie den Player IDs aus der Kader-Datei <strong>${ACTIVE_DATA_FILE}</strong> zu und schreibt die Ergebnisse inkl. Spiel-Historie in Firebase.`;
     }
 
     if (activeTournamentEl) {
@@ -343,6 +362,17 @@
 
     if (apiCompetitionEl) {
         apiCompetitionEl.textContent = `${APP.api.competitionParam}=${APP.api.competitionId}, season=${APP.api.season}`;
+    }
+
+    if (dataFileEl) {
+        dataFileEl.textContent = ACTIVE_DATA_FILE;
+    }
+
+    if (playerCountEl) {
+        const count = (typeof playersData !== "undefined" && Array.isArray(playersData))
+            ? playersData.length
+            : 0;
+        playerCountEl.textContent = count > 0 ? `${count} Spieler` : "⚠️ keine Spieler geladen";
     }
 
     if (pointsCollectionEl) {
@@ -503,15 +533,32 @@
         };
 
         try {
+            if (typeof playersData === "undefined" || !Array.isArray(playersData) || playersData.length === 0) {
+                throw new Error(`Kader-Datei "${ACTIVE_DATA_FILE}" ist nicht geladen oder leer. ` +
+                    `Bitte prüfe, ob ${ACTIVE_DATA_FILE} existiert und vor adm-upload-points.html eingebunden wurde.`);
+            }
+
             let allPlayerPoints = {};
 
             playersData.forEach(player => {
                 allPlayerPoints[String(player['player.id'])] = buildEmptyPlayerObject(player);
             });
 
-            log(`✅ ${Object.keys(allPlayerPoints).length} Spieler aus data.js initialisiert.`);
-            log(`📌 Aktives Turnier: ${TOURNAMENT.shortLabel}`, "log-warning");
+            log(`✅ ${Object.keys(allPlayerPoints).length} Spieler aus ${ACTIVE_DATA_FILE} initialisiert.`);
+            log(`📌 Aktives Turnier: ${TOURNAMENT.shortLabel} (${TOURNAMENT.key})`, "log-warning");
+            log(`📌 Kader-Datei: ${ACTIVE_DATA_FILE}`, "log-warning");
+            log(`📌 API-Wettbewerb: ${APP.api.competitionParam}=${APP.api.competitionId}, season=${APP.api.season}`, "log-warning");
             log(`📌 Ziel-Collection: ${POINTS_COLLECTION}`, "log-warning");
+
+            // Sanity-Check: stelle sicher, dass die geladene Kader-Datei
+            // tatsächlich zum aktiven Turnier passt. So fällt es sofort auf,
+            // falls z. B. auf einer WM-2026-Domain versehentlich der EM-2024-
+            // Kader im Browser-Cache hängen geblieben ist.
+            const expectedFile = TOURNAMENT.dataFile;
+            if (expectedFile && ACTIVE_DATA_FILE && expectedFile !== ACTIVE_DATA_FILE) {
+                log(`⚠️ Warnung: erwartete Kader-Datei "${expectedFile}", geladen wurde aber "${ACTIVE_DATA_FILE}". ` +
+                    `Eventuell ist ein altes Skript im Browser-Cache.`, "log-warning");
+            }
 
             log(`📡 Lade alle Spiele von ${TOURNAMENT.shortLabel} von der API...`, "log-warning");
             const fixRes = await fetch(APP.api.fixturesUrl(), requestOptions);
