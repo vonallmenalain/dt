@@ -1412,6 +1412,9 @@
         .cmp-tab-panel[hidden] { display: none; }
 
         .cmp-pickers .analysis-card-body { padding: 16px 18px; }
+        /* Allow the autocomplete dropdown to escape the card boundaries */
+        .analysis-card.cmp-pickers { overflow: visible; }
+        .analysis-card.cmp-pickers .analysis-card-body { overflow: visible; }
         .cmp-picker-grid {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
@@ -1461,6 +1464,90 @@
         .cmp-select:focus, .cmp-input:focus {
             border-color: rgba(74,222,128,0.55);
             box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
+        }
+        /* Player combobox (autocomplete) */
+        .cmp-combo {
+            position: relative;
+        }
+        .cmp-combo-input {
+            padding-right: 42px;
+        }
+        .cmp-combo-clear {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.06);
+            color: var(--text-muted);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.15rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .cmp-combo-clear:hover {
+            background: rgba(255,255,255,0.14);
+            color: var(--text-main);
+        }
+        .cmp-combo-clear:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 2px;
+        }
+        .cmp-combo-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            z-index: 40;
+            max-height: 280px;
+            overflow-y: auto;
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 14px 32px rgba(0,0,0,0.5);
+            padding: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .cmp-combo-option {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 0.92rem;
+            line-height: 1.25;
+        }
+        .cmp-combo-option:hover,
+        .cmp-combo-option.is-active {
+            background: rgba(74,222,128,0.16);
+            color: var(--green-light);
+        }
+        .cmp-combo-option-name {
+            font-weight: 700;
+        }
+        .cmp-combo-option-meta {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .cmp-combo-option:hover .cmp-combo-option-meta,
+        .cmp-combo-option.is-active .cmp-combo-option-meta {
+            color: rgba(74,222,128,0.85);
+        }
+        .cmp-combo-empty {
+            padding: 14px;
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 0.85rem;
         }
         .cmp-quick-row {
             display: flex;
@@ -1789,10 +1876,16 @@
             font-size: 0.78rem;
             color: var(--text-muted);
             display: flex;
-            gap: 6px;
+            gap: 6px 10px;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
+        }
+        .cmp-player-meta .cmp-meta-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 0;
         }
         .cmp-player-meta img {
             width: 18px; height: 12px; object-fit: cover; border-radius: 2px;
@@ -2016,7 +2109,23 @@
             .cmp-player-photo { width: 64px; height: 64px; }
             .cmp-player-name { font-size: 0.85rem; }
             .cmp-player-pts { font-size: 1.4rem; }
-            .cmp-player-meta { font-size: 0.7rem; gap: 4px; }
+            /* Stack country and club vertically on mobile to avoid cramped row */
+            .cmp-player-meta {
+                font-size: 0.7rem;
+                gap: 4px;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+            .cmp-player-meta .cmp-meta-row {
+                max-width: 100%;
+            }
+            .cmp-player-meta .cmp-meta-row span {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
             /* Matchwinner & Differenzspieler — keep side-by-side, prevent cut-off */
             .cmp-matchwinner-grid { gap: 6px; }
             .cmp-matchwinner-heading { font-size: 0.7rem; margin-bottom: 6px; }
@@ -3159,17 +3268,23 @@
                         </div>
                         <div class="analysis-card-body">
                             <div class="cmp-picker-grid">
-                                <label class="cmp-picker-field">
+                                <div class="cmp-picker-field">
                                     <span class="cmp-picker-label">Spieler A</span>
-                                    <input type="text" id="cmp-pl-a-search" class="cmp-input" placeholder="Name eingeben..." aria-label="Spieler A suchen" autocomplete="off">
-                                    <select id="cmp-pl-a" class="cmp-select" aria-label="Spieler A auswählen"></select>
-                                </label>
+                                    <div class="cmp-combo" data-cmp-side="a">
+                                        <input type="text" id="cmp-pl-a-search" class="cmp-input cmp-combo-input" placeholder="Name eingeben..." aria-label="Spieler A suchen" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="cmp-pl-a-dropdown" spellcheck="false">
+                                        <button type="button" class="cmp-combo-clear" id="cmp-pl-a-clear" aria-label="Auswahl löschen" hidden>×</button>
+                                        <div id="cmp-pl-a-dropdown" class="cmp-combo-dropdown" role="listbox" hidden></div>
+                                    </div>
+                                </div>
                                 <div class="cmp-vs-divider" aria-hidden="true">VS</div>
-                                <label class="cmp-picker-field">
+                                <div class="cmp-picker-field">
                                     <span class="cmp-picker-label">Spieler B</span>
-                                    <input type="text" id="cmp-pl-b-search" class="cmp-input" placeholder="Name eingeben..." aria-label="Spieler B suchen" autocomplete="off">
-                                    <select id="cmp-pl-b" class="cmp-select" aria-label="Spieler B auswählen"></select>
-                                </label>
+                                    <div class="cmp-combo" data-cmp-side="b">
+                                        <input type="text" id="cmp-pl-b-search" class="cmp-input cmp-combo-input" placeholder="Name eingeben..." aria-label="Spieler B suchen" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="cmp-pl-b-dropdown" spellcheck="false">
+                                        <button type="button" class="cmp-combo-clear" id="cmp-pl-b-clear" aria-label="Auswahl löschen" hidden>×</button>
+                                        <div id="cmp-pl-b-dropdown" class="cmp-combo-dropdown" role="listbox" hidden></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="cmp-quick-row" role="group" aria-label="Schnellvergleich gegen Spieler A">
                                 <button type="button" class="cmp-quick-btn" data-quick="best">🏆 Bester gleicher Position</button>
@@ -4883,31 +4998,18 @@
         restoreSelect('cmp-mgr-b', cmpMgrB);
         restoreSelect('cmp-whatif-mgr', cmpWhatIfMgr);
 
-        // Player selects: full player list
-        populatePlayerSelect('cmp-pl-a', cmpPlayerA);
-        populatePlayerSelect('cmp-pl-b', cmpPlayerB);
+        // Player comboboxes: reflect current selection
+        syncPlayerCombo('a', cmpPlayerA);
+        syncPlayerCombo('b', cmpPlayerB);
     }
 
-    function populatePlayerSelect(selectId, currentValue, filterText = '') {
-        const sel = document.getElementById(selectId);
-        if (!sel) return;
-        const term = (filterText || '').toLowerCase().trim();
-        const sorted = [...playersData]
-            .filter(p => {
-                if (!term) return true;
-                const n = (p.Spielername || '').toLowerCase();
-                return n.includes(term);
-            })
-            .sort((a, b) => (a.Spielername || '').localeCompare(b.Spielername || '', 'de'));
-        const options = sorted.map(p => {
-            const id = String(p['player.id']);
-            const label = `${p.Spielername} — ${translatePosition(p.Position)} (${p['Nationalteam.name'] || '?'})`;
-            return `<option value="${escapeHtml(id)}">${escapeHtml(label)}</option>`;
-        }).join('');
-        sel.innerHTML = '<option value="">— wählen —</option>' + options;
-        if (currentValue && Array.from(sel.options).some(o => o.value === String(currentValue))) {
-            sel.value = String(currentValue);
-        }
+    function syncPlayerCombo(sideKey, value) {
+        const wrap = document.querySelector(`.cmp-combo[data-cmp-side="${sideKey}"]`);
+        if (!wrap || typeof wrap._setSelectedById !== 'function') return;
+        // Virtual tokens (e.g. "virtual:avg:DEFENDER") aren't real player IDs, so the
+        // input stays empty; the virtual opponent is still rendered in the result panel.
+        const realId = value && !String(value).startsWith('virtual:') ? value : '';
+        wrap._setSelectedById(realId);
     }
 
     function setComparisonTab(tab, push = false) {
@@ -5340,8 +5442,8 @@
                 <div class="cmp-player-pos">${escapeHtml(stats.positionLabel || '')}</div>
                 <div class="cmp-player-name">${escapeHtml(stats.player.Spielername || '–')}</div>
                 <div class="cmp-player-meta">
-                    ${flag} <span>${escapeHtml(stats.nation || '–')}</span>
-                    ${clubLogo} <span>${escapeHtml(stats.club || '–')}</span>
+                    <span class="cmp-meta-row">${flag}<span>${escapeHtml(stats.nation || '–')}</span></span>
+                    <span class="cmp-meta-row">${clubLogo}<span>${escapeHtml(stats.club || '–')}</span></span>
                 </div>
                 <div class="cmp-player-pts">${stats.totalPoints} Pkt.</div>
                 ${badgesHtml}
@@ -5691,6 +5793,184 @@
         return parts.join(' ');
     }
 
+    /* ---------- Player combobox (autocomplete) ---------- */
+    function setupPlayerCombo(sideKey) {
+        const wrap = document.querySelector(`.cmp-combo[data-cmp-side="${sideKey}"]`);
+        if (!wrap || wrap._comboReady) return;
+        wrap._comboReady = true;
+        const input = wrap.querySelector('.cmp-combo-input');
+        const dropdown = wrap.querySelector('.cmp-combo-dropdown');
+        const clearBtn = wrap.querySelector('.cmp-combo-clear');
+        if (!input || !dropdown || !clearBtn) return;
+
+        let activeIndex = -1;
+        let currentMatches = [];
+        const MAX_RESULTS = 80;
+
+        const getStateValue = () => sideKey === 'a' ? cmpPlayerA : cmpPlayerB;
+        const setStateValue = (val) => {
+            if (sideKey === 'a') cmpPlayerA = val;
+            else cmpPlayerB = val;
+        };
+
+        const updateClear = () => {
+            const val = getStateValue();
+            const has = !!(val && !String(val).startsWith('virtual:'));
+            clearBtn.hidden = !has;
+        };
+
+        const closeDropdown = () => {
+            dropdown.hidden = true;
+            input.setAttribute('aria-expanded', 'false');
+            activeIndex = -1;
+        };
+
+        const openDropdown = () => {
+            dropdown.hidden = false;
+            input.setAttribute('aria-expanded', 'true');
+        };
+
+        const buildList = (term) => {
+            const t = (term || '').toLowerCase().trim();
+            const matches = [...playersData]
+                .filter(p => !t || (p.Spielername || '').toLowerCase().includes(t))
+                .sort((a, b) => (a.Spielername || '').localeCompare(b.Spielername || '', 'de'))
+                .slice(0, MAX_RESULTS);
+            currentMatches = matches;
+            activeIndex = matches.length ? 0 : -1;
+            if (!matches.length) {
+                dropdown.innerHTML = `<div class="cmp-combo-empty">Keine Spieler gefunden.</div>`;
+                return;
+            }
+            dropdown.innerHTML = matches.map((p, i) => {
+                const id = String(p['player.id']);
+                const meta = `${translatePosition(p.Position)} · ${p['Nationalteam.name'] || '?'}`;
+                return `<div class="cmp-combo-option${i === 0 ? ' is-active' : ''}" role="option" data-id="${escapeHtml(id)}" data-index="${i}" aria-selected="${i === 0 ? 'true' : 'false'}">
+                    <span class="cmp-combo-option-name">${escapeHtml(p.Spielername || '')}</span>
+                    <span class="cmp-combo-option-meta">${escapeHtml(meta)}</span>
+                </div>`;
+            }).join('');
+        };
+
+        const setHighlight = (newIndex) => {
+            const opts = dropdown.querySelectorAll('.cmp-combo-option');
+            if (!opts.length) return;
+            if (newIndex < 0) newIndex = opts.length - 1;
+            if (newIndex >= opts.length) newIndex = 0;
+            opts.forEach((o, i) => {
+                const active = i === newIndex;
+                o.classList.toggle('is-active', active);
+                o.setAttribute('aria-selected', String(active));
+            });
+            activeIndex = newIndex;
+            const el = opts[newIndex];
+            if (el && typeof el.scrollIntoView === 'function') {
+                el.scrollIntoView({ block: 'nearest' });
+            }
+        };
+
+        const choose = (player) => {
+            if (!player) return;
+            setStateValue(String(player['player.id']));
+            input.value = player.Spielername || '';
+            closeDropdown();
+            updateClear();
+            renderPlayerDuell();
+            updateUrl(false);
+        };
+
+        const clearSelection = (focus = true) => {
+            setStateValue('');
+            input.value = '';
+            updateClear();
+            closeDropdown();
+            renderPlayerDuell();
+            updateUrl(false);
+            if (focus) input.focus();
+        };
+
+        input.addEventListener('input', () => {
+            // While typing the previously chosen player is no longer the active selection
+            const val = getStateValue();
+            if (val && !String(val).startsWith('virtual:')) {
+                setStateValue('');
+                renderPlayerDuell();
+                updateUrl(false);
+            }
+            updateClear();
+            buildList(input.value);
+            openDropdown();
+        });
+
+        input.addEventListener('focus', () => {
+            buildList(input.value);
+            openDropdown();
+        });
+
+        input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'ArrowDown') {
+                ev.preventDefault();
+                if (dropdown.hidden) { buildList(input.value); openDropdown(); }
+                setHighlight(activeIndex + 1);
+            } else if (ev.key === 'ArrowUp') {
+                ev.preventDefault();
+                if (dropdown.hidden) { buildList(input.value); openDropdown(); }
+                setHighlight(activeIndex - 1);
+            } else if (ev.key === 'Enter') {
+                if (!dropdown.hidden && currentMatches[activeIndex]) {
+                    ev.preventDefault();
+                    choose(currentMatches[activeIndex]);
+                }
+            } else if (ev.key === 'Escape') {
+                if (!dropdown.hidden) {
+                    ev.preventDefault();
+                    closeDropdown();
+                }
+            } else if (ev.key === 'Tab') {
+                closeDropdown();
+            }
+        });
+
+        // Use mousedown so the click registers before the input loses focus
+        dropdown.addEventListener('mousedown', (ev) => {
+            const opt = ev.target.closest('.cmp-combo-option');
+            if (!opt) return;
+            ev.preventDefault();
+            const idx = Number(opt.dataset.index);
+            const player = currentMatches[idx];
+            if (player) choose(player);
+        });
+
+        clearBtn.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            clearSelection(true);
+        });
+
+        document.addEventListener('mousedown', (ev) => {
+            if (!wrap.contains(ev.target)) closeDropdown();
+        });
+
+        document.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape' && !dropdown.hidden) closeDropdown();
+        });
+
+        // Programmatic selection from URL/state restoration or quick-compare buttons
+        wrap._setSelectedById = (id) => {
+            if (!id) {
+                input.value = '';
+                updateClear();
+                closeDropdown();
+                return;
+            }
+            const player = playersData.find(p => String(p['player.id']) === String(id));
+            input.value = player ? (player.Spielername || '') : '';
+            updateClear();
+            closeDropdown();
+        };
+
+        updateClear();
+    }
+
     /* ---------- Wire up event listeners (one-time) ---------- */
     function initComparisonsEventsOnce() {
         if (initComparisonsEventsOnce.done) return;
@@ -5712,21 +5992,8 @@
         };
         onMgrChange('a'); onMgrChange('b');
 
-        const wireSearch = (sideKey) => {
-            const search = document.getElementById('cmp-pl-' + sideKey + '-search');
-            const sel = document.getElementById('cmp-pl-' + sideKey);
-            if (!search || !sel) return;
-            search.addEventListener('input', () => {
-                populatePlayerSelect('cmp-pl-' + sideKey, sideKey === 'a' ? cmpPlayerA : cmpPlayerB, search.value);
-            });
-            sel.addEventListener('change', () => {
-                if (sideKey === 'a') cmpPlayerA = sel.value;
-                else cmpPlayerB = sel.value;
-                renderPlayerDuell();
-                updateUrl(false);
-            });
-        };
-        wireSearch('a'); wireSearch('b');
+        setupPlayerCombo('a');
+        setupPlayerCombo('b');
 
         document.querySelectorAll('.cmp-quick-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -5739,6 +6006,7 @@
                     const best = getBestByPosition(stA.position);
                     if (best && best.id !== stA.id) cmpPlayerB = best.id;
                 }
+                syncPlayerCombo('b', cmpPlayerB);
                 renderPlayerDuell();
                 updateUrl(false);
             });
