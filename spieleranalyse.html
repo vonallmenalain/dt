@@ -2255,6 +2255,53 @@
         .cmp-stat-row .stat-val.win { color: var(--green-light); }
         .cmp-stat-row .stat-val.loss { color: var(--text-muted); }
 
+        /* Toggle button: hide rows with identical values */
+        .cmp-stats-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--glass-border);
+            background: var(--dark-card-2);
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+            white-space: nowrap;
+        }
+        .cmp-stats-toggle:hover {
+            color: var(--text-main);
+            border-color: rgba(34,197,94,0.45);
+        }
+        .cmp-stats-toggle:focus-visible {
+            outline: 2px solid var(--green-light);
+            outline-offset: 2px;
+        }
+        .cmp-stats-toggle.is-active {
+            background: linear-gradient(135deg, rgba(34,197,94,0.22), rgba(22,163,74,0.10));
+            border-color: rgba(34,197,94,0.55);
+            color: var(--green-light);
+        }
+        .cmp-stats-toggle-icon { font-size: 0.95rem; line-height: 1; }
+        .cmp-stats-card.is-hide-equal .cmp-stat-row[data-equal="1"] { display: none; }
+        .cmp-stats-empty {
+            padding: 14px 12px;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        @media (max-width: 600px) {
+            .cmp-stats-toggle { padding: 5px 8px; font-size: 0.68rem; }
+            .cmp-stats-toggle-label { display: none; }
+        }
+
         /* What-if specific */
         .cmp-summary-grid {
             display: grid;
@@ -3725,6 +3772,7 @@
     let cmpMgrB = '';
     let cmpPlayerA = '';
     let cmpPlayerB = '';
+    let cmpHidePlayerEqual = false;
     const cmpExpandedPositions = new Set();
     let cmpWhatIfMgr = '';
     let enrichedTeamsCache = [];
@@ -5757,13 +5805,26 @@
             if (r) ranks.push(`${stB.player.Spielername}: Rang ${r.rank} von ${r.total} ${POSITION_LABELS[r.position]}`);
         }
 
+        const hideEqualActive = cmpHidePlayerEqual;
+        const hasDifferences = /data-equal="0"/.test(statRows);
+        const showEmptyNotice = hideEqualActive && !hasDifferences;
         out.innerHTML = `
             <div class="cmp-player-grid">${cardA}${cardB}</div>
-            <div class="analysis-card">
+            <div class="analysis-card cmp-stats-card${hideEqualActive ? ' is-hide-equal' : ''}">
                 <div class="analysis-card-header">
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📊 Statistik-Vergleich</div>
+                    <button type="button"
+                            class="cmp-stats-toggle${hideEqualActive ? ' is-active' : ''}"
+                            data-cmp-action="toggle-equal-stats"
+                            aria-pressed="${hideEqualActive ? 'true' : 'false'}"
+                            title="${hideEqualActive ? 'Gleiche Werte wieder einblenden' : 'Zeilen mit identischen Werten ausblenden'}">
+                        <span class="cmp-stats-toggle-icon" aria-hidden="true">${hideEqualActive ? '👁️' : '🙈'}</span>
+                        <span class="cmp-stats-toggle-label">${hideEqualActive ? 'Alle anzeigen' : 'Nur Differenzen'}</span>
+                    </button>
                 </div>
-                <div class="analysis-card-body" style="padding:6px 6px;">${statRows}</div>
+                <div class="analysis-card-body" style="padding:6px 6px;">${statRows}
+                    <div class="cmp-stats-empty"${showEmptyNotice ? '' : ' hidden'}>Keine Unterschiede – alle Werte sind identisch.</div>
+                </div>
             </div>
             ${ranks.length ? `<div class="analysis-card"><div class="analysis-card-body">
                 <div style="font-size:0.78rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">Position-Ranking</div>
@@ -5907,8 +5968,9 @@
             const skipHighlight = valA === '–' || valB === '–';
             const clsA = !skipHighlight && winner === 'a' ? 'win' : '';
             const clsB = !skipHighlight && winner === 'b' ? 'win' : '';
+            const isEqual = String(valA) === String(valB);
             return `
-                <div class="cmp-stat-row">
+                <div class="cmp-stat-row" data-equal="${isEqual ? '1' : '0'}">
                     <span class="stat-val left ${clsA}">${escapeHtml(String(valA))}</span>
                     <span class="label">${escapeHtml(r.label)}</span>
                     <span class="stat-val right ${clsB}">${escapeHtml(String(valB))}</span>
@@ -6419,6 +6481,36 @@
                 updateUrl(false);
             });
         });
+
+        const playerResult = document.getElementById('cmp-pl-result');
+        if (playerResult) {
+            playerResult.addEventListener('click', (ev) => {
+                const btn = ev.target.closest('[data-cmp-action="toggle-equal-stats"]');
+                if (!btn) return;
+                cmpHidePlayerEqual = !cmpHidePlayerEqual;
+                const card = btn.closest('.cmp-stats-card');
+                if (card) {
+                    card.classList.toggle('is-hide-equal', cmpHidePlayerEqual);
+                    btn.classList.toggle('is-active', cmpHidePlayerEqual);
+                    btn.setAttribute('aria-pressed', cmpHidePlayerEqual ? 'true' : 'false');
+                    btn.setAttribute('title',
+                        cmpHidePlayerEqual ? 'Gleiche Werte wieder einblenden' : 'Zeilen mit identischen Werten ausblenden');
+                    const icon = btn.querySelector('.cmp-stats-toggle-icon');
+                    if (icon) icon.textContent = cmpHidePlayerEqual ? '👁️' : '🙈';
+                    const label = btn.querySelector('.cmp-stats-toggle-label');
+                    if (label) label.textContent = cmpHidePlayerEqual ? 'Alle anzeigen' : 'Nur Differenzen';
+                    const empty = card.querySelector('.cmp-stats-empty');
+                    if (empty) {
+                        const visibleRows = card.querySelectorAll(
+                            cmpHidePlayerEqual
+                                ? '.cmp-stat-row[data-equal="0"]'
+                                : '.cmp-stat-row'
+                        );
+                        empty.hidden = visibleRows.length > 0;
+                    }
+                }
+            });
+        }
 
         const whatIfSel = document.getElementById('cmp-whatif-mgr');
         if (whatIfSel) {
