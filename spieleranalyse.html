@@ -1957,6 +1957,101 @@
             vertical-align: middle;
         }
 
+        /* Captain duell row with profile photos */
+        .cmp-cap-row {
+            display: grid;
+            grid-template-columns: auto minmax(0,1fr) auto minmax(0,1fr) auto;
+            gap: 10px;
+            align-items: center;
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+        .cmp-cap-avatar {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+        }
+        .cmp-cap-avatar img,
+        .cmp-cap-avatar .cmp-cap-photo-fallback {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+        .cmp-cap-avatar .cmp-cap-photo-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        .cmp-cap-avatar .cmp-cap-c-badge {
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #000;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 11px;
+            border: 2px solid var(--dark-card-2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+            z-index: 2;
+        }
+        .cmp-cap-side {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .cmp-cap-side.right { align-items: flex-end; text-align: right; }
+        .cmp-cap-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            justify-self: center;
+        }
+        .cmp-cap-arrow {
+            font-size: 0.78rem;
+            font-weight: 800;
+            background: rgba(255,255,255,0.04);
+            border-radius: 999px;
+            padding: 3px 8px;
+            color: var(--text-muted);
+            min-width: 28px;
+            text-align: center;
+            line-height: 1;
+        }
+        .cmp-cap-arrow.win { color: var(--green-light); background: rgba(34,197,94,0.14); }
+        .cmp-cap-arrow.loss { color: var(--red-soft); background: rgba(248,113,113,0.14); }
+        .cmp-cap-diff {
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 0.2px;
+            color: var(--text-muted);
+        }
+        .cmp-cap-diff.win { color: var(--green-light); }
+        .cmp-cap-diff.loss { color: var(--red-soft); }
+        .cmp-cap-diff.draw { color: var(--text-muted); }
+
+        /* Symmetric matchwinner items: right column mirrors left */
+        .cmp-diff-item.is-right { flex-direction: row-reverse; }
+        .cmp-diff-item.is-right .cmp-diff-info { text-align: right; }
+
         /* Storyline */
         .cmp-storyline {
             background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(22,163,74,0.04));
@@ -2405,6 +2500,11 @@
             .cmp-player-meta-mini { display: none; }
             .cmp-player-pts-mini { font-size: 0.82rem; min-width: 22px; }
             .cmp-player-arrow { padding: 1px 4px; font-size: 0.6rem; min-width: 20px; }
+            .cmp-cap-row { padding: 10px 10px; gap: 6px; }
+            .cmp-cap-avatar { width: 42px; height: 42px; }
+            .cmp-cap-avatar .cmp-cap-c-badge { width: 16px; height: 16px; font-size: 9px; top: -2px; left: -2px; }
+            .cmp-cap-arrow { padding: 2px 6px; font-size: 0.65rem; min-width: 22px; }
+            .cmp-cap-diff { font-size: 0.62rem; }
         }
 
         /* =====================================================
@@ -5350,6 +5450,18 @@
         const capPtsB = capB ? capB.pts : 0;
         const capDiff = capPtsA - capPtsB;
         const capWinner = capDiff > 0 ? 'a' : (capDiff < 0 ? 'b' : 'draw');
+        const capDiffAbs = Math.abs(capDiff);
+        const capDiffText = capDiff === 0 ? '±0' : (capDiff > 0 ? `+${capDiffAbs}` : `-${capDiffAbs}`);
+        const capArrowSym = capWinner === 'draw' ? '=' : (capWinner === 'a' ? '◀' : '▶');
+        const capArrowCls = capWinner === 'draw' ? '' : (capWinner === 'a' ? 'win' : 'loss');
+        const capDiffCls = capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw');
+
+        const renderCapAvatar = (cap) => {
+            const photo = cap && cap.photo
+                ? `<img src="${escapeHtml(cap.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+                : `<div class="cmp-cap-photo-fallback">⚽</div>`;
+            return `<div class="cmp-cap-avatar">${photo}<div class="cmp-cap-c-badge" aria-label="Captain">C</div></div>`;
+        };
 
         const captainCard = `
             <div class="analysis-card">
@@ -5357,21 +5469,26 @@
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>👑 Captain-Duell</div>
                 </div>
                 <div class="analysis-card-body">
-                    <div class="cmp-row">
-                        <div class="cmp-row-side">
+                    <div class="cmp-cap-row">
+                        ${renderCapAvatar(capA)}
+                        <div class="cmp-cap-side">
                             <span class="cmp-row-name">${capA ? escapeHtml(capA.name) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts ${capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw')}">${capPtsA} Pkt.</span>
                         </div>
-                        <div class="cmp-row-center ${capWinner === 'draw' ? '' : (capWinner === 'a' ? 'win' : 'loss')}">${capWinner === 'draw' ? '=' : (capWinner === 'a' ? '◀' : '▶')}</div>
-                        <div class="cmp-row-side right">
+                        <div class="cmp-cap-center">
+                            <span class="cmp-cap-arrow ${capArrowCls}" aria-hidden="true">${capArrowSym}</span>
+                            <span class="cmp-cap-diff ${capDiffCls}" aria-label="Differenz ${capDiffText} Punkte">${capDiffText}</span>
+                        </div>
+                        <div class="cmp-cap-side right">
                             <span class="cmp-row-name">${capB ? escapeHtml(capB.name) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts ${capWinner === 'b' ? 'win' : (capWinner === 'a' ? 'loss' : 'draw')}">${capPtsB} Pkt.</span>
                         </div>
+                        ${renderCapAvatar(capB)}
                     </div>
                     ${(capA && capB) ? `<div style="margin-top:10px;color:var(--text-muted);font-size:0.86rem;">
                         ${capWinner === 'draw'
                             ? 'Beide Captains lieferten gleich viele Punkte.'
-                            : `Der Captain von <strong>${escapeHtml(capWinner === 'a' ? a.manager : b.manager)}</strong> brachte ${Math.abs(capDiff)} Punkte mehr.`}
+                            : `Der Captain von <strong>${escapeHtml(capWinner === 'a' ? a.manager : b.manager)}</strong> brachte ${capDiffAbs} Punkte mehr.`}
                     </div>` : ''}
                 </div>
             </div>`;
@@ -5443,7 +5560,7 @@
             }
 
             const isOpen = cmpExpandedPositions.has(pos);
-            const headerLabel = `${POSITION_ICONS[pos] || ''} ${POSITION_LABELS[pos]}`;
+            const headerLabel = POSITION_LABELS[pos];
             return `
                 <div class="cmp-pos-block ${isOpen ? 'is-open' : ''}" data-cmp-pos-block="${pos}">
                     <button type="button" class="cmp-pos-header" data-cmp-pos-toggle="${pos}" aria-expanded="${isOpen ? 'true' : 'false'}">
@@ -5485,9 +5602,10 @@
             .sort((x, y) => y.pts - x.pts).slice(0, 3);
 
         const renderMiniList = (items, side) => {
+            const itemCls = side === 'b' ? 'cmp-diff-item is-right' : 'cmp-diff-item';
             if (!items.length) return `<div style="color:var(--text-muted);font-size:0.85rem;padding:8px 4px;">Keine unterschiedlichen Spieler.</div>`;
             return `<div class="cmp-diff-list">${items.map(p => `
-                <div class="cmp-diff-item">
+                <div class="${itemCls}">
                     ${p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>'}
                     <div class="cmp-diff-info">
                         <div class="cmp-diff-name">${escapeHtml(p.name)}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
@@ -5508,7 +5626,7 @@
                             <div class="cmp-matchwinner-heading">${escapeHtml(a.manager)}</div>
                             ${renderMiniList(topUniqueA, 'a')}
                         </div>
-                        <div class="cmp-matchwinner-col">
+                        <div class="cmp-matchwinner-col" style="text-align:right;">
                             <div class="cmp-matchwinner-heading">${escapeHtml(b.manager)}</div>
                             ${renderMiniList(topUniqueB, 'b')}
                         </div>
