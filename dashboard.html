@@ -2422,45 +2422,36 @@
         initCardTilt();
     });
 
-    async function refreshFromMeta(remoteMeta) {
-        if (isMetaRefreshRunning) return;
-        isMetaRefreshRunning = true;
-
-        try {
-            const updated = await DreamTeamCache.loadBundle({
-                ...CACHE_OPTIONS,
-                remoteMetaOverride: remoteMeta
-            });
-            renderDashboard(updated.data, { preserveCurrentView: true });
-        } catch (err) {
-            console.error('Meta-Refresh fehlgeschlagen:', err);
-        } finally {
-            isMetaRefreshRunning = false;
-        }
-    }
-
     async function init() {
         try {
-            const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
-            if (cached.ok) {
-                renderDashboard(cached.data, { preserveCurrentView: false });
-            }
-
-            const fresh = await DreamTeamCache.loadBundle(CACHE_OPTIONS);
-            renderDashboard(fresh.data, { preserveCurrentView: true });
-
+            // bootstrap() liefert sofort den Cache aus, holt anschliessend
+            // optimistisch über das Session-Meta einen Refresh und hängt
+            // einen Live-Listener an. Damit ersetzt ein einziger Aufruf
+            // die alte Sequenz `getCachedBundle` + `loadBundle` +
+            // `subscribeToMeta` und spart einen Meta-Read pro Seitenaufruf.
             if (!metaUnsubscribe) {
-                metaUnsubscribe = DreamTeamCache.subscribeToMeta({
+                metaUnsubscribe = await DreamTeamCache.bootstrap({
                     ...CACHE_OPTIONS,
-                    onChange: async ({ remoteMeta }) => {
-                        await refreshFromMeta(remoteMeta);
+                    onCachedReady: (data) => {
+                        renderDashboard(data, { preserveCurrentView: false });
+                    },
+                    onUpdate: (data) => {
+                        if (isMetaRefreshRunning) return;
+                        isMetaRefreshRunning = true;
+                        try {
+                            renderDashboard(data, { preserveCurrentView: hasRenderedOnce });
+                        } finally {
+                            isMetaRefreshRunning = false;
+                        }
                     },
                     onError: (err) => {
                         console.error('Meta-Listener Fehler:', err);
+                        if (!hasRenderedOnce) {
+                            document.getElementById('loading').innerText = `Fehler beim Laden der Daten für ${TOURNAMENT_LABEL}!`;
+                        }
                     }
                 });
             }
-
         } catch (error) {
             console.error(error);
             if (!hasRenderedOnce) {

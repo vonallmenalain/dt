@@ -1,3 +1,58 @@
+/* =============================================================================
+ *  cache.js – DreamTeamCache
+ *
+ *  Zentrale Cache-Schicht für Teams, Punkte und Spiele (Fixtures).
+ *
+ *  Designziele
+ *  -----------
+ *  Die App liest pro Turnier drei Datasets aus Firestore:
+ *    1. Teams           (eine pro Manager, mit gewähltem Kader)
+ *    2. Punkte Spieler  (Punkte je Spieler, pro Spielrunde)
+ *    3. Spiele          (Fixtures, optional)
+ *
+ *  Reads sind in Firestore kostenpflichtig und limitiert. Die Lese-
+ *  Strategie ist deshalb auf das Minimum optimiert, ohne die
+ *  Live-Aktualität zu verlieren:
+ *
+ *    • Teams werden vor dem Turnier eingereicht und ändern sich danach
+ *      nicht mehr. Sobald sie einmal im LocalStorage liegen, werden sie
+ *      NUR dann erneut gelesen, wenn die `teamsVersion` im Meta-Dokument
+ *      ansteigt (passiert beim Submit eines neuen Teams in
+ *      team-builder.html via {@link bumpMetaVersion}).
+ *
+ *    • Punkte werden nach jedem Spiel aktualisiert. Sie werden geladen,
+ *      wenn die `pointsVersion` im Meta-Dokument ansteigt. Der Live-
+ *      Listener ({@link subscribeToMeta} / {@link bootstrap}) erkennt
+ *      neue Punkteversionen sofort.
+ *
+ *    • Fixtures werden nur dann nachgeladen, wenn `fixturesVersion`
+ *      hochzählt oder kein gültiger Cache vorliegt.
+ *
+ *  Das Meta-Dokument (`app_meta/turnier_<key>`) ist die einzige Quelle
+ *  der Wahrheit für "müssen wir neu lesen?". Pro Seitenaufruf wird es
+ *  in der Idealwelt nur EINMAL gelesen:
+ *
+ *    1. {@link getCachedBundle}  – synchron, 0 Reads.
+ *    2. {@link bootstrap}        – hängt Meta-Listener an. Initial-
+ *       Snapshot zählt als 1 Read und triggert den Datasets-Refresh.
+ *
+ *  Für schnelle Navigation zwischen mehreren Seiten innerhalb derselben
+ *  Browser-Session nutzen wir zusätzlich einen kurzlebigen Session-
+ *  Cache des Meta-Dokuments (sessionStorage, Standard 30 s). Dadurch
+ *  fällt die Meta-Abfrage in {@link loadBundle} weg, wenn eine
+ *  benachbarte Seite das Meta gerade gelesen hat – der Listener bringt
+ *  dann ohnehin frische Daten nach.
+ *
+ *  Public API
+ *  ----------
+ *    • DreamTeamCache.getCachedBundle(opts)
+ *    • DreamTeamCache.loadBundle(opts)
+ *    • DreamTeamCache.bootstrap(opts)
+ *    • DreamTeamCache.subscribeToMeta(opts)
+ *    • DreamTeamCache.bumpMetaVersion(opts)
+ *    • DreamTeamCache.clearCache(opts)
+ *    • DreamTeamCache.isValidTeamsData / isValidPointsData / isValidFixturesData
+ * ============================================================================= */
 (function (window) {
     'use strict';
 
@@ -10,6 +65,12 @@
         pointsCollection: null,
         fixturesCollection: null,
         fallbackMaxAgeMs: 10 * 60 * 1000,
+        // Wie lange das zuletzt gelesene Meta-Dokument für andere Seiten
+        // derselben Browser-Session als "frisch genug" gilt. In dieser
+        // Zeit wird der Meta-Read in loadBundle übersprungen – der
+        // Live-Listener liefert ohnehin Updates, sobald sich die
+        // pointsVersion oder teamsVersion erhöht.
+        sessionMetaTtlMs: 30 * 1000,
         allowEmptyTeams: true,
         allowEmptyPoints: false,
         allowEmptyFixtures: true,
@@ -64,6 +125,32 @@
         }
     }
 
+    function readSession(key) {
+        try {
+            return window.sessionStorage.getItem(key);
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function writeSession(key, value) {
+        try {
+            window.sessionStorage.setItem(key, JSON.stringify(value));
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    function removeSession(key) {
+        try {
+            window.sessionStorage.removeItem(key);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+
     function buildKeys(identifier, prefix) {
         const base = `${prefix}_${identifier}`;
         return {
@@ -73,7 +160,8 @@
             meta: `${base}_meta`,
             lastGoodTeams: `${base}_last_good_teams`,
             lastGoodPoints: `${base}_last_good_points`,
-            lastGoodFixtures: `${base}_last_good_fixtures`
+            lastGoodFixtures: `${base}_last_good_fixtures`,
+            sessionMeta: `${base}_session_meta`
         };
     }
 
@@ -86,6 +174,19 @@
 
     function readEnvelope(key) {
         const raw = readStorage(key);
+        if (!raw) return null;
+
+        const parsed = safeParse(raw);
+        if (!parsed || typeof parsed !== 'object') return null;
+
+        return {
+            savedAt: typeof parsed.savedAt === 'number' ? parsed.savedAt : 0,
+            data: parsed.data
+        };
+    }
+
+    function readSessionEnvelope(key) {
+        const raw = readSession(key);
         if (!raw) return null;
 
         const parsed = safeParse(raw);
@@ -240,6 +341,17 @@
         };
     }
 
+    function readSessionMeta(cfg) {
+        const envelope = readSessionEnvelope(cfg.keys.sessionMeta);
+        if (!envelope || !envelope.data) return null;
+        return envelope;
+    }
+
+    function writeSessionMeta(cfg, meta) {
+        if (!meta) return;
+        writeSession(cfg.keys.sessionMeta, createEnvelope(meta));
+    }
+
     function saveTeams(teams, cfg) {
         if (!isValidTeamsData(teams, cfg.allowEmptyTeams)) return false;
         const payload = createEnvelope(teams);
@@ -267,6 +379,10 @@
     function saveMeta(meta, cfg) {
         const normalized = normalizeMeta(meta, cfg.year, cfg.tournamentKey);
         writeStorage(cfg.keys.meta, createEnvelope(normalized));
+        // Spiegelkopie für die aktuelle Browser-Session – damit andere
+        // Seiten innerhalb der nächsten Sekunden den Meta-Read sparen
+        // können.
+        writeSessionMeta(cfg, normalized);
         return normalized;
     }
 
@@ -314,11 +430,41 @@
                 return null;
             }
 
-            return normalizeMeta(snap.data(), cfg.year, cfg.tournamentKey);
+            const normalized = normalizeMeta(snap.data(), cfg.year, cfg.tournamentKey);
+            writeSessionMeta(cfg, normalized);
+            return normalized;
         } catch (err) {
             log(cfg, 'Meta-Fetch fehlgeschlagen:', err);
             return null;
         }
+    }
+
+    /**
+     * Liefert das Meta entweder aus einem expliziten Override, aus dem
+     * Session-Cache (falls noch frisch) oder über einen Firestore-Read.
+     * Spart in praktisch jedem Mehrseiten-Workflow mindestens einen
+     * Meta-Read pro Seitenwechsel.
+     */
+    async function resolveRemoteMeta(cfg, options) {
+        if (options && Object.prototype.hasOwnProperty.call(options, 'remoteMetaOverride')) {
+            const override = options.remoteMetaOverride;
+            if (override === null || typeof override === 'undefined') return null;
+            const normalized = normalizeMeta(override, cfg.year, cfg.tournamentKey);
+            writeSessionMeta(cfg, normalized);
+            return normalized;
+        }
+
+        const session = readSessionMeta(cfg);
+        const ttl = typeof cfg.sessionMetaTtlMs === 'number' && cfg.sessionMetaTtlMs >= 0
+            ? cfg.sessionMetaTtlMs
+            : DEFAULTS.sessionMetaTtlMs;
+
+        if (session && session.data && (now() - session.savedAt) < ttl) {
+            log(cfg, 'Meta aus Session-Cache übernommen, Alter (ms):', now() - session.savedAt);
+            return normalizeMeta(session.data, cfg.year, cfg.tournamentKey);
+        }
+
+        return fetchMeta(cfg);
     }
 
     async function fetchTeams(cfg) {
@@ -395,9 +541,7 @@
         let needPoints = !pointsState.valid;
         let needFixtures = !fixturesState.valid && !!cfg.fixturesCollection;
 
-        const remoteMeta = options && options.remoteMetaOverride
-            ? normalizeMeta(options.remoteMetaOverride, cfg.year, cfg.tournamentKey)
-            : await fetchMeta(cfg);
+        const remoteMeta = await resolveRemoteMeta(cfg, options);
 
         if (remoteMeta) {
             if (hasChanged(remoteMeta, localMetaState.data, 'teams') || !teamsState.valid) {
@@ -557,17 +701,22 @@
             console.warn('Punkte-Daten leer geladen – Collection/Cache/Firestore prüfen');
         }
 
-        console.info('[DreamTeamDebug]', {
-            origin: window.location.origin,
-            hostname: window.location.hostname,
-            tournamentKey: cfg.tournamentKey,
-            domainDefaultKey: window.APP_CONFIG && window.APP_CONFIG.domainDefaultKey,
-            devOverrideActive: !!(window.APP_CONFIG && typeof window.APP_CONFIG.isDevOverrideActive === 'function' && window.APP_CONFIG.isDevOverrideActive()),
-            teamsCollection: cfg.teamsCollection,
-            pointsCollection: cfg.pointsCollection,
-            teamsCount: Array.isArray(teams) ? teams.length : 0,
-            pointsCount: Object.keys(points || {}).length
-        });
+        if (cfg.log) {
+            console.info('[DreamTeamDebug]', {
+                origin: window.location.origin,
+                hostname: window.location.hostname,
+                tournamentKey: cfg.tournamentKey,
+                domainDefaultKey: window.APP_CONFIG && window.APP_CONFIG.domainDefaultKey,
+                devOverrideActive: !!(window.APP_CONFIG && typeof window.APP_CONFIG.isDevOverrideActive === 'function' && window.APP_CONFIG.isDevOverrideActive()),
+                teamsCollection: cfg.teamsCollection,
+                pointsCollection: cfg.pointsCollection,
+                teamsCount: Array.isArray(teams) ? teams.length : 0,
+                pointsCount: Object.keys(points || {}).length,
+                refreshedTeams,
+                refreshedPoints,
+                refreshedFixtures
+            });
+        }
 
         return {
             data: {
@@ -600,16 +749,20 @@
                 if (!snap.exists) return;
 
                 const remoteMeta = normalizeMeta(snap.data(), cfg.year, cfg.tournamentKey);
+                writeSessionMeta(cfg, remoteMeta);
+
                 const localMeta = readMetaState(cfg).data;
 
                 const teamsChanged = hasChanged(remoteMeta, localMeta, 'teams');
                 const pointsChanged = hasChanged(remoteMeta, localMeta, 'points');
+                const fixturesChanged = !!cfg.fixturesCollection && hasChanged(remoteMeta, localMeta, 'fixtures');
 
-                if (teamsChanged || pointsChanged) {
+                if (teamsChanged || pointsChanged || fixturesChanged) {
                     options.onChange({
                         remoteMeta,
                         teamsChanged,
-                        pointsChanged
+                        pointsChanged,
+                        fixturesChanged
                     });
                 }
             },
@@ -621,6 +774,120 @@
                 }
             }
         );
+    }
+
+    /**
+     * Komfort-Wrapper für Konsumenten-Seiten.
+     *
+     * Übernimmt das gesamte Cache-Lifecycle einer Seite in einem einzigen
+     * Aufruf:
+     *
+     *   1. Sofort aus dem LocalStorage-Cache rendern (0 Reads).
+     *   2. Optional: einen optimistischen Refresh über das Session-Meta
+     *      anstossen, falls eine andere Seite gerade frisches Meta gelesen
+     *      hat (auch 0 Reads, wenn die Versionen unverändert sind).
+     *   3. Live-Listener auf das Meta-Dokument anhängen. Der Initial-
+     *      Snapshot kostet einen Read, aber er ersetzt den separaten
+     *      `fetchMeta()`-Aufruf der alten Sequenz `loadBundle + subscribeToMeta`
+     *      und spart dadurch einen Read pro Seitenaufruf.
+     *
+     * Erwartete Callbacks:
+     *   - onCachedReady(data, info) – synchron, sobald Cache valide ist.
+     *   - onUpdate(data, info)       – nach jedem erfolgreichen Refresh.
+     *   - onError(err)               – bei Fehlern.
+     *
+     * Rückgabewert: eine Funktion zum Beenden der Subscription.
+     */
+    async function bootstrap(options) {
+        const cfg = resolveConfig(options);
+
+        const onCachedReady = typeof options.onCachedReady === 'function' ? options.onCachedReady : null;
+        const onUpdate = typeof options.onUpdate === 'function' ? options.onUpdate : null;
+        const onError = typeof options.onError === 'function' ? options.onError : null;
+
+        // 1) Sofort aus dem Cache rendern.
+        let cachedDelivered = false;
+        try {
+            const cached = getCachedBundle(options);
+            if (cached.ok && onCachedReady) {
+                onCachedReady(cached.data, cached.info);
+                cachedDelivered = true;
+            }
+        } catch (err) {
+            if (onError) onError(err);
+        }
+
+        // 2) Wenn das Session-Meta noch frisch ist, können wir bereits
+        //    jetzt – ohne Meta-Read – einen Refresh anstossen. Bei
+        //    unveränderten Versionen kostet das 0 Reads.
+        let optimisticVersionKey = null;
+        const session = readSessionMeta(cfg);
+        const ttl = typeof cfg.sessionMetaTtlMs === 'number' && cfg.sessionMetaTtlMs >= 0
+            ? cfg.sessionMetaTtlMs
+            : DEFAULTS.sessionMetaTtlMs;
+
+        if (session && session.data && (now() - session.savedAt) < ttl) {
+            try {
+                const fresh = await loadBundle({ ...options, remoteMetaOverride: session.data });
+                if (onUpdate) onUpdate(fresh.data, fresh.info);
+                const m = fresh.data && fresh.data.meta ? fresh.data.meta : null;
+                optimisticVersionKey = m
+                    ? `${m.teamsVersion}_${m.pointsVersion}_${m.fixturesVersion}`
+                    : null;
+            } catch (err) {
+                if (onError) onError(err);
+            }
+        }
+
+        // 3) Live-Listener auf das Meta-Dokument. Der erste Snapshot
+        //    übernimmt die Rolle des bisherigen separaten `fetchMeta()`.
+        let listenerInitialFired = false;
+        const unsubscribe = cfg.db.collection(cfg.metaCollection).doc(cfg.metaDocId).onSnapshot(
+            async (snap) => {
+                if (!snap.exists) {
+                    // Kein Meta-Dokument vorhanden. Wenn wir noch keinen
+                    // Refresh hatten und auch keine Cache-Daten geliefert
+                    // wurden, nutzen wir den TTL-Fallback im loadBundle.
+                    if (!listenerInitialFired && !optimisticVersionKey && !cachedDelivered) {
+                        try {
+                            const fresh = await loadBundle({ ...options, remoteMetaOverride: null });
+                            if (onUpdate) onUpdate(fresh.data, fresh.info);
+                        } catch (err) {
+                            if (onError) onError(err);
+                        }
+                    }
+                    listenerInitialFired = true;
+                    return;
+                }
+
+                const remoteMeta = normalizeMeta(snap.data(), cfg.year, cfg.tournamentKey);
+                writeSessionMeta(cfg, remoteMeta);
+
+                const versionKey = `${remoteMeta.teamsVersion}_${remoteMeta.pointsVersion}_${remoteMeta.fixturesVersion}`;
+
+                // Wenn wir den Initial-Snapshot bekommen und schon
+                // optimistisch dieselben Versionen ausgeliefert haben,
+                // sparen wir uns den zweiten Render.
+                if (!listenerInitialFired && optimisticVersionKey && versionKey === optimisticVersionKey) {
+                    listenerInitialFired = true;
+                    return;
+                }
+
+                listenerInitialFired = true;
+
+                try {
+                    const fresh = await loadBundle({ ...options, remoteMetaOverride: remoteMeta });
+                    if (onUpdate) onUpdate(fresh.data, fresh.info);
+                } catch (err) {
+                    if (onError) onError(err);
+                }
+            },
+            (err) => {
+                if (onError) onError(err);
+            }
+        );
+
+        return unsubscribe;
     }
 
     async function bumpMetaVersion(options) {
@@ -646,9 +913,17 @@
             payload.pointsUpdatedAt = now();
         }
 
-        if (!options.teams && !options.points) {
-            throw new Error('DreamTeamCache: teams oder points muss true sein.');
+        if (options.fixtures) {
+            payload.fixturesVersion = FieldValue.increment(1);
+            payload.fixturesUpdatedAt = now();
         }
+
+        if (!options.teams && !options.points && !options.fixtures) {
+            throw new Error('DreamTeamCache: teams, points oder fixtures muss true sein.');
+        }
+
+        // Session-Meta invalidieren – die Version stimmt jetzt nicht mehr.
+        removeSession(cfg.keys.sessionMeta);
 
         return cfg.db.collection(cfg.metaCollection).doc(cfg.metaDocId).set(payload, { merge: true });
     }
@@ -662,11 +937,13 @@
         removeStorage(cfg.keys.lastGoodTeams);
         removeStorage(cfg.keys.lastGoodPoints);
         removeStorage(cfg.keys.lastGoodFixtures);
+        removeSession(cfg.keys.sessionMeta);
     }
 
     window.DreamTeamCache = {
         getCachedBundle,
         loadBundle,
+        bootstrap,
         subscribeToMeta,
         bumpMetaVersion,
         clearCache,

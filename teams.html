@@ -2713,25 +2713,6 @@
     }
 
     /* =====================================================
-       META REFRESH
-       ===================================================== */
-    async function refreshFromMeta(remoteMeta) {
-        if (isMetaRefreshRunning) return;
-        isMetaRefreshRunning = true;
-        try {
-            const updated = await DreamTeamCache.loadBundle({
-                ...CACHE_OPTIONS,
-                remoteMetaOverride: remoteMeta
-            });
-            applyDataset(updated.data, { preferCurrentDisplayed: true });
-        } catch (err) {
-            console.error('Meta-Refresh fehlgeschlagen:', err);
-        } finally {
-            isMetaRefreshRunning = false;
-        }
-    }
-
-    /* =====================================================
        INIT
        ===================================================== */
     async function init() {
@@ -2739,22 +2720,40 @@
         initModalEvents();
 
         try {
-            const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
-            if (cached.ok) {
-                applyDataset(cached.data, { preferCurrentDisplayed: false });
-            }
-
-            const fresh = await DreamTeamCache.loadBundle(CACHE_OPTIONS);
-            applyDataset(fresh.data, { preferCurrentDisplayed: true });
-
+            // bootstrap() ersetzt die alte Sequenz aus getCachedBundle +
+            // loadBundle + subscribeToMeta. Damit fällt der separate
+            // Meta-Read in der Initialisierung weg – die Teams-Liste
+            // selbst bleibt sowieso turnierübergreifend im Cache, weil
+            // sich teamsVersion nach Turnierstart nicht mehr ändert.
             if (!metaUnsubscribe) {
-                metaUnsubscribe = DreamTeamCache.subscribeToMeta({
+                metaUnsubscribe = await DreamTeamCache.bootstrap({
                     ...CACHE_OPTIONS,
-                    onChange: async ({ remoteMeta }) => { await refreshFromMeta(remoteMeta); },
-                    onError: (err) => { console.error('Meta-Listener Fehler:', err); }
+                    onCachedReady: (data) => {
+                        applyDataset(data, { preferCurrentDisplayed: false });
+                    },
+                    onUpdate: (data) => {
+                        if (isMetaRefreshRunning) return;
+                        isMetaRefreshRunning = true;
+                        try {
+                            applyDataset(data, { preferCurrentDisplayed: hasRenderedOnce });
+                        } finally {
+                            isMetaRefreshRunning = false;
+                        }
+                    },
+                    onError: (err) => {
+                        console.error('Meta-Listener Fehler:', err);
+                        if (!hasRenderedOnce) {
+                            const teamView   = document.getElementById('team-view');
+                            const emptyState = document.getElementById('empty-state');
+                            if (teamView)   teamView.style.display = 'none';
+                            if (emptyState) {
+                                emptyState.style.display = 'block';
+                                emptyState.innerHTML = `<span class="empty-icon">⚠️</span>Fehler beim Laden der Teams für ${TOURNAMENT_LABEL}.`;
+                            }
+                        }
+                    }
                 });
             }
-
         } catch (e) {
             console.error(e);
             if (!hasRenderedOnce) {

@@ -8756,28 +8756,16 @@
                 log: false
             };
 
-            // Serve from cache immediately
-            const cached = DreamTeamCache.getCachedBundle(CACHE_OPTS);
-            if (cached.ok) {
-                render(cached.data);
-            }
-
-            // Fetch fresh data
-            const fresh = await DreamTeamCache.loadBundle(CACHE_OPTS);
-            render(fresh.data);
-
-            // Live subscription for meta updates
-            DreamTeamCache.subscribeToMeta({
+            // bootstrap() vereint sofortiges Cache-Rendern, optimistischen
+            // Refresh aus dem Session-Meta und den Live-Listener auf das
+            // Meta-Dokument in einem einzigen Aufruf. Damit fällt der
+            // separate Meta-Read aus dem alten loadBundle-Aufruf weg
+            // (1 Read pro Seitenaufruf gespart).
+            await DreamTeamCache.bootstrap({
                 ...CACHE_OPTS,
-                onChange: async ({ remoteMeta }) => {
-                    try {
-                        const updated = await DreamTeamCache.loadBundle({ ...CACHE_OPTS, remoteMetaOverride: remoteMeta });
-                        render(updated.data);
-                    } catch (e) {
-                        console.error('[index] Meta-Refresh fehlgeschlagen:', e);
-                    }
-                },
-                onError: (err) => console.error('[index] Meta-Listener Fehler:', err)
+                onCachedReady: (data) => render(data),
+                onUpdate: (data) => render(data),
+                onError: (err) => console.error('[index] Cache-Fehler:', err)
             });
 
         } catch (err) {

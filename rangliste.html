@@ -3020,43 +3020,33 @@
         });
     }
 
-    async function refreshFromMeta(remoteMeta) {
-        if (isMetaRefreshRunning) return;
-        isMetaRefreshRunning = true;
-
-        try {
-            const updated = await DreamTeamCache.loadBundle({
-                ...CACHE_OPTIONS,
-                remoteMetaOverride: remoteMeta
-            });
-            applyRankingData(updated.data);
-        } catch (err) {
-            console.error("Meta-Refresh fehlgeschlagen:", err);
-        } finally {
-            isMetaRefreshRunning = false;
-        }
-    }
-
     async function initRanking() {
         bindStaticEvents();
 
         try {
-            const cached = DreamTeamCache.getCachedBundle(CACHE_OPTIONS);
-            if (cached.ok) {
-                applyRankingData(cached.data);
-            }
-
-            const fresh = await DreamTeamCache.loadBundle(CACHE_OPTIONS);
-            applyRankingData(fresh.data);
-
+            // bootstrap() ersetzt die alte Sequenz `getCachedBundle +
+            // loadBundle + subscribeToMeta`. Damit fällt der separate
+            // Meta-Read in der Initialisierung weg und nur Punkte werden
+            // bei einem Versionssprung neu geladen – die Spielerliste
+            // (Teams) bleibt während des Turniers im Cache.
             if (!metaUnsubscribe) {
-                metaUnsubscribe = DreamTeamCache.subscribeToMeta({
+                metaUnsubscribe = await DreamTeamCache.bootstrap({
                     ...CACHE_OPTIONS,
-                    onChange: async ({ remoteMeta }) => {
-                        await refreshFromMeta(remoteMeta);
+                    onCachedReady: (data) => applyRankingData(data),
+                    onUpdate: (data) => {
+                        if (isMetaRefreshRunning) return;
+                        isMetaRefreshRunning = true;
+                        try {
+                            applyRankingData(data);
+                        } finally {
+                            isMetaRefreshRunning = false;
+                        }
                     },
                     onError: (err) => {
                         console.error("Meta-Listener Fehler:", err);
+                        if (!hasRenderedOnce) {
+                            document.getElementById("loading").innerHTML = `<span style="font-size:1.5rem;opacity:0.4;">⚠️</span> Fehler beim Berechnen der Rangliste für ${escapeHtml(TOURNAMENT_LABEL)}.`;
+                        }
                     }
                 });
             }
