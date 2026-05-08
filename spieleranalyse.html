@@ -1749,6 +1749,194 @@
         .cmp-row-center.win { color: var(--green-light); background: rgba(34,197,94,0.12); }
         .cmp-row-center.loss { color: var(--red-soft); background: rgba(248,113,113,0.12); }
 
+        /* Expandable position breakdown */
+        .cmp-pos-block {
+            background: var(--dark-card-2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+        .cmp-pos-block.is-open {
+            border-color: rgba(34,197,94,0.25);
+        }
+        .cmp-pos-header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: transparent;
+            border: 0;
+            padding: 12px 14px;
+            cursor: pointer;
+            color: inherit;
+            font: inherit;
+            text-align: left;
+        }
+        .cmp-pos-header:hover { background: rgba(255,255,255,0.03); }
+        .cmp-pos-header:focus-visible {
+            outline: 2px solid rgba(34,197,94,0.45);
+            outline-offset: -2px;
+        }
+        .cmp-pos-label {
+            flex: 1 1 auto;
+            min-width: 0;
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cmp-pos-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+        .cmp-pos-pts {
+            font-size: 1.05rem;
+            font-weight: 900;
+            min-width: 38px;
+            text-align: center;
+        }
+        .cmp-pos-pts.win { color: var(--green-light); }
+        .cmp-pos-pts.loss { color: var(--red-soft); }
+        .cmp-pos-pts.draw { color: var(--text-main); }
+        .cmp-pos-arrow {
+            font-size: 0.78rem;
+            font-weight: 800;
+            background: rgba(255,255,255,0.04);
+            border-radius: 999px;
+            padding: 3px 8px;
+            color: var(--text-muted);
+            min-width: 28px;
+            text-align: center;
+            line-height: 1;
+        }
+        .cmp-pos-arrow.win { color: var(--green-light); background: rgba(34,197,94,0.14); }
+        .cmp-pos-arrow.loss { color: var(--red-soft); background: rgba(248,113,113,0.14); }
+        .cmp-pos-chevron {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+            flex: 0 0 auto;
+            margin-left: 2px;
+        }
+        .cmp-pos-block.is-open .cmp-pos-chevron { transform: rotate(180deg); color: var(--green-light); }
+        .cmp-pos-players {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            padding: 4px 10px 12px;
+        }
+        .cmp-pos-block.is-open .cmp-pos-players { display: flex; }
+
+        .cmp-player-row {
+            display: grid;
+            grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+            gap: 8px;
+            align-items: center;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+        .cmp-player-row > .side {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .cmp-player-row > .side.right { justify-content: flex-end; }
+        .cmp-player-photo-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+            flex: 0 0 auto;
+        }
+        .cmp-player-photo-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .cmp-player-info-mini {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            gap: 1px;
+            line-height: 1.15;
+        }
+        .cmp-player-row > .side.right .cmp-player-info-mini { align-items: flex-end; text-align: right; }
+        .cmp-player-name-mini {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cmp-player-meta-mini {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .cmp-player-pts-mini {
+            font-size: 1rem;
+            font-weight: 900;
+            flex: 0 0 auto;
+            min-width: 30px;
+            text-align: center;
+        }
+        .cmp-player-pts-mini.win { color: var(--green-light); }
+        .cmp-player-pts-mini.loss { color: var(--red-soft); }
+        .cmp-player-pts-mini.draw { color: var(--text-main); }
+        .cmp-player-arrow {
+            font-size: 0.72rem;
+            font-weight: 800;
+            background: rgba(255,255,255,0.04);
+            border-radius: 999px;
+            padding: 3px 7px;
+            color: var(--text-muted);
+            min-width: 26px;
+            text-align: center;
+            line-height: 1;
+        }
+        .cmp-player-arrow.win { color: var(--green-light); background: rgba(34,197,94,0.14); }
+        .cmp-player-arrow.loss { color: var(--red-soft); background: rgba(248,113,113,0.14); }
+        .cmp-player-empty {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-style: italic;
+            opacity: 0.7;
+        }
+        .cmp-cap-tag {
+            display: inline-block;
+            font-size: 0.58rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #1a1a1a;
+            border-radius: 4px;
+            padding: 1px 4px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+
         /* Storyline */
         .cmp-storyline {
             background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(22,163,74,0.04));
@@ -2102,6 +2290,21 @@
             .cmp-row {
                 grid-template-columns: 1fr auto 1fr;
             }
+            /* Compact expandable position rows on mobile */
+            .cmp-pos-header { padding: 10px 10px; gap: 8px; }
+            .cmp-pos-label { font-size: 0.85rem; gap: 4px; }
+            .cmp-pos-summary { gap: 6px; }
+            .cmp-pos-pts { font-size: 0.95rem; min-width: 32px; }
+            .cmp-pos-arrow { padding: 2px 6px; font-size: 0.7rem; min-width: 24px; }
+            .cmp-pos-chevron { font-size: 0.75rem; }
+            .cmp-pos-players { padding: 2px 8px 10px; gap: 5px; }
+            .cmp-player-row { padding: 6px 8px; gap: 6px; }
+            .cmp-player-row > .side { gap: 6px; }
+            .cmp-player-photo-sm { width: 28px; height: 28px; }
+            .cmp-player-name-mini { font-size: 0.78rem; }
+            .cmp-player-meta-mini { font-size: 0.62rem; }
+            .cmp-player-pts-mini { font-size: 0.9rem; min-width: 26px; }
+            .cmp-player-arrow { padding: 2px 5px; font-size: 0.65rem; min-width: 22px; }
             .cmp-summary-grid { grid-template-columns: repeat(2, 1fr); }
             /* Keep player duell cards side-by-side on mobile */
             .cmp-player-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -2168,6 +2371,18 @@
             .cmp-diff-badge { padding: 2px 6px; font-size: 0.62rem; }
             .cmp-player-photo { width: 54px; height: 54px; }
             .cmp-player-pts { font-size: 1.2rem; }
+            /* Ultra-compact expandable position rows for very narrow screens */
+            .cmp-pos-header { padding: 9px 8px; gap: 6px; }
+            .cmp-pos-label { font-size: 0.78rem; }
+            .cmp-pos-pts { font-size: 0.88rem; min-width: 28px; }
+            .cmp-pos-arrow { padding: 2px 5px; font-size: 0.65rem; min-width: 22px; }
+            .cmp-player-row { padding: 5px 6px; gap: 5px; }
+            .cmp-player-row > .side { gap: 5px; }
+            .cmp-player-photo-sm { width: 24px; height: 24px; }
+            .cmp-player-name-mini { font-size: 0.72rem; }
+            .cmp-player-meta-mini { display: none; }
+            .cmp-player-pts-mini { font-size: 0.82rem; min-width: 22px; }
+            .cmp-player-arrow { padding: 1px 4px; font-size: 0.6rem; min-width: 20px; }
         }
 
         /* =====================================================
@@ -3388,6 +3603,7 @@
     let cmpMgrB = '';
     let cmpPlayerA = '';
     let cmpPlayerB = '';
+    const cmpExpandedPositions = new Set();
     let cmpWhatIfMgr = '';
     let enrichedTeamsCache = [];
     let positionAggregatesCache = null;
@@ -5136,21 +5352,83 @@
                 </div>
             </div>`;
 
-        // Position breakdown (bench players are already included in their respective position totals)
-        const positionRows = POSITION_KEYS.map(pos => {
+        // Position breakdown — expandable per position with player-level direct comparison
+        // (bench players are already included in their respective position totals)
+        const renderPlayerSide = (p, ptsClass, side) => {
+            if (!p) {
+                return `<div class="side ${side}"><span class="cmp-player-empty">— kein Spieler —</span></div>`;
+            }
+            const photoHtml = p.photo
+                ? `<img class="cmp-player-photo-sm" src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
+                : `<div class="cmp-player-photo-sm cmp-player-photo-fallback">⚽</div>`;
+            const captainTag = p.isCaptain ? '<span class="cmp-cap-tag" title="Captain">C</span>' : '';
+            const meta = p.slotNum >= 11 ? 'Bank' : (p.nation || '');
+            const info = `
+                <div class="cmp-player-info-mini">
+                    <span class="cmp-player-name-mini">${escapeHtml(p.name)}${captainTag}</span>
+                    ${meta ? `<span class="cmp-player-meta-mini">${escapeHtml(meta)}</span>` : ''}
+                </div>`;
+            const pts = `<span class="cmp-player-pts-mini ${ptsClass}">${p.pts}</span>`;
+            if (side === 'left') {
+                return `<div class="side left">${photoHtml}${info}${pts}</div>`;
+            }
+            return `<div class="side right">${pts}${info}${photoHtml}</div>`;
+        };
+
+        const positionBlocks = POSITION_KEYS.map(pos => {
             const ptsA = a.positionTotals[pos] || 0;
             const ptsB = b.positionTotals[pos] || 0;
             const w = ptsA > ptsB ? 'a' : (ptsA < ptsB ? 'b' : 'draw');
+            const arrowSym = w === 'draw' ? '=' : (w === 'a' ? '◀' : '▶');
+            const arrowCls = w === 'draw' ? '' : (w === 'a' ? 'win' : 'loss');
+            const ptsAClass = w === 'a' ? 'win' : (w === 'b' ? 'loss' : 'draw');
+            const ptsBClass = w === 'b' ? 'win' : (w === 'a' ? 'loss' : 'draw');
+
+            const playersA = a.players.filter(p => p.pos === pos).sort((x, y) => x.slotNum - y.slotNum);
+            const playersB = b.players.filter(p => p.pos === pos).sort((x, y) => x.slotNum - y.slotNum);
+            const maxLen = Math.max(playersA.length, playersB.length);
+
+            let playerRowsHtml = '';
+            if (maxLen === 0) {
+                playerRowsHtml = `<div class="cmp-player-row" style="grid-template-columns:1fr;text-align:center;color:var(--text-muted);font-size:0.82rem;">Keine Spieler in dieser Position.</div>`;
+            } else {
+                for (let i = 0; i < maxLen; i++) {
+                    const pa = playersA[i] || null;
+                    const pb = playersB[i] || null;
+                    const ppA = pa ? pa.pts : 0;
+                    const ppB = pb ? pb.pts : 0;
+                    let pw;
+                    if (pa && pb) pw = ppA > ppB ? 'a' : (ppA < ppB ? 'b' : 'draw');
+                    else if (pa) pw = 'a';
+                    else if (pb) pw = 'b';
+                    else pw = 'draw';
+                    const pArrow = pw === 'draw' ? '=' : (pw === 'a' ? '◀' : '▶');
+                    const pArrowCls = pw === 'draw' ? '' : (pw === 'a' ? 'win' : 'loss');
+                    const pPtsAClass = pw === 'a' ? 'win' : (pw === 'b' ? 'loss' : 'draw');
+                    const pPtsBClass = pw === 'b' ? 'win' : (pw === 'a' ? 'loss' : 'draw');
+                    playerRowsHtml += `
+                        <div class="cmp-player-row">
+                            ${renderPlayerSide(pa, pPtsAClass, 'left')}
+                            <div class="cmp-player-arrow ${pArrowCls}" aria-label="${pw === 'draw' ? 'Unentschieden' : (pw === 'a' ? 'Spieler A vorne' : 'Spieler B vorne')}">${pArrow}</div>
+                            ${renderPlayerSide(pb, pPtsBClass, 'right')}
+                        </div>`;
+                }
+            }
+
+            const isOpen = cmpExpandedPositions.has(pos);
+            const headerLabel = `${POSITION_ICONS[pos] || ''} ${POSITION_LABELS[pos]}`;
             return `
-                <div class="cmp-row">
-                    <div class="cmp-row-label">${POSITION_ICONS[pos] || ''} ${POSITION_LABELS[pos]}</div>
-                    <div class="cmp-row-side">
-                        <span class="cmp-row-pts ${w === 'a' ? 'win' : (w === 'b' ? 'loss' : 'draw')}">${ptsA}</span>
-                    </div>
-                    <div class="cmp-row-center ${w === 'draw' ? '' : (w === 'a' ? 'win' : 'loss')}">${w === 'draw' ? '=' : (w === 'a' ? '◀' : '▶')}</div>
-                    <div class="cmp-row-side right">
-                        <span class="cmp-row-pts ${w === 'b' ? 'win' : (w === 'a' ? 'loss' : 'draw')}">${ptsB}</span>
-                    </div>
+                <div class="cmp-pos-block ${isOpen ? 'is-open' : ''}" data-cmp-pos-block="${pos}">
+                    <button type="button" class="cmp-pos-header" data-cmp-pos-toggle="${pos}" aria-expanded="${isOpen ? 'true' : 'false'}">
+                        <span class="cmp-pos-label">${headerLabel}</span>
+                        <span class="cmp-pos-summary">
+                            <span class="cmp-pos-pts ${ptsAClass}">${ptsA}</span>
+                            <span class="cmp-pos-arrow ${arrowCls}" aria-hidden="true">${arrowSym}</span>
+                            <span class="cmp-pos-pts ${ptsBClass}">${ptsB}</span>
+                        </span>
+                        <span class="cmp-pos-chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="cmp-pos-players" role="region">${playerRowsHtml}</div>
                 </div>`;
         }).join('');
 
@@ -5160,8 +5438,8 @@
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>📊 Punkte nach Position</div>
                 </div>
                 <div class="analysis-card-body">
-                    <div class="cmp-row-list">${positionRows}</div>
-                    <div style="margin-top:8px;color:var(--text-muted);font-size:0.78rem;">Inkl. Ersatzbank (Bank-Spieler werden ihrer jeweiligen Position zugerechnet).</div>
+                    <div class="cmp-row-list">${positionBlocks}</div>
+                    <div style="margin-top:8px;color:var(--text-muted);font-size:0.78rem;">Tippe auf eine Position, um den Direktvergleich der Spieler zu öffnen. Inkl. Ersatzbank.</div>
                 </div>
             </div>`;
 
@@ -5209,41 +5487,6 @@
                 </div>
             </div>`;
 
-        // Shared players
-        let sharedHtml = '';
-        if (sharedIds.size > 0) {
-            const sharedRows = [...sharedIds].map(id => {
-                const pa = playersByIdA.get(id);
-                const pb = playersByIdB.get(id);
-                const captainSide = pa.isCaptain && !pb.isCaptain ? 'a' : (pb.isCaptain && !pa.isCaptain ? 'b' : (pa.isCaptain && pb.isCaptain ? 'both' : 'none'));
-                const note = captainSide === 'a' ? `Captain bei ${escapeHtml(a.manager)} → doppelte Punkte`
-                    : captainSide === 'b' ? `Captain bei ${escapeHtml(b.manager)} → doppelte Punkte`
-                    : captainSide === 'both' ? 'Beide haben ihn als Captain'
-                    : `Gleiche Basispunkte für beide`;
-                return `
-                    <div class="cmp-row">
-                        <div class="cmp-row-label">${escapeHtml(pa.name)} <span style="color:var(--text-muted);font-weight:600;">· ${escapeHtml(POSITION_LABELS[pa.pos] || translatePosition(pa.pos))}</span></div>
-                        <div class="cmp-row-side">
-                            <span class="cmp-row-pts ${pa.pts > pb.pts ? 'win' : (pa.pts < pb.pts ? 'loss' : 'draw')}">${pa.pts}${pa.isCaptain ? ' (C)' : ''}</span>
-                        </div>
-                        <div class="cmp-row-center">${note}</div>
-                        <div class="cmp-row-side right">
-                            <span class="cmp-row-pts ${pb.pts > pa.pts ? 'win' : (pa.pts > pb.pts ? 'loss' : 'draw')}">${pb.pts}${pb.isCaptain ? ' (C)' : ''}</span>
-                        </div>
-                    </div>`;
-            }).slice(0, 8).join('');
-            sharedHtml = `
-                <div class="analysis-card">
-                    <div class="analysis-card-header">
-                        <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>🤝 Gemeinsame Spieler (${sharedIds.size})</div>
-                    </div>
-                    <div class="analysis-card-body">
-                        <div class="cmp-row-list">${sharedRows}</div>
-                        ${sharedIds.size > 8 ? `<div style="margin-top:8px;color:var(--text-muted);font-size:0.82rem;">… und ${sharedIds.size - 8} weitere gemeinsame Spieler.</div>` : ''}
-                    </div>
-                </div>`;
-        }
-
         // Storyline
         const story = buildManagerStoryline(a, b);
         const storyCard = `
@@ -5252,7 +5495,25 @@
                 ${escapeHtml(story)}
             </div>`;
 
-        out.innerHTML = heroHtml + captainCard + positionsCard + matchwinnerCard + sharedHtml + storyCard;
+        out.innerHTML = heroHtml + captainCard + positionsCard + matchwinnerCard + storyCard;
+
+        wireCmpPositionToggles(out);
+    }
+
+    function wireCmpPositionToggles(root) {
+        if (!root) return;
+        root.querySelectorAll('[data-cmp-pos-toggle]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pos = btn.getAttribute('data-cmp-pos-toggle');
+                const block = root.querySelector(`[data-cmp-pos-block="${pos}"]`);
+                if (!block) return;
+                const willOpen = !block.classList.contains('is-open');
+                block.classList.toggle('is-open', willOpen);
+                btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                if (willOpen) cmpExpandedPositions.add(pos);
+                else cmpExpandedPositions.delete(pos);
+            });
+        });
     }
 
     function buildManagerStoryline(a, b) {
