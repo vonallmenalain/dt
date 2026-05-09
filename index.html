@@ -5109,14 +5109,59 @@
             .champ-podium {
                 gap: 4px;
                 padding: 56px 0 22px;
+                align-items: flex-end;
             }
-            .champ-card { padding: 10px 8px 12px; gap: 8px; border-radius: 18px; }
+            .champ-card { padding: 10px 6px 12px; gap: 6px; border-radius: 18px; min-width: 0; }
             .champ-card[data-rank="1"] { padding-bottom: 18px; }
-            .manager-hero-card { min-height: clamp(240px, 56vw, 320px); padding: 12px 6px 10px; }
-            .manager-firstname { font-size: clamp(1.2rem, 6.6vw, 1.7rem); }
-            .champ-card[data-rank="1"] .manager-firstname { font-size: clamp(1.4rem, 7.6vw, 2.05rem); }
-            .manager-player-constellation { min-height: clamp(120px, 38vw, 180px); margin: 4px 0 6px; }
-            .manager-points-link { padding: 4px 10px; font-size: clamp(0.78rem, 3.2vw, 0.95rem); }
+            .manager-hero-card { padding: 12px 6px 10px; }
+
+            /* Mobil: progressive Größenstaffelung 1 > 2 > 3.
+               Auf kleinen Viewports werden die Desktop-`max-width`-Werte nicht
+               erreicht, sodass `flex: 1 1 0` alle drei Karten visuell gleich
+               breit machen würde. Wir geben Rang 1 einen größeren Flex-Anteil
+               und Rang 3 den kleinsten, damit die Hierarchie (Gold > Silber >
+               Bronze) auch auf dem Smartphone direkt erkennbar ist. */
+            .champ-card[data-rank="1"] {
+                flex: 1.5 1 0;
+                max-width: none;
+            }
+            .champ-card[data-rank="2"] {
+                flex: 1.05 1 0;
+                max-width: none;
+            }
+            .champ-card[data-rank="3"] {
+                flex: 0.8 1 0;
+                max-width: none;
+            }
+
+            .champ-card[data-rank="1"].manager-hero-card { min-height: clamp(270px, 64vw, 360px); }
+            .champ-card[data-rank="2"].manager-hero-card { min-height: clamp(220px, 50vw, 300px); }
+            .champ-card[data-rank="3"].manager-hero-card { min-height: clamp(190px, 40vw, 260px); }
+
+            /* Vorname des Managers darf auf Mobil keinen Zeilenumbruch haben.
+               Falls der Name doch zu lang ist, wird er per Ellipsis gekürzt –
+               das hält die Karte optisch ruhig und verhindert ein Reißen der
+               Layout-Höhen zwischen den Karten. */
+            .manager-firstname {
+                white-space: nowrap;
+                word-break: normal;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                padding-left: 4px;
+                padding-right: 4px;
+            }
+            .champ-card[data-rank="1"] .manager-firstname { font-size: clamp(1.3rem, 6.8vw, 1.95rem); }
+            .champ-card[data-rank="2"] .manager-firstname { font-size: clamp(1.05rem, 5.2vw, 1.45rem); }
+            .champ-card[data-rank="3"] .manager-firstname { font-size: clamp(0.9rem, 4.4vw, 1.2rem); }
+
+            .champ-card[data-rank="1"] .manager-player-constellation { min-height: clamp(140px, 42vw, 200px); margin: 4px 0 6px; }
+            .champ-card[data-rank="2"] .manager-player-constellation { min-height: clamp(105px, 32vw, 155px); margin: 4px 0 6px; }
+            .champ-card[data-rank="3"] .manager-player-constellation { min-height: clamp(85px, 26vw, 130px); margin: 4px 0 6px; }
+
+            .champ-card[data-rank="1"] .manager-points-link { padding: 4px 12px; font-size: clamp(0.82rem, 3.4vw, 1rem); }
+            .champ-card[data-rank="2"] .manager-points-link { padding: 3px 9px;  font-size: clamp(0.72rem, 2.9vw, 0.88rem); }
+            .champ-card[data-rank="3"] .manager-points-link { padding: 3px 8px;  font-size: clamp(0.66rem, 2.6vw, 0.8rem); }
+
             .manager-player-orb .orb-cap { width: 16px; height: 16px; font-size: 0.55rem; }
             .manager-player-orb .orb-pts { font-size: 0.55rem; padding: 1px 5px; bottom: -6px; }
             .champ-chasers {
