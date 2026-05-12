@@ -3268,6 +3268,259 @@
             color: var(--text-muted);
         }
 
+        /* =====================================================
+           EXPANDABLE SCHEDULE CARDS
+           ===================================================== */
+        .sc-card {
+            cursor: pointer;
+        }
+
+        .sc-card.is-expanded {
+            border-color: rgba(74,222,128,0.45);
+            background: rgba(34,197,94,0.05);
+            box-shadow: 0 0 0 1px rgba(74,222,128,0.18), 0 12px 28px rgba(0,0,0,0.35);
+        }
+
+        .sc-card-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--glass-border);
+            margin-top: 4px;
+            transition: transform 0.25s ease, color 0.18s ease, background 0.18s ease;
+            flex-shrink: 0;
+        }
+
+        .sc-card.is-expanded .sc-card-toggle {
+            color: var(--green-light);
+            background: rgba(34,197,94,0.12);
+            border-color: rgba(74,222,128,0.4);
+            transform: rotate(180deg);
+        }
+
+        .sc-card-spielnr {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-top: 2px;
+        }
+
+        .sc-card.is-expanded .sc-card-spielnr {
+            color: var(--green-light);
+        }
+
+        .sc-expanded-body {
+            display: none;
+            border-top: 1px solid rgba(74,222,128,0.18);
+            padding: 18px 18px 22px;
+            background: linear-gradient(180deg, rgba(34,197,94,0.04), rgba(34,197,94,0));
+            animation: scExpandFade 0.28s ease both;
+        }
+
+        .sc-card.is-expanded .sc-expanded-body {
+            display: block;
+        }
+
+        @keyframes scExpandFade {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sc-expanded-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .sc-expanded-team {
+            background: var(--dark-surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px;
+            min-width: 0;
+        }
+
+        .sc-expanded-team-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .sc-expanded-team-logo {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .sc-expanded-team-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .sc-expanded-players {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+        }
+
+        .sc-player-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 8px 10px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+            text-align: center;
+            min-width: 0;
+        }
+
+        .sc-player-card:hover,
+        .sc-player-card:focus-visible {
+            transform: translateY(-2px);
+            border-color: rgba(74,222,128,0.45);
+            background: rgba(34,197,94,0.08);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            outline: none;
+        }
+
+        .sc-player-card.drafted {
+            border-color: rgba(34,197,94,0.35);
+            background: rgba(34,197,94,0.07);
+        }
+
+        .sc-player-card-photo {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.12);
+            background: var(--dark-card);
+        }
+
+        .sc-player-card.drafted .sc-player-card-photo {
+            border-color: rgba(74,222,128,0.5);
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.18);
+        }
+
+        .sc-player-card-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            white-space: normal;
+        }
+
+        .sc-player-card-meta {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sc-player-card-pts {
+            margin-top: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+        }
+
+        .sc-player-card-pts.pos {
+            color: var(--green-light);
+            background: rgba(34,197,94,0.14);
+            border-color: rgba(34,197,94,0.35);
+        }
+
+        .sc-player-card-pts.neg {
+            color: var(--red-soft);
+            background: rgba(248,113,113,0.12);
+            border-color: rgba(248,113,113,0.3);
+        }
+
+        .sc-player-card-pts.zero {
+            color: var(--text-muted);
+        }
+
+        .sc-expanded-empty {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 8px 0;
+            text-align: center;
+        }
+
+        .sc-expanded-note {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 14px;
+            font-style: italic;
+        }
+
+        .sc-card.is-focus-flash {
+            animation: scFocusFlash 1.6s ease-out 1;
+        }
+
+        @keyframes scFocusFlash {
+            0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.55), 0 12px 28px rgba(0,0,0,0.35); }
+            60% { box-shadow: 0 0 0 6px rgba(74,222,128,0.25), 0 12px 28px rgba(0,0,0,0.35); }
+            100% { box-shadow: 0 0 0 1px rgba(74,222,128,0.18), 0 12px 28px rgba(0,0,0,0.35); }
+        }
+
+        @media (max-width: 720px) {
+            .sc-expanded-grid {
+                grid-template-columns: 1fr;
+            }
+            .sc-expanded-players {
+                grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+                gap: 10px;
+            }
+            .sc-player-card-photo {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
         @media (max-width: 600px) {
             .sc-card-inner {
                 padding: 12px 14px;
@@ -3900,6 +4153,12 @@
     let matchByNumber = new Map();
     let playerSelectedMap = new Map();
 
+    // Schedule (Spiele) expandable cards: track which match cards are
+    // currently expanded and a pending focus target (e.g. when arriving
+    // from a deep-link in the Rangliste).
+    const expandedScheduleMatchKeys = new Set();
+    let pendingScheduleFocus = null;
+
     // Comparisons view state
     let currentCmpTab = 'manager';
     let cmpMgrA = '';
@@ -4120,6 +4379,8 @@
             player: params.get('player') || null,
             club: params.get('club') || 'ALL',
             scheduleNation: params.get('scheduleNation') || 'ALL',
+            matchId: params.get('matchId') || params.get('match') || null,
+            matchNr: params.get('matchNr') || null,
             cmpTab: ['manager','player','whatif'].includes(params.get('cmpTab')) ? params.get('cmpTab') : 'manager',
             cmpMgrA: params.get('cmpMgrA') || '',
             cmpMgrB: params.get('cmpMgrB') || '',
@@ -5097,6 +5358,151 @@
         }));
     }
 
+    /* ---------- Schedule helpers (shared by collapsed & expanded views) ---------- */
+
+    // Stable key for tracking which schedule card is expanded. Uses the
+    // fixture id when available, else falls back to the rawMatchId from
+    // matchCatalog, else to the date+teams pairing.
+    function getScheduleMatchKey(m, mc) {
+        if (m && m.id !== undefined && m.id !== null) return `fx_${m.id}`;
+        if (mc && mc.rawMatchId !== undefined && mc.rawMatchId !== null) return `mid_${mc.rawMatchId}`;
+        return `pair_${m?.teamA || '?'}__${m?.teamB || '?'}__${m?.date || ''}`;
+    }
+
+    // Locate the matchCatalog entry that corresponds to a schedule entry.
+    // First match on fixture id (== rawMatchId), then on team pairing.
+    function findMatchCatalogForScheduleEntry(m) {
+        if (!m) return null;
+        const fxId = m.id !== undefined && m.id !== null ? Number(m.id) : null;
+        if (Number.isFinite(fxId)) {
+            const byId = matchCatalog.find(c => Number(c.rawMatchId) === fxId);
+            if (byId) return byId;
+        }
+        return matchCatalog.find(c =>
+            (c.teamA === m.teamA && c.teamB === m.teamB) ||
+            (c.teamA === m.teamB && c.teamB === m.teamA)
+        ) || null;
+    }
+
+    function getDraftedPlayersForScheduleTeam(m, mc, teamName) {
+        // Prefer drafted players from a played match (matchCatalog) – has
+        // actual match-day points / line-up information.
+        if (mc) {
+            const drafted = (mc.playersByNation?.[teamName] || []).filter(p => p.drafted);
+            if (drafted.length) return drafted;
+        }
+        // Fallback for upcoming matches (no points data yet): list all
+        // drafted players whose nationality matches the team. Mirrors how
+        // index.html "Nächste Spiele" works.
+        if (!teamName || teamName === '-') return [];
+        const fallback = [];
+        playersData.forEach(p => {
+            if ((p['Nationalteam.name'] || '') !== teamName) return;
+            if (!isPlayerDrafted(p['player.id'])) return;
+            fallback.push({
+                playerId: String(p['player.id']),
+                name: p.Spielername,
+                nation: p['Nationalteam.name'],
+                club: p['Club.name'] || 'Vereinslos',
+                position: translatePosition(p.Position),
+                photo: p.Spielerfoto || '',
+                totalPoints: 0,
+                drafted: true
+            });
+        });
+        fallback.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+        return fallback;
+    }
+
+    function getAllPlayersForScheduleTeam(m, mc, teamName) {
+        // Used for the expanded body: every player of the nation that
+        // appeared in this match (from matchCatalog), or, if the match has
+        // no point data yet, every drafted player of that nation as a
+        // sensible fallback.
+        if (mc) {
+            const players = (mc.playersByNation?.[teamName] || []).slice();
+            if (players.length) {
+                players.sort((a, b) => {
+                    if ((b.totalPoints || 0) !== (a.totalPoints || 0)) return (b.totalPoints || 0) - (a.totalPoints || 0);
+                    return a.name.localeCompare(b.name, 'de');
+                });
+                return players;
+            }
+        }
+        return getDraftedPlayersForScheduleTeam(m, mc, teamName);
+    }
+
+    function renderSchedulePlayerCard(p, hasMatchData) {
+        const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
+        const nameEncoded = encodeURIComponent(p.name);
+        const pts = Number(p.totalPoints) || 0;
+        let ptsClass = 'zero';
+        if (pts > 0) ptsClass = 'pos';
+        else if (pts < 0) ptsClass = 'neg';
+        const ptsLabel = hasMatchData
+            ? `${pts > 0 ? '+' : ''}${pts} Pkt.`
+            : '— Pkt.';
+        const draftedCls = p.drafted ? ' drafted' : '';
+        const photoHtml = photo
+            ? `<img src="${escapeHtml(photo)}" class="sc-player-card-photo" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.visibility='hidden'">`
+            : `<div class="sc-player-card-photo" aria-hidden="true" style="display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--text-muted);">👤</div>`;
+        return `<button type="button" class="sc-player-card${draftedCls}"
+                onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${nameEncoded}'))"
+                title="${escapeHtml(p.name)} – Spieler-Analyse öffnen"
+                aria-label="${escapeHtml(p.name)} – Spieler-Analyse öffnen">
+            ${photoHtml}
+            <div class="sc-player-card-name">${escapeHtml(p.name)}</div>
+            ${p.position ? `<div class="sc-player-card-meta">${escapeHtml(p.position)}</div>` : ''}
+            <div class="sc-player-card-pts ${ptsClass}">${escapeHtml(ptsLabel)}</div>
+        </button>`;
+    }
+
+    function renderExpandedScheduleBody(m, mc) {
+        const hasMatchData = !!mc;
+        const homePlayers = getAllPlayersForScheduleTeam(m, mc, m.teamA);
+        const awayPlayers = getAllPlayersForScheduleTeam(m, mc, m.teamB);
+
+        const homeFlagUrl = getNationFlag(m.teamA);
+        const awayFlagUrl = getNationFlag(m.teamB);
+        const homeLogo = (m.teamALogo || homeFlagUrl)
+            ? `<img class="sc-expanded-team-logo" src="${escapeHtml(m.teamALogo || homeFlagUrl)}" alt="${escapeHtml(m.teamA)}" loading="lazy" onerror="this.style.display='none'">`
+            : `<span class="sc-team-logo-placeholder">🏳️</span>`;
+        const awayLogo = (m.teamBLogo || awayFlagUrl)
+            ? `<img class="sc-expanded-team-logo" src="${escapeHtml(m.teamBLogo || awayFlagUrl)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
+            : `<span class="sc-team-logo-placeholder">🏳️</span>`;
+
+        const homeBody = homePlayers.length
+            ? homePlayers.map(p => renderSchedulePlayerCard(p, hasMatchData)).join('')
+            : `<div class="sc-expanded-empty">Keine Spieler erfasst.</div>`;
+        const awayBody = awayPlayers.length
+            ? awayPlayers.map(p => renderSchedulePlayerCard(p, hasMatchData)).join('')
+            : `<div class="sc-expanded-empty">Keine Spieler erfasst.</div>`;
+
+        const note = hasMatchData
+            ? ''
+            : `<div class="sc-expanded-note">Noch keine Spielpunkte erfasst – angezeigt sind die gedrafteten Spieler der Nationen.</div>`;
+
+        return `<div class="sc-expanded-body">
+            <div class="sc-expanded-grid">
+                <div class="sc-expanded-team">
+                    <div class="sc-expanded-team-header">
+                        ${homeLogo}
+                        <span class="sc-expanded-team-name">${escapeHtml(m.teamA)}</span>
+                    </div>
+                    <div class="sc-expanded-players">${homeBody}</div>
+                </div>
+                <div class="sc-expanded-team">
+                    <div class="sc-expanded-team-header">
+                        ${awayLogo}
+                        <span class="sc-expanded-team-name">${escapeHtml(m.teamB)}</span>
+                    </div>
+                    <div class="sc-expanded-players">${awayBody}</div>
+                </div>
+            </div>
+            ${note}
+        </div>`;
+    }
+
     function renderScheduleView() {
         const el = document.getElementById('schedule-list');
         if (!el) return;
@@ -5110,59 +5516,13 @@
             return;
         }
 
-        // Build a lookup from teamName -> playersByNation (drafted only) using matchCatalog
-        // matchCatalog entries have playersByNation keyed by team name
-        const draftedByMatchTeam = new Map();
-        matchCatalog.forEach(mc => {
-            Object.entries(mc.playersByNation || {}).forEach(([nation, players]) => {
-                const drafted = players.filter(p => p.drafted);
-                if (drafted.length) {
-                    const key = `${mc.rawMatchId}__${nation}`;
-                    draftedByMatchTeam.set(key, drafted);
-                }
-            });
-        });
-
-        function getScheduleDraftedPlayers(m, teamName) {
-            // Prefer drafted players from a played match (matchCatalog) – has actual match-day points/lineup
-            const mc = matchCatalog.find(c =>
-                (c.teamA === m.teamA && c.teamB === m.teamB) ||
-                (c.teamA === m.teamB && c.teamB === m.teamA)
-            );
-            if (mc) {
-                const key = `${mc.rawMatchId}__${teamName}`;
-                const drafted = draftedByMatchTeam.get(key);
-                if (drafted && drafted.length) return drafted;
-            }
-            // Fallback for upcoming matches (no points data yet): list all drafted players
-            // whose nationality matches the team. Mirrors how index.html "Nächste Spiele" works.
-            if (!teamName || teamName === '-') return [];
-            const fallback = [];
-            playersData.forEach(p => {
-                if ((p['Nationalteam.name'] || '') !== teamName) return;
-                if (!isPlayerDrafted(p['player.id'])) return;
-                fallback.push({
-                    playerId: String(p['player.id']),
-                    name: p.Spielername,
-                    nation: p['Nationalteam.name'],
-                    club: p['Club.name'] || 'Vereinslos',
-                    position: translatePosition(p.Position),
-                    photo: p.Spielerfoto || '',
-                    totalPoints: 0,
-                    drafted: true
-                });
-            });
-            fallback.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-            return fallback;
-        }
-
         function renderScheduleAvatars(players, alignRight = false) {
             if (!players.length) return '';
             const avatarsHtml = players.map(p => {
                 const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
                 if (!photo) return '';
                 const nameEncoded = encodeURIComponent(p.name);
-                return `<button type="button" class="sc-player-avatar-btn" onclick="openPlayerFromGames(decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
+                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
             }).filter(Boolean).join('');
             if (!avatarsHtml) return '';
             const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
@@ -5261,13 +5621,31 @@
                 // Round label
                 const roundText = m.round ? m.round.replace(/Regular Season -\s*/i, '').replace(/Group Stage -\s*/i, 'Gruppe: ') : '';
 
-                // Drafted player avatars
-                const homeDrafted = getScheduleDraftedPlayers(m, m.teamA);
-                const awayDrafted = getScheduleDraftedPlayers(m, m.teamB);
+                // Resolve catalog entry to enable drafted lookup, spielNr label
+                // and expanded view rendering.
+                const mc = findMatchCatalogForScheduleEntry(m);
+                const matchKey = getScheduleMatchKey(m, mc);
+                const isExpanded = expandedScheduleMatchKeys.has(matchKey);
+                const spielNrLabel = mc && mc.number ? `Spiel ${mc.number}` : '';
+
+                const homeDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamA);
+                const awayDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamB);
                 const homeAvatars = renderScheduleAvatars(homeDrafted, false);
                 const awayAvatars = renderScheduleAvatars(awayDrafted, true);
 
-                html += `<div class="sc-card ${matchStatusCls}">
+                const ariaLabel = `${spielNrLabel ? spielNrLabel + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
+
+                html += `<div class="sc-card ${matchStatusCls}${isExpanded ? ' is-expanded' : ''}"
+                    data-match-key="${escapeHtml(matchKey)}"
+                    ${mc && mc.rawMatchId !== undefined ? `data-raw-match-id="${escapeHtml(String(mc.rawMatchId))}"` : ''}
+                    ${m.id !== undefined && m.id !== null ? `data-fixture-id="${escapeHtml(String(m.id))}"` : ''}
+                    ${mc && mc.number ? `data-spiel-nr="${escapeHtml(String(mc.number))}"` : ''}
+                    role="button"
+                    tabindex="0"
+                    aria-expanded="${isExpanded ? 'true' : 'false'}"
+                    aria-label="${escapeHtml(ariaLabel)}"
+                    onclick="toggleScheduleCard(this)"
+                    onkeydown="handleScheduleCardKey(event, this)">
                     <div class="sc-card-inner">
                         <div class="sc-team sc-team-home">
                             <div class="sc-team-info">
@@ -5278,6 +5656,7 @@
                         </div>
                         <div class="sc-center">
                             ${centerHtml}
+                            ${spielNrLabel ? `<div class="sc-card-spielnr">${escapeHtml(spielNrLabel)}</div>` : ''}
                             ${roundText ? `<div class="sc-round">${escapeHtml(roundText)}</div>` : ''}
                             ${venueText ? `<div class="sc-venue-center">🏟️ ${escapeHtml(venueText)}</div>` : ''}
                         </div>
@@ -5288,7 +5667,9 @@
                             </div>
                             ${awayAvatars}
                         </div>
+                        <span class="sc-card-toggle" aria-hidden="true">▾</span>
                     </div>
+                    ${renderExpandedScheduleBody(m, mc)}
                 </div>`;
             });
 
@@ -5297,7 +5678,64 @@
 
         el.innerHTML = html;
         syncSidebarHeight();
+        applyPendingScheduleFocus();
     }
+
+    function applyPendingScheduleFocus() {
+        if (!pendingScheduleFocus) return;
+        const el = document.getElementById('schedule-list');
+        if (!el) return;
+
+        const { matchId, matchNr } = pendingScheduleFocus;
+
+        let target = null;
+        if (Number.isFinite(matchId)) {
+            target = el.querySelector(`.sc-card[data-raw-match-id="${matchId}"]`)
+                  || el.querySelector(`.sc-card[data-fixture-id="${matchId}"]`);
+        }
+        if (!target && Number.isFinite(matchNr)) {
+            target = el.querySelector(`.sc-card[data-spiel-nr="${matchNr}"]`);
+        }
+        if (!target) return;
+
+        const key = target.getAttribute('data-match-key');
+        if (key) expandedScheduleMatchKeys.add(key);
+        target.classList.add('is-expanded');
+        target.setAttribute('aria-expanded', 'true');
+        target.classList.remove('is-focus-flash');
+        // Force reflow so the animation restarts when navigated to again.
+        void target.offsetWidth;
+        target.classList.add('is-focus-flash');
+
+        requestAnimationFrame(() => {
+            scrollElementToTop(target, { smooth: true });
+        });
+
+        pendingScheduleFocus = null;
+    }
+
+    window.toggleScheduleCard = function(cardEl) {
+        if (!cardEl) return;
+        const key = cardEl.getAttribute('data-match-key');
+        if (!key) return;
+        const willExpand = !cardEl.classList.contains('is-expanded');
+        if (willExpand) {
+            expandedScheduleMatchKeys.add(key);
+            cardEl.classList.add('is-expanded');
+        } else {
+            expandedScheduleMatchKeys.delete(key);
+            cardEl.classList.remove('is-expanded', 'is-focus-flash');
+        }
+        cardEl.setAttribute('aria-expanded', String(willExpand));
+        syncSidebarHeight();
+    };
+
+    window.handleScheduleCardKey = function(event, cardEl) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            window.toggleScheduleCard(cardEl);
+        }
+    };
 
     /* =========================================================
        COMPARISONS VIEW (Manager-Duell, Spieler-Duell, What-If)
@@ -6867,6 +7305,17 @@
 
         currentView = state.view;
         currentScheduleNationFilter = state.scheduleNation || 'ALL';
+
+        // Capture an incoming Spiele focus request (matchId / matchNr) so
+        // setView('games') below can auto-expand and scroll to the right
+        // card. We do not persist this to the URL once handled to keep
+        // the URL clean for subsequent navigation.
+        if (currentView === 'games' && (state.matchId || state.matchNr)) {
+            pendingScheduleFocus = {
+                matchId: state.matchId ? Number(state.matchId) : null,
+                matchNr: state.matchNr ? Number(state.matchNr) : null
+            };
+        }
 
         currentCmpTab = state.cmpTab || 'manager';
         cmpMgrA = state.cmpMgrA || '';
