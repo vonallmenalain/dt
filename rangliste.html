@@ -154,6 +154,71 @@
             letter-spacing: -1px;
         }
 
+        /* Last-update info, oben rechts in Hero */
+        .rl-hero-update {
+            position: absolute;
+            top: 36px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            max-width: 320px;
+            text-align: right;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 20;
+        }
+
+        .rl-hero-update-label {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: var(--green-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rl-hero-update-label::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green-light);
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+            animation: rlPulseDot 2.4s ease-in-out infinite;
+        }
+
+        @keyframes rlPulseDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+
+        .rl-hero-update-time {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .rl-hero-update-game {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+            max-width: 280px;
+        }
+
+        .rl-hero-update-game-teams {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
         .rl-hero-title .gold-text {
             background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold-dark));
             -webkit-background-clip: text;
@@ -1298,6 +1363,25 @@
                 font-size: clamp(1.5rem, 6vw, 2rem);
             }
 
+            .rl-hero-update {
+                position: static;
+                margin-top: 14px;
+                max-width: none;
+                width: 100%;
+                align-items: flex-start;
+                text-align: left;
+                padding: 9px 12px;
+            }
+
+            .rl-hero-update-time {
+                font-size: 0.85rem;
+            }
+
+            .rl-hero-update-game {
+                max-width: none;
+                font-size: 0.76rem;
+            }
+
             .rl-hero-stats {
                 gap: 8px;
             }
@@ -1523,6 +1607,13 @@
         <h1 id="ranking-title" class="rl-hero-title">
             <span class="gold-text">Rangliste</span>
         </h1>
+
+        <!-- Last-Update Info, oben rechts -->
+        <div class="rl-hero-update" id="rl-hero-update" style="display:none;" aria-live="polite">
+            <div class="rl-hero-update-label">Zuletzt aktualisiert</div>
+            <div class="rl-hero-update-time" id="rl-hero-update-time">—</div>
+            <div class="rl-hero-update-game" id="rl-hero-update-game"></div>
+        </div>
 
         <!-- Runden-Filter -->
         <div class="rl-round-filter" aria-label="Runden-Filter">
@@ -1995,7 +2086,11 @@
     }
 
     function computeRankingsWithHistory(teams, matchIds) {
-        const snapshotCount = Math.max(matchIds.length, 1);
+        // Vor dem ersten Spiel werden bewusst keine Verlaufseintraege erzeugt.
+        // Sonst wuerde der Graph bereits bei "0 Spielen" einen Wert zeigen,
+        // bei dem alle Manager 0 Punkte haben und nur alphabetisch sortiert
+        // sind.
+        const snapshotCount = matchIds.length;
         const labels = Array.from({ length: snapshotCount }, (_, i) => String(i + 1));
 
         teams.forEach(team => {
@@ -2048,8 +2143,17 @@
         }
 
         teams.forEach(team => {
+            if (!team.history.length) {
+                // Vor dem 1. Spiel: keine Rang-Statistiken berechnen
+                team.currentRank = null;
+                team.bestRank = null;
+                team.lowestRank = null;
+                team.averageRank = null;
+                return;
+            }
+
             const last = team.history[team.history.length - 1];
-            team.currentRank = last ? last.rank : 1;
+            team.currentRank = last ? last.rank : null;
             team.bestRank = Math.min(...team.history.map(h => h.rank));
             team.lowestRank = Math.max(...team.history.map(h => h.rank));
             const avg = team.history.reduce((sum, h) => sum + h.rank, 0) / team.history.length;
@@ -2510,22 +2614,25 @@
         titleEl.textContent = team.manager;
         pointsEl.textContent = `${team.totalScore} Pkt.`;
 
+        const fmtRank = (v) => (v === null || v === undefined ? "—" : v);
+        const fmtAvg = (v) => (v === null || v === undefined ? "—" : Number(v).toFixed(1));
+
         gridEl.innerHTML = `
             <div class="summary-stat">
                 <div class="summary-stat-title">Aktueller Rang</div>
-                <div class="summary-stat-value green">${team.currentRank}</div>
+                <div class="summary-stat-value green">${fmtRank(team.currentRank)}</div>
             </div>
             <div class="summary-stat">
                 <div class="summary-stat-title">Bester Rang</div>
-                <div class="summary-stat-value blue">${team.bestRank}</div>
+                <div class="summary-stat-value blue">${fmtRank(team.bestRank)}</div>
             </div>
             <div class="summary-stat">
                 <div class="summary-stat-title">Tiefster Rang</div>
-                <div class="summary-stat-value red">${team.lowestRank}</div>
+                <div class="summary-stat-value red">${fmtRank(team.lowestRank)}</div>
             </div>
             <div class="summary-stat">
                 <div class="summary-stat-title">Durchschnittsrang</div>
-                <div class="summary-stat-value gray">${team.averageRank.toFixed(1)}</div>
+                <div class="summary-stat-value gray">${fmtAvg(team.averageRank)}</div>
             </div>
             <div class="summary-stat">
                 <div class="summary-stat-title">Absolvierte Spiele</div>
@@ -2932,12 +3039,105 @@
         updateUrlState(true);
     }
 
+    function getLatestMatchIdFromPoints(points) {
+        let latest = null;
+        Object.values(points || {}).forEach(doc => {
+            if (!doc || typeof doc !== "object") return;
+            Object.entries(doc).forEach(([key, val]) => {
+                if (!key.startsWith("Spiel_") || !val || typeof val !== "object") return;
+                const mid = Number(val.MatchID);
+                if (!Number.isFinite(mid)) return;
+                if (latest === null || mid > latest) latest = mid;
+            });
+        });
+        return latest;
+    }
+
+    function findFixtureByMatchId(fixtures, matchId) {
+        if (matchId === null || matchId === undefined) return null;
+        const map = fixtures || {};
+        const direct = map[matchId] || map[String(matchId)];
+        if (direct && typeof direct === "object") return direct;
+        const target = String(matchId);
+        for (const fx of Object.values(map)) {
+            if (!fx || typeof fx !== "object") continue;
+            const fid = fx.fixtureId !== undefined && fx.fixtureId !== null ? String(fx.fixtureId) : null;
+            if (fid === target) return fx;
+        }
+        return null;
+    }
+
+    function formatUpdatedAt(ms) {
+        const d = new Date(ms);
+        if (Number.isNaN(d.getTime())) return "";
+        const today = new Date();
+        const isSameDay = d.getFullYear() === today.getFullYear()
+            && d.getMonth() === today.getMonth()
+            && d.getDate() === today.getDate();
+        const timeStr = d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+        if (isSameDay) {
+            return `Heute, ${timeStr} Uhr`;
+        }
+        const dateStr = d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
+        return `${dateStr}, ${timeStr} Uhr`;
+    }
+
+    function renderLastUpdateInfo(data) {
+        const containerEl = document.getElementById("rl-hero-update");
+        const timeEl = document.getElementById("rl-hero-update-time");
+        const gameEl = document.getElementById("rl-hero-update-game");
+        if (!containerEl || !timeEl || !gameEl) return;
+
+        const meta = data && data.meta;
+        const points = data && data.points;
+        const fixtures = data && data.fixtures;
+
+        const pointsUpdatedAt = meta && typeof meta.pointsUpdatedAt === "number" ? meta.pointsUpdatedAt : null;
+        const teamsUpdatedAt = meta && typeof meta.teamsUpdatedAt === "number" ? meta.teamsUpdatedAt : null;
+        const fallbackUpdatedAt = pointsUpdatedAt || teamsUpdatedAt;
+
+        const latestMatchId = getLatestMatchIdFromPoints(points);
+
+        if (!fallbackUpdatedAt && latestMatchId === null) {
+            containerEl.style.display = "none";
+            return;
+        }
+
+        containerEl.style.display = "";
+
+        if (fallbackUpdatedAt) {
+            timeEl.textContent = formatUpdatedAt(fallbackUpdatedAt);
+        } else {
+            timeEl.textContent = "—";
+        }
+
+        if (latestMatchId !== null) {
+            const sortedAllMatchIds = Array.from(new Set(allMatchIdsRaw)).sort((a, b) => a - b);
+            const spielNr = sortedAllMatchIds.indexOf(latestMatchId) + 1;
+            const fixture = findFixtureByMatchId(fixtures, latestMatchId);
+
+            if (fixture && fixture.teams) {
+                const home = fixture.teams.home && fixture.teams.home.name ? fixture.teams.home.name : "?";
+                const away = fixture.teams.away && fixture.teams.away.name ? fixture.teams.away.name : "?";
+                const labelPrefix = spielNr > 0 ? `Spiel ${spielNr}` : `Spiel #${latestMatchId}`;
+                gameEl.innerHTML = `${escapeHtml(labelPrefix)}: <span class="rl-hero-update-game-teams">${escapeHtml(home)} – ${escapeHtml(away)}</span>`;
+            } else {
+                const labelPrefix = spielNr > 0 ? `Spiel ${spielNr}` : `Spiel #${latestMatchId}`;
+                gameEl.textContent = labelPrefix;
+            }
+        } else {
+            gameEl.textContent = "Noch keine Spielpunkte erfasst";
+        }
+    }
+
     function applyRankingData(data) {
         lastRawData = data;
         matchIdRoundMap = buildMatchIdRoundMap(data.fixtures || {});
 
         const { matchIds: extractedMatchIds } = extractMatchData(data.points || {});
         allMatchIdsRaw = extractedMatchIds;
+
+        renderLastUpdateInfo(data);
 
         // Diagnostik fuer manuelle Pruefung in der Browser-Konsole.
         window.__ranglisteDebug = {
