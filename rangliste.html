@@ -230,6 +230,36 @@
             font-weight: 600;
         }
 
+        /* Clickable last-update game link – navigates to Analyse/Spiele
+           with the matching game expanded. */
+        a.rl-hero-update-game-link {
+            display: inline-block;
+            text-decoration: none;
+            color: inherit;
+            border-radius: 8px;
+            padding: 2px 4px;
+            margin: -2px -4px;
+            transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+            cursor: pointer;
+        }
+
+        a.rl-hero-update-game-link:hover,
+        a.rl-hero-update-game-link:focus-visible {
+            background: rgba(74, 222, 128, 0.10);
+            box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35);
+            outline: none;
+        }
+
+        a.rl-hero-update-game-link:hover .rl-hero-update-game-label,
+        a.rl-hero-update-game-link:focus-visible .rl-hero-update-game-label {
+            color: var(--green-light);
+        }
+
+        a.rl-hero-update-game-link:hover .rl-hero-update-game-teams,
+        a.rl-hero-update-game-link:focus-visible .rl-hero-update-game-teams {
+            color: var(--text-main);
+        }
+
         .rl-hero-title .gold-text {
             background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold-dark));
             -webkit-background-clip: text;
@@ -3173,13 +3203,29 @@
             }
 
             const labelPrefix = spielNr > 0 ? `Spiel ${spielNr}` : `Spiel #${latestMatchId}`;
-            if (homeName && awayName) {
-                gameEl.innerHTML =
-                    `<span class="rl-hero-update-game-label">${escapeHtml(labelPrefix)}:</span>` +
-                    `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} – ${escapeHtml(awayName)}</span>`;
-            } else {
-                gameEl.textContent = labelPrefix;
-            }
+
+            // Build link target: open Analyse/Spiele with the relevant
+            // game pre-expanded. Pass both matchId (rawMatchId / fixtureId)
+            // and the human-readable Spiel-Nr. so the receiving view can
+            // resolve the card via either signal.
+            const linkParams = new URLSearchParams();
+            linkParams.set("view", "games");
+            linkParams.set("matchId", String(latestMatchId));
+            if (spielNr > 0) linkParams.set("matchNr", String(spielNr));
+            const href = `spieleranalyse.html?${linkParams.toString()}`;
+            const titleText = homeName && awayName
+                ? `${labelPrefix}: ${homeName} – ${awayName} in der Spiele-Analyse öffnen`
+                : `${labelPrefix} in der Spiele-Analyse öffnen`;
+
+            const inner = (homeName && awayName)
+                ? `<span class="rl-hero-update-game-label">${escapeHtml(labelPrefix)}:</span>` +
+                  `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} – ${escapeHtml(awayName)}</span>`
+                : escapeHtml(labelPrefix);
+
+            gameEl.innerHTML =
+                `<a class="rl-hero-update-game-link" href="${href}" ` +
+                `title="${escapeHtml(titleText)}" ` +
+                `aria-label="${escapeHtml(titleText)}">${inner}</a>`;
         } else {
             gameEl.textContent = "Noch keine Spielpunkte erfasst";
         }
