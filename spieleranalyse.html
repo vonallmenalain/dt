@@ -3166,6 +3166,13 @@
             display: block;
         }
 
+        /* When the card is expanded, the same drafted players are listed
+           below in larger cards, so hide the small preview avatars to
+           avoid visual duplication. */
+        .sc-card.is-expanded .sc-player-avatars {
+            display: none;
+        }
+
         .sc-team-logo {
             width: 28px;
             height: 28px;
@@ -3406,8 +3413,35 @@
         }
 
         .sc-player-card.drafted {
-            border-color: rgba(34,197,94,0.35);
-            background: rgba(34,197,94,0.07);
+            border-color: rgba(74,222,128,0.55);
+            background: rgba(34,197,94,0.12);
+            box-shadow: 0 0 0 1px rgba(74,222,128,0.25) inset;
+        }
+
+        /* Visually mute non-drafted (non-managerwahl) players so the
+           manager-relevant cards stand out at a glance. */
+        .sc-player-card:not(.drafted) {
+            opacity: 0.78;
+        }
+
+        .sc-player-card:not(.drafted):hover,
+        .sc-player-card:not(.drafted):focus-within {
+            opacity: 1;
+        }
+
+        .sc-expanded-note-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 8px;
+            margin: 0 2px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            background: rgba(34,197,94,0.18);
+            border: 1px solid rgba(74,222,128,0.5);
+            color: var(--green-light);
+            line-height: 1.4;
+            vertical-align: baseline;
         }
 
         .sc-player-card-main {
@@ -5594,21 +5628,47 @@
         return fallback;
     }
 
-    function getDraftedPlayersForExpandedView(m, mc, teamName) {
-        // Expanded body shows ONLY players that have been chosen by at least
-        // one manager. Sorted by position (GK → DEF → MID → ATT), then by
-        // points desc, then by name.
+    function getAllPlayersForExpandedView(m, mc, teamName) {
+        // Expanded body shows ALL players of the nation that scored
+        // points in this match (i.e. appeared in the points data). Sorted
+        // by position (GK → DEF → MID → ATT); within a position the
+        // manager-selected players are listed first so they stand out at
+        // the top of the section, then everyone else by points desc.
+        if (mc) {
+            const players = (mc.playersByNation?.[teamName] || []).slice();
+            if (players.length) {
+                players.sort((a, b) => {
+                    const posA = getSchedulePositionSortKey(a);
+                    const posB = getSchedulePositionSortKey(b);
+                    if (posA !== posB) return posA - posB;
+                    const drA = a.drafted ? 1 : 0;
+                    const drB = b.drafted ? 1 : 0;
+                    if (drA !== drB) return drB - drA;
+                    const ptsA = Number(a.totalPoints) || 0;
+                    const ptsB = Number(b.totalPoints) || 0;
+                    if (ptsA !== ptsB) return ptsB - ptsA;
+                    return (a.name || '').localeCompare(b.name || '', 'de');
+                });
+                return players;
+            }
+        }
+        // Upcoming match without points data yet → show drafted players
+        // for that nation as a sensible fallback (same as before).
         const drafted = getDraftedPlayersForScheduleTeam(m, mc, teamName).slice();
         drafted.sort((a, b) => {
             const posA = getSchedulePositionSortKey(a);
             const posB = getSchedulePositionSortKey(b);
             if (posA !== posB) return posA - posB;
-            const ptsA = Number(a.totalPoints) || 0;
-            const ptsB = Number(b.totalPoints) || 0;
-            if (ptsA !== ptsB) return ptsB - ptsA;
             return (a.name || '').localeCompare(b.name || '', 'de');
         });
         return drafted;
+    }
+
+    function getFirstName(name) {
+        const s = String(name || '').trim();
+        if (!s) return '';
+        const first = s.split(/\s+/)[0];
+        return first || s;
     }
 
     // Build the "selected by managers" block for a schedule player card.
@@ -5630,11 +5690,15 @@
             const label = m.isCaptain
                 ? `${m.manager} (Captain) – Team öffnen`
                 : `${m.manager} – Team öffnen`;
+            // Show only the first name in the chip to keep the cards
+            // narrow on small viewports; the full name is still in the
+            // tooltip and aria-label for accessibility.
+            const display = getFirstName(m.manager);
             return `<a href="${href}"
                 class="sc-mgr-chip${cap}${extraCls ? ' ' + extraCls : ''}"
                 onclick="event.stopPropagation();"
                 title="${escapeHtml(label)}"
-                aria-label="${escapeHtml(label)}">${capIcon}<span class="sc-mgr-name">${escapeHtml(m.manager)}</span></a>`;
+                aria-label="${escapeHtml(label)}">${capIcon}<span class="sc-mgr-name">${escapeHtml(display)}</span></a>`;
         };
 
         const countLabel = total === 1 ? '1 Manager' : `${total} Manager`;
@@ -5718,8 +5782,8 @@
 
     function renderExpandedScheduleBody(m, mc) {
         const hasMatchData = !!mc;
-        const homePlayers = getDraftedPlayersForExpandedView(m, mc, m.teamA);
-        const awayPlayers = getDraftedPlayersForExpandedView(m, mc, m.teamB);
+        const homePlayers = getAllPlayersForExpandedView(m, mc, m.teamA);
+        const awayPlayers = getAllPlayersForExpandedView(m, mc, m.teamB);
 
         const homeFlagUrl = getNationFlag(m.teamA);
         const awayFlagUrl = getNationFlag(m.teamB);
@@ -5730,7 +5794,7 @@
             ? `<img class="sc-expanded-team-logo" src="${escapeHtml(m.teamBLogo || awayFlagUrl)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
             : `<span class="sc-team-logo-placeholder">🏳️</span>`;
 
-        const emptyMsg = `<div class="sc-expanded-empty">Kein Manager hat einen Spieler dieses Teams gewählt.</div>`;
+        const emptyMsg = `<div class="sc-expanded-empty">Keine Spieler erfasst.</div>`;
         const homeBody = homePlayers.length
             ? homePlayers.map(p => renderSchedulePlayerCard(p, hasMatchData)).join('')
             : emptyMsg;
@@ -5739,7 +5803,7 @@
             : emptyMsg;
 
         const note = hasMatchData
-            ? `<div class="sc-expanded-note">Angezeigt sind nur die von Managern ausgewählten Spieler, sortiert nach Position.</div>`
+            ? `<div class="sc-expanded-note">Alle Spieler mit Punkten – die <span class="sc-expanded-note-pill">Managerwahl</span> ist grün hervorgehoben.</div>`
             : `<div class="sc-expanded-note">Noch keine Spielpunkte erfasst – angezeigt sind die gedrafteten Spieler der Nationen, sortiert nach Position.</div>`;
 
         return `<div class="sc-expanded-body">
@@ -5774,6 +5838,19 @@
                 <div style="font-size:0.8rem;color:rgba(139,148,158,0.6);margin-top:4px;">Bitte zuerst Spielplan über Admin synchronisieren.</div>
             </div>`;
             return;
+        }
+
+        function renderScheduleAvatars(players, alignRight = false) {
+            if (!players || !players.length) return '';
+            const avatarsHtml = players.map(p => {
+                const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
+                if (!photo) return '';
+                const nameEncoded = encodeURIComponent(p.name);
+                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
+            }).filter(Boolean).join('');
+            if (!avatarsHtml) return '';
+            const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
+            return `<div class="${cls}">${avatarsHtml}</div>`;
         }
 
         // Filter by nation if selected
@@ -5875,10 +5952,15 @@
                 const isExpanded = expandedScheduleMatchKeys.has(matchKey);
                 const spielNrLabel = mc && mc.number ? `Spiel ${mc.number}` : '';
 
-                // Drafted-player avatars are no longer rendered in the collapsed
-                // card: they duplicate the player cards shown when the entry is
-                // expanded. The expanded view (drafted-only, sorted by position)
-                // is now the single source of truth for "who plays here".
+                // Small drafted-player avatars are shown in the collapsed
+                // card as a quick visual hint of "who from my managers'
+                // selection is on the pitch here". They get hidden via
+                // CSS once the card is expanded, since the expanded view
+                // re-renders the same players in larger cards.
+                const homeDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamA);
+                const awayDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamB);
+                const homeAvatars = renderScheduleAvatars(homeDrafted, false);
+                const awayAvatars = renderScheduleAvatars(awayDrafted, true);
 
                 const ariaLabel = `${spielNrLabel ? spielNrLabel + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
 
@@ -5899,6 +5981,7 @@
                                 ${homeLogo}
                                 <span class="sc-team-name">${escapeHtml(m.teamA)}</span>
                             </div>
+                            ${homeAvatars}
                         </div>
                         <div class="sc-center">
                             ${centerHtml}
@@ -5911,6 +5994,7 @@
                                 <span class="sc-team-name">${escapeHtml(m.teamB)}</span>
                                 ${awayLogo}
                             </div>
+                            ${awayAvatars}
                         </div>
                         <span class="sc-card-toggle" aria-hidden="true">▾</span>
                     </div>
@@ -5924,6 +6008,16 @@
         el.innerHTML = html;
         syncSidebarHeight();
         applyPendingScheduleFocus();
+    }
+
+    // Track an active "auto-scroll to a focused match" so deferred attempts
+    // can be cancelled if the user starts scrolling manually or navigates
+    // away to another card.
+    let scheduleFocusKey = null;
+    let scheduleFocusCancelled = false;
+    function cancelScheduleFocusFollowUps() {
+        scheduleFocusCancelled = true;
+        scheduleFocusKey = null;
     }
 
     function applyPendingScheduleFocus() {
@@ -5952,11 +6046,45 @@
         void target.offsetWidth;
         target.classList.add('is-focus-flash');
 
-        requestAnimationFrame(() => {
-            scrollElementToTop(target, { smooth: true });
-        });
-
+        // The target may be at the very bottom of a long list (e.g. the
+        // EM 2024 Finalspiel) and lazy-loaded flag/photo images can shift
+        // the layout after our first scroll attempt. We therefore use an
+        // INSTANT scroll (smooth scrolling can also be cancelled by
+        // browser scroll-restoration on first paint) and re-apply it
+        // after a short delay so we still land on the card after images
+        // have settled. A user-initiated scroll cancels the follow-up
+        // attempts so we don't fight the user.
         pendingScheduleFocus = null;
+        scheduleFocusKey = key || null;
+        scheduleFocusCancelled = false;
+
+        const performScroll = () => {
+            if (scheduleFocusCancelled) return;
+            if (scheduleFocusKey !== key) return;
+            const list = document.getElementById('schedule-list');
+            if (!list) return;
+            const node = key
+                ? (list.querySelector(`.sc-card[data-match-key="${(window.CSS && CSS.escape) ? CSS.escape(key) : key}"]`) || target)
+                : target;
+            if (node) scrollElementToTop(node, { smooth: false });
+        };
+
+        requestAnimationFrame(() => {
+            performScroll();
+            setTimeout(performScroll, 60);
+            setTimeout(performScroll, 250);
+            setTimeout(performScroll, 700);
+        });
+    }
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener('wheel', cancelScheduleFocusFollowUps, { passive: true });
+        window.addEventListener('touchmove', cancelScheduleFocusFollowUps, { passive: true });
+        window.addEventListener('keydown', (e) => {
+            if (['PageDown', 'PageUp', 'Home', 'End', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
+                cancelScheduleFocusFollowUps();
+            }
+        });
     }
 
     window.toggleScheduleCard = function(cardEl) {
