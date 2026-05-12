@@ -1,0 +1,15 @@
+{
+  "name": "dt-auto-points-upload",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Server-seitiges Cron-Script für automatischen Punkte-Upload (DreamTeam).",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "auto-upload": "node auto-points-upload.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
