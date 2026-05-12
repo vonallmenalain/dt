@@ -1,0 +1,83 @@
+name: Auto Punkte-Upload
+
+# Vollautomatisches Punkte-Update für das aktive Turnier.
+#
+# Läuft alle 5 Minuten als GitHub-Cron-Job (zusätzlich manuell auslösbar
+# via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check, der
+# überprüft, ob im aktuellen Tick überhaupt ein Spiel im Trigger-Fenster
+# liegt – ist dem nicht so, wird KEIN API-Call abgesetzt. So bleibt die
+# RapidAPI-Quota geschont, obwohl der Cron permanent tickt.
+#
+# Benötigte Repo-Secrets (Settings → Secrets and variables → Actions):
+#   RAPIDAPI_KEY               RapidAPI / API-Football Key
+#   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON (komplette JSON-Datei
+#                              als String – nicht Base64).
+#
+# Optionale Repo-Variables (Settings → Secrets and variables → Actions
+# → Variables-Tab) zur Feinjustierung ohne Code-Edit:
+#   AUTO_UPLOAD_TOURNAMENT_KEY   z.B. "wm2026" oder "em2024" (Default: wm2026)
+#   AUTO_UPLOAD_WINDOW_START_MIN Default 100 – untere Grenze des Trigger-Fensters
+#                                in Minuten nach Anstoss (≈ Spielende regulär).
+#   AUTO_UPLOAD_WINDOW_END_MIN   Default 260 – obere Grenze (deckt n.V./Elfm.
+#                                und mehrere Polling-Versuche ab).
+on:
+  schedule:
+    # Alle 5 Minuten. Hinweis: GitHub-Cron ist UTC und kann sich bei
+    # hoher Plattformlast um wenige Minuten verzögern – der Pre-Check
+    # im Skript fängt das ab (Trigger-Fenster ist breit genug).
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      tournament_key:
+        description: "Turnier-Key (z.B. wm2026, em2024). Leer = Default aus Variables/wm2026."
+        required: false
+        type: string
+        default: ""
+      force_run:
+        description: "Pre-Check überspringen und Workflow erzwingen (Catch-Up)."
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: "Nichts in Firestore schreiben – nur Logs."
+        required: false
+        type: boolean
+        default: false
+
+# Verhindert, dass sich zwei Cron-Läufe überschneiden, falls einer länger
+# als 5 Minuten dauert.
+concurrency:
+  group: auto-points-upload-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package.json
+
+      - name: Install script dependencies
+        working-directory: scripts
+        run: npm install --no-audit --no-fund --omit=dev
+
+      - name: Run auto points upload
+        working-directory: scripts
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || (vars.AUTO_UPLOAD_TOURNAMENT_KEY != '' && vars.AUTO_UPLOAD_TOURNAMENT_KEY || 'wm2026') }}
+          WINDOW_START_MIN: ${{ vars.AUTO_UPLOAD_WINDOW_START_MIN != '' && vars.AUTO_UPLOAD_WINDOW_START_MIN || '100' }}
+          WINDOW_END_MIN: ${{ vars.AUTO_UPLOAD_WINDOW_END_MIN != '' && vars.AUTO_UPLOAD_WINDOW_END_MIN || '260' }}
+          FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
+        run: node auto-points-upload.js
