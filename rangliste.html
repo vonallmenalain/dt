@@ -2722,7 +2722,9 @@
 
     function openGameInPlayerAnalysis(gameNumber) {
         if (!gameNumber) return;
-        window.location.href = `spieleranalyse.html?view=games&openGame=${encodeURIComponent(gameNumber)}`;
+        // `matchNr` is the Spielnummer (1-based, chronological) used by the
+        // schedule view to auto-expand AND scroll/focus the matching card.
+        window.location.href = `spieleranalyse.html?view=games&matchNr=${encodeURIComponent(gameNumber)}`;
     }
 
     function getNearestGameNumberFromChartEvent(event) {

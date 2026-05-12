@@ -3385,32 +3385,170 @@
         .sc-player-card {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             gap: 6px;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
-            padding: 12px 8px 10px;
-            text-decoration: none;
+            padding: 10px 8px;
             color: inherit;
-            cursor: pointer;
             transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
             text-align: center;
             min-width: 0;
         }
 
         .sc-player-card:hover,
-        .sc-player-card:focus-visible {
+        .sc-player-card:focus-within {
             transform: translateY(-2px);
             border-color: rgba(74,222,128,0.45);
             background: rgba(34,197,94,0.08);
             box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-            outline: none;
         }
 
         .sc-player-card.drafted {
             border-color: rgba(34,197,94,0.35);
             background: rgba(34,197,94,0.07);
+        }
+
+        .sc-player-card-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            padding: 2px;
+            margin: 0;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            width: 100%;
+            text-align: center;
+            min-width: 0;
+        }
+
+        .sc-player-card-main:focus-visible {
+            outline: 2px solid rgba(74,222,128,0.55);
+            outline-offset: 2px;
+            border-radius: 8px;
+        }
+
+        /* Manager chips block (per player card) */
+        .sc-mgr-block {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 4px;
+            margin-top: 4px;
+            padding-top: 6px;
+            border-top: 1px dashed rgba(255,255,255,0.08);
+            text-align: left;
+        }
+
+        .sc-mgr-head {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .sc-mgr-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sc-mgr-list[hidden] {
+            display: none;
+        }
+
+        .sc-mgr-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            line-height: 1.3;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            text-decoration: none;
+            max-width: 100%;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        }
+
+        .sc-mgr-chip:hover {
+            background: rgba(34,197,94,0.14);
+            border-color: rgba(34,197,94,0.4);
+            color: var(--green-light);
+            transform: translateY(-1px);
+        }
+
+        .sc-mgr-chip.is-captain {
+            border-color: rgba(250,204,21,0.45);
+            background: rgba(250,204,21,0.10);
+        }
+
+        .sc-mgr-chip.is-captain:hover {
+            background: rgba(250,204,21,0.18);
+            border-color: rgba(250,204,21,0.65);
+            color: #fde68a;
+        }
+
+        .sc-mgr-cap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: rgba(250,204,21,0.85);
+            color: #1a1a1a;
+            font-size: 0.55rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .sc-mgr-name {
+            max-width: 110px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sc-mgr-more,
+        .sc-mgr-less {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            line-height: 1.3;
+            background: rgba(74,222,128,0.12);
+            border: 1px solid rgba(74,222,128,0.35);
+            color: var(--green-light);
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .sc-mgr-more:hover,
+        .sc-mgr-less:hover {
+            background: rgba(74,222,128,0.22);
+            transform: translateY(-1px);
+        }
+
+        .sc-mgr-list-extra {
+            background: rgba(255,255,255,0.025);
+            border-radius: 8px;
+            padding: 6px 6px 4px;
         }
 
         .sc-player-card-photo {
@@ -4152,6 +4290,9 @@
     let matchCatalog = [];
     let matchByNumber = new Map();
     let playerSelectedMap = new Map();
+    // Map<playerIdString, Array<{ manager: string, isCaptain: boolean }>>
+    // Used to show "selected by which managers" in the expanded schedule view.
+    let playerManagersMap = new Map();
 
     // Schedule (Spiele) expandable cards: track which match cards are
     // currently expanded and a pending focus target (e.g. when arriving
@@ -4609,12 +4750,27 @@
        ========================================================= */
     function buildPlayerSelectedMap() {
         playerSelectedMap = new Map();
+        playerManagersMap = new Map();
         allTeams.forEach(team => {
+            const manager = team.manager || 'Unbekannt';
             (team.players || []).forEach(tp => {
                 const key = String(tp.playerId);
                 playerSelectedMap.set(key, (playerSelectedMap.get(key) || 0) + 1);
+                if (!playerManagersMap.has(key)) playerManagersMap.set(key, []);
+                playerManagersMap.get(key).push({ manager, isCaptain: !!tp.isCaptain });
             });
         });
+        // Sort managers alphabetically; captains first within the same player for emphasis.
+        playerManagersMap.forEach(list => {
+            list.sort((a, b) => {
+                if (a.isCaptain !== b.isCaptain) return a.isCaptain ? -1 : 1;
+                return a.manager.localeCompare(b.manager, 'de');
+            });
+        });
+    }
+
+    function getManagersForPlayer(playerId) {
+        return playerManagersMap.get(String(playerId)) || [];
     }
 
     function isPlayerDrafted(playerId) {
@@ -5384,6 +5540,30 @@
         ) || null;
     }
 
+    // Sort order for positions in the expanded schedule view. Lower = first.
+    const SCHEDULE_POSITION_SORT = {
+        GOALKEEPER: 0,
+        DEFENDER: 1,
+        MIDFIELDER: 2,
+        ATTACKER: 3,
+        FORWARD: 3
+    };
+
+    function getSchedulePositionSortKey(player) {
+        // Try the canonical Position from playersData first (always uppercase enum),
+        // fall back to the (potentially translated) `position` string on the entry.
+        const full = player.playerId ? getPlayerById(player.playerId) : null;
+        const raw = (full && full.Position) || player.position || '';
+        const upper = String(raw).toUpperCase();
+        if (SCHEDULE_POSITION_SORT[upper] !== undefined) return SCHEDULE_POSITION_SORT[upper];
+        // Map common German translations (used in matchCatalog) back to sort order.
+        if (raw === 'Torwart') return 0;
+        if (raw === 'Verteidiger') return 1;
+        if (raw === 'Mittelfeldspieler') return 2;
+        if (raw === 'Stürmer') return 3;
+        return 99;
+    }
+
     function getDraftedPlayersForScheduleTeam(m, mc, teamName) {
         // Prefer drafted players from a played match (matchCatalog) – has
         // actual match-day points / line-up information.
@@ -5414,22 +5594,76 @@
         return fallback;
     }
 
-    function getAllPlayersForScheduleTeam(m, mc, teamName) {
-        // Used for the expanded body: every player of the nation that
-        // appeared in this match (from matchCatalog), or, if the match has
-        // no point data yet, every drafted player of that nation as a
-        // sensible fallback.
-        if (mc) {
-            const players = (mc.playersByNation?.[teamName] || []).slice();
-            if (players.length) {
-                players.sort((a, b) => {
-                    if ((b.totalPoints || 0) !== (a.totalPoints || 0)) return (b.totalPoints || 0) - (a.totalPoints || 0);
-                    return a.name.localeCompare(b.name, 'de');
-                });
-                return players;
-            }
+    function getDraftedPlayersForExpandedView(m, mc, teamName) {
+        // Expanded body shows ONLY players that have been chosen by at least
+        // one manager. Sorted by position (GK → DEF → MID → ATT), then by
+        // points desc, then by name.
+        const drafted = getDraftedPlayersForScheduleTeam(m, mc, teamName).slice();
+        drafted.sort((a, b) => {
+            const posA = getSchedulePositionSortKey(a);
+            const posB = getSchedulePositionSortKey(b);
+            if (posA !== posB) return posA - posB;
+            const ptsA = Number(a.totalPoints) || 0;
+            const ptsB = Number(b.totalPoints) || 0;
+            if (ptsA !== ptsB) return ptsB - ptsA;
+            return (a.name || '').localeCompare(b.name || '', 'de');
+        });
+        return drafted;
+    }
+
+    // Build the "selected by managers" block for a schedule player card.
+    // - 0 managers: returns empty string (no block).
+    // - 1-INLINE managers: shown as inline chips (alphabetical, captain marked).
+    // - more: show INLINE_COUNT chips + a "+N" toggle that expands to the full
+    //   list inside the same card without collapsing the schedule entry.
+    function renderSchedulePlayerManagers(playerId) {
+        const managers = getManagersForPlayer(playerId);
+        if (!managers.length) return '';
+
+        const INLINE_LIMIT = 3;
+        const total = managers.length;
+
+        const renderChip = (m, extraCls = '') => {
+            const cap = m.isCaptain ? ' is-captain' : '';
+            const capIcon = m.isCaptain ? '<span class="sc-mgr-cap" title="Captain">C</span>' : '';
+            const href = `teams.html?manager=${encodeURIComponent(m.manager)}`;
+            const label = m.isCaptain
+                ? `${m.manager} (Captain) – Team öffnen`
+                : `${m.manager} – Team öffnen`;
+            return `<a href="${href}"
+                class="sc-mgr-chip${cap}${extraCls ? ' ' + extraCls : ''}"
+                onclick="event.stopPropagation();"
+                title="${escapeHtml(label)}"
+                aria-label="${escapeHtml(label)}">${capIcon}<span class="sc-mgr-name">${escapeHtml(m.manager)}</span></a>`;
+        };
+
+        const countLabel = total === 1 ? '1 Manager' : `${total} Manager`;
+
+        if (total <= INLINE_LIMIT) {
+            const chips = managers.map(m => renderChip(m)).join('');
+            return `<div class="sc-mgr-block" data-total="${total}">
+                <div class="sc-mgr-head">${escapeHtml(countLabel)}</div>
+                <div class="sc-mgr-list">${chips}</div>
+            </div>`;
         }
-        return getDraftedPlayersForScheduleTeam(m, mc, teamName);
+
+        const preview = managers.slice(0, INLINE_LIMIT).map(m => renderChip(m, 'sc-mgr-chip-preview')).join('');
+        const allChips = managers.map(m => renderChip(m, 'sc-mgr-chip-full')).join('');
+        const extraCount = total - INLINE_LIMIT;
+        return `<div class="sc-mgr-block sc-mgr-block-collapsible" data-total="${total}">
+            <div class="sc-mgr-head">${escapeHtml(countLabel)}</div>
+            <div class="sc-mgr-list sc-mgr-list-preview">${preview}<button type="button"
+                class="sc-mgr-more"
+                aria-expanded="false"
+                aria-label="${extraCount} weitere Manager anzeigen"
+                onclick="event.stopPropagation(); toggleSchedulePlayerManagers(this)"
+            >+${extraCount}</button></div>
+            <div class="sc-mgr-list sc-mgr-list-extra" hidden>${allChips}<button type="button"
+                class="sc-mgr-less"
+                aria-label="Weitere Manager ausblenden"
+                onclick="event.stopPropagation(); toggleSchedulePlayerManagers(this)"
+            >Weniger</button></div>
+        </div>`;
     }
 
     function renderSchedulePlayerCard(p, hasMatchData) {
@@ -5446,21 +5680,46 @@
         const photoHtml = photo
             ? `<img src="${escapeHtml(photo)}" class="sc-player-card-photo" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.visibility='hidden'">`
             : `<div class="sc-player-card-photo" aria-hidden="true" style="display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--text-muted);">👤</div>`;
-        return `<button type="button" class="sc-player-card${draftedCls}"
+        const managersHtml = renderSchedulePlayerManagers(p.playerId);
+        return `<div class="sc-player-card${draftedCls}">
+            <button type="button" class="sc-player-card-main"
                 onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${nameEncoded}'))"
                 title="${escapeHtml(p.name)} – Spieler-Analyse öffnen"
                 aria-label="${escapeHtml(p.name)} – Spieler-Analyse öffnen">
-            ${photoHtml}
-            <div class="sc-player-card-name">${escapeHtml(p.name)}</div>
-            ${p.position ? `<div class="sc-player-card-meta">${escapeHtml(p.position)}</div>` : ''}
-            <div class="sc-player-card-pts ${ptsClass}">${escapeHtml(ptsLabel)}</div>
-        </button>`;
+                ${photoHtml}
+                <div class="sc-player-card-name">${escapeHtml(p.name)}</div>
+                ${p.position ? `<div class="sc-player-card-meta">${escapeHtml(p.position)}</div>` : ''}
+                <div class="sc-player-card-pts ${ptsClass}">${escapeHtml(ptsLabel)}</div>
+            </button>
+            ${managersHtml}
+        </div>`;
     }
+
+    window.toggleSchedulePlayerManagers = function(btn) {
+        if (!btn) return;
+        const block = btn.closest('.sc-mgr-block-collapsible');
+        if (!block) return;
+        const preview = block.querySelector('.sc-mgr-list-preview');
+        const extra = block.querySelector('.sc-mgr-list-extra');
+        const moreBtn = block.querySelector('.sc-mgr-more');
+        if (!preview || !extra) return;
+        const isExpanded = !extra.hasAttribute('hidden');
+        if (isExpanded) {
+            extra.setAttribute('hidden', '');
+            preview.removeAttribute('hidden');
+            if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
+        } else {
+            preview.setAttribute('hidden', '');
+            extra.removeAttribute('hidden');
+            if (moreBtn) moreBtn.setAttribute('aria-expanded', 'true');
+        }
+        if (typeof syncSidebarHeight === 'function') syncSidebarHeight();
+    };
 
     function renderExpandedScheduleBody(m, mc) {
         const hasMatchData = !!mc;
-        const homePlayers = getAllPlayersForScheduleTeam(m, mc, m.teamA);
-        const awayPlayers = getAllPlayersForScheduleTeam(m, mc, m.teamB);
+        const homePlayers = getDraftedPlayersForExpandedView(m, mc, m.teamA);
+        const awayPlayers = getDraftedPlayersForExpandedView(m, mc, m.teamB);
 
         const homeFlagUrl = getNationFlag(m.teamA);
         const awayFlagUrl = getNationFlag(m.teamB);
@@ -5471,16 +5730,17 @@
             ? `<img class="sc-expanded-team-logo" src="${escapeHtml(m.teamBLogo || awayFlagUrl)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
             : `<span class="sc-team-logo-placeholder">🏳️</span>`;
 
+        const emptyMsg = `<div class="sc-expanded-empty">Kein Manager hat einen Spieler dieses Teams gewählt.</div>`;
         const homeBody = homePlayers.length
             ? homePlayers.map(p => renderSchedulePlayerCard(p, hasMatchData)).join('')
-            : `<div class="sc-expanded-empty">Keine Spieler erfasst.</div>`;
+            : emptyMsg;
         const awayBody = awayPlayers.length
             ? awayPlayers.map(p => renderSchedulePlayerCard(p, hasMatchData)).join('')
-            : `<div class="sc-expanded-empty">Keine Spieler erfasst.</div>`;
+            : emptyMsg;
 
         const note = hasMatchData
-            ? ''
-            : `<div class="sc-expanded-note">Noch keine Spielpunkte erfasst – angezeigt sind die gedrafteten Spieler der Nationen.</div>`;
+            ? `<div class="sc-expanded-note">Angezeigt sind nur die von Managern ausgewählten Spieler, sortiert nach Position.</div>`
+            : `<div class="sc-expanded-note">Noch keine Spielpunkte erfasst – angezeigt sind die gedrafteten Spieler der Nationen, sortiert nach Position.</div>`;
 
         return `<div class="sc-expanded-body">
             <div class="sc-expanded-grid">
@@ -5514,19 +5774,6 @@
                 <div style="font-size:0.8rem;color:rgba(139,148,158,0.6);margin-top:4px;">Bitte zuerst Spielplan über Admin synchronisieren.</div>
             </div>`;
             return;
-        }
-
-        function renderScheduleAvatars(players, alignRight = false) {
-            if (!players.length) return '';
-            const avatarsHtml = players.map(p => {
-                const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
-                if (!photo) return '';
-                const nameEncoded = encodeURIComponent(p.name);
-                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
-            }).filter(Boolean).join('');
-            if (!avatarsHtml) return '';
-            const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
-            return `<div class="${cls}">${avatarsHtml}</div>`;
         }
 
         // Filter by nation if selected
@@ -5628,10 +5875,10 @@
                 const isExpanded = expandedScheduleMatchKeys.has(matchKey);
                 const spielNrLabel = mc && mc.number ? `Spiel ${mc.number}` : '';
 
-                const homeDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamA);
-                const awayDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamB);
-                const homeAvatars = renderScheduleAvatars(homeDrafted, false);
-                const awayAvatars = renderScheduleAvatars(awayDrafted, true);
+                // Drafted-player avatars are no longer rendered in the collapsed
+                // card: they duplicate the player cards shown when the entry is
+                // expanded. The expanded view (drafted-only, sorted by position)
+                // is now the single source of truth for "who plays here".
 
                 const ariaLabel = `${spielNrLabel ? spielNrLabel + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
 
@@ -5652,7 +5899,6 @@
                                 ${homeLogo}
                                 <span class="sc-team-name">${escapeHtml(m.teamA)}</span>
                             </div>
-                            ${homeAvatars}
                         </div>
                         <div class="sc-center">
                             ${centerHtml}
@@ -5665,7 +5911,6 @@
                                 <span class="sc-team-name">${escapeHtml(m.teamB)}</span>
                                 ${awayLogo}
                             </div>
-                            ${awayAvatars}
                         </div>
                         <span class="sc-card-toggle" aria-hidden="true">▾</span>
                     </div>
