@@ -5574,30 +5574,6 @@
         ) || null;
     }
 
-    // Sort order for positions in the expanded schedule view. Lower = first.
-    const SCHEDULE_POSITION_SORT = {
-        GOALKEEPER: 0,
-        DEFENDER: 1,
-        MIDFIELDER: 2,
-        ATTACKER: 3,
-        FORWARD: 3
-    };
-
-    function getSchedulePositionSortKey(player) {
-        // Try the canonical Position from playersData first (always uppercase enum),
-        // fall back to the (potentially translated) `position` string on the entry.
-        const full = player.playerId ? getPlayerById(player.playerId) : null;
-        const raw = (full && full.Position) || player.position || '';
-        const upper = String(raw).toUpperCase();
-        if (SCHEDULE_POSITION_SORT[upper] !== undefined) return SCHEDULE_POSITION_SORT[upper];
-        // Map common German translations (used in matchCatalog) back to sort order.
-        if (raw === 'Torwart') return 0;
-        if (raw === 'Verteidiger') return 1;
-        if (raw === 'Mittelfeldspieler') return 2;
-        if (raw === 'Stürmer') return 3;
-        return 99;
-    }
-
     function getDraftedPlayersForScheduleTeam(m, mc, teamName) {
         // Prefer drafted players from a played match (matchCatalog) – has
         // actual match-day points / line-up information.
@@ -5631,19 +5607,13 @@
     function getAllPlayersForExpandedView(m, mc, teamName) {
         // Expanded body shows ALL players of the nation that scored
         // points in this match (i.e. appeared in the points data). Sorted
-        // by position (GK → DEF → MID → ATT); within a position the
-        // manager-selected players are listed first so they stand out at
-        // the top of the section, then everyone else by points desc.
+        // by total points (desc) – on ties fall back to name. The manager
+        // selection is still highlighted via the card styling but no
+        // longer affects the order.
         if (mc) {
             const players = (mc.playersByNation?.[teamName] || []).slice();
             if (players.length) {
                 players.sort((a, b) => {
-                    const posA = getSchedulePositionSortKey(a);
-                    const posB = getSchedulePositionSortKey(b);
-                    if (posA !== posB) return posA - posB;
-                    const drA = a.drafted ? 1 : 0;
-                    const drB = b.drafted ? 1 : 0;
-                    if (drA !== drB) return drB - drA;
                     const ptsA = Number(a.totalPoints) || 0;
                     const ptsB = Number(b.totalPoints) || 0;
                     if (ptsA !== ptsB) return ptsB - ptsA;
@@ -5653,12 +5623,13 @@
             }
         }
         // Upcoming match without points data yet → show drafted players
-        // for that nation as a sensible fallback (same as before).
+        // for that nation as a sensible fallback. No points exist yet,
+        // so we fall back to alphabetical order by name.
         const drafted = getDraftedPlayersForScheduleTeam(m, mc, teamName).slice();
         drafted.sort((a, b) => {
-            const posA = getSchedulePositionSortKey(a);
-            const posB = getSchedulePositionSortKey(b);
-            if (posA !== posB) return posA - posB;
+            const ptsA = Number(a.totalPoints) || 0;
+            const ptsB = Number(b.totalPoints) || 0;
+            if (ptsA !== ptsB) return ptsB - ptsA;
             return (a.name || '').localeCompare(b.name || '', 'de');
         });
         return drafted;
@@ -6038,7 +6009,10 @@
         if (!target) return;
 
         const key = target.getAttribute('data-match-key');
-        if (key) expandedScheduleMatchKeys.add(key);
+        if (key) {
+            collapseAllScheduleCardsExcept(key);
+            expandedScheduleMatchKeys.add(key);
+        }
         target.classList.add('is-expanded');
         target.setAttribute('aria-expanded', 'true');
         target.classList.remove('is-focus-flash');
@@ -6087,12 +6061,29 @@
         });
     }
 
+    function collapseAllScheduleCardsExcept(keepKey) {
+        // Enforce the "only one expanded card at a time" rule by
+        // collapsing every other schedule card – both in the DOM and in
+        // the persisted set used to restore expansion across re-renders.
+        expandedScheduleMatchKeys.forEach(k => {
+            if (k !== keepKey) expandedScheduleMatchKeys.delete(k);
+        });
+        const list = document.getElementById('schedule-list');
+        if (!list) return;
+        list.querySelectorAll('.sc-card.is-expanded').forEach(other => {
+            if (other.getAttribute('data-match-key') === keepKey) return;
+            other.classList.remove('is-expanded', 'is-focus-flash');
+            other.setAttribute('aria-expanded', 'false');
+        });
+    }
+
     window.toggleScheduleCard = function(cardEl) {
         if (!cardEl) return;
         const key = cardEl.getAttribute('data-match-key');
         if (!key) return;
         const willExpand = !cardEl.classList.contains('is-expanded');
         if (willExpand) {
+            collapseAllScheduleCardsExcept(key);
             expandedScheduleMatchKeys.add(key);
             cardEl.classList.add('is-expanded');
         } else {
