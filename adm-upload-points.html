@@ -218,12 +218,117 @@
             color: #95a5a6;
         }
 
+        .auto-box {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+
+        .auto-box h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #1abc9c;
+            border-bottom: 1px solid #1abc9c;
+            padding-bottom: 6px;
+        }
+
+        .auto-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 15px;
+        }
+
+        .auto-toggle-row input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: #1abc9c;
+            cursor: pointer;
+        }
+
+        .auto-toggle-row label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .auto-delay-row {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 14px;
+            font-size: 14px;
+        }
+
+        .auto-delay-row .auto-delay-label {
+            font-weight: bold;
+        }
+
+        .auto-delay-row .delay-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .auto-delay-row .delay-option input {
+            accent-color: #1abc9c;
+            cursor: pointer;
+        }
+
+        .auto-status-grid {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 14px;
+        }
+
+        .auto-status-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .auto-status-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #95a5a6;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .auto-status-value {
+            font-size: 14px;
+            color: #ecf0f1;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .auto-status-value.is-on { color: #1abc9c; }
+        .auto-status-value.is-off { color: #95a5a6; }
+        .auto-status-value.is-warn { color: #f1c40f; }
+        .auto-status-value.is-running { color: #3498db; }
+
         @media (max-width: 700px) {
             .info-grid {
                 grid-template-columns: 1fr;
             }
 
             .button-row {
+                grid-template-columns: 1fr;
+            }
+
+            .auto-status-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -289,6 +394,59 @@
         </div>
     </div>
 
+    <div class="auto-box">
+        <h2>🤖 Auto-Modus</h2>
+        <p style="margin: 0; font-size: 14px; color: #bdc3c7;">
+            Wenn aktiv, prüft die Seite jede Minute den Spielplan und startet automatisch
+            ein Punkte-Update, sobald ein Spiel zu Ende ist (geschätzt nach Anstosszeit
+            <strong>+ regulärer Spieldauer + Verzögerung</strong>). Der manuelle Button
+            oben funktioniert weiterhin parallel.
+        </p>
+
+        <div class="auto-toggle-row">
+            <input type="checkbox" id="autoToggle">
+            <label for="autoToggle">Auto-Upload aktivieren</label>
+        </div>
+
+        <div class="auto-delay-row">
+            <span class="auto-delay-label">Verzögerung nach Spielende:</span>
+            <label class="delay-option">
+                <input type="radio" name="autoDelay" value="5"> 5 Min
+            </label>
+            <label class="delay-option">
+                <input type="radio" name="autoDelay" value="10" checked> 10 Min
+            </label>
+            <label class="delay-option">
+                <input type="radio" name="autoDelay" value="15"> 15 Min
+            </label>
+        </div>
+
+        <div class="auto-status-grid">
+            <div class="auto-status-item">
+                <div class="auto-status-label">Status</div>
+                <div class="auto-status-value is-off" id="autoStatusValue">⏸ Inaktiv</div>
+            </div>
+            <div class="auto-status-item">
+                <div class="auto-status-label">Letzter Auto-Upload</div>
+                <div class="auto-status-value" id="autoLastUploadValue">–</div>
+            </div>
+            <div class="auto-status-item">
+                <div class="auto-status-label">Nächster geplanter Trigger</div>
+                <div class="auto-status-value" id="autoNextTriggerValue">–</div>
+            </div>
+            <div class="auto-status-item">
+                <div class="auto-status-label">Letzte Prüfung</div>
+                <div class="auto-status-value" id="autoLastCheckValue">–</div>
+            </div>
+        </div>
+
+        <div class="hint">
+            ⓘ Auto-Modus läuft nur, solange dieser Tab geöffnet ist und ein API-Key
+            in der Eingabe oben steht. Einstellungen werden pro Turnier gespeichert
+            und beim nächsten Öffnen automatisch wiederhergestellt.
+        </div>
+    </div>
+
     <div class="progress-container" id="progressContainer">
         <div class="progress-bar" id="progressBar"></div>
     </div>
@@ -347,6 +505,22 @@
     const progressBar = document.getElementById('progressBar');
     const progressContainer = document.getElementById('progressContainer');
     const btnStart = document.getElementById('btnStart');
+
+    // Auto-Mode UI references
+    const autoToggle = document.getElementById('autoToggle');
+    const autoDelayRadios = Array.from(document.querySelectorAll('input[name="autoDelay"]'));
+    const autoStatusValue = document.getElementById('autoStatusValue');
+    const autoLastUploadValue = document.getElementById('autoLastUploadValue');
+    const autoNextTriggerValue = document.getElementById('autoNextTriggerValue');
+    const autoLastCheckValue = document.getElementById('autoLastCheckValue');
+
+    // Auto-Mode Persistenz-Schlüssel (turnierspezifisch).
+    const AUTO_STORAGE_PREFIX = (APP.storage && typeof APP.storage.appPrefix === "function")
+        ? APP.storage.appPrefix()
+        : `dreamteam_${TOURNAMENT.key}`;
+    const AUTO_ENABLED_KEY = `${AUTO_STORAGE_PREFIX}_auto_upload_enabled`;
+    const AUTO_DELAY_KEY = `${AUTO_STORAGE_PREFIX}_auto_upload_delay_min`;
+    const AUTO_LAST_UPLOAD_KEY = `${AUTO_STORAGE_PREFIX}_auto_upload_last_ms`;
 
     if (pageTitleEl) {
         pageTitleEl.textContent = `📡 Punkte-Zentrale (${TOURNAMENT.shortLabel})`;
@@ -504,33 +678,53 @@
 
     clearSavedKeyBtn.addEventListener('click', clearSavedApiKey);
 
-    btnStart.addEventListener('click', async () => {
-        const API_KEY = apiKeyInput.value.trim();
+    // Globaler Lauf-Status, damit Auto-Modus und manueller Klick sich nicht überholen.
+    let uploadInProgress = false;
 
-        if (!API_KEY) {
-            alert("Bitte API Key eingeben!");
-            return;
+    /**
+     * Führt den eigentlichen Punkte-Upload aus. Wird sowohl vom manuellen
+     * Button-Klick als auch vom Auto-Modus aufgerufen. Wirft im Fehlerfall
+     * keine Exceptions nach aussen, sondern liefert ein Result-Objekt.
+     *
+     * @param {string} apiKey
+     * @param {{ source?: 'manual'|'auto' }} [opts]
+     * @returns {Promise<{ ok: boolean, writeSuccess: number, finishedGames: number, error?: string }>}
+     */
+    async function performPointsUpload(apiKey, opts = {}) {
+        const source = opts.source || 'manual';
+
+        if (uploadInProgress) {
+            return { ok: false, writeSuccess: 0, finishedGames: 0, error: "Es läuft bereits ein Upload." };
+        }
+
+        if (!apiKey) {
+            return { ok: false, writeSuccess: 0, finishedGames: 0, error: "Kein API-Key vorhanden." };
         }
 
         if (!APP.api || !APP.api.isConfigured || !APP.api.isConfigured()) {
-            alert("Für das aktive Turnier ist noch keine API-Competition konfiguriert.");
-            return;
+            return { ok: false, writeSuccess: 0, finishedGames: 0, error: "Für das aktive Turnier ist keine API-Competition konfiguriert." };
         }
 
-        saveApiKey(API_KEY);
-
+        uploadInProgress = true;
         btnStart.disabled = true;
         logBox.innerHTML = "";
         progressContainer.style.display = 'block';
         progressBar.style.width = '0%';
 
+        if (source === 'auto') {
+            log(`🤖 Auto-Modus: Starte Punkte-Upload …`, "log-warning");
+        }
+
         const requestOptions = {
             method: 'GET',
             headers: {
-                "x-rapidapi-key": API_KEY,
+                "x-rapidapi-key": apiKey,
                 "x-rapidapi-host": "v3.football.api-sports.io"
             }
         };
+
+        let writeSuccess = 0;
+        let finishedGamesCount = 0;
 
         try {
             if (typeof playersData === "undefined" || !Array.isArray(playersData) || playersData.length === 0) {
@@ -571,6 +765,8 @@
             const finishedGames = fixData.response.filter(f =>
                 ['FT', 'AET', 'PEN'].includes(f?.fixture?.status?.short)
             );
+
+            finishedGamesCount = finishedGames.length;
 
             log(`✅ ${finishedGames.length} beendete Spiele gefunden. Starte Detail-Analyse...\n`);
 
@@ -780,7 +976,7 @@
 
             let batch = db.batch();
             let count = 0;
-            let writeSuccess = 0;
+            writeSuccess = 0;
 
             for (const pid in allPlayerPoints) {
                 if (allPlayerPoints[pid].START !== 0 || allPlayerPoints[pid].SUBBED_IN !== 0) {
@@ -825,18 +1021,493 @@
             }
 
             log(`\n🎉 FERTIG! ${writeSuccess} Spieler haben Punkte erhalten.`, "log-success");
-            alert(`Punkte-Upload abgeschlossen!\n${writeSuccess} Spieler wurden aktualisiert.\nDie pointsVersion wurde automatisch erhöht.`);
+
+            if (source === 'manual') {
+                alert(`Punkte-Upload abgeschlossen!\n${writeSuccess} Spieler wurden aktualisiert.\nDie pointsVersion wurde automatisch erhöht.`);
+            }
+
+            return { ok: true, writeSuccess, finishedGames: finishedGamesCount };
 
         } catch (error) {
             console.error(error);
             log(`\n❌ KRITISCHER FEHLER: ${error.message}`, "log-error");
-            alert(`Fehler beim Upload:\n${error.message}`);
+
+            if (source === 'manual') {
+                alert(`Fehler beim Upload:\n${error.message}`);
+            }
+
+            return { ok: false, writeSuccess, finishedGames: finishedGamesCount, error: error.message || String(error) };
         } finally {
+            uploadInProgress = false;
             btnStart.disabled = false;
         }
+    }
+
+    // Manueller Button: Wrapper-Logik (Pflichtfelder, persist key) + Aufruf des
+    // wiederverwendbaren Upload-Workflows.
+    btnStart.addEventListener('click', async () => {
+        const API_KEY = apiKeyInput.value.trim();
+
+        if (!API_KEY) {
+            alert("Bitte API Key eingeben!");
+            return;
+        }
+
+        if (!APP.api || !APP.api.isConfigured || !APP.api.isConfigured()) {
+            alert("Für das aktive Turnier ist noch keine API-Competition konfiguriert.");
+            return;
+        }
+
+        saveApiKey(API_KEY);
+
+        const result = await performPointsUpload(API_KEY, { source: 'manual' });
+
+        // Nach manuellem Lauf einmal Auto-Status (z. B. "Letzter Auto-Upload",
+        // "Nächster Trigger") frisch berechnen, damit beide Wege konsistent
+        // angezeigt werden.
+        if (result && result.ok) {
+            autoMode.markUploadDone();
+        }
+        autoMode.refreshStatusUi();
     });
 
+    /* =========================================================================
+     *  AUTO-MODUS
+     *
+     *  Idee:
+     *  - Solange der Tab geöffnet ist und ein API-Key vorliegt, prüft die
+     *    Seite einmal pro Minute den Spielplan in Firestore (KEINE API-Calls).
+     *  - Pro Spiel werden ZWEI mögliche Trigger-Zeitpunkte erzeugt:
+     *      kickoff + 110 min  →  voraussichtliches Ende der regulären Spielzeit
+     *      kickoff + 155 min  →  voraussichtliches Ende inkl. Verlängerung/Elfmeter
+     *    Plus die konfigurierte Verzögerung (5/10/15 min).
+     *  - Liegt eine so berechnete Trigger-Zeit in der Vergangenheit UND nach dem
+     *    letzten Auto-Upload, wird ein Punkte-Upload gestartet (ein Upload deckt
+     *    automatisch alle inzwischen beendeten Spiele ab).
+     *  - Der zweite Trigger (155 min) ist die Sicherheitsleine für Spiele, die
+     *    in die Verlängerung oder ins Elfmeterschiessen gegangen sind. Für
+     *    normal beendete Spiele ist er zwar redundant, aber unschädlich
+     *    (Firebase-Schreibvorgänge sind idempotent).
+     *
+     *  Selbstkorrektur:
+     *  - Schlägt der Upload fehl (z. B. weil API gerade keine Daten liefert),
+     *    wird `lastAutoUploadMs` nicht gesetzt und der nächste 60-Sekunden-Tick
+     *    versucht es erneut.
+     *  - Beim ersten Aktivieren des Auto-Modus wird `lastAutoUploadMs = now`
+     *    gesetzt (über die Toggle-Logik), damit nicht sofort alle alten Spiele
+     *    nachträglich verarbeitet werden.
+     *
+     *  Wichtig: Die Auto-Logik braucht KEINE API-Calls für das Polling –
+     *  damit verbraucht der Standby keine RapidAPI-Quota.
+     * ========================================================================= */
+    const autoMode = (function createAutoMode() {
+        const POLL_INTERVAL_MS = 60 * 1000;
+        const VALID_DELAYS = [5, 10, 15];
+        const DEFAULT_DELAY = 10;
+        // Trigger-Zeiten relativ zum Anstoss (in Minuten). 110 = reguläre
+        // Spielzeit + Halbzeit + Nachspielzeit; 155 = inkl. Verlängerung +
+        // Pausen + Elfmeterschiessen.
+        const CANDIDATE_DURATIONS_MIN = [110, 155];
+
+        let pollTimerId = null;
+        let lastCheckMs = 0;
+        let lastNextTriggerInfo = null;
+        let cachedFixtures = [];
+        let lastFixtureFetchMs = 0;
+        const FIXTURE_CACHE_TTL_MS = 30 * 1000;
+
+        function readBoolFromStorage(key, fallback) {
+            try {
+                const raw = window.localStorage.getItem(key);
+                if (raw === null || raw === undefined) return fallback;
+                return raw === "1" || raw === "true";
+            } catch (err) {
+                return fallback;
+            }
+        }
+
+        function readIntFromStorage(key, fallback) {
+            try {
+                const raw = window.localStorage.getItem(key);
+                if (raw === null || raw === undefined) return fallback;
+                const parsed = parseInt(raw, 10);
+                return Number.isFinite(parsed) ? parsed : fallback;
+            } catch (err) {
+                return fallback;
+            }
+        }
+
+        function writeStorage(key, value) {
+            try {
+                if (value === null || value === undefined) {
+                    window.localStorage.removeItem(key);
+                } else {
+                    window.localStorage.setItem(key, String(value));
+                }
+            } catch (err) {
+                /* Storage in Privacy-Modi blockiert – ignoriert. */
+            }
+        }
+
+        function isEnabled() {
+            return readBoolFromStorage(AUTO_ENABLED_KEY, false);
+        }
+
+        function setEnabled(value) {
+            writeStorage(AUTO_ENABLED_KEY, value ? "1" : "0");
+        }
+
+        function getDelayMinutes() {
+            const stored = readIntFromStorage(AUTO_DELAY_KEY, DEFAULT_DELAY);
+            return VALID_DELAYS.includes(stored) ? stored : DEFAULT_DELAY;
+        }
+
+        function setDelayMinutes(value) {
+            const v = parseInt(value, 10);
+            const safe = VALID_DELAYS.includes(v) ? v : DEFAULT_DELAY;
+            writeStorage(AUTO_DELAY_KEY, safe);
+        }
+
+        function getLastUploadMs() {
+            return readIntFromStorage(AUTO_LAST_UPLOAD_KEY, 0);
+        }
+
+        function setLastUploadMs(value) {
+            writeStorage(AUTO_LAST_UPLOAD_KEY, value);
+        }
+
+        function markUploadDone() {
+            setLastUploadMs(Date.now());
+        }
+
+        function formatDateTime(ms) {
+            if (!ms || !Number.isFinite(ms)) return "–";
+            try {
+                const d = new Date(ms);
+                return d.toLocaleString("de-CH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+            } catch (err) {
+                return new Date(ms).toISOString();
+            }
+        }
+
+        function describeDurationLabel(durationMin) {
+            if (durationMin >= 155) return "n. V./Elfmeter";
+            return "regulär";
+        }
+
+        function getApiKey() {
+            const inputVal = (apiKeyInput && apiKeyInput.value || "").trim();
+            if (inputVal) return inputVal;
+            try {
+                return apiKeyStore.load();
+            } catch (err) {
+                return "";
+            }
+        }
+
+        async function loadFixturesFromFirestore(forceRefresh) {
+            if (!FIXTURES_COLLECTION) return [];
+
+            const nowMs = Date.now();
+            if (!forceRefresh
+                && cachedFixtures.length > 0
+                && (nowMs - lastFixtureFetchMs) < FIXTURE_CACHE_TTL_MS) {
+                return cachedFixtures;
+            }
+
+            try {
+                const snap = await db.collection(FIXTURES_COLLECTION).get();
+                const list = [];
+                snap.forEach(doc => {
+                    const data = doc.data() || {};
+                    list.push({
+                        id: doc.id,
+                        kickoffTimestamp: data.kickoffTimestamp || null,
+                        statusShort: (data.status && data.status.short) || "",
+                        homeTeam: (data.homeTeam && data.homeTeam.name) || "",
+                        awayTeam: (data.awayTeam && data.awayTeam.name) || ""
+                    });
+                });
+                cachedFixtures = list;
+                lastFixtureFetchMs = nowMs;
+                return list;
+            } catch (err) {
+                console.warn("[auto-upload] Fixtures konnten nicht geladen werden:", err);
+                return cachedFixtures;
+            }
+        }
+
+        function describeFixture(fx) {
+            if (!fx) return "";
+            if (fx.homeTeam && fx.awayTeam) return `${fx.homeTeam} vs ${fx.awayTeam}`;
+            return `Spiel ${fx.id}`;
+        }
+
+        /**
+         * Erzeugt aus den Spielen die Liste aller potenziellen Trigger-Events
+         * (jeweils einer pro Spiel und pro Kandidaten-Spieldauer). Spiele ohne
+         * Anstosszeit werden ignoriert.
+         */
+        function buildTriggerCandidates(fixtures, delayMinutes) {
+            const out = [];
+            for (const fx of fixtures) {
+                if (!fx.kickoffTimestamp) continue;
+                const kickoffMs = fx.kickoffTimestamp * 1000;
+                for (const durMin of CANDIDATE_DURATIONS_MIN) {
+                    const triggerAtMs = kickoffMs + (durMin + delayMinutes) * 60000;
+                    out.push({ triggerAtMs, fixture: fx, durMin });
+                }
+            }
+            return out;
+        }
+
+        /**
+         * Sucht ein noch unverarbeitetes "Trigger-Event":
+         * Trigger-Zeitpunkt liegt in der Vergangenheit UND nach dem letzten
+         * Auto-Upload (Wasserzeichen). Ein einzelner erfolgreicher Upload
+         * deckt automatisch alle gleichzeitig fälligen Spiele ab.
+         */
+        function pickDueTrigger(fixtures, delayMinutes, lastUploadMs) {
+            const nowMs = Date.now();
+            let best = null;
+            for (const t of buildTriggerCandidates(fixtures, delayMinutes)) {
+                if (t.triggerAtMs <= nowMs && t.triggerAtMs > lastUploadMs) {
+                    if (!best || t.triggerAtMs > best.triggerAtMs) {
+                        best = t;
+                    }
+                }
+            }
+            return best;
+        }
+
+        /**
+         * Findet das nächste in der Zukunft liegende Trigger-Event –
+         * nur informativ für die UI ("Nächster geplanter Trigger").
+         */
+        function pickNextScheduledTrigger(fixtures, delayMinutes) {
+            const nowMs = Date.now();
+            let next = null;
+            for (const t of buildTriggerCandidates(fixtures, delayMinutes)) {
+                if (t.triggerAtMs > nowMs) {
+                    if (!next || t.triggerAtMs < next.triggerAtMs) {
+                        next = t;
+                    }
+                }
+            }
+            return next;
+        }
+
+        function refreshStatusUi() {
+            if (!autoStatusValue) return;
+
+            const enabled = isEnabled();
+            const apiKey = getApiKey();
+            const delayMin = getDelayMinutes();
+            const lastUploadMs = getLastUploadMs();
+
+            if (autoToggle) autoToggle.checked = enabled;
+            autoDelayRadios.forEach(r => {
+                r.checked = parseInt(r.value, 10) === delayMin;
+            });
+
+            autoStatusValue.classList.remove("is-on", "is-off", "is-warn", "is-running");
+
+            if (uploadInProgress && enabled) {
+                autoStatusValue.textContent = "🔄 Upload läuft …";
+                autoStatusValue.classList.add("is-running");
+            } else if (!enabled) {
+                autoStatusValue.textContent = "⏸ Inaktiv";
+                autoStatusValue.classList.add("is-off");
+            } else if (!apiKey) {
+                autoStatusValue.textContent = "⚠ Kein API-Key – warte auf Eingabe";
+                autoStatusValue.classList.add("is-warn");
+            } else if (!APP.api || !APP.api.isConfigured || !APP.api.isConfigured()) {
+                autoStatusValue.textContent = "⚠ API für dieses Turnier nicht konfiguriert";
+                autoStatusValue.classList.add("is-warn");
+            } else {
+                autoStatusValue.textContent = "🟢 Aktiv – Prüfung läuft jede Minute";
+                autoStatusValue.classList.add("is-on");
+            }
+
+            autoLastUploadValue.textContent = lastUploadMs
+                ? formatDateTime(lastUploadMs)
+                : "noch nie";
+
+            if (lastNextTriggerInfo && lastNextTriggerInfo.triggerAtMs) {
+                const label = describeFixture(lastNextTriggerInfo.fixture);
+                const durLabel = describeDurationLabel(lastNextTriggerInfo.durMin);
+                autoNextTriggerValue.textContent =
+                    `${formatDateTime(lastNextTriggerInfo.triggerAtMs)} – ${label} (${durLabel})`;
+            } else {
+                autoNextTriggerValue.textContent = enabled ? "kein zukünftiges Spiel im Spielplan" : "–";
+            }
+
+            autoLastCheckValue.textContent = lastCheckMs
+                ? formatDateTime(lastCheckMs)
+                : (enabled ? "in Kürze …" : "–");
+        }
+
+        async function tick() {
+            lastCheckMs = Date.now();
+
+            if (!isEnabled()) {
+                refreshStatusUi();
+                return;
+            }
+
+            const apiKey = getApiKey();
+            const delayMin = getDelayMinutes();
+
+            if (uploadInProgress) {
+                refreshStatusUi();
+                return;
+            }
+
+            const fixtures = await loadFixturesFromFirestore(false);
+            lastNextTriggerInfo = pickNextScheduledTrigger(fixtures, delayMin);
+
+            if (!apiKey) {
+                refreshStatusUi();
+                return;
+            }
+
+            if (!APP.api || !APP.api.isConfigured || !APP.api.isConfigured()) {
+                refreshStatusUi();
+                return;
+            }
+
+            const due = pickDueTrigger(fixtures, delayMin, getLastUploadMs());
+
+            if (due) {
+                const durLabel = describeDurationLabel(due.durMin);
+                log(`🤖 Auto-Trigger erkannt: ${describeFixture(due.fixture)} ` +
+                    `(geplant ${formatDateTime(due.triggerAtMs)}, ${durLabel}). Starte Upload …`,
+                    "log-warning");
+
+                refreshStatusUi();
+
+                const result = await performPointsUpload(apiKey, { source: 'auto' });
+
+                if (result && result.ok) {
+                    markUploadDone();
+                    log(`✅ Auto-Upload abgeschlossen (${result.writeSuccess} Spieler, ` +
+                        `${result.finishedGames} beendete Spiele).`, "log-success");
+                    // Frische Daten holen, damit ein evtl. soeben in Verlängerung
+                    // gegangenes Spiel direkt mit AET/PEN-Status erkannt wird.
+                    await loadFixturesFromFirestore(true);
+                    lastNextTriggerInfo = pickNextScheduledTrigger(cachedFixtures, delayMin);
+                } else {
+                    log(`⚠️ Auto-Upload fehlgeschlagen: ${(result && result.error) || "unbekannter Fehler"}. ` +
+                        `Erneuter Versuch in ${POLL_INTERVAL_MS / 1000}s.`, "log-error");
+                }
+            }
+
+            refreshStatusUi();
+        }
+
+        function startPolling() {
+            stopPolling();
+            pollTimerId = window.setInterval(() => {
+                tick().catch(err => {
+                    console.error("[auto-upload] tick error:", err);
+                });
+            }, POLL_INTERVAL_MS);
+        }
+
+        function stopPolling() {
+            if (pollTimerId) {
+                window.clearInterval(pollTimerId);
+                pollTimerId = null;
+            }
+        }
+
+        function init() {
+            // UI mit gespeicherten Werten initialisieren (oder Default-Werte
+            // schreiben, falls noch nichts persistiert ist).
+            const enabled = isEnabled();
+            const delayMin = getDelayMinutes();
+            if (autoToggle) autoToggle.checked = enabled;
+            autoDelayRadios.forEach(r => {
+                r.checked = parseInt(r.value, 10) === delayMin;
+            });
+
+            // Verzögerungs-Auswahl persistieren.
+            autoDelayRadios.forEach(r => {
+                r.addEventListener("change", () => {
+                    if (r.checked) {
+                        setDelayMinutes(r.value);
+                        log(`⚙️ Auto-Modus: Verzögerung auf ${r.value} Min gesetzt.`, "log-warning");
+                        refreshStatusUi();
+                    }
+                });
+            });
+
+            if (autoToggle) {
+                autoToggle.addEventListener("change", async () => {
+                    const isOn = autoToggle.checked;
+                    setEnabled(isOn);
+
+                    if (isOn) {
+                        log("🤖 Auto-Modus aktiviert.", "log-success");
+
+                        // Wasserzeichen beim erstmaligen Aktivieren auf "jetzt"
+                        // setzen, damit bereits vor langer Zeit beendete Spiele
+                        // nicht sofort verarbeitet werden. Wer einen einmaligen
+                        // Catch-Up will, drückt einfach den manuellen Button.
+                        if (getLastUploadMs() === 0) {
+                            setLastUploadMs(Date.now());
+                            log("ℹ️ Wasserzeichen auf jetzt gesetzt. Es werden nur ab sofort " +
+                                "neu beendete Spiele automatisch verarbeitet.", "log-warning");
+                        }
+
+                        if (!getApiKey()) {
+                            log("⚠️ Kein API-Key vorhanden. Auto-Modus wartet, bis du oben einen Key einträgst.", "log-warning");
+                        } else if (!APP.api || !APP.api.isConfigured || !APP.api.isConfigured()) {
+                            log("⚠️ Für das aktive Turnier ist keine API-Competition konfiguriert.", "log-warning");
+                        }
+                        startPolling();
+                        // Sofortiger erster Tick, damit der Status nicht erst
+                        // 60 Sekunden später greift.
+                        await tick();
+                    } else {
+                        log("⏸ Auto-Modus deaktiviert.", "log-warning");
+                        stopPolling();
+                        refreshStatusUi();
+                    }
+                });
+            }
+
+            // Falls beim Laden schon "aktiv": Polling sofort starten.
+            if (enabled) {
+                startPolling();
+                // Ersten Tick im nächsten Frame ausführen, damit die UI
+                // Initialwerte hat, bevor evtl. sofort ein Upload anläuft.
+                setTimeout(() => tick().catch(err => console.error(err)), 250);
+            }
+
+            refreshStatusUi();
+
+            // Wenn der Nutzer den API-Key tippt/einfügt, Status aktualisieren.
+            if (apiKeyInput) {
+                apiKeyInput.addEventListener("input", () => refreshStatusUi());
+            }
+        }
+
+        return {
+            init,
+            refreshStatusUi,
+            markUploadDone
+        };
+    })();
+
     loadSavedApiKey();
+    autoMode.init();
 </script>
 
 </body>
