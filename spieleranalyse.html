@@ -3619,6 +3619,11 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            hyphens: auto;
+            line-height: 1.2;
         }
 
         .sc-player-card-pts {
@@ -5701,6 +5706,21 @@
         </div>`;
     }
 
+    // Compact position labels for the narrow player cards in the
+    // expanded schedule view. The full label is still exposed via the
+    // tooltip / aria attributes, so accessibility is preserved.
+    function shortenPositionLabel(pos) {
+        const s = String(pos || '').trim();
+        if (!s) return '';
+        const map = {
+            'Mittelfeldspieler': 'Mittelfeld',
+            'Verteidiger': 'Abwehr',
+            'Torhüter': 'Tor',
+            'Stürmer': 'Sturm',
+        };
+        return map[s] || s;
+    }
+
     function renderSchedulePlayerCard(p, hasMatchData) {
         const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
         const nameEncoded = encodeURIComponent(p.name);
@@ -5723,7 +5743,7 @@
                 aria-label="${escapeHtml(p.name)} – Spieler-Analyse öffnen">
                 ${photoHtml}
                 <div class="sc-player-card-name">${escapeHtml(p.name)}</div>
-                ${p.position ? `<div class="sc-player-card-meta">${escapeHtml(p.position)}</div>` : ''}
+                ${p.position ? `<div class="sc-player-card-meta" title="${escapeHtml(p.position)}">${escapeHtml(shortenPositionLabel(p.position))}</div>` : ''}
                 <div class="sc-player-card-pts ${ptsClass}">${escapeHtml(ptsLabel)}</div>
             </button>
             ${managersHtml}
@@ -5774,7 +5794,7 @@
             : emptyMsg;
 
         const note = hasMatchData
-            ? `<div class="sc-expanded-note">Alle Spieler mit Punkten – die <span class="sc-expanded-note-pill">Managerwahl</span> ist grün hervorgehoben.</div>`
+            ? ''
             : `<div class="sc-expanded-note">Noch keine Spielpunkte erfasst – angezeigt sind die gedrafteten Spieler der Nationen, sortiert nach Position.</div>`;
 
         return `<div class="sc-expanded-body">
