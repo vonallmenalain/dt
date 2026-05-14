@@ -20,6 +20,12 @@
     <meta name="view-transition" content="same-origin">
     <meta name="description" content="DreamTeam – Punktesystem und Regelübersicht für dein Fantasy-Team.">
 
+    <!-- Frühe Verbindungsöffnung zu Firebase + CDN; spart auf Mobile
+         häufig 100–300 ms TLS/DNS. -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+
     <link rel="stylesheet" href="styles.css">
 
     <style>

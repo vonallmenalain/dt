@@ -19,6 +19,14 @@
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
     <meta name="view-transition" content="same-origin">
     <meta name="description" content="DreamTeam – Baue dein Fantasy-Fussball-Team und compete im Turnier.">
+
+    <!-- Frühe Verbindungsöffnung zu Firebase + CDN; spart auf Mobile
+         häufig 100–300 ms TLS/DNS, weil firebase-app, firestore und
+         auth-compat ohnehin direkt unten geladen werden. -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+
     <link rel="stylesheet" href="styles.css">
 
     <!-- =====================================================
