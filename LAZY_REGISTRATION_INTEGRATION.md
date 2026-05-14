@@ -114,6 +114,28 @@ Clicking the chip while verified shows a confirmation and calls
 `DreamTeamAuth.logout()`. The submit label falls back to the create label;
 the in-memory `editingTeamId` is reset.
 
+### 5. Stay signed in across sessions
+
+`DreamTeamAuth.init()` explicitly configures Firebase Auth with
+`LOCAL` persistence (the SDK default, made explicit so it is robust
+against future SDK changes and easy to audit). That means:
+
+* Closing the tab, closing the browser, or rebooting the device does
+  **not** sign the user out. Firebase keeps the refresh token in
+  IndexedDB and silently re-issues an access token on the next visit.
+* The user only has to authenticate again when they:
+  * click the **Abmelden** button (chip → confirm),
+  * clear the site's storage manually,
+  * use a different device or browser profile,
+  * or sit in an environment that cannot use IndexedDB
+    (e.g. Safari Private Mode) — in which case we transparently fall
+    back to `SESSION` persistence so the rest of the flow still works
+    for the current tab.
+
+If a particular page wants a shorter-lived session (e.g. an admin
+console on a shared device), pass `persistence: 'session'` (per-tab)
+or `persistence: 'none'` (in-memory only) to `DreamTeamAuth.init()`.
+
 ## Public API quick reference
 
 ```js
