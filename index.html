@@ -1634,6 +1634,9 @@
             line-height: 1.4;
             user-select: none;
             -webkit-user-select: none;
+            /* Admin-Gate: Standardmässig versteckt, wird nur für Admin-User
+               via admin.js / DreamTeamAdmin sichtbar gemacht. */
+            display: none;
         }
 
         .dev-index-toggle:hover {
@@ -5636,6 +5639,7 @@
 <script src="cache.js"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
 <link rel="stylesheet" href="auth-modal.css">
+<script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
 
@@ -5709,6 +5713,10 @@
     /**
      * Dev-Umschalter: Klick wechselt zyklisch durch auto → pre → post → auto …
      * Speichert den Modus in localStorage und wendet ihn sofort an.
+     *
+     * Sichtbarkeit ist Admin-gegated (siehe admin.js / DreamTeamAdmin):
+     * Der Button bleibt für normale Nutzer komplett versteckt (display:none
+     * via CSS) und wird hier nur eingeblendet, wenn ein Admin eingeloggt ist.
      */
     function initDevToggle() {
         const btn = document.getElementById("dev-index-toggle");
@@ -5729,6 +5737,31 @@
             }
             // Re-trigger tilt for any newly visible cards
         });
+
+        function applyAdminVisibility(isAdmin) {
+            btn.style.display = isAdmin ? "" : "none";
+        }
+
+        function hookAdmin() {
+            if (!window.DreamTeamAdmin || typeof window.DreamTeamAdmin.onAdminChange !== "function") {
+                return false;
+            }
+            window.DreamTeamAdmin.onAdminChange(({ isAdmin }) => applyAdminVisibility(!!isAdmin));
+            return true;
+        }
+
+        if (!hookAdmin()) {
+            // admin.js wird ggf. erst nach dieser Funktion geladen — wir warten
+            // kurz auf das globale DreamTeamAdmin und hängen uns dann ein.
+            let attempts = 0;
+            const maxAttempts = 50; // ~5s
+            const interval = setInterval(() => {
+                attempts += 1;
+                if (hookAdmin() || attempts >= maxAttempts) {
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
     }
 
     /* =========================================================

@@ -79,9 +79,10 @@ function registerServiceWorker() {
  *    domain-basierte Standardwahl.
  *
  *  Sichtbarkeit:
- *  - Standardmässig sichtbar.
- *  - Kann mit ?dev=0 oder localStorage["dreamteam_hide_dev"]="1" versteckt
- *    werden.
+ *  - Nur für eingeloggte Admins sichtbar (siehe admin.js / window.DreamTeamAdmin).
+ *  - Für alle anderen Nutzer bleibt der Wrapper komplett versteckt.
+ *  - Zusätzlich kann ein Admin den Knopf mit ?dev=0 oder
+ *    localStorage["dreamteam_hide_dev"]="1" lokal komplett deaktivieren.
  * ============================================================================= */
 function buildDevTournamentSwitcher(APP) {
     if (!APP || typeof APP.tournaments !== 'object') return;
@@ -91,7 +92,8 @@ function buildDevTournamentSwitcher(APP) {
         if (params.get('dev') === '0') return;
         if (window.localStorage.getItem('dreamteam_hide_dev') === '1') return;
     } catch (_) {
-        // Wenn Storage/Params nicht lesbar sind, zeigen wir den Switcher trotzdem.
+        // Wenn Storage/Params nicht lesbar sind, zeigen wir den Switcher trotzdem
+        // (Admin-Gate weiter unten greift).
     }
 
     if (document.getElementById('dev-tournament-switcher')) return;
@@ -327,13 +329,46 @@ function buildDevTournamentSwitcher(APP) {
 
     wrapper.appendChild(button);
     wrapper.appendChild(popover);
+
+    // Admin-Gate: Wrapper ist standardmässig versteckt und wird ausschliesslich
+    // sichtbar, wenn ein Admin (gem. admin.js / window.DreamTeamAdmin) eingeloggt
+    // ist. Wir hängen ihn schon ins DOM, damit `placeNextToIndexToggle` korrekt
+    // misst, sobald der Wrapper sichtbar wird.
+    wrapper.style.display = 'none';
     document.body.appendChild(wrapper);
 
-    // Initiale Positionierung neben #dev-index-toggle, falls vorhanden.
-    placeNextToIndexToggle();
-    // Kleiner Retry, falls der index-Toggle erst nach uns gerendert wird.
-    setTimeout(placeNextToIndexToggle, 0);
-    setTimeout(placeNextToIndexToggle, 250);
+    function applyAdminVisibility(isAdmin) {
+        if (isAdmin) {
+            wrapper.style.display = '';
+            placeNextToIndexToggle();
+            setTimeout(placeNextToIndexToggle, 0);
+            setTimeout(placeNextToIndexToggle, 250);
+        } else {
+            closePopover();
+            wrapper.style.display = 'none';
+        }
+    }
+
+    function hookAdmin() {
+        if (!window.DreamTeamAdmin || typeof window.DreamTeamAdmin.onAdminChange !== 'function') {
+            return false;
+        }
+        window.DreamTeamAdmin.onAdminChange(({ isAdmin }) => applyAdminVisibility(!!isAdmin));
+        return true;
+    }
+
+    if (!hookAdmin()) {
+        // admin.js kann nach nav.js geladen werden (defer / async). Kurz pollen,
+        // bis DreamTeamAdmin verfügbar ist; danach gilt der Admin-Status.
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const interval = setInterval(() => {
+            attempts += 1;
+            if (hookAdmin() || attempts >= maxAttempts) {
+                clearInterval(interval);
+            }
+        }, 100);
+    }
 }
 
 /* =============================================================================
