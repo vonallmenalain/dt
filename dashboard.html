@@ -1801,13 +1801,28 @@
         }, 220);
     }
 
+    /**
+     * vanilla-tilt@1.8.0 hat einen Race in destroy(): clear-t zuerst
+     * transitionTimeout, ruft dann reset() → onMouseEnter() →
+     * setTransition() (welches den Timeout SOFORT WIEDER SETZT), und
+     * nullt danach this.element. Der frisch gesetzte Timeout feuert
+     * später gegen this.element === null und crasht mit
+     * „Cannot read properties of null (reading 'style')". Wrapper räumt
+     * den Timeout danach manuell weg.
+     */
+    function safeDestroyTilt(card) {
+        if (!card || !card.vanillaTilt) return;
+        const inst = card.vanillaTilt;
+        try { inst.destroy(); } catch (e) {}
+        try { clearTimeout(inst.transitionTimeout); } catch (e) {}
+        try { card.style.transition = ''; } catch (e) {}
+    }
+
     function initCardTilt() {
         const allCards = document.querySelectorAll('.player-card');
 
         allCards.forEach(card => {
-            if (card.vanillaTilt) {
-                card.vanillaTilt.destroy();
-            }
+            safeDestroyTilt(card);
             card.style.transform = CARD_BASE_TRANSFORM;
 
             if (!card.dataset.tiltBound) {

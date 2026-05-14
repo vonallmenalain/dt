@@ -3348,6 +3348,15 @@
        RENDER ALL SLOTS (Desktop)
        ========================================================= */
     function renderAllSlots(newSlotId = null) {
+        // Vor dem Wegwerfen der DOM-Knoten alle aktiven VanillaTilt-
+        // Instanzen sauber abbauen. Sonst halten interne Listener weiter
+        // Referenzen auf die gerade entfernten Karten und werfen beim
+        // naechsten Mausevent „Cannot read properties of null (reading
+        // 'style')" innerhalb von vanilla-tilt.min.js.
+        document.querySelectorAll('.builder-player-card').forEach(card => {
+            safeDestroyTilt(card);
+        });
+
         ['row-GOALKEEPER','row-DEFENDER','row-MIDFIELDER','row-ATTACKER','bench-slots'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
@@ -4038,10 +4047,32 @@
         setTimeout(() => { card.style.transform = CARD_BASE_TRANSFORM; }, 220);
     }
 
+    /**
+     * vanilla-tilt@1.8.0 hat einen Race in destroy(): der Aufruf clear-t
+     * zuerst transitionTimeout, ruft dann reset() → onMouseEnter() →
+     * setTransition(), das den Timeout SOFORT WIEDER SETZT, und nullt
+     * danach this.element. Wenn der frisch geplante Timeout feuert,
+     * läuft er gegen this.element === null und crasht mit
+     * „Cannot read properties of null (reading 'style')". Im Builder
+     * trifft das jeden Slot-Wechsel und jedes renderAllSlots() –
+     * sichtbares Symptom ist das vom User gemeldete „Mouse-Over-Effekt
+     * verschwunden", weil VanillaTilt nach dem Crash keine neuen
+     * Init-Aufrufe mehr verarbeitet.
+     */
+    function safeDestroyTilt(card) {
+        if (!card || !card.vanillaTilt) return;
+        const inst = card.vanillaTilt;
+        try { inst.destroy(); } catch (e) {}
+        try { clearTimeout(inst.transitionTimeout); } catch (e) {}
+        try { card.style.transition = ''; } catch (e) {}
+    }
+
+    let tiltLastInitAt = 0;
     function initCardTilt() {
+        tiltLastInitAt = Date.now();
         const cards = document.querySelectorAll('.builder-player-card');
         cards.forEach(card => {
-            if (card.vanillaTilt) card.vanillaTilt.destroy();
+            safeDestroyTilt(card);
             card.style.transform = CARD_BASE_TRANSFORM;
             if (!card.dataset.tiltBound) {
                 card.addEventListener('mouseleave', () => hardResetCard(card));
@@ -4063,6 +4094,52 @@
             'reset-to-start': true,
             gyroscope: false
         });
+    }
+
+    // Safety net: MutationObserver fängt asynchrone Render-Phasen ab,
+    // in denen neue .builder-player-card-Elemente in den DOM eingefügt
+    // werden, ohne dass der Aufrufer initCardTilt() unmittelbar danach
+    // ausführt (z.B. nach bfcache-Restore, Auto-Restore aus
+    // localStorage, Lazy-Registration-Resume oder Service-Worker-Cache-
+    // Refresh). Ohne diesen Beobachter ging der Mouse-Over-Tilt nach
+    // dem Pre-Launch-Polish (#214/#215) auf Desktop zeitweise verloren,
+    // weil VanillaTilt.init() den Render-Tick verpasste.
+    let tiltObserverInited = false;
+    let tiltObserverTimer = null;
+    function initTiltObserver() {
+        if (tiltObserverInited) return;
+        if (typeof MutationObserver === 'undefined') return;
+
+        const targets = [
+            document.getElementById('desktop-builder'),
+            document.getElementById('mobile-builder'),
+            document.getElementById('builder-root'),
+            document.body
+        ].filter(Boolean);
+        if (!targets.length) return;
+
+        tiltObserverInited = true;
+        const observer = new MutationObserver((mutations) => {
+            const hasNewCard = mutations.some(m =>
+                Array.from(m.addedNodes).some(n =>
+                    n.nodeType === 1 && (
+                        (typeof n.matches === 'function' && n.matches('.builder-player-card'))
+                        || (typeof n.querySelector === 'function' && n.querySelector && n.querySelector('.builder-player-card'))
+                    )
+                )
+            );
+            if (!hasNewCard) return;
+
+            if (tiltObserverTimer) clearTimeout(tiltObserverTimer);
+            tiltObserverTimer = setTimeout(() => {
+                tiltObserverTimer = null;
+                if (Date.now() - tiltLastInitAt < 200) return;
+                initCardTilt();
+            }, 240);
+        });
+
+        // Erste Treffer reicht (Desktop oder Mobile Builder)
+        observer.observe(targets[0], { childList: true, subtree: true });
     }
 
     /* =========================================================
@@ -4650,6 +4727,7 @@
         renderMobileFilterChips();
         renderPickerPlayers(true);
         syncPanelHeights();
+        initTiltObserver();
 
         if (pendingBuilderNotice) {
             showBuilderNotice(pendingBuilderNotice);
