@@ -336,6 +336,97 @@ function buildDevTournamentSwitcher(APP) {
     setTimeout(placeNextToIndexToggle, 250);
 }
 
+/* =============================================================================
+ *  Navbar auth icon — bootstrap
+ *
+ *  The actual icon + dropdown UI lives in auth-modal.js (window.DreamTeamAuthModal).
+ *  This helper just makes sure the underlying DreamTeamAuth module is
+ *  initialised on every page that hosts the global navbar so that the user
+ *  sees a consistent login state across the app, and asks the modal to mount
+ *  itself into the dedicated navbar slot.
+ *
+ *  Initialising twice is a no-op (DreamTeamAuth.init / install both guard
+ *  themselves), so individual pages can still call init() with their own
+ *  options (e.g. team-builder.html does this with its tournament-scoped
+ *  pendingStorageKey).
+ * ============================================================================= */
+function initNavAuth(APP) {
+    function buildPendingTeamKey() {
+        try {
+            if (APP && APP.storage && typeof APP.storage.key === 'function') {
+                return APP.storage.key('pending_team');
+            }
+        } catch (_) { /* fall through */ }
+        return 'dreamteam_pending_team';
+    }
+
+    function buildTeamBuilderHref() {
+        let href = 'team-builder.html';
+        try {
+            if (APP && APP.key) {
+                const url = new URL(href, window.location.href);
+                url.searchParams.set('tournament', APP.key);
+                const file = url.pathname.split('/').pop() || 'team-builder.html';
+                href = `${file}${url.search ? url.search : ''}`;
+            }
+        } catch (_) { /* keep raw href */ }
+        return href;
+    }
+
+    function tryInit() {
+        // Need the auth helpers loaded; bail out gracefully on pages that
+        // don't ship them (e.g. admin-only entry points).
+        if (!window.DreamTeamAuth || !window.DreamTeamAuthModal) return false;
+
+        // Auth module needs Firebase Auth + a Firestore handle. On pages that
+        // didn't load firebase-auth-compat we still mount a "signed-out" icon
+        // (it'll fall back to opening team-builder.html on click).
+        const hasFirebaseAuth = typeof window.firebase !== 'undefined'
+            && !!window.firebase
+            && !!window.firebase.auth;
+        const hasDbHelper     = !!(APP && typeof APP.getDb === 'function');
+        const teamsCollection = (APP && APP.firestore && typeof APP.firestore.teamsCollection === 'function')
+            ? APP.firestore.teamsCollection()
+            : null;
+
+        if (hasFirebaseAuth && hasDbHelper && teamsCollection) {
+            try {
+                window.DreamTeamAuth.init({
+                    db:                window.firebase.firestore ? APP.getDb() : null,
+                    teamsCollection,
+                    pendingStorageKey: buildPendingTeamKey(),
+                    actionUrl:         window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'team-builder.html'
+                });
+            } catch (err) {
+                console.warn('[nav] DreamTeamAuth.init failed (page may not need full auth):', err);
+            }
+        }
+
+        try {
+            window.DreamTeamAuthModal.install({
+                navbarMountTarget: '#dt-auth-nav-slot',
+                teamBuilderHref:   buildTeamBuilderHref()
+            });
+        } catch (err) {
+            console.warn('[nav] DreamTeamAuthModal.install failed:', err);
+        }
+        return true;
+    }
+
+    if (tryInit()) return;
+
+    // The auth scripts may load *after* nav.js (defer / async). Retry a few
+    // times on a microtask delay to pick them up without spinning forever.
+    let attempts = 0;
+    const maxAttempts = 20;
+    const retry = () => {
+        attempts += 1;
+        if (tryInit() || attempts >= maxAttempts) return;
+        setTimeout(retry, 100);
+    };
+    setTimeout(retry, 50);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const APP = window.APP_CONFIG;
 
@@ -390,8 +481,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="brand-gold">${brandShortLabel}</span>
                 <span class="brand-green">${brandSecondary}</span>
             </a>
-            <div class="nav-links">
-                ${topNavLinks}
+            <div class="nav-actions">
+                <div class="nav-links">
+                    ${topNavLinks}
+                </div>
+                <div id="dt-auth-nav-slot" class="dt-auth-nav-slot" aria-label="Anmeldestatus"></div>
             </div>
         </nav>
 
@@ -401,6 +495,8 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     document.body.insertAdjacentHTML("afterbegin", navHTML);
+
+    initNavAuth(APP);
 
     const currentPage = window.location.pathname.split("/").pop() || "index.html";
     const navLinks = document.querySelectorAll(".nav-item");
