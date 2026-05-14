@@ -35,9 +35,15 @@
          Die übrigen Module (tournament-config, nav, data, cache, …)
          bleiben am Body-Ende, damit `data.js` (document.write) und die
          Reihenfolgegarantie zu APP_CONFIG nicht angefasst werden. -->
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase-Compat-SDK SYNCHRON laden – konsistent zu den übrigen
+         Seiten. Index ruft `APP.getDb()` zwar erst aus dem
+         DOMContentLoaded-Handler auf, aber wir vereinheitlichen das
+         Verhalten, damit eine künftige Top-Level-Verwendung nicht
+         erneut eine "Firebase SDK noch nicht geladen"-Regression
+         auslöst. -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <link rel="stylesheet" href="styles.css">
 
