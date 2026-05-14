@@ -17,7 +17,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-05-14-admin-dev-toggle-and-myteam-routing';
+const CACHE_VERSION = 'v2026-05-14-prelaunch-polish';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -79,17 +79,80 @@ self.addEventListener('activate', event => {
   );
 });
 
-async function networkFirst(request) {
+/**
+ * networkFirstWithTimeout
+ *
+ * Bewusst NICHT „nur" auf das Netzwerk zu warten:
+ * In schlechtem Mobilfunk-Empfang (Zug, Tiefgarage) blockierte der
+ * bisherige `networkFirst`-Pfad die Navigation, bis das Backend wirklich
+ * antwortete – manchmal mehrere Sekunden weisser Bildschirm. Mit einem
+ * Race gegen `timeoutMs` zeigen wir nach 3 s den Cache-Stand an, sobald
+ * vorhanden, und füllen den Cache im Hintergrund nach.
+ *
+ * Reihenfolge der Antworten:
+ *   1. Frisches Netzwerk-Response (gewinnt das Race) → Cache aktualisieren.
+ *   2. Timeout abgelaufen → letzter guter Cache (sofort).
+ *   3. Cache leer → trotzdem auf Netzwerk warten (besser etwas spaet als gar nichts).
+ *   4. Netzwerk komplett aus → Cache, sonst Index-Fallback.
+ */
+function fetchAndCache(request) {
+  return fetch(request).then((response) => {
+    if (response && response.ok) {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+    }
+    return response;
+  });
+}
+
+async function networkFirstWithTimeout(request, timeoutMs = 3000) {
+  const cached = await caches.match(request);
+
+  let timeoutId;
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => resolve(null), timeoutMs);
+  });
+
+  let networkPromise;
   try {
-    const fresh = await fetch(request);
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, fresh.clone());
-    return fresh;
-  } catch (error) {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    return caches.match('./index.html');
+    networkPromise = fetchAndCache(request);
+  } catch (err) {
+    networkPromise = Promise.reject(err);
   }
+
+  // Schritt 1+2: Netzwerk vs. Timeout – aber nur, wenn wir einen
+  // brauchbaren Cache-Stand haetten, mit dem sich der Timeout lohnt.
+  if (cached) {
+    const winner = await Promise.race([
+      networkPromise.catch(() => null),
+      timeoutPromise
+    ]);
+    clearTimeout(timeoutId);
+
+    if (winner && winner.ok) return winner;
+    // Timeout oder Netzwerkfehler → cache liefern, im Hintergrund weiter
+    // versuchen (kein await), damit der naechste Request eine frische
+    // Kopie sieht.
+    networkPromise.catch(() => { /* swallow background refresh */ });
+    return cached;
+  }
+
+  // Kein Cache vorhanden → wir muessen warten. Falls das Netzwerk komplett
+  // ausfaellt, fallen wir zumindest auf die index.html (App-Shell) zurueck,
+  // damit nicht der nackte Browser-Offline-Screen erscheint.
+  clearTimeout(timeoutId);
+  try {
+    return await networkPromise;
+  } catch (error) {
+    return (await caches.match('./index.html')) || Response.error();
+  }
+}
+
+// Behaelt den frueheren Namen bei, damit alte Aufrufer (falls jemand aus
+// der Konsole oder einem Deploy-Script den Pfad referenziert) sich nicht
+// unerwartet verhalten.
+function networkFirst(request) {
+  return networkFirstWithTimeout(request);
 }
 
 async function staleWhileRevalidate(request) {
