@@ -252,7 +252,7 @@
             el('div', { class: 'dt-auth-verify-icon' }, ['📩']),
             el('h3', { class: 'dt-auth-verify-title' }, ['Anmeldelink wurde gesendet']),
             el('p', { class: 'dt-auth-verify-text', id: 'dt-auth-emaillink-sent-text' }, [
-                'Wir haben dir einen Anmeldelink geschickt. Öffne die E-Mail auf diesem Gerät und klicke den Link – du wirst automatisch angemeldet.'
+                'Wir haben dir einen Anmeldelink geschickt. Nach der Bestätigung wirst du angemeldet.'
             ]),
             el('div', { class: 'dt-auth-info', id: 'dt-auth-emaillink-sent-info', hidden: '' }, [
                 'Dein Team wartet sicher auf diesem Gerät, bis du dich angemeldet hast.'
@@ -307,7 +307,7 @@
             el('div', { class: 'dt-auth-verify-icon' }, ['📬']),
             el('h3', { class: 'dt-auth-verify-title' }, ['Bestätige deine E-Mail-Adresse']),
             el('p', { class: 'dt-auth-verify-text', id: 'dt-auth-verify-text' }, [
-                'Wir haben dir einen Bestätigungslink geschickt. Klicke ihn an, komm dann zurück – dein Team wird automatisch gespeichert.'
+                'Wir haben dir einen Bestätigungslink geschickt. Nach der Bestätigung wirst du angemeldet.'
             ]),
             el('div', { class: 'dt-auth-info', id: 'dt-auth-verify-info', hidden: '' }, [
                 'Dein Team wartet sicher auf deinem Gerät, bis du die E-Mail bestätigt hast.'
@@ -826,9 +826,9 @@
         const infoEl = state.modalEl.querySelector('#dt-auth-verify-info');
 
         if (user && user.email) {
-            textEl.innerHTML = `Wir haben dir einen Bestätigungslink an <span class="dt-auth-verify-email">${escapeHtml(user.email)}</span> geschickt. Klicke ihn an, komm dann zurück – dein Team wird automatisch gespeichert.`;
+            textEl.innerHTML = `Wir haben dir einen Bestätigungslink an <span class="dt-auth-verify-email">${escapeHtml(user.email)}</span> geschickt. Nach der Bestätigung wirst du angemeldet.`;
         } else {
-            textEl.textContent = 'Wir haben dir einen Bestätigungslink geschickt. Klicke ihn an, komm dann zurück – dein Team wird automatisch gespeichert.';
+            textEl.textContent = 'Wir haben dir einen Bestätigungslink geschickt. Nach der Bestätigung wirst du angemeldet.';
         }
 
         // Show the "your team is waiting" reassurance only if a pending team
@@ -848,9 +848,9 @@
         const email  = (linkEl && linkEl.value || '').trim();
 
         if (email) {
-            textEl.innerHTML = `Wir haben einen Anmeldelink an <span class="dt-auth-verify-email">${escapeHtml(email)}</span> geschickt. Öffne die E-Mail <strong>auf diesem Gerät</strong> und klicke den Link – du wirst automatisch angemeldet.`;
+            textEl.innerHTML = `Wir haben einen Anmeldelink an <span class="dt-auth-verify-email">${escapeHtml(email)}</span> geschickt. Nach der Bestätigung wirst du angemeldet.`;
         } else {
-            textEl.textContent = 'Wir haben dir einen Anmeldelink geschickt. Öffne die E-Mail auf diesem Gerät und klicke den Link – du wirst automatisch angemeldet.';
+            textEl.textContent = 'Wir haben dir einen Anmeldelink geschickt. Nach der Bestätigung wirst du angemeldet.';
         }
 
         if (Auth && typeof Auth.hasPendingTeam === 'function' && Auth.hasPendingTeam()) {
