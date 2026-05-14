@@ -2654,9 +2654,14 @@
 <script src="nav.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
 <script src="data.js"></script>
 <script src="cache.js"></script>
+<!-- Lazy-Registration auth flow -->
+<link rel="stylesheet" href="auth-modal.css">
+<script src="auth.js"></script>
+<script src="auth-modal.js"></script>
 
 <script>
 (function () {
@@ -4108,6 +4113,196 @@
     }
 
     /* =========================================================
+       LAZY-REGISTRATION INTEGRATION
+       =========================================================
+       The block below wires the modular DreamTeamAuth + AuthModal helpers
+       into the existing team-builder state.
+
+       Flow:
+         1. User builds team without signing in (selectedTeam, captain…).
+         2. Click "Submit Team":
+              - If signed-in & verified → save/update to Firestore.
+              - Otherwise → stash the payload in localStorage and open
+                the registration modal.
+         3. After registration, the modal shows "verify your email".
+         4. When the user comes back with a verified mailbox, the
+            visibilitychange / onAuthStateChange listener auto-finalises
+            the pending team and redirects to teams.html.
+         5. Login mode loads the user's existing team into the builder.
+       ========================================================= */
+    const PENDING_TEAM_KEY = APP.storage.key('pending_team');
+    const SUBMIT_LABEL_CREATE = 'Team abschicken ✓';
+    const SUBMIT_LABEL_UPDATE = 'Team aktualisieren ✓';
+
+    let editingTeamId  = null;   // Firestore doc id if user is in edit mode
+    let pendingFinalize = false; // guard against concurrent finalize attempts
+
+    /** Build the canonical Firestore payload from the current builder state. */
+    function buildTeamPayload(name) {
+        const finalPlayers = Object.entries(selectedTeam).map(([slotId, playerId]) => {
+            const player = getPlayerById(playerId);
+            return {
+                slot:      'slot-' + slotId,
+                playerId:  player.id,
+                name:      player.name,
+                nation:    player.nation,
+                pos:       player.position,
+                isCaptain: String(player.id) === String(selectedCaptainId)
+            };
+        });
+        return {
+            manager:           name,
+            managerNormalized: name.toLowerCase(),
+            players:           finalPlayers
+        };
+    }
+
+    function setSubmitBusy(busy, label) {
+        if (!dom.submitBtn) return;
+        dom.submitBtn.disabled    = busy || dom.submitBtn.disabled;
+        dom.submitBtn.textContent = label || dom.submitBtn.textContent;
+    }
+
+    function setSubmitDefaultLabel() {
+        if (!dom.submitBtn) return;
+        /* Don't override the locked-state label after tournament start. */
+        if (isTournamentStarted()) return;
+        dom.submitBtn.textContent = editingTeamId ? SUBMIT_LABEL_UPDATE : SUBMIT_LABEL_CREATE;
+    }
+
+    /** Load the user's existing team from Firestore into the builder. */
+    async function loadUserTeamIntoBuilder(user) {
+        if (!user || !user.emailVerified) return;
+        try {
+            const existing = await DreamTeamAuth.fetchUserTeam(user.uid);
+            if (!existing) {
+                editingTeamId = null;
+                DreamTeamAuth.setLoadedTeamId(null);
+                setSubmitDefaultLabel();
+                return;
+            }
+            editingTeamId = existing.id;
+            DreamTeamAuth.setLoadedTeamId(existing.id);
+
+            const data = existing.data || {};
+
+            /* Reconstruct the slot map from the saved players[] array. */
+            const newTeam = {};
+            let newCaptain = null;
+            (data.players || []).forEach(p => {
+                const slotId = String(p.slot || '').replace(/^slot-/, '');
+                if (!isValidSlotId(slotId)) return;
+                newTeam[slotId] = String(p.playerId);
+                if (p.isCaptain) newCaptain = String(p.playerId);
+            });
+
+            selectedTeam      = newTeam;
+            selectedCaptainId = newCaptain;
+            if (dom.managerName) dom.managerName.value = data.manager || '';
+
+            renderAllSlots();
+            renderMobileBuilder();
+            updatePickerHeader();
+            renderPickerPlayers(true);
+            saveStateToLocal();
+            validateForm();
+            setSubmitDefaultLabel();
+
+            showToast('✏️ Dein Team wurde zur Bearbeitung geladen.');
+        } catch (err) {
+            console.error('[TeamBuilder] Konnte Team nicht laden:', err);
+            showToast('⚠️ Team konnte nicht geladen werden.');
+        }
+    }
+
+    /** Save a payload to Firestore (create or update) and navigate to teams.html. */
+    async function persistPayload(payload, { silent = false } = {}) {
+        const result = await DreamTeamAuth.saveOrUpdateTeam(payload);
+
+        /* Bump the meta doc so other clients refresh their cache. */
+        try {
+            const FieldValue = firebase.firestore.FieldValue;
+            await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
+                year:           TOURNAMENT_YEAR,
+                teamsVersion:   FieldValue.increment(1),
+                teamsUpdatedAt: Date.now()
+            }, { merge: true });
+        } catch (err) {
+            // Non-critical – Firestore rules may disallow meta writes for end users.
+            console.warn('[TeamBuilder] meta update skipped:', err);
+        }
+
+        /* Clear local builder caches. */
+        localStorage.removeItem(BUILDER_CACHE_KEY);
+        localStorage.removeItem(LEGACY_BUILDER_KEY);
+        try {
+            if (window.DreamTeamCache && typeof DreamTeamCache.clearCache === 'function') {
+                DreamTeamCache.clearCache({ db, year: TOURNAMENT_YEAR });
+            }
+        } catch (err) { /* ignore */ }
+        sessionStorage.removeItem(SESSION_DATA_KEY);
+        sessionStorage.removeItem(LEGACY_SESSION_KEY);
+
+        if (!silent) {
+            showToast(result.mode === 'update' ? '✅ Team aktualisiert!' : '🎉 Team erfolgreich gespeichert!');
+            setTimeout(() => {
+                const targetUrl = new URL('teams.html', window.location.href);
+                targetUrl.searchParams.set('manager', payload.manager);
+                if (APP && APP.key) targetUrl.searchParams.set('tournament', APP.key);
+                window.location.href = targetUrl.toString();
+            }, 600);
+        }
+
+        return result;
+    }
+
+    /** Finalises a pending team after the user has verified their email. */
+    async function tryFinalizePendingTeam() {
+        if (pendingFinalize) return;
+        if (!DreamTeamAuth.isSignedInAndVerified()) return;
+        const pending = DreamTeamAuth.getPendingTeam();
+        if (!pending) return;
+
+        pendingFinalize = true;
+        try {
+            const FieldValue = firebase.firestore.FieldValue;
+            const user = DreamTeamAuth.getCurrentUser();
+            const doc  = {
+                ...pending,
+                userId:    user.uid,
+                userEmail: user.email || null,
+                status:    'verified',
+                updatedAt: FieldValue.serverTimestamp(),
+                timestamp: FieldValue.serverTimestamp()
+            };
+            const ref = await db.collection(TEAMS_COLLECTION).add(doc);
+            DreamTeamAuth.setLoadedTeamId(ref.id);
+            DreamTeamAuth.clearPendingTeam();
+
+            try {
+                await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
+                    year:           TOURNAMENT_YEAR,
+                    teamsVersion:   FieldValue.increment(1),
+                    teamsUpdatedAt: Date.now()
+                }, { merge: true });
+            } catch (err) { /* non-critical */ }
+
+            showToast('🎉 E-Mail bestätigt – Team gespeichert!');
+            setTimeout(() => {
+                const targetUrl = new URL('teams.html', window.location.href);
+                targetUrl.searchParams.set('manager', pending.manager);
+                if (APP && APP.key) targetUrl.searchParams.set('tournament', APP.key);
+                window.location.href = targetUrl.toString();
+            }, 700);
+        } catch (err) {
+            console.error('[TeamBuilder] finalize failed:', err);
+            showToast('⚠️ Konnte das Team nach Bestätigung nicht speichern.');
+        } finally {
+            pendingFinalize = false;
+        }
+    }
+
+    /* =========================================================
        SUBMIT
        ========================================================= */
     async function submitTeam() {
@@ -4134,84 +4329,98 @@
         }
 
         isSubmitting = true;
-        if (dom.submitBtn) {
-            dom.submitBtn.disabled = true;
-            dom.submitBtn.textContent = '⏳ Speichere…';
-        }
+        setSubmitBusy(true, '⏳ Speichere…');
 
         try {
-            const duplicateExists = await managerNameExists(name);
-            if (duplicateExists) {
-                if (dom.duplicateWarning) dom.duplicateWarning.style.display = 'block';
-                isSubmitting = false;
-                if (dom.submitBtn) {
-                    dom.submitBtn.textContent = 'Team abschicken ✓';
+            /* Duplicate manager-name check applies only when creating a new team. */
+            if (!editingTeamId) {
+                const duplicateExists = await managerNameExists(name);
+                if (duplicateExists) {
+                    if (dom.duplicateWarning) dom.duplicateWarning.style.display = 'block';
+                    isSubmitting = false;
+                    setSubmitDefaultLabel();
+                    validateForm();
+                    return;
                 }
-                validateForm();
+            }
+
+            const payload = buildTeamPayload(name);
+
+            if (DreamTeamAuth.isSignedInAndVerified()) {
+                await persistPayload(payload);
                 return;
             }
 
-            const finalPlayers = Object.entries(selectedTeam).map(([slotId, playerId]) => {
-                const player = getPlayerById(playerId);
-                return {
-                    slot:      'slot-' + slotId,
-                    playerId:  player.id,
-                    name:      player.name,
-                    nation:    player.nation,
-                    pos:       player.position,
-                    isCaptain: String(player.id) === String(selectedCaptainId)
-                };
-            });
+            /* Stash the team payload so it survives the verification flow. */
+            DreamTeamAuth.setPendingTeam(payload);
 
-            const batch      = db.batch();
-            const FieldValue = firebase.firestore.FieldValue;
-            const teamRef    = db.collection(TEAMS_COLLECTION).doc();
-            const metaRef    = db.collection(META_COLLECTION).doc(META_DOC_ID);
+            const currentUser = DreamTeamAuth.getCurrentUser();
+            const modalMode   = currentUser && !currentUser.emailVerified ? 'verify' : 'register';
 
-            batch.set(teamRef, {
-                manager:           name,
-                managerNormalized: name.toLowerCase(),
-                players:           finalPlayers,
-                timestamp:         FieldValue.serverTimestamp()
-            });
-
-            batch.set(metaRef, {
-                year:           TOURNAMENT_YEAR,
-                teamsVersion:   FieldValue.increment(1),
-                teamsUpdatedAt: Date.now()
-            }, { merge: true });
-
-            await batch.commit();
-
-            /* Clear local state */
-            localStorage.removeItem(BUILDER_CACHE_KEY);
-            localStorage.removeItem(LEGACY_BUILDER_KEY);
-
-            try {
-                if (window.DreamTeamCache && typeof DreamTeamCache.clearCache === 'function') {
-                    DreamTeamCache.clearCache({ db, year: TOURNAMENT_YEAR });
+            DreamTeamAuthModal.open({
+                mode: modalMode,
+                onAuthenticated: ({ user, isVerified }) => {
+                    /* If the user signed in with an already-verified account
+                       we can finalise immediately. Otherwise the modal stays
+                       on the verify view until they click the email link. */
+                    if (isVerified) tryFinalizePendingTeam();
                 }
-            } catch (err) { /* ignore */ }
+            });
 
-            sessionStorage.removeItem(SESSION_DATA_KEY);
-            sessionStorage.removeItem(LEGACY_SESSION_KEY);
-
-            showToast('🎉 Team erfolgreich gespeichert!');
-            setTimeout(() => {
-                const targetUrl = new URL('teams.html', window.location.href);
-                targetUrl.searchParams.set('manager', name);
-                if (APP && APP.key) targetUrl.searchParams.set('tournament', APP.key);
-                window.location.href = targetUrl.toString();
-            }, 600);
+            isSubmitting = false;
+            setSubmitDefaultLabel();
+            validateForm();
 
         } catch (e) {
             console.error('[TeamBuilder] Submit fehlgeschlagen:', e);
             showToast('⚠️ Fehler beim Speichern. Bitte Verbindung prüfen.');
             isSubmitting = false;
-            if (dom.submitBtn) dom.submitBtn.textContent = 'Team abschicken ✓';
+            setSubmitDefaultLabel();
             validateForm();
         }
     }
+
+    /* =========================================================
+       AUTH BOOTSTRAP (lazy registration)
+       ========================================================= */
+    function initLazyAuth() {
+        if (!window.DreamTeamAuth || !window.DreamTeamAuthModal) {
+            console.warn('[TeamBuilder] Auth-Modul fehlt – Lazy-Registration deaktiviert.');
+            return;
+        }
+
+        DreamTeamAuth.init({
+            db,
+            teamsCollection:   TEAMS_COLLECTION,
+            pendingStorageKey: PENDING_TEAM_KEY,
+            actionUrl:         window.location.origin + window.location.pathname
+        });
+        DreamTeamAuthModal.install();
+
+        DreamTeamAuth.onAuthStateChange(({ user, isVerified }) => {
+            if (!user) {
+                editingTeamId = null;
+                DreamTeamAuth.setLoadedTeamId(null);
+                setSubmitDefaultLabel();
+                return;
+            }
+
+            if (isVerified) {
+                /* Verified + pending team → write it through and redirect. */
+                if (DreamTeamAuth.hasPendingTeam()) {
+                    tryFinalizePendingTeam();
+                    return;
+                }
+                /* No pending team → user wants to edit their existing team. */
+                if (!editingTeamId) {
+                    loadUserTeamIntoBuilder(user);
+                }
+            }
+        });
+    }
+
+    /* Initialise auth once the DOM and main IIFE are ready. */
+    window.addEventListener('DOMContentLoaded', initLazyAuth);
 
     /* =========================================================
        TOURNAMENT CLOSED – UI LOCK
