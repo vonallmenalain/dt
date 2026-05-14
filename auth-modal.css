@@ -326,6 +326,156 @@
 .dt-auth-secondary:hover { background: var(--dt-auth-surface-2); border-color: var(--dt-auth-primary); }
 
 /* -----------------------------------------------------------------------------
+ *  View transitions
+ *
+ *  Views are stacked inside `.dt-auth-card-body`. Only the active one is
+ *  visible (`is-visible`), the others are `hidden`. We add a subtle fade /
+ *  slide-in for a smooth feel between modes.
+ * --------------------------------------------------------------------------- */
+.dt-auth-view {
+    opacity: 1;
+}
+.dt-auth-view[hidden] { display: none; }
+
+.dt-auth-view.is-visible {
+    animation: dt-auth-view-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes dt-auth-view-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* -----------------------------------------------------------------------------
+ *  Chooser view — Google / Email-Link / Email & Password
+ * --------------------------------------------------------------------------- */
+.dt-auth-chooser {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dt-auth-chooser-helper {
+    margin: 6px 0 0;
+    text-align: center;
+}
+
+.dt-auth-provider {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--dt-auth-surface);
+    color: var(--dt-auth-text);
+    border: 1px solid var(--dt-auth-border-strong);
+    border-radius: var(--dt-auth-radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.dt-auth-provider:hover:not(:disabled) {
+    background: var(--dt-auth-surface-2);
+    border-color: var(--dt-auth-primary);
+    transform: translateY(-1px);
+}
+
+.dt-auth-provider:disabled {
+    opacity: 0.65;
+    cursor: progress;
+    transform: none;
+}
+
+.dt-auth-provider-icon {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.dt-auth-provider-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    flex: 1 1 auto;
+}
+
+.dt-auth-provider-sub {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--dt-auth-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* Google button — prominent, light surface so the multicolour G logo pops.   */
+.dt-auth-provider-google {
+    background: #ffffff;
+    color: #1f1f1f;
+    border-color: #ffffff;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.30);
+}
+
+.dt-auth-provider-google:hover:not(:disabled) {
+    background: #f5f7fb;
+    border-color: #f5f7fb;
+    transform: translateY(-1px);
+}
+
+.dt-auth-provider-google .dt-auth-provider-sub {
+    color: #5f6368;
+}
+
+.dt-auth-google-logo {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* Divider with centred "oder" label between the Google CTA and the rest.     */
+.dt-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0 2px;
+    color: var(--dt-auth-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.dt-auth-divider::before,
+.dt-auth-divider::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--dt-auth-border);
+}
+
+.dt-auth-divider-text {
+    flex: 0 0 auto;
+    padding: 0 4px;
+}
+
+/* -----------------------------------------------------------------------------
+ *  Email-link form view
+ * --------------------------------------------------------------------------- */
+.dt-auth-emaillink {
+    display: flex;
+    flex-direction: column;
+}
+
+/* -----------------------------------------------------------------------------
  *  Verify-pending view
  * --------------------------------------------------------------------------- */
 .dt-auth-verify {
@@ -366,6 +516,12 @@
     border: 2px solid rgba(255, 255, 255, 0.4);
     border-top-color: #ffffff;
     animation: dt-auth-spin 0.7s linear infinite;
+}
+
+/* Dark variant for use on light backgrounds (e.g. the white Google button). */
+.dt-auth-spinner-dark {
+    border-color: rgba(31, 31, 31, 0.25);
+    border-top-color: #1f1f1f;
 }
 
 /* -----------------------------------------------------------------------------

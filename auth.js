@@ -11,8 +11,14 @@
  *                                              teamsCollection    – Firestore collection name for teams (required)
  *                                              pendingStorageKey  – localStorage key for the pending team payload
  *                                                                   (default: 'dreamteam_pending_team')
- *                                              actionUrl          – optional ActionCodeSettings.url for the
- *                                                                   verification email (deep-link back to the app)
+ *                                              emailLinkStorageKey
+ *                                                                 – localStorage key under which we cache the
+ *                                                                   e-mail address used when sending an
+ *                                                                   email-link sign-in (default:
+ *                                                                   'dreamteam_emaillink_email')
+ *                                              actionUrl          – optional ActionCodeSettings.url for both the
+ *                                                                   verification email (deep-link back to the
+ *                                                                   app) and the passwordless email-link flow
  *                                              languageCode       – optional BCP-47 language code applied to
  *                                                                   firebase.auth() so verification e-mails
  *                                                                   *and* the Firebase-hosted action handler
@@ -26,6 +32,15 @@
  *
  *    registerWithEmail(email, password)   → Promise<{ user }>            Creates user + sends verification email
  *    login(email, password)               → Promise<{ user }>
+ *    signInWithGoogle()                   → Promise<{ user }>            Google popup sign-in
+ *    sendSignInLinkToEmail(email)         → Promise<void>                Sends passwordless email-link
+ *    isSignInWithEmailLink(url?)          → boolean
+ *    completeEmailLinkSignIn(options?)    → Promise<{ user } | null>     Completes email-link flow on return.
+ *                                                                       options.email lets the caller supply
+ *                                                                       the address (e.g. from a UI prompt).
+ *                                                                       When the cached e-mail is missing and
+ *                                                                       no override is given, this falls back
+ *                                                                       to window.prompt(...).
  *    resendVerification()                 → Promise<void>
  *    reloadUser()                         → Promise<firebase.User|null>  Forces emailVerified refresh
  *    logout()                             → Promise<void>
@@ -56,17 +71,18 @@
      *  Configuration (filled by init()).
      * ------------------------------------------------------------------------- */
     const state = {
-        initialised:        false,
-        db:                 null,
-        teamsCollection:    null,
-        pendingStorageKey:  'dreamteam_pending_team',
-        actionUrl:          null,
-        languageCode:       'de',
-        currentUser:        null,
+        initialised:           false,
+        db:                    null,
+        teamsCollection:       null,
+        pendingStorageKey:     'dreamteam_pending_team',
+        emailLinkStorageKey:   'dreamteam_emaillink_email',
+        actionUrl:             null,
+        languageCode:          'de',
+        currentUser:           null,
         // Track the loaded user team while editing so submit() knows the doc id.
-        loadedTeamId:       null,
+        loadedTeamId:          null,
         // Subscribers to onAuthStateChange (our own, not firebase's raw)
-        listeners:          new Set()
+        listeners:             new Set()
     };
 
     /* ---------------------------------------------------------------------------
@@ -108,12 +124,13 @@
             throw new Error('[DreamTeamAuth] init() requires teamsCollection.');
         }
 
-        state.db                = options.db;
-        state.teamsCollection   = options.teamsCollection;
-        state.pendingStorageKey = options.pendingStorageKey || state.pendingStorageKey;
-        state.actionUrl         = options.actionUrl || null;
-        state.languageCode      = options.languageCode || state.languageCode;
-        state.initialised       = true;
+        state.db                  = options.db;
+        state.teamsCollection     = options.teamsCollection;
+        state.pendingStorageKey   = options.pendingStorageKey   || state.pendingStorageKey;
+        state.emailLinkStorageKey = options.emailLinkStorageKey || state.emailLinkStorageKey;
+        state.actionUrl           = options.actionUrl || null;
+        state.languageCode        = options.languageCode || state.languageCode;
+        state.initialised         = true;
 
         // Apply the language to Firebase Auth so that verification e-mails and
         // the Firebase-hosted action handler page (/__/auth/action) — including
@@ -149,6 +166,13 @@
         window.addEventListener('focus', () => {
             reloadUser().catch(() => { /* swallow */ });
         });
+
+        // Best-effort: if the page was opened via a passwordless email-link,
+        // finish the sign-in automatically. The promise resolves to null when
+        // the URL is not an email-link, so this is safe to fire-and-forget.
+        completeEmailLinkSignIn().catch((err) => {
+            console.warn('[DreamTeamAuth] Auto email-link sign-in failed:', err);
+        });
     }
 
     function getCurrentUser()        { return state.currentUser; }
@@ -163,7 +187,7 @@
     }
 
     /* ---------------------------------------------------------------------------
-     *  Auth actions
+     *  Auth actions – classic email / password
      * ------------------------------------------------------------------------- */
     async function registerWithEmail(email, password) {
         requireInit();
@@ -209,6 +233,135 @@
     async function sendPasswordReset(email) {
         requireInit();
         await firebase.auth().sendPasswordResetEmail(email);
+    }
+
+    /* ---------------------------------------------------------------------------
+     *  Auth actions – Google Sign-In
+     *
+     *  Uses signInWithPopup. The provider configuration requests the user's
+     *  e-mail and basic profile (which Firebase requests by default for Google,
+     *  but we set it explicitly for clarity). On success the standard
+     *  onAuthStateChanged listener fires, which in turn drives the existing
+     *  pending-team finalisation logic in the host app.
+     * ------------------------------------------------------------------------- */
+    async function signInWithGoogle() {
+        requireInit();
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+
+        // Force the account chooser so users can pick between multiple Google
+        // identities on shared devices.
+        provider.setCustomParameters({ prompt: 'select_account' });
+
+        const result = await firebase.auth().signInWithPopup(provider);
+        return { user: result.user };
+    }
+
+    /* ---------------------------------------------------------------------------
+     *  Auth actions – Passwordless Email-Link
+     *
+     *  Flow:
+     *    1) sendSignInLinkToEmail(email) sends an action link to the given
+     *       address and remembers that address in localStorage so we can
+     *       silently complete the sign-in when the user returns.
+     *    2) When the user clicks the link in their inbox they land back on
+     *       the app's URL with a `?apiKey=…&mode=signIn&oobCode=…` query.
+     *       completeEmailLinkSignIn() detects this, reads the cached e-mail
+     *       (or prompts the user if it's missing — e.g. they opened the link
+     *       on a different device), and calls firebase.auth().signInWithEmailLink.
+     *    3) On success the URL is cleaned and onAuthStateChanged fires,
+     *       finalising the pending team just like the password flow.
+     * ------------------------------------------------------------------------- */
+    function getEmailLinkSettings() {
+        // Email-link sign-in REQUIRES handleCodeInApp = true and a deep-link
+        // URL back to the application. We fall back to the current page if
+        // the caller did not configure one explicitly.
+        const url = state.actionUrl || (window.location.origin + window.location.pathname);
+        return { url, handleCodeInApp: true };
+    }
+
+    function storeEmailForLink(email) {
+        try {
+            window.localStorage.setItem(state.emailLinkStorageKey, email);
+        } catch (err) {
+            console.warn('[DreamTeamAuth] Could not persist email-link address:', err);
+        }
+    }
+
+    function readStoredEmailForLink() {
+        try {
+            return window.localStorage.getItem(state.emailLinkStorageKey) || null;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function clearStoredEmailForLink() {
+        try { window.localStorage.removeItem(state.emailLinkStorageKey); } catch (err) { /* noop */ }
+    }
+
+    async function sendSignInLinkToEmail(email) {
+        requireInit();
+        const trimmed = (email || '').trim();
+        if (!trimmed) throw new Error('Bitte eine gültige E-Mail-Adresse angeben.');
+
+        await firebase.auth().sendSignInLinkToEmail(trimmed, getEmailLinkSettings());
+
+        // CRUCIAL: remember the address so we can complete sign-in without
+        // asking the user again when they come back via the link.
+        storeEmailForLink(trimmed);
+    }
+
+    function isSignInWithEmailLink(url) {
+        ensureFirebase();
+        try {
+            return !!firebase.auth().isSignInWithEmailLink(url || window.location.href);
+        } catch (err) {
+            return false;
+        }
+    }
+
+    /**
+     * Clean the email-link parameters out of the current URL so a reload won't
+     * try to re-consume the (already used) oobCode.
+     */
+    function cleanEmailLinkFromUrl() {
+        try {
+            const url = new URL(window.location.href);
+            ['apiKey', 'oobCode', 'mode', 'continueUrl', 'lang', 'tenantId']
+                .forEach(p => url.searchParams.delete(p));
+            const cleaned = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash;
+            window.history.replaceState({}, document.title, cleaned);
+        } catch (err) {
+            /* noop */
+        }
+    }
+
+    async function completeEmailLinkSignIn(options) {
+        requireInit();
+        options = options || {};
+
+        if (!isSignInWithEmailLink(window.location.href)) return null;
+
+        // Try the override → cached → prompt chain.
+        let email = (options.email || '').trim();
+        if (!email) email = readStoredEmailForLink();
+        if (!email && typeof window.prompt === 'function') {
+            // Same device hint missing (e.g. user opened the link on a
+            // different device) → fall back to a prompt so we can still
+            // complete the sign-in.
+            email = window.prompt('Bitte gib zur Bestätigung deine E-Mail-Adresse erneut ein:');
+            email = (email || '').trim();
+        }
+        if (!email) throw new Error('E-Mail-Adresse zum Abschluss der Anmeldung fehlt.');
+
+        const cred = await firebase.auth().signInWithEmailLink(email, window.location.href);
+
+        clearStoredEmailForLink();
+        cleanEmailLinkFromUrl();
+
+        return { user: cred.user };
     }
 
     /* ---------------------------------------------------------------------------
@@ -368,6 +521,10 @@
 
         registerWithEmail,
         login,
+        signInWithGoogle,
+        sendSignInLinkToEmail,
+        isSignInWithEmailLink,
+        completeEmailLinkSignIn,
         resendVerification,
         reloadUser,
         logout,
