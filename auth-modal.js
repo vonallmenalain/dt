@@ -297,10 +297,6 @@
             el('button', { class: 'dt-auth-link', type: 'button', id: 'dt-auth-forgot' }, ['Passwort vergessen?'])
         ]);
 
-        const backToChooserRow = el('div', { class: 'dt-auth-card-footer', style: 'padding-top:8px;padding-bottom:0;' }, [
-            el('button', { class: 'dt-auth-link', type: 'button', id: 'dt-auth-form-back' }, ['← Zurück zu allen Anmeldeoptionen'])
-        ]);
-
         const formBackBtn = el('button', {
             class: 'dt-auth-secondary',
             id:    'dt-auth-form-back-btn',
@@ -308,7 +304,7 @@
         }, ['Zurück']);
 
         const formView = el('form', { class: 'dt-auth-view', id: VIEW_IDS.register, novalidate: '', hidden: '' }, [
-            errorBox, emailField, passwordField, submitBtn, formBackBtn, forgotRow, backToChooserRow
+            errorBox, emailField, passwordField, submitBtn, formBackBtn, forgotRow
         ]);
 
         /* -------------------------------------------------------------------
@@ -361,7 +357,6 @@
         // Classic form
         formView.addEventListener('submit', handleFormSubmit);
         forgotRow.querySelector('#dt-auth-forgot').addEventListener('click', handleForgotPassword);
-        backToChooserRow.querySelector('#dt-auth-form-back').addEventListener('click', () => setMode('chooser'));
         formBackBtn.addEventListener('click', () => setMode('chooser'));
 
         // Verify view
