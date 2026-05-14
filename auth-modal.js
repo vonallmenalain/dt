@@ -14,10 +14,20 @@
  *
  *  Public API (exposed as `window.DreamTeamAuthModal`):
  *
- *    install({ mountChip = true } = {})
- *        Lazily creates the modal DOM (idempotent) and optionally mounts the
- *        floating top-right Login / Account chip. The chip auto-updates from
+ *    install({ navbarMountTarget = '#dt-auth-nav-slot', teamBuilderHref } = {})
+ *        Lazily creates the modal DOM (idempotent) and mounts the small auth
+ *        icon directly into the global navbar. The icon is grey when signed
+ *        out and green once the user is signed in & verified, and clicking it
+ *        opens the existing sign-in modal (signed-out) or a small dropdown
+ *        with the user's e-mail, a "Mein Team" shortcut and a "Abmelden"
+ *        button (signed-in). It auto-updates from
  *        `DreamTeamAuth.onAuthStateChange`.
+ *
+ *        Pass `navbarMountTarget: false` to skip mounting the navbar icon
+ *        (tests, embedding scenarios). `teamBuilderHref` overrides the URL
+ *        used by the "Mein Team" dropdown entry; defaults to
+ *        `team-builder.html` (tournament param appended automatically when
+ *        APP_CONFIG is present).
  *
  *    open({ mode, prefill, onAuthenticated, onClose })
  *        mode:  see view modes above (default: 'chooser')
@@ -46,11 +56,15 @@
      *  State
      * ------------------------------------------------------------------------- */
     const state = {
-        installed:    false,
-        modalEl:      null,
-        chipEl:       null,
-        currentMode:  null,
-        callbacks:    { onAuthenticated: null, onClose: null }
+        installed:        false,
+        modalEl:          null,
+        navIconEl:        null,
+        navDropdownEl:    null,
+        navWrapperEl:     null,
+        navAuthListener:  null,
+        teamBuilderHref:  'team-builder.html',
+        currentMode:      null,
+        callbacks:        { onAuthenticated: null, onClose: null }
     };
 
     const VIEW_IDS = {
@@ -363,46 +377,156 @@
     }
 
     /* ---------------------------------------------------------------------------
-     *  Floating chip (top-right) — Login / Verify / Account
+     *  Navbar auth icon + dropdown
+     *
+     *  The auth icon is a small, discreet button embedded in the global navbar
+     *  (rendered by nav.js). It looks like a plain person icon — grey when
+     *  signed out, green when signed in & verified, amber when the user is
+     *  signed in but the e-mail is not yet verified.
+     *
+     *  Click behaviour:
+     *    - signed out  → open the sign-in modal directly (chooser view)
+     *    - unverified  → open the modal in the "verify" view
+     *    - verified    → toggle a small dropdown anchored to the icon with
+     *                    the e-mail address, a "Mein Team" shortcut and a
+     *                    "Abmelden" button.
      * ------------------------------------------------------------------------- */
-    function mountChip() {
-        if (state.chipEl) return state.chipEl;
-
-        const chip = el('button', { class: 'dt-auth-chip', type: 'button', 'data-state': 'signed-out', on: { click: handleChipClick } }, [
-            el('span', { class: 'dt-auth-chip-icon' }, ['👤']),
-            el('span', { class: 'dt-auth-chip-label' }, ['Anmelden'])
-        ]);
-        document.body.appendChild(chip);
-        state.chipEl = chip;
-
-        if (window.DreamTeamAuth && typeof window.DreamTeamAuth.onAuthStateChange === 'function') {
-            window.DreamTeamAuth.onAuthStateChange(renderChip);
-        }
-        return chip;
+    function userIconSvg() {
+        // Inline person silhouette so the colour can be controlled via CSS
+        // (currentColor) and we don't depend on any external asset.
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+            + '<path fill="currentColor" d="M12 12.5a4.25 4.25 0 1 0 0-8.5a4.25 4.25 0 0 0 0 8.5Zm0 1.75c-3.314 0-9 1.667-9 5v1.5c0 .414.336.75.75.75h16.5a.75.75 0 0 0 .75-.75v-1.5c0-3.333-5.686-5-9-5Z"/>'
+            + '</svg>';
     }
 
-    function renderChip({ user, isVerified }) {
-        if (!state.chipEl) return;
-        const labelEl = state.chipEl.querySelector('.dt-auth-chip-label');
+    function mountNavbarIcon(target) {
+        if (state.navIconEl) return state.navIconEl;
+
+        let mountEl = null;
+        if (typeof target === 'string')      mountEl = document.querySelector(target);
+        else if (target instanceof Element)  mountEl = target;
+        if (!mountEl) {
+            // Fallback: append to <body>. This keeps the API graceful on
+            // pages that haven't added the slot yet — the icon still works
+            // but is positioned by CSS, not by the navbar.
+            mountEl = document.body;
+        }
+
+        const wrapper = el('div', { class: 'dt-auth-nav-wrapper' });
+
+        const button = el('button', {
+            type: 'button',
+            class: 'dt-auth-nav-icon',
+            'data-state': 'signed-out',
+            'aria-haspopup': 'menu',
+            'aria-expanded': 'false',
+            'aria-label': 'Anmelden oder registrieren',
+            title: 'Anmelden',
+            on: { click: handleNavIconClick }
+        }, [
+            el('span', { class: 'dt-auth-nav-icon-glyph', html: userIconSvg() }),
+            el('span', { class: 'dt-auth-nav-icon-status', 'aria-hidden': 'true' })
+        ]);
+
+        const dropdown = el('div', {
+            class: 'dt-auth-nav-dropdown',
+            role: 'menu',
+            hidden: ''
+        }, [
+            el('div', { class: 'dt-auth-nav-dropdown-header' }, [
+                el('span', { class: 'dt-auth-nav-dropdown-label' }, ['Angemeldet als']),
+                el('span', { class: 'dt-auth-nav-dropdown-email', id: 'dt-auth-nav-email' }, [''])
+            ]),
+            el('div', { class: 'dt-auth-nav-dropdown-divider' }),
+            el('button', {
+                type: 'button',
+                role: 'menuitem',
+                class: 'dt-auth-nav-dropdown-item',
+                id: 'dt-auth-nav-myteam',
+                on: { click: handleMyTeamClick }
+            }, [
+                el('span', { class: 'dt-auth-nav-dropdown-icon', html: '🛡️' }),
+                el('span', {}, ['Mein Team'])
+            ]),
+            el('button', {
+                type: 'button',
+                role: 'menuitem',
+                class: 'dt-auth-nav-dropdown-item dt-auth-nav-dropdown-item-danger',
+                id: 'dt-auth-nav-logout',
+                on: { click: handleLogoutClick }
+            }, [
+                el('span', { class: 'dt-auth-nav-dropdown-icon', html: '🚪' }),
+                el('span', {}, ['Abmelden'])
+            ])
+        ]);
+
+        wrapper.appendChild(button);
+        wrapper.appendChild(dropdown);
+        mountEl.appendChild(wrapper);
+
+        state.navIconEl     = button;
+        state.navDropdownEl = dropdown;
+        state.navWrapperEl  = wrapper;
+
+        // Close dropdown on outside click / Escape.
+        document.addEventListener('click', (event) => {
+            if (!state.navWrapperEl) return;
+            if (!state.navWrapperEl.contains(event.target)) closeNavDropdown();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeNavDropdown();
+        });
+
+        if (window.DreamTeamAuth && typeof window.DreamTeamAuth.onAuthStateChange === 'function') {
+            // Replay current state immediately and on every change.
+            state.navAuthListener = window.DreamTeamAuth.onAuthStateChange(renderNavIcon);
+        } else {
+            renderNavIcon({ user: null, isVerified: false });
+        }
+
+        return button;
+    }
+
+    function renderNavIcon({ user, isVerified }) {
+        if (!state.navIconEl) return;
 
         if (!user) {
-            state.chipEl.dataset.state = 'signed-out';
-            state.chipEl.setAttribute('aria-label', 'Anmelden oder registrieren');
-            labelEl.innerHTML = 'Anmelden';
+            state.navIconEl.dataset.state = 'signed-out';
+            state.navIconEl.setAttribute('aria-label', 'Anmelden oder registrieren');
+            state.navIconEl.setAttribute('title', 'Anmelden');
+            closeNavDropdown();
             return;
         }
 
         const email = user.email || '';
         if (!isVerified) {
-            state.chipEl.dataset.state = 'unverified';
-            state.chipEl.setAttribute('aria-label', `E-Mail-Adresse ${email} bestätigen`);
-            labelEl.innerHTML = `<span class="dt-auth-chip-email">${escapeHtml(email)}</span> · Bestätigen`;
+            state.navIconEl.dataset.state = 'unverified';
+            state.navIconEl.setAttribute('aria-label', `E-Mail-Adresse ${email} bestätigen`);
+            state.navIconEl.setAttribute('title', `E-Mail bestätigen (${email})`);
             return;
         }
 
-        state.chipEl.dataset.state = 'verified';
-        state.chipEl.setAttribute('aria-label', `Angemeldet als ${email}`);
-        labelEl.innerHTML = `<span class="dt-auth-chip-email">${escapeHtml(email)}</span> · Abmelden`;
+        state.navIconEl.dataset.state = 'verified';
+        state.navIconEl.setAttribute('aria-label', `Angemeldet als ${email}`);
+        state.navIconEl.setAttribute('title', `Angemeldet als ${email}`);
+
+        // Keep the email shown inside the dropdown in sync.
+        const emailEl = state.navDropdownEl && state.navDropdownEl.querySelector('#dt-auth-nav-email');
+        if (emailEl) emailEl.textContent = email;
+    }
+
+    function openNavDropdown() {
+        if (!state.navDropdownEl || !state.navIconEl) return;
+        state.navDropdownEl.hidden = false;
+        state.navDropdownEl.classList.add('is-open');
+        state.navIconEl.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeNavDropdown() {
+        if (!state.navDropdownEl || !state.navIconEl) return;
+        state.navDropdownEl.hidden = true;
+        state.navDropdownEl.classList.remove('is-open');
+        state.navIconEl.setAttribute('aria-expanded', 'false');
     }
 
     function escapeHtml(v) {
@@ -411,27 +535,69 @@
         }[c]));
     }
 
-    async function handleChipClick() {
+    function handleNavIconClick(event) {
+        event.stopPropagation();
         const Auth = window.DreamTeamAuth;
-        if (!Auth) return;
+        if (!Auth) {
+            // Auth module not loaded yet — fall back to opening the team
+            // builder (where the legacy lazy-registration flow lives).
+            window.location.href = resolveTeamBuilderHref();
+            return;
+        }
 
         const user = Auth.getCurrentUser();
 
         if (!user) {
+            closeNavDropdown();
             open({ mode: 'chooser' });
             return;
         }
         if (!user.emailVerified) {
+            closeNavDropdown();
             open({ mode: 'verify' });
             return;
         }
-        // Verified → confirm logout
-        if (confirm('Möchtest du dich abmelden?')) {
-            try {
-                await Auth.logout();
-            } catch (err) {
-                alert('Abmelden fehlgeschlagen: ' + friendlyAuthError(err));
+
+        // Signed in & verified → toggle the dropdown.
+        if (state.navDropdownEl && state.navDropdownEl.hidden) {
+            openNavDropdown();
+        } else {
+            closeNavDropdown();
+        }
+    }
+
+    function resolveTeamBuilderHref() {
+        let href = state.teamBuilderHref || 'team-builder.html';
+        try {
+            const APP = window.APP_CONFIG;
+            if (APP && APP.key) {
+                const url = new URL(href, window.location.href);
+                url.searchParams.set('tournament', APP.key);
+                const fileName = url.pathname.split('/').pop() || 'team-builder.html';
+                href = `${fileName}${url.search ? url.search : ''}${url.hash || ''}`;
             }
+        } catch (_) { /* keep raw href */ }
+        return href;
+    }
+
+    function handleMyTeamClick(event) {
+        event.stopPropagation();
+        closeNavDropdown();
+        const target = resolveTeamBuilderHref();
+        // Navigate even when already on the page so the builder fully
+        // re-runs its "load my existing team" flow.
+        window.location.href = target;
+    }
+
+    async function handleLogoutClick(event) {
+        event.stopPropagation();
+        closeNavDropdown();
+        const Auth = window.DreamTeamAuth;
+        if (!Auth) return;
+        try {
+            await Auth.logout();
+        } catch (err) {
+            alert('Abmelden fehlgeschlagen: ' + friendlyAuthError(err));
         }
     }
 
@@ -878,11 +1044,30 @@
      * ------------------------------------------------------------------------- */
     function install(options) {
         options = options || {};
-        if (state.installed) return;
+        if (state.installed) {
+            // Allow callers to retry mounting the navbar icon if the slot
+            // was added to the DOM after a first install() call (e.g. when
+            // nav.js runs after the auth-modal script).
+            if (!state.navIconEl && options.navbarMountTarget !== false) {
+                if (options.teamBuilderHref) state.teamBuilderHref = options.teamBuilderHref;
+                mountNavbarIcon(options.navbarMountTarget || '#dt-auth-nav-slot');
+            }
+            return;
+        }
         state.installed = true;
 
+        if (options.teamBuilderHref) state.teamBuilderHref = options.teamBuilderHref;
+
         buildModal();
-        if (options.mountChip !== false) mountChip();
+
+        // Backwards compatibility: legacy callers used `mountChip: false` to
+        // disable any visible affordance. Treat that the same as
+        // `navbarMountTarget: false` so old call sites don't suddenly grow
+        // a navbar icon they didn't ask for.
+        const skipNav = options.mountChip === false || options.navbarMountTarget === false;
+        if (!skipNav) {
+            mountNavbarIcon(options.navbarMountTarget || '#dt-auth-nav-slot');
+        }
     }
 
     function showVerifyPending(/* options */) {

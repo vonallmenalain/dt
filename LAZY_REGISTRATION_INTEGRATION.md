@@ -53,10 +53,12 @@ moment they try to write to Firestore.
 |---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `team-builder.html` | • Loaded `firebase-auth-compat`, `auth.js`, `auth-modal.js`, `auth-modal.css`. <br/>• Replaced `submitTeam()` with a version that delegates to `DreamTeamAuth`. <br/>• Added an auth-state listener that finalises the pending team after verification, and loads the user's existing team for editing. |
 
-> No other HTML page was modified. The chip + modal are mounted by
-> `DreamTeamAuthModal.install()` and only appear on the team-builder for now.
-> Add the same three `<script>`/`<link>` lines and call `install()` on any
-> other page where you want the same behaviour.
+> The auth icon is now mounted directly into the global navbar. `nav.js`
+> auto-initialises `DreamTeamAuth` and `DreamTeamAuthModal` on every page
+> that loads them, so the user gets a consistent login state across the
+> whole app. Make sure each page loads `firebase-auth-compat.js`,
+> `auth.js`, `auth-modal.js` and `auth-modal.css` (in addition to the
+> existing `firebase-app-compat.js` / `firebase-firestore-compat.js`).
 
 ## How the flow works
 
@@ -94,25 +96,40 @@ This works on the original tab *and* on a freshly reloaded tab.
 
 ### 3. Login & edit
 
-The floating top-right chip says **"Anmelden"** when signed out.
+The small auth icon in the navbar shows the current state at a glance:
 
-1. Click → `DreamTeamAuthModal.open({mode:'login'})`.
-2. After `signInWithEmailAndPassword`, the auth listener detects a verified
-   user with **no** pending team in `localStorage` and calls
-   `loadUserTeamIntoBuilder(user)`:
-   * `db.collection(TEAMS_COLLECTION).where('userId','==',uid).limit(1).get()`
-   * Rebuilds `selectedTeam`, `selectedCaptainId`, manager name from
-     `data.players[].slot/playerId/isCaptain`.
-   * Re-renders the pitch.
-   * Changes the submit button label to **"Team aktualisieren ✓"**.
-3. Submit → `persistPayload()` calls `DreamTeamAuth.saveOrUpdateTeam()`,
-   which performs an `update()` on the existing doc id.
+* **Grey** person icon → signed out.
+* **Green** person icon → signed in & e-mail verified.
+* **Amber** person icon → signed in but e-mail not yet verified.
+
+When signed out, clicking the icon opens the sign-in modal directly
+(chooser view). When signed in & verified, clicking it instead opens a
+small dropdown anchored to the icon with:
+
+* the current e-mail address,
+* a **Mein Team** entry that navigates to `team-builder.html` (the
+  builder auto-loads the user's existing team for editing as long as
+  the tournament has not started yet),
+* a **Abmelden** button.
+
+After `signInWithEmailAndPassword`, the auth listener in
+`team-builder.html` detects a verified user with **no** pending team
+in `localStorage` and calls `loadUserTeamIntoBuilder(user)`:
+
+* `db.collection(TEAMS_COLLECTION).where('userId','==',uid).limit(1).get()`
+* Rebuilds `selectedTeam`, `selectedCaptainId`, manager name from
+  `data.players[].slot/playerId/isCaptain`.
+* Re-renders the pitch.
+* Changes the submit button label to **"Team aktualisieren ✓"**.
+
+Submitting → `persistPayload()` calls `DreamTeamAuth.saveOrUpdateTeam()`,
+which performs an `update()` on the existing doc id.
 
 ### 4. Logout
 
-Clicking the chip while verified shows a confirmation and calls
-`DreamTeamAuth.logout()`. The submit label falls back to the create label;
-the in-memory `editingTeamId` is reset.
+Clicking **Abmelden** in the navbar dropdown calls
+`DreamTeamAuth.logout()`. The submit label in `team-builder.html` falls
+back to the create label and the in-memory `editingTeamId` is reset.
 
 ### 5. Stay signed in across sessions
 

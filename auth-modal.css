@@ -26,72 +26,202 @@
 }
 
 /* -----------------------------------------------------------------------------
- *  Top-right floating Login / Account chip
+ *  Navbar auth icon + dropdown
+ *
+ *  The icon is intentionally tiny and unobtrusive: a single person silhouette
+ *  embedded into the navbar by nav.js. The colour communicates auth state
+ *  (grey = signed out, green = signed in & verified, amber = unverified).
  * --------------------------------------------------------------------------- */
-.dt-auth-chip {
-    position: fixed;
-    top: calc(80px + env(safe-area-inset-top, 0px));
-    right: 16px;
-    z-index: 1100;
-
+.dt-auth-nav-wrapper {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-
-    background: rgba(31, 38, 48, 0.92);
-    color: var(--dt-auth-text);
-    border: 1px solid var(--dt-auth-border-strong);
-    border-radius: 999px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-    cursor: pointer;
-    user-select: none;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-}
-
-.dt-auth-chip:hover {
-    background: rgba(40, 167, 69, 0.18);
-    border-color: rgba(40, 167, 69, 0.55);
-    transform: translateY(-1px);
-}
-
-.dt-auth-chip .dt-auth-chip-icon {
-    font-size: 14px;
     line-height: 1;
 }
 
-.dt-auth-chip .dt-auth-chip-email {
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    opacity: 0.92;
+.dt-auth-nav-icon {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
 
-.dt-auth-chip[data-state="verified"] {
-    border-color: rgba(40, 167, 69, 0.45);
-    background: rgba(40, 167, 69, 0.12);
+.dt-auth-nav-icon:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    transform: translateY(-1px);
 }
 
-.dt-auth-chip[data-state="unverified"] {
+.dt-auth-nav-icon:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.45);
+}
+
+.dt-auth-nav-icon-glyph {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dt-auth-nav-icon-glyph svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Tiny status pip in the corner so the auth state is recognisable even
+   when the icon itself is very small (e.g. on mobile).                       */
+.dt-auth-nav-icon-status {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #8a96a3;
+    border: 2px solid #1b3a27;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Signed-out: grey icon, grey pip. */
+.dt-auth-nav-icon[data-state="signed-out"] {
+    color: rgba(255, 255, 255, 0.55);
+}
+.dt-auth-nav-icon[data-state="signed-out"] .dt-auth-nav-icon-status {
+    background: #8a96a3;
+}
+
+/* Signed-in & verified: green accent + green pip. */
+.dt-auth-nav-icon[data-state="verified"] {
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.55);
+    background: rgba(74, 222, 128, 0.12);
+}
+.dt-auth-nav-icon[data-state="verified"]:hover {
+    background: rgba(74, 222, 128, 0.22);
+    border-color: rgba(74, 222, 128, 0.75);
+    color: #6ee7a0;
+}
+.dt-auth-nav-icon[data-state="verified"] .dt-auth-nav-icon-status {
+    background: #28a745;
+}
+
+/* Signed-in but not verified yet: amber accent. */
+.dt-auth-nav-icon[data-state="unverified"] {
+    color: #ffc857;
     border-color: rgba(255, 200, 87, 0.55);
     background: rgba(255, 200, 87, 0.12);
 }
+.dt-auth-nav-icon[data-state="unverified"] .dt-auth-nav-icon-status {
+    background: #ffc857;
+}
+
+/* Dropdown menu shown when a verified user clicks the icon. */
+.dt-auth-nav-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 220px;
+    padding: 6px;
+    background: var(--dt-auth-bg, #161b22);
+    color: var(--dt-auth-text, #e6edf3);
+    border: 1px solid var(--dt-auth-border-strong, rgba(255,255,255,0.18));
+    border-radius: var(--dt-auth-radius-sm, 10px);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(0, 0, 0, 0.35);
+    z-index: 1200;
+    animation: dt-auth-view-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dt-auth-nav-dropdown[hidden] { display: none; }
+
+.dt-auth-nav-dropdown-header {
+    padding: 10px 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dt-auth-nav-dropdown-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--dt-auth-muted, #9ba9b7);
+    font-weight: 600;
+}
+
+.dt-auth-nav-dropdown-email {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dt-auth-text, #e6edf3);
+    word-break: break-all;
+}
+
+.dt-auth-nav-dropdown-divider {
+    height: 1px;
+    margin: 4px 6px;
+    background: var(--dt-auth-border, rgba(255,255,255,0.10));
+}
+
+.dt-auth-nav-dropdown-item {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    background: transparent;
+    color: var(--dt-auth-text, #e6edf3);
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.dt-auth-nav-dropdown-item:hover {
+    background: rgba(74, 222, 128, 0.14);
+    color: #ffffff;
+}
+
+.dt-auth-nav-dropdown-item-danger:hover {
+    background: rgba(255, 107, 107, 0.16);
+    color: #ffd3d3;
+}
+
+.dt-auth-nav-dropdown-icon {
+    font-size: 16px;
+    line-height: 1;
+    width: 18px;
+    text-align: center;
+}
 
 @media (max-width: 600px) {
-    .dt-auth-chip {
-        top: calc(70px + env(safe-area-inset-top, 0px));
-        right: 10px;
-        padding: 6px 10px;
-        font-size: 12px;
+    .dt-auth-nav-icon {
+        width: 32px;
+        height: 32px;
     }
-    .dt-auth-chip .dt-auth-chip-email { max-width: 110px; }
+    .dt-auth-nav-icon-glyph {
+        width: 16px;
+        height: 16px;
+    }
+    .dt-auth-nav-dropdown {
+        right: 0;
+        min-width: 200px;
+    }
 }
 
 /* -----------------------------------------------------------------------------
