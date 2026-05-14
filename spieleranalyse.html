@@ -26,6 +26,11 @@
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 
+    <!-- Firebase-Compat-SDK früh und parallel zum HTML-Parsing laden. -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
     <link rel="stylesheet" href="styles.css">
 
     <style>
@@ -4288,9 +4293,7 @@
 
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="data.js"></script>
 <script src="cache.js"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->

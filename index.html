@@ -27,6 +27,18 @@
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 
+    <!-- Firebase-Compat-SDK früh und parallel zum HTML-Parsing laden.
+         `defer` garantiert, dass die Skripte in Dokumentreihenfolge VOR
+         DOMContentLoaded ausgeführt werden, nachdem das HTML komplett
+         geparst ist – also rechtzeitig für den End-of-Body-IIFE, der
+         auf Firebase + DreamTeamCache angewiesen ist.
+         Die übrigen Module (tournament-config, nav, data, cache, …)
+         bleiben am Body-Ende, damit `data.js` (document.write) und die
+         Reihenfolgegarantie zu APP_CONFIG nicht angefasst werden. -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
     <link rel="stylesheet" href="styles.css">
 
     <!-- =====================================================
@@ -5734,9 +5746,10 @@
 
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<!-- firebase-*-compat werden bereits im <head> mit defer geladen
+     (parallel zum HTML-Parsing). DreamTeamCache/Auth nutzen sie erst
+     nach DOMContentLoaded, also nachdem alle defer-Skripte ausgeführt
+     wurden. -->
 <script src="data.js"></script>
 <script src="cache.js"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
