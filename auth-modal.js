@@ -198,7 +198,7 @@
             ]),
 
             el('p', { class: 'dt-auth-helper dt-auth-chooser-helper' }, [
-                'Wir verwenden deine E-Mail-Adresse nur, um dein Team zu schützen.'
+                'Durch das Login kann dein DreamTeam bis am 11. Juni 2026 - 21:00 Uhr bearbeitet werden'
             ])
         ]);
 
@@ -219,10 +219,6 @@
             })
         ]);
 
-        const emailLinkHelper = el('p', { class: 'dt-auth-helper' }, [
-            'Wir senden dir einen einmaligen Anmeldelink. Kein Passwort nötig.'
-        ]);
-
         const emailLinkSubmit = el('button', {
             class: 'dt-auth-submit',
             id:    'dt-auth-emaillink-submit',
@@ -237,7 +233,6 @@
         }, [
             emailLinkError,
             emailLinkField,
-            emailLinkHelper,
             emailLinkSubmit,
             el('button', {
                 class: 'dt-auth-secondary',
@@ -291,10 +286,6 @@
             el('input', { class: 'dt-auth-input', id: 'dt-auth-password', type: 'password', autocomplete: 'current-password', required: '', minlength: '6', placeholder: 'Mindestens 6 Zeichen' })
         ]);
 
-        const helper = el('p', { class: 'dt-auth-helper', id: 'dt-auth-helper' }, [
-            'Wir verwenden deine E-Mail-Adresse nur, um dein Team zu schützen.'
-        ]);
-
         const submitBtn = el('button', { class: 'dt-auth-submit', id: 'dt-auth-submit', type: 'submit' }, ['Konto erstellen & E-Mail bestätigen']);
 
         const forgotRow = el('div', { class: 'dt-auth-card-footer', id: 'dt-auth-forgot-row', style: 'padding-top:12px;padding-bottom:0;' }, [
@@ -306,7 +297,7 @@
         ]);
 
         const formView = el('form', { class: 'dt-auth-view', id: VIEW_IDS.register, novalidate: '', hidden: '' }, [
-            errorBox, emailField, passwordField, helper, submitBtn, forgotRow, backToChooserRow
+            errorBox, emailField, passwordField, submitBtn, forgotRow, backToChooserRow
         ]);
 
         /* -------------------------------------------------------------------
@@ -784,7 +775,7 @@
                 break;
             case 'email-link':
                 titleEl.textContent    = 'Anmeldelink per E-Mail';
-                subtitleEl.textContent = 'Wir senden dir einen Link, mit dem du dich ohne Passwort anmeldest.';
+                subtitleEl.textContent = 'Du erhältst einen einmaligen Anmeldelink, mit dem du dich ohne Passwort anmeldest.';
                 subtitleEl.style.display = '';
                 break;
             case 'email-link-sent':
@@ -806,8 +797,8 @@
                 break;
             case 'register':
                 titleEl.textContent    = 'Konto erstellen';
-                subtitleEl.textContent = 'Damit wir dein Team später wiedererkennen, brauchen wir nur eine E-Mail-Adresse.';
-                subtitleEl.style.display = '';
+                subtitleEl.textContent = '';
+                subtitleEl.style.display = 'none';
                 {
                     const submitEl   = state.modalEl.querySelector('#dt-auth-submit');
                     const passwordEl = state.modalEl.querySelector('#dt-auth-password');
