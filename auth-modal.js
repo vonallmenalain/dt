@@ -580,11 +580,110 @@
         return href;
     }
 
-    function handleMyTeamClick(event) {
+    /**
+     * Build a `teams.html` URL preserving the active tournament and optionally
+     * pre-selecting a specific manager so the page jumps directly to that
+     * team's view.
+     */
+    function resolveTeamsViewHref(managerName) {
+        let href = 'teams.html';
+        try {
+            const APP = window.APP_CONFIG;
+            const url = new URL(href, window.location.href);
+            if (APP && APP.key) url.searchParams.set('tournament', APP.key);
+            if (managerName) url.searchParams.set('manager', managerName);
+            const fileName = url.pathname.split('/').pop() || 'teams.html';
+            href = `${fileName}${url.search ? url.search : ''}${url.hash || ''}`;
+        } catch (_) { /* keep raw href */ }
+        return href;
+    }
+
+    /**
+     * Decide whether the app is in "Nach Start" mode. Mirrors the logic of
+     * the dev toggle on index.html (localStorage key `dreamteamIndexViewMode`
+     * with values "auto" | "pre" | "post"), so an admin override on the
+     * dashboard transparently steers the "Mein Team" shortcut as well.
+     */
+    function isPostStartMode() {
+        try {
+            const override = window.localStorage
+                && window.localStorage.getItem('dreamteamIndexViewMode');
+            if (override === 'pre') return false;
+            if (override === 'post') return true;
+        } catch (_) { /* localStorage may be blocked */ }
+
+        try {
+            const APP = window.APP_CONFIG;
+            const start = APP && APP.DREAMTEAM_START;
+            if (start instanceof Date && !isNaN(start.getTime())) {
+                return Date.now() >= start.getTime();
+            }
+        } catch (_) { /* ignore */ }
+
+        // Conservative default: treat unknown state as pre-start so the user
+        // still ends up in the editable team builder instead of a possibly
+        // empty teams view.
+        return false;
+    }
+
+    /**
+     * Resolve the target for the "Mein Team" dropdown entry:
+     *   - Pre-Start  →  team-builder.html (Bearbeitung des eigenen Teams)
+     *   - Nach Start →  teams.html?manager=<eigener Manager> (Ansicht)
+     *
+     * Looks up the user's manager name via DreamTeamAuth.fetchUserTeam so
+     * teams.html opens directly on the signed-in user's team. If the lookup
+     * fails or no team exists yet (e.g. user hasn't created one), we still
+     * navigate to teams.html — the page can then prompt for / pick any team.
+     */
+    async function resolveMyTeamHref() {
+        if (!isPostStartMode()) {
+            return resolveTeamBuilderHref();
+        }
+
+        let managerName = null;
+        try {
+            const Auth = window.DreamTeamAuth;
+            if (Auth && typeof Auth.fetchUserTeam === 'function') {
+                const result = await Auth.fetchUserTeam();
+                if (result && result.data && typeof result.data.manager === 'string') {
+                    managerName = result.data.manager.trim() || null;
+                }
+            }
+        } catch (err) {
+            console.warn('[DreamTeamAuthModal] Could not look up user team for "Mein Team" navigation:', err);
+        }
+
+        return resolveTeamsViewHref(managerName);
+    }
+
+    async function handleMyTeamClick(event) {
         event.stopPropagation();
+        const myTeamBtn = state.navDropdownEl
+            && state.navDropdownEl.querySelector('#dt-auth-nav-myteam');
+
+        // Provide immediate feedback for the post-start flow where we briefly
+        // wait for the Firestore lookup to resolve. Pre-start navigation is
+        // synchronous so the indicator never flickers in that case.
+        let prevLabel = null;
+        if (myTeamBtn && isPostStartMode()) {
+            prevLabel = myTeamBtn.textContent;
+            myTeamBtn.disabled = true;
+            myTeamBtn.dataset.busy = '1';
+        }
+
+        let target;
+        try {
+            target = await resolveMyTeamHref();
+        } finally {
+            if (myTeamBtn && prevLabel !== null) {
+                myTeamBtn.disabled = false;
+                delete myTeamBtn.dataset.busy;
+            }
+        }
+
         closeNavDropdown();
-        const target = resolveTeamBuilderHref();
-        // Navigate even when already on the page so the builder fully
+        // Navigate even when already on the page so the target view fully
         // re-runs its "load my existing team" flow.
         window.location.href = target;
     }
