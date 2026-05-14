@@ -4355,7 +4355,7 @@
             DreamTeamAuth.setPendingTeam(payload);
 
             const currentUser = DreamTeamAuth.getCurrentUser();
-            const modalMode   = currentUser && !currentUser.emailVerified ? 'verify' : 'register';
+            const modalMode   = currentUser && !currentUser.emailVerified ? 'verify' : 'chooser';
 
             DreamTeamAuthModal.open({
                 mode: modalMode,
