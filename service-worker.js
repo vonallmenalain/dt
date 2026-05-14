@@ -17,7 +17,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-05-08-dev-switcher-popover';
+const CACHE_VERSION = 'v2026-05-14-admin-gated-dev-buttons';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -31,6 +31,7 @@ const APP_SHELL = [
   './dashboard.html',
   './styles.css',
   './nav.js',
+  './admin.js',
   './tournament-config.js',
   './data.js',
   './data-em2024.js',
