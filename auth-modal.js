@@ -262,6 +262,11 @@
                 id:    'dt-auth-emaillink-resend',
                 type:  'button'
             }, ['Erneut senden']),
+            el('button', {
+                class: 'dt-auth-secondary',
+                id:    'dt-auth-emaillink-sent-back',
+                type:  'button'
+            }, ['Zurück']),
             el('p', { class: 'dt-auth-card-footer', style: 'padding:14px 0 0;' }, [
                 el('button', {
                     class: 'dt-auth-link',
@@ -296,8 +301,14 @@
             el('button', { class: 'dt-auth-link', type: 'button', id: 'dt-auth-form-back' }, ['← Zurück zu allen Anmeldeoptionen'])
         ]);
 
+        const formBackBtn = el('button', {
+            class: 'dt-auth-secondary',
+            id:    'dt-auth-form-back-btn',
+            type:  'button'
+        }, ['Zurück']);
+
         const formView = el('form', { class: 'dt-auth-view', id: VIEW_IDS.register, novalidate: '', hidden: '' }, [
-            errorBox, emailField, passwordField, submitBtn, forgotRow, backToChooserRow
+            errorBox, emailField, passwordField, submitBtn, formBackBtn, forgotRow, backToChooserRow
         ]);
 
         /* -------------------------------------------------------------------
@@ -345,11 +356,13 @@
         // Email-link confirmation view
         emailLinkSentView.querySelector('#dt-auth-emaillink-resend').addEventListener('click', handleEmailLinkResend);
         emailLinkSentView.querySelector('#dt-auth-emaillink-restart').addEventListener('click', () => setMode('email-link'));
+        emailLinkSentView.querySelector('#dt-auth-emaillink-sent-back').addEventListener('click', () => setMode('chooser'));
 
         // Classic form
         formView.addEventListener('submit', handleFormSubmit);
         forgotRow.querySelector('#dt-auth-forgot').addEventListener('click', handleForgotPassword);
         backToChooserRow.querySelector('#dt-auth-form-back').addEventListener('click', () => setMode('chooser'));
+        formBackBtn.addEventListener('click', () => setMode('chooser'));
 
         // Verify view
         verifyView.querySelector('#dt-auth-verify-check').addEventListener('click', handleVerifyCheck);
