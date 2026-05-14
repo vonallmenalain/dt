@@ -4216,22 +4216,34 @@
         }
     }
 
+    /**
+     * Increment `teamsVersion` (and `teamsUpdatedAt`) on the active
+     * tournament's app_meta doc. Called after every team create / update
+     * so that other clients invalidate their DreamTeamCache and pull the
+     * fresh teams list.
+     *
+     * Non-critical: if the meta bump fails (e.g. the meta doc has not been
+     * initialised yet, or the user is not verified), the team write itself
+     * is still considered successful.
+     */
+    async function bumpTeamsMetaVersion() {
+        try {
+            const FieldValue = firebase.firestore.FieldValue;
+            await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
+                teamsVersion:   FieldValue.increment(1),
+                teamsUpdatedAt: Date.now()
+            }, { merge: true });
+        } catch (err) {
+            console.warn('[TeamBuilder] meta update skipped:', err);
+        }
+    }
+
     /** Save a payload to Firestore (create or update) and navigate to teams.html. */
     async function persistPayload(payload, { silent = false } = {}) {
         const result = await DreamTeamAuth.saveOrUpdateTeam(payload);
 
         /* Bump the meta doc so other clients refresh their cache. */
-        try {
-            const FieldValue = firebase.firestore.FieldValue;
-            await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
-                year:           TOURNAMENT_YEAR,
-                teamsVersion:   FieldValue.increment(1),
-                teamsUpdatedAt: Date.now()
-            }, { merge: true });
-        } catch (err) {
-            // Non-critical – Firestore rules may disallow meta writes for end users.
-            console.warn('[TeamBuilder] meta update skipped:', err);
-        }
+        await bumpTeamsMetaVersion();
 
         /* Clear local builder caches. */
         localStorage.removeItem(BUILDER_CACHE_KEY);
@@ -4280,13 +4292,7 @@
             DreamTeamAuth.setLoadedTeamId(ref.id);
             DreamTeamAuth.clearPendingTeam();
 
-            try {
-                await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
-                    year:           TOURNAMENT_YEAR,
-                    teamsVersion:   FieldValue.increment(1),
-                    teamsUpdatedAt: Date.now()
-                }, { merge: true });
-            } catch (err) { /* non-critical */ }
+            await bumpTeamsMetaVersion();
 
             showToast('🎉 E-Mail bestätigt – Team gespeichert!');
             setTimeout(() => {

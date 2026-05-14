@@ -100,8 +100,34 @@ service cloud.firestore {
     //  privileged credentials, not by end-users.
     // ---------------------------------------------------------------------
     match /app_meta/{docId} {
-      allow read:  if true;
-      allow write: if false;
+      allow read:   if true;
+
+      // Verified end users may bump the teams-version counter on an
+      // already-existing tournament meta doc when they create or update
+      // their own team (team-builder.html / persistPayload +
+      // tryFinalizePendingTeam). This is required so that other clients
+      // refresh their cached teams via the DreamTeamCache subscription.
+      //
+      // Constraints:
+      //   - User must be signed-in and email-verified.
+      //   - Only `teamsVersion` and `teamsUpdatedAt` may change. Any
+      //     attempt to touch other fields (pointsVersion, fixturesVersion,
+      //     tournamentKey, …) is rejected.
+      //   - `teamsVersion` must strictly increase (FieldValue.increment(1)
+      //     resolves server-side to the actual new value).
+      //   - The doc must already exist – initial creation still happens
+      //     via init-meta.html under privileged credentials.
+      allow update: if isSignedInVerified()
+                     && request.resource.data.diff(resource.data)
+                            .affectedKeys()
+                            .hasOnly(['teamsVersion', 'teamsUpdatedAt'])
+                     && request.resource.data.teamsVersion is int
+                     && request.resource.data.teamsVersion
+                          > resource.data.get('teamsVersion', 0)
+                     && request.resource.data.teamsUpdatedAt is int;
+
+      allow create: if false;
+      allow delete: if false;
     }
 
     match /{publicCollection}/{docId} {
