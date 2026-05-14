@@ -122,7 +122,9 @@ DreamTeamAuth.init({
     db:                 firebase.firestore(),
     teamsCollection:    'Teams WM 2026',
     pendingStorageKey:  'dreamteam_wm2026_pending_team',
-    actionUrl:          'https://dt.alae.app/team-builder.html'
+    actionUrl:          'https://dt.alae.app/team-builder.html',
+    languageCode:       'de'   // localises Firebase verification e-mails and the
+                               // Firebase-hosted action handler page (default: 'de')
 });
 
 DreamTeamAuthModal.install();   // mounts the chip + builds the modal DOM
