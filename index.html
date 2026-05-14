@@ -4236,6 +4236,20 @@
             align-items: center;
             margin-top: 6px;
         }
+        .tcc-section-title {
+            margin: 0 0 2px;
+            text-align: center;
+            font-size: clamp(1rem, 2.6vw, 1.25rem);
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            line-height: 1.15;
+            color: #f8fbff;
+            text-shadow: 0 2px 14px rgba(0,0,0,0.42);
+            background: linear-gradient(135deg, #ffffff 0%, #fde68a 55%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
         .tcc-carousel {
             position: relative;
             z-index: 2;
@@ -5444,6 +5458,7 @@
         </div>
 
         <section class="test-carousel-copy" id="test-carousel-copy" aria-label="Karussell der Fan-Lieblinge">
+            <h2 class="tcc-section-title" id="indexTestCarouselTitle" aria-live="polite">Stars der WM 2026</h2>
             <div class="tcc-carousel" id="indexTestCarousel" aria-label="Fan-Lieblinge-Karussell">
                 <div class="tcc-track" id="indexTestCarouselTrack"></div>
             </div>
@@ -8691,11 +8706,22 @@
         if (!root) return;
         const track    = root.querySelector('#indexTestCarouselTrack');
         const carousel = root.querySelector('#indexTestCarousel');
+        const titleEl  = root.querySelector('#indexTestCarouselTitle');
         if (!track || !carousel) return;
+
+        const TITLE_FALLBACK = 'Stars der WM 2026';
+        const TITLE_TOP_DRAFTS = 'Meistgewählte Spieler';
+        const VARIANT_STORAGE_KEY = 'tcc_carousel_last_variant';
 
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[ch]));
+
+        const normalizeName = (s) => String(s ?? '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
 
         function normalizePlayer(raw) {
             return {
@@ -8727,22 +8753,28 @@
         // beim Laden gefüllt ist – auch wenn (noch) keine lokalen Draft-Daten
         // vorhanden sind. Reihenfolge bestimmt die Darstellungsreihenfolge.
         const FALLBACK_PLAYER_NAMES = [
-            'Lamine Yamal',
             'Kylian Mbappé',
+            'Erling Haaland',
             'Jude Bellingham',
+            'Vinícius Júnior',
             'Jamal Musiala',
-            'Vitinha',
-            'Harry Kane',
-            'Toni Kroos',
-            'Florian Wirtz',
-            'Antoine Griezmann',
-            'Bruno Fernandes',
+            'Lamine Yamal',
             'Phil Foden',
+            'Florian Wirtz',
+            'Harry Kane',
             'Rodri',
             'Bukayo Saka',
-            'Pedri',
-            'Cristiano Ronaldo'
+            'Federico Valverde',
+            'Lautaro Martínez',
+            'Manuel Akanji',
+            'Lionel Messi'
         ];
+
+        // Aliase für Namensvarianten zwischen Anzeigeliste oben und dem
+        // tatsächlichen Datensatz (z. B. "Phil Foden" → "Philip Foden").
+        const FALLBACK_NAME_ALIASES = {
+            'phil foden': ['philip foden']
+        };
 
         function getPlayersDataset() {
             const fromWindow = Array.isArray(window.playersData) ? window.playersData : null;
@@ -8761,12 +8793,28 @@
         function buildFallbackItems(limit = 15) {
             const dataset = getPlayersDataset();
             if (!dataset.length) return [];
-            const byName = new Map(dataset.map((p) => [p.Spielername, p]));
+            const byNormName = new Map();
+            dataset.forEach((p) => {
+                byNormName.set(normalizeName(p.Spielername), p);
+            });
             const picked = [];
             const pickedIds = new Set();
 
+            const lookup = (name) => {
+                const norm = normalizeName(name);
+                if (byNormName.has(norm)) return byNormName.get(norm);
+                const aliases = FALLBACK_NAME_ALIASES[norm];
+                if (aliases) {
+                    for (const alt of aliases) {
+                        const found = byNormName.get(normalizeName(alt));
+                        if (found) return found;
+                    }
+                }
+                return null;
+            };
+
             FALLBACK_PLAYER_NAMES.forEach((name) => {
-                const raw = byName.get(name);
+                const raw = lookup(name);
                 if (!raw) return;
                 const id = String(raw['player.id']);
                 if (pickedIds.has(id)) return;
@@ -8817,6 +8865,44 @@
             return buildFallbackItems(limit);
         }
 
+        // Wechselt bei jedem Seitenaufruf zwischen "Stars der WM 2026"
+        // (kuratierte Fallback-Liste) und "Meistgewählte Spieler"
+        // (echte Top-Drafts aus dem LocalStorage). Falls die gewünschte
+        // Variante keine Spieler liefert (z. B. noch keine Drafts), greifen
+        // wir zur jeweils anderen.
+        function pickVariantAndItems(limit = 15) {
+            let lastVariant = null;
+            try { lastVariant = localStorage.getItem(VARIANT_STORAGE_KEY); } catch (_) {}
+            const desired = lastVariant === 'top' ? 'stars' : 'top';
+
+            const drafts = buildTopDraftedPlayers(limit);
+            const stars  = buildFallbackItems(limit);
+
+            let variant;
+            let items;
+            if (desired === 'top' && drafts.length) {
+                variant = 'top';
+                items = drafts;
+            } else if (desired === 'stars' && stars.length) {
+                variant = 'stars';
+                items = stars;
+            } else if (drafts.length) {
+                variant = 'top';
+                items = drafts;
+            } else {
+                variant = 'stars';
+                items = stars;
+            }
+
+            try { localStorage.setItem(VARIANT_STORAGE_KEY, variant); } catch (_) {}
+            return { variant, items };
+        }
+
+        function setCarouselTitle(variant) {
+            if (!titleEl) return;
+            titleEl.textContent = variant === 'top' ? TITLE_TOP_DRAFTS : TITLE_FALLBACK;
+        }
+
         let players = [];
         let cards = [];
 
@@ -8857,7 +8943,9 @@
         }
 
         function initCarousel() {
-            renderCarouselItems(buildFanFavoriteItems());
+            const { variant, items } = pickVariantAndItems(15);
+            setCarouselTitle(variant);
+            renderCarouselItems(items);
         }
 
         function fitPlayerNames() {
