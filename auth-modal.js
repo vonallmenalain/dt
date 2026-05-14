@@ -786,8 +786,8 @@
                 break;
             case 'login':
                 titleEl.textContent    = 'Willkommen zurück';
-                subtitleEl.textContent = 'Melde dich an, um dein bestehendes Team zu bearbeiten.';
-                subtitleEl.style.display = '';
+                subtitleEl.textContent = '';
+                subtitleEl.style.display = 'none';
                 {
                     const submitEl   = state.modalEl.querySelector('#dt-auth-submit');
                     const passwordEl = state.modalEl.querySelector('#dt-auth-password');
