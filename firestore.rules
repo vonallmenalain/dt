@@ -1,0 +1,121 @@
+// =============================================================================
+//  Firestore Security Rules for DreamTeam (Lazy-Registration flow).
+//
+//  Deploy via:
+//     firebase deploy --only firestore:rules
+//
+//  Model:
+//    - All read access is public (the app shows leaderboards & teams to
+//      visitors without an account).
+//    - Write access to a team is restricted to its owner, identified by
+//      the `userId` field on the document, and ONLY if the caller has a
+//      verified email (auth/token.email_verified == true).
+//    - Each user may own at most one team per tournament. The client
+//      enforces this with a `where('userId','==',uid).limit(1)` lookup,
+//      and the rules below additionally prevent users from spoofing the
+//      `userId` field on create/update.
+//
+//  Collection naming follows tournament-config.js — every tournament has
+//  its own Teams collection. Add an explicit `match` block whenever a new
+//  tournament is introduced.
+// =============================================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------
+    //  Helper functions
+    // ---------------------------------------------------------------------
+    function isSignedInVerified() {
+      return request.auth != null
+          && request.auth.token.email_verified == true;
+    }
+
+    function ownsIncoming() {
+      return isSignedInVerified()
+          && request.resource.data.userId == request.auth.uid;
+    }
+
+    function ownsExisting() {
+      return isSignedInVerified()
+          && resource.data.userId == request.auth.uid;
+    }
+
+    function validTeamCreate() {
+      return ownsIncoming()
+          && request.resource.data.keys().hasAll(['userId', 'manager', 'players'])
+          && request.resource.data.players is list;
+    }
+
+    function validTeamUpdate() {
+      return ownsExisting()
+          && request.resource.data.userId == resource.data.userId;
+    }
+
+    // ---------------------------------------------------------------------
+    //  Teams collections (one per tournament).
+    //  Add one block per tournament that exists in tournament-config.js.
+    // ---------------------------------------------------------------------
+    match /Teams WM 2022/{teamId} {
+      allow read:   if true;
+      allow create: if validTeamCreate();
+      allow update: if validTeamUpdate();
+      allow delete: if ownsExisting();
+    }
+
+    match /Teams EM 2024/{teamId} {
+      allow read:   if true;
+      allow create: if validTeamCreate();
+      allow update: if validTeamUpdate();
+      allow delete: if ownsExisting();
+    }
+
+    match /Teams WM 2026/{teamId} {
+      allow read:   if true;
+      allow create: if validTeamCreate();
+      allow update: if validTeamUpdate();
+      allow delete: if ownsExisting();
+    }
+
+    match /Teams EM 2028/{teamId} {
+      allow read:   if true;
+      allow create: if validTeamCreate();
+      allow update: if validTeamUpdate();
+      allow delete: if ownsExisting();
+    }
+
+    match /Teams WM 2030/{teamId} {
+      allow read:   if true;
+      allow create: if validTeamCreate();
+      allow update: if validTeamUpdate();
+      allow delete: if ownsExisting();
+    }
+
+    // ---------------------------------------------------------------------
+    //  Public read-only collections.
+    //  Fixtures, player points and tournament meta are populated by
+    //  trusted backend scripts (auto-points-upload, admin pages) using
+    //  privileged credentials, not by end-users.
+    // ---------------------------------------------------------------------
+    match /app_meta/{docId} {
+      allow read:  if true;
+      allow write: if false;
+    }
+
+    match /{publicCollection}/{docId} {
+      allow read:  if publicCollection.matches('Spiele .*')
+                   || publicCollection.matches('Punkte Spieler .*');
+      allow write: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    //  Default deny for anything else.
+    // ---------------------------------------------------------------------
+    match /{document=**} {
+      allow read:  if false;
+      allow write: if false;
+    }
+  }
+}
