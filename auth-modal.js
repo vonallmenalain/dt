@@ -826,9 +826,9 @@
         const infoEl = state.modalEl.querySelector('#dt-auth-verify-info');
 
         if (user && user.email) {
-            textEl.innerHTML = `Wir haben dir einen Bestätigungslink an <span class="dt-auth-verify-email">${escapeHtml(user.email)}</span> geschickt. Nach der Bestätigung wirst du angemeldet.`;
+            textEl.innerHTML = `Du hast einen Bestätigungslink an <span class="dt-auth-verify-email">${escapeHtml(user.email)}</span> erhalten. Nach der Bestätigung wirst du angemeldet.`;
         } else {
-            textEl.textContent = 'Wir haben dir einen Bestätigungslink geschickt. Nach der Bestätigung wirst du angemeldet.';
+            textEl.textContent = 'Du hast einen Bestätigungslink erhalten. Nach der Bestätigung wirst du angemeldet.';
         }
 
         // Show the "your team is waiting" reassurance only if a pending team
