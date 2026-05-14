@@ -44,8 +44,12 @@ moment they try to write to Firestore.
 | `auth.js`                         | `window.DreamTeamAuth` — Firebase Auth + Firestore + pending-team helpers (UI-free).   |
 | `auth-modal.css`                  | Minimal, namespaced (`.dt-auth-*`) styles for the modal and the top-right login chip. |
 | `auth-modal.js`                   | `window.DreamTeamAuthModal` — the modal UI (register / login / verify views).          |
-| `firestore.rules`                 | Public-read / verified-owner-write rules for every `Teams …` collection.               |
 | `LAZY_REGISTRATION_INTEGRATION.md`| This document.                                                                         |
+
+> Hinweis zu den Firestore-Rules: Die Rules werden **nicht mehr im Repo
+> gepflegt**, sondern direkt in der Firebase Console unter
+> **Firestore Database → Regeln** verwaltet (Copy & Paste). So entfällt
+> der `firebase deploy --only firestore:rules`-Schritt komplett.
 
 ## Files changed
 
@@ -222,8 +226,11 @@ In the [Firebase console](https://console.firebase.google.com/project/dreamteam-
    `DreamTeamAuth.init()` controls where users land after clicking.
 3. **Authentication → Settings → Authorized domains** — add
    `dt.alae.app`, `em24dt.alae.app`, and any Netlify preview domains.
-4. **Firestore → Rules** — paste the contents of `firestore.rules`
-   (`firebase deploy --only firestore:rules` if you have the CLI set up).
+4. **Firestore → Rules** — die Regeln werden direkt in der Firebase
+   Console gepflegt (Copy & Paste). Der aktuelle, deploy-fertige Inhalt
+   ist im PR „firestore.rules entfernen + Cache-Version bumpen"
+   dokumentiert. Es ist kein `firebase deploy --only firestore:rules`
+   mehr nötig.
 
 ## Testing checklist
 

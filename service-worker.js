@@ -17,7 +17,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-05-14-tilt-mutationobserver';
+const CACHE_VERSION = 'v2026-05-14-firestore-rules-console-only';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
