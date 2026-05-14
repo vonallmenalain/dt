@@ -13,6 +13,11 @@
  *                                                                   (default: 'dreamteam_pending_team')
  *                                              actionUrl          – optional ActionCodeSettings.url for the
  *                                                                   verification email (deep-link back to the app)
+ *                                              languageCode       – optional BCP-47 language code applied to
+ *                                                                   firebase.auth() so verification e-mails
+ *                                                                   *and* the Firebase-hosted action handler
+ *                                                                   page (/__/auth/action) are localised
+ *                                                                   (default: 'de')
  *                                            }
  *
  *    getCurrentUser()                     → firebase.User | null
@@ -56,6 +61,7 @@
         teamsCollection:    null,
         pendingStorageKey:  'dreamteam_pending_team',
         actionUrl:          null,
+        languageCode:       'de',
         currentUser:        null,
         // Track the loaded user team while editing so submit() knows the doc id.
         loadedTeamId:       null,
@@ -106,7 +112,18 @@
         state.teamsCollection   = options.teamsCollection;
         state.pendingStorageKey = options.pendingStorageKey || state.pendingStorageKey;
         state.actionUrl         = options.actionUrl || null;
+        state.languageCode      = options.languageCode || state.languageCode;
         state.initialised       = true;
+
+        // Apply the language to Firebase Auth so that verification e-mails and
+        // the Firebase-hosted action handler page (/__/auth/action) — including
+        // the "E-Mail-Adresse bestätigen" / "Bestätigung abschließen" screen —
+        // are rendered in the configured language instead of the English default.
+        try {
+            firebase.auth().languageCode = state.languageCode;
+        } catch (err) {
+            console.warn('[DreamTeamAuth] Could not set Firebase auth languageCode:', err);
+        }
 
         // Keep our auth state in sync. We re-check emailVerified by reloading
         // when the tab becomes visible again (after the user clicked the
