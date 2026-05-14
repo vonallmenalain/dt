@@ -19,7 +19,19 @@
     <link rel="apple-touch-icon" sizes="180x180" href="Icons/apple-touch-icon.png">
     <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
-    
+
+    <!-- Frühe Verbindungsöffnung zu Firebase + CDN; spart auf Mobile
+         häufig 100–300 ms TLS/DNS. -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <!-- Firebase-Compat-SDK früh und parallel zum HTML-Parsing laden. -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
     <link rel="stylesheet" href="styles.css">
 
     <style>
@@ -1538,9 +1550,7 @@
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
 <script src="data.js"></script>
 <script src="cache.js"></script>

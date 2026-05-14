@@ -19,7 +19,93 @@
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
     <meta name="view-transition" content="same-origin">
     <meta name="description" content="DreamTeam – Baue dein Fantasy-Fussball-Team und compete im Turnier.">
+
+    <!-- Frühe Verbindungsöffnung zu Firebase + CDN; spart auf Mobile
+         häufig 100–300 ms TLS/DNS, weil firebase-app, firestore und
+         auth-compat ohnehin direkt unten geladen werden. -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+
+    <!-- Firebase-Compat-SDK früh und parallel zum HTML-Parsing laden.
+         `defer` garantiert, dass die Skripte in Dokumentreihenfolge VOR
+         DOMContentLoaded ausgeführt werden, nachdem das HTML komplett
+         geparst ist – also rechtzeitig für den End-of-Body-IIFE, der
+         auf Firebase + DreamTeamCache angewiesen ist.
+         Die übrigen Module (tournament-config, nav, data, cache, …)
+         bleiben am Body-Ende, damit `data.js` (document.write) und die
+         Reihenfolgegarantie zu APP_CONFIG nicht angefasst werden. -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
     <link rel="stylesheet" href="styles.css">
+
+    <!-- =====================================================
+         PRE/POST-START VIEW DECIDER (synchron, FOUC-frei)
+         =====================================================
+         Setzt VOR dem Body-Render `data-view="pre"|"post"` auf <html>,
+         damit der Browser die richtige Sektion direkt zeichnet und der
+         alte „kurz Vor-Start sehen, dann auf Nach-Start umspringen"-
+         Flicker beim Aufruf nach Spielstart entfällt.
+
+         Reihenfolge der Quellen (gleiche Priorität wie der spätere
+         applyIndexViewMode()-Aufruf weiter unten):
+           1. dreamteamIndexViewMode = "pre" / "post" (Dev-Override)
+           2. dreamteamLastView (sessionStorage; vom letzten Render
+              dieser Seite gesetzt – hält den Wert über Reloads stabil)
+           3. Hartkodierte Start-Map pro Domain (Spiegel von
+              tournament-config.js → DREAMTEAM_START / DOMAIN_TOURNAMENT_MAP).
+              Wird nur beim allerersten Besuch genutzt; danach übernimmt
+              der sessionStorage-Cache.
+
+         Der spätere applyIndexViewMode() schreibt das Attribut
+         deterministisch erneut, sodass jeder kleine Spezialfall
+         (URL-Param ?tournament=, Dev-Override-Toggle, Auto-Flip beim
+         Spielstart) am Ende konsistent gewinnt – das hier ist nur die
+         „best guess vor JS-Boot"-Schicht.
+    -->
+    <script>
+    (function () {
+        try {
+            var html = document.documentElement;
+            var override = null;
+            try { override = localStorage.getItem('dreamteamIndexViewMode'); } catch (e) {}
+
+            if (override === 'pre' || override === 'post') {
+                html.dataset.view = override;
+                return;
+            }
+
+            // 2) Letzter bekannter Render dieser Seite (sessionStorage).
+            var cached = null;
+            try { cached = sessionStorage.getItem('dreamteamLastView'); } catch (e) {}
+            if (cached === 'pre' || cached === 'post') {
+                html.dataset.view = cached;
+                return;
+            }
+
+            // 3) Hartkodierte Domain → Tournament-Start-Map (Spiegel aus
+            //    tournament-config.js). Bewusst doppelt gepflegt, weil
+            //    APP_CONFIG hier noch nicht geladen ist.
+            var DOMAIN_START = {
+                'em24dt.alae.app': '2024-06-14T21:00:00+02:00',
+                'dt.alae.app':     '2026-06-11T21:00:00+02:00'
+            };
+            var FALLBACK_START = '2026-06-11T21:00:00+02:00'; // = wm2026
+
+            var host = (window.location && window.location.hostname || '').toLowerCase();
+            var startIso = DOMAIN_START[host] || FALLBACK_START;
+            var startMs = Date.parse(startIso);
+
+            html.dataset.view = (!isNaN(startMs) && Date.now() >= startMs) ? 'post' : 'pre';
+        } catch (err) {
+            // Im Zweifel die Pre-Start-Ansicht zeigen – sie ist der bisherige
+            // Default und blockiert keine Funktion.
+            try { document.documentElement.dataset.view = 'pre'; } catch (_) {}
+        }
+    })();
+    </script>
 
     <style>
         /* ===================================================
@@ -61,6 +147,20 @@
 
         /* Hide the top navbar on index – we have our own hero nav */
         body > nav.navbar { display: none !important; }
+
+        /* =====================================================
+           PRE/POST-START VIEW SWITCH (FOUC-frei)
+           =====================================================
+           Greift bevor das Inline-Script unten am Body
+           applyIndexViewMode() aufruft, dank des frühen Head-
+           Scripts, das `data-view` auf <html> setzt.
+           Das `:not([data-view])` deckt ältere Browser/Edge-
+           Cases ab, in denen das Attribut nicht gesetzt wurde –
+           dort fällt die Seite auf das alte Verhalten zurück
+           (Pre-Start sichtbar, Post-Start verborgen). */
+        html[data-view="post"] #indexHomePreStart { display: none !important; }
+        html[data-view="pre"]  #indexHomePostStart { display: none !important; }
+        html:not([data-view])  #indexHomePostStart { display: none !important; }
 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -5424,7 +5524,7 @@
 <!-- =====================================================
      POST START HOME: Live-Dashboard nach Spielstart
      ===================================================== -->
-<div id="indexHomePostStart" style="display:none;">
+<div id="indexHomePostStart">
 
     <!-- Atmosphäre: Spotlights & Orbs -->
     <div class="ps-stage-glow" aria-hidden="true"></div>
@@ -5646,10 +5746,10 @@
 
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+<!-- firebase-*-compat werden bereits im <head> mit defer geladen
+     (parallel zum HTML-Parsing). DreamTeamCache/Auth nutzen sie erst
+     nach DOMContentLoaded, also nachdem alle defer-Skripte ausgeführt
+     wurden. -->
 <script src="data.js"></script>
 <script src="cache.js"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
@@ -5716,6 +5816,25 @@
         const post = document.getElementById("indexHomePostStart");
         if (!pre || !post) return;
 
+        // `data-view` auf <html> ist die führende Quelle für die CSS-
+        // Sichtbarkeitsregeln (siehe <style>-Block oben). Das frühe
+        // Head-Script setzt es synchron, hier korrigieren wir es nach
+        // dem JS-Boot – falls Override/URL-Param/Auto-Flip einen anderen
+        // Modus ergeben.
+        try {
+            document.documentElement.dataset.view = mode;
+        } catch (_) {}
+
+        // Letzten gerenderten Modus für den nächsten Page-Load merken,
+        // damit das Head-Script bereits die korrekte Sektion einblendet
+        // (kein Flicker selbst beim allerersten Reload nach Spielstart).
+        try {
+            sessionStorage.setItem("dreamteamLastView", mode);
+        } catch (_) {}
+
+        // Inline-Styles als Belt-and-Suspenders: greifen auch dann, wenn
+        // das CSS-Override mal nicht durchschlägt (Edge-Case bei sehr
+        // alten Browsern oder bewusst aufgehobenem `[data-view]`).
         if (mode === "post") {
             pre.style.display = "none";
             post.style.display = "";
