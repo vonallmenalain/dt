@@ -43,6 +43,37 @@ service cloud.firestore {
           && resource.data.userId == request.auth.uid;
     }
 
+    // Allowlist of admin UIDs. Spiegelt ADMIN_UIDS in admin.js. Admins
+    // dürfen das app_meta-Dokument frei beschreiben, weil mehrere Admin-
+    // Werkzeuge (init-meta.html, adm-upload-points.html,
+    // adm-sync-fixtures.html) Version-Counter direkt aus dem Browser
+    // schreiben. Nicht-Admins können diese Liste nicht überlisten – die
+    // UID wird vom Identity-Provider signiert.
+    function isAdmin() {
+      return request.auth != null
+          && request.auth.uid in [
+              'lSw9kxsnp8a7qb0s7UzuTQVwRAu1'
+          ];
+    }
+
+    // Validierung für den eingeschränkten "teamsVersion"-Bump, den
+    // team-builder.html nach jedem erfolgreichen Create/Update eines
+    // Teams ausführt. Erlaubt sind ausschliesslich die Felder
+    // `teamsVersion`, `teamsUpdatedAt` und das (unkritische) `year`-
+    // Feld. Der Zähler MUSS strikt um genau 1 erhöht werden, damit ein
+    // verifizierter Nutzer den Wert nicht beliebig setzen oder sogar
+    // zurückdrehen kann.
+    function isTeamsVersionBumpOnly() {
+      return request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['teamsVersion', 'teamsUpdatedAt', 'year'])
+          && request.resource.data.teamsVersion is int
+          && request.resource.data.teamsVersion
+                 == resource.data.get('teamsVersion', 0) + 1
+          && request.resource.data.teamsUpdatedAt is int
+          && request.resource.data.teamsUpdatedAt > 0;
+    }
+
     // -------------------------------------------------------------------
     //  Schema-Allowlist + Längen-/Größenlimits.
     //
@@ -135,14 +166,28 @@ service cloud.firestore {
     }
 
     // ---------------------------------------------------------------------
-    //  Public read-only collections.
-    //  Fixtures, player points and tournament meta are populated by
-    //  trusted backend scripts (auto-points-upload, admin pages) using
-    //  privileged credentials, not by end-users.
+    //  app_meta – Versions-Counter pro Turnier.
+    //
+    //  Lesen darf jeder (öffentliche Anzeige). Schreiben:
+    //    • Admins (UID-Allowlist, siehe isAdmin()) dürfen alles – diese
+    //      Pfad wird von init-meta.html sowie den Admin-Upload-Seiten
+    //      (adm-upload-points.html, adm-sync-fixtures.html) benutzt, um
+    //      `pointsVersion` und `fixturesVersion` zu bumpen.
+    //    • Verifizierte End-User dürfen ausschliesslich den
+    //      `teamsVersion`-Zähler um exakt +1 erhöhen – passiert in
+    //      team-builder.html direkt nach einem erfolgreichen Team-
+    //      Create/Update, damit die PWA auf anderen Geräten den Teams-
+    //      Cache invalidiert und neu lädt. Ohne diese Regel würde der
+    //      Bump (`db.collection('app_meta')…set(...,{merge:true})`)
+    //      stillschweigend von den Rules abgelehnt – die Folge wäre
+    //      genau die "veraltete Teams im Handy-PWA"-Symptomatik.
     // ---------------------------------------------------------------------
     match /app_meta/{docId} {
-      allow read:  if true;
-      allow write: if false;
+      allow read:   if true;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      allow update: if isAdmin()
+                    || (isSignedInVerified() && isTeamsVersionBumpOnly());
     }
 
     match /{publicCollection}/{docId} {
