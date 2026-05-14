@@ -1401,8 +1401,14 @@
         /* ── Card grid inside each section ─────────────────── */
         .mobile-section-cards {
             display: grid;
-            /* Fill row fully: auto-fit columns of min 90px, max expand to fill */
-            grid-template-columns: repeat(var(--cols, 4), 1fr);
+            /* minmax(0, 1fr) statt 1fr: erlaubt den Tracks, unter die
+               intrinsische min-content-Groesse der Karten zu schrumpfen.
+               Ohne den 0er-Min wuerde ein einzelner langer Spielername
+               (z.B. "Königsdörffer") die ganze Spalte aufblaehen, alle vier
+               Bank-Karten gleich breit wie die Sturm-Reihe machen und die
+               rechte Karte unter dem `overflow: hidden` der Section
+               abschneiden. */
+            grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
             gap: 8px;
             padding: 10px 10px 14px;
             justify-items: center;
@@ -1417,6 +1423,10 @@
             aspect-ratio: 2/3;
             height: auto;
             flex-shrink: 0;
+            /* Damit der Wrapper innerhalb der Grid-Zelle wirklich auf 1/N
+               schrumpfen darf, auch wenn der Karteninhalt (langer Name)
+               eine groessere min-content-Breite hat. */
+            min-width: 0;
         }
 
         /* =====================================================
@@ -1491,6 +1501,12 @@
                 min-height: 22px;
                 margin-bottom: 3px;
                 padding: 0 4px;
+                /* Lange Namen (z.B. "Königsdörffer", "Kvaratskhelia")
+                   duerfen mitten im Wort umbrechen, sonst diktiert ihre
+                   min-content-Breite die Spaltenbreite und drueckt die
+                   Bank-Reihe ueber den Container hinaus. */
+                overflow-wrap: anywhere;
+                word-break: break-word;
             }
 
             .mobile-card-wrapper .card-sub-info {
@@ -1545,13 +1561,15 @@
             .mobile-card-wrapper .card-name {
                 font-size: 10px;
                 min-height: 20px;
+                overflow-wrap: anywhere;
+                word-break: break-word;
             }
         }
 
         /* On very small screens force max 3 columns for readability */
         @media (max-width: 360px) {
             .mobile-section-cards {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 5px;
                 padding: 6px 6px 10px;
             }
