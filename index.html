@@ -1635,8 +1635,16 @@
             user-select: none;
             -webkit-user-select: none;
             /* Admin-Gate: Standardmässig versteckt, wird nur für Admin-User
-               via admin.js / DreamTeamAdmin sichtbar gemacht. */
-            display: none;
+               via admin.js / DreamTeamAdmin sichtbar gemacht.
+               Wir nutzen bewusst `visibility: hidden` (statt `display: none`),
+               damit `applyAdminVisibility()` den Knopf später per
+               `style.display = ''` einblenden kann, ohne dass dieser
+               CSS-Default das Element trotz inline-Reset versteckt lässt. */
+            visibility: hidden;
+        }
+
+        .dev-index-toggle.is-admin-visible {
+            visibility: visible;
         }
 
         .dev-index-toggle:hover {
@@ -5711,6 +5719,82 @@
     }
 
     /**
+     * Live-Umschaltung von Pre- auf Post-Start exakt zum DREAMTEAM_START.
+     *
+     * Stellt sicher, dass eine bereits geöffnete index.html im Auto-Modus
+     * pünktlich zum konfigurierten Spielstart (z. B. WM 2026:
+     * 2026-06-11T21:00:00 +02:00, also 21:00 Uhr Schweizer Zeit) automatisch
+     * von der Vor-Start- in die Nach-Start-Ansicht wechselt – ohne dass der
+     * Nutzer die Seite neu laden muss.
+     *
+     * - Greift NUR im Auto-Modus (Override "pre"/"post" bleibt unverändert).
+     * - setTimeout wird auf wenige Tage beschränkt, weil Browser bei sehr
+     *   grossen Delays (Wochen/Monate) unzuverlässig werden. Ist der
+     *   Spielstart noch weiter weg, planen wir einen Zwischen-Tick und
+     *   schauen später erneut nach.
+     * - Wird der Tab in der Zwischenzeit reaktiviert (visibilitychange),
+     *   wenden wir den Modus sofort neu an, falls die Zielzeit zwischenzeitlich
+     *   erreicht wurde (z. B. nach Sleep des Geräts).
+     */
+    let _autoFlipTimerId = null;
+    function scheduleAutoModeFlip() {
+        if (_autoFlipTimerId) {
+            clearTimeout(_autoFlipTimerId);
+            _autoFlipTimerId = null;
+        }
+
+        const override = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
+        if (override !== "auto") return;
+
+        const start = getDreamteamStart();
+        if (!(start instanceof Date) || isNaN(start.getTime())) return;
+
+        const msUntilStart = start.getTime() - Date.now();
+        if (msUntilStart <= 0) return; // bereits umgeschaltet
+
+        // Browser drosseln sehr lange Timer (>= ~24 Tage) oder verlieren
+        // sie beim Tab-Suspend. Wir teilen den Wartezeitraum daher in
+        // Etappen von max. 6 Stunden.
+        const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+        const delay = Math.min(msUntilStart, SIX_HOURS_MS);
+
+        _autoFlipTimerId = setTimeout(() => {
+            _autoFlipTimerId = null;
+            // Erneut prüfen – wenn der Override mittlerweile gesetzt wurde,
+            // ist Auto deaktiviert und wir nichts mehr.
+            const stillAuto = (localStorage.getItem(DEV_TOGGLE_KEY) || "auto") === "auto";
+            if (!stillAuto) return;
+
+            if (Date.now() >= start.getTime()) {
+                // Spielstart erreicht: Ansicht und Render aktualisieren.
+                if (_lastRenderedData) {
+                    render(_lastRenderedData);
+                } else {
+                    applyIndexViewMode();
+                }
+                updateDevToggleLabel();
+            } else {
+                // Etappe abgelaufen, aber Ziel noch nicht erreicht – neu planen.
+                scheduleAutoModeFlip();
+            }
+        }, delay);
+    }
+
+    /**
+     * Wenn der Tab nach Inaktivität (Sleep, Hintergrund) wieder aktiv wird,
+     * kann ein zwischenzeitlich abgelaufener setTimeout verloren gegangen
+     * sein. Wir wenden den Auto-Modus dann sofort erneut an und planen
+     * den nächsten Tick nach.
+     */
+    function handleAutoModeVisibilityChange() {
+        if (document.visibilityState !== "visible") return;
+        if ((localStorage.getItem(DEV_TOGGLE_KEY) || "auto") !== "auto") return;
+        applyIndexViewMode();
+        updateDevToggleLabel();
+        scheduleAutoModeFlip();
+    }
+
+    /**
      * Dev-Umschalter: Klick wechselt zyklisch durch auto → pre → post → auto …
      * Speichert den Modus in localStorage und wendet ihn sofort an.
      *
@@ -5735,11 +5819,19 @@
             } else {
                 applyIndexViewMode();
             }
-            // Re-trigger tilt for any newly visible cards
+            // Wenn der Modus wieder auf Auto gestellt wird, planen wir den
+            // nächsten Live-Flip neu; bei "pre"/"post" wird ein evtl.
+            // anstehender Auto-Timer in scheduleAutoModeFlip() abgebrochen.
+            scheduleAutoModeFlip();
         });
 
         function applyAdminVisibility(isAdmin) {
-            btn.style.display = isAdmin ? "" : "none";
+            // CSS rendert den Knopf standardmässig mit `visibility: hidden`,
+            // damit ein einfaches Zurücksetzen auf den CSS-Default keinen
+            // versehentlichen `display: none`-Fallthrough auslöst (alter
+            // Bug: `style.display = ''` liess den Knopf für Admins
+            // weiterhin verborgen, weil der CSS-Default selbst `none` war).
+            btn.classList.toggle("is-admin-visible", !!isAdmin);
         }
 
         function hookAdmin() {
@@ -8827,6 +8919,8 @@
         initDevToggle();
         applyIndexViewMode();
         updateDevToggleLabel();
+        scheduleAutoModeFlip();
+        document.addEventListener("visibilitychange", handleAutoModeVisibilityChange);
 
         try {
             const CACHE_OPTS = {
