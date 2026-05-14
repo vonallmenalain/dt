@@ -4425,6 +4425,13 @@
         .champ-stage {
             position: relative;
             width: 100%;
+            /* `box-sizing: border-box` ist hier zwingend: ohne diese Angabe addiert
+               sich das horizontale Padding (16px links + 16px rechts) zur 100%-Breite,
+               sodass die Bühne 32px breiter wird als der Viewport. Da das Body-Element
+               `overflow-x: hidden` setzt, wurde dieser Überstand stillschweigend rechts
+               abgeschnitten – die Bühne und damit auch das Podest („Top Manager") waren
+               dadurch um 16px nach rechts verschoben (rechts kein Platz, links zu viel). */
+            box-sizing: border-box;
             padding: 22px 16px 26px;
             margin: 0 auto;
             overflow: hidden;
