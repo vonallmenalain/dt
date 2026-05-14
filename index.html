@@ -8740,18 +8740,53 @@
             };
         }
 
+        function readTeamsFromKey(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                const teams = Array.isArray(parsed)
+                    ? parsed
+                    : (Array.isArray(parsed?.data) ? parsed.data : null);
+                return Array.isArray(teams) ? teams : null;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        // Liefert die Teams des AKTUELLEN Turniers aus dem LocalStorage.
+        // Wichtig: wir lesen ausschließlich den exakten Cache-Key
+        // (`<prefix>_teams`) des aktiven Turniers. Frühere Versionen haben
+        // alle Keys gescannt, die auf `_teams` enden, und davon den
+        // Datensatz mit den MEISTEN Einträgen gewählt. Das führte dazu,
+        // dass nach dem Löschen von Managern entweder das ältere
+        // `_last_good_teams`-Backup oder die Teams eines anderen Turniers
+        // gewonnen haben – das Karussell zeigte dann veraltete bzw.
+        // turnierfremde Daten statt der echten Auswahl der verbliebenen
+        // Manager.
         function parseTeamsFromStorage() {
-            const candidates = [];
+            const app = window.APP_CONFIG;
+            if (app && app.storage && typeof app.storage.key === 'function') {
+                const primary = readTeamsFromKey(app.storage.key('teams'));
+                if (Array.isArray(primary)) return primary;
+                // Wenn der Live-Key noch nie geschrieben wurde (frischer
+                // Browser), greifen wir auf das `last_good`-Backup desselben
+                // Turniers zurück, damit das Karussell nicht leer bleibt.
+                const backup = readTeamsFromKey(app.storage.key('last_good_teams'));
+                if (Array.isArray(backup)) return backup;
+                return [];
+            }
+
+            // Fallback: APP_CONFIG ist (noch) nicht geladen – wir lesen
+            // ausschließlich Keys vom Typ `<prefix>_teams` (NICHT
+            // `_last_good_teams`) und nehmen den ersten Treffer mit Daten.
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (!key || !key.endsWith('_teams')) continue;
-                try {
-                    const parsed = JSON.parse(localStorage.getItem(key));
-                    const teams = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.data) ? parsed.data : null);
-                    if (Array.isArray(teams) && teams.length) candidates.push(teams);
-                } catch (_) {}
+                if (!key || !key.endsWith('_teams') || key.endsWith('_last_good_teams')) continue;
+                const teams = readTeamsFromKey(key);
+                if (Array.isArray(teams) && teams.length) return teams;
             }
-            return candidates.sort((a, b) => b.length - a.length)[0] || [];
+            return [];
         }
 
         // Kuratierte Star-Liste als Fallback, damit das Karussell sofort
@@ -8875,10 +8910,16 @@
         // (echte Top-Drafts aus dem LocalStorage). Falls die gewünschte
         // Variante keine Spieler liefert (z. B. noch keine Drafts), greifen
         // wir zur jeweils anderen.
-        function pickVariantAndItems(limit = 15) {
+        //
+        // `forceVariant` überspringt das Alternieren – wird beim Refresh
+        // genutzt, damit ein nachgeladener Datensatz die aktuell
+        // angezeigte Variante neu rendert, statt sofort umzuschalten.
+        function pickVariantAndItems(limit = 15, forceVariant = null) {
             let lastVariant = null;
             try { lastVariant = localStorage.getItem(VARIANT_STORAGE_KEY); } catch (_) {}
-            const desired = lastVariant === 'top' ? 'stars' : 'top';
+            const desired = forceVariant
+                ? forceVariant
+                : (lastVariant === 'top' ? 'stars' : 'top');
 
             const drafts = buildTopDraftedPlayers(limit);
             const stars  = buildFallbackItems(limit);
@@ -8947,11 +8988,30 @@
             render();
         }
 
+        let currentVariant = null;
+
         function initCarousel() {
             const { variant, items } = pickVariantAndItems(15);
+            currentVariant = variant;
             setCarouselTitle(variant);
             renderCarouselItems(items);
         }
+
+        // Wird von außen (renderIndexHome → window.__tccCarouselRefresh)
+        // aufgerufen, sobald frische Team-Daten in den Cache geschrieben
+        // wurden. Hält die aktuell gezeigte Variante (kein Flip), damit
+        // der Übergang nahtlos wirkt – nur die Spieler werden neu gewählt
+        // und die Karten neu gerendert.
+        function refreshCarousel() {
+            const { variant, items } = pickVariantAndItems(15, currentVariant || null);
+            if (variant !== currentVariant) {
+                currentVariant = variant;
+                setCarouselTitle(variant);
+            }
+            renderCarouselItems(items);
+        }
+
+        window.__tccCarouselRefresh = refreshCarousel;
 
         function fitPlayerNames() {
             root.querySelectorAll('.tcc-player-name').forEach((nameEl) => {
@@ -9134,6 +9194,14 @@
     function render(data) {
         _lastRenderedData = data;
         renderIndexHome(data);
+        // Frische Team-Daten landen über DreamTeamCache.bootstrap im
+        // LocalStorage. Das Karussell der "Meistgewählten Spieler" liest
+        // diese Daten beim Initialrender, kennt aber das nachträgliche
+        // Update sonst nicht. Deshalb stoßen wir hier explizit einen
+        // Refresh an, sobald neue Daten gerendert wurden.
+        if (typeof window.__tccCarouselRefresh === 'function') {
+            try { window.__tccCarouselRefresh(); } catch (_) {}
+        }
     }
 
     /* =========================================================
