@@ -4312,7 +4312,15 @@
     async function persistPayload(payload, { silent = false } = {}) {
         const result = await DreamTeamAuth.saveOrUpdateTeam(payload);
 
-        /* Bump the meta doc so other clients refresh their cache. */
+        /* Bump the meta doc so other clients refresh their cache.
+         *
+         * Wichtig: Wenn dieser Bump fehlschlägt (z.B. weil die Firestore
+         * Rules ihn ablehnen), bleiben PWAs/Tabs auf anderen Geräten auf
+         * ihrer lokal gecachten Teams-Liste sitzen, bis sich `teamsVersion`
+         * im Meta-Dokument wieder erhöht. Das ist genau die Klasse von
+         * Bug, die wir in der Vergangenheit gesehen haben (alte Teams
+         * weiter sichtbar auf dem Handy nach Mutation am Laptop), deshalb
+         * loggen wir Fehler hier laut und schlucken sie nicht stillschweigend. */
         try {
             const FieldValue = firebase.firestore.FieldValue;
             await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
@@ -4321,8 +4329,7 @@
                 teamsUpdatedAt: Date.now()
             }, { merge: true });
         } catch (err) {
-            // Non-critical – Firestore rules may disallow meta writes for end users.
-            console.warn('[TeamBuilder] meta update skipped:', err);
+            console.error('[TeamBuilder] teamsVersion-Bump fehlgeschlagen – andere Geräte sehen evtl. veraltete Teams:', err);
         }
 
         /* Clear local builder caches. */
@@ -4389,7 +4396,9 @@
                     teamsVersion:   FieldValue.increment(1),
                     teamsUpdatedAt: Date.now()
                 }, { merge: true });
-            } catch (err) { /* non-critical */ }
+            } catch (err) {
+                console.error('[TeamBuilder] teamsVersion-Bump nach E-Mail-Verifizierung fehlgeschlagen – andere Geräte sehen evtl. veraltete Teams:', err);
+            }
 
             showToast('🎉 E-Mail bestätigt – Team gespeichert!');
             setTimeout(() => {
