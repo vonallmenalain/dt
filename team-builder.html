@@ -4360,6 +4360,17 @@
         try {
             const FieldValue = firebase.firestore.FieldValue;
             const user = DreamTeamAuth.getCurrentUser();
+
+            /* Belt & braces: force a fresh ID token before the write so the
+               `email_verified` claim that Firestore Security Rules see is
+               guaranteed to be up-to-date, even if `reloadUser()` ran with a
+               stale token (common on mobile where the verification link is
+               opened in another app/browser). Without this, the first write
+               right after verification can still fail with
+               `permission-denied`, surfacing as the toast below. */
+            try { await user.getIdToken(/* forceRefresh */ true); }
+            catch (e) { /* non-fatal — proceed and let Firestore decide */ }
+
             const doc  = {
                 ...pending,
                 userId:    user.uid,

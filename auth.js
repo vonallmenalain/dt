@@ -288,6 +288,25 @@
         await user.reload();
         // user is the same reference; emailVerified will be updated in-place.
         state.currentUser = firebase.auth().currentUser;
+
+        // Force-refresh the ID token whenever the local user is flagged as
+        // verified. `user.reload()` only updates the in-memory user profile;
+        // it does NOT mint a new ID token. Firestore Security Rules evaluate
+        // `request.auth.token.email_verified`, which is read from the cached
+        // token until it expires (~1h) or is explicitly refreshed. Without
+        // this call, the very first write right after a user clicks the
+        // verification link fails with `permission-denied` even though the
+        // client-side `emailVerified` flag is true. This is especially
+        // visible on mobile, where the email-link is opened in a separate
+        // app/browser and the original tab returns to a stale token.
+        if (state.currentUser && state.currentUser.emailVerified) {
+            try {
+                await state.currentUser.getIdToken(/* forceRefresh */ true);
+            } catch (err) {
+                console.warn('[DreamTeamAuth] Token-Refresh fehlgeschlagen:', err);
+            }
+        }
+
         notifyListeners();
         return state.currentUser;
     }
@@ -543,6 +562,13 @@
         if (!isSignedInAndVerified()) {
             throw new Error('E-Mail-Adresse muss verifiziert sein, bevor das Team gespeichert werden kann.');
         }
+
+        // Make sure the ID token Firestore evaluates carries the current
+        // `email_verified` claim. The cached token may still report
+        // `false` immediately after the user clicked the verification link,
+        // even though `user.emailVerified` has already flipped to `true`.
+        try { await state.currentUser.getIdToken(/* forceRefresh */ true); }
+        catch (e) { /* non-fatal — fall through and let Firestore decide */ }
 
         let teamId = state.loadedTeamId;
         if (!teamId) {
