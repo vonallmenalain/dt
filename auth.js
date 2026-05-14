@@ -24,6 +24,18 @@
  *                                                                   *and* the Firebase-hosted action handler
  *                                                                   page (/__/auth/action) are localised
  *                                                                   (default: 'de')
+ *                                              persistence        – how long the signed-in session is kept
+ *                                                                   on this device. One of:
+ *                                                                     'local'   → survives browser restarts
+ *                                                                                 (IndexedDB, default)
+ *                                                                     'session' → only for the current tab
+ *                                                                     'none'    → in-memory only, lost on
+ *                                                                                 reload
+ *                                                                   The default ('local') means a returning
+ *                                                                   user does NOT need to sign in again on
+ *                                                                   the same device / browser until they
+ *                                                                   explicitly log out, clear site data, or
+ *                                                                   the auth token is revoked server-side.
  *                                            }
  *
  *    getCurrentUser()                     → firebase.User | null
@@ -78,6 +90,7 @@
         emailLinkStorageKey:   'dreamteam_emaillink_email',
         actionUrl:             null,
         languageCode:          'de',
+        persistence:           'local',
         currentUser:           null,
         // Track the loaded user team while editing so submit() knows the doc id.
         loadedTeamId:          null,
@@ -110,6 +123,42 @@
         });
     }
 
+    /**
+     * Resolve a string persistence option ('local' | 'session' | 'none') to
+     * the firebase.auth.Auth.Persistence enum value. Returns null if the
+     * SDK does not expose persistence (very old builds) or the value is
+     * unknown.
+     */
+    function resolvePersistenceMode(mode) {
+        const Persistence = firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence;
+        if (!Persistence) return null;
+        switch (String(mode || '').toLowerCase()) {
+            case 'local':   return Persistence.LOCAL   || null;
+            case 'session': return Persistence.SESSION || null;
+            case 'none':    return Persistence.NONE    || null;
+            default:        return Persistence.LOCAL   || null;
+        }
+    }
+
+    /**
+     * Apply the desired auth persistence mode with a graceful fallback so
+     * environments without IndexedDB (Safari Private Mode etc.) still get a
+     * working — even if shorter-lived — session.
+     */
+    function applyAuthPersistence(mode) {
+        const desired = resolvePersistenceMode(mode);
+        if (!desired) return;
+
+        firebase.auth().setPersistence(desired).catch((err) => {
+            console.warn('[DreamTeamAuth] Could not apply auth persistence "' + mode + '":', err);
+            const Persistence = firebase.auth.Auth && firebase.auth.Auth.Persistence;
+            const fallback = Persistence && (Persistence.SESSION || Persistence.NONE);
+            if (fallback && fallback !== desired) {
+                firebase.auth().setPersistence(fallback).catch(() => { /* swallow */ });
+            }
+        });
+    }
+
     /* ---------------------------------------------------------------------------
      *  Lifecycle
      * ------------------------------------------------------------------------- */
@@ -130,6 +179,7 @@
         state.emailLinkStorageKey = options.emailLinkStorageKey || state.emailLinkStorageKey;
         state.actionUrl           = options.actionUrl || null;
         state.languageCode        = options.languageCode || state.languageCode;
+        state.persistence         = (options.persistence || state.persistence).toLowerCase();
         state.initialised         = true;
 
         // Apply the language to Firebase Auth so that verification e-mails and
@@ -141,6 +191,24 @@
         } catch (err) {
             console.warn('[DreamTeamAuth] Could not set Firebase auth languageCode:', err);
         }
+
+        // Configure how long the signed-in session is kept on this device.
+        //
+        // We deliberately set this *explicitly* (instead of relying on the
+        // SDK default) so the "stay signed in" guarantee is robust against
+        // future SDK default changes and easy to audit. With LOCAL persistence
+        // Firebase stores the refresh token in IndexedDB, which survives tab
+        // closures and browser restarts — the user only needs to sign in
+        // again after an explicit logout, when site data is cleared, or when
+        // the underlying auth token is invalidated server-side.
+        //
+        // Some environments (Safari Private Mode, iOS WebViews with
+        // restricted storage, enterprise lock-down policies) cannot use
+        // IndexedDB. In that case Firebase rejects the LOCAL request; we
+        // gracefully fall back to SESSION (per-tab) so the rest of the auth
+        // flow keeps working — at the cost of the user having to sign in
+        // again after closing the tab.
+        applyAuthPersistence(state.persistence);
 
         // Keep our auth state in sync. We re-check emailVerified by reloading
         // when the tab becomes visible again (after the user clicked the
