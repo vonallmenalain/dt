@@ -2406,13 +2406,34 @@
         setTimeout(() => { card.style.transform = CARD_BASE_TRANSFORM; }, 220);
     }
 
+    /**
+     * vanilla-tilt@1.8.0 hat einen Race in destroy(): der Aufruf clear-t
+     * zuerst transitionTimeout, ruft dann reset() → onMouseEnter() →
+     * setTransition(), das den Timeout SOFORT WIEDER SETZT, und nullt
+     * danach this.element. Wenn der frisch geplante Timeout feuert,
+     * läuft er gegen this.element === null und crasht mit
+     * „Cannot read properties of null (reading 'style')". Auf dem Desktop
+     * passiert das bei jedem Manager-Wechsel und nach dem
+     * onCachedReady→onUpdate-Boot von DreamTeamCache; sichtbares Symptom
+     * ist genau das vom User gemeldete „Mouse-Over-Effekt verschwunden",
+     * weil VanillaTilt nach dem Crash keine neuen Init-Aufrufe mehr
+     * verarbeitet.
+     */
+    function safeDestroyTilt(card) {
+        if (!card || !card.vanillaTilt) return;
+        const inst = card.vanillaTilt;
+        try { inst.destroy(); } catch (e) {}
+        try { clearTimeout(inst.transitionTimeout); } catch (e) {}
+        try { card.style.transition = ''; } catch (e) {}
+    }
+
+    let tiltLastInitAt = 0;
     function initCardTilt() {
+        tiltLastInitAt = Date.now();
         const cards = document.querySelectorAll(".player-card");
 
         cards.forEach(card => {
-            if (card.vanillaTilt) {
-                try { card.vanillaTilt.destroy(); } catch (e) {}
-            }
+            safeDestroyTilt(card);
             card.style.transform = CARD_BASE_TRANSFORM;
 
             if (!card.dataset.tiltBound) {
@@ -2425,6 +2446,7 @@
         // Only enable tilt on pointer:fine (non-touch) devices
         if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
         if (!cards.length) return;
+        if (typeof VanillaTilt === 'undefined') return;
 
         VanillaTilt.init(cards, {
             max: 14,
@@ -2437,6 +2459,53 @@
             "reset-to-start": true,
             gyroscope: false
         });
+    }
+
+    // Safety net: Falls eine asynchrone Render-Phase neue .player-card-
+    // Elemente in den DOM einfügt, ohne dass das aufrufende Code-Pfad
+    // initCardTilt() unmittelbar nachzieht (z.B. nach bfcache-Restore,
+    // nach onCachedReady→onUpdate-Sequenz im DreamTeamCache-Bootstrap
+    // oder nach Service-Worker-Cache-Refresh in der laufenden Session),
+    // beobachten wir das Pitch-Container-Set und reinitialisieren Tilt,
+    // sobald frische Karten erscheinen. Ohne diesen Beobachter blieb der
+    // Mouse-Over-Effekt nach dem Pre-Launch-Polish (#214/#215) auf der
+    // Desktop-Ansicht zeitweise aus, weil VanillaTilt.init() die Karten
+    // nicht erwischte, die NACH dem geplanten setTimeout-Slot in den
+    // DOM kamen.
+    let tiltObserverInited = false;
+    let tiltObserverTimer = null;
+    function initTiltObserver() {
+        if (tiltObserverInited) return;
+        if (typeof MutationObserver === 'undefined') return;
+
+        const teamView = document.getElementById('team-view');
+        if (!teamView) return;
+
+        tiltObserverInited = true;
+        const observer = new MutationObserver((mutations) => {
+            const hasNewCard = mutations.some(m =>
+                Array.from(m.addedNodes).some(n =>
+                    n.nodeType === 1 && (
+                        (typeof n.matches === 'function' && n.matches('.player-card, .card-wrapper, .mobile-card-wrapper'))
+                        || (typeof n.querySelector === 'function' && n.querySelector && n.querySelector('.player-card'))
+                    )
+                )
+            );
+            if (!hasNewCard) return;
+
+            if (tiltObserverTimer) clearTimeout(tiltObserverTimer);
+            // Etwas grosszuegigeres Debounce als der setTimeout(180) in
+            // loadTeam(), damit der reguläre Render-Pfad zuerst fertig
+            // wird und der Observer nur nachzieht, wenn der reguläre
+            // Pfad ausnahmsweise NICHT initCardTilt() ausgelöst hat.
+            tiltObserverTimer = setTimeout(() => {
+                tiltObserverTimer = null;
+                if (Date.now() - tiltLastInitAt < 200) return;
+                initCardTilt();
+            }, 240);
+        });
+
+        observer.observe(teamView, { childList: true, subtree: true });
     }
 
     /* =====================================================
@@ -2473,6 +2542,17 @@
     function clearBoard() {
         const desktopIds = ['row-GK', 'row-DEF', 'row-MID', 'row-ATT', 'bench-GK', 'bench-DEF', 'bench-MID', 'bench-ATT'];
         const mobileIds  = ['mobile-row-GK', 'mobile-row-DEF', 'mobile-row-MID', 'mobile-row-ATT', 'mobile-bench-all'];
+
+        // Vor dem Wegwerfen der DOM-Knoten alle aktiven VanillaTilt-
+        // Instanzen sauber abbauen. Sonst halten interne Listener (mousemove
+        // im rAF-Loop) weiter Referenzen auf die gerade entfernten Karten,
+        // was bei der naechsten Render-Phase zu „Cannot read properties of
+        // null (reading 'style')" innerhalb von vanilla-tilt.min.js fuehren
+        // kann (sichtbar nach jedem Manager-Wechsel oder Cache→Update-
+        // Sequenz).
+        document.querySelectorAll('.player-card').forEach(card => {
+            safeDestroyTilt(card);
+        });
 
         [...desktopIds, ...mobileIds].forEach(id => {
             const el = document.getElementById(id);
@@ -2702,6 +2782,7 @@
     async function init() {
         initSearchListeners();
         initModalEvents();
+        initTiltObserver();
 
         try {
             // bootstrap() ersetzt die alte Sequenz aus getCachedBundle +
