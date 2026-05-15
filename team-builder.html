@@ -2707,6 +2707,7 @@
 <script src="nav.js"></script>
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+<script src="country-aliases.js"></script>
 <script src="data.js"></script>
 <script src="cache.js"></script>
 <!-- Lazy-Registration auth flow -->
@@ -2857,7 +2858,9 @@
         club:      p['Club.name'] || 'Vereinslos',
         clubLogo:  p['Club.logo'] || '',
         sortKey:   `${p['Nationalteam.name'] || ''} ${p.Spielername || ''}`.toLowerCase(),
-        searchKey: normalizeSearchText(`${p.Spielername || ''} ${p['Nationalteam.name'] || ''} ${p['Club.name'] || ''}`),
+        /* Suche auch über deutsche Länderaliasse (z. B. „Schweiz“ → Switzerland)
+           ermöglichen, indem die Aliase aus country-aliases.js angehängt werden. */
+        searchKey: normalizeSearchText(`${p.Spielername || ''} ${p['Nationalteam.name'] || ''} ${p['Club.name'] || ''} ${(typeof getCountrySearchAliases === 'function' ? getCountrySearchAliases(p['Nationalteam.name']) : '')}`),
         _idx:      idx
     }));
 

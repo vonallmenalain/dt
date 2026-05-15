@@ -17,7 +17,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-05-14-firestore-rules-console-only';
+const CACHE_VERSION = 'v2026-05-15-country-aliases-de';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -33,6 +33,7 @@ const APP_SHELL = [
   './nav.js',
   './admin.js',
   './tournament-config.js',
+  './country-aliases.js',
   './data.js',
   './data-em2024.js',
   './data-wm2026.js',

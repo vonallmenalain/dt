@@ -614,6 +614,7 @@
 </div>
 
 <script src="tournament-config.js"></script>
+<script src="country-aliases.js"></script>
 <script src="data.js"></script>
 <script src="position-overrides.js"></script>
 <script>
@@ -925,9 +926,15 @@
 
     function buildSearchText(player) {
         const effective = getEffectivePosition(player);
+        /* Deutsche Länderaliasse (z. B. „Schweiz“ → Switzerland) mit in den
+           Suchindex aufnehmen. Quelle: country-aliases.js. */
+        const nationAliases = (typeof getCountrySearchAliases === 'function')
+            ? getCountrySearchAliases(player._nation)
+            : '';
         return normalizeSearchText([
             player._name,
             player._nation,
+            nationAliases,
             player._club,
             player.Position,
             getBasePosition(player),
