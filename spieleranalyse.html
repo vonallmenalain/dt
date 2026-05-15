@@ -4432,6 +4432,39 @@
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
+    /* Diacritic- und sonderzeichenunabhängige Suche:
+       z. B. „Vinícius Júnior“ → „vinicius junior“, „Dembélé“ → „dembele“,
+       „Ødegaard“ → „odegaard“. So findet die Suche Spieler auch dann,
+       wenn nur Schweizer Standardbuchstaben getippt werden. */
+    function normalizeSearchText(value) {
+        if (value == null) return '';
+        return String(value)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/ß/g, 'ss')
+            .replace(/Æ/g, 'AE').replace(/æ/g, 'ae')
+            .replace(/Œ/g, 'OE').replace(/œ/g, 'oe')
+            .replace(/Ø/g, 'O').replace(/ø/g, 'o')
+            .replace(/Ð/g, 'D').replace(/ð/g, 'd')
+            .replace(/Þ/g, 'Th').replace(/þ/g, 'th')
+            .replace(/Ł/g, 'L').replace(/ł/g, 'l')
+            .replace(/İ/g, 'I').replace(/ı/g, 'i')
+            .replace(/Ħ/g, 'H').replace(/ħ/g, 'h')
+            .toLowerCase();
+    }
+
+    function getSearchTokens(value) {
+        return normalizeSearchText(value).trim().split(/\s+/).filter(Boolean);
+    }
+
+    function searchMatchesAll(haystacks, tokens) {
+        if (!tokens || !tokens.length) return true;
+        const combined = (Array.isArray(haystacks) ? haystacks : [haystacks])
+            .map(h => normalizeSearchText(h))
+            .join(' ');
+        return tokens.every(tok => combined.includes(tok));
+    }
+
     /* ---------- Comparison link helpers ----------
        Player links are identified by ID whenever it is known. The name is
        only used as fallback (for legacy shapes / virtual placeholders that
@@ -4988,16 +5021,16 @@
        PLAYER LIST RENDERING
        ========================================================= */
     function buildFilteredPlayers() {
-        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const searchTokens = getSearchTokens(document.getElementById('search-input').value);
         const posFilter = document.getElementById('pos-filter').value;
         const natFilter = document.getElementById('nation-filter').value;
         const clubFilter = document.getElementById('club-filter').value;
 
         const filteredData = playersData.filter(p => {
-            const pName = (p.Spielername || "").toLowerCase();
-            const pNat  = (p['Nationalteam.name'] || "").toLowerCase();
-            const pClub = (p['Club.name'] || "").toLowerCase();
-            const matchSearch = pName.includes(searchTerm) || pNat.includes(searchTerm) || pClub.includes(searchTerm);
+            const matchSearch = !searchTokens.length || searchMatchesAll(
+                [p.Spielername, p['Nationalteam.name'], p['Club.name']],
+                searchTokens
+            );
             const translatedPos = translatePosition(p.Position);
             const matchPos  = posFilter === 'ALL' || translatedPos === posFilter;
             const matchNat  = natFilter === 'ALL' || p['Nationalteam.name'] === natFilter;
@@ -7435,9 +7468,9 @@
         };
 
         const buildList = (term) => {
-            const t = (term || '').toLowerCase().trim();
+            const tokens = getSearchTokens(term);
             const matches = [...playersData]
-                .filter(p => !t || (p.Spielername || '').toLowerCase().includes(t))
+                .filter(p => !tokens.length || searchMatchesAll(p.Spielername, tokens))
                 .sort((a, b) => (a.Spielername || '').localeCompare(b.Spielername || '', 'de'))
                 .slice(0, MAX_RESULTS);
             currentMatches = matches;

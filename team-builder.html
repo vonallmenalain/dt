@@ -2817,6 +2817,35 @@
         return u;
     }
 
+    /* Diacritic- und sonderzeichenunabhängige Suche:
+       z. B. „Vinícius Júnior“ → „vinicius junior“, „Dembélé“ → „dembele“,
+       „Ødegaard“ → „odegaard“. So findet die Suche Spieler auch dann,
+       wenn nur Schweizer Standardbuchstaben getippt werden. */
+    function normalizeSearchText(value) {
+        if (value == null) return '';
+        return String(value)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/ß/g, 'ss')
+            .replace(/Æ/g, 'AE').replace(/æ/g, 'ae')
+            .replace(/Œ/g, 'OE').replace(/œ/g, 'oe')
+            .replace(/Ø/g, 'O').replace(/ø/g, 'o')
+            .replace(/Ð/g, 'D').replace(/ð/g, 'd')
+            .replace(/Þ/g, 'Th').replace(/þ/g, 'th')
+            .replace(/Ł/g, 'L').replace(/ł/g, 'l')
+            .replace(/İ/g, 'I').replace(/ı/g, 'i')
+            .replace(/Ħ/g, 'H').replace(/ħ/g, 'h')
+            .toLowerCase();
+    }
+
+    function searchTermMatches(haystack, needle) {
+        if (!needle) return true;
+        const tokens = normalizeSearchText(needle).split(/\s+/).filter(Boolean);
+        if (!tokens.length) return true;
+        const text = typeof haystack === 'string' ? haystack : normalizeSearchText(haystack);
+        return tokens.every(tok => text.includes(tok));
+    }
+
     const preparedPlayers = sourcePlayers.map((p, idx) => ({
         raw:       p,
         id:        String(p['player.id']),
@@ -2828,7 +2857,7 @@
         club:      p['Club.name'] || 'Vereinslos',
         clubLogo:  p['Club.logo'] || '',
         sortKey:   `${p['Nationalteam.name'] || ''} ${p.Spielername || ''}`.toLowerCase(),
-        searchKey: `${p.Spielername || ''} ${p['Nationalteam.name'] || ''} ${p['Club.name'] || ''}`.toLowerCase(),
+        searchKey: normalizeSearchText(`${p.Spielername || ''} ${p['Nationalteam.name'] || ''} ${p['Club.name'] || ''}`),
         _idx:      idx
     }));
 
@@ -3621,7 +3650,8 @@
         const requiredPos = getRequiredPositionForCurrentSlot();
         if (!requiredPos) return [];
 
-        const searchTerm = (dom.pickerSearch ? dom.pickerSearch.value.trim().toLowerCase() : '');
+        const searchTerm = (dom.pickerSearch ? dom.pickerSearch.value.trim() : '');
+        const searchTokens = normalizeSearchText(searchTerm).split(/\s+/).filter(Boolean);
 
         /* On mobile use chip filters; on desktop use the select */
         const nationFilter = isMobileView()
@@ -3633,7 +3663,7 @@
         let players = preparedPlayers
             .filter(p => p.position === requiredPos)
             .filter(p => nationFilter === 'ALL' || p.nation === nationFilter)
-            .filter(p => !searchTerm || p.searchKey.includes(searchTerm));
+            .filter(p => !searchTokens.length || searchTokens.every(tok => p.searchKey.includes(tok)));
 
         /* Mobile-only chip filters */
         if (isMobileView()) {
