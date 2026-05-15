@@ -2532,7 +2532,9 @@
     function buildCardHtml(mergedP, idx, wrapperClass) {
         const ptsClass  = mergedP.pts > 0 ? 'pos' : (mergedP.pts < 0 ? 'neg' : '');
         const sign      = mergedP.pts > 0 ? '+' : '';
-        const analysisUrl = `spieleranalyse.html?player=${encodeURIComponent(mergedP.name)}`;
+        const analysisUrl = mergedP.id
+            ? `spieleranalyse.html?playerId=${encodeURIComponent(mergedP.id)}`
+            : `spieleranalyse.html?player=${encodeURIComponent(mergedP.name)}`;
         const animStyle = `animation-delay: ${idx * 0.04}s;`;
         const capClass  = mergedP.isCaptain ? 'is-captain' : '';
         const capBadge  = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';

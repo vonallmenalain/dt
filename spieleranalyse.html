@@ -4342,6 +4342,7 @@
     let currentView = 'players';
     let scheduleCatalog = [];
     let currentPlayerName = null;
+    let currentPlayerId = null;
     let currentScheduleNationFilter = 'ALL';
     let scheduleNationList = [];
 
@@ -4431,10 +4432,14 @@
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
-    /* ---------- Comparison link helpers ---------- */
-    function cmpPlayerHref(name) {
-        if (!name) return '';
-        return `spieleranalyse.html?player=${encodeURIComponent(name)}`;
+    /* ---------- Comparison link helpers ----------
+       Player links are identified by ID whenever it is known. The name is
+       only used as fallback (for legacy shapes / virtual placeholders that
+       do not have an ID) to keep links functional. */
+    function cmpPlayerHref(name, playerId) {
+        if (playerId) return `spieleranalyse.html?playerId=${encodeURIComponent(playerId)}`;
+        if (name) return `spieleranalyse.html?player=${encodeURIComponent(name)}`;
+        return '';
     }
     function cmpManagerHref(name) {
         if (!name) return '';
@@ -4443,10 +4448,11 @@
     function cmpRankingHref(manager) {
         return manager ? `rangliste.html?focus=${encodeURIComponent(manager)}` : 'rangliste.html';
     }
-    function cmpPlayerLink(name, inner, extraClass = '') {
-        if (!name) return inner;
+    function cmpPlayerLink(name, inner, extraClass = '', playerId = null) {
+        if (!name && !playerId) return inner;
         const cls = ('cmp-link cmp-link-player ' + extraClass).trim();
-        return `<a href="${cmpPlayerHref(name)}" class="${cls}" title="${escapeHtml(name)} in der Spieler-Analyse öffnen">${inner}</a>`;
+        const labelName = name || '';
+        return `<a href="${cmpPlayerHref(name, playerId)}" class="${cls}" title="${escapeHtml(labelName)} in der Spieler-Analyse öffnen">${inner}</a>`;
     }
     function cmpManagerLink(name, inner, extraClass = '') {
         if (!name) return inner;
@@ -4458,9 +4464,10 @@
         const title = manager ? `${escapeHtml(manager)} in der Rangliste anzeigen` : 'Rangliste öffnen';
         return `<a href="${cmpRankingHref(manager)}" class="${cls}" title="${title}">${inner}</a>`;
     }
-    function cmpPlayerImgLink(name, inner) {
-        if (!name) return inner;
-        return `<a href="${cmpPlayerHref(name)}" class="cmp-img-link" aria-label="${escapeHtml(name)} in der Spieler-Analyse öffnen" title="${escapeHtml(name)} in der Spieler-Analyse öffnen">${inner}</a>`;
+    function cmpPlayerImgLink(name, inner, playerId = null) {
+        if (!name && !playerId) return inner;
+        const labelName = name || '';
+        return `<a href="${cmpPlayerHref(name, playerId)}" class="cmp-img-link" aria-label="${escapeHtml(labelName)} in der Spieler-Analyse öffnen" title="${escapeHtml(labelName)} in der Spieler-Analyse öffnen">${inner}</a>`;
     }
     function cmpManagerImgLink(name, inner) {
         if (!name) return inner;
@@ -4496,6 +4503,7 @@
         return {
             view: currentView,
             player: currentPlayerName,
+            playerId: currentPlayerId,
             club: document.getElementById('club-filter')?.value || 'ALL',
             scheduleNation: currentScheduleNationFilter,
             cmpTab: currentCmpTab,
@@ -4573,8 +4581,13 @@
         // Backward compatibility: legacy "countries" links from other pages
         // now redirect to the new comparisons section.
         if (viewParam === 'countries') viewParam = 'comparisons';
+        // Preferred player addressing is by ID (?playerId=…). The legacy
+        // ?player=<name> parameter is still honoured for backward
+        // compatibility (e.g. bookmarks, shared links).
+        const rawPlayerId = params.get('playerId') || params.get('pid') || null;
         return {
             view: ['players','comparisons','games'].includes(viewParam) ? viewParam : 'players',
+            playerId: rawPlayerId,
             player: params.get('player') || null,
             club: params.get('club') || 'ALL',
             scheduleNation: params.get('scheduleNation') || 'ALL',
@@ -4606,7 +4619,12 @@
                 params.set('scheduleNation', currentScheduleNationFilter);
             }
         } else {
-            if (currentPlayerName) {
+            // The player is addressed by ID in the URL; the name is no
+            // longer written to the URL. Falls back to the name only if
+            // no ID is known (e.g. unresolved legacy state).
+            if (currentPlayerId) {
+                params.set('playerId', currentPlayerId);
+            } else if (currentPlayerName) {
                 params.set('player', currentPlayerName);
             }
             const clubFilter = document.getElementById('club-filter').value;
@@ -5032,6 +5050,7 @@
                 playerListScrollTop = preservedScrollTop;
                 document.querySelectorAll('#player-list .list-item').forEach(el => el.classList.remove('active'));
                 div.classList.add('active');
+                currentPlayerId = String(player['player.id']);
                 currentPlayerName = player.Spielername;
                 triggerHeroSwitch(() => showPlayerDetails(player));
                 updateUrl(false);
@@ -5121,6 +5140,7 @@
        SHOW PLAYER DETAILS
        ========================================================= */
     function showPlayerDetails(player) {
+        currentPlayerId = String(player['player.id']);
         currentPlayerName = player.Spielername;
 
         document.getElementById('empty-state').style.display = 'none';
@@ -5743,6 +5763,7 @@
     function renderSchedulePlayerCard(p, hasMatchData) {
         const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
         const nameEncoded = encodeURIComponent(p.name);
+        const idEncoded = p.playerId ? encodeURIComponent(p.playerId) : '';
         const pts = Number(p.totalPoints) || 0;
         let ptsClass = 'zero';
         if (pts > 0) ptsClass = 'pos';
@@ -5757,7 +5778,7 @@
         const managersHtml = renderSchedulePlayerManagers(p.playerId);
         return `<div class="sc-player-card${draftedCls}">
             <button type="button" class="sc-player-card-main"
-                onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${nameEncoded}'))"
+                onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))"
                 title="${escapeHtml(p.name)} – Spieler-Analyse öffnen"
                 aria-label="${escapeHtml(p.name)} – Spieler-Analyse öffnen">
                 ${photoHtml}
@@ -5856,7 +5877,8 @@
                 const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
                 if (!photo) return '';
                 const nameEncoded = encodeURIComponent(p.name);
-                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
+                const idEncoded = p.playerId ? encodeURIComponent(p.playerId) : '';
+                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
             }).filter(Boolean).join('');
             if (!avatarsHtml) return '';
             const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
@@ -6538,7 +6560,7 @@
                 ? `<img src="${escapeHtml(cap.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
                 : `<div class="cmp-cap-photo-fallback">⚽</div>`;
             const inner = `<div class="cmp-cap-avatar">${photo}<div class="cmp-cap-c-badge" aria-label="Captain">C</div></div>`;
-            return cap && cap.name ? cmpPlayerImgLink(cap.name, inner) : inner;
+            return cap && (cap.name || cap.playerId) ? cmpPlayerImgLink(cap.name, inner, cap.playerId) : inner;
         };
 
         const captainCard = `
@@ -6550,7 +6572,7 @@
                     <div class="cmp-cap-row">
                         ${renderCapAvatar(capA)}
                         <div class="cmp-cap-side">
-                            <span class="cmp-row-name">${capA ? cmpPlayerLink(capA.name, escapeHtml(capA.name)) : '— kein Captain —'}</span>
+                            <span class="cmp-row-name">${capA ? cmpPlayerLink(capA.name, escapeHtml(capA.name), '', capA.playerId) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts ${capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw')}">${capPtsA} Pkt.</span>
                         </div>
                         <div class="cmp-cap-center">
@@ -6558,7 +6580,7 @@
                             <span class="cmp-cap-diff ${capDiffCls}" aria-label="Differenz ${capDiffText} Punkte">${capDiffText}</span>
                         </div>
                         <div class="cmp-cap-side right">
-                            <span class="cmp-row-name">${capB ? cmpPlayerLink(capB.name, escapeHtml(capB.name)) : '— kein Captain —'}</span>
+                            <span class="cmp-row-name">${capB ? cmpPlayerLink(capB.name, escapeHtml(capB.name), '', capB.playerId) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts ${capWinner === 'b' ? 'win' : (capWinner === 'a' ? 'loss' : 'draw')}">${capPtsB} Pkt.</span>
                         </div>
                         ${renderCapAvatar(capB)}
@@ -6580,10 +6602,10 @@
             const photoInner = p.photo
                 ? `<img class="cmp-player-photo-sm" src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
                 : `<div class="cmp-player-photo-sm cmp-player-photo-fallback">⚽</div>`;
-            const photoHtml = cmpPlayerImgLink(p.name, photoInner);
+            const photoHtml = cmpPlayerImgLink(p.name, photoInner, p.playerId);
             const captainTag = p.isCaptain ? '<span class="cmp-cap-tag" title="Captain">C</span>' : '';
             const meta = p.slotNum >= 11 ? 'Bank' : (p.nation || '');
-            const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name));
+            const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name), '', p.playerId);
             const info = `
                 <div class="cmp-player-info-mini">
                     <span class="cmp-player-name-mini">${nameLinked}${captainTag}</span>
@@ -6688,8 +6710,8 @@
                 const photoInner = p.photo
                     ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
                     : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>';
-                const photoLinked = cmpPlayerImgLink(p.name, photoInner);
-                const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name));
+                const photoLinked = cmpPlayerImgLink(p.name, photoInner, p.playerId);
+                const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name), '', p.playerId);
                 return `
                 <div class="${itemCls}">
                     ${photoLinked}
@@ -6937,9 +6959,10 @@
             ? `<img src="${escapeHtml(stats.photo)}" class="cmp-player-photo" alt="${escapeHtml(stats.player.Spielername)}" loading="lazy" onerror="this.style.display='none'">`
             : `<div class="cmp-player-photo" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">${stats.virtual ? '📊' : '⚽'}</div>`;
         const playerName = stats.player.Spielername || '';
-        const photo = stats.virtual ? photoInner : cmpPlayerImgLink(playerName, photoInner);
+        const playerId = stats.virtual ? null : (stats.id || null);
+        const photo = stats.virtual ? photoInner : cmpPlayerImgLink(playerName, photoInner, playerId);
         const nameDisplay = escapeHtml(playerName || '–');
-        const nameHtml = stats.virtual ? nameDisplay : cmpPlayerLink(playerName, nameDisplay);
+        const nameHtml = stats.virtual ? nameDisplay : cmpPlayerLink(playerName, nameDisplay, '', playerId);
 
         const flag = stats.nationFlag ? `<img src="${escapeHtml(stats.nationFlag)}" alt="">` : '';
         const clubLogo = stats.clubLogo ? `<img src="${escapeHtml(stats.clubLogo)}" alt="" class="cmp-player-club-logo">` : '';
@@ -7173,7 +7196,7 @@
                 ? `<div class="cmp-cap-c-badge ${badgeClass || ''}" aria-hidden="true">${badgeChar}</div>`
                 : '';
             const inner = `<div class="cmp-cap-avatar">${photo}${badge}</div>`;
-            return player && player.name ? cmpPlayerImgLink(player.name, inner) : inner;
+            return player && (player.name || player.playerId) ? cmpPlayerImgLink(player.name, inner, player.playerId) : inner;
         };
 
         const captainHtml = `
@@ -7185,7 +7208,7 @@
                     <div class="cmp-cap-row cmp-whatif-cap-row">
                         ${renderWhatIfCapAvatar(currentCaptain, 'C')}
                         <div class="cmp-cap-side">
-                            <span class="cmp-row-name">${currentCaptain ? cmpPlayerLink(currentCaptain.name, escapeHtml(currentCaptain.name)) : '— kein Captain —'}</span>
+                            <span class="cmp-row-name">${currentCaptain ? cmpPlayerLink(currentCaptain.name, escapeHtml(currentCaptain.name), '', currentCaptain.playerId) : '— kein Captain —'}</span>
                             <span class="cmp-row-pts">${captainBonusCurrent} Bonus</span>
                         </div>
                         <div class="cmp-cap-center">
@@ -7193,7 +7216,7 @@
                             <span class="cmp-cap-diff ${captainMissedOwn > 0 ? 'win' : 'draw'}" aria-label="Differenz +${captainMissedOwn} Punkte">${captainMissedOwn > 0 ? `+${captainMissedOwn}` : '±0'}</span>
                         </div>
                         <div class="cmp-cap-side right">
-                            <span class="cmp-row-name">${bestPlayer ? cmpPlayerLink(bestPlayer.name, escapeHtml(bestPlayer.name)) : '–'}</span>
+                            <span class="cmp-row-name">${bestPlayer ? cmpPlayerLink(bestPlayer.name, escapeHtml(bestPlayer.name), '', bestPlayer.playerId) : '–'}</span>
                             <span class="cmp-row-pts ${captainMissedOwn > 0 ? 'win' : 'draw'}">${captainBonusBestOwn} Bonus</span>
                         </div>
                         ${renderWhatIfCapAvatar(bestPlayer, '★', 'star')}
@@ -7231,11 +7254,11 @@
                 </div>
             </div>`;
 
-        const renderAltAvatar = (photo, name) => {
+        const renderAltAvatar = (photo, name, playerId) => {
             const inner = photo
                 ? `<img class="cmp-alt-photo" src="${escapeHtml(photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
                 : `<div class="cmp-alt-photo cmp-alt-photo-fallback">⚽</div>`;
-            return name ? cmpPlayerImgLink(name, inner) : inner;
+            return (name || playerId) ? cmpPlayerImgLink(name, inner, playerId) : inner;
         };
 
         const topMissedHtml = `
@@ -7249,18 +7272,18 @@
                         : `<div class="cmp-alt-list">${topMissed.map(item => `
                             <div class="cmp-alt-row">
                                 <div class="cmp-alt-side">
-                                    ${renderAltAvatar(item.player.photo, item.player.name)}
+                                    ${renderAltAvatar(item.player.photo, item.player.name, item.player.playerId)}
                                     <div class="cmp-alt-info">
-                                        <div class="cmp-alt-name">${cmpPlayerLink(item.player.name, escapeHtml(item.player.name))}</div>
+                                        <div class="cmp-alt-name">${cmpPlayerLink(item.player.name, escapeHtml(item.player.name), '', item.player.playerId)}</div>
                                         <div class="cmp-alt-meta">${escapeHtml(POSITION_LABELS[item.player.pos] || translatePosition(item.player.pos))} · ${escapeHtml(item.player.nation)}</div>
                                         <div class="cmp-alt-pts">${item.player.basePts} Pkt.</div>
                                     </div>
                                 </div>
                                 <div class="cmp-alt-arrow" aria-hidden="true">→</div>
                                 <div class="cmp-alt-side">
-                                    ${renderAltAvatar(item.bestSamePos.photo, item.bestSamePos.name)}
+                                    ${renderAltAvatar(item.bestSamePos.photo, item.bestSamePos.name, item.bestSamePos.id)}
                                     <div class="cmp-alt-info">
-                                        <div class="cmp-alt-name is-best">${cmpPlayerLink(item.bestSamePos.name, escapeHtml(item.bestSamePos.name))}</div>
+                                        <div class="cmp-alt-name is-best">${cmpPlayerLink(item.bestSamePos.name, escapeHtml(item.bestSamePos.name), '', item.bestSamePos.id)}</div>
                                         <div class="cmp-alt-meta">gleiche Nation &amp; Position</div>
                                         <div class="cmp-alt-pts is-best">${item.bestSamePos.pts} Pkt.</div>
                                     </div>
@@ -7275,8 +7298,8 @@
             const photoInner = p.photo
                 ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
                 : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>';
-            const photoLinked = cmpPlayerImgLink(p.name, photoInner);
-            const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name));
+            const photoLinked = cmpPlayerImgLink(p.name, photoInner, p.playerId);
+            const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name), '', p.playerId);
             return `
             <div class="cmp-diff-item">
                 ${photoLinked}
@@ -7636,10 +7659,24 @@
     /* =========================================================
        GLOBAL FUNCTIONS (called from inline HTML)
        ========================================================= */
-    function openPlayerFromGames(playerName) {
-        const player = playersData.find(p => p.Spielername === playerName);
+    // Open a player in the analysis view. Identification is by ID
+    // (preferred); the second argument is kept for backward compatibility
+    // with older inline call-sites that still pass a player name.
+    function openPlayerFromGames(playerIdOrName, fallbackName) {
+        let player = null;
+        if (playerIdOrName != null && playerIdOrName !== '') {
+            const idCandidate = String(playerIdOrName);
+            player = playersData.find(p => String(p['player.id']) === idCandidate);
+            if (!player) {
+                player = playersData.find(p => p.Spielername === idCandidate);
+            }
+        }
+        if (!player && fallbackName) {
+            player = playersData.find(p => p.Spielername === fallbackName);
+        }
         if (!player) return;
-        currentPlayerName = playerName;
+        currentPlayerId = String(player['player.id']);
+        currentPlayerName = player.Spielername;
         // Push a new history entry when switching from Spiele into the Spieler view,
         // so the browser back button returns to the originating view.
         setView('players', true);
@@ -7728,9 +7765,11 @@
         cmpWhatIfMgr = state.cmpWhatIfMgr || '';
 
         if (!preserveCurrentPlayer) {
+            currentPlayerId = state.playerId || null;
             currentPlayerName = state.player || null;
-        } else if (state.player) {
-            currentPlayerName = state.player;
+        } else {
+            if (state.playerId) currentPlayerId = state.playerId;
+            if (state.player) currentPlayerName = state.player;
         }
 
         const clubFilterEl = document.getElementById('club-filter');
@@ -7755,13 +7794,25 @@
             panel.classList.toggle('active', isActive);
         });
 
+        // Prefer resolving the target player by ID (canonical identity).
+        // Fall back to a name lookup so legacy ?player=<name> URLs and
+        // bookmarks keep working.
         let targetPlayer = null;
-        if (currentPlayerName) {
+        if (currentPlayerId) {
+            targetPlayer = playersData.find(p => String(p['player.id']) === String(currentPlayerId));
+        }
+        if (!targetPlayer && currentPlayerName) {
             targetPlayer = playersData.find(p => p.Spielername === currentPlayerName);
         }
         if (!targetPlayer && filteredData.length > 0) {
             targetPlayer = filteredData[0];
+        }
+        if (targetPlayer) {
+            currentPlayerId = String(targetPlayer['player.id']);
             currentPlayerName = targetPlayer.Spielername;
+        } else {
+            currentPlayerId = null;
+            currentPlayerName = null;
         }
 
         if (targetPlayer) {
@@ -7773,6 +7824,12 @@
         }
 
         setView(currentView, false);
+
+        // Normalise the URL so legacy ?player=<name> links (or any state
+        // restored from history) are rewritten to the canonical
+        // ?playerId=<id> form once the player has been resolved.
+        updateUrl(false);
+
         hasRenderedOnce = true;
     }
 
