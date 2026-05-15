@@ -3149,6 +3149,25 @@
         return null;
     }
 
+    /* Like getNextFreeSlot, but prefers an empty slot in the same position
+       group (e.g. fill all four midfielders in sequence before jumping
+       elsewhere). Falls back to the regular next free slot if no same-pos
+       slot is empty. Used to auto-advance the picker on desktop so that
+       picking several players in a row does not overwrite the current
+       slot. */
+    function getNextFreeSlotPreferringSamePosition(afterSlotId) {
+        const cur = getSlotConfig(afterSlotId);
+        const idx = finalSlots.findIndex(s => s.id === String(afterSlotId));
+        if (idx < 0) return getNextFreeSlot(afterSlotId);
+        if (cur) {
+            for (let i = 1; i < finalSlots.length; i++) {
+                const s = finalSlots[(idx + i) % finalSlots.length];
+                if (s.pos === cur.pos && !selectedTeam[s.id]) return s;
+            }
+        }
+        return getNextFreeSlot(afterSlotId);
+    }
+
     function updateNextSlotBar(justFilledSlotId) {
         if (!dom.pickerNextSlotBar || !dom.pickerNextSlotLabel) return;
         if (!isMobileView()) return;
@@ -3840,24 +3859,36 @@
             return;
         }
 
-        /* Clear captain if old player in slot was captain */
+        /* Detect whether this pick replaces an existing different player so
+           we can show a clearer message. Picking the already-selected
+           player again is a no-op as far as messaging goes. */
         const oldPlayerId = getSlotPlayerId(slotId);
-        if (oldPlayerId && String(oldPlayerId) !== String(playerId) && String(selectedCaptainId) === String(oldPlayerId)) {
+        const oldPlayer   = oldPlayerId ? getPlayerById(oldPlayerId) : null;
+        const isReplacement = !!(oldPlayer && String(oldPlayer.id) !== String(playerId));
+        const isSameAgain   = !!(oldPlayer && String(oldPlayer.id) === String(playerId));
+
+        /* Clear captain if old player in slot was captain */
+        if (isReplacement && String(selectedCaptainId) === String(oldPlayer.id)) {
             selectedCaptainId = null;
         }
 
         selectedTeam[String(slotId)] = String(playerId);
 
-        renderAllSlots(slotId);
-        renderMobileBuilder();
-        updatePickerHeader();
-        renderMobileFilterChips();
-        renderPickerPlayers(true);
-
         glowSlot(slotId);
-        showToast(`✓ ${player.name} gewählt`);
+
+        if (isReplacement) {
+            showToast(`⟳ ${oldPlayer.name} wurde durch ${player.name} ersetzt`);
+        } else if (!isSameAgain) {
+            showToast(`✓ ${player.name} gewählt`);
+        }
 
         if (isMobileView()) {
+            renderAllSlots(slotId);
+            renderMobileBuilder();
+            updatePickerHeader();
+            renderMobileFilterChips();
+            renderPickerPlayers(true);
+
             closeMobilePicker();
             setTimeout(() => {
                 scrollSlotIntoView(slotId);
@@ -3865,6 +3896,33 @@
                 /* Show next-slot shortcut */
                 showNextSlotAction(slotId);
             }, 80);
+            return;
+        }
+
+        /* Desktop: the picker stays open, so without intervention a second
+           pick would silently overwrite the slot we just filled. We
+           auto-advance only on a fresh fill (the slot was empty before),
+           preferring an empty slot in the same position group. On an
+           explicit replacement the user clicked that slot on purpose, so
+           we stay put. */
+        const nextSlot = (!isReplacement && !isSameAgain)
+            ? getNextFreeSlotPreferringSamePosition(slotId)
+            : null;
+        const advanced = !!(nextSlot && String(nextSlot.id) !== String(slotId));
+        if (advanced) {
+            currentEditingSlotId = String(nextSlot.id);
+        }
+
+        renderAllSlots(slotId);
+        renderMobileBuilder();
+        updatePickerHeader();
+        renderMobileFilterChips();
+        renderPickerPlayers(true);
+
+        if (advanced) {
+            /* Pulse the new active slot so the change is obvious. */
+            glowSlot(nextSlot.id);
+            scrollSlotIntoView(nextSlot.id);
         }
     }
 
