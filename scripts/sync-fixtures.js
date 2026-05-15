@@ -1,0 +1,502 @@
+#!/usr/bin/env node
+/* =============================================================================
+ *  scripts/sync-fixtures.js
+ *
+ *  Server-seitiges Pendant zur manuellen Seite `adm-sync-fixtures.html`.
+ *  Wird via GitHub Actions (z.B. einmal pro Tag) aufgerufen, damit der
+ *  Spielplan automatisch aktualisiert wird – inkl. der Finalrunden-Spiele,
+ *  sobald die Paarungen bei der API feststehen. Kein Browser-Tab und
+ *  kein manuelles API-Key-Eintippen mehr nötig.
+ *
+ *  Ablauf pro Lauf:
+ *    1. Lädt alle Fixtures des konfigurierten Turniers von api-football
+ *       (Zeitzone Europe/Zurich, identisch zum Browser-Skript).
+ *    2. Sammelt eindeutige Venue-IDs und holt jede Venue genau einmal
+ *       (deckt neue Stadien automatisch ab).
+ *    3. Baut pro Spiel ein Firestore-Dokument exakt im selben Schema wie
+ *       die Seite `adm-sync-fixtures.html` (gleiche Felder, gleiche Keys).
+ *    4. Schreibt alle Fixture-Dokumente in Batches à 400 nach
+ *       `fixturesCollection` (z.B. "Spiele WM 2026").
+ *    5. Aktualisiert das Meta-Dokument (`fixturesVersion` += 1,
+ *       `fixturesUpdatedAt = Date.now()`), damit der Client merkt, dass
+ *       sich der Spielplan geändert hat und neu lädt.
+ *
+ *  Env-Variablen (alle aus GitHub Actions Secrets/Variables):
+ *    RAPIDAPI_KEY                 RapidAPI / API-Football Key (zwingend)
+ *    FIREBASE_SERVICE_ACCOUNT     Service-Account-JSON als String (zwingend)
+ *    TOURNAMENT_KEY               Optional, Default `wm2026`. Beliebige Keys
+ *                                 aus tournament-config.js (z.B. `em2024`).
+ *    DRY_RUN                      Falls `1`/`true`: nichts in Firestore
+ *                                 schreiben – nur Logs. Praktisch für
+ *                                 manuelle Test-Runs.
+ *    SKIP_VENUES                  Falls `1`/`true`: Venue-Detail-Calls
+ *                                 komplett auslassen (spart API-Quota,
+ *                                 wenn die Stadien bereits in Firestore
+ *                                 stehen und sich nichts ändert). Default
+ *                                 ist `0`.
+ *
+ *  Exit-Codes:
+ *    0  – Lauf abgeschlossen (Spielplan synchronisiert oder Dry-Run ok).
+ *    1  – Konfigurationsfehler / nicht behebbar.
+ *    2  – API/Netzwerkfehler oder Firestore-Schreibfehler.
+ * ============================================================================= */
+
+'use strict';
+
+let admin;
+try {
+  admin = require('firebase-admin');
+} catch (err) {
+  console.error('[sync-fixtures] firebase-admin ist nicht installiert. Bitte `npm install` ausführen.');
+  process.exit(1);
+}
+
+let fetchFn = (typeof fetch === 'function') ? fetch : null;
+if (!fetchFn) {
+  try {
+    fetchFn = require('node-fetch');
+  } catch (err) {
+    console.error('[sync-fixtures] Globales fetch fehlt und node-fetch nicht installiert. Node 18+ verwenden.');
+    process.exit(1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Turnier-Konfiguration (gespiegelt aus tournament-config.js).
+ *
+ *  Bewusst eine kompakte Kopie, weil das Browser-Modul `window.location`
+ *  und `window.firebase` referenziert. Wenn dort Werte geändert werden,
+ *  muss diese Tabelle nachgezogen werden.
+ * ───────────────────────────────────────────────────────────────────────────── */
+const TOURNAMENTS = {
+  wm2022: {
+    key: 'wm2022',
+    shortLabel: 'WM 2022',
+    type: 'WM',
+    year: '2022',
+    api: { competitionParam: 'league', competitionId: 1, season: '2022' },
+    firestore: {
+      metaCollection: 'app_meta',
+      metaDocId: 'turnier_wm2022',
+      fixturesCollection: 'Spiele WM 2022'
+    }
+  },
+  em2024: {
+    key: 'em2024',
+    shortLabel: 'EM 2024',
+    type: 'EM',
+    year: '2024',
+    api: { competitionParam: 'league', competitionId: 4, season: '2024' },
+    firestore: {
+      metaCollection: 'app_meta',
+      metaDocId: 'turnier_em2024',
+      fixturesCollection: 'Spiele EM 2024'
+    }
+  },
+  wm2026: {
+    key: 'wm2026',
+    shortLabel: 'WM 2026',
+    type: 'WM',
+    year: '2026',
+    api: { competitionParam: 'league', competitionId: 1, season: '2026' },
+    firestore: {
+      metaCollection: 'app_meta',
+      metaDocId: 'turnier_wm2026',
+      fixturesCollection: 'Spiele WM 2026'
+    }
+  },
+  em2028: {
+    key: 'em2028',
+    shortLabel: 'EM 2028',
+    type: 'EM',
+    year: '2028',
+    api: { competitionParam: 'league', competitionId: 4, season: '2028' },
+    firestore: {
+      metaCollection: 'app_meta',
+      metaDocId: 'turnier_em2028',
+      fixturesCollection: 'Spiele EM 2028'
+    }
+  },
+  wm2030: {
+    key: 'wm2030',
+    shortLabel: 'WM 2030',
+    type: 'WM',
+    year: '2030',
+    api: { competitionParam: 'league', competitionId: 1, season: '2030' },
+    firestore: {
+      metaCollection: 'app_meta',
+      metaDocId: 'turnier_wm2030',
+      fixturesCollection: 'Spiele WM 2030'
+    }
+  }
+};
+
+const API_HOST = 'v3.football.api-sports.io';
+const VENUE_DELAY_MS = 300;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Helpers
+ * ───────────────────────────────────────────────────────────────────────────── */
+function envBool(name, fallback = false) {
+  const v = (process.env[name] || '').trim().toLowerCase();
+  if (v === '1' || v === 'true' || v === 'yes' || v === 'on') return true;
+  if (v === '0' || v === 'false' || v === 'no' || v === 'off') return false;
+  return fallback;
+}
+
+function logInfo(msg) {
+  console.log(`[sync-fixtures] ${msg}`);
+}
+
+function logWarn(msg) {
+  console.warn(`[sync-fixtures] ⚠️ ${msg}`);
+}
+
+function logError(msg) {
+  console.error(`[sync-fixtures] ❌ ${msg}`);
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function buildApiHeaders(apiKey) {
+  return {
+    'x-rapidapi-key': apiKey,
+    'x-rapidapi-host': API_HOST
+  };
+}
+
+async function fetchJson(url, apiKey) {
+  const res = await fetchFn(url, { headers: buildApiHeaders(apiKey) });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} bei ${url}`);
+  }
+  return res.json();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Firebase Admin Initialisierung
+ * ───────────────────────────────────────────────────────────────────────────── */
+function initFirebase() {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT (Service-Account-JSON) ist nicht gesetzt.');
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT konnte nicht als JSON geparst werden: ' + err.message);
+  }
+  if (!parsed.project_id || !parsed.private_key) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT enthält weder project_id noch private_key – falsches Format?');
+  }
+  if (admin.apps.length === 0) {
+    admin.initializeApp({
+      credential: admin.credential.cert(parsed),
+      projectId: parsed.project_id
+    });
+  }
+  return admin.firestore();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  API-Aufrufe – Fixtures + Venues
+ * ───────────────────────────────────────────────────────────────────────────── */
+function buildFixturesUrl(tournament) {
+  const q = `${tournament.api.competitionParam}=${tournament.api.competitionId}` +
+            `&season=${tournament.api.season}` +
+            `&timezone=Europe/Zurich`;
+  return `https://${API_HOST}/fixtures?${q}`;
+}
+
+function buildVenueUrl(venueId) {
+  return `https://${API_HOST}/venues?id=${venueId}`;
+}
+
+async function fetchVenueDetails(venueId, apiKey, venueCache) {
+  if (!venueId) return null;
+  const idStr = String(venueId);
+  if (venueCache.has(idStr)) {
+    return venueCache.get(idStr);
+  }
+
+  try {
+    await delay(VENUE_DELAY_MS);
+    const data = await fetchJson(buildVenueUrl(venueId), apiKey);
+    const venueData = data && data.response && data.response[0];
+
+    const details = venueData ? {
+      id: venueData.id || venueId,
+      name: venueData.name || '',
+      address: venueData.address || '',
+      city: venueData.city || '',
+      country: venueData.country || '',
+      capacity: venueData.capacity || null,
+      surface: venueData.surface || '',
+      image: venueData.image || ''
+    } : null;
+
+    venueCache.set(idStr, details);
+    return details;
+  } catch (err) {
+    logWarn(`Venue ${venueId} konnte nicht geladen werden: ${err.message}`);
+    venueCache.set(idStr, null);
+    return null;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Firestore-Dokument bauen – Schema 1:1 wie adm-sync-fixtures.html
+ * ───────────────────────────────────────────────────────────────────────────── */
+function buildFixtureDocument(fixture, venueDetails, tournament) {
+  const f = fixture.fixture || {};
+  const league = fixture.league || {};
+  const teams = fixture.teams || {};
+  const goals = fixture.goals || {};
+  const FieldValue = admin.firestore.FieldValue;
+
+  return {
+    fixtureId: f.id,
+    tournamentKey: tournament.key,
+    tournamentType: tournament.type,
+    tournamentYear: tournament.year,
+    tournamentLabel: tournament.shortLabel,
+
+    league: {
+      id: league.id || null,
+      name: league.name || '',
+      country: league.country || '',
+      logo: league.logo || '',
+      flag: league.flag || '',
+      season: league.season || null,
+      round: league.round || ''
+    },
+
+    kickoffIso: f.date || '',
+    kickoffTimestamp: f.timestamp || null,
+    timezone: f.timezone || 'Europe/Zurich',
+
+    referee: f.referee || '',
+
+    status: {
+      long: (f.status && f.status.long) || '',
+      short: (f.status && f.status.short) || '',
+      elapsed: (f.status && f.status.elapsed != null) ? f.status.elapsed : null
+    },
+
+    venue: {
+      id: (f.venue && f.venue.id) || null,
+      name: (venueDetails && venueDetails.name) || (f.venue && f.venue.name) || '',
+      city: (venueDetails && venueDetails.city) || (f.venue && f.venue.city) || '',
+      country: (venueDetails && venueDetails.country) || '',
+      address: (venueDetails && venueDetails.address) || '',
+      capacity: (venueDetails && venueDetails.capacity) || null,
+      surface: (venueDetails && venueDetails.surface) || '',
+      image: (venueDetails && venueDetails.image) || ''
+    },
+
+    homeTeam: {
+      id: (teams.home && teams.home.id) || null,
+      name: (teams.home && teams.home.name) || '',
+      logo: (teams.home && teams.home.logo) || '',
+      winner: (teams.home && teams.home.winner != null) ? teams.home.winner : null
+    },
+
+    awayTeam: {
+      id: (teams.away && teams.away.id) || null,
+      name: (teams.away && teams.away.name) || '',
+      logo: (teams.away && teams.away.logo) || '',
+      winner: (teams.away && teams.away.winner != null) ? teams.away.winner : null
+    },
+
+    goals: {
+      home: (goals.home != null) ? goals.home : null,
+      away: (goals.away != null) ? goals.away : null
+    },
+
+    score: fixture.score || {},
+
+    updatedAt: FieldValue.serverTimestamp()
+  };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Firestore-Schreib-Workflow
+ * ───────────────────────────────────────────────────────────────────────────── */
+async function writeFixturesToFirestore(db, tournament, fixtureDocuments, opts) {
+  const collection = tournament.firestore.fixturesCollection;
+
+  if (opts.dryRun) {
+    logInfo(`[DRY-RUN] Würde ${fixtureDocuments.length} Dokumente nach "${collection}" schreiben.`);
+    return fixtureDocuments.length;
+  }
+
+  let batch = db.batch();
+  let batchCount = 0;
+  let totalWritten = 0;
+
+  for (let i = 0; i < fixtureDocuments.length; i++) {
+    const { id, data } = fixtureDocuments[i];
+    const docRef = db.collection(collection).doc(id);
+    batch.set(docRef, data, { merge: true });
+    batchCount++;
+
+    if (batchCount === 400) {
+      await batch.commit();
+      totalWritten += batchCount;
+      batch = db.batch();
+      batchCount = 0;
+      logInfo(`Batch committed (${totalWritten} Dokumente bisher).`);
+    }
+  }
+
+  if (batchCount > 0) {
+    await batch.commit();
+    totalWritten += batchCount;
+  }
+
+  return totalWritten;
+}
+
+async function bumpFixturesMetaVersion(db, tournament, opts) {
+  if (opts.dryRun) {
+    logInfo(`[DRY-RUN] Würde Meta ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} hochzählen.`);
+    return;
+  }
+  const FieldValue = admin.firestore.FieldValue;
+  const ref = db
+    .collection(tournament.firestore.metaCollection)
+    .doc(tournament.firestore.metaDocId);
+  await ref.set({
+    tournamentKey: tournament.key,
+    tournamentType: tournament.type,
+    tournamentYear: tournament.year,
+    tournamentLabel: tournament.shortLabel,
+    year: tournament.year,
+    fixturesVersion: FieldValue.increment(1),
+    fixturesUpdatedAt: Date.now()
+  }, { merge: true });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Haupt-Workflow
+ * ───────────────────────────────────────────────────────────────────────────── */
+async function runSync(db, tournament, opts) {
+  const apiKey = process.env.RAPIDAPI_KEY;
+  if (!apiKey) throw new Error('RAPIDAPI_KEY ist nicht gesetzt.');
+
+  const fixturesUrl = buildFixturesUrl(tournament);
+  logInfo(`Lade Fixtures von API: ${fixturesUrl}`);
+  const fixData = await fetchJson(fixturesUrl, apiKey);
+
+  if (!fixData || !Array.isArray(fixData.response)) {
+    throw new Error('API hat keine gültigen Fixture-Daten geliefert.');
+  }
+
+  const allFixtures = fixData.response;
+  logInfo(`${allFixtures.length} Spiele von der API erhalten.`);
+
+  // Eindeutige Venues sammeln und (optional) laden.
+  const uniqueVenueIds = new Set();
+  allFixtures.forEach(f => {
+    const venueId = f && f.fixture && f.fixture.venue && f.fixture.venue.id;
+    if (venueId) uniqueVenueIds.add(venueId);
+  });
+  logInfo(`${uniqueVenueIds.size} eindeutige Venue-IDs in den Fixtures gefunden.`);
+
+  const venueCache = new Map();
+  if (opts.skipVenues) {
+    logInfo('SKIP_VENUES aktiv – Venue-Details werden nicht abgefragt. Es werden nur Name/City aus dem Fixture verwendet.');
+  } else {
+    const venueIds = Array.from(uniqueVenueIds);
+    for (let i = 0; i < venueIds.length; i++) {
+      await fetchVenueDetails(venueIds[i], apiKey, venueCache);
+      if ((i + 1) % 5 === 0 || i === venueIds.length - 1) {
+        logInfo(`Venue-Calls: ${i + 1}/${venueIds.length}`);
+      }
+    }
+  }
+
+  // Fixture-Dokumente bauen.
+  const fixtureDocuments = [];
+  for (const fixture of allFixtures) {
+    const fixtureId = fixture && fixture.fixture && fixture.fixture.id;
+    if (!fixtureId) {
+      logWarn('Fixture ohne fixture.id übersprungen.');
+      continue;
+    }
+    const venueId = fixture.fixture.venue && fixture.fixture.venue.id;
+    const venueDetails = venueId ? (venueCache.get(String(venueId)) || null) : null;
+    fixtureDocuments.push({
+      id: String(fixtureId),
+      data: buildFixtureDocument(fixture, venueDetails, tournament)
+    });
+  }
+
+  const totalWritten = await writeFixturesToFirestore(db, tournament, fixtureDocuments, opts);
+  logInfo(`${totalWritten} Fixture-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}.`);
+
+  if (totalWritten > 0) {
+    await bumpFixturesMetaVersion(db, tournament, opts);
+    logInfo(`Meta ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} ${opts.dryRun ? '(DRY-RUN) ' : ''}aktualisiert (fixturesVersion erhöht).`);
+  } else {
+    logWarn('Keine Fixtures geschrieben – Meta-Version nicht hochgezählt.');
+  }
+
+  return {
+    totalFixtures: allFixtures.length,
+    totalWritten,
+    uniqueVenues: uniqueVenueIds.size
+  };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Entrypoint
+ * ───────────────────────────────────────────────────────────────────────────── */
+async function main() {
+  const tournamentKey = (process.env.TOURNAMENT_KEY || 'wm2026').trim().toLowerCase();
+  const tournament = TOURNAMENTS[tournamentKey];
+  if (!tournament) {
+    logError(`Unbekannter TOURNAMENT_KEY="${tournamentKey}". Bekannt: ${Object.keys(TOURNAMENTS).join(', ')}`);
+    process.exit(1);
+  }
+  if (!tournament.api.competitionId) {
+    logError(`Für Turnier ${tournament.shortLabel} ist keine API competitionId konfiguriert.`);
+    process.exit(1);
+  }
+
+  const opts = {
+    dryRun: envBool('DRY_RUN', false),
+    skipVenues: envBool('SKIP_VENUES', false)
+  };
+
+  logInfo(`Starte Spielplan-Sync für ${tournament.shortLabel} (${tournament.key}).` +
+    (opts.dryRun ? ' [DRY_RUN]' : '') +
+    (opts.skipVenues ? ' [SKIP_VENUES]' : ''));
+
+  let db;
+  try {
+    db = initFirebase();
+  } catch (err) {
+    logError(err.message);
+    process.exit(1);
+  }
+
+  try {
+    const result = await runSync(db, tournament, opts);
+    logInfo(`✅ Lauf beendet. Fixtures (API): ${result.totalFixtures}, ` +
+      `geschrieben: ${result.totalWritten}, Venues: ${result.uniqueVenues}.`);
+  } catch (err) {
+    logError(`Spielplan-Sync fehlgeschlagen: ${err.message}`);
+    if (err.stack) console.error(err.stack);
+    process.exit(2);
+  }
+}
+
+main().catch(err => {
+  logError('Unerwarteter Fehler: ' + (err && err.message || err));
+  if (err && err.stack) console.error(err.stack);
+  process.exit(2);
+});
