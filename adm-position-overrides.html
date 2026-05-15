@@ -902,9 +902,30 @@
         els.nationFilter.value = 'ALL';
     }
 
+    /* Diacritic- und sonderzeichenunabhängige Suche:
+       z. B. „Vinícius Júnior“ → „vinicius junior“, „Dembélé“ → „dembele“,
+       „Ødegaard“ → „odegaard“. So findet die Suche Spieler auch dann,
+       wenn nur Schweizer Standardbuchstaben getippt werden. */
+    function normalizeSearchText(value) {
+        if (value == null) return '';
+        return String(value)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/ß/g, 'ss')
+            .replace(/Æ/g, 'AE').replace(/æ/g, 'ae')
+            .replace(/Œ/g, 'OE').replace(/œ/g, 'oe')
+            .replace(/Ø/g, 'O').replace(/ø/g, 'o')
+            .replace(/Ð/g, 'D').replace(/ð/g, 'd')
+            .replace(/Þ/g, 'Th').replace(/þ/g, 'th')
+            .replace(/Ł/g, 'L').replace(/ł/g, 'l')
+            .replace(/İ/g, 'I').replace(/ı/g, 'i')
+            .replace(/Ħ/g, 'H').replace(/ħ/g, 'h')
+            .toLowerCase();
+    }
+
     function buildSearchText(player) {
         const effective = getEffectivePosition(player);
-        return [
+        return normalizeSearchText([
             player._name,
             player._nation,
             player._club,
@@ -913,17 +934,20 @@
             translatePosition(getBasePosition(player)),
             effective,
             translatePosition(effective)
-        ].join(' ').toLowerCase();
+        ].join(' '));
     }
 
     function getFilteredPlayers() {
-        const term = state.search.toLowerCase();
+        const tokens = normalizeSearchText(state.search).trim().split(/\s+/).filter(Boolean);
 
         return players.filter(player => {
             const effectivePosition = getEffectivePosition(player);
             if (state.positionFilter !== 'ALL' && effectivePosition !== state.positionFilter) return false;
             if (state.nationFilter !== 'ALL' && player._nation !== state.nationFilter) return false;
-            if (term && !buildSearchText(player).includes(term)) return false;
+            if (tokens.length) {
+                const text = buildSearchText(player);
+                if (!tokens.every(tok => text.includes(tok))) return false;
+            }
             return true;
         });
     }
