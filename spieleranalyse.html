@@ -4298,6 +4298,7 @@
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
+<script src="country-aliases.js"></script>
 <script src="data.js"></script>
 <script src="cache.js"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
@@ -5027,8 +5028,14 @@
         const clubFilter = document.getElementById('club-filter').value;
 
         const filteredData = playersData.filter(p => {
+            /* Deutsche Länderaliasse (siehe country-aliases.js) mit in den
+               Heuhaufen aufnehmen, damit z. B. „Schweiz“ Spieler aus dem
+               Nationalteam „Switzerland“ findet. */
+            const nationAliases = (typeof getCountrySearchAliases === 'function')
+                ? getCountrySearchAliases(p['Nationalteam.name'])
+                : '';
             const matchSearch = !searchTokens.length || searchMatchesAll(
-                [p.Spielername, p['Nationalteam.name'], p['Club.name']],
+                [p.Spielername, p['Nationalteam.name'], nationAliases, p['Club.name']],
                 searchTokens
             );
             const translatedPos = translatePosition(p.Position);
