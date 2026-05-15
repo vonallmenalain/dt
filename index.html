@@ -6254,7 +6254,7 @@
             if (!slot) return;
             const pts = ptMap[String(p['player.id'])] || 0;
             const sign = pts > 0 ? '+' : '';
-            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            const url = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
             if (slot.tagName === 'A') slot.href = url;
             slot.innerHTML = `
                 ${isPost && pts !== 0 ? `<div class="hcs-pts">${sign}${pts}</div>` : ''}
@@ -6280,7 +6280,7 @@
 
         container.innerHTML = topPlayers.slice(0, 5).map((p, i) => {
             const pts = ptMap[String(p['player.id'])] || 0;
-            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            const url = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
             const ptsClass = pts > 0 ? 'pos' : (pts < 0 ? 'neg' : 'zero');
             const sign = pts > 0 ? '+' : '';
             const rankCls = i === 0 ? 'pi-rank-1' : (i === 1 ? 'pi-rank-2' : (i === 2 ? 'pi-rank-3' : ''));
@@ -6407,7 +6407,7 @@
         }
 
         container.innerHTML = ranked.map(({ player, cnt }) => {
-            const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+            const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
             const pts = ptMap[String(player['player.id'])] || 0;
             const sign = pts > 0 ? '+' : '';
             return `
@@ -6764,7 +6764,7 @@
         function buildPicksHTML(list) {
             if (!list.length) return '<li><div class="empty-state"><div class="empty-state-icon">📊</div>Noch keine Daten</div></li>';
             return list.map((p, i) => {
-                const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+                const url = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
                 const ptsClass = p.pts > 0 ? 'pos' : (p.pts < 0 ? 'neg' : 'zero');
                 const sign = p.pts > 0 ? '+' : '';
                 const rankCls = i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''));
@@ -6871,7 +6871,7 @@
             const pts = isCaptain ? p.pts * 2 : p.pts;
             const ptsClass = pts > 0 ? (isCaptain ? 'gold' : 'pos') : (pts < 0 ? 'neg' : 'zero');
             const sign = pts > 0 ? '+' : '';
-            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            const url = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
             const shortName = p.Spielername.split(' ').pop();
             return `
                 <a class="compact-player-chip${isCaptain ? ' is-captain' : ''}" href="${url}" aria-label="${escapeHtml(p.Spielername)}, ${sign}${pts}">
@@ -7522,7 +7522,7 @@
 
     function buildPlayerCarouselCard(player, pts, rank) {
         const sign     = pts > 0 ? '+' : '';
-        const url      = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+        const url      = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
         const rankCls  = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
         const clubLogo = player['Club.logo'] || '';
         const clubName = player['Club.name'] || '';
@@ -7641,7 +7641,10 @@
         if (avatars.length) {
             const wrap = (a, cls) => {
                 const cap = a.isCaptain ? 'is-captain' : '';
-                return `<a href="spieleranalyse.html?player=${encodeURIComponent(a.name)}" class="mc-avatar-wrap ${cls} ${cap}" aria-label="${escapeHtml(a.name)} analysieren">
+                const href = a.id
+                    ? `spieleranalyse.html?playerId=${encodeURIComponent(a.id)}`
+                    : `spieleranalyse.html?player=${encodeURIComponent(a.name)}`;
+                return `<a href="${href}" class="mc-avatar-wrap ${cls} ${cap}" aria-label="${escapeHtml(a.name)} analysieren">
                     <img src="${escapeHtml(a.photo)}" alt="${escapeHtml(a.name)}" loading="lazy" onerror="this.style.display='none'">
                 </a>`;
             };
@@ -7693,6 +7696,7 @@
                     if (!full) return null;
                     const base = ptMap[String(full['player.id'])] || 0;
                     return {
+                        id: String(full['player.id']),
                         pts: tp.isCaptain ? base * 2 : base,
                         photo: full.Spielerfoto,
                         name:  full.Spielername,
@@ -7986,7 +7990,7 @@
 
             function buildChips(players) {
                 return players.map(({ player }) => {
-                    const url = `spieleranalyse.html?player=${encodeURIComponent(player.Spielername)}`;
+                    const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
                     return `<a class="nm-player-chip" href="${url}" draggable="false" aria-label="${escapeHtml(player.Spielername)} analysieren"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'"></a>`;
                 }).join('');
             }
@@ -8053,7 +8057,7 @@
             const sign = pts > 0 ? '+' : '';
             topPlayerPtsEl.textContent = tp ? `${sign}${pts}` : '–';
             const link = topPlayerPtsEl.closest('a');
-            if (link && tp) link.href = `spieleranalyse.html?player=${encodeURIComponent(tp.Spielername)}`;
+            if (link && tp) link.href = `spieleranalyse.html?playerId=${encodeURIComponent(tp['player.id'])}`;
         }
 
         if (teamCountEl) animateCounter(teamCountEl, teams.length);
@@ -8150,7 +8154,7 @@
 
         container.innerHTML = top5.map((p, i) => {
             const pts = ptMap[String(p['player.id'])] || 0;
-            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            const url = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
             const sign = pts > 0 ? '+' : '';
             const rankCls = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
             return `
@@ -8346,6 +8350,11 @@
 
     function champOpenPlayerAnalysis(player) {
         if (!player) return;
+        const id = player.id != null ? String(player.id) : '';
+        if (id) {
+            window.location.href = `spieleranalyse.html?playerId=${encodeURIComponent(id)}`;
+            return;
+        }
         const name = player.name || '';
         if (!name) return;
         window.location.href = `spieleranalyse.html?player=${encodeURIComponent(name)}`;
@@ -8547,10 +8556,17 @@
                 } else if (action === 'points') {
                     champOpenRanking();
                 } else if (action === 'player') {
-                    const playerName = target.dataset.playerName;
-                    const player = (m.mergedPlayers || []).find((p) => p.name === playerName);
+                    const playerId = target.dataset.playerId || '';
+                    const playerName = target.dataset.playerName || '';
+                    let player = null;
+                    if (playerId) {
+                        player = (m.mergedPlayers || []).find((p) => String(p.id) === String(playerId));
+                    }
+                    if (!player && playerName) {
+                        player = (m.mergedPlayers || []).find((p) => p.name === playerName);
+                    }
                     if (player) champOpenPlayerAnalysis(player);
-                    else if (playerName) champOpenPlayerAnalysis({ name: playerName });
+                    else if (playerId || playerName) champOpenPlayerAnalysis({ id: playerId, name: playerName });
                 }
             });
 
@@ -9143,8 +9159,13 @@
                 if (managerName) {
                     window.location.href = `teams.html?manager=${encodeURIComponent(managerName)}`;
                 } else {
-                    const playerName = state.downCard.dataset.playerName || '';
-                    if (playerName) window.location.href = `spieleranalyse.html?player=${encodeURIComponent(playerName)}`;
+                    const playerId = state.downCard.dataset.playerId || '';
+                    if (playerId) {
+                        window.location.href = `spieleranalyse.html?playerId=${encodeURIComponent(playerId)}`;
+                    } else {
+                        const playerName = state.downCard.dataset.playerName || '';
+                        if (playerName) window.location.href = `spieleranalyse.html?player=${encodeURIComponent(playerName)}`;
+                    }
                 }
             }
             state.drag = false;

@@ -2289,9 +2289,12 @@
             if (!p) return "";
             const captainClass = p.isCaptain ? "is-captain" : "";
             const titleText = p.isCaptain ? `${p.name} (Captain)` : p.name;
+            const href = p.id
+                ? `spieleranalyse.html?playerId=${encodeURIComponent(p.id)}`
+                : `spieleranalyse.html?player=${encodeURIComponent(p.name)}`;
 
             return `
-                <a href="spieleranalyse.html?player=${encodeURIComponent(p.name)}" class="avatar-link ${baseClass} ${rankClass} ${captainClass}" title="${escapeHtml(titleText)}">
+                <a href="${href}" class="avatar-link ${baseClass} ${rankClass} ${captainClass}" title="${escapeHtml(titleText)}">
                     <img src="${escapeHtml(p.photo)}" alt="${escapeHtml(p.name)}">
                     <div class="hover-pts">${p.pts} Pkt.</div>
                 </a>

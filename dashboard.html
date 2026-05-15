@@ -1870,7 +1870,7 @@
         if (!p) return '';
         const ptsClass = p.pts > 0 ? 'pos' : (p.pts < 0 ? 'neg' : '');
         const sign = p.pts > 0 ? '+' : '';
-        const analysisUrl = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+        const analysisUrl = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
 
         let pickedBy = [];
         allTeams.forEach(team => {
@@ -1899,7 +1899,7 @@
 
     function generateCaptainItem(p) {
         if (!p) return '';
-        const analysisUrl = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+        const analysisUrl = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
 
         let captainedBy = [];
         allTeams.forEach(team => {
@@ -1929,7 +1929,9 @@
 
         const ptsClass = player.pts > 0 ? 'pos' : (player.pts < 0 ? 'neg' : '');
         const sign = player.pts > 0 ? '+' : '';
-        const analysisUrl = `spieleranalyse.html?player=${encodeURIComponent(player.name)}`;
+        const analysisUrl = player.id
+            ? `spieleranalyse.html?playerId=${encodeURIComponent(player.id)}`
+            : `spieleranalyse.html?player=${encodeURIComponent(player.name)}`;
         const capClass = player.isCaptain ? 'is-captain' : '';
         const capBadge = player.isCaptain ? '<div class="captain-badge" title="Captain">C</div>' : '';
         const delay = getCardDelay(delayIndex);
@@ -1998,7 +2000,7 @@
         ranks.forEach((r, idx) => {
             if (r.item) {
                 const p = r.item;
-                const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+                const url = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
                 const delay = getCardDelay(idx);
                 podiumHTML += `
                     <div class="podium-wrapper ${r.wrapperClass}">
@@ -2021,7 +2023,7 @@
 
         let restHTML = '<div class="fan-rest">';
         rest8.forEach((p, idx) => {
-            const url = `spieleranalyse.html?player=${encodeURIComponent(p.Spielername)}`;
+            const url = `spieleranalyse.html?playerId=${encodeURIComponent(p['player.id'])}`;
             const delay = getCardDelay(idx + 3);
             restHTML += `
                 <div class="card-wrapper" data-delay="${delay}" style="animation-delay:${delay};">
