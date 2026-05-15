@@ -1563,6 +1563,34 @@
             gap: 4px;
         }
 
+        .submit-info-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 12px 0 14px;
+        }
+
+        .sin-icon {
+            font-size: 1.15rem;
+            line-height: 1.3;
+            flex-shrink: 0;
+        }
+
+        .sin-text {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #bae6fd;
+        }
+
+        .sin-text strong {
+            color: #e0f2fe;
+            font-weight: 700;
+        }
+
         .form-warning {
             font-size: 12px;
             font-weight: 700;
@@ -2640,6 +2668,14 @@
 
             <div class="submit-hints" id="submit-hints" aria-live="polite">
                 <!-- Hints rendered by JS -->
+            </div>
+
+            <div class="submit-info-notice" role="note">
+                <div class="sin-icon" aria-hidden="true">ℹ️</div>
+                <div class="sin-text">
+                    <strong>Spielerkader erst ab dem 1. Juni definitiv.</strong>
+                    Du kannst dein Team bis am <strong>11. Juni um 21 Uhr</strong> (Eröffnungsspiel) bearbeiten.
+                </div>
             </div>
 
             <div class="submit-form-row">
