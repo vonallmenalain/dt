@@ -1,4 +1,21 @@
-# Auto Punkte-Upload (Cron)
+# DreamTeam Cron-Scripts
+
+In diesem Ordner liegen die server-seitigen Pendants zu zwei
+Admin-Seiten, die früher nur im Browser nutzbar waren:
+
+| Script                  | Browser-Pendant            | Default-Cron               |
+| ----------------------- | -------------------------- | -------------------------- |
+| `auto-points-upload.js` | `adm-upload-points.html`   | alle 5 Minuten             |
+| `sync-fixtures.js`      | `adm-sync-fixtures.html`   | täglich 04:00 UTC (≈ 06:00 CH) |
+
+Beide Workflows laufen vollautomatisch als GitHub-Action und benutzen
+dieselben zwei Repo-Secrets (`RAPIDAPI_KEY`, `FIREBASE_SERVICE_ACCOUNT`).
+Die Browser-Seiten bleiben unverändert nutzbar – z.B. für einmalige
+Catch-Ups oder manuelle Re-Computes.
+
+---
+
+## 1) Auto Punkte-Upload (Cron)
 
 Vollautomatischer Server-seitiger Punkte-Upload für DreamTeam.
 Läuft als GitHub-Actions-Cron alle 5 Minuten und schreibt – sobald die
@@ -107,3 +124,80 @@ Catch-Up-Lauf zu erzwingen (verbraucht entsprechend mehr API-Quota).
   Re-Computen nach manuellen Daten-Korrekturen.
 - Die frühere Browser-Auto-Modus-Box wurde entfernt – diese Aufgabe
   übernimmt jetzt vollständig dieser Cron-Workflow.
+
+---
+
+## 2) Auto Spielplan-Sync (Cron)
+
+Vollautomatischer Server-seitiger Spielplan-Import für DreamTeam.
+Läuft als GitHub-Actions-Cron **einmal pro Tag** und schreibt alle
+Fixtures + Stadiondaten des aktiven Turniers nach Firebase. Sobald
+die API z.B. die Finalrunden-Paarungen (Achtel-, Viertel-, Halbfinale,
+Final) veröffentlicht, sind sie ohne weiteres Zutun in der App
+sichtbar.
+
+### Was macht der Workflow?
+
+1. Lädt alle Fixtures via api-football für die konfigurierte
+   Competition + Season (Zeitzone Europe/Zurich, identisch zum
+   Browser-Skript).
+2. Sammelt alle eindeutigen Venue-IDs und holt jede Venue genau
+   einmal (kein Quota-Verschwender, neue Stadien werden automatisch
+   nachgeladen).
+3. Schreibt pro Spiel ein Firestore-Dokument in `fixturesCollection`
+   (z.B. `Spiele WM 2026`) im exakt gleichen Schema wie
+   `adm-sync-fixtures.html`.
+4. Erhöht `fixturesVersion` und setzt `fixturesUpdatedAt` im
+   Meta-Dokument – das ist das Signal, mit dem `index.html` &
+   `rangliste.html` ihren Cache invalidieren.
+
+### Repo-Secrets
+
+Es werden dieselben zwei Secrets wie für den Auto-Punkte-Upload
+verwendet – einmal anlegen reicht für beide Workflows:
+
+| Name                       | Inhalt                                                 |
+| -------------------------- | ------------------------------------------------------ |
+| `RAPIDAPI_KEY`             | Dein RapidAPI / api-football Key.                      |
+| `FIREBASE_SERVICE_ACCOUNT` | Inhalt einer Firebase-Service-Account-JSON als String. |
+
+### Optionale Repo-Variables
+
+`Settings → Secrets and variables → Actions → Tab "Variables"`:
+
+| Name                           | Default  | Bedeutung                                                            |
+| ------------------------------ | -------- | -------------------------------------------------------------------- |
+| `FIXTURES_SYNC_TOURNAMENT_KEY` | `wm2026` | Welcher Turnier-Key aus `tournament-config.js` synchronisiert wird.  |
+
+### Manuelles Auslösen
+
+Im Tab **Actions** → Workflow **Auto Spielplan-Sync** → Button
+**Run workflow**. Optional kann man:
+
+- `tournament_key` setzen (überschreibt das Default-Turnier).
+- `dry_run` aktivieren – Skript loggt nur, schreibt nichts in Firestore.
+- `skip_venues` aktivieren – überspringt die Venue-Detail-Calls (spart
+  Quota, wenn sich an den Stadien nichts ändert).
+
+### Lokal testen (optional)
+
+```bash
+cd scripts
+npm install
+
+export RAPIDAPI_KEY="…"
+export FIREBASE_SERVICE_ACCOUNT="$(cat ~/Downloads/dreamteam-d2121-xxx.json)"
+export TOURNAMENT_KEY="wm2026"
+export DRY_RUN=1
+
+npm run sync-fixtures
+```
+
+### Verhältnis zur Seite `adm-sync-fixtures.html`
+
+- Die Seite bleibt **unverändert funktionsfähig** und macht exakt
+  denselben Sync. Sinnvoll für einmalige Ad-hoc-Refreshes oder zum
+  Testen lokaler Anpassungen.
+- Der tägliche Cron-Workflow ersetzt aber den Bedarf, die Seite
+  überhaupt zu öffnen – die Finalrunden-Spiele landen automatisch
+  in Firebase, sobald die API sie kennt.

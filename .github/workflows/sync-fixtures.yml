@@ -1,0 +1,84 @@
+name: Auto Spielplan-Sync
+
+# Vollautomatischer Spielplan-Sync für das aktive Turnier.
+#
+# Lädt einmal pro Tag (Cron) alle Fixtures + Stadiondaten von der
+# API und schreibt sie nach Firestore. Sobald die Paarungen der
+# Finalrunde (z.B. Achtel-/Viertel-/Halb-/Final) bei api-football
+# stehen, sind sie ohne weiteres Zutun in der App sichtbar.
+#
+# Zusätzlich manuell auslösbar via "Run workflow" (Tab Actions).
+#
+# Benötigte Repo-Secrets (Settings → Secrets and variables → Actions):
+#   RAPIDAPI_KEY               RapidAPI / API-Football Key.
+#   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON (komplette JSON-Datei
+#                              als String – nicht Base64). Dasselbe
+#                              Secret wie für den Auto-Punkte-Upload.
+#
+# Optionale Repo-Variables (Settings → Secrets and variables → Actions
+# → Variables-Tab) zur Feinjustierung ohne Code-Edit:
+#   FIXTURES_SYNC_TOURNAMENT_KEY   z.B. "wm2026" oder "em2024".
+#                                  Default: wm2026.
+#   FIXTURES_SYNC_CRON             Override für die Cron-Expression
+#                                  (UTC). Default: "0 4 * * *" – d.h.
+#                                  jeden Tag um 04:00 UTC ≈ 06:00 CH.
+on:
+  schedule:
+    # Hinweis: GitHub-Cron ist UTC und kann sich bei hoher Plattformlast
+    # um wenige Minuten verzögern. Wir laufen einmal pro Tag früh
+    # morgens (CH-Zeit), wenn am wenigsten los ist. Soll der Lauf
+    # häufiger sein, einfach hier zusätzliche Cron-Zeilen ergänzen.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      tournament_key:
+        description: "Turnier-Key (z.B. wm2026, em2024). Leer = Default aus Variables/wm2026."
+        required: false
+        type: string
+        default: ""
+      dry_run:
+        description: "Nichts in Firestore schreiben – nur Logs."
+        required: false
+        type: boolean
+        default: false
+      skip_venues:
+        description: "Venue-Detail-Calls auslassen (spart API-Quota, wenn sich Stadien nicht ändern)."
+        required: false
+        type: boolean
+        default: false
+
+# Verhindert, dass sich zwei (Cron + manuell ausgelöste) Läufe
+# überlappen.
+concurrency:
+  group: sync-fixtures-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package.json
+
+      - name: Install script dependencies
+        working-directory: scripts
+        run: npm install --no-audit --no-fund --omit=dev
+
+      - name: Run fixtures sync
+        working-directory: scripts
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || (vars.FIXTURES_SYNC_TOURNAMENT_KEY != '' && vars.FIXTURES_SYNC_TOURNAMENT_KEY || 'wm2026') }}
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
+          SKIP_VENUES: ${{ inputs.skip_venues == true && '1' || '0' }}
+        run: node sync-fixtures.js
