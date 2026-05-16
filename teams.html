@@ -896,6 +896,48 @@
             box-shadow: 0 0 0 1px rgba(255,193,7,0.15), 0 8px 24px rgba(255,193,7,0.15), 0 8px 30px rgba(0,0,0,0.5);
         }
 
+        /* Spieler nicht im definitiven WM-Kader (oder gar nicht mehr in
+           playersData = "Orphan"). Die Karte bleibt mit Snapshot-Daten
+           sichtbar, wird aber visuell gedämpft + Badge angezeigt, damit
+           Manager die Lücke erkennen. */
+        .player-card.is-not-final,
+        .player-card.is-orphan {
+            border: 1.5px solid rgba(251,146,60,0.55);
+            box-shadow: 0 0 0 1px rgba(251,146,60,0.18), 0 8px 24px rgba(251,146,60,0.12), 0 8px 30px rgba(0,0,0,0.45);
+        }
+        .player-card.is-orphan {
+            border-color: rgba(248,113,113,0.6);
+            box-shadow: 0 0 0 1px rgba(248,113,113,0.22), 0 8px 24px rgba(248,113,113,0.16), 0 8px 30px rgba(0,0,0,0.5);
+        }
+        .player-card.is-not-final .card-avatar,
+        .player-card.is-orphan .card-avatar {
+            filter: grayscale(0.55) brightness(0.92);
+        }
+        .player-card .squad-status-badge {
+            position: absolute;
+            left: 50%;
+            bottom: 6px;
+            transform: translateX(-50%);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 999px;
+            white-space: nowrap;
+            z-index: 4;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+        }
+        .player-card.is-not-final .squad-status-badge {
+            background: rgba(251,146,60,0.95);
+            color: #1a0e02;
+        }
+        .player-card.is-orphan .squad-status-badge {
+            background: rgba(248,113,113,0.95);
+            color: #1a0c0c;
+        }
+
         @media (hover: hover) and (pointer: fine) {
             .player-card:hover {
                 box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(74,222,128,0.35) !important;
@@ -1939,6 +1981,11 @@
                 // verschwunden sind. Sämtliche Strings fliessen weiterhin
                 // ausschliesslich über escapeHtml() in den DOM.
                 const isOrphan = !fullP;
+                // `inFinalSquad === false` heißt: Spieler ist (noch) in
+                // playersData, gehört aber nicht zum definitiven WM-Kader.
+                // Frontend zeigt das in der Karte als Badge an; orphan
+                // (gar nicht mehr in playersData) impliziert dasselbe.
+                const isNotFinal = fullP && fullP.inFinalSquad === false;
                 return {
                     name: fullP ? fullP.Spielername : (p.name || 'Unbekannt'),
                     pos,
@@ -1952,6 +1999,7 @@
                     clubLogo: fullP ? fullP['Club.logo'] : (p.clubLogo || ''),
                     id: fullP ? String(fullP['player.id']) : (p.playerId != null ? String(p.playerId) : `fallback-${idx}-${Math.random()}`),
                     isOrphan,
+                    isNotFinal: !!isNotFinal,
                     rank: null
                 };
             }).sort((a, b) => a.slotNum - b.slotNum);
@@ -2582,6 +2630,18 @@
         const capBadge  = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';
         const ptsId     = `pts-${mergedP.id}-${mergedP.slotNum}`;
 
+        // Squad-Status: Orphan (nicht mehr in playersData) hat Vorrang
+        // vor isNotFinal (in playersData, aber nicht im definitiven Kader).
+        let squadStatusClass = '';
+        let squadStatusBadge = '';
+        if (mergedP.isOrphan) {
+            squadStatusClass = ' is-orphan';
+            squadStatusBadge = '<div class="squad-status-badge" title="Spieler nicht mehr im aktuellen Kader">Bitte ersetzen</div>';
+        } else if (mergedP.isNotFinal) {
+            squadStatusClass = ' is-not-final';
+            squadStatusBadge = '<div class="squad-status-badge" title="Spieler nicht im definitiven WM-Kader">Nicht im WM-Kader</div>';
+        }
+
         // Defense-in-Depth: Sämtliche dynamischen Werte werden HTML-
         // escaped, auch wenn sie inzwischen aus den kanonischen Daten
         // (data-wm2026.js) stammen. analysisUrl ist bereits via
@@ -2603,7 +2663,7 @@
 
         return `
             <div class="${safeWrapperCls}" style="${safeAnimStyle}">
-                <a href="${safeAnalysisUrl}" class="player-card ${safeCapClass}">
+                <a href="${safeAnalysisUrl}" class="player-card ${safeCapClass}${squadStatusClass}">
                     ${capBadge}
                     <div class="card-pts ${safePtsClass}" id="${safePtsId}">${safeSignPts}</div>
                     <div class="avatar-wrapper"><img src="${safePhoto}" class="card-avatar" alt="${safeName}" loading="lazy"></div>
@@ -2612,6 +2672,7 @@
                         <div class="card-sub-info"><img src="${safeFlag}" class="small-icon" alt="${safeNation}" loading="lazy"> <span>${safeNation}</span></div>
                         <div class="card-sub-info"><img src="${safeClubLogo}" class="small-icon club" alt="${safeClub}" loading="lazy"> <span>${safeClub}</span></div>
                     </div>
+                    ${squadStatusBadge}
                 </a>
             </div>
         `;

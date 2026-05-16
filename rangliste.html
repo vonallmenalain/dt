@@ -779,6 +779,42 @@
             z-index: 20;
         }
 
+        /* Spieler nicht im definitiven WM-Kader / Orphan: Avatar dezent
+           gedämpft, kleiner Punkt-Indikator unten links, damit auch in
+           der kompakten Top-3-Anzeige sichtbar ist, wer ersetzt werden
+           müsste. Orange = nicht im definitiven Kader, Rot = Orphan. */
+        .avatar-link.is-not-final img,
+        .avatar-link.is-orphan img {
+            filter: grayscale(0.5) brightness(0.92);
+        }
+        .avatar-link.is-not-final::before,
+        .avatar-link.is-orphan::before {
+            content: '!';
+            position: absolute;
+            bottom: -4px;
+            left: -4px;
+            color: #1a0e02;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 9px;
+            line-height: 1;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 20;
+        }
+        .avatar-link.is-not-final::before {
+            background: rgba(251,146,60,0.95);
+        }
+        .avatar-link.is-orphan::before {
+            background: rgba(248,113,113,0.95);
+            color: #1a0c0c;
+        }
+
         .podium-avatar {
             width: 54px;
             height: 54px;
@@ -2120,6 +2156,7 @@
                     : (p.playerId != null ? String(p.playerId) : `fallback-${idx}-${Math.random()}`);
                 const basePts = fullP ? (playerPointsMap[playerId] || 0) : 0;
                 const isOrphan = !fullP;
+                const isNotFinal = fullP && fullP.inFinalSquad === false;
                 const finalPts = p.isCaptain ? basePts * 2 : basePts;
                 const matchesMap = fullP ? (playerMatchPoints[playerId] || {}) : {};
                 const matchCount = Object.keys(matchesMap).length;
@@ -2138,6 +2175,7 @@
                     photo: fullP ? (fullP.Spielerfoto || "https://via.placeholder.com/50") : (p.photo || "https://via.placeholder.com/50"),
                     nation: fullP ? (fullP["Nationalteam.name"] || "?") : (p.nation || "?"),
                     isOrphan,
+                    isNotFinal: !!isNotFinal,
                     matchPoints: matchesMap,
                     matchCount
                 };
@@ -2308,13 +2346,22 @@
         const buildAvatar = (p, rankClass) => {
             if (!p) return "";
             const captainClass = p.isCaptain ? "is-captain" : "";
-            const titleText = p.isCaptain ? `${p.name} (Captain)` : p.name;
+            // Squad-Status: nicht im definitiven Kader → Avatar dezent
+            // dämpfen + Titel-Hinweis. Orphan (gar nicht in playersData)
+            // hat Vorrang über isNotFinal.
+            const squadStatusClass = p.isOrphan
+                ? "is-orphan"
+                : (p.isNotFinal ? "is-not-final" : "");
+            const squadStatusTitle = p.isOrphan
+                ? " · nicht mehr im aktuellen Kader"
+                : (p.isNotFinal ? " · nicht im definitiven WM-Kader" : "");
+            const titleText = (p.isCaptain ? `${p.name} (Captain)` : p.name) + squadStatusTitle;
             const href = p.id
                 ? `spieleranalyse.html?playerId=${encodeURIComponent(p.id)}`
                 : `spieleranalyse.html?player=${encodeURIComponent(p.name)}`;
 
             return `
-                <a href="${href}" class="avatar-link ${baseClass} ${rankClass} ${captainClass}" title="${escapeHtml(titleText)}">
+                <a href="${href}" class="avatar-link ${baseClass} ${rankClass} ${captainClass} ${squadStatusClass}" title="${escapeHtml(titleText)}">
                     <img src="${escapeHtml(p.photo)}" alt="${escapeHtml(p.name)}">
                     <div class="hover-pts">${p.pts} Pkt.</div>
                 </a>

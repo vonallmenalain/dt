@@ -41,6 +41,52 @@ Regelsatz existieren – das war früher der Fall und hat zu Drift geführt.
 Andere Stellen (Cron-Scripts, Workflows, Frontend-Skripte) müssen
 **nicht** angefasst werden – sie lesen alles aus `tournament-config.js`.
 
+### Provisorisches vs. definitives Kader (WM 2026)
+
+Bis zur offiziellen Bekanntgabe der Aufgebote können Manager Teams
+bereits aus dem provisorischen WM-Kader zusammenstellen. Damit ein
+nicht-nominierter Spieler später nicht hart aus der App verschwindet
+(was zu kaputten Karten in `teams.html` und ins Leere zeigenden
+Spielerprofilen führen würde), trägt jeder Spieler in `data-wm2026.js`
+optional ein Flag:
+
+```js
+{ "player.id": 9000009, "Spielername": "Neymar", ..., "inFinalSquad": false }
+```
+
+Konvention:
+
+- `inFinalSquad: true` → Spieler steht im definitiven WM-Kader.
+- `inFinalSquad: false` → Spieler war im provisorischen Aufgebot, ist
+  aber nicht definitiv nominiert. Spieler bleibt in `playersData`,
+  damit gespeicherte Teams ihn weiterhin korrekt rendern; der Builder-
+  Picker blendet ihn aus, und Manager bekommen in `teams.html`,
+  `team-builder.html`, `rangliste.html`, `spieleranalyse.html` ein
+  Badge **„Nicht im WM-Kader"** zu sehen, mit Aufforderung zum
+  Ersetzen vor Anpfiff.
+- Feld fehlt → wird wie `true` behandelt. So bleibt die Phase A
+  (provisorisches Kader, kein Flag gesetzt) ohne Code-Änderung.
+
+Quelle des Flags pro Workflow:
+
+- **Provisorische Generierung** (`adm-generate-kader-wm2026.html`):
+  schreibt das Flag bewusst **nicht** – alle Spieler werden vom
+  Frontend implizit als `true` behandelt.
+- **Offizielle Generierung** (`scripts/generate-wm2026-official-kader.mjs`,
+  ausgelöst durch den Workflow `wm2026-official-kader.yml`): liest die
+  bestehende `data-wm2026.js` ein, setzt für alle aus der API +
+  manuellem Overlay frisch geladenen Spieler `inFinalSquad: true` und
+  übernimmt alle Spieler, die nur in der vorherigen (provisorischen)
+  Datei existierten, mit `inFinalSquad: false`. Es wird **keine**
+  zweite Datei gepflegt; `data-wm2026.js` bleibt die alleinige Quelle
+  der Wahrheit.
+
+Damit ist der Übergang Phase A → Phase B reine Daten-Sache – sobald
+der Workflow eine neue `data-wm2026.js` per PR auf `main` gemerged
+wird, schaltet die App automatisch von „alle Spieler wählbar" auf
+„Picker zeigt nur definitive Spieler, bestehende Teams werden zur
+Aufmerksamkeit aufgefordert" um.
+
 ### Aktives Turnier auflösen
 
 Browser-Reihenfolge:
