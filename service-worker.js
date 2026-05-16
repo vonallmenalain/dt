@@ -10,9 +10,9 @@
  *      * localhost / Deploy Previews → eigener Cache pro Hostname
  *    So gibt es selbst bei einem Pflegezugriff via anderer Sub-Domain keine
  *    vermischten Inhalte.
- *  - Die Cache-Version wurde bewusst erhöht, damit der Browser nach dem
- *    Aufräumen der EM-2024-Reste einen frischen Stand zieht und alte Caches
- *    (inkl. `data-em2024.js` und `dashboard.html`) zuverlässig verschwinden.
+ *  - Die Cache-Version wird bei strukturellen Änderungen erhöht, damit der
+ *    Browser einen frischen Stand zieht und alte Caches früherer Turniere
+ *    zuverlässig verschwinden.
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */

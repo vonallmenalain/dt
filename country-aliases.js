@@ -6,9 +6,10 @@
  * damit z. B. „Schweiz“ Treffer für „Switzerland“ liefert oder
  * „Deutschland“ alle Spieler aus „Germany“ findet.
  *
- * Abdeckung: Alle Teilnehmer der WM 2026 sowie zusätzliche EM-2024-
- * Nationen. Neue Turniere können hier ergänzt werden – die Suche bleibt
- * dadurch automatisch konsistent (siehe getCountrySearchAliases()).
+ * Abdeckung: Alle Teilnehmer der WM 2026 sowie weitere europäische
+ * Nationen aus früheren Turnieren. Neue Turniere können hier ergänzt
+ * werden – die Suche bleibt dadurch automatisch konsistent
+ * (siehe getCountrySearchAliases()).
  *
  * Schlüssel: Englischer Name in Kleinbuchstaben.
  * Werte:     Array von Aliasen (Sprachen, Kurzformen, Kürzel, etc.).

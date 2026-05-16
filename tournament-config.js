@@ -27,7 +27,7 @@
  *
  *  Ungültige oder deaktivierte Werte (unbekannter Key, `available: false`,
  *  `dataReady: false`) fallen sicher auf das Default-Turnier zurück. Damit
- *  brechen z.B. alte Bookmarks wie `?tournament=em2024` die App nicht.
+ *  brechen alte Bookmarks zu nicht mehr verfügbaren Turnieren die App nicht.
  *
  *  Wichtig: Damit dieselbe Codebasis später wieder mehrere Turniere ausspielen
  *  kann, gibt es bewusst KEINEN globalen Default ausserhalb dieser Datei. Jede
@@ -141,8 +141,8 @@ window.APP_CONFIG = (() => {
    *  Nur Turniere mit `available: true && dataReady: true` werden
    *  von `getAvailableTournamentKeys()` / `isTournamentAvailable()`
    *  als wirklich nutzbar zurückgeliefert. Templates für künftige
-   *  Turniere (z.B. em2028, wm2030) bleiben deaktiviert, bis ihre
-   *  Kader-Datei vorhanden ist.
+   *  Turniere bleiben deaktiviert, bis ihre Kader-Datei vorhanden
+   *  ist.
    * ───────────────────────────────────────────────────────── */
   const TOURNAMENTS = {
     wm2026: {
@@ -178,33 +178,12 @@ window.APP_CONFIG = (() => {
     }
 
     /* ─────────────────────────────────────────────────────────
-     * Beispiel-Templates für künftige Turniere (deaktiviert).
+     * Weitere Turnier-Blöcke können hier ergänzt werden.
      *
      * Wenn ein neues Turnier ergänzt werden soll, neuen Block
-     * unten anlegen, `data-<key>.js` mit-deployen und dann
-     * `available: true` + `dataReady: true` setzen.
-     *
-     *  em2028: {
-     *    key: "em2028", type: "EM", year: "2028",
-     *    name: "Europameisterschaft 2028", shortLabel: "EM 2028",
-     *    longLabel: "UEFA Euro 2028", brandName: "DreamTeam EM 2028",
-     *    pageTitlePrefix: "EM 2028 DreamTeam",
-     *    competitionName: "UEFA Euro", timezone: "Europe/Zurich",
-     *    available: false,
-     *    dataReady: false,
-     *    DREAMTEAM_START: "2028-06-09T21:00:00+02:00",
-     *    storagePrefix: "dreamteam_em2028",
-     *    cachePrefix: "dreamteam-em2028",
-     *    dataFile: "data-em2028.js",
-     *    api: { competitionParam: "league", competitionId: 4, season: "2028" },
-     *    firestore: {
-     *      metaCollection: "app_meta", metaDocId: "turnier_em2028",
-     *      teamsCollection: "Teams EM 2028",
-     *      pointsCollection: "Punkte Spieler EM 2028",
-     *      fixturesCollection: "Spiele EM 2028"
-     *    },
-     *    fallbackFixtures: []
-     *  }
+     * nach demselben Schema wie `wm2026` anlegen, eine passende
+     * `data-<key>.js` mit-deployen und dann `available: true` +
+     * `dataReady: true` setzen.
      * ───────────────────────────────────────────────────────── */
   };
 
@@ -282,9 +261,8 @@ window.APP_CONFIG = (() => {
 
   // Einmal-Aufräumen alter, nicht host-spezifischer Override-Keys
   // sowie alter Dev-Overrides, die auf inzwischen nicht mehr
-  // verfügbare Turniere zeigen (z.B. `em2024`). Wichtig, damit
-  // weder generische Legacy-Keys noch tote Werte die Auswahl
-  // verfälschen können.
+  // verfügbare Turniere zeigen. Wichtig, damit weder generische
+  // Legacy-Keys noch tote Werte die Auswahl verfälschen können.
   function cleanupLegacyKeys() {
     try {
       if (typeof window === "undefined" || !window.localStorage) return;

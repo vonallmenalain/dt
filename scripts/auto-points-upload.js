@@ -87,9 +87,10 @@ if (!fetchFn) {
  *  tournament-config.js nachgezogen werden.
  *
  *  Aktuell ist nur `wm2026` aktiv konfiguriert. Falls jemand z.B. via
- *  GitHub-Action-Variable einen alten Key wie `em2024` setzt, bricht das
- *  Script unten in `main()` mit einer klaren Fehlermeldung ab, statt
- *  stillschweigend auf einen anderen Default zu wechseln.
+ *  GitHub-Action-Variable einen unbekannten oder nicht (mehr) gepflegten
+ *  Turnier-Key setzt, bricht das Script unten in `main()` mit einer
+ *  klaren Fehlermeldung ab, statt stillschweigend auf einen anderen
+ *  Default zu wechseln.
  * ───────────────────────────────────────────────────────────────────────────── */
 const TOURNAMENTS = {
   wm2026: {
