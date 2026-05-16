@@ -4437,7 +4437,18 @@
 
     /** Save a payload to Firestore (create or update) and navigate to teams.html. */
     async function persistPayload(payload, { silent = false } = {}) {
-        const result = await DreamTeamAuth.saveOrUpdateTeam(payload);
+        let result;
+        try {
+            result = await DreamTeamAuth.saveOrUpdateTeam(payload);
+        } catch (err) {
+            // Cross-provider duplicate guard: another team is already
+            // registered for this e-mail. Surface a clear message and
+            // forward the error so the caller can re-arm its UI state.
+            if (err && err.code === 'team-exists-for-email') {
+                showToast('⚠️ Unter dieser E-Mail-Adresse ist bereits ein Team erfasst.');
+            }
+            throw err;
+        }
 
         /* Bump the meta doc so other clients refresh their cache.
          *
@@ -4492,32 +4503,18 @@
 
         pendingFinalize = true;
         try {
-            const FieldValue = firebase.firestore.FieldValue;
-            const user = DreamTeamAuth.getCurrentUser();
-
-            /* Belt & braces: force a fresh ID token before the write so the
-               `email_verified` claim that Firestore Security Rules see is
-               guaranteed to be up-to-date, even if `reloadUser()` ran with a
-               stale token (common on mobile where the verification link is
-               opened in another app/browser). Without this, the first write
-               right after verification can still fail with
-               `permission-denied`, surfacing as the toast below. */
-            try { await user.getIdToken(/* forceRefresh */ true); }
-            catch (e) { /* non-fatal — proceed and let Firestore decide */ }
-
-            const doc  = {
-                ...pending,
-                userId:    user.uid,
-                userEmail: user.email || null,
-                status:    'verified',
-                updatedAt: FieldValue.serverTimestamp(),
-                timestamp: FieldValue.serverTimestamp()
-            };
-            const ref = await db.collection(TEAMS_COLLECTION).add(doc);
-            DreamTeamAuth.setLoadedTeamId(ref.id);
+            /* Route the write through DreamTeamAuth.saveOrUpdateTeam so the
+               cross-provider duplicate guard ("one team per e-mail") fires
+               here as well, not only on the direct submit path. Without
+               this, a user could build a team while signed out, verify a
+               fresh password account, and silently create a second team
+               whose e-mail already owned one (created earlier via Google). */
+            const result = await DreamTeamAuth.saveOrUpdateTeam(pending);
+            DreamTeamAuth.setLoadedTeamId(result.id);
             DreamTeamAuth.clearPendingTeam();
 
             try {
+                const FieldValue = firebase.firestore.FieldValue;
                 await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
                     year:           TOURNAMENT_YEAR,
                     teamsVersion:   FieldValue.increment(1),
@@ -4527,7 +4524,9 @@
                 console.error('[TeamBuilder] teamsVersion-Bump nach E-Mail-Verifizierung fehlgeschlagen – andere Geräte sehen evtl. veraltete Teams:', err);
             }
 
-            showToast('🎉 E-Mail bestätigt – Team gespeichert!');
+            showToast(result.mode === 'update'
+                ? '🎉 E-Mail bestätigt – Team aktualisiert!'
+                : '🎉 E-Mail bestätigt – Team gespeichert!');
             setTimeout(() => {
                 const targetUrl = new URL('teams.html', window.location.href);
                 targetUrl.searchParams.set('manager', pending.manager);
@@ -4536,7 +4535,20 @@
             }, 700);
         } catch (err) {
             console.error('[TeamBuilder] finalize failed:', err);
-            showToast('⚠️ Konnte das Team nach Bestätigung nicht speichern.');
+            if (err && err.code === 'team-exists-for-email') {
+                /* Duplicate e-mail — clear the pending payload so the
+                   visibilitychange/focus listeners don't keep retrying the
+                   same write, and load the existing team into the builder
+                   so the user can edit it instead of submitting again. */
+                DreamTeamAuth.clearPendingTeam();
+                showToast('⚠️ Unter dieser E-Mail-Adresse ist bereits ein Team erfasst. Dein bestehendes Team wird geladen.');
+                const user = DreamTeamAuth.getCurrentUser();
+                if (user) {
+                    loadUserTeamIntoBuilder(user);
+                }
+            } else {
+                showToast('⚠️ Konnte das Team nach Bestätigung nicht speichern.');
+            }
         } finally {
             pendingFinalize = false;
         }
@@ -4613,7 +4625,16 @@
 
         } catch (e) {
             console.error('[TeamBuilder] Submit fehlgeschlagen:', e);
-            showToast('⚠️ Fehler beim Speichern. Bitte Verbindung prüfen.');
+            if (e && e.code === 'team-exists-for-email') {
+                /* persistPayload already surfaced the user-facing toast.
+                   Load the existing team into the builder so the user can
+                   edit it in place instead of being stuck on a submission
+                   that cannot succeed. */
+                const user = DreamTeamAuth.getCurrentUser();
+                if (user) loadUserTeamIntoBuilder(user);
+            } else {
+                showToast('⚠️ Fehler beim Speichern. Bitte Verbindung prüfen.');
+            }
             isSubmitting = false;
             setSubmitDefaultLabel();
             validateForm();

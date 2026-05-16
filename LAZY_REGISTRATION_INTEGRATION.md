@@ -188,8 +188,10 @@ DreamTeamAuth.getPendingTeam();
 DreamTeamAuth.clearPendingTeam();
 DreamTeamAuth.hasPendingTeam();
 
-DreamTeamAuth.fetchUserTeam(uid?);             // { id, data } | null
-DreamTeamAuth.saveOrUpdateTeam(payload);       // create-or-update
+DreamTeamAuth.fetchUserTeam(uid?);             // { id, data } | null — by userId, then email fallback
+DreamTeamAuth.findTeamByEmail(email);          // { id, data } | null — case-insensitive match
+DreamTeamAuth.saveOrUpdateTeam(payload);       // create-or-update; throws { code: 'team-exists-for-email' }
+                                               // when a foreign UID already owns a team for this address
 DreamTeamAuth.finalizePendingTeam();           // idempotent
 ```
 
@@ -199,7 +201,8 @@ DreamTeamAuth.finalizePendingTeam();           // idempotent
 // /Teams WM 2026/{auto-id}
 {
     userId:            "abc123…",                       // == auth.uid (mandatory)
-    userEmail:         "alice@example.com",
+    userEmail:         "Alice@example.com",             // original casing as supplied by the IdP
+    userEmailLower:    "alice@example.com",             // case-normalised for indexed lookups
     manager:           "Alice Müller",
     managerNormalized: "alice müller",
     players: [
@@ -214,6 +217,34 @@ DreamTeamAuth.finalizePendingTeam();           // idempotent
 
 Existing legacy team documents (no `userId`) remain readable; only writes
 are restricted by the new rules.
+
+### Anti-duplicate guard (one team per e-mail address)
+
+`auth.js` persists a `userEmailLower` field on every team document and
+performs an application-level duplicate check inside
+`saveOrUpdateTeam(payload)` before creating a new document:
+
+1. Look up the user's team by `userId` (canonical owner).
+2. If none found, fall back to looking up by `userEmailLower` — this
+   matches the team across sign-in providers (Google ↔ E-Mail/Password ↔
+   E-Mail-Link). When found, the builder loads that team for editing
+   instead of presenting a blank slate.
+3. If a team already exists for the e-mail under a *different* Firebase
+   UID and the user tries to submit a brand-new team, `saveOrUpdateTeam`
+   throws an error with `code === 'team-exists-for-email'`. `team-builder.html`
+   catches that code and shows the toast
+   "Unter dieser E-Mail-Adresse ist bereits ein Team erfasst." before
+   loading the existing document into the builder for editing.
+
+This closes the gap where a user could create a team via Google, then
+sign in via e-mail + password with the same address and silently end up
+with a second team document under a fresh UID.
+
+> **Note:** To allow cross-provider *editing* of the same team (Google
+> created it → user later signs in via password and updates it), the
+> Firestore rule for the `Teams …` collections must permit updates when
+> the signed-in user's verified e-mail matches the document's stored
+> `userEmailLower`. See the rules snippet below.
 
 ## Firebase console checklist
 
@@ -231,6 +262,41 @@ In the [Firebase console](https://console.firebase.google.com/project/dreamteam-
    ist im PR „firestore.rules entfernen + Cache-Version bumpen"
    dokumentiert. Es ist kein `firebase deploy --only firestore:rules`
    mehr nötig.
+
+   **Wichtige Anpassung (Anti-Duplikat-Schutz):** Damit dieselbe
+   Person ihr Team auch nach einem Wechsel der Anmelde-Methode
+   (Google ↔ E-Mail/Passwort ↔ E-Mail-Link) bearbeiten kann, müssen
+   die Update-Regeln Schreibzugriff erlauben, sobald die verifizierte
+   E-Mail des angemeldeten Benutzers mit dem `userEmailLower`-Feld des
+   bestehenden Dokuments übereinstimmt. Beispiel für eine Teams-
+   Sammlung (z.B. `Teams WM 2026`):
+
+   ```text
+   match /Teams\ WM\ 2026/{teamId} {
+       allow read: if true;
+
+       allow create: if request.auth != null
+                  && request.auth.token.email_verified == true
+                  && request.resource.data.userId == request.auth.uid
+                  && request.resource.data.userEmailLower
+                       == request.auth.token.email.lower();
+
+       allow update, delete: if request.auth != null
+                  && request.auth.token.email_verified == true
+                  && (
+                       resource.data.userId == request.auth.uid
+                       || (
+                           resource.data.userEmailLower is string
+                        && resource.data.userEmailLower
+                             == request.auth.token.email.lower()
+                       )
+                     );
+   }
+   ```
+
+   Ohne die zweite Bedingung im `update`-Block würde der
+   Cross-Provider-Edit-Fall in der Firestore-Schicht blockiert,
+   obwohl die App das Team korrekt nachlädt.
 
 ## Testing checklist
 

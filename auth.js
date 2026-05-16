@@ -63,7 +63,11 @@
  *    clearPendingTeam()                   void
  *    hasPendingTeam()                     → boolean
  *
- *    fetchUserTeam(uid?)                  → Promise<{ id, data } | null>
+ *    fetchUserTeam(uid?)                  → Promise<{ id, data } | null>   Matches by userId, then by user e-mail
+ *                                                                           as a cross-provider fallback.
+ *    findTeamByEmail(email)               → Promise<{ id, data } | null>   Case-insensitive e-mail lookup. Used
+ *                                                                           by saveOrUpdateTeam() to refuse a
+ *                                                                           second team for the same address.
  *    saveTeamForUser(payload)             → Promise<{ id, data }>          Creates a new team doc
  *    updateTeam(teamId, payload)          → Promise<void>                  Updates existing team doc
  *    finalizePendingTeam()                → Promise<{ id, data } | null>   If pending team in LS + user verified,
@@ -499,24 +503,107 @@
      *        and request.resource.data.userId == request.auth.uid
      *      - update/delete requires the same plus matching existing userId
      * ------------------------------------------------------------------------- */
+    /**
+     * Normalise an e-mail address for case-insensitive lookups. Firebase
+     * already lower-cases the local part for most providers, but we apply
+     * `toLowerCase()` defensively so that comparisons across providers
+     * (Google vs. email/password) always match. Whitespace is trimmed.
+     */
+    function normalizeEmail(email) {
+        return (email || '').trim().toLowerCase() || null;
+    }
+
+    /**
+     * Find any team document whose stored e-mail matches the given address.
+     *
+     * The check is intentionally case-insensitive and falls back to the
+     * legacy `userEmail` field for documents that were written before we
+     * started persisting `userEmailLower`.
+     *
+     * Returns the first matching `{ id, data }` or `null` when nothing
+     * matches.
+     */
+    async function findTeamByEmail(email) {
+        requireInit();
+        const normalized = normalizeEmail(email);
+        if (!normalized) return null;
+
+        // Preferred path: indexed lookup on the dedicated lower-cased field.
+        try {
+            const snap = await state.db.collection(state.teamsCollection)
+                .where('userEmailLower', '==', normalized)
+                .limit(1)
+                .get();
+            if (!snap.empty) {
+                const doc = snap.docs[0];
+                return { id: doc.id, data: doc.data() };
+            }
+        } catch (err) {
+            // Composite-index / missing-field errors should not stop the
+            // legacy fallback below; surface them in the console for ops.
+            console.warn('[DreamTeamAuth] userEmailLower lookup failed, trying legacy field:', err);
+        }
+
+        // Legacy fallback: older documents only carry the original-case
+        // `userEmail`. We try both the as-typed address and the lower-cased
+        // variant because writes prior to this change might have stored
+        // either form.
+        try {
+            const snap = await state.db.collection(state.teamsCollection)
+                .where('userEmail', '==', normalized)
+                .limit(1)
+                .get();
+            if (!snap.empty) {
+                const doc = snap.docs[0];
+                return { id: doc.id, data: doc.data() };
+            }
+        } catch (err) {
+            console.warn('[DreamTeamAuth] legacy userEmail lookup failed:', err);
+        }
+
+        return null;
+    }
+
+    /**
+     * Look up the current user's team. Strategy:
+     *   1) Match by `userId` (the canonical owner field, enforced by rules).
+     *   2) If none found, fall back to an e-mail match so a user who
+     *      previously created their team via a different sign-in provider
+     *      (e.g. Google) ends up editing the same document when they later
+     *      log in via e-mail + password (and vice versa).
+     */
     async function fetchUserTeam(uid) {
         requireInit();
-        const targetUid = uid || (state.currentUser && state.currentUser.uid);
+        const user      = state.currentUser;
+        const targetUid = uid || (user && user.uid);
         if (!targetUid) return null;
 
-        const snap = await state.db.collection(state.teamsCollection)
+        const byUid = await state.db.collection(state.teamsCollection)
             .where('userId', '==', targetUid)
             .limit(1)
             .get();
 
-        if (snap.empty) {
-            state.loadedTeamId = null;
-            return null;
+        if (!byUid.empty) {
+            const doc = byUid.docs[0];
+            state.loadedTeamId = doc.id;
+            return { id: doc.id, data: doc.data() };
         }
 
-        const doc = snap.docs[0];
-        state.loadedTeamId = doc.id;
-        return { id: doc.id, data: doc.data() };
+        // No team for this UID — fall back to matching by e-mail so the
+        // cross-provider case (same address, two Firebase UIDs) still
+        // resolves to the original team instead of looking like a blank
+        // slate that invites a duplicate submission.
+        const email = user && user.email;
+        if (email) {
+            const byEmail = await findTeamByEmail(email);
+            if (byEmail) {
+                state.loadedTeamId = byEmail.id;
+                return byEmail;
+            }
+        }
+
+        state.loadedTeamId = null;
+        return null;
     }
 
     function buildTeamDocument(payload) {
@@ -527,10 +614,11 @@
         const FieldValue = firebase.firestore.FieldValue;
         return {
             ...payload,
-            userId:    user.uid,
-            userEmail: user.email || null,
-            status:    'verified',
-            updatedAt: FieldValue.serverTimestamp()
+            userId:         user.uid,
+            userEmail:      user.email || null,
+            userEmailLower: normalizeEmail(user.email),
+            status:         'verified',
+            updatedAt:      FieldValue.serverTimestamp()
         };
     }
 
@@ -554,8 +642,36 @@
     }
 
     /**
+     * Error thrown when a brand-new team submission would create a
+     * duplicate for the signed-in user's e-mail address. Surfaces a
+     * `code` of `'team-exists-for-email'` so callers can render a
+     * user-facing message without having to string-match on the error
+     * `message`.
+     */
+    function teamExistsForEmailError(email, existing) {
+        const err = new Error('Unter dieser E-Mail-Adresse ist bereits ein Team erfasst.');
+        err.code  = 'team-exists-for-email';
+        err.email = email || null;
+        if (existing) {
+            err.existingTeamId = existing.id;
+            err.existingTeam   = existing;
+        }
+        return err;
+    }
+
+    /**
      * Save-or-update convenience: looks up the user's existing team and either
      * updates it (edit flow) or creates a new one (lazy-register flow).
+     *
+     * Crucially, this also performs a *cross-provider* duplicate check: if
+     * any team already exists for the signed-in user's e-mail address —
+     * even one written under a different Firebase UID, e.g. because the
+     * user previously signed in via Google and is now back via e-mail +
+     * password — we refuse to create a second team and throw a
+     * `'team-exists-for-email'` error instead. This is the application-
+     * level safety net behind the user-visible
+     *   "Unter dieser E-Mail-Adresse ist bereits ein Team erfasst"
+     * message.
      */
     async function saveOrUpdateTeam(payload) {
         requireInit();
@@ -570,16 +686,54 @@
         try { await state.currentUser.getIdToken(/* forceRefresh */ true); }
         catch (e) { /* non-fatal — fall through and let Firestore decide */ }
 
-        let teamId = state.loadedTeamId;
+        const user  = state.currentUser;
+        const email = user && user.email;
+
+        let teamId     = state.loadedTeamId;
+        let loadedTeam = null;
         if (!teamId) {
-            const existing = await fetchUserTeam();
-            teamId = existing ? existing.id : null;
+            loadedTeam = await fetchUserTeam();
+            teamId = loadedTeam ? loadedTeam.id : null;
         }
 
         if (teamId) {
-            await updateTeam(teamId, payload);
-            return { id: teamId, mode: 'update' };
+            try {
+                await updateTeam(teamId, payload);
+                return { id: teamId, mode: 'update' };
+            } catch (err) {
+                // Cross-provider edge case: we resolved the team via the
+                // e-mail fallback (different Firebase UID), but the
+                // Firestore Security Rules still gate updates by
+                // `userId == request.auth.uid`. Translate the resulting
+                // permission-denied into the more actionable
+                // 'team-exists-for-email' so the UI can render the
+                // matching message rather than a generic save error.
+                const isPermissionError =
+                    err && (err.code === 'permission-denied'
+                         || err.code === 'firestore/permission-denied'
+                         || (typeof err.message === 'string' && /permission/i.test(err.message)));
+                const ownerMismatch = loadedTeam
+                    && loadedTeam.data
+                    && user
+                    && loadedTeam.data.userId
+                    && loadedTeam.data.userId !== user.uid;
+                if (isPermissionError && ownerMismatch) {
+                    throw teamExistsForEmailError(email, loadedTeam);
+                }
+                throw err;
+            }
         }
+
+        // No team for this UID yet → before creating a new document, make
+        // sure no other team is already registered under the same e-mail
+        // (the user might have first registered with another sign-in
+        // provider). This is what keeps a single e-mail address from
+        // owning two separate team documents.
+        if (email) {
+            const existingByEmail = await findTeamByEmail(email);
+            if (existingByEmail) throw teamExistsForEmailError(email, existingByEmail);
+        }
+
         const created = await saveTeamForUser(payload);
         return { id: created.id, mode: 'create' };
     }
@@ -630,6 +784,7 @@
         hasPendingTeam,
 
         fetchUserTeam,
+        findTeamByEmail,
         saveTeamForUser,
         updateTeam,
         saveOrUpdateTeam,
