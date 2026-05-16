@@ -1,40 +1,25 @@
 name: Auto Spielplan-Sync
 
-# Vollautomatischer Spielplan-Sync für die WM 2026.
+# Vollautomatischer Spielplan-Sync für das aktive Turnier laut
+# tournament-config.js. Lädt einmal pro Tag (Cron) alle Fixtures +
+# Stadiondaten von der API und schreibt sie nach Firestore.
 #
-# Lädt einmal pro Tag (Cron) alle Fixtures + Stadiondaten von der
-# API und schreibt sie nach Firestore. Sobald die Paarungen der
-# Finalrunde (z.B. Achtel-/Viertel-/Halb-/Final) bei api-football
-# stehen, sind sie ohne weiteres Zutun in der App sichtbar.
-#
-# Zusätzlich manuell auslösbar via "Run workflow" (Tab Actions).
+# Zusätzlich manuell auslösbar via "Run workflow".
 #
 # Benötigte Repo-Secrets (Settings → Secrets and variables → Actions):
 #   RAPIDAPI_KEY               RapidAPI / API-Football Key.
-#   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON (komplette JSON-Datei
-#                              als String – nicht Base64). Dasselbe
-#                              Secret wie für den Auto-Punkte-Upload.
+#   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON als String.
 #
-# Optionale Repo-Variables (Settings → Secrets and variables → Actions
-# → Variables-Tab) zur Feinjustierung ohne Code-Edit:
-#   FIXTURES_SYNC_TOURNAMENT_KEY   Default: wm2026. Aktuell ist nur
-#                                  "wm2026" produktiv konfiguriert;
-#                                  andere Keys lassen das Skript mit
-#                                  einer klaren Fehlermeldung abbrechen.
-#   FIXTURES_SYNC_CRON             Override für die Cron-Expression
-#                                  (UTC). Default: "0 4 * * *" – d.h.
-#                                  jeden Tag um 04:00 UTC ≈ 06:00 CH.
+# Optionale Repo-Variable:
+#   TOURNAMENT_KEY   Überschreibt das Default-Turnier aus
+#                    tournament-config.js. Aktuell unterstützt: wm2026.
 on:
   schedule:
-    # Hinweis: GitHub-Cron ist UTC und kann sich bei hoher Plattformlast
-    # um wenige Minuten verzögern. Wir laufen einmal pro Tag früh
-    # morgens (CH-Zeit), wenn am wenigsten los ist. Soll der Lauf
-    # häufiger sein, einfach hier zusätzliche Cron-Zeilen ergänzen.
     - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
       tournament_key:
-        description: "Turnier-Key. Aktuell unterstützt: wm2026. Leer = Default aus Variables/wm2026."
+        description: "Turnier-Key (leer = Default aus tournament-config.js)."
         required: false
         type: string
         default: ""
@@ -44,13 +29,11 @@ on:
         type: boolean
         default: false
       skip_venues:
-        description: "Venue-Detail-Calls auslassen (spart API-Quota, wenn sich Stadien nicht ändern)."
+        description: "Venue-Detail-Calls auslassen (spart API-Quota)."
         required: false
         type: boolean
         default: false
 
-# Verhindert, dass sich zwei (Cron + manuell ausgelöste) Läufe
-# überlappen.
 concurrency:
   group: sync-fixtures-${{ github.ref }}
   cancel-in-progress: false
@@ -80,7 +63,7 @@ jobs:
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || (vars.FIXTURES_SYNC_TOURNAMENT_KEY != '' && vars.FIXTURES_SYNC_TOURNAMENT_KEY || 'wm2026') }}
+          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
           SKIP_VENUES: ${{ inputs.skip_venues == true && '1' || '0' }}
         run: node sync-fixtures.js
