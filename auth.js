@@ -328,7 +328,14 @@
 
     async function sendPasswordReset(email) {
         requireInit();
-        await firebase.auth().sendPasswordResetEmail(email);
+        // Hand over the configured actionUrl as continueUrl so the custom
+        // email-action handler (auth-action.html) can bounce the user back
+        // to the correct page after they successfully set a new password.
+        // Without this, the password-reset link arrives at the action
+        // handler with no continueUrl and the handler can only fall back
+        // to the site root.
+        const settings = state.actionUrl ? { url: state.actionUrl, handleCodeInApp: false } : undefined;
+        await firebase.auth().sendPasswordResetEmail(email, settings);
     }
 
     /* ---------------------------------------------------------------------------
