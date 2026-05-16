@@ -8,7 +8,7 @@
 //   - Manuell überschriebene IDs: 23
 //   - Manuell entfernte IDs:      0
 //   - Namens-Overrides definiert: 14
-//   - Namens-Overrides angewendet: 3
+//   - Namens-Overrides angewendet: 0
 //
 // Originalnamen mit Diakritika (Dembélé, Ødegaard, Vinícius Júnior, …)
 // bleiben erhalten — die App-Suche ist diakritikatolerant.
@@ -3046,7 +3046,7 @@ const playersData = [
     {
         "player.id": 9000004,
         "Spielername": "Alphonso Davies",
-        "Spielerfoto": "https://media.api-sports.io/football/players/19063.png",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Alphonso%20Davies%202018.jpg",
         "Position": "DEFENDER",
         "Nationalteam.name": "Canada",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",

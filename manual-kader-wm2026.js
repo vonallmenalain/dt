@@ -227,7 +227,7 @@
         {
             "player.id": 9000004,
             "Spielername": "Alphonso Davies",
-            "Spielerfoto": "https://media.api-sports.io/football/players/19063.png",
+            "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Alphonso%20Davies%202018.jpg",
             "Position": "DEFENDER",
             "Nationalteam.name": "Canada",
             "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
