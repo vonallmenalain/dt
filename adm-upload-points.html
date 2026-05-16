@@ -634,8 +634,8 @@
 
             // Sanity-Check: stelle sicher, dass die geladene Kader-Datei
             // tatsächlich zum aktiven Turnier passt. So fällt es sofort auf,
-            // falls z. B. auf einer WM-2026-Domain versehentlich der EM-2024-
-            // Kader im Browser-Cache hängen geblieben ist.
+            // falls versehentlich ein Kader eines anderen/älteren Turniers
+            // im Browser-Cache hängen geblieben ist.
             const expectedFile = TOURNAMENT.dataFile;
             if (expectedFile && ACTIVE_DATA_FILE && expectedFile !== ACTIVE_DATA_FILE) {
                 log(`⚠️ Warnung: erwartete Kader-Datei "${expectedFile}", geladen wurde aber "${ACTIVE_DATA_FILE}". ` +
