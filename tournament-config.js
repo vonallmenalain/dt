@@ -717,6 +717,26 @@ window.APP_CONFIG = (() => {
         return devOverrideStorageKey();
       },
 
+      /* ─────────────────────────────────────────────────────────
+       * Bewusst NICHT turnier-namespaced.
+       *
+       * Diese Keys sind globale Admin-/Tester-Toggles, die
+       *   a) turnier-übergreifend gelten sollen, und
+       *   b) bereits vor dem Laden von `tournament-config.js`
+       *      lesbar sein müssen (z. B. das Pre-Flight-Inline-
+       *      Skript im <head> von index.html, das `<html>`-
+       *      `data-view` setzt, bevor irgendwelche App-Skripte
+       *      laufen).
+       *
+       * Wer neue globale Dev-Keys einführt, listet sie hier
+       * zentral statt sie als String-Literal in mehreren Dateien
+       * zu duplizieren. Alle „normalen“ App-Keys laufen über
+       * `APP.storage.key(name)`.
+       * ───────────────────────────────────────────────────────── */
+      globalKeys: {
+        indexViewMode: "dreamteamIndexViewMode"
+      },
+
       appPrefix() {
         return getActiveTournament().storagePrefix || `dreamteam_${getActiveTournament().key}`;
       },
@@ -727,6 +747,52 @@ window.APP_CONFIG = (() => {
 
       builderCacheKey() {
         return this.key("builder_cache");
+      },
+
+      /**
+       * Einmal-Migration eines alten, un­gepräfixten Legacy-Keys auf
+       * den turnier-namespaceten Key.
+       *
+       *  - Existiert nur der Legacy-Key, wird sein Wert auf den neuen
+       *    Key kopiert.
+       *  - Existieren beide, hat der neue Key Vorrang (Legacy gilt als
+       *    überholt).
+       *  - In jedem Fall wird der Legacy-Key entfernt, sobald sein
+       *    Inhalt auf den neuen Key übertragen wurde – damit ist die
+       *    Altlast endgültig weg und der Wert verbleibt sauber unter
+       *    `APP.storage.key(name)`.
+       *
+       * Funktioniert für `localStorage` (Default) und `sessionStorage`.
+       * Schluckt Storage-Errors (Privacy-Mode, deaktivierter Storage).
+       *
+       * @param {string} name         Logischer Name, wird via key() namespaced.
+       * @param {string} legacyKey    Vollständiger alter Storage-Key.
+       * @param {object} [options]
+       * @param {"local"|"session"} [options.storage="local"]
+       * @returns {string|null}       Migrierter / vorhandener Wert oder null.
+       */
+      migrate(name, legacyKey, options) {
+        if (!legacyKey) return null;
+        const which = (options && options.storage) === "session" ? "session" : "local";
+        const newKey = this.key(name);
+        try {
+          if (typeof window === "undefined") return null;
+          const store = which === "session" ? window.sessionStorage : window.localStorage;
+          if (!store) return null;
+
+          const legacyValue = store.getItem(legacyKey);
+          const currentValue = store.getItem(newKey);
+
+          if (legacyValue !== null && currentValue === null) {
+            store.setItem(newKey, legacyValue);
+          }
+          if (legacyValue !== null) {
+            store.removeItem(legacyKey);
+          }
+          return store.getItem(newKey);
+        } catch (err) {
+          return null;
+        }
       }
     },
 
