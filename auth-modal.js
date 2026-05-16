@@ -874,23 +874,157 @@
     function showError(message) {
         const box = state.modalEl.querySelector('#dt-auth-error');
         if (!box) return;
+        // Replace any prior CTA / content. Plain string → textContent so we
+        // don't accidentally interpret user-supplied HTML.
+        box.innerHTML  = '';
         box.textContent = message;
         box.hidden      = false;
         box.style.background = '';
         box.style.borderColor = '';
         box.style.color = '';
     }
+
+    /**
+     * Like showError(), but allows passing a DOM element (e.g. with an inline
+     * CTA button) instead of plain text. Used for the cross-provider hint
+     * which offers a one-click jump back to the Google / email-link flow.
+     */
+    function showErrorNode(node) {
+        const box = state.modalEl.querySelector('#dt-auth-error');
+        if (!box) return;
+        box.innerHTML = '';
+        box.appendChild(node);
+        box.hidden    = false;
+        box.style.background = '';
+        box.style.borderColor = '';
+        box.style.color = '';
+    }
+
     function clearError() {
         if (!state.modalEl) return;
         const box = state.modalEl.querySelector('#dt-auth-error');
-        if (box) { box.textContent = ''; box.hidden = true; }
+        if (box) { box.innerHTML = ''; box.textContent = ''; box.hidden = true; }
+    }
+
+    /**
+     * Builds the friendly "you originally signed in with X" hint. Returns
+     * a DOM node that can be passed to showError* helpers. When `methods`
+     * contains 'google.com', a primary CTA jumps straight back into the
+     * Google popup so the user does not have to navigate back to the
+     * chooser view by themselves.
+     */
+    function buildProviderConflictNode(methods, mode) {
+        const wrap = el('div', { class: 'dt-auth-provider-conflict' });
+
+        const hasGoogle    = methods.indexOf('google.com') !== -1;
+        const hasEmailLink = methods.indexOf('emailLink')  !== -1;
+        const hasPassword  = methods.indexOf('password')   !== -1;
+
+        let intro = '';
+        if (hasGoogle && !hasPassword) {
+            intro = mode === 'register'
+                ? 'Diese E-Mail-Adresse ist bereits mit Google angemeldet. Bitte melde dich mit deinem Google-Konto an.'
+                : 'Du hast dich für diese E-Mail-Adresse mit Google angemeldet. Bitte verwende den Button „Mit Google anmelden".';
+        } else if (hasEmailLink && !hasPassword && !hasGoogle) {
+            intro = mode === 'register'
+                ? 'Diese E-Mail-Adresse ist bereits ohne Passwort (über E-Mail-Link) registriert. Bitte melde dich mit dem E-Mail-Link an.'
+                : 'Für diese E-Mail-Adresse wurde noch kein Passwort gesetzt. Bitte melde dich mit dem E-Mail-Link an.';
+        } else {
+            // Fallback should not normally be hit – callers only invoke this
+            // helper after detecting a cross-provider conflict – but keep a
+            // safe default so we never render an empty error box.
+            intro = mode === 'register'
+                ? 'Diese E-Mail-Adresse ist bereits registriert. Bitte melde dich an.'
+                : 'E-Mail oder Passwort stimmt nicht.';
+        }
+
+        wrap.appendChild(el('p', { class: 'dt-auth-provider-conflict-text' }, [intro]));
+
+        // Primary CTA: jump back to the right sign-in method.
+        if (hasGoogle && !hasPassword) {
+            const btn = el('button', {
+                type:  'button',
+                class: 'dt-auth-link dt-auth-provider-conflict-cta',
+                on:    { click: () => {
+                    clearError();
+                    setMode('chooser');
+                    // Defer to the next tick so the chooser view is in the
+                    // DOM before we trigger the Google popup.
+                    setTimeout(() => { handleGoogleSignIn(); }, 0);
+                } }
+            }, ['Mit Google anmelden']);
+            wrap.appendChild(btn);
+        } else if (hasEmailLink && !hasPassword && !hasGoogle) {
+            const btn = el('button', {
+                type:  'button',
+                class: 'dt-auth-link dt-auth-provider-conflict-cta',
+                on:    { click: () => {
+                    clearError();
+                    setMode('email-link');
+                    // Pre-fill the email-link field with whatever the user
+                    // already typed in the password form.
+                    const src = state.modalEl.querySelector('#dt-auth-email');
+                    const dst = state.modalEl.querySelector('#dt-auth-emaillink-email');
+                    if (src && dst && src.value) dst.value = src.value;
+                } }
+            }, ['Zum E-Mail-Link wechseln']);
+            wrap.appendChild(btn);
+        }
+
+        return wrap;
+    }
+
+    /**
+     * Tries to detect cross-provider conflicts after a password-form error
+     * and surfaces a friendlier message when applicable. Returns true when
+     * a tailored message was shown; the caller should then NOT show the
+     * generic fallback.
+     */
+    async function maybeShowProviderConflict(email, mode) {
+        const Auth = window.DreamTeamAuth;
+        if (!Auth || typeof Auth.fetchSignInMethodsForEmail !== 'function') return false;
+        if (!email) return false;
+
+        let methods = [];
+        try {
+            methods = await Auth.fetchSignInMethodsForEmail(email);
+        } catch (e) {
+            return false;
+        }
+        if (!methods || methods.length === 0) return false;
+
+        const hasPassword  = methods.indexOf('password')  !== -1;
+        const hasGoogle    = methods.indexOf('google.com') !== -1;
+        const hasEmailLink = methods.indexOf('emailLink')  !== -1;
+
+        // Only intervene when the account exists with a non-password method
+        // and (for login attempts) the user has not also linked a password
+        // credential – otherwise the "wrong password" hint is correct.
+        const conflict =
+            (mode === 'register' && (hasGoogle || hasEmailLink) && !hasPassword) ||
+            (mode === 'login'    && (hasGoogle || hasEmailLink) && !hasPassword);
+        if (!conflict) return false;
+
+        showErrorNode(buildProviderConflictNode(methods, mode));
+        return true;
     }
 
     function showEmailLinkError(message) {
         const box = state.modalEl.querySelector('#dt-auth-emaillink-error');
         if (!box) return;
+        box.innerHTML  = '';
         box.textContent = message;
         box.hidden      = false;
+        box.style.background = '';
+        box.style.borderColor = '';
+        box.style.color = '';
+    }
+    function showEmailLinkErrorNode(node) {
+        const box = state.modalEl.querySelector('#dt-auth-emaillink-error');
+        if (!box) return;
+        box.innerHTML = '';
+        box.appendChild(node);
+        box.hidden    = false;
         box.style.background = '';
         box.style.borderColor = '';
         box.style.color = '';
@@ -898,7 +1032,7 @@
     function clearEmailLinkError() {
         if (!state.modalEl) return;
         const box = state.modalEl.querySelector('#dt-auth-emaillink-error');
-        if (box) { box.textContent = ''; box.hidden = true; }
+        if (box) { box.innerHTML = ''; box.textContent = ''; box.hidden = true; }
     }
 
     function setSubmitting(isSubmitting, fallbackLabel) {
@@ -1060,7 +1194,31 @@
             }
         } catch (err) {
             console.error('[DreamTeamAuthModal] auth failed:', err);
-            showError(friendlyAuthError(err));
+
+            // For the most common "wrong button" scenarios – e.g. the user
+            // originally signed up via Google and now hits the email/password
+            // form – check which sign-in methods are actually linked to the
+            // address and surface a tailored hint instead of the generic
+            // "E-Mail oder Passwort stimmt nicht." message.
+            const code = err && err.code ? err.code : '';
+            const conflictCodes = [
+                'auth/email-already-in-use',     // register: address exists with some provider
+                'auth/invalid-credential',       // login (modern SDK): wrong creds OR no password set
+                'auth/wrong-password',           // login: password incorrect
+                'auth/user-not-found',           // login: no account – may still exist via Google
+                'auth/account-exists-with-different-credential'
+            ];
+            let handled = false;
+            if (conflictCodes.indexOf(code) !== -1) {
+                try {
+                    handled = await maybeShowProviderConflict(email, state.currentMode);
+                } catch (e) {
+                    handled = false;
+                }
+            }
+            if (!handled) {
+                showError(friendlyAuthError(err));
+            }
             setSubmitting(false);
         }
     }
