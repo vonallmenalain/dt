@@ -374,6 +374,32 @@
 }
 .dt-auth-error[hidden] { display: none; }
 
+/* Cross-provider conflict hint inside .dt-auth-error.
+   E.g. "you originally signed in with Google" with a one-click CTA back to
+   the right sign-in flow. */
+.dt-auth-provider-conflict {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.dt-auth-provider-conflict-text {
+    margin: 0;
+    line-height: 1.45;
+}
+.dt-auth-provider-conflict-cta {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    color: var(--dt-auth-primary);
+    text-decoration: underline;
+}
+.dt-auth-provider-conflict-cta:hover {
+    text-decoration: none;
+}
+
 .dt-auth-info {
     margin: 0 0 14px;
     padding: 12px 14px;

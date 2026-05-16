@@ -57,6 +57,11 @@
  *    reloadUser()                         → Promise<firebase.User|null>  Forces emailVerified refresh
  *    logout()                             → Promise<void>
  *    sendPasswordReset(email)             → Promise<void>
+ *    fetchSignInMethodsForEmail(email)    → Promise<string[]>            Provider IDs already linked to email
+ *                                                                       (e.g. ['google.com'], ['password'],
+ *                                                                       ['emailLink']). Empty array when the
+ *                                                                       address is unknown OR when "email
+ *                                                                       enumeration protection" is enabled.
  *
  *    setPendingTeam(payload)              Stores team JSON in localStorage
  *    getPendingTeam()                     → payload | null
@@ -324,6 +329,35 @@
     async function sendPasswordReset(email) {
         requireInit();
         await firebase.auth().sendPasswordResetEmail(email);
+    }
+
+    /* ---------------------------------------------------------------------------
+     *  Sign-in method discovery
+     *
+     *  Returns the list of provider IDs already linked to the given e-mail
+     *  address (e.g. ['google.com'], ['password'], ['emailLink'], or any
+     *  combination). Useful to give a precise hint when a user tries to
+     *  sign in with the "wrong" method – e.g. they originally created the
+     *  account via Google and now try the classic password form.
+     *
+     *  Notes:
+     *    - With Firebase's "Email enumeration protection" enabled this
+     *      endpoint always returns an empty array, so callers must treat
+     *      an empty result as "unknown" rather than "no account".
+     *    - Network/permission errors are caught and yield [] as well so
+     *      that callers can fall back to the generic error message.
+     * ------------------------------------------------------------------------- */
+    async function fetchSignInMethodsForEmail(email) {
+        requireInit();
+        const trimmed = (email || '').trim();
+        if (!trimmed) return [];
+        try {
+            const methods = await firebase.auth().fetchSignInMethodsForEmail(trimmed);
+            return Array.isArray(methods) ? methods : [];
+        } catch (err) {
+            console.warn('[DreamTeamAuth] fetchSignInMethodsForEmail failed:', err);
+            return [];
+        }
     }
 
     /* ---------------------------------------------------------------------------
@@ -777,6 +811,7 @@
         reloadUser,
         logout,
         sendPasswordReset,
+        fetchSignInMethodsForEmail,
 
         setPendingTeam,
         getPendingTeam,
