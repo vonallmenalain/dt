@@ -602,14 +602,21 @@
      * the dev toggle on index.html (localStorage key `dreamteamIndexViewMode`
      * with values "auto" | "pre" | "post"), so an admin override on the
      * dashboard transparently steers the "Mein Team" shortcut as well.
+     *
+     * SECURITY: The dev override is honoured ONLY for the admin account
+     * (see admin.js / DreamTeamAdmin.getDevViewOverride). For everyone
+     * else – including someone who manually toggled the localStorage key
+     * via DevTools – the function falls back to the real DREAMTEAM_START
+     * timestamp. The actual write-protection still has to live in the
+     * Firestore rules / backend; this is just the UI layer.
      */
     function isPostStartMode() {
-        try {
-            const override = window.localStorage
-                && window.localStorage.getItem('dreamteamIndexViewMode');
-            if (override === 'pre') return false;
-            if (override === 'post') return true;
-        } catch (_) { /* localStorage may be blocked */ }
+        const Admin = window.DreamTeamAdmin;
+        const override = (Admin && typeof Admin.getDevViewOverride === 'function')
+            ? Admin.getDevViewOverride()
+            : null;
+        if (override === 'pre') return false;
+        if (override === 'post') return true;
 
         try {
             const APP = window.APP_CONFIG;
