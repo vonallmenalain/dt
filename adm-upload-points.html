@@ -382,10 +382,10 @@
     const pointsCollectionEl = document.getElementById('points-collection');
     const metaDocumentEl = document.getElementById('meta-document');
 
-    // Dateiname des aktiven Kaders (z. B. "data-wm2026.js" für WM 2026,
-    // "data-em2024.js" für EM 2024). Fallback auf "data.js" falls die
-    // tournament-config.js diesen Eintrag (noch) nicht liefert. Der
-    // Shim data.js lädt zur Laufzeit ohnehin genau diese Datei – wir
+    // Dateiname des aktiven Kaders (aktuell "data-wm2026.js"; bei späteren
+    // Turnieren die entsprechende data-<key>.js). Fallback auf "data.js"
+    // falls die tournament-config.js diesen Eintrag (noch) nicht liefert.
+    // Der Shim data.js lädt zur Laufzeit ohnehin genau diese Datei – wir
     // zeigen sie hier nur transparent in der UI an.
     const ACTIVE_DATA_FILE = (APP.data && typeof APP.data.fileName === "function" && APP.data.fileName())
         || TOURNAMENT.dataFile

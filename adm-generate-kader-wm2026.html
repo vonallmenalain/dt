@@ -350,13 +350,13 @@
     <h1 id="page-title">🌍 WM 2026 Kader-Generator</h1>
     <p id="page-intro" class="page-intro">
         Erstellt eine <strong>provisorische Kaderliste der FIFA WM 2026</strong>
-        und schreibt das Ergebnis exakt im Format der EM-2024-Daten direkt in
-        <strong>data-wm2026.js</strong>.
+        und schreibt das Ergebnis im etablierten <code>playersData</code>-Format
+        direkt in <strong>data-wm2026.js</strong>.
     </p>
 
     <div class="lock-banner">
         🔒 Diese Seite ist fest auf <strong>WM 2026</strong> gelockt – es können
-        keine Daten von EM 2024 oder anderen Turnieren überschrieben werden.
+        keine Daten anderer Turniere überschrieben werden.
     </div>
 
     <div class="info-box">
@@ -434,7 +434,7 @@
 
         <div class="storage-note">
             Es wird derselbe Session-API-Key verwendet wie in
-            <strong>adm-upload-points.html</strong> und <strong>adm-generate-kader.html</strong>.
+            <strong>adm-upload-points.html</strong>.
         </div>
     </div>
 
@@ -482,7 +482,7 @@
      * Diese Seite ist BEWUSST fest auf das Turnier "wm2026" gelockt.
      * Sie nutzt die API-Konfiguration aus tournament-config.js[wm2026]
      * direkt – unabhängig vom aktuell aktiven Dev-Turnier. So kann das Ergebnis
-     * niemals versehentlich data-em2024.js (oder ein anderes Turnier) treffen.
+     * niemals versehentlich eine andere Turnier-Daten-Datei treffen.
      * =======================================================================*/
 
     const APP = window.APP_CONFIG;
@@ -1191,7 +1191,7 @@
                 "log-success"
             );
 
-            /* ----- Sortierung wie data-em2024.js ----- */
+            /* ----- Sortierung (Nationalteam-Name, dann Spielername) ----- */
             finalData.sort((a, b) => {
                 const nationCompare = String(a["Nationalteam.name"] || "").localeCompare(
                     String(b["Nationalteam.name"] || ""), 'de'
@@ -1202,7 +1202,7 @@
 
             log(`\n✅ Provisorischer WM-2026-Kader fertig: ${finalData.length} Spieler aus ${squadsLoaded} Teams.`, "log-success");
 
-            /* ----- Datei-Inhalt im exakten data-em2024.js-Format bauen ----- */
+            /* ----- Datei-Inhalt im etablierten playersData-Format bauen ----- */
             const jsonStr = JSON.stringify(finalData, null, 4);
             const generatedAt = new Date().toLocaleString();
             const overlayHeader =

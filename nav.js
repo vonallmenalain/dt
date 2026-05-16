@@ -64,13 +64,18 @@ function registerServiceWorker() {
  *  Sehr unauffälliger Dev-Knopf oben links (neben dem ggf. vorhandenen
  *  "DEV: Auto/Vor Start/Nach Start"-Toggle in index.html). Beschriftet nur
  *  mit "Dev". Erst beim Klick öffnet sich ein kleines Popover, in dem
- *  zwischen den in tournament-config.js definierten Turnieren
- *  (EM 2024 / WM 2026) gewechselt werden kann.
+ *  zwischen den aktuell verfügbaren Turnieren aus tournament-config.js
+ *  gewechselt werden kann.
+ *
+ *  Aktuell ist nur `wm2026` produktiv verfügbar. Solange nur ein einziges
+ *  Turnier verfügbar ist, wird der Switcher gar nicht erst gerendert – es
+ *  gibt schlicht nichts auszuwählen. Sobald weitere Turniere in
+ *  tournament-config.js aktiviert werden (`available: true && dataReady: true`),
+ *  erscheint der Switcher automatisch wieder.
  *
  *  Wichtig:
  *  - Der eigentliche Standard kommt aus dem Domain-Mapping in
- *    tournament-config.js (em24dt.alae.app → EM 2024,
- *    dt.alae.app → WM 2026).
+ *    tournament-config.js (dt.alae.app → WM 2026).
  *  - Der Dev-Knopf dient nur noch als TEST-OVERRIDE und schreibt
  *    seine Auswahl host-spezifisch in localStorage
  *    (`dreamteam_dev_override_${hostname}`).
@@ -98,9 +103,24 @@ function buildDevTournamentSwitcher(APP) {
 
     if (document.getElementById('dev-tournament-switcher')) return;
 
-    const allowedTournamentKeys = ['em2024', 'wm2026'];
-    const tournamentKeys = allowedTournamentKeys.filter((key) => APP.tournaments[key]);
-    if (!tournamentKeys.length) return;
+    // Nur Turniere zeigen, die aktuell wirklich verfügbar sind
+    // (siehe APP_CONFIG.getAvailableTournamentKeys – `available !== false`
+    // und `dataReady === true`). Deaktivierte Templates für künftige
+    // Turniere bleiben unsichtbar.
+    let tournamentKeys = [];
+    if (Array.isArray(APP.availableTournamentKeys)) {
+        tournamentKeys = APP.availableTournamentKeys.slice();
+    } else if (typeof APP.getAvailableTournamentKeys === 'function') {
+        tournamentKeys = APP.getAvailableTournamentKeys();
+    } else {
+        // Sehr alter Fallback (sollte mit aktueller tournament-config.js
+        // nicht mehr greifen) – wenigstens nicht crashen.
+        tournamentKeys = Object.keys(APP.tournaments || {});
+    }
+
+    // Solange nur ein einziges Turnier verfügbar ist, gibt es nichts
+    // zu wechseln → Switcher gar nicht erst anzeigen.
+    if (tournamentKeys.length < 2) return;
 
     const overrideActive = typeof APP.isDevOverrideActive === 'function'
         ? APP.isDevOverrideActive()

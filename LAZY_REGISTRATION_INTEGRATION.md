@@ -269,8 +269,7 @@ In the [Firebase console](https://console.firebase.google.com/project/dreamteam-
    - Dort die Adresse `https://dt.alae.app/auth-action.html` eintragen
      (eine zentrale Domain reicht — `auth-action.html` liest den
      `continueUrl`-Parameter und schickt die Nutzer:innen anschließend
-     zurück auf die Ursprungs-Domain, auch wenn das z. B. die
-     `em24dt.alae.app` war).
+     zurück auf die Ursprungs-Domain).
    - Die Adresse `https://dt.alae.app/auth-action.html` muss zudem
      unter **Authentication → Settings → Authorized domains** stehen
      (`dt.alae.app` reicht; die Datei liegt dort ausgeliefert vor).
@@ -293,7 +292,7 @@ In the [Firebase console](https://console.firebase.google.com/project/dreamteam-
    weiterhin als `continueUrl` mitgegeben und bestimmt, wohin
    `auth-action.html` nach erfolgreicher Bestätigung springt.
 3. **Authentication → Settings → Authorized domains** — add
-   `dt.alae.app`, `em24dt.alae.app`, and any Netlify preview domains.
+   `dt.alae.app` and any Netlify preview domains.
 4. **Firestore → Rules** — die Regeln werden direkt in der Firebase
    Console gepflegt (Copy & Paste). Der aktuelle, deploy-fertige Inhalt
    ist im PR „firestore.rules entfernen + Cache-Version bumpen"

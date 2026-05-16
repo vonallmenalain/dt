@@ -1,6 +1,6 @@
 name: Auto Punkte-Upload
 
-# Vollautomatisches Punkte-Update für das aktive Turnier.
+# Vollautomatisches Punkte-Update für die WM 2026.
 #
 # Läuft alle 5 Minuten als GitHub-Cron-Job (zusätzlich manuell auslösbar
 # via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check, der
@@ -15,7 +15,11 @@ name: Auto Punkte-Upload
 #
 # Optionale Repo-Variables (Settings → Secrets and variables → Actions
 # → Variables-Tab) zur Feinjustierung ohne Code-Edit:
-#   AUTO_UPLOAD_TOURNAMENT_KEY   z.B. "wm2026" oder "em2024" (Default: wm2026)
+#   AUTO_UPLOAD_TOURNAMENT_KEY   Default "wm2026". Aktuell ist nur "wm2026"
+#                                produktiv konfiguriert; andere Keys lassen
+#                                das Skript mit einer klaren Fehlermeldung
+#                                abbrechen, damit Fehlkonfigurationen sofort
+#                                auffallen.
 #   AUTO_UPLOAD_WINDOW_START_MIN Default 100 – untere Grenze des Trigger-Fensters
 #                                in Minuten nach Anstoss (≈ Spielende regulär).
 #   AUTO_UPLOAD_WINDOW_END_MIN   Default 260 – obere Grenze (deckt n.V./Elfm.
@@ -29,7 +33,7 @@ on:
   workflow_dispatch:
     inputs:
       tournament_key:
-        description: "Turnier-Key (z.B. wm2026, em2024). Leer = Default aus Variables/wm2026."
+        description: "Turnier-Key. Aktuell unterstützt: wm2026. Leer = Default aus Variables/wm2026."
         required: false
         type: string
         default: ""

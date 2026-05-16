@@ -1,15 +1,12 @@
 // Positions-Overrides für DreamTeam
 // Generiert am: 14.5.2026, 05:31:59
 // Aktives Turnier: WM 2026 (wm2026)
+//
+// Aktuell wird nur der `wm2026`-Block ausgespielt. Künftige Turniere können
+// einfach als weitere Top-Level-Keys ergänzt werden – `data.js` wählt anhand
+// von `APP_CONFIG.activeTournamentKey` automatisch den richtigen Block.
 
 window.POSITION_OVERRIDES = {
-    wm2022: {},
-
-    em2024: {
-        "1422": "ATTACKER", // Jeremy Doku
-        "502": "MIDFIELDER" // Joshua Kimmich
-    },
-
     wm2026: {
         "181421": "ATTACKER", // Abdessamad Ezzalzouli
         "329163": "ATTACKER", // Adil Boulbina
@@ -144,9 +141,5 @@ window.POSITION_OVERRIDES = {
         "184226": "ATTACKER", // Yeremy Pino
         "199143": "ATTACKER", // Yuito Suzuki
         "16871": "ATTACKER" // Zizo
-    },
-
-    em2028: {},
-
-    wm2030: {}
+    }
 };

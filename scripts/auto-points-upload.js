@@ -31,8 +31,11 @@
  *  Env-Variablen (alle aus GitHub Actions Secrets):
  *    RAPIDAPI_KEY                 RapidAPI / API-Football Key (zwingend)
  *    FIREBASE_SERVICE_ACCOUNT     Service-Account-JSON als String (zwingend)
- *    TOURNAMENT_KEY               Optional, Default `wm2026`. Beliebige Keys
- *                                 aus tournament-config.js (z.B. `em2024`).
+ *    TOURNAMENT_KEY               Optional, Default `wm2026`. Aktuell ist nur
+ *                                 `wm2026` produktiv konfiguriert; andere
+ *                                 Keys führen zu einem expliziten Abbruch,
+ *                                 damit falsche GitHub-Action-Konfigurationen
+ *                                 sofort auffallen.
  *    WINDOW_START_MIN             Optional, Default 100. Untere Grenze des
  *                                 Trigger-Fensters in Minuten nach Anpfiff.
  *    WINDOW_END_MIN               Optional, Default 260. Obere Grenze.
@@ -79,39 +82,16 @@ if (!fetchFn) {
  *
  *  Bewusst eine kompakte Kopie statt das Browser-Modul zu eval'en: das
  *  Browser-Modul referenziert `window.location` und `window.firebase`, was
- *  in Node nicht trivial ist. Diese Werte ändern sich selten und werden
- *  per Test (siehe `verifyTournamentConfigAlignment`) gegen die Browser-
- *  Datei abgeglichen, sobald jemand sie ändert.
+ *  in Node nicht trivial ist. Diese Werte ändern sich selten – wenn ein
+ *  neues Turnier produktiv geht, muss diese Tabelle parallel zu
+ *  tournament-config.js nachgezogen werden.
+ *
+ *  Aktuell ist nur `wm2026` aktiv konfiguriert. Falls jemand z.B. via
+ *  GitHub-Action-Variable einen alten Key wie `em2024` setzt, bricht das
+ *  Script unten in `main()` mit einer klaren Fehlermeldung ab, statt
+ *  stillschweigend auf einen anderen Default zu wechseln.
  * ───────────────────────────────────────────────────────────────────────────── */
 const TOURNAMENTS = {
-  wm2022: {
-    key: 'wm2022',
-    shortLabel: 'WM 2022',
-    type: 'WM',
-    year: '2022',
-    dataFile: 'data-wm2022.js',
-    api: { competitionParam: 'league', competitionId: 1, season: '2022' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_wm2022',
-      pointsCollection: 'Punkte Spieler WM 2022',
-      fixturesCollection: 'Spiele WM 2022'
-    }
-  },
-  em2024: {
-    key: 'em2024',
-    shortLabel: 'EM 2024',
-    type: 'EM',
-    year: '2024',
-    dataFile: 'data-em2024.js',
-    api: { competitionParam: 'league', competitionId: 4, season: '2024' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_em2024',
-      pointsCollection: 'Punkte Spieler EM 2024',
-      fixturesCollection: 'Spiele EM 2024'
-    }
-  },
   wm2026: {
     key: 'wm2026',
     shortLabel: 'WM 2026',
@@ -124,34 +104,6 @@ const TOURNAMENTS = {
       metaDocId: 'turnier_wm2026',
       pointsCollection: 'Punkte Spieler WM 2026',
       fixturesCollection: 'Spiele WM 2026'
-    }
-  },
-  em2028: {
-    key: 'em2028',
-    shortLabel: 'EM 2028',
-    type: 'EM',
-    year: '2028',
-    dataFile: 'data-em2028.js',
-    api: { competitionParam: 'league', competitionId: 4, season: '2028' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_em2028',
-      pointsCollection: 'Punkte Spieler EM 2028',
-      fixturesCollection: 'Spiele EM 2028'
-    }
-  },
-  wm2030: {
-    key: 'wm2030',
-    shortLabel: 'WM 2030',
-    type: 'WM',
-    year: '2030',
-    dataFile: 'data-wm2030.js',
-    api: { competitionParam: 'league', competitionId: 1, season: '2030' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_wm2030',
-      pointsCollection: 'Punkte Spieler WM 2030',
-      fixturesCollection: 'Spiele WM 2030'
     }
   }
 };
@@ -736,7 +688,12 @@ async function main() {
   const tournamentKey = (process.env.TOURNAMENT_KEY || 'wm2026').trim().toLowerCase();
   const tournament = TOURNAMENTS[tournamentKey];
   if (!tournament) {
-    logError(`Unbekannter TOURNAMENT_KEY="${tournamentKey}". Bekannt: ${Object.keys(TOURNAMENTS).join(', ')}`);
+    logError(
+      `Ungültiger TOURNAMENT_KEY="${tournamentKey}". ` +
+      `Aktuell unterstützt: ${Object.keys(TOURNAMENTS).join(', ')}. ` +
+      `Bitte GitHub-Action-Variable AUTO_UPLOAD_TOURNAMENT_KEY entsprechend setzen ` +
+      `oder leer lassen, dann gilt der Default "wm2026".`
+    );
     process.exit(1);
   }
   if (!tournament.api.competitionId) {

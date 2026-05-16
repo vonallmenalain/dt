@@ -93,10 +93,11 @@
 
             // 3) Hartkodierte Domain → Tournament-Start-Map (Spiegel aus
             //    tournament-config.js). Bewusst doppelt gepflegt, weil
-            //    APP_CONFIG hier noch nicht geladen ist.
+            //    APP_CONFIG hier noch nicht geladen ist. Aktuell ist nur
+            //    `dt.alae.app → wm2026` produktiv aktiv – der globale
+            //    Fallback zeigt deshalb ebenfalls auf den WM-2026-Anpfiff.
             var DOMAIN_START = {
-                'em24dt.alae.app': '2024-06-14T21:00:00+02:00',
-                'dt.alae.app':     '2026-06-11T21:00:00+02:00'
+                'dt.alae.app': '2026-06-11T21:00:00+02:00'
             };
             var FALLBACK_START = '2026-06-11T21:00:00+02:00'; // = wm2026
 

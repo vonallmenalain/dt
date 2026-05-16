@@ -78,13 +78,16 @@ ohne dass jemand einen Browser-Tab geöffnet haben muss.
 
 | Name                            | Default | Bedeutung                                                                                       |
 | ------------------------------- | ------- | ----------------------------------------------------------------------------------------------- |
-| `AUTO_UPLOAD_TOURNAMENT_KEY`    | `wm2026`| Welcher Turnier-Key aus `tournament-config.js` automatisiert werden soll.                       |
+| `AUTO_UPLOAD_TOURNAMENT_KEY`    | `wm2026`| Aktuell ist nur `wm2026` produktiv konfiguriert. Andere Keys lassen das Skript mit einer klaren Fehlermeldung abbrechen, damit Fehlkonfigurationen sofort auffallen. |
 | `AUTO_UPLOAD_WINDOW_START_MIN`  | `100`   | Frühestens X Minuten nach Anstoss als "fertig" einplanen (≈ Ende regulärer Spielzeit).          |
 | `AUTO_UPLOAD_WINDOW_END_MIN`    | `260`   | Spätester Trigger nach Anstoss (deckt Verlängerung/Elfmeterschiessen + mehrere Polls ab).      |
 
-Für die WM 2026 sind die Defaults sinnvoll. Wenn du z.B. EM 2024
-nachträglich noch automatisieren wolltest, einfach
-`AUTO_UPLOAD_TOURNAMENT_KEY=em2024` setzen.
+Für die WM 2026 sind die Defaults sinnvoll. Sobald ein neues Turnier
+ergänzt werden soll, muss es zuerst in `tournament-config.js` als
+`available: true && dataReady: true` aktiviert und in beiden
+Cron-Scripts (`auto-points-upload.js`, `sync-fixtures.js`) in der
+internen `TOURNAMENTS`-Map ergänzt werden – erst dann darf
+`AUTO_UPLOAD_TOURNAMENT_KEY` auf den neuen Key zeigen.
 
 ## Manuelles Auslösen
 
@@ -167,7 +170,7 @@ verwendet – einmal anlegen reicht für beide Workflows:
 
 | Name                           | Default  | Bedeutung                                                            |
 | ------------------------------ | -------- | -------------------------------------------------------------------- |
-| `FIXTURES_SYNC_TOURNAMENT_KEY` | `wm2026` | Welcher Turnier-Key aus `tournament-config.js` synchronisiert wird.  |
+| `FIXTURES_SYNC_TOURNAMENT_KEY` | `wm2026` | Aktuell ist nur `wm2026` produktiv konfiguriert. Andere Keys lassen das Skript mit einer klaren Fehlermeldung abbrechen. |
 
 ### Manuelles Auslösen
 

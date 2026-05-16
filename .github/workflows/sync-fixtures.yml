@@ -1,6 +1,6 @@
 name: Auto Spielplan-Sync
 
-# Vollautomatischer Spielplan-Sync für das aktive Turnier.
+# Vollautomatischer Spielplan-Sync für die WM 2026.
 #
 # Lädt einmal pro Tag (Cron) alle Fixtures + Stadiondaten von der
 # API und schreibt sie nach Firestore. Sobald die Paarungen der
@@ -17,8 +17,10 @@ name: Auto Spielplan-Sync
 #
 # Optionale Repo-Variables (Settings → Secrets and variables → Actions
 # → Variables-Tab) zur Feinjustierung ohne Code-Edit:
-#   FIXTURES_SYNC_TOURNAMENT_KEY   z.B. "wm2026" oder "em2024".
-#                                  Default: wm2026.
+#   FIXTURES_SYNC_TOURNAMENT_KEY   Default: wm2026. Aktuell ist nur
+#                                  "wm2026" produktiv konfiguriert;
+#                                  andere Keys lassen das Skript mit
+#                                  einer klaren Fehlermeldung abbrechen.
 #   FIXTURES_SYNC_CRON             Override für die Cron-Expression
 #                                  (UTC). Default: "0 4 * * *" – d.h.
 #                                  jeden Tag um 04:00 UTC ≈ 06:00 CH.
@@ -32,7 +34,7 @@ on:
   workflow_dispatch:
     inputs:
       tournament_key:
-        description: "Turnier-Key (z.B. wm2026, em2024). Leer = Default aus Variables/wm2026."
+        description: "Turnier-Key. Aktuell unterstützt: wm2026. Leer = Default aus Variables/wm2026."
         required: false
         type: string
         default: ""
