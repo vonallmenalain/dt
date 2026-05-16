@@ -2737,11 +2737,16 @@
     const META_COLLECTION      = APP.firestore.metaCollection || 'app_meta';
     const META_DOC_ID          = APP.firestore.metaDocId();
     const BUILDER_CACHE_KEY    = APP.storage.builderCacheKey();
-    const LEGACY_BUILDER_KEY   = 'dreamCache' + String(TOURNAMENT_YEAR).substring(2);
     const SESSION_DATA_KEY     = APP.storage.key('data_cache');
-    const LEGACY_SESSION_KEY   = 'dreamteam_data_cache_' + TOURNAMENT_YEAR;
     const CARD_BASE_TRANSFORM  = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     const PICKER_BATCH_SIZE    = 20;
+
+    // Einmal-Migration historischer Keys auf das aktuelle
+    // turnier-namespacete Naming. Danach werden weder
+    // `dreamCache<YY>` noch `dreamteam_data_cache_<YYYY>` jemals
+    // wieder gelesen oder geschrieben.
+    APP.storage.migrate('builder_cache', 'dreamCache' + String(TOURNAMENT_YEAR).substring(2));
+    APP.storage.migrate('data_cache', 'dreamteam_data_cache_' + TOURNAMENT_YEAR, { storage: 'session' });
 
     const db = APP.getDb();
     document.title = `${PAGE_TITLE_PREFIX} - Builder`;
@@ -4050,7 +4055,11 @@
     }
 
     function getSavedBuilderStateRaw() {
-        return localStorage.getItem(BUILDER_CACHE_KEY) || localStorage.getItem(LEGACY_BUILDER_KEY);
+        try {
+            return localStorage.getItem(BUILDER_CACHE_KEY);
+        } catch (err) {
+            return null;
+        }
     }
 
     function sanitizeLoadedTeamState(rawTeam) {
@@ -4486,14 +4495,12 @@
 
         /* Clear local builder caches. */
         localStorage.removeItem(BUILDER_CACHE_KEY);
-        localStorage.removeItem(LEGACY_BUILDER_KEY);
         try {
             if (window.DreamTeamCache && typeof DreamTeamCache.clearCache === 'function') {
                 DreamTeamCache.clearCache({ db, year: TOURNAMENT_YEAR });
             }
         } catch (err) { /* ignore */ }
         sessionStorage.removeItem(SESSION_DATA_KEY);
-        sessionStorage.removeItem(LEGACY_SESSION_KEY);
 
         if (!silent) {
             showToast(result.mode === 'update' ? '✅ Team aktualisiert!' : '🎉 Team erfolgreich gespeichert!');
