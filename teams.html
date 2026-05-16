@@ -1797,7 +1797,10 @@
     const PAGE_TITLE_PREFIX = APP.pageTitlePrefix;
     const CARD_BASE_TRANSFORM = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     const MANAGER_STORAGE_KEY = APP.storage.key("lastViewedManager");
-    const LEGACY_MANAGER_STORAGE_KEY = "lastViewedManager";
+    // Einmal-Migration des historischen, un­gepräfixten Keys auf den
+    // turnier-namespaceten Key. Danach wird der Legacy-Key nie wieder
+    // geschrieben und ist endgültig aus dem LocalStorage entfernt.
+    APP.storage.migrate("lastViewedManager", "lastViewedManager");
 
     const db = APP.getDb();
 
@@ -1828,13 +1831,20 @@
        STORAGE HELPERS
        ===================================================== */
     function getStoredManagerName() {
-        return localStorage.getItem(MANAGER_STORAGE_KEY) || localStorage.getItem(LEGACY_MANAGER_STORAGE_KEY);
+        try {
+            return localStorage.getItem(MANAGER_STORAGE_KEY);
+        } catch (err) {
+            return null;
+        }
     }
 
     function setStoredManagerName(managerName) {
         if (!managerName) return;
-        localStorage.setItem(MANAGER_STORAGE_KEY, managerName);
-        localStorage.setItem(LEGACY_MANAGER_STORAGE_KEY, managerName);
+        try {
+            localStorage.setItem(MANAGER_STORAGE_KEY, managerName);
+        } catch (err) {
+            // Storage kann in Privacy-Modi blockiert sein – kein Hard-Fail.
+        }
     }
 
     /* =====================================================

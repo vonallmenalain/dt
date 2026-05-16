@@ -1795,11 +1795,16 @@
     const CHART_MODE_KEY = APP.storage.key("rangliste_history_chart_mode");
     const ROUND_FILTER_KEY = APP.storage.key("rangliste_round_filter");
 
-    const LEGACY_VIEW_STATE_KEY = "rangliste_view_state";
-    const LEGACY_HISTORY_MAIN_KEY = "rangliste_history_main";
-    const LEGACY_HISTORY_COMPARE_KEY = "rangliste_history_compare";
-    const LEGACY_CHART_MODE_KEY = "rangliste_history_chart_mode";
-    const LEGACY_ROUND_FILTER_KEY = "rangliste_round_filter";
+    // Einmal-Migration der historischen, un­gepräfixten Session-Keys
+    // auf die turnier-namespaceten Keys. Danach werden Legacy-Keys
+    // nicht mehr beachtet oder geschrieben.
+    [
+        "rangliste_view_state",
+        "rangliste_history_main",
+        "rangliste_history_compare",
+        "rangliste_history_chart_mode",
+        "rangliste_round_filter"
+    ].forEach(name => APP.storage.migrate(name, name, { storage: "session" }));
 
     /* =====================================================
        ROUND FILTER – Konfiguration
@@ -1873,7 +1878,7 @@
     let selectedMainManager = null;
     let selectedCompareManagers = [];
     let historyChart = null;
-    let chartMode = getStoredSessionValue(CHART_MODE_KEY, LEGACY_CHART_MODE_KEY) === "points" ? "points" : "rank";
+    let chartMode = getStoredSessionValue(CHART_MODE_KEY) === "points" ? "points" : "rank";
     let currentView = "ranking";
 
     let lastRawData = null;
@@ -1903,18 +1908,25 @@
         "#818cf8"
     ];
 
-    function getStoredSessionValue(primaryKey, legacyKey) {
-        return sessionStorage.getItem(primaryKey) || sessionStorage.getItem(legacyKey);
+    function getStoredSessionValue(primaryKey) {
+        try {
+            return sessionStorage.getItem(primaryKey);
+        } catch (err) {
+            return null;
+        }
     }
 
-    function setStoredSessionValue(primaryKey, legacyKey, value) {
-        sessionStorage.setItem(primaryKey, value);
-        sessionStorage.setItem(legacyKey, value);
+    function setStoredSessionValue(primaryKey, value) {
+        try {
+            sessionStorage.setItem(primaryKey, value);
+        } catch (err) {
+            // Storage kann in Privacy-Modi blockiert sein – kein Hard-Fail.
+        }
     }
 
     function loadSelectedRoundKeys() {
         try {
-            const raw = getStoredSessionValue(ROUND_FILTER_KEY, LEGACY_ROUND_FILTER_KEY);
+            const raw = getStoredSessionValue(ROUND_FILTER_KEY);
             if (!raw) return new Set(ALL_ROUND_KEYS);
             const parsed = JSON.parse(raw);
             if (!Array.isArray(parsed)) return new Set(ALL_ROUND_KEYS);
@@ -1928,7 +1940,6 @@
     function persistSelectedRoundKeys() {
         setStoredSessionValue(
             ROUND_FILTER_KEY,
-            LEGACY_ROUND_FILTER_KEY,
             JSON.stringify([...selectedRoundKeys])
         );
     }
@@ -2473,7 +2484,7 @@
     }
 
     function getPreferredMainManager() {
-        const saved = getStoredSessionValue(HISTORY_MAIN_KEY, LEGACY_HISTORY_MAIN_KEY);
+        const saved = getStoredSessionValue(HISTORY_MAIN_KEY);
         if (saved && teamsByManager.has(saved)) return saved;
         if (rankingTeams.length) return rankingTeams[0].manager;
         return null;
@@ -2481,7 +2492,7 @@
 
     function getSavedCompareManagers() {
         try {
-            const savedRaw = getStoredSessionValue(HISTORY_COMPARE_KEY, LEGACY_HISTORY_COMPARE_KEY) || "[]";
+            const savedRaw = getStoredSessionValue(HISTORY_COMPARE_KEY) || "[]";
             const saved = JSON.parse(savedRaw);
             if (!Array.isArray(saved)) return [];
             return saved.filter(name => teamsByManager.has(name));
@@ -3034,14 +3045,14 @@
             window.history.replaceState(stateObj, "", newUrl);
         }
 
-        setStoredSessionValue(VIEW_STATE_KEY, LEGACY_VIEW_STATE_KEY, currentView);
-        if (selectedMainManager) setStoredSessionValue(HISTORY_MAIN_KEY, LEGACY_HISTORY_MAIN_KEY, selectedMainManager);
-        setStoredSessionValue(HISTORY_COMPARE_KEY, LEGACY_HISTORY_COMPARE_KEY, JSON.stringify(selectedCompareManagers));
-        setStoredSessionValue(CHART_MODE_KEY, LEGACY_CHART_MODE_KEY, chartMode);
+        setStoredSessionValue(VIEW_STATE_KEY, currentView);
+        if (selectedMainManager) setStoredSessionValue(HISTORY_MAIN_KEY, selectedMainManager);
+        setStoredSessionValue(HISTORY_COMPARE_KEY, JSON.stringify(selectedCompareManagers));
+        setStoredSessionValue(CHART_MODE_KEY, chartMode);
     }
 
     function applyStateObject(state, shouldRender = true) {
-        const fallbackView = getStoredSessionValue(VIEW_STATE_KEY, LEGACY_VIEW_STATE_KEY) === "history" ? "history" : "ranking";
+        const fallbackView = getStoredSessionValue(VIEW_STATE_KEY) === "history" ? "history" : "ranking";
         currentView = state && state.view ? state.view : fallbackView;
 
         if (state && state.manager && teamsByManager.has(state.manager)) {
@@ -3055,7 +3066,7 @@
 
         chartMode = state && state.mode === "points"
             ? "points"
-            : (getStoredSessionValue(CHART_MODE_KEY, LEGACY_CHART_MODE_KEY) === "points" ? "points" : "rank");
+            : (getStoredSessionValue(CHART_MODE_KEY) === "points" ? "points" : "rank");
 
         if (shouldRender) {
             renderHistoryView();

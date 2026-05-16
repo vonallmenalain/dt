@@ -151,8 +151,29 @@
         }
     }
 
-    function buildKeys(identifier, prefix) {
-        const base = `${prefix}_${identifier}`;
+    /**
+     * Liefert den gemeinsamen Storage-Basis-Prefix.
+     *
+     * Wenn `APP_CONFIG.storage.appPrefix()` verfügbar ist, wird er
+     * benutzt – damit ist sichergestellt, dass alle Cache-Keys
+     * exakt unter demselben Prefix laufen wie die normalen
+     * `APP.storage.key(...)`-Keys. Sonst fällt der Cache auf seinen
+     * eigenen `prefix`+`tournamentKey`-Aufbau zurück, was die
+     * Stand-alone-Tests / Konsolen-Aufrufe weiterhin lauffähig hält.
+     */
+    function resolveStorageBase(cfg) {
+        const app = window.APP_CONFIG;
+        if (app && app.storage && typeof app.storage.appPrefix === 'function') {
+            try {
+                const appPrefix = app.storage.appPrefix();
+                if (appPrefix) return appPrefix;
+            } catch (err) { /* fall through */ }
+        }
+        return `${cfg.prefix}_${cfg.tournamentKey}`;
+    }
+
+    function buildKeys(cfg) {
+        const base = resolveStorageBase(cfg);
         return {
             teams: `${base}_teams`,
             points: `${base}_points`,
@@ -276,7 +297,7 @@
             || (app && app.firestore && typeof app.firestore.fixturesCollection === 'function' ? app.firestore.fixturesCollection() : null)
             || null;
 
-        cfg.keys = buildKeys(cfg.tournamentKey, cfg.prefix);
+        cfg.keys = buildKeys(cfg);
 
         return cfg;
     }

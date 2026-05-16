@@ -68,10 +68,26 @@
      * localStorage-Key des Pre/Post-Spielstart-Dev-Toggles. Wird sowohl
      * vom Dev-Knopf auf index.html geschrieben, als auch von den
      * View-Mode-Helfern (team-builder.html, auth-modal.js) ausgelesen.
-     * Hier zentral gehalten, damit die Allow-/Block-Logik nur an einer
-     * Stelle gepflegt werden muss.
+     *
+     * Der Key ist bewusst NICHT turnier-namespaced (siehe
+     * APP_CONFIG.storage.globalKeys): das Pre-Flight-Inline-Skript in
+     * index.html liest ihn, BEVOR tournament-config.js fertig geladen
+     * ist, deshalb muss es ein global stabiler String sein. Die
+     * Definition stammt aus APP_CONFIG.storage.globalKeys – diese
+     * Datei fällt nur dann auf das Literal zurück, falls
+     * tournament-config.js (entgegen Erwartung) noch nicht verfügbar
+     * ist.
      */
-    const DEV_VIEW_STORAGE_KEY = 'dreamteamIndexViewMode';
+    const DEV_VIEW_STORAGE_KEY = (function () {
+        try {
+            const fromCfg = window.APP_CONFIG
+                && window.APP_CONFIG.storage
+                && window.APP_CONFIG.storage.globalKeys
+                && window.APP_CONFIG.storage.globalKeys.indexViewMode;
+            if (fromCfg) return fromCfg;
+        } catch (_) { /* fall through */ }
+        return 'dreamteamIndexViewMode';
+    })();
 
     const listeners = new Set();
     let currentUid = null;
