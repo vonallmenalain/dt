@@ -5,7 +5,9 @@ name: WM 2026 Official Kader Check
 # neue data-wm2026.js generiert und als Pull Request vorgeschlagen.
 #
 # Benötigtes Repo-Secret (Settings → Secrets and variables → Actions):
-#   API_FOOTBALL_KEY   API-Football / RapidAPI Key (v3.football.api-sports.io)
+#   RAPIDAPI_KEY   API-Football / RapidAPI Key (v3.football.api-sports.io)
+#                  – wird ausschliesslich im Header `x-rapidapi-key` verwendet,
+#                    nie in URL-Parametern, Logs oder Reports.
 #
 # Manuell starten:
 #   GitHub → Actions → "WM 2026 Official Kader Check" → "Run workflow".
@@ -58,7 +60,7 @@ jobs:
       - name: Run availability check
         id: check
         env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
         run: node scripts/check-wm2026-official-kader.mjs
 
       - name: Show check report in step summary
@@ -90,7 +92,7 @@ jobs:
       - name: Generate data-wm2026.js
         if: steps.decide.outputs.should_generate == 'true'
         env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
         run: node scripts/generate-wm2026-official-kader.mjs ${{ steps.decide.outputs.force_flag }}
 
       - name: Show generation report in step summary

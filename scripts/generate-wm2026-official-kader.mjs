@@ -192,9 +192,11 @@ async function main() {
     return;
   }
 
-  const apiKey = String(process.env.API_FOOTBALL_KEY || "").trim();
+  const apiKey = String(
+    process.env.RAPIDAPI_KEY || process.env.API_FOOTBALL_KEY || "",
+  ).trim();
   if (!apiKey) {
-    log("FEHLER: API_FOOTBALL_KEY ist nicht gesetzt.");
+    log("FEHLER: RAPIDAPI_KEY (bzw. API_FOOTBALL_KEY als Fallback) ist nicht gesetzt.");
     process.exit(1);
   }
   const api = createApiClient({ apiKey, logger: log });

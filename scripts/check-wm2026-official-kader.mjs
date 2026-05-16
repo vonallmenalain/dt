@@ -132,9 +132,11 @@ function buildMarkdown(report) {
 async function main() {
   ensureDir(REPORTS_DIR);
 
-  const apiKey = String(process.env.API_FOOTBALL_KEY || "").trim();
+  const apiKey = String(
+    process.env.RAPIDAPI_KEY || process.env.API_FOOTBALL_KEY || "",
+  ).trim();
   if (!apiKey) {
-    log("FEHLER: API_FOOTBALL_KEY ist nicht gesetzt.");
+    log("FEHLER: RAPIDAPI_KEY (bzw. API_FOOTBALL_KEY als Fallback) ist nicht gesetzt.");
     writeGithubOutput({ ready: "false", teamsFound: "0", incompleteTeams: "0" });
     process.exit(1);
   }

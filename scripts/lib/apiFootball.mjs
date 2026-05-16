@@ -7,7 +7,9 @@
  *
  *  Verwendung:
  *      import { createApiClient } from "./lib/apiFootball.mjs";
- *      const api = createApiClient({ apiKey: process.env.API_FOOTBALL_KEY });
+ *      const api = createApiClient({
+ *        apiKey: process.env.RAPIDAPI_KEY || process.env.API_FOOTBALL_KEY,
+ *      });
  *      const teams = await api.get("/teams", { league: 1, season: 2026 });
  *
  *  Wichtig:
@@ -79,7 +81,7 @@ export function createApiClient(opts = {}) {
   const fetchImpl = typeof opts.fetchImpl === "function" ? opts.fetchImpl : globalThis.fetch;
 
   if (!apiKey) {
-    throw new Error("API_FOOTBALL_KEY fehlt.");
+    throw new Error("RAPIDAPI_KEY (bzw. API_FOOTBALL_KEY) fehlt.");
   }
   if (typeof fetchImpl !== "function") {
     throw new Error("Global `fetch` ist nicht verfügbar. Node 18+ wird benötigt.");
