@@ -1,38 +1,16 @@
 // WM 2026 Kader (PROVISORISCH)
 // Turnier: Weltmeisterschaft 2026
 // Quelle: API-Football /players/squads pro qualifiziertem Team
-// Generiert am: 7.5.2026, 18:40:51
+// Generiert am: 16.5.2026, 11:01:15
 //
-// Manuell ergänzt am 7.5.2026:
-//   - Martin Ødegaard (Norwegen, Arsenal) — Kapitän, häufig wegen Verletzung
-//     nicht im aktuellen API-Squad
-//   - Jamal Musiala (Deutschland, Bayern München) — nach Langzeitverletzung
-//   - Niclas Füllkrug (Deutschland, West Ham)
-//   - Trent Alexander-Arnold (England, Real Madrid)
-//   - Romelu Lukaku (Belgien, Napoli) — Belgiens Rekordtorschütze
-//   - Dani Carvajal (Spanien, Real Madrid)
-//   - Nico Williams (Spanien, Athletic Club)
-//   - Gavi (Spanien, Barcelona) — Comeback nach Kreuzbandriss
-//   - Alisson Becker (Brasilien, Liverpool)
-//   - Alejandro Garnacho (Argentinien, Chelsea)
-//   - Tyler Adams (USA, Bournemouth) — USMNT-Kapitän
-//   - Tippfehler "Christian Pulišić" korrigiert zu "Christian Pulisic"
+// Manuelle Overlays (aus manual-kader-wm2026.js) automatisch angewendet:
+//   - Manuell ergänzte Spieler:   10
+//   - Manuell überschriebene IDs: 1
+//   - Manuell entfernte IDs:      0
+//   - Namens-Overrides definiert: 1
 //
-// Fix vom 7.5.2026 (Folge-Commit):
-//   - Marcos Llorente (Spanien, Atlético Madrid) entfernt.
-//     Grund: Sein Eintrag trug die falsche `player.id` 753 (das ist die
-//     API-Sports-ID von Martin Ødegaard). Solange Ødegaard nicht im Datensatz
-//     war, fiel der Fehler nicht auf, weil "753.png" schlicht als Llorente-
-//     Foto angezeigt wurde. Mit dem Hinzufügen von Ødegaard im selben Tag
-//     hatten plötzlich zwei Spieler dieselbe ID und damit dasselbe Profilbild
-//     (Ødegaards Foto). Eine doppelte `player.id` bricht ausserdem die
-//     Eindeutigkeit in `team-builder.html` (Map keyed by id) und beim
-//     Punkte-Upload (`adm-upload-points.html`, Stats werden per id gemappt).
-//     Da Llorente seit 2022 nicht mehr für Spanien spielt und nicht im
-//     offiziellen API-Squad steht, wird er hier ersatzlos entfernt.
-//     Sollte er ins WM-2026-Aufgebot zurückkehren, kann er via
-//     `adm-generate-kader-wm2026.html` mit korrekter API-Sports-ID
-//     nachgeneriert werden.
+// Originalnamen mit Diakritika (Dembélé, Ødegaard, Vinícius Júnior, …)
+// bleiben erhalten — die App-Suche ist diakritikatolerant.
 
 const playersData = [
     {
@@ -65,7 +43,7 @@ const playersData = [
         "player.id": 329163,
         "Spielername": "Adil Boulbina",
         "Spielerfoto": "https://media.api-sports.io/football/players/329163.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Algeria",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1532.png",
         "Club.name": "Al-Duhail SC",
@@ -89,7 +67,7 @@ const playersData = [
     },
     {
         "player.id": 1567,
-        "Spielername": "Aissa Mandi",
+        "Spielername": "Aïssa Mandi",
         "Spielerfoto": "https://media.api-sports.io/football/players/1567.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Algeria",
@@ -128,7 +106,7 @@ const playersData = [
     },
     {
         "player.id": 2194,
-        "Spielername": "Amir Bensebaini",
+        "Spielername": "Amir Bensebaïni",
         "Spielerfoto": "https://media.api-sports.io/football/players/2194.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Algeria",
@@ -154,7 +132,7 @@ const playersData = [
     },
     {
         "player.id": 21137,
-        "Spielername": "Anthony Mandrea",
+        "Spielername": "Anthony Mandréa",
         "Spielerfoto": "https://media.api-sports.io/football/players/21137.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Algeria",
@@ -167,9 +145,9 @@ const playersData = [
     },
     {
         "player.id": 276670,
-        "Spielername": "Fares Chaibi",
+        "Spielername": "Farès Chaïbi",
         "Spielerfoto": "https://media.api-sports.io/football/players/276670.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Algeria",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1532.png",
         "Club.name": "Eintracht Frankfurt",
@@ -180,7 +158,7 @@ const playersData = [
     },
     {
         "player.id": 334915,
-        "Spielername": "Fares Ghedjemis",
+        "Spielername": "Farès Ghedjemis",
         "Spielerfoto": "https://media.api-sports.io/football/players/334915.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Algeria",
@@ -297,7 +275,7 @@ const playersData = [
     },
     {
         "player.id": 4707,
-        "Spielername": "Mohamed Halaimia",
+        "Spielername": "Mohamed Halaïmia",
         "Spielerfoto": "https://media.api-sports.io/football/players/4707.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Algeria",
@@ -349,7 +327,7 @@ const playersData = [
     },
     {
         "player.id": 21138,
-        "Spielername": "Rayan Ait-Nouri",
+        "Spielername": "Rayan Aït-Nouri",
         "Spielerfoto": "https://media.api-sports.io/football/players/21138.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Algeria",
@@ -414,7 +392,7 @@ const playersData = [
     },
     {
         "player.id": 4561,
-        "Spielername": "Zineddine Belaid",
+        "Spielername": "Zinéddine Belaïd",
         "Spielerfoto": "https://media.api-sports.io/football/players/4561.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Algeria",
@@ -427,7 +405,7 @@ const playersData = [
     },
     {
         "player.id": 306706,
-        "Spielername": "Agustin Giay",
+        "Spielername": "Agustín Giay",
         "Spielerfoto": "https://media.api-sports.io/football/players/306706.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Argentina",
@@ -466,7 +444,7 @@ const playersData = [
     },
     {
         "player.id": 6347,
-        "Spielername": "Anibal Moreno",
+        "Spielername": "Aníbal Moreno",
         "Spielerfoto": "https://media.api-sports.io/football/players/6347.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Argentina",
@@ -492,7 +470,7 @@ const playersData = [
     },
     {
         "player.id": 19599,
-        "Spielername": "Damian Martinez",
+        "Spielername": "Damián Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/19599.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Argentina",
@@ -505,9 +483,9 @@ const playersData = [
     },
     {
         "player.id": 19071,
-        "Spielername": "Emiliano Buendia",
+        "Spielername": "Emiliano Buendía",
         "Spielerfoto": "https://media.api-sports.io/football/players/19071.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/26.png",
         "Club.name": "Bayer Leverkusen",
@@ -518,7 +496,7 @@ const playersData = [
     },
     {
         "player.id": 5996,
-        "Spielername": "Enzo Fernandez",
+        "Spielername": "Enzo Fernández",
         "Spielerfoto": "https://media.api-sports.io/football/players/5996.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Argentina",
@@ -559,7 +537,7 @@ const playersData = [
         "player.id": 449249,
         "Spielername": "Franco Mastantuono",
         "Spielerfoto": "https://media.api-sports.io/football/players/449249.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/26.png",
         "Club.name": "River Plate",
@@ -583,7 +561,7 @@ const playersData = [
     },
     {
         "player.id": 47296,
-        "Spielername": "Geronimo Rulli",
+        "Spielername": "Gerónimo Rulli",
         "Spielerfoto": "https://media.api-sports.io/football/players/47296.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Argentina",
@@ -648,7 +626,7 @@ const playersData = [
     },
     {
         "player.id": 390742,
-        "Spielername": "Joaquin Panichelli",
+        "Spielername": "Joaquín Panichelli",
         "Spielerfoto": "https://media.api-sports.io/football/players/390742.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
@@ -661,7 +639,7 @@ const playersData = [
     },
     {
         "player.id": 295513,
-        "Spielername": "Jose Lopez",
+        "Spielername": "José López",
         "Spielerfoto": "https://media.api-sports.io/football/players/295513.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
@@ -700,7 +678,7 @@ const playersData = [
     },
     {
         "player.id": 6009,
-        "Spielername": "Julian Alvarez",
+        "Spielername": "Julián Álvarez",
         "Spielerfoto": "https://media.api-sports.io/football/players/6009.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
@@ -726,7 +704,7 @@ const playersData = [
     },
     {
         "player.id": 217,
-        "Spielername": "Lautaro Martinez",
+        "Spielername": "Lautaro Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/217.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
@@ -778,7 +756,7 @@ const playersData = [
     },
     {
         "player.id": 6000,
-        "Spielername": "Lucas Martinez",
+        "Spielername": "Lucas Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/6000.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Argentina",
@@ -791,7 +769,7 @@ const playersData = [
     },
     {
         "player.id": 1493,
-        "Spielername": "Marcos Acuna",
+        "Spielername": "Marcos Acuña",
         "Spielerfoto": "https://media.api-sports.io/football/players/1493.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Argentina",
@@ -817,7 +795,7 @@ const playersData = [
     },
     {
         "player.id": 288699,
-        "Spielername": "Maximo Perrone",
+        "Spielername": "Máximo Perrone",
         "Spielerfoto": "https://media.api-sports.io/football/players/288699.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Argentina",
@@ -843,7 +821,7 @@ const playersData = [
     },
     {
         "player.id": 26315,
-        "Spielername": "Nicolas Gonzalez",
+        "Spielername": "Nicolás González",
         "Spielerfoto": "https://media.api-sports.io/football/players/26315.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
@@ -856,7 +834,7 @@ const playersData = [
     },
     {
         "player.id": 624,
-        "Spielername": "Nicolas Otamendi",
+        "Spielername": "Nicolás Otamendi",
         "Spielerfoto": "https://media.api-sports.io/football/players/624.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Argentina",
@@ -869,7 +847,7 @@ const playersData = [
     },
     {
         "player.id": 350037,
-        "Spielername": "Nicolas Paz",
+        "Spielername": "Nicolás Paz",
         "Spielerfoto": "https://media.api-sports.io/football/players/350037.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Argentina",
@@ -882,7 +860,7 @@ const playersData = [
     },
     {
         "player.id": 529,
-        "Spielername": "Nicolas Tagliafico",
+        "Spielername": "Nicolás Tagliafico",
         "Spielerfoto": "https://media.api-sports.io/football/players/529.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Argentina",
@@ -910,7 +888,7 @@ const playersData = [
         "player.id": 6067,
         "Spielername": "Thiago Almada",
         "Spielerfoto": "https://media.api-sports.io/football/players/6067.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Argentina",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/26.png",
         "Club.name": "Botafogo",
@@ -921,7 +899,7 @@ const playersData = [
     },
     {
         "player.id": 319572,
-        "Spielername": "Valentin Barco",
+        "Spielername": "Valentín Barco",
         "Spielerfoto": "https://media.api-sports.io/football/players/319572.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Argentina",
@@ -934,7 +912,7 @@ const playersData = [
     },
     {
         "player.id": 22157,
-        "Spielername": "Walter Benitez",
+        "Spielername": "Walter Benítez",
         "Spielerfoto": "https://media.api-sports.io/football/players/22157.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Argentina",
@@ -960,7 +938,7 @@ const playersData = [
     },
     {
         "player.id": 38123,
-        "Spielername": "Ajdin Hrustic",
+        "Spielername": "Ajdin Hrustić",
         "Spielerfoto": "https://media.api-sports.io/football/players/38123.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Australia",
@@ -999,13 +977,13 @@ const playersData = [
     },
     {
         "player.id": 316161,
-        "Spielername": "Ante Suto",
+        "Spielername": "Ante Šuto",
         "Spielerfoto": "https://media.api-sports.io/football/players/316161.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Australia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/20.png",
-        "Club.name": "NK Slaven Belupo",
-        "Club.logo": "https://media.api-sports.io/football/teams/1018.png",
+        "Club.name": "Hibernian",
+        "Club.logo": "https://media.api-sports.io/football/teams/249.png",
         "Geburtsdatum": "2000-06-19",
         "Groesse": "185",
         "Gewicht": "-"
@@ -1064,7 +1042,7 @@ const playersData = [
     },
     {
         "player.id": 14887,
-        "Spielername": "Deni Juric",
+        "Spielername": "Deni Jurić",
         "Spielerfoto": "https://media.api-sports.io/football/players/14887.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Australia",
@@ -1144,7 +1122,7 @@ const playersData = [
         "player.id": 44843,
         "Spielername": "Martin Boyle",
         "Spielerfoto": "https://media.api-sports.io/football/players/44843.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Australia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/20.png",
         "Club.name": "Hibernian",
@@ -1168,7 +1146,7 @@ const playersData = [
     },
     {
         "player.id": 2742,
-        "Spielername": "Milos Degenek",
+        "Spielername": "Miloš Degenek",
         "Spielerfoto": "https://media.api-sports.io/football/players/2742.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Australia",
@@ -1467,7 +1445,7 @@ const playersData = [
     },
     {
         "player.id": 18830,
-        "Spielername": "Marko Arnautovic",
+        "Spielername": "Marko Arnautović",
         "Spielerfoto": "https://media.api-sports.io/football/players/18830.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Austria",
@@ -1560,7 +1538,7 @@ const playersData = [
         "player.id": 126642,
         "Spielername": "Patrick Wimmer",
         "Spielerfoto": "https://media.api-sports.io/football/players/126642.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Austria",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/775.png",
         "Club.name": "VfL Wolfsburg",
@@ -1573,7 +1551,7 @@ const playersData = [
         "player.id": 327895,
         "Spielername": "Paul Wanner",
         "Spielerfoto": "https://media.api-sports.io/football/players/327895.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Austria",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/775.png",
         "Club.name": "Germany U21",
@@ -1636,7 +1614,7 @@ const playersData = [
     },
     {
         "player.id": 7722,
-        "Spielername": "Sasa Kalajdzic",
+        "Spielername": "Saša Kalajdzic",
         "Spielerfoto": "https://media.api-sports.io/football/players/7722.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Austria",
@@ -1654,8 +1632,8 @@ const playersData = [
         "Position": "DEFENDER",
         "Nationalteam.name": "Austria",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/775.png",
-        "Club.name": "Como",
-        "Club.logo": "https://media.api-sports.io/football/teams/895.png",
+        "Club.name": "FSV Mainz 05",
+        "Club.logo": "https://media.api-sports.io/football/teams/164.png",
         "Geburtsdatum": "1997-05-14",
         "Groesse": "190",
         "Gewicht": "82"
@@ -1690,7 +1668,7 @@ const playersData = [
         "player.id": 1417,
         "Spielername": "Alexis Saelemaekers",
         "Spielerfoto": "https://media.api-sports.io/football/players/1417.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Belgium",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1.png",
         "Club.name": "AS Roma",
@@ -1818,7 +1796,7 @@ const playersData = [
     },
     {
         "player.id": 86,
-        "Spielername": "Ikoma-Lois Openda",
+        "Spielername": "Ikoma-Loïs Openda",
         "Spielerfoto": "https://media.api-sports.io/football/players/86.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Belgium",
@@ -1831,9 +1809,9 @@ const playersData = [
     },
     {
         "player.id": 1422,
-        "Spielername": "Jeremy Doku",
+        "Spielername": "Jérémy Doku",
         "Spielerfoto": "https://media.api-sports.io/football/players/1422.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Belgium",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1.png",
         "Club.name": "Manchester City",
@@ -2104,7 +2082,7 @@ const playersData = [
     },
     {
         "player.id": 7318,
-        "Spielername": "Amar Dedic",
+        "Spielername": "Amar Dedić",
         "Spielerfoto": "https://media.api-sports.io/football/players/7318.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2117,7 +2095,7 @@ const playersData = [
     },
     {
         "player.id": 322101,
-        "Spielername": "Amar Memic",
+        "Spielername": "Amar Memić",
         "Spielerfoto": "https://media.api-sports.io/football/players/322101.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2130,7 +2108,7 @@ const playersData = [
     },
     {
         "player.id": 50006,
-        "Spielername": "Amir Hadziahmetovic",
+        "Spielername": "Amir Hadžiahmetović",
         "Spielerfoto": "https://media.api-sports.io/football/players/50006.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2143,7 +2121,7 @@ const playersData = [
     },
     {
         "player.id": 70514,
-        "Spielername": "Armin Gigovic",
+        "Spielername": "Armin Gigović",
         "Spielerfoto": "https://media.api-sports.io/football/players/70514.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2156,7 +2134,7 @@ const playersData = [
     },
     {
         "player.id": 264094,
-        "Spielername": "Benjamin Tahirovic",
+        "Spielername": "Benjamin Tahirović",
         "Spielerfoto": "https://media.api-sports.io/football/players/264094.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2169,7 +2147,7 @@ const playersData = [
     },
     {
         "player.id": 53517,
-        "Spielername": "Dennis Hadzikadunic",
+        "Spielername": "Dennis Hadžikadunić",
         "Spielerfoto": "https://media.api-sports.io/football/players/53517.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2182,7 +2160,7 @@ const playersData = [
     },
     {
         "player.id": 25129,
-        "Spielername": "Dzenis Burnic",
+        "Spielername": "Dženis Burnić",
         "Spielerfoto": "https://media.api-sports.io/football/players/25129.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2195,7 +2173,7 @@ const playersData = [
     },
     {
         "player.id": 790,
-        "Spielername": "Edin Dzeko",
+        "Spielername": "Edin Džeko",
         "Spielerfoto": "https://media.api-sports.io/football/players/790.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2208,7 +2186,7 @@ const playersData = [
     },
     {
         "player.id": 46930,
-        "Spielername": "Ermedin Demirovic",
+        "Spielername": "Ermedin Demirović",
         "Spielerfoto": "https://media.api-sports.io/football/players/46930.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2234,7 +2212,7 @@ const playersData = [
     },
     {
         "player.id": 28382,
-        "Spielername": "Haris Tabakovic",
+        "Spielername": "Haris Tabaković",
         "Spielerfoto": "https://media.api-sports.io/football/players/28382.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2247,7 +2225,7 @@ const playersData = [
     },
     {
         "player.id": 162222,
-        "Spielername": "Ivan Basic",
+        "Spielername": "Ivan Bašić",
         "Spielerfoto": "https://media.api-sports.io/football/players/162222.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2260,7 +2238,7 @@ const playersData = [
     },
     {
         "player.id": 1324,
-        "Spielername": "Ivan Sunjic",
+        "Spielername": "Ivan Šunjić",
         "Spielerfoto": "https://media.api-sports.io/football/players/1324.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2273,7 +2251,7 @@ const playersData = [
     },
     {
         "player.id": 395559,
-        "Spielername": "Kerim-Sam Alajbegovic",
+        "Spielername": "Kerim-Sam Alajbegović",
         "Spielerfoto": "https://media.api-sports.io/football/players/395559.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2286,7 +2264,7 @@ const playersData = [
     },
     {
         "player.id": 108370,
-        "Spielername": "Martin Zlomislic",
+        "Spielername": "Martin Zlomislić",
         "Spielerfoto": "https://media.api-sports.io/football/players/108370.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2299,7 +2277,7 @@ const playersData = [
     },
     {
         "player.id": 395589,
-        "Spielername": "Nidal Celik",
+        "Spielername": "Nidal Äelik",
         "Spielerfoto": "https://media.api-sports.io/football/players/395589.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2312,7 +2290,7 @@ const playersData = [
     },
     {
         "player.id": 76867,
-        "Spielername": "Nihad Mujakic",
+        "Spielername": "Nihad Mujakić",
         "Spielerfoto": "https://media.api-sports.io/football/players/76867.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2325,7 +2303,7 @@ const playersData = [
     },
     {
         "player.id": 1741,
-        "Spielername": "Nikola Katic",
+        "Spielername": "Nikola Katić",
         "Spielerfoto": "https://media.api-sports.io/football/players/1741.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2351,7 +2329,7 @@ const playersData = [
     },
     {
         "player.id": 70480,
-        "Spielername": "Osman Hadzikic",
+        "Spielername": "Osman Hadžikić",
         "Spielerfoto": "https://media.api-sports.io/football/players/70480.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2364,7 +2342,7 @@ const playersData = [
     },
     {
         "player.id": 314377,
-        "Spielername": "Samed Bazdar",
+        "Spielername": "Samed Baždar",
         "Spielerfoto": "https://media.api-sports.io/football/players/314377.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2377,7 +2355,7 @@ const playersData = [
     },
     {
         "player.id": 1442,
-        "Spielername": "Sead Kolasinac",
+        "Spielername": "Sead Kolašinac",
         "Spielerfoto": "https://media.api-sports.io/football/players/1442.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2390,7 +2368,7 @@ const playersData = [
     },
     {
         "player.id": 14301,
-        "Spielername": "Stjepan Radeljic",
+        "Spielername": "Stjepan Radeljić",
         "Spielerfoto": "https://media.api-sports.io/football/players/14301.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2403,7 +2381,7 @@ const playersData = [
     },
     {
         "player.id": 271350,
-        "Spielername": "Tarik Muharemovic",
+        "Spielername": "Tarik Muharemović",
         "Spielerfoto": "https://media.api-sports.io/football/players/271350.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Bosnia & Herzegovina",
@@ -2442,7 +2420,7 @@ const playersData = [
     },
     {
         "player.id": 265784,
-        "Spielername": "Andre",
+        "Spielername": "André",
         "Spielerfoto": "https://media.api-sports.io/football/players/265784.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Brazil",
@@ -2507,7 +2485,7 @@ const playersData = [
     },
     {
         "player.id": 10135,
-        "Spielername": "Bruno Guimaraes",
+        "Spielername": "Bruno Guimarães",
         "Spielerfoto": "https://media.api-sports.io/football/players/10135.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Brazil",
@@ -2598,7 +2576,7 @@ const playersData = [
     },
     {
         "player.id": 372,
-        "Spielername": "Eder Militao",
+        "Spielername": "Éder Militão",
         "Spielerfoto": "https://media.api-sports.io/football/players/372.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Brazil",
@@ -2637,7 +2615,7 @@ const playersData = [
     },
     {
         "player.id": 425733,
-        "Spielername": "Estevao",
+        "Spielername": "Estêvão",
         "Spielerfoto": "https://media.api-sports.io/football/players/425733.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Brazil",
@@ -2663,7 +2641,7 @@ const playersData = [
     },
     {
         "player.id": 10089,
-        "Spielername": "Fabricio Bruno",
+        "Spielername": "Fabrício Bruno",
         "Spielerfoto": "https://media.api-sports.io/football/players/10089.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Brazil",
@@ -2676,7 +2654,7 @@ const playersData = [
     },
     {
         "player.id": 22224,
-        "Spielername": "Gabriel Magalhaes",
+        "Spielername": "Gabriel Magalhães",
         "Spielerfoto": "https://media.api-sports.io/football/players/22224.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Brazil",
@@ -2728,7 +2706,7 @@ const playersData = [
     },
     {
         "player.id": 30424,
-        "Spielername": "Ibanez",
+        "Spielername": "Ibañez",
         "Spielerfoto": "https://media.api-sports.io/football/players/30424.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Brazil",
@@ -2754,7 +2732,7 @@ const playersData = [
     },
     {
         "player.id": 195103,
-        "Spielername": "Joao Gomes",
+        "Spielername": "João Gomes",
         "Spielerfoto": "https://media.api-sports.io/football/players/195103.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Brazil",
@@ -2767,7 +2745,7 @@ const playersData = [
     },
     {
         "player.id": 10329,
-        "Spielername": "Joao Pedro",
+        "Spielername": "João Pedro",
         "Spielerfoto": "https://media.api-sports.io/football/players/10329.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Brazil",
@@ -2819,7 +2797,7 @@ const playersData = [
     },
     {
         "player.id": 10124,
-        "Spielername": "Leo Pereira",
+        "Spielername": "Léo Pereira",
         "Spielerfoto": "https://media.api-sports.io/football/players/10124.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Brazil",
@@ -2832,7 +2810,7 @@ const playersData = [
     },
     {
         "player.id": 1646,
-        "Spielername": "Lucas Paqueta",
+        "Spielername": "Lucas Paquetá",
         "Spielerfoto": "https://media.api-sports.io/football/players/1646.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Brazil",
@@ -2860,7 +2838,7 @@ const playersData = [
         "player.id": 265785,
         "Spielername": "Luiz Henrique",
         "Spielerfoto": "https://media.api-sports.io/football/players/265785.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Brazil",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
         "Club.name": "Botafogo",
@@ -2912,7 +2890,7 @@ const playersData = [
         "player.id": 1496,
         "Spielername": "Raphinha",
         "Spielerfoto": "https://media.api-sports.io/football/players/1496.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Brazil",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
         "Club.name": "Barcelona",
@@ -2951,7 +2929,7 @@ const playersData = [
         "player.id": 10009,
         "Spielername": "Rodrygo",
         "Spielerfoto": "https://media.api-sports.io/football/players/10009.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Brazil",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
         "Club.name": "Real Madrid",
@@ -2975,9 +2953,9 @@ const playersData = [
     },
     {
         "player.id": 762,
-        "Spielername": "Vinicius Junior",
+        "Spielername": "Vinícius Júnior",
         "Spielerfoto": "https://media.api-sports.io/football/players/762.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Brazil",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
         "Club.name": "Real Madrid",
@@ -3118,7 +3096,7 @@ const playersData = [
     },
     {
         "player.id": 328046,
-        "Spielername": "Ismael Kone",
+        "Spielername": "Ismaël Koné",
         "Spielerfoto": "https://media.api-sports.io/football/players/328046.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Canada",
@@ -3185,7 +3163,7 @@ const playersData = [
         "player.id": 193279,
         "Spielername": "Jayden Nelson",
         "Spielerfoto": "https://media.api-sports.io/football/players/193279.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Canada",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
         "Club.name": "Austin",
@@ -3193,19 +3171,6 @@ const playersData = [
         "Geburtsdatum": "2002-09-26",
         "Groesse": "170",
         "Gewicht": "67"
-    },
-    {
-        "player.id": 407583,
-        "Spielername": "Jeevan Badwal",
-        "Spielerfoto": "https://media.api-sports.io/football/players/407583.png",
-        "Position": "MIDFIELDER",
-        "Nationalteam.name": "Canada",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
-        "Club.name": "Vancouver Whitecaps",
-        "Club.logo": "https://media.api-sports.io/football/teams/1603.png",
-        "Geburtsdatum": "2006-03-11",
-        "Groesse": "168",
-        "Gewicht": "74"
     },
     {
         "player.id": 78494,
@@ -3315,7 +3280,7 @@ const playersData = [
         "player.id": 284061,
         "Spielername": "Marcelo Flores",
         "Spielerfoto": "https://media.api-sports.io/football/players/284061.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Canada",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
         "Club.name": "Tigres UANL",
@@ -3326,7 +3291,7 @@ const playersData = [
     },
     {
         "player.id": 50788,
-        "Spielername": "Mathieu Choiniere",
+        "Spielername": "Mathieu Choinière",
         "Spielerfoto": "https://media.api-sports.io/football/players/50788.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Canada",
@@ -3352,7 +3317,7 @@ const playersData = [
     },
     {
         "player.id": 51274,
-        "Spielername": "Maxime Crepeau",
+        "Spielername": "Maxime Crépeau",
         "Spielerfoto": "https://media.api-sports.io/football/players/51274.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Canada",
@@ -3432,7 +3397,7 @@ const playersData = [
         "player.id": 203436,
         "Spielername": "Ralph-William Priso",
         "Spielerfoto": "https://media.api-sports.io/football/players/203436.png",
-        "Position": "DEFENDER",
+        "Position": "MIDFIELDER",
         "Nationalteam.name": "Canada",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
         "Club.name": "Vancouver Whitecaps",
@@ -3456,7 +3421,7 @@ const playersData = [
     },
     {
         "player.id": 35570,
-        "Spielername": "Stephen Eustaquio",
+        "Spielername": "Stephen Eustáquio",
         "Spielerfoto": "https://media.api-sports.io/football/players/35570.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Canada",
@@ -3471,7 +3436,7 @@ const playersData = [
         "player.id": 51016,
         "Spielername": "Tajon Buchanan",
         "Spielerfoto": "https://media.api-sports.io/football/players/51016.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Canada",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
         "Club.name": "Villarreal",
@@ -3612,7 +3577,7 @@ const playersData = [
     },
     {
         "player.id": 142016,
-        "Spielername": "Joao Paulo",
+        "Spielername": "João Paulo",
         "Spielerfoto": "https://media.api-sports.io/football/players/142016.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Cape Verde Islands",
@@ -3703,7 +3668,7 @@ const playersData = [
     },
     {
         "player.id": 41764,
-        "Spielername": "Marcio Rosa",
+        "Spielername": "Márcio Rosa",
         "Spielerfoto": "https://media.api-sports.io/football/players/41764.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Cape Verde Islands",
@@ -3783,7 +3748,7 @@ const playersData = [
         "player.id": 265556,
         "Spielername": "Telmo Arcanjo",
         "Spielerfoto": "https://media.api-sports.io/football/players/265556.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Cape Verde Islands",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1533.png",
         "Club.name": "Guimaraes",
@@ -3794,7 +3759,7 @@ const playersData = [
     },
     {
         "player.id": 15304,
-        "Spielername": "Vozinha",
+        "Spielername": "Vózinha",
         "Spielerfoto": "https://media.api-sports.io/football/players/15304.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Cape Verde Islands",
@@ -3846,7 +3811,7 @@ const playersData = [
     },
     {
         "player.id": 13729,
-        "Spielername": "Alvaro Angulo",
+        "Spielername": "Álvaro Angulo",
         "Spielerfoto": "https://media.api-sports.io/football/players/13729.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Colombia",
@@ -3859,7 +3824,7 @@ const playersData = [
     },
     {
         "player.id": 2481,
-        "Spielername": "Alvaro Montero",
+        "Spielername": "Álvaro Montero",
         "Spielerfoto": "https://media.api-sports.io/football/players/2481.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Colombia",
@@ -3872,7 +3837,7 @@ const playersData = [
     },
     {
         "player.id": 13642,
-        "Spielername": "Andres Roman",
+        "Spielername": "Andrés Román",
         "Spielerfoto": "https://media.api-sports.io/football/players/13642.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Colombia",
@@ -3911,9 +3876,9 @@ const playersData = [
     },
     {
         "player.id": 345748,
-        "Spielername": "Carlos Gomez",
+        "Spielername": "Carlos Gómez",
         "Spielerfoto": "https://media.api-sports.io/football/players/345748.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/8.png",
         "Club.name": "Vasco DA Gama",
@@ -3924,7 +3889,7 @@ const playersData = [
     },
     {
         "player.id": 13736,
-        "Spielername": "Daniel Munoz",
+        "Spielername": "Daniel Muñoz",
         "Spielerfoto": "https://media.api-sports.io/football/players/13736.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Colombia",
@@ -3950,7 +3915,7 @@ const playersData = [
     },
     {
         "player.id": 168,
-        "Spielername": "Davinson Sanchez",
+        "Spielername": "Davinson Sánchez",
         "Spielerfoto": "https://media.api-sports.io/football/players/168.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Colombia",
@@ -3989,7 +3954,7 @@ const playersData = [
     },
     {
         "player.id": 517,
-        "Spielername": "James Rodriguez",
+        "Spielername": "James Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/517.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Colombia",
@@ -4004,7 +3969,7 @@ const playersData = [
         "player.id": 13376,
         "Spielername": "Jaminton Campaz",
         "Spielerfoto": "https://media.api-sports.io/football/players/13376.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/8.png",
         "Club.name": "Rosario Central",
@@ -4030,7 +3995,7 @@ const playersData = [
         "player.id": 13708,
         "Spielername": "Jhon Arias",
         "Spielerfoto": "https://media.api-sports.io/football/players/13708.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/8.png",
         "Club.name": "Palmeiras",
@@ -4041,7 +4006,7 @@ const playersData = [
     },
     {
         "player.id": 24810,
-        "Spielername": "Jhon Cordoba",
+        "Spielername": "Jhon Córdoba",
         "Spielerfoto": "https://media.api-sports.io/football/players/24810.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
@@ -4054,7 +4019,7 @@ const playersData = [
     },
     {
         "player.id": 1929,
-        "Spielername": "Jhon Lucumi",
+        "Spielername": "Jhon Lucumí",
         "Spielerfoto": "https://media.api-sports.io/football/players/1929.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Colombia",
@@ -4119,7 +4084,7 @@ const playersData = [
     },
     {
         "player.id": 47582,
-        "Spielername": "Juan Hernandez",
+        "Spielername": "Juan Hernández",
         "Spielerfoto": "https://media.api-sports.io/football/players/47582.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
@@ -4158,7 +4123,7 @@ const playersData = [
     },
     {
         "player.id": 289592,
-        "Spielername": "Kevin Castano",
+        "Spielername": "Kevin Castaño",
         "Spielerfoto": "https://media.api-sports.io/football/players/289592.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Colombia",
@@ -4197,7 +4162,7 @@ const playersData = [
     },
     {
         "player.id": 2489,
-        "Spielername": "Luis Diaz",
+        "Spielername": "Luis Díaz",
         "Spielerfoto": "https://media.api-sports.io/football/players/2489.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
@@ -4210,7 +4175,7 @@ const playersData = [
     },
     {
         "player.id": 47237,
-        "Spielername": "Luis Suarez",
+        "Spielername": "Luis Suárez",
         "Spielerfoto": "https://media.api-sports.io/football/players/47237.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
@@ -4223,7 +4188,7 @@ const playersData = [
     },
     {
         "player.id": 6011,
-        "Spielername": "Rafael Borre",
+        "Spielername": "Rafael Borré",
         "Spielerfoto": "https://media.api-sports.io/football/players/6011.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
@@ -4275,9 +4240,9 @@ const playersData = [
     },
     {
         "player.id": 281795,
-        "Spielername": "Yaser Asprilla",
+        "Spielername": "Yáser Asprilla",
         "Spielerfoto": "https://media.api-sports.io/football/players/281795.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Colombia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/8.png",
         "Club.name": "Galatasaray",
@@ -4366,7 +4331,7 @@ const playersData = [
     },
     {
         "player.id": 3033,
-        "Spielername": "Cedric Bakambu",
+        "Spielername": "Cédric Bakambu",
         "Spielerfoto": "https://media.api-sports.io/football/players/3033.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Congo DR",
@@ -4485,7 +4450,7 @@ const playersData = [
         "player.id": 3034,
         "Spielername": "Meschack Elia",
         "Spielerfoto": "https://media.api-sports.io/football/players/3034.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Congo DR",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1508.png",
         "Club.name": "Alanyaspor",
@@ -4496,9 +4461,9 @@ const playersData = [
     },
     {
         "player.id": 129670,
-        "Spielername": "Nathanael Mbuku",
+        "Spielername": "Nathanaël Mbuku",
         "Spielerfoto": "https://media.api-sports.io/football/players/129670.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Congo DR",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1508.png",
         "Club.name": "Montpellier",
@@ -4587,9 +4552,9 @@ const playersData = [
     },
     {
         "player.id": 8627,
-        "Spielername": "Theo Bongonda",
+        "Spielername": "Théo Bongonda",
         "Spielerfoto": "https://media.api-sports.io/football/players/8627.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Congo DR",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1508.png",
         "Club.name": "Spartak Moscow",
@@ -4626,7 +4591,7 @@ const playersData = [
     },
     {
         "player.id": 726,
-        "Spielername": "Andrej Kramaric",
+        "Spielername": "Andrej Kramarić",
         "Spielerfoto": "https://media.api-sports.io/football/players/726.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Croatia",
@@ -4652,7 +4617,7 @@ const playersData = [
     },
     {
         "player.id": 14327,
-        "Spielername": "Domagoj Bradaric",
+        "Spielername": "Domagoj Bradarić",
         "Spielerfoto": "https://media.api-sports.io/football/players/14327.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -4678,7 +4643,7 @@ const playersData = [
     },
     {
         "player.id": 1305,
-        "Spielername": "Dominik Livakovic",
+        "Spielername": "Dominik Livaković",
         "Spielerfoto": "https://media.api-sports.io/football/players/1305.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Croatia",
@@ -4691,7 +4656,7 @@ const playersData = [
     },
     {
         "player.id": 1902,
-        "Spielername": "Duje Caleta-Car",
+        "Spielername": "Duje Ćaleta-Car",
         "Spielerfoto": "https://media.api-sports.io/football/players/1902.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4704,7 +4669,7 @@ const playersData = [
     },
     {
         "player.id": 202951,
-        "Spielername": "Franjo Ivanovic",
+        "Spielername": "Franjo Ivanović",
         "Spielerfoto": "https://media.api-sports.io/football/players/202951.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Croatia",
@@ -4717,7 +4682,7 @@ const playersData = [
     },
     {
         "player.id": 202696,
-        "Spielername": "Igor Matanovic",
+        "Spielername": "Igor Matanović",
         "Spielerfoto": "https://media.api-sports.io/football/players/202696.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Croatia",
@@ -4730,9 +4695,9 @@ const playersData = [
     },
     {
         "player.id": 207,
-        "Spielername": "Ivan Perisic",
+        "Spielername": "Ivan Perišić",
         "Spielerfoto": "https://media.api-sports.io/football/players/207.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Croatia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/3.png",
         "Club.name": "PSV Eindhoven",
@@ -4743,7 +4708,7 @@ const playersData = [
     },
     {
         "player.id": 14266,
-        "Spielername": "Ivan Smolcic",
+        "Spielername": "Ivan Smolčić",
         "Spielerfoto": "https://media.api-sports.io/football/players/14266.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4756,7 +4721,7 @@ const playersData = [
     },
     {
         "player.id": 14297,
-        "Spielername": "Ivica Ivusic",
+        "Spielername": "Ivica Ivušić",
         "Spielerfoto": "https://media.api-sports.io/football/players/14297.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Croatia",
@@ -4782,7 +4747,7 @@ const playersData = [
     },
     {
         "player.id": 125171,
-        "Spielername": "Josip Stanisic",
+        "Spielername": "Josip Stanišić",
         "Spielerfoto": "https://media.api-sports.io/football/players/125171.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4795,7 +4760,7 @@ const playersData = [
     },
     {
         "player.id": 14701,
-        "Spielername": "Josip Sutalo",
+        "Spielername": "Josip Šutalo",
         "Spielerfoto": "https://media.api-sports.io/football/players/14701.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4808,7 +4773,7 @@ const playersData = [
     },
     {
         "player.id": 129033,
-        "Spielername": "Josko Gvardiol",
+        "Spielername": "Joško Gvardiol",
         "Spielerfoto": "https://media.api-sports.io/football/players/129033.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4834,7 +4799,7 @@ const playersData = [
     },
     {
         "player.id": 14395,
-        "Spielername": "Kristijan Jakic",
+        "Spielername": "Kristijan Jakić",
         "Spielerfoto": "https://media.api-sports.io/football/players/14395.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -4860,7 +4825,7 @@ const playersData = [
     },
     {
         "player.id": 754,
-        "Spielername": "Luka Modric",
+        "Spielername": "Luka Modrić",
         "Spielerfoto": "https://media.api-sports.io/football/players/754.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -4873,7 +4838,7 @@ const playersData = [
     },
     {
         "player.id": 7332,
-        "Spielername": "Luka Sucic",
+        "Spielername": "Luka Sučić",
         "Spielerfoto": "https://media.api-sports.io/football/players/7332.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -4886,7 +4851,7 @@ const playersData = [
     },
     {
         "player.id": 387521,
-        "Spielername": "Luka Vuskovic",
+        "Spielername": "Luka Vušković",
         "Spielerfoto": "https://media.api-sports.io/football/players/387521.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4899,9 +4864,9 @@ const playersData = [
     },
     {
         "player.id": 260865,
-        "Spielername": "Marco Pasalic",
+        "Spielername": "Marco Pašalić",
         "Spielerfoto": "https://media.api-sports.io/football/players/260865.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Croatia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/3.png",
         "Club.name": "Orlando City SC",
@@ -4912,7 +4877,7 @@ const playersData = [
     },
     {
         "player.id": 1084,
-        "Spielername": "Marin Pongracic",
+        "Spielername": "Marin Pongračić",
         "Spielerfoto": "https://media.api-sports.io/football/players/1084.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4925,7 +4890,7 @@ const playersData = [
     },
     {
         "player.id": 2763,
-        "Spielername": "Mario Pasalic",
+        "Spielername": "Mario Pašalić",
         "Spielerfoto": "https://media.api-sports.io/football/players/2763.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -4951,7 +4916,7 @@ const playersData = [
     },
     {
         "player.id": 30827,
-        "Spielername": "Martin Erlic",
+        "Spielername": "Martin Erlić",
         "Spielerfoto": "https://media.api-sports.io/football/players/30827.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Croatia",
@@ -4964,7 +4929,7 @@ const playersData = [
     },
     {
         "player.id": 2291,
-        "Spielername": "Mateo Kovacic",
+        "Spielername": "Mateo Kovačić",
         "Spielerfoto": "https://media.api-sports.io/football/players/2291.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -4977,7 +4942,7 @@ const playersData = [
     },
     {
         "player.id": 1330,
-        "Spielername": "Mislav Orsic",
+        "Spielername": "Mislav Oršić",
         "Spielerfoto": "https://media.api-sports.io/football/players/1330.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Croatia",
@@ -5003,7 +4968,7 @@ const playersData = [
     },
     {
         "player.id": 842,
-        "Spielername": "Nikola Vlasic",
+        "Spielername": "Nikola Vlašić",
         "Spielerfoto": "https://media.api-sports.io/football/players/842.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -5029,7 +4994,7 @@ const playersData = [
     },
     {
         "player.id": 348205,
-        "Spielername": "Petar Sucic",
+        "Spielername": "Petar Sučić",
         "Spielerfoto": "https://media.api-sports.io/football/players/348205.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Croatia",
@@ -5083,7 +5048,7 @@ const playersData = [
         "player.id": 37272,
         "Spielername": "Brandley Kuwas",
         "Spielerfoto": "https://media.api-sports.io/football/players/37272.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Curaçao",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5530.png",
         "Club.name": "FC Volendam",
@@ -5177,8 +5142,8 @@ const playersData = [
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Curaçao",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5530.png",
-        "Club.name": "Kayserispor",
-        "Club.logo": "https://media.api-sports.io/football/teams/1001.png",
+        "Club.name": "Livingston",
+        "Club.logo": "https://media.api-sports.io/football/teams/255.png",
         "Geburtsdatum": "1994-03-20",
         "Groesse": "181",
         "Gewicht": "74"
@@ -5211,7 +5176,7 @@ const playersData = [
     },
     {
         "player.id": 36857,
-        "Spielername": "Jurien Gaari",
+        "Spielername": "Juriën Gaari",
         "Spielerfoto": "https://media.api-sports.io/football/players/36857.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Curaçao",
@@ -5224,7 +5189,7 @@ const playersData = [
     },
     {
         "player.id": 41627,
-        "Spielername": "Kenji Gorre",
+        "Spielername": "Kenji Gorré",
         "Spielerfoto": "https://media.api-sports.io/football/players/41627.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Curaçao",
@@ -5343,7 +5308,7 @@ const playersData = [
         "player.id": 906,
         "Spielername": "Tahith Chong",
         "Spielerfoto": "https://media.api-sports.io/football/players/906.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Curaçao",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5530.png",
         "Club.name": "Luton",
@@ -5406,7 +5371,7 @@ const playersData = [
     },
     {
         "player.id": 128793,
-        "Spielername": "David Jurasek",
+        "Spielername": "David Jurásek",
         "Spielerfoto": "https://media.api-sports.io/football/players/128793.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5419,9 +5384,9 @@ const playersData = [
     },
     {
         "player.id": 290212,
-        "Spielername": "Denis Visinsky",
+        "Spielername": "Denis Višinský",
         "Spielerfoto": "https://media.api-sports.io/football/players/290212.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Czech Republic",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/770.png",
         "Club.name": "Czech Republic U21",
@@ -5445,7 +5410,7 @@ const playersData = [
     },
     {
         "player.id": 1237,
-        "Spielername": "Jaroslav Zeleny",
+        "Spielername": "Jaroslav Zelený",
         "Spielerfoto": "https://media.api-sports.io/football/players/1237.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5458,7 +5423,7 @@ const playersData = [
     },
     {
         "player.id": 66407,
-        "Spielername": "Ladislav Krejci",
+        "Spielername": "Ladislav Krejčí",
         "Spielerfoto": "https://media.api-sports.io/football/players/66407.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5471,7 +5436,7 @@ const playersData = [
     },
     {
         "player.id": 162194,
-        "Spielername": "Lukas Cerv",
+        "Spielername": "Lukáš Červ",
         "Spielerfoto": "https://media.api-sports.io/football/players/162194.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Czech Republic",
@@ -5484,7 +5449,7 @@ const playersData = [
     },
     {
         "player.id": 269349,
-        "Spielername": "Lukas Hornicek",
+        "Spielername": "Lukáš Horníček",
         "Spielerfoto": "https://media.api-sports.io/football/players/269349.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Czech Republic",
@@ -5497,7 +5462,7 @@ const playersData = [
     },
     {
         "player.id": 66353,
-        "Spielername": "Lukas Provod",
+        "Spielername": "Lukáš Provod",
         "Spielerfoto": "https://media.api-sports.io/football/players/66353.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Czech Republic",
@@ -5510,7 +5475,7 @@ const playersData = [
     },
     {
         "player.id": 61161,
-        "Spielername": "Martin Jedlicka",
+        "Spielername": "Martin Jedlička",
         "Spielerfoto": "https://media.api-sports.io/football/players/61161.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Czech Republic",
@@ -5523,7 +5488,7 @@ const playersData = [
     },
     {
         "player.id": 287564,
-        "Spielername": "Martin Vitik",
+        "Spielername": "Martin Vitík",
         "Spielerfoto": "https://media.api-sports.io/football/players/287564.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5536,7 +5501,7 @@ const playersData = [
     },
     {
         "player.id": 138804,
-        "Spielername": "Matej Kovar",
+        "Spielername": "Matěj Kovář",
         "Spielerfoto": "https://media.api-sports.io/football/players/138804.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Czech Republic",
@@ -5549,7 +5514,7 @@ const playersData = [
     },
     {
         "player.id": 241,
-        "Spielername": "Michal Sadilek",
+        "Spielername": "Michal Sadílek",
         "Spielerfoto": "https://media.api-sports.io/football/players/241.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Czech Republic",
@@ -5562,7 +5527,7 @@ const playersData = [
     },
     {
         "player.id": 66275,
-        "Spielername": "Mojmir Chytil",
+        "Spielername": "Mojmír Chytil",
         "Spielerfoto": "https://media.api-sports.io/football/players/66275.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Czech Republic",
@@ -5588,7 +5553,7 @@ const playersData = [
     },
     {
         "player.id": 66387,
-        "Spielername": "Pavel Sulc",
+        "Spielername": "Pavel Šulc",
         "Spielerfoto": "https://media.api-sports.io/football/players/66387.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Czech Republic",
@@ -5601,7 +5566,7 @@ const playersData = [
     },
     {
         "player.id": 162964,
-        "Spielername": "Robin Hranac",
+        "Spielername": "Robin Hranáč",
         "Spielerfoto": "https://media.api-sports.io/football/players/162964.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5614,7 +5579,7 @@ const playersData = [
     },
     {
         "player.id": 337740,
-        "Spielername": "Stepan Chaloupek",
+        "Spielername": "Štěpán Chaloupek",
         "Spielerfoto": "https://media.api-sports.io/football/players/337740.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5627,7 +5592,7 @@ const playersData = [
     },
     {
         "player.id": 818,
-        "Spielername": "Tomas Chory",
+        "Spielername": "Tomáš Chorý",
         "Spielerfoto": "https://media.api-sports.io/football/players/818.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Czech Republic",
@@ -5640,7 +5605,7 @@ const playersData = [
     },
     {
         "player.id": 2252,
-        "Spielername": "Tomas Holes",
+        "Spielername": "Tomáš Holeš",
         "Spielerfoto": "https://media.api-sports.io/football/players/2252.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5653,9 +5618,9 @@ const playersData = [
     },
     {
         "player.id": 66253,
-        "Spielername": "Tomas Ladra",
+        "Spielername": "Tomáš Ladra",
         "Spielerfoto": "https://media.api-sports.io/football/players/66253.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Czech Republic",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/770.png",
         "Club.name": "Plzen",
@@ -5666,7 +5631,7 @@ const playersData = [
     },
     {
         "player.id": 1243,
-        "Spielername": "Tomas Soucek",
+        "Spielername": "Tomáš Souček",
         "Spielerfoto": "https://media.api-sports.io/football/players/1243.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Czech Republic",
@@ -5679,7 +5644,7 @@ const playersData = [
     },
     {
         "player.id": 66270,
-        "Spielername": "Vaclav Jemelka",
+        "Spielername": "Václav Jemelka",
         "Spielerfoto": "https://media.api-sports.io/football/players/66270.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5692,7 +5657,7 @@ const playersData = [
     },
     {
         "player.id": 1231,
-        "Spielername": "Vladimir Coufal",
+        "Spielername": "Vladimír Coufal",
         "Spielerfoto": "https://media.api-sports.io/football/players/1231.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Czech Republic",
@@ -5705,7 +5670,7 @@ const playersData = [
     },
     {
         "player.id": 25348,
-        "Spielername": "Vladimir Darida",
+        "Spielername": "Vladimír Darida",
         "Spielerfoto": "https://media.api-sports.io/football/players/25348.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Czech Republic",
@@ -5770,7 +5735,7 @@ const playersData = [
     },
     {
         "player.id": 356456,
-        "Spielername": "Bryan Ramirez",
+        "Spielername": "Bryan Ramírez",
         "Spielerfoto": "https://media.api-sports.io/football/players/356456.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ecuador",
@@ -5796,7 +5761,7 @@ const playersData = [
     },
     {
         "player.id": 2076,
-        "Spielername": "Cristian Ramirez",
+        "Spielername": "Cristian Ramírez",
         "Spielerfoto": "https://media.api-sports.io/football/players/2076.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ecuador",
@@ -5835,7 +5800,7 @@ const playersData = [
     },
     {
         "player.id": 63964,
-        "Spielername": "Felix Torres",
+        "Spielername": "Félix Torres",
         "Spielerfoto": "https://media.api-sports.io/football/players/63964.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ecuador",
@@ -5874,7 +5839,7 @@ const playersData = [
     },
     {
         "player.id": 16380,
-        "Spielername": "Hernan Galindez",
+        "Spielername": "Hernán Galíndez",
         "Spielerfoto": "https://media.api-sports.io/football/players/16380.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Ecuador",
@@ -5900,7 +5865,7 @@ const playersData = [
     },
     {
         "player.id": 350799,
-        "Spielername": "Jeremy Arevalo",
+        "Spielername": "Jeremy Arévalo",
         "Spielerfoto": "https://media.api-sports.io/football/players/350799.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Ecuador",
@@ -5913,7 +5878,7 @@ const playersData = [
     },
     {
         "player.id": 237191,
-        "Spielername": "Jhoanner Chavez",
+        "Spielername": "Jhoanner Chávez",
         "Spielerfoto": "https://media.api-sports.io/football/players/237191.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ecuador",
@@ -5926,7 +5891,7 @@ const playersData = [
     },
     {
         "player.id": 354027,
-        "Spielername": "Joel Ordonez",
+        "Spielername": "Joel Ordoñez",
         "Spielerfoto": "https://media.api-sports.io/football/players/354027.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ecuador",
@@ -5954,7 +5919,7 @@ const playersData = [
         "player.id": 25414,
         "Spielername": "John Yeboah",
         "Spielerfoto": "https://media.api-sports.io/football/players/25414.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ecuador",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2382.png",
         "Club.name": "Venezia",
@@ -5965,7 +5930,7 @@ const playersData = [
     },
     {
         "player.id": 16470,
-        "Spielername": "Jordy Alcivar",
+        "Spielername": "Jordy Alcívar",
         "Spielerfoto": "https://media.api-sports.io/football/players/16470.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Ecuador",
@@ -5991,7 +5956,7 @@ const playersData = [
     },
     {
         "player.id": 361966,
-        "Spielername": "Kevin Rodriguez",
+        "Spielername": "Kevin Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/361966.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Ecuador",
@@ -6030,7 +5995,7 @@ const playersData = [
     },
     {
         "player.id": 116117,
-        "Spielername": "Moises Caicedo",
+        "Spielername": "Moisés Caicedo",
         "Spielerfoto": "https://media.api-sports.io/football/players/116117.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Ecuador",
@@ -6045,7 +6010,7 @@ const playersData = [
         "player.id": 311543,
         "Spielername": "Nilson Angulo",
         "Spielerfoto": "https://media.api-sports.io/football/players/311543.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ecuador",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2382.png",
         "Club.name": "Sunderland",
@@ -6082,7 +6047,7 @@ const playersData = [
     },
     {
         "player.id": 46731,
-        "Spielername": "Pervis Estupinan",
+        "Spielername": "Pervis Estupiñán",
         "Spielerfoto": "https://media.api-sports.io/football/players/46731.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ecuador",
@@ -6095,7 +6060,7 @@ const playersData = [
     },
     {
         "player.id": 127817,
-        "Spielername": "Piero Hincapie",
+        "Spielername": "Piero Hincapié",
         "Spielerfoto": "https://media.api-sports.io/football/players/127817.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ecuador",
@@ -6108,9 +6073,9 @@ const playersData = [
     },
     {
         "player.id": 406303,
-        "Spielername": "Ray Paez",
+        "Spielername": "Ray Páez",
         "Spielerfoto": "https://media.api-sports.io/football/players/406303.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ecuador",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2382.png",
         "Club.name": "River Plate",
@@ -6121,7 +6086,7 @@ const playersData = [
     },
     {
         "player.id": 81224,
-        "Spielername": "Wellington Ramirez",
+        "Spielername": "Wellington Ramírez",
         "Spielerfoto": "https://media.api-sports.io/football/players/81224.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Ecuador",
@@ -6149,7 +6114,7 @@ const playersData = [
         "player.id": 306940,
         "Spielername": "Yaimar Medina",
         "Spielerfoto": "https://media.api-sports.io/football/players/306940.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ecuador",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2382.png",
         "Club.name": "Genk",
@@ -6279,7 +6244,7 @@ const playersData = [
         "player.id": 70535,
         "Spielername": "Ibrahim Adel",
         "Spielerfoto": "https://media.api-sports.io/football/players/70535.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Egypt",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/32.png",
         "Club.name": "FC Nordsjaelland",
@@ -6292,7 +6257,7 @@ const playersData = [
         "player.id": 16901,
         "Spielername": "Islam Issa",
         "Spielerfoto": "https://media.api-sports.io/football/players/16901.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Egypt",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/32.png",
         "Club.name": "Ceramica Cleopatra",
@@ -6347,8 +6312,8 @@ const playersData = [
         "Position": "DEFENDER",
         "Nationalteam.name": "Egypt",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/32.png",
-        "Club.name": "Nice",
-        "Club.logo": "https://media.api-sports.io/football/teams/84.png",
+        "Club.name": "Kahraba Ismailia",
+        "Club.logo": "https://media.api-sports.io/football/teams/20458.png",
         "Geburtsdatum": "1999-02-01",
         "Groesse": "183",
         "Gewicht": "78"
@@ -6524,7 +6489,7 @@ const playersData = [
     },
     {
         "player.id": 2664,
-        "Spielername": "Trezeguet",
+        "Spielername": "Trézéguet",
         "Spielerfoto": "https://media.api-sports.io/football/players/2664.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Egypt",
@@ -6552,7 +6517,7 @@ const playersData = [
         "player.id": 16871,
         "Spielername": "Zizo",
         "Spielerfoto": "https://media.api-sports.io/football/players/16871.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Egypt",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/32.png",
         "Club.name": "Al Ahly",
@@ -6589,7 +6554,7 @@ const playersData = [
     },
     {
         "player.id": 67971,
-        "Spielername": "Addji Guehi",
+        "Spielername": "Addji Guéhi",
         "Spielerfoto": "https://media.api-sports.io/football/players/67971.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "England",
@@ -6656,7 +6621,7 @@ const playersData = [
         "player.id": 136723,
         "Spielername": "Chukwunonso Madueke",
         "Spielerfoto": "https://media.api-sports.io/football/players/136723.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "England",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/10.png",
         "Club.name": "Arsenal",
@@ -6669,7 +6634,7 @@ const playersData = [
         "player.id": 152982,
         "Spielername": "Cole Palmer",
         "Spielerfoto": "https://media.api-sports.io/football/players/152982.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "England",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/10.png",
         "Club.name": "Chelsea",
@@ -6760,7 +6725,7 @@ const playersData = [
         "player.id": 19586,
         "Spielername": "Eberechi Eze",
         "Spielerfoto": "https://media.api-sports.io/football/players/19586.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "England",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/10.png",
         "Club.name": "Crystal Palace",
@@ -6812,7 +6777,7 @@ const playersData = [
         "player.id": 18778,
         "Spielername": "Harvey Barnes",
         "Spielerfoto": "https://media.api-sports.io/football/players/18778.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "England",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/10.png",
         "Club.name": "Newcastle",
@@ -7072,7 +7037,7 @@ const playersData = [
         "player.id": 631,
         "Spielername": "Philip Foden",
         "Spielerfoto": "https://media.api-sports.io/football/players/631.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "England",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/10.png",
         "Club.name": "Manchester City",
@@ -7161,7 +7126,7 @@ const playersData = [
     },
     {
         "player.id": 1271,
-        "Spielername": "Aurelien Tchouameni",
+        "Spielername": "Aurélien Tchouaméni",
         "Spielerfoto": "https://media.api-sports.io/football/players/1271.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "France",
@@ -7239,7 +7204,7 @@ const playersData = [
     },
     {
         "player.id": 343027,
-        "Spielername": "Desire Doue",
+        "Spielername": "Désiré Doué",
         "Spielerfoto": "https://media.api-sports.io/football/players/343027.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "France",
@@ -7280,7 +7245,7 @@ const playersData = [
         "player.id": 174565,
         "Spielername": "Hugo Ekitike",
         "Spielerfoto": "https://media.api-sports.io/football/players/174565.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "France",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2.png",
         "Club.name": "Liverpool",
@@ -7291,7 +7256,7 @@ const playersData = [
     },
     {
         "player.id": 1145,
-        "Spielername": "Ibrahima Konate",
+        "Spielername": "Ibrahima Konaté",
         "Spielerfoto": "https://media.api-sports.io/football/players/1145.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "France",
@@ -7317,7 +7282,7 @@ const playersData = [
     },
     {
         "player.id": 1257,
-        "Spielername": "Jules Kounde",
+        "Spielername": "Jules Koundé",
         "Spielerfoto": "https://media.api-sports.io/football/players/1257.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "France",
@@ -7330,7 +7295,7 @@ const playersData = [
     },
     {
         "player.id": 116,
-        "Spielername": "Khephren Thuram",
+        "Spielername": "Khéphren Thuram",
         "Spielerfoto": "https://media.api-sports.io/football/players/116.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "France",
@@ -7356,7 +7321,7 @@ const playersData = [
     },
     {
         "player.id": 22147,
-        "Spielername": "Kouadio Kone",
+        "Spielername": "Kouadio Koné",
         "Spielerfoto": "https://media.api-sports.io/football/players/22147.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "France",
@@ -7369,7 +7334,7 @@ const playersData = [
     },
     {
         "player.id": 278,
-        "Spielername": "Kylian Mbappe",
+        "Spielername": "Kylian Mbappé",
         "Spielerfoto": "https://media.api-sports.io/football/players/278.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "France",
@@ -7408,7 +7373,7 @@ const playersData = [
     },
     {
         "player.id": 33,
-        "Spielername": "Lucas Hernandez",
+        "Spielername": "Lucas Hernández",
         "Spielerfoto": "https://media.api-sports.io/football/players/33.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "France",
@@ -7423,7 +7388,7 @@ const playersData = [
         "player.id": 274300,
         "Spielername": "Maghnes Akliouche",
         "Spielerfoto": "https://media.api-sports.io/football/players/274300.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "France",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2.png",
         "Club.name": "Monaco",
@@ -7460,9 +7425,9 @@ const playersData = [
     },
     {
         "player.id": 153,
-        "Spielername": "Masour Dembele",
+        "Spielername": "Masour Dembélé",
         "Spielerfoto": "https://media.api-sports.io/football/players/153.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "France",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2.png",
         "Club.name": "Paris Saint Germain",
@@ -7475,7 +7440,7 @@ const playersData = [
         "player.id": 156477,
         "Spielername": "Mathis Cherki",
         "Spielerfoto": "https://media.api-sports.io/football/players/156477.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "France",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2.png",
         "Club.name": "Manchester City",
@@ -7501,7 +7466,7 @@ const playersData = [
         "player.id": 19617,
         "Spielername": "Michael Olise",
         "Spielerfoto": "https://media.api-sports.io/football/players/19617.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "France",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2.png",
         "Club.name": "Bayern München",
@@ -7525,7 +7490,7 @@ const playersData = [
     },
     {
         "player.id": 2290,
-        "Spielername": "N'Golo Kante",
+        "Spielername": "N'Golo Kanté",
         "Spielerfoto": "https://media.api-sports.io/football/players/2290.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "France",
@@ -7564,7 +7529,7 @@ const playersData = [
     },
     {
         "player.id": 47300,
-        "Spielername": "Theo Hernandez",
+        "Spielername": "Théo Hernández",
         "Spielerfoto": "https://media.api-sports.io/football/players/47300.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "France",
@@ -7577,7 +7542,7 @@ const playersData = [
     },
     {
         "player.id": 336657,
-        "Spielername": "Warren Zaire-Emery",
+        "Spielername": "Warren Zaïre-Emery",
         "Spielerfoto": "https://media.api-sports.io/football/players/336657.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "France",
@@ -7603,7 +7568,7 @@ const playersData = [
     },
     {
         "player.id": 328033,
-        "Spielername": "Aleksandar Pavlovic",
+        "Spielername": "Aleksandar Pavlović",
         "Spielerfoto": "https://media.api-sports.io/football/players/328033.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Germany",
@@ -7683,7 +7648,7 @@ const playersData = [
         "player.id": 24798,
         "Spielername": "Chris Führich",
         "Spielerfoto": "https://media.api-sports.io/football/players/24798.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Germany",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
         "Club.name": "VfB Stuttgart",
@@ -7759,7 +7724,7 @@ const playersData = [
     },
     {
         "player.id": 380978,
-        "Spielername": "Forzan Ouedraogo",
+        "Spielername": "Forzan Ouédraogo",
         "Spielerfoto": "https://media.api-sports.io/football/players/380978.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Germany",
@@ -7852,7 +7817,7 @@ const playersData = [
         "player.id": 978,
         "Spielername": "Kai Havertz",
         "Spielerfoto": "https://media.api-sports.io/football/players/978.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Germany",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
         "Club.name": "Arsenal",
@@ -7878,7 +7843,7 @@ const playersData = [
         "player.id": 178077,
         "Spielername": "Kevin Schade",
         "Spielerfoto": "https://media.api-sports.io/football/players/178077.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Germany",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
         "Club.name": "Germany U21",
@@ -7891,7 +7856,7 @@ const playersData = [
         "player.id": 494131,
         "Spielername": "Lennart Karl",
         "Spielerfoto": "https://media.api-sports.io/football/players/494131.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Germany",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
         "Club.name": "Bayern München",
@@ -7915,7 +7880,7 @@ const playersData = [
     },
     {
         "player.id": 644,
-        "Spielername": "Leroy Sane",
+        "Spielername": "Leroy Sané",
         "Spielerfoto": "https://media.api-sports.io/football/players/644.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Germany",
@@ -8032,7 +7997,7 @@ const playersData = [
     },
     {
         "player.id": 18970,
-        "Spielername": "Pascal Gross",
+        "Spielername": "Pascal Groß",
         "Spielerfoto": "https://media.api-sports.io/football/players/18970.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Germany",
@@ -8086,7 +8051,7 @@ const playersData = [
         "player.id": 510,
         "Spielername": "Serge Gnabry",
         "Spielerfoto": "https://media.api-sports.io/football/players/510.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Germany",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
         "Club.name": "Bayern München",
@@ -8151,7 +8116,7 @@ const playersData = [
         "player.id": 19281,
         "Spielername": "Antoine Semenyo",
         "Spielerfoto": "https://media.api-sports.io/football/players/19281.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ghana",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1504.png",
         "Club.name": "Bournemouth",
@@ -8320,7 +8285,7 @@ const playersData = [
         "player.id": 3428,
         "Spielername": "Jordan Ayew",
         "Spielerfoto": "https://media.api-sports.io/football/players/3428.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ghana",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1504.png",
         "Club.name": "Leicester",
@@ -8346,7 +8311,7 @@ const playersData = [
         "player.id": 1944,
         "Spielername": "Joseph Paintsil",
         "Spielerfoto": "https://media.api-sports.io/football/players/1944.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ghana",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1504.png",
         "Club.name": "Los Angeles Galaxy",
@@ -8437,7 +8402,7 @@ const playersData = [
         "player.id": 15911,
         "Spielername": "Mohammed Kudus",
         "Spielerfoto": "https://media.api-sports.io/football/players/15911.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ghana",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1504.png",
         "Club.name": "Tottenham",
@@ -8489,7 +8454,7 @@ const playersData = [
         "player.id": 526524,
         "Spielername": "Prince Owusu",
         "Spielerfoto": "https://media.api-sports.io/football/players/526524.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ghana",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1504.png",
         "Club.name": "Vereinslos",
@@ -8619,7 +8584,7 @@ const playersData = [
         "player.id": 50958,
         "Spielername": "Derrick Etienne",
         "Spielerfoto": "https://media.api-sports.io/football/players/50958.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Haiti",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2386.png",
         "Club.name": "Toronto FC",
@@ -8656,7 +8621,7 @@ const playersData = [
     },
     {
         "player.id": 318930,
-        "Spielername": "Garven-Michee Metusala",
+        "Spielername": "Garven-Michée Métusala",
         "Spielerfoto": "https://media.api-sports.io/football/players/318930.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Haiti",
@@ -8682,7 +8647,7 @@ const playersData = [
     },
     {
         "player.id": 20655,
-        "Spielername": "Jean-Kevin Duverne",
+        "Spielername": "Jean-Kévin Duverne",
         "Spielerfoto": "https://media.api-sports.io/football/players/20655.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Haiti",
@@ -8721,9 +8686,9 @@ const playersData = [
     },
     {
         "player.id": 174915,
-        "Spielername": "Josue Casimir",
+        "Spielername": "Josué Casimir",
         "Spielerfoto": "https://media.api-sports.io/football/players/174915.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Haiti",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2386.png",
         "Club.name": "Auxerre",
@@ -8734,7 +8699,7 @@ const playersData = [
     },
     {
         "player.id": 123742,
-        "Spielername": "Josue Duverger",
+        "Spielername": "Josué Duverger",
         "Spielerfoto": "https://media.api-sports.io/football/players/123742.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Haiti",
@@ -8747,7 +8712,7 @@ const playersData = [
     },
     {
         "player.id": 20538,
-        "Spielername": "Leverton Pierre",
+        "Spielername": "Léverton Pierre",
         "Spielerfoto": "https://media.api-sports.io/football/players/20538.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Haiti",
@@ -8786,7 +8751,7 @@ const playersData = [
     },
     {
         "player.id": 190747,
-        "Spielername": "Martin Experience",
+        "Spielername": "Martin Expérience",
         "Spielerfoto": "https://media.api-sports.io/football/players/190747.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Haiti",
@@ -8838,7 +8803,7 @@ const playersData = [
     },
     {
         "player.id": 24140,
-        "Spielername": "Stephane Lambese",
+        "Spielername": "Stéphane Lambese",
         "Spielerfoto": "https://media.api-sports.io/football/players/24140.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Haiti",
@@ -8890,7 +8855,7 @@ const playersData = [
     },
     {
         "player.id": 48535,
-        "Spielername": "Yassin Fortune",
+        "Spielername": "Yassin Fortuné",
         "Spielerfoto": "https://media.api-sports.io/football/players/48535.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Haiti",
@@ -8918,7 +8883,7 @@ const playersData = [
         "player.id": 8564,
         "Spielername": "Ali Gholizadeh",
         "Spielerfoto": "https://media.api-sports.io/football/players/8564.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Iran",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/22.png",
         "Club.name": "Lech Poznan",
@@ -8983,7 +8948,7 @@ const playersData = [
         "player.id": 29937,
         "Spielername": "Amirhossein Hosseinzadeh",
         "Spielerfoto": "https://media.api-sports.io/football/players/29937.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Iran",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/22.png",
         "Club.name": "Tractor Sazi",
@@ -9087,7 +9052,7 @@ const playersData = [
         "player.id": 290554,
         "Spielername": "Mohammad Mohebi",
         "Spielerfoto": "https://media.api-sports.io/football/players/290554.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Iran",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/22.png",
         "Club.name": "Sepahan FC",
@@ -9100,7 +9065,7 @@ const playersData = [
         "player.id": 134217,
         "Spielername": "Mohammad Mohebi",
         "Spielerfoto": "https://media.api-sports.io/football/players/134217.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Iran",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/22.png",
         "Club.name": "FC Rostov",
@@ -9357,19 +9322,6 @@ const playersData = [
         "Gewicht": "80"
     },
     {
-        "player.id": 348089,
-        "Spielername": "Hasan Abdulkareem",
-        "Spielerfoto": "https://media.api-sports.io/football/players/348089.png",
-        "Position": "MIDFIELDER",
-        "Nationalteam.name": "Iraq",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/1567.png",
-        "Club.name": "Al Zawra'a",
-        "Club.logo": "https://media.api-sports.io/football/teams/8010.png",
-        "Geburtsdatum": "1999-04-17",
-        "Groesse": "-",
-        "Gewicht": "-"
-    },
-    {
         "player.id": 145465,
         "Spielername": "Hussein Ali",
         "Spielerfoto": "https://media.api-sports.io/football/players/145465.png",
@@ -9386,7 +9338,7 @@ const playersData = [
         "player.id": 140747,
         "Spielername": "Ibraheem Bayesh",
         "Spielerfoto": "https://media.api-sports.io/football/players/140747.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Iraq",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1567.png",
         "Club.name": "Al-Dhafra",
@@ -9506,8 +9458,8 @@ const playersData = [
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Iraq",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1567.png",
-        "Club.name": "Jong Utrecht",
-        "Club.logo": "https://media.api-sports.io/football/teams/428.png",
+        "Club.name": "Utrecht",
+        "Club.logo": "https://media.api-sports.io/football/teams/207.png",
         "Geburtsdatum": "2003-04-27",
         "Groesse": "181",
         "Gewicht": "71"
@@ -9553,7 +9505,7 @@ const playersData = [
     },
     {
         "player.id": 387643,
-        "Spielername": "Bazoumana Toure",
+        "Spielername": "Bazoumana Touré",
         "Spielerfoto": "https://media.api-sports.io/football/players/387643.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Ivory Coast",
@@ -9566,7 +9518,7 @@ const playersData = [
     },
     {
         "player.id": 474591,
-        "Spielername": "Christ Inao Oulai",
+        "Spielername": "Christ Inao OulaÃ¯",
         "Spielerfoto": "https://media.api-sports.io/football/players/474591.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Ivory Coast",
@@ -9594,7 +9546,7 @@ const playersData = [
         "player.id": 3247,
         "Spielername": "Dazet Zaha",
         "Spielerfoto": "https://media.api-sports.io/football/players/3247.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Ivory Coast",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1501.png",
         "Club.name": "Charlotte",
@@ -9631,7 +9583,7 @@ const playersData = [
     },
     {
         "player.id": 1642,
-        "Spielername": "Franck Kessie",
+        "Spielername": "Franck Kessié",
         "Spielerfoto": "https://media.api-sports.io/football/players/1642.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Ivory Coast",
@@ -9657,7 +9609,7 @@ const playersData = [
     },
     {
         "player.id": 161747,
-        "Spielername": "Guela Doue",
+        "Spielername": "Guéla Doué",
         "Spielerfoto": "https://media.api-sports.io/football/players/161747.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Ivory Coast",
@@ -9670,7 +9622,7 @@ const playersData = [
     },
     {
         "player.id": 22149,
-        "Spielername": "Ibrahim Sangare",
+        "Spielername": "Ibrahim Sangaré",
         "Spielerfoto": "https://media.api-sports.io/football/players/22149.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Ivory Coast",
@@ -9735,7 +9687,7 @@ const playersData = [
     },
     {
         "player.id": 277046,
-        "Spielername": "Mohamed Kone",
+        "Spielername": "Mohamed Koné",
         "Spielerfoto": "https://media.api-sports.io/football/players/277046.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Ivory Coast",
@@ -9748,7 +9700,7 @@ const playersData = [
     },
     {
         "player.id": 3246,
-        "Spielername": "Nicolas Pepe",
+        "Spielername": "Nicolas Pépé",
         "Spielerfoto": "https://media.api-sports.io/football/players/3246.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Ivory Coast",
@@ -9774,7 +9726,7 @@ const playersData = [
     },
     {
         "player.id": 334429,
-        "Spielername": "Oumar Diakite",
+        "Spielername": "Oumar Diakité",
         "Spielerfoto": "https://media.api-sports.io/football/players/334429.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Ivory Coast",
@@ -9800,7 +9752,7 @@ const playersData = [
     },
     {
         "player.id": 1826,
-        "Spielername": "Sebastien Haller",
+        "Spielername": "Sébastien Haller",
         "Spielerfoto": "https://media.api-sports.io/football/players/1826.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Ivory Coast",
@@ -9935,8 +9887,8 @@ const playersData = [
         "Position": "DEFENDER",
         "Nationalteam.name": "Japan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
-        "Club.name": "Gent",
-        "Club.logo": "https://media.api-sports.io/football/teams/631.png",
+        "Club.name": "Slavia Praha",
+        "Club.logo": "https://media.api-sports.io/football/teams/560.png",
         "Geburtsdatum": "1999-05-17",
         "Groesse": "184",
         "Gewicht": "73"
@@ -9997,7 +9949,7 @@ const playersData = [
         "player.id": 1942,
         "Spielername": "Junya Ito",
         "Spielerfoto": "https://media.api-sports.io/football/players/1942.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Japan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
         "Club.name": "Genk",
@@ -10023,7 +9975,7 @@ const playersData = [
         "player.id": 106835,
         "Spielername": "Kaoru Mitoma",
         "Spielerfoto": "https://media.api-sports.io/football/players/106835.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Japan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
         "Club.name": "Brighton",
@@ -10138,9 +10090,9 @@ const playersData = [
     },
     {
         "player.id": 2598,
-        "Spielername": "Ritsu Doan",
+        "Spielername": "Ritsu Dōan",
         "Spielerfoto": "https://media.api-sports.io/football/players/2598.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Japan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
         "Club.name": "Eintracht Frankfurt",
@@ -10205,7 +10157,7 @@ const playersData = [
         "player.id": 32862,
         "Spielername": "Takefusa Kubo",
         "Spielerfoto": "https://media.api-sports.io/football/players/32862.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Japan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
         "Club.name": "Real Sociedad",
@@ -10218,7 +10170,7 @@ const playersData = [
         "player.id": 1101,
         "Spielername": "Takumi Minamino",
         "Spielerfoto": "https://media.api-sports.io/football/players/1101.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Japan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
         "Club.name": "Monaco",
@@ -10283,7 +10235,7 @@ const playersData = [
         "player.id": 199143,
         "Spielername": "Yuito Suzuki",
         "Spielerfoto": "https://media.api-sports.io/football/players/199143.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Japan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
         "Club.name": "SC Freiburg",
@@ -10465,7 +10417,7 @@ const playersData = [
         "player.id": 123530,
         "Spielername": "Mahmoud Al Mardi",
         "Spielerfoto": "https://media.api-sports.io/football/players/123530.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Jordan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1548.png",
         "Club.name": "Dibba Al-Fujairah",
@@ -10491,7 +10443,7 @@ const playersData = [
         "player.id": 72142,
         "Spielername": "Mohammed Abu Zurayq",
         "Spielerfoto": "https://media.api-sports.io/football/players/72142.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Jordan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1548.png",
         "Club.name": "Al Hussein",
@@ -10658,7 +10610,7 @@ const playersData = [
     },
     {
         "player.id": 35573,
-        "Spielername": "Alexis Gutierrez",
+        "Spielername": "Alexis Gutiérrez",
         "Spielerfoto": "https://media.api-sports.io/football/players/35573.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -10671,7 +10623,7 @@ const playersData = [
     },
     {
         "player.id": 750,
-        "Spielername": "Alvaro Fidalgo",
+        "Spielername": "Álvaro Fidalgo",
         "Spielerfoto": "https://media.api-sports.io/football/players/750.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -10684,7 +10636,7 @@ const playersData = [
     },
     {
         "player.id": 35645,
-        "Spielername": "Angel Sepulveda",
+        "Spielername": "Ángel Sepúlveda",
         "Spielerfoto": "https://media.api-sports.io/football/players/35645.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
@@ -10697,7 +10649,7 @@ const playersData = [
     },
     {
         "player.id": 291713,
-        "Spielername": "Armando Gonzalez",
+        "Spielername": "Armando González",
         "Spielerfoto": "https://media.api-sports.io/football/players/291713.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
@@ -10710,7 +10662,7 @@ const playersData = [
     },
     {
         "player.id": 212233,
-        "Spielername": "Brian Gutierrez",
+        "Spielername": "Brian Gutiérrez",
         "Spielerfoto": "https://media.api-sports.io/football/players/212233.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
@@ -10723,7 +10675,7 @@ const playersData = [
     },
     {
         "player.id": 237060,
-        "Spielername": "Bryan Gonzalez",
+        "Spielername": "Bryan González",
         "Spielerfoto": "https://media.api-sports.io/football/players/237060.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -10749,9 +10701,9 @@ const playersData = [
     },
     {
         "player.id": 2888,
-        "Spielername": "Carlos Rodriguez",
+        "Spielername": "Carlos Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/2888.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
         "Club.name": "Cruz Azul",
@@ -10762,7 +10714,7 @@ const playersData = [
     },
     {
         "player.id": 2873,
-        "Spielername": "Cesar Montes",
+        "Spielername": "César Montes",
         "Spielerfoto": "https://media.api-sports.io/football/players/2873.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -10775,7 +10727,7 @@ const playersData = [
     },
     {
         "player.id": 359835,
-        "Spielername": "Denzell Garcia",
+        "Spielername": "Denzell García",
         "Spielerfoto": "https://media.api-sports.io/football/players/359835.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -10803,7 +10755,7 @@ const playersData = [
         "player.id": 1577,
         "Spielername": "Diego Lainez",
         "Spielerfoto": "https://media.api-sports.io/football/players/1577.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
         "Club.name": "Tigres UANL",
@@ -10814,7 +10766,7 @@ const playersData = [
     },
     {
         "player.id": 2869,
-        "Spielername": "Edson Alvarez",
+        "Spielername": "Edson Álvarez",
         "Spielerfoto": "https://media.api-sports.io/football/players/2869.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -10827,7 +10779,7 @@ const playersData = [
     },
     {
         "player.id": 375586,
-        "Spielername": "Eduardo Aguila",
+        "Spielername": "Eduardo Águila",
         "Spielerfoto": "https://media.api-sports.io/football/players/375586.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -10840,9 +10792,9 @@ const playersData = [
     },
     {
         "player.id": 51068,
-        "Spielername": "Efrain Alvarez",
+        "Spielername": "Efraín Álvarez",
         "Spielerfoto": "https://media.api-sports.io/football/players/51068.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
         "Club.name": "Guadalajara Chivas",
@@ -10853,7 +10805,7 @@ const playersData = [
     },
     {
         "player.id": 36093,
-        "Spielername": "Erick Sanchez",
+        "Spielername": "Érick Sánchez",
         "Spielerfoto": "https://media.api-sports.io/football/players/36093.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -10866,9 +10818,9 @@ const playersData = [
     },
     {
         "player.id": 266345,
-        "Spielername": "Erik Lira",
+        "Spielername": "Érik Lira",
         "Spielerfoto": "https://media.api-sports.io/football/players/266345.png",
-        "Position": "MIDFIELDER",
+        "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
         "Club.name": "Cruz Azul",
@@ -10892,7 +10844,7 @@ const playersData = [
     },
     {
         "player.id": 362815,
-        "Spielername": "Everardo Lopez",
+        "Spielername": "Everardo López",
         "Spielerfoto": "https://media.api-sports.io/football/players/362815.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -10905,7 +10857,7 @@ const playersData = [
     },
     {
         "player.id": 167014,
-        "Spielername": "Fidel Ambriz",
+        "Spielername": "Fidel Ambríz",
         "Spielerfoto": "https://media.api-sports.io/football/players/167014.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -10931,7 +10883,7 @@ const playersData = [
     },
     {
         "player.id": 6485,
-        "Spielername": "German Berterame",
+        "Spielername": "Germán Berterame",
         "Spielerfoto": "https://media.api-sports.io/football/players/6485.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
@@ -10946,7 +10898,7 @@ const playersData = [
         "player.id": 482605,
         "Spielername": "Gilberto Mora",
         "Spielerfoto": "https://media.api-sports.io/football/players/482605.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
         "Club.name": "Club Tijuana",
@@ -10957,7 +10909,7 @@ const playersData = [
     },
     {
         "player.id": 36088,
-        "Spielername": "Guillermo Martinez",
+        "Spielername": "Guillermo Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/36088.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
@@ -11009,7 +10961,7 @@ const playersData = [
     },
     {
         "player.id": 35773,
-        "Spielername": "Jesus Angulo",
+        "Spielername": "Jesús Angulo",
         "Spielerfoto": "https://media.api-sports.io/football/players/35773.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11022,7 +10974,7 @@ const playersData = [
     },
     {
         "player.id": 2881,
-        "Spielername": "Jesus Gallardo",
+        "Spielername": "Jesús Gallardo",
         "Spielerfoto": "https://media.api-sports.io/football/players/2881.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11035,7 +10987,7 @@ const playersData = [
     },
     {
         "player.id": 35524,
-        "Spielername": "Jesus Garza",
+        "Spielername": "Jesús Garza",
         "Spielerfoto": "https://media.api-sports.io/football/players/35524.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -11048,7 +11000,7 @@ const playersData = [
     },
     {
         "player.id": 290059,
-        "Spielername": "Jesus Orozco",
+        "Spielername": "Jesús Orozco",
         "Spielerfoto": "https://media.api-sports.io/football/players/290059.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11061,7 +11013,7 @@ const playersData = [
     },
     {
         "player.id": 35544,
-        "Spielername": "Johan Vasquez",
+        "Spielername": "Johan Vásquez",
         "Spielerfoto": "https://media.api-sports.io/football/players/35544.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11087,7 +11039,7 @@ const playersData = [
     },
     {
         "player.id": 2878,
-        "Spielername": "Jorge Sanchez",
+        "Spielername": "Jorge Sánchez",
         "Spielerfoto": "https://media.api-sports.io/football/players/2878.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11100,7 +11052,7 @@ const playersData = [
     },
     {
         "player.id": 270774,
-        "Spielername": "Jose Rangel",
+        "Spielername": "José Rangel",
         "Spielerfoto": "https://media.api-sports.io/football/players/270774.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Mexico",
@@ -11113,7 +11065,7 @@ const playersData = [
     },
     {
         "player.id": 35532,
-        "Spielername": "Julian Quinones",
+        "Spielername": "Julián Quiñones",
         "Spielerfoto": "https://media.api-sports.io/football/players/35532.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
@@ -11126,7 +11078,7 @@ const playersData = [
     },
     {
         "player.id": 126751,
-        "Spielername": "Kevin Alvarez",
+        "Spielername": "Kevin Álvarez",
         "Spielerfoto": "https://media.api-sports.io/football/players/126751.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11139,7 +11091,7 @@ const playersData = [
     },
     {
         "player.id": 35716,
-        "Spielername": "Kevin Castaneda",
+        "Spielername": "Kevin Castañeda",
         "Spielerfoto": "https://media.api-sports.io/football/players/35716.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -11152,7 +11104,7 @@ const playersData = [
     },
     {
         "player.id": 35930,
-        "Spielername": "Luis Malagon",
+        "Spielername": "Luis Malagón",
         "Spielerfoto": "https://media.api-sports.io/football/players/35930.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Mexico",
@@ -11191,7 +11143,7 @@ const playersData = [
     },
     {
         "player.id": 390002,
-        "Spielername": "Mateo Chavez",
+        "Spielername": "Mateo Chávez",
         "Spielerfoto": "https://media.api-sports.io/football/players/390002.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11217,7 +11169,7 @@ const playersData = [
     },
     {
         "player.id": 35576,
-        "Spielername": "Orbelin Pineda",
+        "Spielername": "Orbelín Pineda",
         "Spielerfoto": "https://media.api-sports.io/football/players/35576.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Mexico",
@@ -11230,7 +11182,7 @@ const playersData = [
     },
     {
         "player.id": 180734,
-        "Spielername": "Ramon Juarez",
+        "Spielername": "Ramón Juárez",
         "Spielerfoto": "https://media.api-sports.io/football/players/180734.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11243,7 +11195,7 @@ const playersData = [
     },
     {
         "player.id": 2887,
-        "Spielername": "Raul Jimenez",
+        "Spielername": "Raúl Jiménez",
         "Spielerfoto": "https://media.api-sports.io/football/players/2887.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Mexico",
@@ -11282,7 +11234,7 @@ const playersData = [
     },
     {
         "player.id": 129943,
-        "Spielername": "Victor Guzman",
+        "Spielername": "Víctor Guzmán",
         "Spielerfoto": "https://media.api-sports.io/football/players/129943.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Mexico",
@@ -11310,7 +11262,7 @@ const playersData = [
         "player.id": 181421,
         "Spielername": "Abdessamad Ezzalzouli",
         "Spielerfoto": "https://media.api-sports.io/football/players/181421.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Morocco",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/31.png",
         "Club.name": "Real Betis",
@@ -11399,9 +11351,9 @@ const playersData = [
     },
     {
         "player.id": 744,
-        "Spielername": "Brahim Diaz",
+        "Spielername": "Brahim Díaz",
         "Spielerfoto": "https://media.api-sports.io/football/players/744.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Morocco",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/31.png",
         "Club.name": "Real Madrid",
@@ -11503,7 +11455,7 @@ const playersData = [
     },
     {
         "player.id": 396198,
-        "Spielername": "Ismael Baouf",
+        "Spielername": "Ismaël Baouf",
         "Spielerfoto": "https://media.api-sports.io/football/players/396198.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Morocco",
@@ -11830,7 +11782,7 @@ const playersData = [
         "player.id": 247,
         "Spielername": "Cody Gakpo",
         "Spielerfoto": "https://media.api-sports.io/football/players/247.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Netherlands",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1118.png",
         "Club.name": "Liverpool",
@@ -11945,7 +11897,7 @@ const playersData = [
     },
     {
         "player.id": 38746,
-        "Spielername": "Jurrien Timber",
+        "Spielername": "Jurriën Timber",
         "Spielerfoto": "https://media.api-sports.io/football/players/38746.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Netherlands",
@@ -11999,7 +11951,7 @@ const playersData = [
         "player.id": 314266,
         "Spielername": "Luciano Valente",
         "Spielerfoto": "https://media.api-sports.io/football/players/314266.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Netherlands",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1118.png",
         "Club.name": "Feyenoord",
@@ -12075,7 +12027,7 @@ const playersData = [
     },
     {
         "player.id": 18861,
-        "Spielername": "Nathan Ake",
+        "Spielername": "Nathan Aké",
         "Spielerfoto": "https://media.api-sports.io/football/players/18861.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Netherlands",
@@ -12220,7 +12172,7 @@ const playersData = [
         "player.id": 162016,
         "Spielername": "Xavier Simons",
         "Spielerfoto": "https://media.api-sports.io/football/players/162016.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Netherlands",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1118.png",
         "Club.name": "Tottenham",
@@ -12324,7 +12276,7 @@ const playersData = [
         "player.id": 94322,
         "Spielername": "Callum McCowatt",
         "Spielerfoto": "https://media.api-sports.io/football/players/94322.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "New Zealand",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/4673.png",
         "Club.name": "Silkeborg",
@@ -12543,7 +12495,7 @@ const playersData = [
     },
     {
         "player.id": 179862,
-        "Spielername": "Marko Stamenic",
+        "Spielername": "Marko Stamenić",
         "Spielerfoto": "https://media.api-sports.io/football/players/179862.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "New Zealand",
@@ -12688,11 +12640,11 @@ const playersData = [
         "player.id": 6935,
         "Spielername": "Sarpreet Singh",
         "Spielerfoto": "https://media.api-sports.io/football/players/6935.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "New Zealand",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/4673.png",
-        "Club.name": "Wellington Phoenix",
-        "Club.logo": "https://media.api-sports.io/football/teams/942.png",
+        "Club.name": "TSC Backa Topola",
+        "Club.logo": "https://media.api-sports.io/football/teams/2646.png",
         "Geburtsdatum": "1999-02-20",
         "Groesse": "180",
         "Gewicht": "71"
@@ -12751,7 +12703,7 @@ const playersData = [
     },
     {
         "player.id": 8492,
-        "Spielername": "Alexander Sorloth",
+        "Spielername": "Alexander Sørloth",
         "Spielerfoto": "https://media.api-sports.io/football/players/8492.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Norway",
@@ -12792,7 +12744,7 @@ const playersData = [
         "player.id": 314511,
         "Spielername": "Antonio Nusa",
         "Spielerfoto": "https://media.api-sports.io/football/players/314511.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Norway",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1090.png",
         "Club.name": "Norway U21",
@@ -12803,9 +12755,9 @@ const playersData = [
     },
     {
         "player.id": 39115,
-        "Spielername": "Aron Donnum",
+        "Spielername": "Aron Dønnum",
         "Spielerfoto": "https://media.api-sports.io/football/players/39115.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Norway",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1090.png",
         "Club.name": "Toulouse",
@@ -12816,7 +12768,7 @@ const playersData = [
     },
     {
         "player.id": 133916,
-        "Spielername": "Aune Heggebo",
+        "Spielername": "Aune Heggebø",
         "Spielerfoto": "https://media.api-sports.io/football/players/133916.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Norway",
@@ -12829,7 +12781,7 @@ const playersData = [
     },
     {
         "player.id": 265782,
-        "Spielername": "David Moller Wolfe",
+        "Spielername": "David Møller Wolfe",
         "Spielerfoto": "https://media.api-sports.io/football/players/265782.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Norway",
@@ -12894,7 +12846,7 @@ const playersData = [
     },
     {
         "player.id": 39058,
-        "Spielername": "Fredrik Bjorkan",
+        "Spielername": "Fredrik Bjørkan",
         "Spielerfoto": "https://media.api-sports.io/football/players/39058.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Norway",
@@ -12922,7 +12874,7 @@ const playersData = [
         "player.id": 39073,
         "Spielername": "Jens Hauge",
         "Spielerfoto": "https://media.api-sports.io/football/players/39073.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Norway",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1090.png",
         "Club.name": "Bodo/Glimt",
@@ -12933,7 +12885,7 @@ const playersData = [
     },
     {
         "player.id": 2032,
-        "Spielername": "Jorgen Strand Larsen",
+        "Spielername": "Jørgen Strand Larsen",
         "Spielerfoto": "https://media.api-sports.io/football/players/2032.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Norway",
@@ -12998,7 +12950,7 @@ const playersData = [
     },
     {
         "player.id": 18967,
-        "Spielername": "Leo Ostigard",
+        "Spielername": "Leo Østigård",
         "Spielerfoto": "https://media.api-sports.io/football/players/18967.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Norway",
@@ -13024,7 +12976,7 @@ const playersData = [
     },
     {
         "player.id": 753,
-        "Spielername": "Martin Odegaard",
+        "Spielername": "Martin Ødegaard",
         "Spielerfoto": "https://media.api-sports.io/football/players/753.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Norway",
@@ -13063,7 +13015,7 @@ const playersData = [
     },
     {
         "player.id": 39083,
-        "Spielername": "Odin Bjortuft",
+        "Spielername": "Odin Bjørtuft",
         "Spielerfoto": "https://media.api-sports.io/football/players/39083.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Norway",
@@ -13076,7 +13028,7 @@ const playersData = [
     },
     {
         "player.id": 19172,
-        "Spielername": "Orjan Nyland",
+        "Spielername": "Ørjan Nyland",
         "Spielerfoto": "https://media.api-sports.io/football/players/19172.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Norway",
@@ -13091,7 +13043,7 @@ const playersData = [
         "player.id": 278133,
         "Spielername": "Oscar Bobb",
         "Spielerfoto": "https://media.api-sports.io/football/players/278133.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Norway",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1090.png",
         "Club.name": "Manchester City",
@@ -13154,7 +13106,7 @@ const playersData = [
     },
     {
         "player.id": 265444,
-        "Spielername": "Sondre Langas",
+        "Spielername": "Sondre Langås",
         "Spielerfoto": "https://media.api-sports.io/football/players/265444.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Norway",
@@ -13180,7 +13132,7 @@ const playersData = [
     },
     {
         "player.id": 39254,
-        "Spielername": "Torbjorn Heggem",
+        "Spielername": "Torbjørn Heggem",
         "Spielerfoto": "https://media.api-sports.io/football/players/39254.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Norway",
@@ -13245,7 +13197,7 @@ const playersData = [
     },
     {
         "player.id": 7197,
-        "Spielername": "Andres Andrade",
+        "Spielername": "Andrés Andrade",
         "Spielerfoto": "https://media.api-sports.io/football/players/7197.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13258,7 +13210,7 @@ const playersData = [
     },
     {
         "player.id": 325468,
-        "Spielername": "Angel Caicedo",
+        "Spielername": "Ángel Caicedo",
         "Spielerfoto": "https://media.api-sports.io/football/players/325468.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Panama",
@@ -13271,7 +13223,7 @@ const playersData = [
     },
     {
         "player.id": 2977,
-        "Spielername": "Anibal Godoy",
+        "Spielername": "Aníbal Godoy",
         "Spielerfoto": "https://media.api-sports.io/football/players/2977.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Panama",
@@ -13284,7 +13236,7 @@ const playersData = [
     },
     {
         "player.id": 292396,
-        "Spielername": "Azarias Londono",
+        "Spielername": "Azarías Londoño",
         "Spielerfoto": "https://media.api-sports.io/football/players/292396.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
@@ -13323,7 +13275,7 @@ const playersData = [
     },
     {
         "player.id": 2975,
-        "Spielername": "Cesar Blackman",
+        "Spielername": "César Blackman",
         "Spielerfoto": "https://media.api-sports.io/football/players/2975.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13336,7 +13288,7 @@ const playersData = [
     },
     {
         "player.id": 57861,
-        "Spielername": "Cesar Samudio",
+        "Spielername": "César Samudio",
         "Spielerfoto": "https://media.api-sports.io/football/players/57861.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Panama",
@@ -13349,9 +13301,9 @@ const playersData = [
     },
     {
         "player.id": 57875,
-        "Spielername": "Cesar Yanis",
+        "Spielername": "César Yanis",
         "Spielerfoto": "https://media.api-sports.io/football/players/57875.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/11.png",
         "Club.name": "Cobresal",
@@ -13388,7 +13340,7 @@ const playersData = [
     },
     {
         "player.id": 46855,
-        "Spielername": "Edgar Barcenas",
+        "Spielername": "Édgar Bárcenas",
         "Spielerfoto": "https://media.api-sports.io/football/players/46855.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
@@ -13401,7 +13353,7 @@ const playersData = [
     },
     {
         "player.id": 328148,
-        "Spielername": "Edgardo Farina",
+        "Spielername": "Edgardo Fariña",
         "Spielerfoto": "https://media.api-sports.io/football/players/328148.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13414,7 +13366,7 @@ const playersData = [
     },
     {
         "player.id": 337359,
-        "Spielername": "Edward Cedeno",
+        "Spielername": "Edward Cedeño",
         "Spielerfoto": "https://media.api-sports.io/football/players/337359.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Panama",
@@ -13427,7 +13379,7 @@ const playersData = [
     },
     {
         "player.id": 2970,
-        "Spielername": "Eric Davis",
+        "Spielername": "Éric Davis",
         "Spielerfoto": "https://media.api-sports.io/football/players/2970.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Panama",
@@ -13466,7 +13418,7 @@ const playersData = [
     },
     {
         "player.id": 305698,
-        "Spielername": "Hector Hurtado",
+        "Spielername": "Héctor Hurtado",
         "Spielerfoto": "https://media.api-sports.io/football/players/305698.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Panama",
@@ -13479,7 +13431,7 @@ const playersData = [
     },
     {
         "player.id": 96615,
-        "Spielername": "Ismael Diaz",
+        "Spielername": "Ismael Díaz",
         "Spielerfoto": "https://media.api-sports.io/football/players/96615.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
@@ -13492,7 +13444,7 @@ const playersData = [
     },
     {
         "player.id": 57805,
-        "Spielername": "Ivan Anderson",
+        "Spielername": "Iván Anderson",
         "Spielerfoto": "https://media.api-sports.io/football/players/57805.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13531,7 +13483,7 @@ const playersData = [
     },
     {
         "player.id": 57803,
-        "Spielername": "Jorge Gutierrez",
+        "Spielername": "Jorge Gutiérrez",
         "Spielerfoto": "https://media.api-sports.io/football/players/57803.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13544,7 +13496,7 @@ const playersData = [
     },
     {
         "player.id": 57739,
-        "Spielername": "Jose Cordoba",
+        "Spielername": "José Córdoba",
         "Spielerfoto": "https://media.api-sports.io/football/players/57739.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13557,7 +13509,7 @@ const playersData = [
     },
     {
         "player.id": 2983,
-        "Spielername": "Jose Fajardo",
+        "Spielername": "José Fajardo",
         "Spielerfoto": "https://media.api-sports.io/football/players/2983.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
@@ -13570,7 +13522,7 @@ const playersData = [
     },
     {
         "player.id": 39612,
-        "Spielername": "Jose Murillo",
+        "Spielername": "José Murillo",
         "Spielerfoto": "https://media.api-sports.io/football/players/39612.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Panama",
@@ -13583,7 +13535,7 @@ const playersData = [
     },
     {
         "player.id": 2979,
-        "Spielername": "Jose Rodriguez",
+        "Spielername": "José Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/2979.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
@@ -13622,7 +13574,7 @@ const playersData = [
     },
     {
         "player.id": 57775,
-        "Spielername": "Kevin Galvan",
+        "Spielername": "Kevin Galván",
         "Spielerfoto": "https://media.api-sports.io/football/players/57775.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13635,7 +13587,7 @@ const playersData = [
     },
     {
         "player.id": 2967,
-        "Spielername": "Luis Mejia",
+        "Spielername": "Luis Mejía",
         "Spielerfoto": "https://media.api-sports.io/football/players/2967.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Panama",
@@ -13648,7 +13600,7 @@ const playersData = [
     },
     {
         "player.id": 407597,
-        "Spielername": "Martin Krug",
+        "Spielername": "Martín Krug",
         "Spielerfoto": "https://media.api-sports.io/football/players/407597.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13676,7 +13628,7 @@ const playersData = [
         "player.id": 2982,
         "Spielername": "Omar Browne",
         "Spielerfoto": "https://media.api-sports.io/football/players/2982.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/11.png",
         "Club.name": "Tauro FC",
@@ -13687,7 +13639,7 @@ const playersData = [
     },
     {
         "player.id": 57728,
-        "Spielername": "Omar Cordoba",
+        "Spielername": "Omar Córdoba",
         "Spielerfoto": "https://media.api-sports.io/football/players/57728.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Panama",
@@ -13765,7 +13717,7 @@ const playersData = [
     },
     {
         "player.id": 57910,
-        "Spielername": "Tomas Rodriguez",
+        "Spielername": "Tomás Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/57910.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Panama",
@@ -13778,7 +13730,7 @@ const playersData = [
     },
     {
         "player.id": 6236,
-        "Spielername": "Adrian Cubas",
+        "Spielername": "Adrián Cubas",
         "Spielerfoto": "https://media.api-sports.io/football/players/6236.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Paraguay",
@@ -13791,7 +13743,7 @@ const playersData = [
     },
     {
         "player.id": 70723,
-        "Spielername": "Alan Benitez",
+        "Spielername": "Alan Benítez",
         "Spielerfoto": "https://media.api-sports.io/football/players/70723.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Paraguay",
@@ -13806,7 +13758,7 @@ const playersData = [
         "player.id": 2514,
         "Spielername": "Alejandro Romero",
         "Spielerfoto": "https://media.api-sports.io/football/players/2514.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2380.png",
         "Club.name": "Al Ain",
@@ -13843,7 +13795,7 @@ const playersData = [
     },
     {
         "player.id": 2521,
-        "Spielername": "Angel Romero",
+        "Spielername": "Ángel Romero",
         "Spielerfoto": "https://media.api-sports.io/football/players/2521.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
@@ -13869,7 +13821,7 @@ const playersData = [
     },
     {
         "player.id": 48376,
-        "Spielername": "Blas Riveros",
+        "Spielername": "Blás Riveros",
         "Spielerfoto": "https://media.api-sports.io/football/players/48376.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Paraguay",
@@ -13895,7 +13847,7 @@ const playersData = [
     },
     {
         "player.id": 195107,
-        "Spielername": "Damian Bobadilla",
+        "Spielername": "Damián Bobadilla",
         "Spielerfoto": "https://media.api-sports.io/football/players/195107.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Paraguay",
@@ -13908,9 +13860,9 @@ const playersData = [
     },
     {
         "player.id": 278370,
-        "Spielername": "Diego Gomez",
+        "Spielername": "Diego Gómez",
         "Spielerfoto": "https://media.api-sports.io/football/players/278370.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2380.png",
         "Club.name": "Inter Miami",
@@ -13921,7 +13873,7 @@ const playersData = [
     },
     {
         "player.id": 475598,
-        "Spielername": "Diego Leon",
+        "Spielername": "Diego León",
         "Spielerfoto": "https://media.api-sports.io/football/players/475598.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Paraguay",
@@ -13934,7 +13886,7 @@ const playersData = [
     },
     {
         "player.id": 6483,
-        "Spielername": "Gabriel Avalos",
+        "Spielername": "Gabriel Ávalos",
         "Spielerfoto": "https://media.api-sports.io/football/players/6483.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
@@ -13960,7 +13912,7 @@ const playersData = [
     },
     {
         "player.id": 2502,
-        "Spielername": "Gustavo Gomez",
+        "Spielername": "Gustavo Gómez",
         "Spielerfoto": "https://media.api-sports.io/football/players/2502.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Paraguay",
@@ -13986,7 +13938,7 @@ const playersData = [
     },
     {
         "player.id": 195992,
-        "Spielername": "Juan Caceres",
+        "Spielername": "Juan Cáceres",
         "Spielerfoto": "https://media.api-sports.io/football/players/195992.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Paraguay",
@@ -13999,7 +13951,7 @@ const playersData = [
     },
     {
         "player.id": 2496,
-        "Spielername": "Juan Espinola",
+        "Spielername": "Juan Espínola",
         "Spielerfoto": "https://media.api-sports.io/football/players/2496.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Paraguay",
@@ -14014,7 +13966,7 @@ const playersData = [
         "player.id": 70747,
         "Spielername": "Julio Enciso",
         "Spielerfoto": "https://media.api-sports.io/football/players/70747.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2380.png",
         "Club.name": "Strasbourg",
@@ -14025,7 +13977,7 @@ const playersData = [
     },
     {
         "player.id": 2499,
-        "Spielername": "Junior Alonso",
+        "Spielername": "Júnior Alonso",
         "Spielerfoto": "https://media.api-sports.io/football/players/2499.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Paraguay",
@@ -14051,7 +14003,7 @@ const playersData = [
     },
     {
         "player.id": 305832,
-        "Spielername": "Matias Galarza",
+        "Spielername": "Matías Galarza",
         "Spielerfoto": "https://media.api-sports.io/football/players/305832.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Paraguay",
@@ -14064,7 +14016,7 @@ const playersData = [
     },
     {
         "player.id": 2507,
-        "Spielername": "Miguel Almiron",
+        "Spielername": "Miguel Almirón",
         "Spielerfoto": "https://media.api-sports.io/football/players/2507.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
@@ -14103,7 +14055,7 @@ const playersData = [
     },
     {
         "player.id": 196298,
-        "Spielername": "Ramon Sosa",
+        "Spielername": "Ramón Sosa",
         "Spielerfoto": "https://media.api-sports.io/football/players/196298.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
@@ -14116,7 +14068,7 @@ const playersData = [
     },
     {
         "player.id": 95314,
-        "Spielername": "Ronaldo Martinez",
+        "Spielername": "Ronaldo Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/95314.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Paraguay",
@@ -14129,7 +14081,7 @@ const playersData = [
     },
     {
         "player.id": 35808,
-        "Spielername": "Victor Velazquez",
+        "Spielername": "Víctor Velázquez",
         "Spielerfoto": "https://media.api-sports.io/football/players/35808.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Paraguay",
@@ -14142,7 +14094,7 @@ const playersData = [
     },
     {
         "player.id": 331832,
-        "Spielername": "Antonio Silva",
+        "Spielername": "António Silva",
         "Spielerfoto": "https://media.api-sports.io/football/players/331832.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Portugal",
@@ -14157,7 +14109,7 @@ const playersData = [
         "player.id": 636,
         "Spielername": "Bernardo Silva",
         "Spielerfoto": "https://media.api-sports.io/football/players/636.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/27.png",
         "Club.name": "Manchester City",
@@ -14233,7 +14185,7 @@ const playersData = [
     },
     {
         "player.id": 161585,
-        "Spielername": "Francisco Conceicao",
+        "Spielername": "Francisco Conceição",
         "Spielerfoto": "https://media.api-sports.io/football/players/161585.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
@@ -14246,7 +14198,7 @@ const playersData = [
     },
     {
         "player.id": 265595,
-        "Spielername": "Goncalo Inacio",
+        "Spielername": "Gonçalo Inácio",
         "Spielerfoto": "https://media.api-sports.io/football/players/265595.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Portugal",
@@ -14259,7 +14211,7 @@ const playersData = [
     },
     {
         "player.id": 41585,
-        "Spielername": "Goncalo Ramos",
+        "Spielername": "Gonçalo Ramos",
         "Spielerfoto": "https://media.api-sports.io/football/players/41585.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
@@ -14272,7 +14224,7 @@ const playersData = [
     },
     {
         "player.id": 855,
-        "Spielername": "Joao Cancelo",
+        "Spielername": "João Cancelo",
         "Spielerfoto": "https://media.api-sports.io/football/players/855.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Portugal",
@@ -14285,7 +14237,7 @@ const playersData = [
     },
     {
         "player.id": 361433,
-        "Spielername": "Joao Carvalho",
+        "Spielername": "João Carvalho",
         "Spielerfoto": "https://media.api-sports.io/football/players/361433.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Portugal",
@@ -14298,7 +14250,7 @@ const playersData = [
     },
     {
         "player.id": 583,
-        "Spielername": "Joao Felix",
+        "Spielername": "João Félix",
         "Spielerfoto": "https://media.api-sports.io/football/players/583.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
@@ -14311,7 +14263,7 @@ const playersData = [
     },
     {
         "player.id": 335051,
-        "Spielername": "Joao Neves",
+        "Spielername": "João Neves",
         "Spielerfoto": "https://media.api-sports.io/football/players/335051.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Portugal",
@@ -14324,7 +14276,7 @@ const playersData = [
     },
     {
         "player.id": 41104,
-        "Spielername": "Joao Palhinha",
+        "Spielername": "João Palhinha",
         "Spielerfoto": "https://media.api-sports.io/football/players/41104.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Portugal",
@@ -14337,7 +14289,7 @@ const playersData = [
     },
     {
         "player.id": 1590,
-        "Spielername": "Jose Sa",
+        "Spielername": "José Sá",
         "Spielerfoto": "https://media.api-sports.io/football/players/1590.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Portugal",
@@ -14363,9 +14315,9 @@ const playersData = [
     },
     {
         "player.id": 130,
-        "Spielername": "Nelson Semedo",
+        "Spielername": "Nélson Semedo",
         "Spielerfoto": "https://media.api-sports.io/football/players/130.png",
-        "Position": "MIDFIELDER",
+        "Position": "DEFENDER",
         "Nationalteam.name": "Portugal",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/27.png",
         "Club.name": "Fenerbahçe",
@@ -14417,7 +14369,7 @@ const playersData = [
         "player.id": 1864,
         "Spielername": "Pedro Neto",
         "Spielerfoto": "https://media.api-sports.io/football/players/1864.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/27.png",
         "Club.name": "Chelsea",
@@ -14430,7 +14382,7 @@ const playersData = [
         "player.id": 18748,
         "Spielername": "Pote",
         "Spielerfoto": "https://media.api-sports.io/football/players/18748.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/27.png",
         "Club.name": "Sporting CP",
@@ -14441,7 +14393,7 @@ const playersData = [
     },
     {
         "player.id": 22236,
-        "Spielername": "Rafael Leao",
+        "Spielername": "Rafael Leão",
         "Spielerfoto": "https://media.api-sports.io/football/players/22236.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
@@ -14480,7 +14432,7 @@ const playersData = [
     },
     {
         "player.id": 567,
-        "Spielername": "Ruben Dias",
+        "Spielername": "Rúben Dias",
         "Spielerfoto": "https://media.api-sports.io/football/players/567.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Portugal",
@@ -14493,7 +14445,7 @@ const playersData = [
     },
     {
         "player.id": 2676,
-        "Spielername": "Ruben Neves",
+        "Spielername": "Rúben Neves",
         "Spielerfoto": "https://media.api-sports.io/football/players/2676.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Portugal",
@@ -14519,7 +14471,7 @@ const playersData = [
     },
     {
         "player.id": 190485,
-        "Spielername": "Samu Costa",
+        "Spielername": "Samú Costa",
         "Spielerfoto": "https://media.api-sports.io/football/players/190485.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Portugal",
@@ -14532,9 +14484,9 @@ const playersData = [
     },
     {
         "player.id": 41112,
-        "Spielername": "Trincao",
+        "Spielername": "Trincão",
         "Spielerfoto": "https://media.api-sports.io/football/players/41112.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Portugal",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/27.png",
         "Club.name": "Sporting CP",
@@ -14885,7 +14837,7 @@ const playersData = [
         "player.id": 147812,
         "Spielername": "Ayman Yahya",
         "Spielerfoto": "https://media.api-sports.io/football/players/147812.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Saudi Arabia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/23.png",
         "Club.name": "Al-Nassr",
@@ -14963,7 +14915,7 @@ const playersData = [
         "player.id": 381176,
         "Spielername": "Marwan Al Sahafi",
         "Spielerfoto": "https://media.api-sports.io/football/players/381176.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Saudi Arabia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/23.png",
         "Club.name": "Antwerp",
@@ -15171,7 +15123,7 @@ const playersData = [
         "player.id": 44340,
         "Spielername": "Salem Al Dawsari",
         "Spielerfoto": "https://media.api-sports.io/football/players/44340.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Saudi Arabia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/23.png",
         "Club.name": "Al-Hilal Saudi FC",
@@ -15223,7 +15175,7 @@ const playersData = [
         "player.id": 44374,
         "Spielername": "Turki Al Ammar",
         "Spielerfoto": "https://media.api-sports.io/football/players/44374.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Saudi Arabia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/23.png",
         "Club.name": "Al-Qadisiyah FC",
@@ -15364,7 +15316,7 @@ const playersData = [
     },
     {
         "player.id": 19524,
-        "Spielername": "Che Adams",
+        "Spielername": "Ché Adams",
         "Spielerfoto": "https://media.api-sports.io/football/players/19524.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Scotland",
@@ -15626,7 +15578,7 @@ const playersData = [
         "player.id": 1125,
         "Spielername": "Ryan Christie",
         "Spielerfoto": "https://media.api-sports.io/football/players/1125.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Scotland",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1108.png",
         "Club.name": "Bournemouth",
@@ -15678,7 +15630,7 @@ const playersData = [
         "player.id": 282767,
         "Spielername": "Tommy Conway",
         "Spielerfoto": "https://media.api-sports.io/football/players/282767.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Scotland",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1108.png",
         "Club.name": "Scotland U21",
@@ -15767,7 +15719,7 @@ const playersData = [
     },
     {
         "player.id": 2986,
-        "Spielername": "Edouard Mendy",
+        "Spielername": "Édouard Mendy",
         "Spielerfoto": "https://media.api-sports.io/football/players/2986.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Senegal",
@@ -15858,7 +15810,7 @@ const playersData = [
     },
     {
         "player.id": 2218,
-        "Spielername": "Ismaila Sarr",
+        "Spielername": "Ismaïla Sarr",
         "Spielerfoto": "https://media.api-sports.io/football/players/2218.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Senegal",
@@ -15884,7 +15836,7 @@ const playersData = [
     },
     {
         "player.id": 81,
-        "Spielername": "Krepin Diatta",
+        "Spielername": "Krépin Diatta",
         "Spielerfoto": "https://media.api-sports.io/football/players/81.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Senegal",
@@ -15988,7 +15940,7 @@ const playersData = [
     },
     {
         "player.id": 25916,
-        "Spielername": "Moussa Niakhate",
+        "Spielername": "Moussa Niakhaté",
         "Spielerfoto": "https://media.api-sports.io/football/players/25916.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Senegal",
@@ -16058,8 +16010,8 @@ const playersData = [
         "Position": "ATTACKER",
         "Nationalteam.name": "Senegal",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/13.png",
-        "Club.name": "Samsunspor",
-        "Club.logo": "https://media.api-sports.io/football/teams/3603.png",
+        "Club.name": "FK Crvena Zvezda",
+        "Club.logo": "https://media.api-sports.io/football/teams/598.png",
         "Geburtsdatum": "1996-01-23",
         "Groesse": "190",
         "Gewicht": "83"
@@ -16079,7 +16031,7 @@ const playersData = [
     },
     {
         "player.id": 41552,
-        "Spielername": "Pathe Ciss",
+        "Spielername": "Pathé Ciss",
         "Spielerfoto": "https://media.api-sports.io/football/players/41552.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Senegal",
@@ -16092,7 +16044,7 @@ const playersData = [
     },
     {
         "player.id": 304,
-        "Spielername": "Sadio Mane",
+        "Spielername": "Sadio Mané",
         "Spielerfoto": "https://media.api-sports.io/football/players/304.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Senegal",
@@ -16250,7 +16202,7 @@ const playersData = [
         "player.id": 483109,
         "Spielername": "Mohau Nkota",
         "Spielerfoto": "https://media.api-sports.io/football/players/483109.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "South Africa",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1531.png",
         "Club.name": "Al-Ettifaq",
@@ -16276,7 +16228,7 @@ const playersData = [
         "player.id": 179893,
         "Spielername": "Oswin Appollis",
         "Spielerfoto": "https://media.api-sports.io/football/players/179893.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "South Africa",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1531.png",
         "Club.name": "Orlando Pirates",
@@ -16497,7 +16449,7 @@ const playersData = [
         "player.id": 295977,
         "Spielername": "Tshepang Moremi",
         "Spielerfoto": "https://media.api-sports.io/football/players/295977.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "South Africa",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1531.png",
         "Club.name": "Orlando Pirates",
@@ -16523,7 +16475,7 @@ const playersData = [
         "player.id": 357286,
         "Spielername": "Bae Jun-Ho",
         "Spielerfoto": "https://media.api-sports.io/football/players/357286.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "South Korea",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/17.png",
         "Club.name": "Stoke City",
@@ -16575,7 +16527,7 @@ const playersData = [
         "player.id": 24888,
         "Spielername": "Hwang Hee-Chan",
         "Spielerfoto": "https://media.api-sports.io/football/players/24888.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "South Korea",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/17.png",
         "Club.name": "Wolves",
@@ -16783,7 +16735,7 @@ const playersData = [
         "player.id": 927,
         "Spielername": "Lee Kang-In",
         "Spielerfoto": "https://media.api-sports.io/football/players/927.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "South Korea",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/17.png",
         "Club.name": "Paris Saint Germain",
@@ -16926,7 +16878,7 @@ const playersData = [
         "player.id": 423708,
         "Spielername": "Yang Min-Hyeok",
         "Spielerfoto": "https://media.api-sports.io/football/players/423708.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "South Korea",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/17.png",
         "Club.name": "Tottenham",
@@ -16937,7 +16889,7 @@ const playersData = [
     },
     {
         "player.id": 47516,
-        "Spielername": "Aleix Garcia",
+        "Spielername": "Aleix García",
         "Spielerfoto": "https://media.api-sports.io/football/players/47516.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Spain",
@@ -16950,9 +16902,9 @@ const playersData = [
     },
     {
         "player.id": 182219,
-        "Spielername": "Alex Baena",
+        "Spielername": "Álex Baena",
         "Spielerfoto": "https://media.api-sports.io/football/players/182219.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Spain",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
         "Club.name": "Atletico Madrid",
@@ -16963,7 +16915,7 @@ const playersData = [
     },
     {
         "player.id": 563,
-        "Spielername": "Alex Grimaldo",
+        "Spielername": "Álex Grimaldo",
         "Spielerfoto": "https://media.api-sports.io/football/players/563.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Spain",
@@ -16976,7 +16928,7 @@ const playersData = [
     },
     {
         "player.id": 47269,
-        "Spielername": "Alex Remiro",
+        "Spielername": "Álex Remiro",
         "Spielerfoto": "https://media.api-sports.io/football/players/47269.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Spain",
@@ -17004,7 +16956,7 @@ const playersData = [
         "player.id": 47317,
         "Spielername": "Barrenetxea",
         "Spielerfoto": "https://media.api-sports.io/football/players/47317.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Spain",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
         "Club.name": "Spain U21",
@@ -17119,7 +17071,7 @@ const playersData = [
     },
     {
         "player.id": 328,
-        "Spielername": "Fabian Ruiz",
+        "Spielername": "Fabián Ruiz",
         "Spielerfoto": "https://media.api-sports.io/football/players/328.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Spain",
@@ -17132,7 +17084,7 @@ const playersData = [
     },
     {
         "player.id": 340626,
-        "Spielername": "Fermin",
+        "Spielername": "Fermín",
         "Spielerfoto": "https://media.api-sports.io/football/players/340626.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Spain",
@@ -17171,7 +17123,7 @@ const playersData = [
     },
     {
         "player.id": 443162,
-        "Spielername": "Jesus Rodriguez",
+        "Spielername": "Jesús Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/443162.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Spain",
@@ -17199,7 +17151,7 @@ const playersData = [
         "player.id": 386828,
         "Spielername": "Lamine Yamal",
         "Spielerfoto": "https://media.api-sports.io/football/players/386828.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Spain",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
         "Club.name": "Barcelona",
@@ -17223,7 +17175,7 @@ const playersData = [
     },
     {
         "player.id": 47315,
-        "Spielername": "Martin Zubimendi",
+        "Spielername": "Martín Zubimendi",
         "Spielerfoto": "https://media.api-sports.io/football/players/47315.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Spain",
@@ -17301,7 +17253,7 @@ const playersData = [
     },
     {
         "player.id": 396623,
-        "Spielername": "Pau Cubarsi",
+        "Spielername": "Pau Cubarsí",
         "Spielerfoto": "https://media.api-sports.io/football/players/396623.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Spain",
@@ -17379,7 +17331,7 @@ const playersData = [
     },
     {
         "player.id": 47270,
-        "Spielername": "Unai Simon",
+        "Spielername": "Unai Simón",
         "Spielerfoto": "https://media.api-sports.io/football/players/47270.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Spain",
@@ -17392,7 +17344,7 @@ const playersData = [
     },
     {
         "player.id": 338751,
-        "Spielername": "Victor Munoz",
+        "Spielername": "Víctor Muñoz",
         "Spielerfoto": "https://media.api-sports.io/football/players/338751.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Spain",
@@ -17407,7 +17359,7 @@ const playersData = [
         "player.id": 184226,
         "Spielername": "Yeremy Pino",
         "Spielerfoto": "https://media.api-sports.io/football/players/184226.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Spain",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
         "Club.name": "Crystal Palace",
@@ -17459,7 +17411,7 @@ const playersData = [
         "player.id": 350850,
         "Spielername": "Besfort Zeneli",
         "Spielerfoto": "https://media.api-sports.io/football/players/350850.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Sweden",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5.png",
         "Club.name": "Kosovo U21",
@@ -17613,7 +17565,7 @@ const playersData = [
     },
     {
         "player.id": 15683,
-        "Spielername": "Hakan Nilsson",
+        "Spielername": "Håkan Nilsson",
         "Spielerfoto": "https://media.api-sports.io/football/players/15683.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Sweden",
@@ -17758,7 +17710,7 @@ const playersData = [
         "player.id": 160925,
         "Spielername": "Taha Ali",
         "Spielerfoto": "https://media.api-sports.io/football/players/160925.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Sweden",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5.png",
         "Club.name": "Malmo FF",
@@ -17873,7 +17825,7 @@ const playersData = [
     },
     {
         "player.id": 162414,
-        "Spielername": "Aurele Amenda",
+        "Spielername": "Aurèle Amenda",
         "Spielerfoto": "https://media.api-sports.io/football/players/162414.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Switzerland",
@@ -17886,7 +17838,7 @@ const playersData = [
     },
     {
         "player.id": 999,
-        "Spielername": "Becir Omeragic",
+        "Spielername": "Bećir Omeragić",
         "Spielerfoto": "https://media.api-sports.io/football/players/999.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Switzerland",
@@ -18029,7 +17981,7 @@ const playersData = [
     },
     {
         "player.id": 277862,
-        "Spielername": "Joel Monteiro",
+        "Spielername": "Joël Monteiro",
         "Spielerfoto": "https://media.api-sports.io/football/players/277862.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Switzerland",
@@ -18044,7 +17996,7 @@ const playersData = [
         "player.id": 406244,
         "Spielername": "Johan Manzambi",
         "Spielerfoto": "https://media.api-sports.io/football/players/406244.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Switzerland",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/15.png",
         "Club.name": "SC Freiburg",
@@ -18172,7 +18124,7 @@ const playersData = [
     },
     {
         "player.id": 1631,
-        "Spielername": "Ricardo Rodriguez",
+        "Spielername": "Ricardo Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/1631.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Switzerland",
@@ -18185,7 +18137,7 @@ const playersData = [
     },
     {
         "player.id": 48471,
-        "Spielername": "Ruben Vargas",
+        "Spielername": "Rubén Vargas",
         "Spielerfoto": "https://media.api-sports.io/football/players/48471.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Switzerland",
@@ -18265,7 +18217,7 @@ const playersData = [
         "player.id": 49469,
         "Spielername": "Ahmed Ben Ouanes",
         "Spielerfoto": "https://media.api-sports.io/football/players/49469.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Tunisia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/28.png",
         "Club.name": "Kasımpaşa",
@@ -18289,7 +18241,7 @@ const playersData = [
     },
     {
         "player.id": 2947,
-        "Spielername": "Ali Maaloul",
+        "Spielername": "Ali Maâloul",
         "Spielerfoto": "https://media.api-sports.io/football/players/2947.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Tunisia",
@@ -18315,7 +18267,7 @@ const playersData = [
     },
     {
         "player.id": 49610,
-        "Spielername": "Bechir Ben Said",
+        "Spielername": "Béchir Ben Saïd",
         "Spielerfoto": "https://media.api-sports.io/football/players/49610.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Tunisia",
@@ -18432,7 +18384,7 @@ const playersData = [
     },
     {
         "player.id": 310196,
-        "Spielername": "Ismael Gharbi",
+        "Spielername": "Ismaël Gharbi",
         "Spielerfoto": "https://media.api-sports.io/football/players/310196.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Tunisia",
@@ -18447,7 +18399,7 @@ const playersData = [
         "player.id": 42012,
         "Spielername": "Mohamed Achouri",
         "Spielerfoto": "https://media.api-sports.io/football/players/42012.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Tunisia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/28.png",
         "Club.name": "FC Copenhagen",
@@ -18536,7 +18488,7 @@ const playersData = [
     },
     {
         "player.id": 2958,
-        "Spielername": "Naim Sliti",
+        "Spielername": "Naïm Sliti",
         "Spielerfoto": "https://media.api-sports.io/football/players/2958.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Tunisia",
@@ -18640,7 +18592,7 @@ const playersData = [
     },
     {
         "player.id": 61837,
-        "Spielername": "Abdülkerim Bardakci",
+        "Spielername": "Abdülkerim Bardakcı",
         "Spielerfoto": "https://media.api-sports.io/football/players/61837.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Türkiye",
@@ -18653,7 +18605,7 @@ const playersData = [
     },
     {
         "player.id": 50132,
-        "Spielername": "Altay Bayindir",
+        "Spielername": "Altay Bayındır",
         "Spielerfoto": "https://media.api-sports.io/football/players/50132.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Türkiye",
@@ -18692,7 +18644,7 @@ const playersData = [
     },
     {
         "player.id": 63274,
-        "Spielername": "Baris Yilmaz",
+        "Spielername": "Barış Yılmaz",
         "Spielerfoto": "https://media.api-sports.io/football/players/63274.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Türkiye",
@@ -18718,9 +18670,9 @@ const playersData = [
     },
     {
         "player.id": 161790,
-        "Spielername": "Doguhan Simsir",
+        "Spielername": "Doğuhan Şimşir",
         "Spielerfoto": "https://media.api-sports.io/football/players/161790.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Türkiye",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/777.png",
         "Club.name": "Turkey U21",
@@ -18731,7 +18683,7 @@ const playersData = [
     },
     {
         "player.id": 50057,
-        "Spielername": "Evren Elmali",
+        "Spielername": "Evren Elmalı",
         "Spielerfoto": "https://media.api-sports.io/football/players/50057.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Türkiye",
@@ -18757,7 +18709,7 @@ const playersData = [
     },
     {
         "player.id": 1361,
-        "Spielername": "Ferdi Kadioglu",
+        "Spielername": "Ferdi Kadıoğlu",
         "Spielerfoto": "https://media.api-sports.io/football/players/1361.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Türkiye",
@@ -18770,7 +18722,7 @@ const playersData = [
     },
     {
         "player.id": 1640,
-        "Spielername": "Hakan Calhanoglu",
+        "Spielername": "Hakan Çalhanoğlu",
         "Spielerfoto": "https://media.api-sports.io/football/players/1640.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Türkiye",
@@ -18783,7 +18735,7 @@ const playersData = [
     },
     {
         "player.id": 49857,
-        "Spielername": "Irfan Kahveci",
+        "Spielername": "İrfan Kahveci",
         "Spielerfoto": "https://media.api-sports.io/football/players/49857.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Türkiye",
@@ -18796,7 +18748,7 @@ const playersData = [
     },
     {
         "player.id": 214463,
-        "Spielername": "Ismail Yüksek",
+        "Spielername": "İsmail Yüksek",
         "Spielerfoto": "https://media.api-sports.io/football/players/214463.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Türkiye",
@@ -18822,7 +18774,7 @@ const playersData = [
     },
     {
         "player.id": 339883,
-        "Spielername": "Kenan Yildiz",
+        "Spielername": "Kenan Yıldız",
         "Spielerfoto": "https://media.api-sports.io/football/players/339883.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Türkiye",
@@ -18835,7 +18787,7 @@ const playersData = [
     },
     {
         "player.id": 22222,
-        "Spielername": "Mehmet Celik",
+        "Spielername": "Mehmet Çelik",
         "Spielerfoto": "https://media.api-sports.io/football/players/22222.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Türkiye",
@@ -18874,7 +18826,7 @@ const playersData = [
     },
     {
         "player.id": 142959,
-        "Spielername": "Muhammed Aktürkoglu",
+        "Spielername": "Muhammed Aktürkoğlu",
         "Spielerfoto": "https://media.api-sports.io/football/players/142959.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Türkiye",
@@ -18887,7 +18839,7 @@ const playersData = [
     },
     {
         "player.id": 62323,
-        "Spielername": "Mustafa Eskihellac",
+        "Spielername": "Mustafa Eskihellaç",
         "Spielerfoto": "https://media.api-sports.io/football/players/62323.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Türkiye",
@@ -18900,9 +18852,9 @@ const playersData = [
     },
     {
         "player.id": 134590,
-        "Spielername": "Oguz Aydin",
+        "Spielername": "Oğuz Aydın",
         "Spielerfoto": "https://media.api-sports.io/football/players/134590.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Türkiye",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/777.png",
         "Club.name": "Fenerbahçe",
@@ -18913,7 +18865,7 @@ const playersData = [
     },
     {
         "player.id": 37155,
-        "Spielername": "Orkun Kökcü",
+        "Spielername": "Orkun Kökçü",
         "Spielerfoto": "https://media.api-sports.io/football/players/37155.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Türkiye",
@@ -18965,7 +18917,7 @@ const playersData = [
     },
     {
         "player.id": 49866,
-        "Spielername": "Ugurcan Cakir",
+        "Spielername": "Uğurcan Çakır",
         "Spielerfoto": "https://media.api-sports.io/football/players/49866.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Türkiye",
@@ -18991,7 +18943,7 @@ const playersData = [
     },
     {
         "player.id": 278190,
-        "Spielername": "Agustin Alvarez",
+        "Spielername": "Agustín Álvarez",
         "Spielerfoto": "https://media.api-sports.io/football/players/278190.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19004,7 +18956,7 @@ const playersData = [
     },
     {
         "player.id": 51603,
-        "Spielername": "Agustin Canobbio",
+        "Spielername": "Agustín Canobbio",
         "Spielerfoto": "https://media.api-sports.io/football/players/51603.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19017,7 +18969,7 @@ const playersData = [
     },
     {
         "player.id": 311773,
-        "Spielername": "Alvaro Mourino",
+        "Spielername": "Álvaro Mouriño",
         "Spielerfoto": "https://media.api-sports.io/football/players/311773.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19030,7 +18982,7 @@ const playersData = [
     },
     {
         "player.id": 51822,
-        "Spielername": "Cristopher Fiermarin",
+        "Spielername": "Cristopher Fiermarín",
         "Spielerfoto": "https://media.api-sports.io/football/players/51822.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Uruguay",
@@ -19043,7 +18995,7 @@ const playersData = [
     },
     {
         "player.id": 51617,
-        "Spielername": "Darwin Nunez",
+        "Spielername": "Darwin Núñez",
         "Spielerfoto": "https://media.api-sports.io/football/players/51617.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19069,7 +19021,7 @@ const playersData = [
     },
     {
         "player.id": 414340,
-        "Spielername": "Edison Gonzalez",
+        "Spielername": "Edison González",
         "Spielerfoto": "https://media.api-sports.io/football/players/414340.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19082,7 +19034,7 @@ const playersData = [
     },
     {
         "player.id": 153083,
-        "Spielername": "Emiliano Martinez",
+        "Spielername": "Emiliano Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/153083.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Uruguay",
@@ -19110,7 +19062,7 @@ const playersData = [
         "player.id": 51620,
         "Spielername": "Facundo Torres",
         "Spielerfoto": "https://media.api-sports.io/football/players/51620.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/7.png",
         "Club.name": "Austin",
@@ -19121,9 +19073,9 @@ const playersData = [
     },
     {
         "player.id": 51553,
-        "Spielername": "Federico Martinez",
+        "Spielername": "Federico Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/51553.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/7.png",
         "Club.name": "Liverpool Montevideo",
@@ -19147,7 +19099,7 @@ const playersData = [
     },
     {
         "player.id": 51530,
-        "Spielername": "Federico Vinas",
+        "Spielername": "Federico Viñas",
         "Spielerfoto": "https://media.api-sports.io/football/players/51530.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19201,7 +19153,7 @@ const playersData = [
         "player.id": 51464,
         "Spielername": "Ignacio Laquintana",
         "Spielerfoto": "https://media.api-sports.io/football/players/51464.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/7.png",
         "Club.name": "RB Bragantino",
@@ -19212,7 +19164,7 @@ const playersData = [
     },
     {
         "player.id": 51466,
-        "Spielername": "Joaquin Piquerez",
+        "Spielername": "Joaquín Piquerez",
         "Spielerfoto": "https://media.api-sports.io/football/players/51466.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19225,7 +19177,7 @@ const playersData = [
     },
     {
         "player.id": 31,
-        "Spielername": "Jose Gimenez",
+        "Spielername": "José Giménez",
         "Spielerfoto": "https://media.api-sports.io/football/players/31.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19238,7 +19190,7 @@ const playersData = [
     },
     {
         "player.id": 51426,
-        "Spielername": "Jose Rodriguez",
+        "Spielername": "José Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/51426.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19290,7 +19242,7 @@ const playersData = [
     },
     {
         "player.id": 405124,
-        "Spielername": "Kevin Martinez",
+        "Spielername": "Kevin Martínez",
         "Spielerfoto": "https://media.api-sports.io/football/players/405124.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Uruguay",
@@ -19303,7 +19255,7 @@ const playersData = [
     },
     {
         "player.id": 297749,
-        "Spielername": "Luciano Rodriguez",
+        "Spielername": "Luciano Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/297749.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19342,7 +19294,7 @@ const playersData = [
     },
     {
         "player.id": 47254,
-        "Spielername": "Mathias Olivera",
+        "Spielername": "Mathías Olivera",
         "Spielerfoto": "https://media.api-sports.io/football/players/47254.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19355,7 +19307,7 @@ const playersData = [
     },
     {
         "player.id": 51572,
-        "Spielername": "Matias Vina",
+        "Spielername": "Matías Viña",
         "Spielerfoto": "https://media.api-sports.io/football/players/51572.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19368,7 +19320,7 @@ const playersData = [
     },
     {
         "player.id": 51776,
-        "Spielername": "Maximiliano Araujo",
+        "Spielername": "Maximiliano Araújo",
         "Spielerfoto": "https://media.api-sports.io/football/players/51776.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19381,7 +19333,7 @@ const playersData = [
     },
     {
         "player.id": 2614,
-        "Spielername": "Nahitan Nandez",
+        "Spielername": "Nahitan Nández",
         "Spielerfoto": "https://media.api-sports.io/football/players/2614.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19394,7 +19346,7 @@ const playersData = [
     },
     {
         "player.id": 429,
-        "Spielername": "Nestor Muslera",
+        "Spielername": "Néstor Muslera",
         "Spielerfoto": "https://media.api-sports.io/football/players/429.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Uruguay",
@@ -19407,7 +19359,7 @@ const playersData = [
     },
     {
         "player.id": 503271,
-        "Spielername": "Nicolas Azambuja",
+        "Spielername": "Nicolás Azambuja",
         "Spielerfoto": "https://media.api-sports.io/football/players/503271.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
@@ -19420,7 +19372,7 @@ const playersData = [
     },
     {
         "player.id": 30690,
-        "Spielername": "Nicolas Fonseca",
+        "Spielername": "Nicolás Fonseca",
         "Spielerfoto": "https://media.api-sports.io/football/players/30690.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Uruguay",
@@ -19433,7 +19385,7 @@ const playersData = [
     },
     {
         "player.id": 195505,
-        "Spielername": "Nicolas Marichal",
+        "Spielername": "Nicolás Marichal",
         "Spielerfoto": "https://media.api-sports.io/football/players/195505.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19446,9 +19398,9 @@ const playersData = [
     },
     {
         "player.id": 51618,
-        "Spielername": "Paul Rodriguez",
+        "Spielername": "Paul Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/51618.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/7.png",
         "Club.name": "Club America",
@@ -19461,7 +19413,7 @@ const playersData = [
         "player.id": 16482,
         "Spielername": "Rodrigo Aguirre",
         "Spielerfoto": "https://media.api-sports.io/football/players/16482.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Uruguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/7.png",
         "Club.name": "Tigres UANL",
@@ -19498,7 +19450,7 @@ const playersData = [
     },
     {
         "player.id": 101814,
-        "Spielername": "Ronald Araujo",
+        "Spielername": "Ronald Araújo",
         "Spielerfoto": "https://media.api-sports.io/football/players/101814.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19550,7 +19502,7 @@ const playersData = [
     },
     {
         "player.id": 51535,
-        "Spielername": "Sebastian Caceres",
+        "Spielername": "Sebastián Cáceres",
         "Spielerfoto": "https://media.api-sports.io/football/players/51535.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Uruguay",
@@ -19630,7 +19582,7 @@ const playersData = [
         "player.id": 50739,
         "Spielername": "Brenden Aaronson",
         "Spielerfoto": "https://media.api-sports.io/football/players/50739.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "USA",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2384.png",
         "Club.name": "Leeds",
@@ -19643,7 +19595,7 @@ const playersData = [
         "player.id": 17,
         "Spielername": "Christian Pulisic",
         "Spielerfoto": "https://media.api-sports.io/football/players/17.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "USA",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2384.png",
         "Club.name": "AC Milan",
@@ -19695,7 +19647,7 @@ const playersData = [
         "player.id": 312896,
         "Spielername": "Diego Luna",
         "Spielerfoto": "https://media.api-sports.io/football/players/312896.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "USA",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2384.png",
         "Club.name": "Real Salt Lake",
@@ -19734,7 +19686,7 @@ const playersData = [
         "player.id": 161921,
         "Spielername": "Giovanni Reyna",
         "Spielerfoto": "https://media.api-sports.io/football/players/161921.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "USA",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2384.png",
         "Club.name": "Borussia Dortmund",
@@ -19758,7 +19710,7 @@ const playersData = [
     },
     {
         "player.id": 133185,
-        "Spielername": "Joao Cardoso",
+        "Spielername": "João Cardoso",
         "Spielerfoto": "https://media.api-sports.io/football/players/133185.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "USA",
@@ -19812,7 +19764,7 @@ const playersData = [
         "player.id": 162037,
         "Spielername": "Malik Tillman",
         "Spielerfoto": "https://media.api-sports.io/football/players/162037.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "USA",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2384.png",
         "Club.name": "Bayer Leverkusen",
@@ -19953,7 +19905,7 @@ const playersData = [
     },
     {
         "player.id": 38735,
-        "Spielername": "Sergino Dest",
+        "Spielername": "Sergiño Dest",
         "Spielerfoto": "https://media.api-sports.io/football/players/38735.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "USA",
@@ -20070,7 +20022,7 @@ const playersData = [
     },
     {
         "player.id": 73520,
-        "Spielername": "Azizjon G'aniyev",
+        "Spielername": "Azizjon Gʻaniyev",
         "Spielerfoto": "https://media.api-sports.io/football/players/73520.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Uzbekistan",
@@ -20111,7 +20063,7 @@ const playersData = [
         "player.id": 53834,
         "Spielername": "Dostonbek Khamdamov",
         "Spielerfoto": "https://media.api-sports.io/football/players/53834.png",
-        "Position": "MIDFIELDER",
+        "Position": "ATTACKER",
         "Nationalteam.name": "Uzbekistan",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/1568.png",
         "Club.name": "Pakhtakor",
