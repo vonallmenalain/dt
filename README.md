@@ -235,8 +235,23 @@ DreamTeamAuth.finalizePendingTeam();           // idempotent
     manager:           "Alice Müller",
     managerNormalized: "alice müller",
     players: [
-        { slot: "slot-0", playerId: 42, name: "Yann Sommer",
-          nation: "Switzerland", pos: "GOALKEEPER", isCaptain: false },
+        {
+            slot:      "slot-0",
+            playerId:  42,
+            name:      "Yann Sommer",
+            nation:    "Switzerland",
+            pos:       "GOALKEEPER",
+            // Anzeige-Snapshot: bleibt im Team-Doc auch dann nutzbar, wenn
+            // der Spieler später aus `data-wm2026.js` verschwindet (z.B.
+            // nach einer Kader-Bereinigung oder Pseudo-ID-Migration). Die
+            // App fällt erst dann auf diese Felder zurück, wenn der Spieler
+            // nicht mehr in `playersData` gefunden wird.
+            photo:     "https://media.api-sports.io/football/players/42.png",
+            club:      "Inter",
+            clubLogo:  "https://media.api-sports.io/football/teams/505.png",
+            flag:      "https://media.api-sports.io/football/teams/15.png",
+            isCaptain: false
+        }
         // … 14 weitere Einträge
     ],
     status:    "verified",
@@ -244,6 +259,23 @@ DreamTeamAuth.finalizePendingTeam();           // idempotent
     updatedAt: <serverTimestamp>
 }
 ```
+
+Ältere Team-Dokumente besitzen `photo` / `club` / `clubLogo` / `flag` (noch)
+nicht. Frontend-Code behandelt diese Felder konsequent als optional und
+fällt auf die kanonischen Werte aus `data-wm2026.js` zurück. Beim nächsten
+Speichern eines Teams (`saveOrUpdateTeam`) werden die Snapshot-Felder
+automatisch ergänzt.
+
+#### Orphan-Spieler im Builder
+
+`team-builder.html` erkennt beim Laden eines bestehenden Teams aus
+Firestore Spieler, deren `playerId` nicht mehr in `playersData` steht
+(„Orphans"). Solche Slots werden mit dem Snapshot-Stand weiterhin
+sichtbar gerendert, mit Badge **„Bitte ersetzen"** markiert und über das
+Builder-Notice-Banner gemeldet. Der Submit-Button ist nur dann hart
+gesperrt, wenn der **Captain** ein Orphan ist – andere Orphans erzeugen
+nur eine Warnung, damit der Manager sein Team überhaupt erst neu
+speichern kann.
 
 ---
 

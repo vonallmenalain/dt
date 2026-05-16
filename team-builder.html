@@ -699,6 +699,52 @@
             box-shadow: 0 0 0 1px rgba(255,193,7,0.2), 0 8px 24px rgba(255,193,7,0.15), 0 8px 30px rgba(0,0,0,0.5);
         }
 
+        /* Orphan player card – the player ID in the saved team is no
+           longer present in the current kader. The card stays visible
+           with the snapshot data (name/photo/club) so the manager knows
+           who has to be replaced. */
+        .builder-player-card.is-orphan {
+            border: 1.5px solid rgba(248,113,113,0.6);
+            box-shadow: 0 0 0 1px rgba(248,113,113,0.25), 0 8px 24px rgba(248,113,113,0.18), 0 8px 30px rgba(0,0,0,0.5);
+        }
+        .builder-player-card.is-orphan .card-avatar {
+            filter: grayscale(0.6) brightness(0.9);
+        }
+        .builder-player-card .orphan-badge {
+            position: absolute;
+            left: 50%;
+            bottom: 6px;
+            transform: translateX(-50%);
+            background: rgba(248,113,113,0.95);
+            color: #1a0c0c;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 999px;
+            white-space: nowrap;
+            z-index: 4;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+        }
+        .mobile-slot-row .orphan-tag {
+            display: inline-block;
+            margin-left: 4px;
+            background: rgba(248,113,113,0.9);
+            color: #1a0c0c;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 1px 6px;
+            border-radius: 999px;
+            vertical-align: middle;
+        }
+        .mobile-slot-row.is-orphan .mobile-slot-avatar img {
+            filter: grayscale(0.6) brightness(0.9);
+        }
+
         .js-tilt-glare { border-radius: 12px; }
 
         @media (hover: hover) and (pointer: fine) {
@@ -2690,7 +2736,7 @@
             <div class="submit-warnings">
                 <div id="name-warning" class="form-warning">⚠️ Bitte gib Vor- UND Nachnamen ein.</div>
                 <div id="duplicate-warning" class="form-warning">⚠️ Dieser Name ist bereits vergeben.</div>
-                <div id="captain-warning" class="form-warning">⚠️ Wähle noch deinen Captain (Klick auf C).</div>
+                <div id="captain-warning" class="form-warning">⚠️ Wähle noch deinen Captain (Klick auf C). Ist der Captain mit „Bitte ersetzen" markiert, musst du ihn zuerst gegen einen aktiven Spieler austauschen.</div>
             </div>
         </div>
     </div>
@@ -3369,6 +3415,7 @@
     function buildSelectedCardHTML(slot, player) {
         const isCaptain = String(player.id) === String(selectedCaptainId);
         const isActive  = String(slot.id) === String(currentEditingSlotId);
+        const isOrphan  = !!player.isOrphan;
 
         const isBench = slot.cont === 'bench-slots';
 
@@ -3402,14 +3449,18 @@
                         </div>
                     </div>`;
 
+        const orphanBadge = isOrphan
+            ? `<div class="orphan-badge" title="Spieler nicht mehr im aktuellen Kader – bitte ersetzen">Bitte ersetzen</div>`
+            : '';
+
         const innerHtml = isBench
             ? `<div class="bench-btn-row">${captainBtn}${removeBtn}</div>
-                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>`
-            : `${captainBtn}${removeBtn}${avatarHtml}${cardInfoHtml}`;
+                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${orphanBadge}`
+            : `${captainBtn}${removeBtn}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
 
         return `
             <div class="slot-wrapper${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
-                <div class="builder-player-card${isCaptain ? ' is-captain' : ''}">
+                <div class="builder-player-card${isCaptain ? ' is-captain' : ''}${isOrphan ? ' is-orphan' : ''}">
                     ${innerHtml}
                 </div>
             </div>
@@ -3509,13 +3560,17 @@
 
                 if (player) {
                     const isCaptain = String(player.id) === String(selectedCaptainId);
+                    const isOrphan  = !!player.isOrphan;
+                    const orphanTag = isOrphan
+                        ? ' <span class="orphan-tag" title="Spieler nicht mehr im aktuellen Kader – bitte ersetzen">Ersetzen</span>'
+                        : '';
                     return `
-                        <div class="mobile-slot-row${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slotId)}" data-action="open-slot" role="button" tabindex="0" aria-label="${escapeHtml(player.name)} – Slot öffnen">
+                        <div class="mobile-slot-row${isActive ? ' is-active' : ''}${isOrphan ? ' is-orphan' : ''}" data-slot-id="${escapeHtml(slotId)}" data-action="open-slot" role="button" tabindex="0" aria-label="${escapeHtml(player.name)} – Slot öffnen${isOrphan ? ' (bitte ersetzen)' : ''}">
                             <div class="mobile-slot-avatar">
                                 <img src="${escapeHtml(player.photo)}" alt="${escapeHtml(player.name)}" loading="lazy">
                             </div>
                             <div class="mobile-slot-info">
-                                <div class="mobile-slot-name">${escapeHtml(player.name)}${isCaptain ? ' 👑' : ''}${isBench ? ' <span style="font-size:9px;color:var(--text-muted);font-weight:600;">BANK</span>' : ''}</div>
+                                <div class="mobile-slot-name">${escapeHtml(player.name)}${isCaptain ? ' 👑' : ''}${orphanTag}${isBench ? ' <span style="font-size:9px;color:var(--text-muted);font-weight:600;">BANK</span>' : ''}</div>
                                 <div class="mobile-slot-meta">
                                     ${player.flag ? `<img src="${escapeHtml(player.flag)}" alt="${escapeHtml(player.nation)}" loading="lazy">` : ''}
                                     <span>${escapeHtml(player.nation)}</span>
@@ -4022,7 +4077,17 @@
         }
 
         const teamPlayerIds  = Object.values(selectedTeam).map(String);
-        const hasValidCaptain = selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId));
+
+        /* Captain is "valid" only when the chosen player still resolves to
+         * a real (non-orphan) entry. An orphaned captain — i.e. one whose
+         * player has been removed from the kader — must be re-assigned
+         * before the team can be saved, otherwise the captain bonus would
+         * permanently apply to a 0-points slot. */
+        let hasValidCaptain = false;
+        if (selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId))) {
+            const captainPlayer = getPlayerById(selectedCaptainId);
+            hasValidCaptain = !!(captainPlayer && !captainPlayer.isOrphan);
+        }
 
         if (dom.captainWarning) {
             dom.captainWarning.style.display = (!hasValidCaptain && count === 15) ? 'block' : 'none';
@@ -4380,7 +4445,15 @@
     let editingTeamId  = null;   // Firestore doc id if user is in edit mode
     let pendingFinalize = false; // guard against concurrent finalize attempts
 
-    /** Build the canonical Firestore payload from the current builder state. */
+    /** Build the canonical Firestore payload from the current builder state.
+     *
+     * Note: Wir speichern bewusst einen kleinen *Snapshot* der Anzeigedaten
+     * (photo, club, clubLogo) zusätzlich zur playerId. Damit bleibt eine
+     * Spielerkarte auch dann visuell vollständig, wenn der Spieler später
+     * komplett aus `playersData` verschwindet (Squad-Bereinigung, Pseudo-ID
+     * wird durch echte API-ID ersetzt etc.). Pflichtfelder für die
+     * Lookup-Identität bleiben weiterhin slot + playerId.
+     */
     function buildTeamPayload(name) {
         const finalPlayers = Object.entries(selectedTeam).map(([slotId, playerId]) => {
             const player = getPlayerById(playerId);
@@ -4390,6 +4463,10 @@
                 name:      player.name,
                 nation:    player.nation,
                 pos:       player.position,
+                photo:     player.photo || '',
+                club:      player.club || '',
+                clubLogo:  player.clubLogo || '',
+                flag:      player.flag || '',
                 isCaptain: String(player.id) === String(selectedCaptainId)
             };
         });
@@ -4413,6 +4490,35 @@
         dom.submitBtn.textContent = editingTeamId ? SUBMIT_LABEL_UPDATE : SUBMIT_LABEL_CREATE;
     }
 
+    /** Build a synthetic *orphan* player entry from a saved team-doc snapshot
+     *  so the slot can still be rendered when the original player is no
+     *  longer present in `playersData` (e.g. because the player was dropped
+     *  in a kader update). The orphan is intentionally NOT added to
+     *  `preparedPlayers`, so it never shows up in the picker — the user
+     *  may keep it visible but cannot pick it again. The slot card uses
+     *  `player.isOrphan` to render the "Bitte ersetzen" badge.
+     */
+    function buildOrphanPlayerFromSnapshot(savedPlayer) {
+        if (!savedPlayer || savedPlayer.playerId == null) return null;
+        const id = String(savedPlayer.playerId);
+        const positionRaw = savedPlayer.pos || savedPlayer.position || '';
+        return {
+            raw:       null,
+            id,
+            name:      savedPlayer.name || 'Unbekannter Spieler',
+            photo:     savedPlayer.photo || '',
+            position:  normalizePosition(positionRaw),
+            nation:    savedPlayer.nation || '?',
+            flag:      savedPlayer.flag || '',
+            club:      savedPlayer.club || '?',
+            clubLogo:  savedPlayer.clubLogo || '',
+            sortKey:   `${savedPlayer.nation || ''} ${savedPlayer.name || ''}`.toLowerCase(),
+            searchKey: '',
+            _idx:      -1,
+            isOrphan:  true
+        };
+    }
+
     /** Load the user's existing team from Firestore into the builder. */
     async function loadUserTeamIntoBuilder(user) {
         if (!user || !user.emailVerified) return;
@@ -4429,14 +4535,36 @@
 
             const data = existing.data || {};
 
-            /* Reconstruct the slot map from the saved players[] array. */
+            /* Reconstruct the slot map from the saved players[] array.
+             *
+             * For each saved entry we resolve the player against the
+             * current `playersData`. If we don't find one (e.g. the
+             * player was removed from the kader after the team was
+             * saved), we inject a synthetic *orphan* entry into the
+             * lookup map. That keeps the slot visible (with name,
+             * photo and club from the saved snapshot) and surfaces an
+             * actionable warning to the manager — instead of silently
+             * rendering an empty slot like before.
+             */
             const newTeam = {};
             let newCaptain = null;
+            const orphanList = [];
+            let captainIsOrphan = false;
             (data.players || []).forEach(p => {
                 const slotId = String(p.slot || '').replace(/^slot-/, '');
                 if (!isValidSlotId(slotId)) return;
-                newTeam[slotId] = String(p.playerId);
-                if (p.isCaptain) newCaptain = String(p.playerId);
+                const playerId = String(p.playerId);
+                newTeam[slotId] = playerId;
+                if (p.isCaptain) newCaptain = playerId;
+
+                if (!playerById.has(playerId)) {
+                    const orphan = buildOrphanPlayerFromSnapshot(p);
+                    if (orphan) {
+                        playerById.set(playerId, orphan);
+                        orphanList.push(orphan);
+                        if (p.isCaptain) captainIsOrphan = true;
+                    }
+                }
             });
 
             selectedTeam      = newTeam;
@@ -4451,7 +4579,18 @@
             validateForm();
             setSubmitDefaultLabel();
 
-            showToast('✏️ Dein Team wurde zur Bearbeitung geladen.');
+            if (orphanList.length) {
+                const names = orphanList.map(o => o.name).filter(Boolean);
+                const list  = names.length ? ` (${names.join(', ')})` : '';
+                const captainHint = captainIsOrphan
+                    ? ' Dein Captain ist betroffen – bitte zuerst ersetzen.'
+                    : '';
+                showBuilderNotice(
+                    `Achtung: ${orphanList.length} Spieler aus deinem Team sind nicht mehr im aktuellen Kader${list}. Bitte ersetze sie vor Anpfiff.${captainHint}`
+                );
+            } else {
+                showToast('✏️ Dein Team wurde zur Bearbeitung geladen.');
+            }
         } catch (err) {
             console.error('[TeamBuilder] Konnte Team nicht laden:', err);
             showToast('⚠️ Team konnte nicht geladen werden.');
