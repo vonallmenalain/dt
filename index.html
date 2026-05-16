@@ -151,8 +151,44 @@
             max-width: 100%;
         }
 
-        /* Hide the top navbar on index – we have our own hero nav */
-        body > nav.navbar { display: none !important; }
+        /* Top navbar on index: keep the global brand/nav links hidden
+           (the hero section already acts as our main entry point) but
+           expose the auth icon (Login / Mein Team / Abmelden) in the
+           top-right corner so users can log in or manage their team
+           directly from the home page – on mobile *and* desktop. */
+        body > nav.navbar {
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            padding: 12px 16px !important;
+            padding-top: calc(12px + env(safe-area-inset-top)) !important;
+            padding-right: calc(16px + env(safe-area-inset-right)) !important;
+            justify-content: flex-end !important;
+            pointer-events: none; /* let clicks fall through to hero */
+            background-image: none !important;
+        }
+        body > nav.navbar .navbar-brand,
+        body > nav.navbar .nav-links {
+            display: none !important;
+        }
+        body > nav.navbar .nav-actions {
+            gap: 0 !important;
+            pointer-events: auto; /* re-enable clicks on the auth icon */
+        }
+        body > nav.navbar #dt-auth-nav-slot,
+        body > nav.navbar .dt-auth-nav-slot {
+            pointer-events: auto;
+        }
+        /* Ensure the auth icon is readable on top of the dark hero. */
+        body > nav.navbar .dt-auth-nav-icon {
+            background: rgba(13, 17, 23, 0.55);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
 
         /* =====================================================
            PRE/POST-START VIEW SWITCH (FOUC-frei)
