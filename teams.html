@@ -1858,6 +1858,21 @@
     /* =====================================================
        DATA PROCESSING
        ===================================================== */
+    // HTML-Escape für alle Werte, die wir per Template-String in
+    // innerHTML/insertAdjacentHTML einfügen. Die Team-Dokumente in
+    // Firestore enthalten u.a. den vom User gespeicherten Spielernamen
+    // und – historisch – auch Foto-URL, Nation und Club. Ohne Escaping
+    // wäre ein manipuliertes Team-Dokument ein Stored-XSS-Vektor für
+    // alle Besucher dieser Seite.
+    function escapeHtml(v) {
+        return String(v ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     function buildPlayerPointsMap(rawPoints) {
         playerPointsData = {};
         Object.entries(rawPoints || {}).forEach(([id, docData]) => {
@@ -1905,8 +1920,14 @@
                 const basePts = fullP ? (playerPointsData[fullP['player.id']] || 0) : 0;
                 const finalPts = p.isCaptain ? basePts * 2 : basePts;
 
+                // Stored-XSS-Härtung: Anzeigewerte stammen ausschliesslich
+                // aus den kanonischen Spielerdaten (data-wm2026.js). Den vom
+                // User im Team-Dokument gespeicherten p.name verwenden wir
+                // nur noch als Notnagel, falls der Spieler nicht mehr im
+                // aktuellen Kader auffindbar ist – und auch dann fliesst er
+                // ausschliesslich über escapeHtml() in den DOM.
                 return {
-                    name: p.name,
+                    name: fullP ? fullP.Spielername : (p.name || 'Unbekannt'),
                     pos,
                     slotNum,
                     pts: finalPts,
@@ -2098,15 +2119,22 @@
             awards.push({ type: 'instinct', label: 'Captain-Gespür', title: `Captain liefert ${Math.round(team.captainShare * 100)}% der Team-Punkte (${team.captainPoints} Pkt.)`, emoji: '🧠' });
         }
 
-        awardsEl.innerHTML = awards.map(award => `
-            <div class="manager-award ${award.type}" title="${award.title}">
+        awardsEl.innerHTML = awards.map(award => {
+            const safeType  = escapeHtml(award.type);
+            const safeTitle = escapeHtml(award.title);
+            const safeLabel = escapeHtml(award.label);
+            const safeLogo  = escapeHtml(award.logo);
+            const safeEmoji = escapeHtml(award.emoji);
+            return `
+            <div class="manager-award ${safeType}" title="${safeTitle}">
                 ${award.logo
-                    ? `<img src="${award.logo}" alt="${award.label}">`
-                    : `<span class="award-emoji">${award.emoji}</span>`
+                    ? `<img src="${safeLogo}" alt="${safeLabel}">`
+                    : `<span class="award-emoji">${safeEmoji}</span>`
                 }
-                <span>${award.label}</span>
+                <span>${safeLabel}</span>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     /* =====================================================
@@ -2540,16 +2568,35 @@
         const capBadge  = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';
         const ptsId     = `pts-${mergedP.id}-${mergedP.slotNum}`;
 
+        // Defense-in-Depth: Sämtliche dynamischen Werte werden HTML-
+        // escaped, auch wenn sie inzwischen aus den kanonischen Daten
+        // (data-wm2026.js) stammen. analysisUrl ist bereits via
+        // encodeURIComponent geschützt; in einem href="…"-Attribut ist
+        // zusätzliches escapeHtml() schadlos.
+        const safeAnalysisUrl = escapeHtml(analysisUrl);
+        const safeWrapperCls  = escapeHtml(wrapperClass);
+        const safeAnimStyle   = escapeHtml(animStyle);
+        const safeCapClass    = escapeHtml(capClass);
+        const safePtsClass    = escapeHtml(ptsClass);
+        const safePtsId       = escapeHtml(ptsId);
+        const safeSignPts     = escapeHtml(`${sign}${mergedP.pts}`);
+        const safePhoto       = escapeHtml(mergedP.photo);
+        const safeName        = escapeHtml(mergedP.name);
+        const safeFlag        = escapeHtml(mergedP.flag);
+        const safeNation      = escapeHtml(mergedP.nation);
+        const safeClubLogo    = escapeHtml(mergedP.clubLogo);
+        const safeClub        = escapeHtml(mergedP.club);
+
         return `
-            <div class="${wrapperClass}" style="${animStyle}">
-                <a href="${analysisUrl}" class="player-card ${capClass}">
+            <div class="${safeWrapperCls}" style="${safeAnimStyle}">
+                <a href="${safeAnalysisUrl}" class="player-card ${safeCapClass}">
                     ${capBadge}
-                    <div class="card-pts ${ptsClass}" id="${ptsId}">${sign}${mergedP.pts}</div>
-                    <div class="avatar-wrapper"><img src="${mergedP.photo}" class="card-avatar" alt="${mergedP.name}" loading="lazy"></div>
+                    <div class="card-pts ${safePtsClass}" id="${safePtsId}">${safeSignPts}</div>
+                    <div class="avatar-wrapper"><img src="${safePhoto}" class="card-avatar" alt="${safeName}" loading="lazy"></div>
                     <div class="card-info">
-                        <div class="card-name">${mergedP.name}</div>
-                        <div class="card-sub-info"><img src="${mergedP.flag}" class="small-icon" alt="${mergedP.nation}" loading="lazy"> <span>${mergedP.nation}</span></div>
-                        <div class="card-sub-info"><img src="${mergedP.clubLogo}" class="small-icon club" alt="${mergedP.club}" loading="lazy"> <span>${mergedP.club}</span></div>
+                        <div class="card-name">${safeName}</div>
+                        <div class="card-sub-info"><img src="${safeFlag}" class="small-icon" alt="${safeNation}" loading="lazy"> <span>${safeNation}</span></div>
+                        <div class="card-sub-info"><img src="${safeClubLogo}" class="small-icon club" alt="${safeClub}" loading="lazy"> <span>${safeClub}</span></div>
                     </div>
                 </a>
             </div>
