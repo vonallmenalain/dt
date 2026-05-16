@@ -158,6 +158,15 @@ const APP_CONFIG = (() => {
       available: true,
       dataReady: true,
       DREAMTEAM_START: "2026-06-11T21:00:00+02:00",
+      // Aktives Zeitfenster für den serverseitigen Auto-Punkte-Upload
+      // (scripts/auto-points-upload.js). Außerhalb dieses Fensters
+      // beendet sich das Skript vor jeglichem Firebase-Init und ohne
+      // API-Call. Der GitHub-Actions-Cron ist zusätzlich auf den
+      // WM-Zeitraum eingeschränkt – diese Werte sind die zweite
+      // Verteidigungslinie und gelten auch für manuell ausgelöste
+      // Läufe ohne FORCE_RUN.
+      AUTO_POINTS_FROM: "2026-06-11T22:40:00+02:00",
+      AUTO_POINTS_UNTIL: "2026-07-21T08:00:00+02:00",
       storagePrefix: "dreamteam_wm2026",
       cachePrefix: "dreamteam-wm2026",
       dataFile: "data-wm2026.js",
