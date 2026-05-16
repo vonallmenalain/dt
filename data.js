@@ -30,8 +30,10 @@
  *  (`data-wm2026.js`) zurückgefallen.
  * ============================================================================= */
 (function () {
-  // Notfall-Fallback (entspricht dem FALLBACK_TOURNAMENT_KEY in
-  // tournament-config.js, falls dort etwas schiefläuft).
+  // Notfall-Defaults, falls APP_CONFIG (tournament-config.js) noch
+  // nicht geladen ist oder einen unbrauchbaren Wert liefert. Müssen
+  // mit dem FALLBACK_TOURNAMENT_KEY aus tournament-config.js
+  // übereinstimmen.
   var fileName = "data-wm2026.js";
   var activeKey = "wm2026";
 

@@ -1,39 +1,32 @@
 name: Auto Punkte-Upload
 
-# Vollautomatisches Punkte-Update für die WM 2026.
-#
-# Läuft alle 5 Minuten als GitHub-Cron-Job (zusätzlich manuell auslösbar
-# via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check, der
-# überprüft, ob im aktuellen Tick überhaupt ein Spiel im Trigger-Fenster
-# liegt – ist dem nicht so, wird KEIN API-Call abgesetzt. So bleibt die
-# RapidAPI-Quota geschont, obwohl der Cron permanent tickt.
+# Vollautomatisches Punkte-Update für das aktive Turnier laut
+# tournament-config.js. Läuft alle 5 Minuten als GitHub-Cron-Job
+# (zusätzlich manuell auslösbar via "Run workflow"). Innerhalb des
+# Skripts gibt es einen Pre-Check, der prüft, ob im aktuellen Tick
+# überhaupt ein Spiel im Trigger-Fenster liegt – ist dem nicht so,
+# wird KEIN API-Call abgesetzt.
 #
 # Benötigte Repo-Secrets (Settings → Secrets and variables → Actions):
-#   RAPIDAPI_KEY               RapidAPI / API-Football Key
-#   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON (komplette JSON-Datei
-#                              als String – nicht Base64).
+#   RAPIDAPI_KEY               RapidAPI / API-Football Key.
+#   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON als String.
 #
 # Optionale Repo-Variables (Settings → Secrets and variables → Actions
-# → Variables-Tab) zur Feinjustierung ohne Code-Edit:
-#   AUTO_UPLOAD_TOURNAMENT_KEY   Default "wm2026". Aktuell ist nur "wm2026"
-#                                produktiv konfiguriert; andere Keys lassen
-#                                das Skript mit einer klaren Fehlermeldung
-#                                abbrechen, damit Fehlkonfigurationen sofort
-#                                auffallen.
-#   AUTO_UPLOAD_WINDOW_START_MIN Default 100 – untere Grenze des Trigger-Fensters
-#                                in Minuten nach Anstoss (≈ Spielende regulär).
-#   AUTO_UPLOAD_WINDOW_END_MIN   Default 260 – obere Grenze (deckt n.V./Elfm.
-#                                und mehrere Polling-Versuche ab).
+# → Tab Variables) – alle Defaults sind in tournament-config.js bzw.
+# im Skript hinterlegt, hier nur Overrides ohne Code-Edit:
+#   TOURNAMENT_KEY        Überschreibt das Default-Turnier aus
+#                         tournament-config.js. Aktuell unterstützt:
+#                         wm2026.
+#   POINTS_WINDOW_START_MIN  Default 100 – untere Grenze des Trigger-
+#                            Fensters in Minuten nach Anstoss.
+#   POINTS_WINDOW_END_MIN    Default 260 – obere Grenze.
 on:
   schedule:
-    # Alle 5 Minuten. Hinweis: GitHub-Cron ist UTC und kann sich bei
-    # hoher Plattformlast um wenige Minuten verzögern – der Pre-Check
-    # im Skript fängt das ab (Trigger-Fenster ist breit genug).
     - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       tournament_key:
-        description: "Turnier-Key. Aktuell unterstützt: wm2026. Leer = Default aus Variables/wm2026."
+        description: "Turnier-Key (leer = Default aus tournament-config.js)."
         required: false
         type: string
         default: ""
@@ -48,8 +41,6 @@ on:
         type: boolean
         default: false
 
-# Verhindert, dass sich zwei Cron-Läufe überschneiden, falls einer länger
-# als 5 Minuten dauert.
 concurrency:
   group: auto-points-upload-${{ github.ref }}
   cancel-in-progress: false
@@ -79,9 +70,9 @@ jobs:
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || (vars.AUTO_UPLOAD_TOURNAMENT_KEY != '' && vars.AUTO_UPLOAD_TOURNAMENT_KEY || 'wm2026') }}
-          WINDOW_START_MIN: ${{ vars.AUTO_UPLOAD_WINDOW_START_MIN != '' && vars.AUTO_UPLOAD_WINDOW_START_MIN || '100' }}
-          WINDOW_END_MIN: ${{ vars.AUTO_UPLOAD_WINDOW_END_MIN != '' && vars.AUTO_UPLOAD_WINDOW_END_MIN || '260' }}
+          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
+          WINDOW_START_MIN: ${{ vars.POINTS_WINDOW_START_MIN }}
+          WINDOW_END_MIN: ${{ vars.POINTS_WINDOW_END_MIN }}
           FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
         run: node auto-points-upload.js

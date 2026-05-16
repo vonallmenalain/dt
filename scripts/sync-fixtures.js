@@ -3,40 +3,29 @@
  *  scripts/sync-fixtures.js
  *
  *  Server-seitiger Auto-Sync für den Spielplan. Wird via GitHub Actions
- *  (z.B. einmal pro Tag) aufgerufen und aktualisiert den Spielplan inkl.
+ *  (einmal pro Tag) aufgerufen und aktualisiert den Spielplan inkl.
  *  Finalrunden-Spiele automatisch, sobald die Paarungen bei der API
- *  feststehen. Kein Browser-Tab und kein manuelles API-Key-Eintippen mehr
- *  nötig. (Die frühere Browser-Pendant-Seite `adm-sync-fixtures.html` wurde
- *  entfernt, sobald dieser Cron stabil lief.)
+ *  feststehen.
  *
  *  Ablauf pro Lauf:
- *    1. Lädt alle Fixtures des konfigurierten Turniers von api-football
- *       (Zeitzone Europe/Zurich, identisch zum Browser-Skript).
- *    2. Sammelt eindeutige Venue-IDs und holt jede Venue genau einmal
- *       (deckt neue Stadien automatisch ab).
- *    3. Baut pro Spiel ein Firestore-Dokument im seit der WM-2026-Einführung
- *       etablierten Schema (gleiche Felder, gleiche Keys wie zuvor in der
- *       inzwischen entfernten Browser-Seite `adm-sync-fixtures.html`).
- *    4. Schreibt alle Fixture-Dokumente in Batches à 400 nach
- *       `fixturesCollection` (z.B. "Spiele WM 2026").
- *    5. Aktualisiert das Meta-Dokument (`fixturesVersion` += 1,
- *       `fixturesUpdatedAt = Date.now()`), damit der Client merkt, dass
- *       sich der Spielplan geändert hat und neu lädt.
+ *    1. Lädt alle Fixtures des aktiven Turniers von api-football
+ *       (Zeitzone Europe/Zurich).
+ *    2. Sammelt eindeutige Venue-IDs und holt jede Venue genau einmal.
+ *    3. Baut pro Spiel ein Firestore-Dokument im etablierten Schema.
+ *    4. Schreibt die Dokumente in Batches à 400 nach `fixturesCollection`.
+ *    5. Erhöht `fixturesVersion` und setzt `fixturesUpdatedAt` im
+ *       Meta-Dokument – das Signal, mit dem der Client den Cache
+ *       invalidiert.
  *
- *  Env-Variablen (alle aus GitHub Actions Secrets/Variables):
- *    RAPIDAPI_KEY                 RapidAPI / API-Football Key (zwingend)
- *    FIREBASE_SERVICE_ACCOUNT     Service-Account-JSON als String (zwingend)
- *    TOURNAMENT_KEY               Optional, Default `wm2026`. Aktuell ist nur
- *                                 `wm2026` produktiv konfiguriert; ungültige
- *                                 Keys führen zu einem klaren Abbruch.
- *    DRY_RUN                      Falls `1`/`true`: nichts in Firestore
- *                                 schreiben – nur Logs. Praktisch für
- *                                 manuelle Test-Runs.
- *    SKIP_VENUES                  Falls `1`/`true`: Venue-Detail-Calls
- *                                 komplett auslassen (spart API-Quota,
- *                                 wenn die Stadien bereits in Firestore
- *                                 stehen und sich nichts ändert). Default
- *                                 ist `0`.
+ *  Env-Variablen (aus GitHub Actions Secrets / Variables):
+ *    RAPIDAPI_KEY              RapidAPI / API-Football Key (zwingend)
+ *    FIREBASE_SERVICE_ACCOUNT  Service-Account-JSON als String (zwingend)
+ *    TOURNAMENT_KEY            Optional. Default = Fallback aus
+ *                              tournament-config.js. Aktuell ist nur
+ *                              `wm2026` produktiv konfiguriert.
+ *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
+ *    SKIP_VENUES               Falls `1`/`true`: Venue-Detail-Calls
+ *                              auslassen (spart API-Quota).
  *
  *  Exit-Codes:
  *    0  – Lauf abgeschlossen (Spielplan synchronisiert oder Dry-Run ok).
@@ -64,31 +53,11 @@ if (!fetchFn) {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
- *  Turnier-Konfiguration (gespiegelt aus tournament-config.js).
- *
- *  Bewusst eine kompakte Kopie, weil das Browser-Modul `window.location`
- *  und `window.firebase` referenziert. Wenn dort Werte geändert werden,
- *  muss diese Tabelle nachgezogen werden.
- *
- *  Aktuell ist nur `wm2026` aktiv konfiguriert. Wird via GitHub-Action-
- *  Variable ein anderer Key gesetzt, bricht das Script in `main()` mit
- *  einer klaren Fehlermeldung ab.
- * ───────────────────────────────────────────────────────────────────────────── */
-const TOURNAMENTS = {
-  wm2026: {
-    key: 'wm2026',
-    shortLabel: 'WM 2026',
-    type: 'WM',
-    year: '2026',
-    api: { competitionParam: 'league', competitionId: 1, season: '2026' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_wm2026',
-      fixturesCollection: 'Spiele WM 2026'
-    }
-  }
-};
+// Zentrale Turnier-Konfiguration aus tournament-config.js (siehe dort).
+// Keine zweite Tabelle hier pflegen – sonst driften Browser- und Cron-
+// Konfiguration auseinander.
+const APP_CONFIG = require('../tournament-config.js');
+const TOURNAMENTS = APP_CONFIG.tournaments;
 
 const API_HOST = 'v3.football.api-sports.io';
 const VENUE_DELAY_MS = 300;
@@ -207,8 +176,8 @@ async function fetchVenueDetails(venueId, apiKey, venueCache) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  Firestore-Dokument bauen – etabliertes Spielplan-Schema (siehe data.js
- *  und rangliste.html).
+ *  Firestore-Dokument bauen – Spielplan-Schema (siehe rangliste.html für
+ *  Konsumenten).
  * ───────────────────────────────────────────────────────────────────────────── */
 function buildFixtureDocument(fixture, venueDetails, tournament) {
   const f = fixture.fixture || {};
@@ -416,18 +385,20 @@ async function runSync(db, tournament, opts) {
  *  Entrypoint
  * ───────────────────────────────────────────────────────────────────────────── */
 async function main() {
-  const tournamentKey = (process.env.TOURNAMENT_KEY || 'wm2026').trim().toLowerCase();
+  const envKey = (process.env.TOURNAMENT_KEY || '').trim().toLowerCase();
+  const tournamentKey = envKey || APP_CONFIG.activeTournamentKey;
   const tournament = TOURNAMENTS[tournamentKey];
-  if (!tournament) {
+
+  if (!tournament || !APP_CONFIG.isTournamentAvailable(tournamentKey)) {
     logError(
-      `Ungültiger TOURNAMENT_KEY="${tournamentKey}". ` +
-      `Aktuell unterstützt: ${Object.keys(TOURNAMENTS).join(', ')}. ` +
-      `Bitte GitHub-Action-Variable FIXTURES_SYNC_TOURNAMENT_KEY entsprechend setzen ` +
-      `oder leer lassen, dann gilt der Default "wm2026".`
+      `Ungültiger oder nicht verfügbarer TOURNAMENT_KEY="${tournamentKey}". ` +
+      `Aktuell verfügbar laut tournament-config.js: ` +
+      `${APP_CONFIG.getAvailableTournamentKeys().join(', ') || '(keine)'}. ` +
+      `Env-Variable TOURNAMENT_KEY leer lassen, um den Default zu verwenden.`
     );
     process.exit(1);
   }
-  if (!tournament.api.competitionId) {
+  if (!tournament.api || !tournament.api.competitionId) {
     logError(`Für Turnier ${tournament.shortLabel} ist keine API competitionId konfiguriert.`);
     process.exit(1);
   }

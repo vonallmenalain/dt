@@ -4,49 +4,39 @@
  *
  *  Server-seitiger Auto-Upload der Punkte. Wird via GitHub Actions (Cron,
  *  alle paar Minuten) aufgerufen und schreibt die berechneten Punkte direkt
- *  nach Firebase – kein Browser-Tab und keine Admin-Seite mehr nötig.
- *  (Die frühere Browser-Pendant-Seite `adm-upload-points.html` wurde
- *  entfernt, sobald dieser Cron stabil lief.)
+ *  nach Firebase – kein Browser-Tab und keine Admin-Seite nötig.
  *
  *  Ablauf pro Lauf:
  *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
- *    2. Bestimmt Kandidaten-Spiele:
- *         - Anstoss liegt zwischen WINDOW_END_MIN und WINDOW_START_MIN
- *           Minuten in der Vergangenheit  (Default: 100 … 260 Min).
- *         - Status in Firestore ist NICHT bereits FT/AET/PEN.
- *       So bleibt für nicht-relevante Cron-Ticks nur ein einzelner billiger
- *       Firestore-Read und Null API-Calls.
- *    3. Falls Kandidaten existieren: kompletter Punkte-Workflow analog zum
- *       Browser-Skript – API-Fixtures laden, Detail-Stats pro beendetem
+ *    2. Bestimmt Kandidaten-Spiele (Anstoss zwischen WINDOW_END_MIN und
+ *       WINDOW_START_MIN Minuten in der Vergangenheit, Status noch nicht
+ *       FT/AET/PEN). Wenn keine Kandidaten existieren, beendet sich der
+ *       Lauf ohne API-Call (Quota-Schutz).
+ *    3. Punkte-Workflow: API-Fixtures laden, Detail-Stats pro beendetem
  *       Spiel auswerten, Punkte summieren, in Firestore schreiben und
  *       Meta-Dokument (`pointsUpdatedAt`, `pointsVersion`) hochzählen.
+ *       `pointsUpdatedAt` wird ausschliesslich nach einem erfolgreichen
+ *       Schreibvorgang erhöht – die "Zuletzt aktualisiert"-Anzeige auf
+ *       rangliste.html ist also nur dann frisch, wenn neue Daten wirklich
+ *       in Firebase liegen.
  *    4. Aktualisiert Status/Resultat im `fixturesCollection`, sodass das
- *       gerade verarbeitete Spiel bei den nächsten Ticks automatisch nicht
- *       mehr als Kandidat zählt (=> Quota-Schutz).
+ *       Spiel beim nächsten Tick nicht erneut als Kandidat gewertet wird.
  *
- *  Wichtig: Das Meta-Feld `pointsUpdatedAt` wird ausschliesslich nach
- *  einem erfolgreichen Schreibvorgang erhöht. Damit ist die Info auf
- *  rangliste.html ("Zuletzt aktualisiert / Spiel X") nur dann frisch,
- *  wenn die Daten eines neuen Spiels wirklich in Firebase liegen.
- *
- *  Env-Variablen (alle aus GitHub Actions Secrets):
- *    RAPIDAPI_KEY                 RapidAPI / API-Football Key (zwingend)
- *    FIREBASE_SERVICE_ACCOUNT     Service-Account-JSON als String (zwingend)
- *    TOURNAMENT_KEY               Optional, Default `wm2026`. Aktuell ist nur
- *                                 `wm2026` produktiv konfiguriert; andere
- *                                 Keys führen zu einem expliziten Abbruch,
- *                                 damit falsche GitHub-Action-Konfigurationen
- *                                 sofort auffallen.
- *    WINDOW_START_MIN             Optional, Default 100. Untere Grenze des
- *                                 Trigger-Fensters in Minuten nach Anpfiff.
- *    WINDOW_END_MIN               Optional, Default 260. Obere Grenze.
- *    FORCE_RUN                    Falls `1`/`true`: Pre-Check überspringen
- *                                 und Upload erzwingen (Debug/Catch-Up).
- *    DRY_RUN                      Falls `1`/`true`: nicht in Firestore
- *                                 schreiben, nur Log-Ausgabe.
+ *  Env-Variablen (aus GitHub Actions Secrets / Variables):
+ *    RAPIDAPI_KEY              RapidAPI / API-Football Key (zwingend)
+ *    FIREBASE_SERVICE_ACCOUNT  Service-Account-JSON als String (zwingend)
+ *    TOURNAMENT_KEY            Optional. Default = Fallback aus
+ *                              tournament-config.js. Aktuell ist nur
+ *                              `wm2026` produktiv konfiguriert; andere
+ *                              Keys führen zu einem expliziten Abbruch.
+ *    WINDOW_START_MIN          Optional, Default 100. Untere Grenze des
+ *                              Trigger-Fensters in Minuten nach Anpfiff.
+ *    WINDOW_END_MIN            Optional, Default 260. Obere Grenze.
+ *    FORCE_RUN                 Falls `1`/`true`: Pre-Check überspringen.
+ *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
  *
  *  Exit-Codes:
- *    0  – Lauf abgeschlossen (entweder nichts zu tun, oder Upload erfolgreich)
+ *    0  – Lauf abgeschlossen (nichts zu tun oder Upload erfolgreich)
  *    1  – Konfigurationsfehler / nicht behebbar
  *    2  – API/Netzwerkfehler oder Firestore-Schreibfehler
  * ============================================================================= */
@@ -65,9 +55,6 @@ try {
   process.exit(1);
 }
 
-// Node 18+ stellt globalen fetch bereit. Für ältere Node-Versionen
-// versuchen wir node-fetch nachzuladen; im normalen GitHub-Actions-
-// Setup (actions/setup-node@v4 mit node-version 20) ist das kein Thema.
 let fetchFn = (typeof fetch === 'function') ? fetch : null;
 if (!fetchFn) {
   try {
@@ -78,67 +65,14 @@ if (!fetchFn) {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
- *  Konfiguration (aus tournament-config.js gespiegelt)
- *
- *  Bewusst eine kompakte Kopie statt das Browser-Modul zu eval'en: das
- *  Browser-Modul referenziert `window.location` und `window.firebase`, was
- *  in Node nicht trivial ist. Diese Werte ändern sich selten – wenn ein
- *  neues Turnier produktiv geht, muss diese Tabelle parallel zu
- *  tournament-config.js nachgezogen werden.
- *
- *  Aktuell ist nur `wm2026` aktiv konfiguriert. Falls jemand z.B. via
- *  GitHub-Action-Variable einen unbekannten oder nicht (mehr) gepflegten
- *  Turnier-Key setzt, bricht das Script unten in `main()` mit einer
- *  klaren Fehlermeldung ab, statt stillschweigend auf einen anderen
- *  Default zu wechseln.
- * ───────────────────────────────────────────────────────────────────────────── */
-const TOURNAMENTS = {
-  wm2026: {
-    key: 'wm2026',
-    shortLabel: 'WM 2026',
-    type: 'WM',
-    year: '2026',
-    dataFile: 'data-wm2026.js',
-    api: { competitionParam: 'league', competitionId: 1, season: '2026' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_wm2026',
-      pointsCollection: 'Punkte Spieler WM 2026',
-      fixturesCollection: 'Spiele WM 2026'
-    }
-  }
-};
+// Zentrale Turnier- und Regel-Konfiguration. Wird auch vom Browser
+// (`window.APP_CONFIG`) gelesen, damit es nirgendwo eine zweite Tabelle
+// gibt. Wer ein Turnier ergänzt oder eine Regel ändert, fasst NUR
+// tournament-config.js an.
+const APP_CONFIG = require('../tournament-config.js');
+const TOURNAMENTS = APP_CONFIG.tournaments;
+const RULES = APP_CONFIG.rules;
 
-const RULES = {
-  START: 5,
-  SUBBED_IN: 2,
-  SUBBED_OUT: -2,
-  GOAL_GK: 10,
-  GOAL_DEF: 7,
-  GOAL_MID: 6,
-  GOAL_ATT: 5,
-  OWN_GOAL: -5,
-  ASSIST_GK_DEF: 5,
-  ASSIST_MID: 4,
-  ASSIST_ATT: 3,
-  TEAM_GOAL: 1,
-  DEF_BASE_PTS: 6,
-  GEGENTOR_GK_DEF: -2,
-  YELLOW_CARD: -3,
-  RED_CARD: -7,
-  PEN_SAVED: 7,
-  PEN_MISSED: -7,
-  PEN_COMMITED: -5,
-  PEN_WON: 3,
-  WIN: 3,
-  DRAW: 1,
-  LOSS: -3
-};
-
-/* ─────────────────────────────────────────────────────────────────────────────
- *  Helpers
- * ───────────────────────────────────────────────────────────────────────────── */
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 
@@ -314,11 +248,8 @@ async function findCandidateFixtures(db, tournament, opts) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  Punkte-Berechnung pro Spiel
- *
- *  Punkte-Workflow (vormals 1:1 aus `adm-upload-points.html` portiert, die
- *  Browser-Seite wurde inzwischen entfernt). Verändert `allPlayerPoints` in
- *  place.
+ *  Punkte-Berechnung pro Spiel.
+ *  Verändert `allPlayerPoints` in place.
  * ───────────────────────────────────────────────────────────────────────────── */
 function buildEmptyPlayerObject(player) {
   const pObj = { playerName: player.Spielername, totalPoints: 0 };
@@ -573,7 +504,7 @@ async function updateFixtureStatusInFirestore(db, tournament, finishedGames, opt
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  Haupt-Workflow (analog zum manuellen Browser-Klick)
+ *  Haupt-Workflow
  * ───────────────────────────────────────────────────────────────────────────── */
 async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
   const apiKey = process.env.RAPIDAPI_KEY;
@@ -688,18 +619,20 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
  *  Entrypoint
  * ───────────────────────────────────────────────────────────────────────────── */
 async function main() {
-  const tournamentKey = (process.env.TOURNAMENT_KEY || 'wm2026').trim().toLowerCase();
+  const envKey = (process.env.TOURNAMENT_KEY || '').trim().toLowerCase();
+  const tournamentKey = envKey || APP_CONFIG.activeTournamentKey;
   const tournament = TOURNAMENTS[tournamentKey];
-  if (!tournament) {
+
+  if (!tournament || !APP_CONFIG.isTournamentAvailable(tournamentKey)) {
     logError(
-      `Ungültiger TOURNAMENT_KEY="${tournamentKey}". ` +
-      `Aktuell unterstützt: ${Object.keys(TOURNAMENTS).join(', ')}. ` +
-      `Bitte GitHub-Action-Variable AUTO_UPLOAD_TOURNAMENT_KEY entsprechend setzen ` +
-      `oder leer lassen, dann gilt der Default "wm2026".`
+      `Ungültiger oder nicht verfügbarer TOURNAMENT_KEY="${tournamentKey}". ` +
+      `Aktuell verfügbar laut tournament-config.js: ` +
+      `${APP_CONFIG.getAvailableTournamentKeys().join(', ') || '(keine)'}. ` +
+      `Env-Variable TOURNAMENT_KEY leer lassen, um den Default zu verwenden.`
     );
     process.exit(1);
   }
-  if (!tournament.api.competitionId) {
+  if (!tournament.api || !tournament.api.competitionId) {
     logError(`Für Turnier ${tournament.shortLabel} ist keine API competitionId konfiguriert.`);
     process.exit(1);
   }
