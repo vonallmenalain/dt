@@ -756,6 +756,49 @@
             text-align: center;
         }
 
+        .squad-status-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: rgba(251,146,60,0.15);
+            border: 1px solid rgba(251,146,60,0.45);
+            color: #fdba74;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            line-height: 1.35;
+            max-width: max-content;
+        }
+        .squad-status-banner .squad-status-icon {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+        @media (max-width: 600px) {
+            .squad-status-banner {
+                font-size: 0.75rem;
+                padding: 5px 10px;
+            }
+        }
+
+        /* Spieler-Listen-Badge: kompakt, neben den anderen Tags. */
+        .not-final-list-badge {
+            display: inline-block;
+            background: rgba(251,146,60,0.92);
+            color: #1a0e02;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .list-item.is-not-final .list-avatar {
+            filter: grayscale(0.5) brightness(0.92);
+        }
+
         #detail-name {
             font-size: clamp(1.6rem, 3.5vw, 2.6rem);
             font-weight: 900;
@@ -4101,6 +4144,14 @@
                                     <h2 id="detail-name">Spielername</h2>
                                 </div>
 
+                                <!-- Squad-Status-Banner: nur sichtbar, wenn der
+                                     Spieler nicht mehr im definitiven WM-Kader
+                                     steht (`inFinalSquad === false`). -->
+                                <div id="detail-squad-status" class="squad-status-banner" style="display:none;" role="note">
+                                    <span class="squad-status-icon">⚠</span>
+                                    <span id="detail-squad-status-text">Dieser Spieler steht nicht im definitiven WM-Kader.</span>
+                                </div>
+
                                 <!-- Nation & Club -->
                                 <div class="player-flag-club-row">
                                     <!-- Nation tile (id preserved for onclick JS) -->
@@ -5073,6 +5124,12 @@
             const ptsDoc = pointsData[String(player['player.id'])];
             const pts = ptsDoc ? (ptsDoc.totalPoints || 0) : 0;
             const isDrafted = isPlayerDrafted(player['player.id']);
+            const isNotFinal = player.inFinalSquad === false;
+            if (isNotFinal) div.classList.add('is-not-final');
+
+            const notFinalBadge = isNotFinal
+                ? '<span class="not-final-list-badge" title="Nicht im definitiven WM-Kader" aria-label="Nicht im definitiven WM-Kader">Nicht im WM-Kader</span>'
+                : '';
 
             div.innerHTML = `
                 <img src="${escapeHtml(player.Spielerfoto)}" class="list-avatar"
@@ -5081,6 +5138,7 @@
                     <div class="list-name">${escapeHtml(player.Spielername)}</div>
                     <div class="list-pos">${escapeHtml(translatePosition(player.Position))} | ${escapeHtml(player['Nationalteam.name'])}</div>
                 </div>
+                ${notFinalBadge}
                 ${isDrafted ? '<span class="games-picked-badge" aria-label="Wurde gedraftet">Gewählt</span>' : ''}
                 <div class="list-pts ${pts < 0 ? 'neg' : ''}" aria-label="${pts > 0 ? '+' : ''}${pts} Punkte">${pts > 0 ? '+' : ''}${pts}</div>
             `;
@@ -5204,6 +5262,21 @@
 
         // Position pill
         document.getElementById('detail-position').textContent = translatePosition(player.Position);
+
+        // Squad-Status: nicht im definitiven WM-Kader → kleiner Hinweis
+        // direkt unter dem Spielernamen. Default (inFinalSquad ===
+        // undefined) → keine Anzeige.
+        const squadStatusEl = document.getElementById('detail-squad-status');
+        const squadStatusTextEl = document.getElementById('detail-squad-status-text');
+        if (squadStatusEl && squadStatusTextEl) {
+            if (player.inFinalSquad === false) {
+                squadStatusTextEl.textContent =
+                    'Dieser Spieler steht nicht im definitiven WM-Kader. Er war nur Teil des provisorischen Aufgebots und wird im Turnier keine Punkte sammeln.';
+                squadStatusEl.style.display = '';
+            } else {
+                squadStatusEl.style.display = 'none';
+            }
+        }
 
         // Nation
         const nationFlagEl = document.getElementById('detail-nation-flag');

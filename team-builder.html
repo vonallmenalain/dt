@@ -745,6 +745,53 @@
             filter: grayscale(0.6) brightness(0.9);
         }
 
+        /* Spieler war provisorisch im Kader, fehlt aber im definitiven –
+           ähnlich wie Orphan, aber semantisch milder (Spieler-Daten sind
+           noch vollständig vorhanden; er wird nur nicht mehr aufgeboten).
+           Optisch in warmem Orange statt Rot, damit „echter Orphan" und
+           „nicht nominiert" nebeneinander unterscheidbar bleiben. */
+        .builder-player-card.is-not-final {
+            border: 1.5px solid rgba(251,146,60,0.6);
+            box-shadow: 0 0 0 1px rgba(251,146,60,0.25), 0 8px 24px rgba(251,146,60,0.15), 0 8px 30px rgba(0,0,0,0.5);
+        }
+        .builder-player-card.is-not-final .card-avatar {
+            filter: grayscale(0.5) brightness(0.92);
+        }
+        .builder-player-card .not-final-badge {
+            position: absolute;
+            left: 50%;
+            bottom: 6px;
+            transform: translateX(-50%);
+            background: rgba(251,146,60,0.95);
+            color: #1a0e02;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 999px;
+            white-space: nowrap;
+            z-index: 4;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+        }
+        .mobile-slot-row .not-final-tag {
+            display: inline-block;
+            margin-left: 4px;
+            background: rgba(251,146,60,0.9);
+            color: #1a0e02;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding: 1px 6px;
+            border-radius: 999px;
+            vertical-align: middle;
+        }
+        .mobile-slot-row.is-not-final .mobile-slot-avatar img {
+            filter: grayscale(0.5) brightness(0.92);
+        }
+
         .js-tilt-glare { border-radius: 12px; }
 
         @media (hover: hover) and (pointer: fine) {
@@ -2898,6 +2945,19 @@
         return tokens.every(tok => text.includes(tok));
     }
 
+    /* `inFinalSquad` Konvention:
+     *   - `true`  → Spieler ist im definitiven WM-Kader (Phase B/C).
+     *   - `false` → Spieler war im provisorischen Kader, fehlt aber im
+     *                definitiven – wird in Picker ausgeblendet, aber wenn er
+     *                bereits in einem gespeicherten Team steht, bleibt er
+     *                sichtbar mit Badge „Nicht im definitiven Kader".
+     *   - `undefined` (Feld fehlt) → wie `true` behandeln. So bleibt das
+     *                Verhalten in Phase A (provisorisches Kader, kein Flag
+     *                gesetzt) identisch zum Status quo. */
+    function isInFinalSquadFlag(rawPlayer) {
+        return rawPlayer && rawPlayer.inFinalSquad === false ? false : true;
+    }
+
     const preparedPlayers = sourcePlayers.map((p, idx) => ({
         raw:       p,
         id:        String(p['player.id']),
@@ -2908,6 +2968,7 @@
         flag:      p['Nationalteam.logo'] || '',
         club:      p['Club.name'] || 'Vereinslos',
         clubLogo:  p['Club.logo'] || '',
+        inFinalSquad: isInFinalSquadFlag(p),
         sortKey:   `${p['Nationalteam.name'] || ''} ${p.Spielername || ''}`.toLowerCase(),
         /* Suche auch über deutsche Länderaliasse (z. B. „Schweiz“ → Switzerland)
            ermöglichen, indem die Aliase aus country-aliases.js angehängt werden. */
@@ -3416,6 +3477,11 @@
         const isCaptain = String(player.id) === String(selectedCaptainId);
         const isActive  = String(slot.id) === String(currentEditingSlotId);
         const isOrphan  = !!player.isOrphan;
+        // Spieler aus dem provisorischen Kader, der im definitiven nicht
+        // mehr auftaucht. Orphan hat Vorrang, falls beide Flags gesetzt
+        // sind – ein „echter" Orphan (nicht in playersData) ist auch
+        // automatisch nicht mehr im definitiven Kader.
+        const isNotFinal = !isOrphan && player.inFinalSquad === false;
 
         const isBench = slot.cont === 'bench-slots';
 
@@ -3452,15 +3518,19 @@
         const orphanBadge = isOrphan
             ? `<div class="orphan-badge" title="Spieler nicht mehr im aktuellen Kader – bitte ersetzen">Bitte ersetzen</div>`
             : '';
+        const notFinalBadge = isNotFinal
+            ? `<div class="not-final-badge" title="Spieler nicht im definitiven WM-Kader – bitte ersetzen">Nicht im WM-Kader</div>`
+            : '';
+        const statusBadge = orphanBadge || notFinalBadge;
 
         const innerHtml = isBench
             ? `<div class="bench-btn-row">${captainBtn}${removeBtn}</div>
-                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${orphanBadge}`
-            : `${captainBtn}${removeBtn}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
+                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${statusBadge}`
+            : `${captainBtn}${removeBtn}${avatarHtml}${cardInfoHtml}${statusBadge}`;
 
         return `
             <div class="slot-wrapper${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
-                <div class="builder-player-card${isCaptain ? ' is-captain' : ''}${isOrphan ? ' is-orphan' : ''}">
+                <div class="builder-player-card${isCaptain ? ' is-captain' : ''}${isOrphan ? ' is-orphan' : ''}${isNotFinal ? ' is-not-final' : ''}">
                     ${innerHtml}
                 </div>
             </div>
@@ -3561,16 +3631,20 @@
                 if (player) {
                     const isCaptain = String(player.id) === String(selectedCaptainId);
                     const isOrphan  = !!player.isOrphan;
+                    const isNotFinal = !isOrphan && player.inFinalSquad === false;
                     const orphanTag = isOrphan
                         ? ' <span class="orphan-tag" title="Spieler nicht mehr im aktuellen Kader – bitte ersetzen">Ersetzen</span>'
                         : '';
+                    const notFinalTag = isNotFinal
+                        ? ' <span class="not-final-tag" title="Spieler nicht im definitiven WM-Kader – bitte ersetzen">Nicht im WM-Kader</span>'
+                        : '';
                     return `
-                        <div class="mobile-slot-row${isActive ? ' is-active' : ''}${isOrphan ? ' is-orphan' : ''}" data-slot-id="${escapeHtml(slotId)}" data-action="open-slot" role="button" tabindex="0" aria-label="${escapeHtml(player.name)} – Slot öffnen${isOrphan ? ' (bitte ersetzen)' : ''}">
+                        <div class="mobile-slot-row${isActive ? ' is-active' : ''}${isOrphan ? ' is-orphan' : ''}${isNotFinal ? ' is-not-final' : ''}" data-slot-id="${escapeHtml(slotId)}" data-action="open-slot" role="button" tabindex="0" aria-label="${escapeHtml(player.name)} – Slot öffnen${isOrphan ? ' (bitte ersetzen)' : ''}${isNotFinal ? ' (nicht im WM-Kader)' : ''}">
                             <div class="mobile-slot-avatar">
                                 <img src="${escapeHtml(player.photo)}" alt="${escapeHtml(player.name)}" loading="lazy">
                             </div>
                             <div class="mobile-slot-info">
-                                <div class="mobile-slot-name">${escapeHtml(player.name)}${isCaptain ? ' 👑' : ''}${orphanTag}${isBench ? ' <span style="font-size:9px;color:var(--text-muted);font-weight:600;">BANK</span>' : ''}</div>
+                                <div class="mobile-slot-name">${escapeHtml(player.name)}${isCaptain ? ' 👑' : ''}${orphanTag}${notFinalTag}${isBench ? ' <span style="font-size:9px;color:var(--text-muted);font-weight:600;">BANK</span>' : ''}</div>
                                 <div class="mobile-slot-meta">
                                     ${player.flag ? `<img src="${escapeHtml(player.flag)}" alt="${escapeHtml(player.nation)}" loading="lazy">` : ''}
                                     <span>${escapeHtml(player.nation)}</span>
@@ -3742,7 +3816,12 @@
 
         const slotId = currentEditingSlotId;
 
+        /* In Phase B (definitives Kader importiert) tauchen Spieler mit
+         * `inFinalSquad: false` nicht im Picker auf. Sie sind nicht mehr
+         * neu wählbar; bestehende Auswahl in Slot-Karten bleibt sichtbar
+         * mit „Nicht im definitiven Kader"-Badge. */
         let players = preparedPlayers
+            .filter(p => p.inFinalSquad !== false)
             .filter(p => p.position === requiredPos)
             .filter(p => nationFilter === 'ALL' || p.nation === nationFilter)
             .filter(p => !searchTokens.length || searchTokens.every(tok => p.searchKey.includes(tok)));
@@ -4078,15 +4157,25 @@
 
         const teamPlayerIds  = Object.values(selectedTeam).map(String);
 
-        /* Captain is "valid" only when the chosen player still resolves to
-         * a real (non-orphan) entry. An orphaned captain — i.e. one whose
-         * player has been removed from the kader — must be re-assigned
-         * before the team can be saved, otherwise the captain bonus would
-         * permanently apply to a 0-points slot. */
+        /* Captain is "valid" only when the chosen player still resolves
+         * to a real entry that is also part of the definitive squad.
+         * Two cases reject:
+         *   1) Orphan: player has been removed from `playersData`
+         *      altogether → captain bonus would apply to 0-points slot.
+         *   2) `inFinalSquad === false`: player is in `playersData` but
+         *      not in the definitive WM-Kader → he won't earn points
+         *      during the tournament, so the captain bonus would also
+         *      land on a 0-points slot.
+         * Both must be re-assigned to a definitive-squad player before
+         * the team can be saved. */
         let hasValidCaptain = false;
         if (selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId))) {
             const captainPlayer = getPlayerById(selectedCaptainId);
-            hasValidCaptain = !!(captainPlayer && !captainPlayer.isOrphan);
+            hasValidCaptain = !!(
+                captainPlayer
+                && !captainPlayer.isOrphan
+                && captainPlayer.inFinalSquad !== false
+            );
         }
 
         if (dom.captainWarning) {
@@ -4549,7 +4638,9 @@
             const newTeam = {};
             let newCaptain = null;
             const orphanList = [];
+            const notFinalList = [];
             let captainIsOrphan = false;
+            let captainIsNotFinal = false;
             (data.players || []).forEach(p => {
                 const slotId = String(p.slot || '').replace(/^slot-/, '');
                 if (!isValidSlotId(slotId)) return;
@@ -4557,13 +4648,17 @@
                 newTeam[slotId] = playerId;
                 if (p.isCaptain) newCaptain = playerId;
 
-                if (!playerById.has(playerId)) {
+                const existing = playerById.get(playerId);
+                if (!existing) {
                     const orphan = buildOrphanPlayerFromSnapshot(p);
                     if (orphan) {
                         playerById.set(playerId, orphan);
                         orphanList.push(orphan);
                         if (p.isCaptain) captainIsOrphan = true;
                     }
+                } else if (existing.inFinalSquad === false) {
+                    notFinalList.push(existing);
+                    if (p.isCaptain) captainIsNotFinal = true;
                 }
             });
 
@@ -4579,14 +4674,23 @@
             validateForm();
             setSubmitDefaultLabel();
 
+            const noticeParts = [];
             if (orphanList.length) {
                 const names = orphanList.map(o => o.name).filter(Boolean);
                 const list  = names.length ? ` (${names.join(', ')})` : '';
-                const captainHint = captainIsOrphan
+                noticeParts.push(`${orphanList.length} Spieler nicht mehr im aktuellen Kader${list}`);
+            }
+            if (notFinalList.length) {
+                const names = notFinalList.map(o => o.name).filter(Boolean);
+                const list  = names.length ? ` (${names.join(', ')})` : '';
+                noticeParts.push(`${notFinalList.length} Spieler nicht im definitiven WM-Kader${list}`);
+            }
+            if (noticeParts.length) {
+                const captainHint = (captainIsOrphan || captainIsNotFinal)
                     ? ' Dein Captain ist betroffen – bitte zuerst ersetzen.'
                     : '';
                 showBuilderNotice(
-                    `Achtung: ${orphanList.length} Spieler aus deinem Team sind nicht mehr im aktuellen Kader${list}. Bitte ersetze sie vor Anpfiff.${captainHint}`
+                    `Achtung: ${noticeParts.join(' · ')}. Bitte ersetze diese Spieler vor Anpfiff.${captainHint}`
                 );
             } else {
                 showToast('✏️ Dein Team wurde zur Bearbeitung geladen.');

@@ -87,7 +87,7 @@ function appendStepSummary(markdown) {
   } catch (_e) {}
 }
 
-function buildHeader({ generatedAt, teamsCount, playersCount, overrideStats, overlayStats }) {
+function buildHeader({ generatedAt, teamsCount, playersCount, overrideStats, overlayStats, finalSquadStats }) {
   const lines = [
     "// WM 2026 Kader (OFFIZIELL)",
     `// Turnier: ${TOURNAMENT_NAME}`,
@@ -110,6 +110,20 @@ function buildHeader({ generatedAt, teamsCount, playersCount, overrideStats, ove
       `//   - Namens-Overrides angewendet: ${overlayStats.renamed}`,
     );
   }
+  if (finalSquadStats) {
+    lines.push(
+      "//",
+      "// Definitiver-Kader-Status (`inFinalSquad`-Flag pro Spieler):",
+      `//   - Im definitiven Kader (true):       ${finalSquadStats.inFinalCount}`,
+      `//   - Aus provisorischem Kader übernommen,`,
+      `//     aber nicht definitiv (false):       ${finalSquadStats.notInFinalCount}`,
+      "//",
+      "// Spieler mit `inFinalSquad: false` werden im Frontend ausgegraut",
+      "// und mit Badge \"Nicht im WM-Kader\" markiert; sie sind für neue",
+      "// Manager nicht mehr wählbar, bleiben aber in bereits gespeicherten",
+      "// Teams sichtbar, damit der Manager sie aktiv ersetzen kann.",
+    );
+  }
   lines.push(
     "//",
     "// Hinweis: Diakritika und Sonderzeichen in Spielernamen werden bewusst",
@@ -126,6 +140,37 @@ function buildHeader({ generatedAt, teamsCount, playersCount, overrideStats, ove
  * als CommonJS-Module. Wir laden sie in einer minimalen Sandbox, damit
  * das ESM-Generator-Script die CJS-Datei lesen kann.
  */
+/* ---------- Bestehende data-wm2026.js einlesen ----------------------- *
+ *
+ * Die Datei ist als `const playersData = [ ... ];` formuliert. Wir lesen
+ * sie in einer minimalen Sandbox via `new Function`, damit wir auch ohne
+ * dynamic import auf den exportierten Array kommen. Schluckt jeden Fehler
+ * (defekte / fehlende Datei) und liefert dann ein leeres Array — der
+ * Generator läuft in dem Fall einfach so, als wäre keine vorherige
+ * provisorische Datei vorhanden.
+ */
+function loadExistingPlayersData(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return { players: [], source: filePath, missing: true };
+    }
+    const raw = fs.readFileSync(filePath, "utf8");
+    const fn = new Function(
+      `${raw}\nreturn typeof playersData !== "undefined" ? playersData : [];`,
+    );
+    const out = fn();
+    if (!Array.isArray(out)) return { players: [], source: filePath, missing: false };
+    return { players: out, source: filePath, missing: false };
+  } catch (err) {
+    return {
+      players: [],
+      source: filePath,
+      missing: false,
+      error: String(err && err.message ? err.message : err),
+    };
+  }
+}
+
 function loadManualOverlay(filePath) {
   try {
     if (!fs.existsSync(filePath)) return { addPlayers: [], removeIds: [], nameOverrides: {} };
@@ -217,6 +262,7 @@ function buildReportMarkdown({
   incomplete,
   overrideStats,
   overrideError,
+  finalSquadStats,
 }) {
   const lines = [];
   lines.push(`# WM 2026: Generierter offizieller Kader`);
@@ -225,6 +271,10 @@ function buildReportMarkdown({
   lines.push(`- **Quelle**: API-Football \`league=${LEAGUE_ID}&season=${SEASON}\``);
   lines.push(`- **Teams**: ${teams.length} / ${EXPECTED_TEAMS}`);
   lines.push(`- **Spieler total**: ${players}`);
+  if (finalSquadStats) {
+    lines.push(`- **Im definitiven Kader (\`inFinalSquad: true\`)**: ${finalSquadStats.inFinalCount}`);
+    lines.push(`- **Aus provisorischem Kader übernommen (\`inFinalSquad: false\`)**: ${finalSquadStats.notInFinalCount}`);
+  }
   lines.push(`- **Status**: ${ready ? "✅ ready" : forced ? "⚠️ erzwungen (--force) trotz nicht-ready" : "❌ nicht ready"}`);
   lines.push("");
 
@@ -420,8 +470,59 @@ async function main() {
       `${overlayStats.removed} entfernt, ` +
       `${overlayStats.renamed}/${overlayStats.totalNameOverrides} Namens-Overrides angewendet.`,
   );
-  // Nach Overlay neu sortieren, damit manuell ergänzte Spieler im
-  // sortierten Output landen.
+
+  // ---------------- Phase 5c: Definitiver-Kader-Merge ------------------
+  // Bis hierhin ist `playersData` der Stand, den der Workflow LIVE aus der
+  // API + manuellem Overlay aufgebaut hat. Alle diese Spieler sind per
+  // Definition Teil des definitiven WM-Kaders → `inFinalSquad: true`.
+  //
+  // Anschliessend lesen wir die bisherige `data-wm2026.js` (die bei einem
+  // ersten OFFIZIELL-Lauf noch das provisorische Kader enthält) und
+  // übernehmen alle dort gelisteten Spieler, die nicht im neuen API-Lauf
+  // auftauchen, mit `inFinalSquad: false` ins Output. Dadurch:
+  //   - verschwindet kein Spieler hart aus dem Datenfile, was die App
+  //     vor 404-artigen Profilseiten und Foto-Platzhaltern in
+  //     gespeicherten Teams schützt;
+  //   - bleibt die Datei trotzdem die alleinige Quelle der Wahrheit –
+  //     keine zweite parallele "Final-Squad"-Datei nötig;
+  //   - können Manager im Builder solche Spieler weiterhin sehen
+  //     (mit Badge "Nicht im WM-Kader") und vor Anpfiff aktiv ersetzen.
+  for (const p of playersData) {
+    p.inFinalSquad = true;
+  }
+
+  const existingFile = loadExistingPlayersData(TARGET_DATA_FILE);
+  if (existingFile.error) {
+    log(
+      `Warnung: bestehende data-wm2026.js konnte nicht eingelesen werden: ${existingFile.error}`,
+    );
+  }
+  const newIdSet = new Set(playersData.map((p) => String(p["player.id"])));
+  let carriedOver = 0;
+  for (const prev of existingFile.players) {
+    if (!prev || prev["player.id"] == null) continue;
+    if (newIdSet.has(String(prev["player.id"]))) continue;
+    // Spieler war im vorherigen Datenfile, ist aber nicht im neuen
+    // API-Squad → übernehmen, aber explizit als "nicht im definitiven
+    // Kader" markieren. Wir kopieren das Objekt flach, damit Mutationen
+    // ausserhalb dieses Skripts es nicht versehentlich verändern können.
+    const carried = { ...prev, inFinalSquad: false };
+    playersData.push(carried);
+    carriedOver += 1;
+  }
+  const finalSquadStats = {
+    inFinalCount: playersData.length - carriedOver,
+    notInFinalCount: carriedOver,
+  };
+  log(
+    `Definitiver-Kader-Merge: ${finalSquadStats.inFinalCount} im definitiven Kader, ` +
+      `${finalSquadStats.notInFinalCount} aus provisorischem Stand übernommen ` +
+      `(inFinalSquad: false).`,
+  );
+
+  // Nach Overlay + Merge neu sortieren, damit manuell ergänzte Spieler
+  // und übernommene "nicht-definitive" Spieler im sortierten Output
+  // landen.
   playersData.sort((a, b) => {
     const nation = String(a["Nationalteam.name"] || "").localeCompare(
       String(b["Nationalteam.name"] || ""),
@@ -457,6 +558,7 @@ async function main() {
       incomplete,
       overrideStats,
       overrideError,
+      finalSquadStats,
     });
     fs.writeFileSync(REPORT_MD, md, "utf8");
     appendStepSummary(md);
@@ -472,6 +574,7 @@ async function main() {
     playersCount: playersData.length,
     overrideStats,
     overlayStats,
+    finalSquadStats,
   });
   const body = `const playersData = ${JSON.stringify(playersData, null, 4)};\n`;
   const fileContent = `${header}\n\n${body}`;
@@ -489,6 +592,7 @@ async function main() {
     incomplete,
     overrideStats,
     overrideError,
+    finalSquadStats,
   });
   fs.writeFileSync(REPORT_MD, md, "utf8");
   appendStepSummary(md);
