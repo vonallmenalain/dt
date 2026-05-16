@@ -2877,7 +2877,7 @@ const playersData = [
     {
         "player.id": 9000009,
         "Spielername": "Neymar",
-        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Neymar%20-%20Santos%20vs%20Juventude%20-%2004-08-2025.jpg",
+        "Spielerfoto": "https://media.api-sports.io/football/players/276.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Brazil",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
@@ -3046,7 +3046,7 @@ const playersData = [
     {
         "player.id": 9000004,
         "Spielername": "Alphonso Davies",
-        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Alphonso%20Davies%20-%20cropped.jpg",
+        "Spielerfoto": "https://media.api-sports.io/football/players/19063.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "Canada",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
