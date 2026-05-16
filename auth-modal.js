@@ -912,13 +912,23 @@
      * contains 'google.com', a primary CTA jumps straight back into the
      * Google popup so the user does not have to navigate back to the
      * chooser view by themselves.
+     *
+     * When `methods` is empty (e.g. because Firebase "Email enumeration
+     * protection" is enabled and `fetchSignInMethodsForEmail` is forced to
+     * return []), we still render a useful hint that mentions Google /
+     * E-Mail-Link as alternative sign-in methods plus a CTA back to the
+     * chooser. This is what keeps the user informed in the very common
+     * "I signed up with Google, now I'm trying email + password with the
+     * same address" scenario.
      */
     function buildProviderConflictNode(methods, mode) {
         const wrap = el('div', { class: 'dt-auth-provider-conflict' });
 
+        methods = Array.isArray(methods) ? methods : [];
         const hasGoogle    = methods.indexOf('google.com') !== -1;
         const hasEmailLink = methods.indexOf('emailLink')  !== -1;
         const hasPassword  = methods.indexOf('password')   !== -1;
+        const isUnknown    = methods.length === 0;
 
         let intro = '';
         if (hasGoogle && !hasPassword) {
@@ -929,6 +939,15 @@
             intro = mode === 'register'
                 ? 'Diese E-Mail-Adresse ist bereits ohne Passwort (über E-Mail-Link) registriert. Bitte melde dich mit dem E-Mail-Link an.'
                 : 'Für diese E-Mail-Adresse wurde noch kein Passwort gesetzt. Bitte melde dich mit dem E-Mail-Link an.';
+        } else if (isUnknown) {
+            // Email enumeration protection is enabled: we cannot tell which
+            // provider the address is linked to. Surface a softer hint that
+            // still points the user at Google / E-Mail-Link so the
+            // "I signed in with Google, now password doesn't work" case is
+            // no longer a dead end.
+            intro = mode === 'register'
+                ? 'Diese E-Mail-Adresse ist bereits registriert. Falls du dich ursprünglich mit Google oder per E-Mail-Link angemeldet hast, melde dich bitte mit derselben Methode an.'
+                : 'Anmeldung fehlgeschlagen. Falls du dich ursprünglich mit Google oder per E-Mail-Link angemeldet hast, melde dich bitte mit derselben Methode an.';
         } else {
             // Fallback should not normally be hit – callers only invoke this
             // helper after detecting a cross-provider conflict – but keep a
@@ -969,6 +988,18 @@
                 } }
             }, ['Zum E-Mail-Link wechseln']);
             wrap.appendChild(btn);
+        } else if (isUnknown) {
+            // We can't auto-trigger Google here (no provider hint), so route
+            // the user back to the chooser where all methods are visible.
+            const btn = el('button', {
+                type:  'button',
+                class: 'dt-auth-link dt-auth-provider-conflict-cta',
+                on:    { click: () => {
+                    clearError();
+                    setMode('chooser');
+                } }
+            }, ['Zurück zur Anmelde-Auswahl']);
+            wrap.appendChild(btn);
         }
 
         return wrap;
@@ -979,8 +1010,19 @@
      * and surfaces a friendlier message when applicable. Returns true when
      * a tailored message was shown; the caller should then NOT show the
      * generic fallback.
+     *
+     * We deliberately also surface a (softer) hint when
+     * `fetchSignInMethodsForEmail` returns an empty array. Modern Firebase
+     * projects have "Email enumeration protection" enabled by default,
+     * which forces that endpoint to return [] regardless of whether the
+     * address is linked to Google, E-Mail-Link or password. Without this
+     * fallback, a user who originally signed in with Google and then tries
+     * email + password with the same address would only see the generic
+     * "Diese E-Mail-Adresse ist bereits registriert" / "E-Mail oder
+     * Passwort stimmt nicht" — never learning that Google is the right
+     * method to use.
      */
-    async function maybeShowProviderConflict(email, mode) {
+    async function maybeShowProviderConflict(email, mode, errorCode) {
         const Auth = window.DreamTeamAuth;
         if (!Auth || typeof Auth.fetchSignInMethodsForEmail !== 'function') return false;
         if (!email) return false;
@@ -989,24 +1031,42 @@
         try {
             methods = await Auth.fetchSignInMethodsForEmail(email);
         } catch (e) {
-            return false;
+            methods = [];
         }
-        if (!methods || methods.length === 0) return false;
+        methods = Array.isArray(methods) ? methods : [];
 
-        const hasPassword  = methods.indexOf('password')  !== -1;
+        const hasPassword  = methods.indexOf('password')   !== -1;
         const hasGoogle    = methods.indexOf('google.com') !== -1;
         const hasEmailLink = methods.indexOf('emailLink')  !== -1;
 
-        // Only intervene when the account exists with a non-password method
-        // and (for login attempts) the user has not also linked a password
-        // credential – otherwise the "wrong password" hint is correct.
-        const conflict =
+        // Path A — explicit cross-provider conflict (legacy, no enumeration
+        // protection): the account exists with a non-password method.
+        const explicitConflict =
             (mode === 'register' && (hasGoogle || hasEmailLink) && !hasPassword) ||
             (mode === 'login'    && (hasGoogle || hasEmailLink) && !hasPassword);
-        if (!conflict) return false;
+        if (explicitConflict) {
+            showErrorNode(buildProviderConflictNode(methods, mode));
+            return true;
+        }
 
-        showErrorNode(buildProviderConflictNode(methods, mode));
-        return true;
+        // Path B — enumeration protection is on (methods is []), but the
+        // error we got back from Firebase strongly implies the address is
+        // already known. Show the soft hint.
+        if (methods.length === 0) {
+            const enumerationProtectedCodes = [
+                'auth/email-already-in-use',                    // register: address is taken
+                'auth/account-exists-with-different-credential',
+                'auth/invalid-credential',                      // login: wrong creds OR no password set
+                'auth/wrong-password',
+                'auth/user-not-found'
+            ];
+            if (enumerationProtectedCodes.indexOf(errorCode) !== -1) {
+                showErrorNode(buildProviderConflictNode([], mode));
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function showEmailLinkError(message) {
@@ -1211,7 +1271,7 @@
             let handled = false;
             if (conflictCodes.indexOf(code) !== -1) {
                 try {
-                    handled = await maybeShowProviderConflict(email, state.currentMode);
+                    handled = await maybeShowProviderConflict(email, state.currentMode, code);
                 } catch (e) {
                     handled = false;
                 }
