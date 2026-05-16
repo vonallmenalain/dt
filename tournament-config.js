@@ -1,10 +1,16 @@
 /* =============================================================================
  *  tournament-config.js
  *
- *  Zentrale Steuerung für die DreamTeam-App im Multi-Tournament-Modus.
- *  Definiert alle turnierspezifischen Werte (Labels, Daten-Dateien, API-Werte,
- *  Firestore-Collections, LocalStorage-/Cache-Prefixes, Spielstartzeitpunkt,
- *  Fallback-Spiele) an EINEM Ort.
+ *  EINZIGE Quelle der Wahrheit für alle turnierspezifischen Werte:
+ *  Labels, Daten-Dateien, API-Werte, Firestore-Collections, LocalStorage-/
+ *  Cache-Prefixes, Spielstartzeitpunkt, Fallback-Spiele und Punkteregeln.
+ *
+ *  Wird sowohl im Browser (Frontend, via `<script src="tournament-config.js">`
+ *  als `window.APP_CONFIG`) als auch in Node (Cron-Scripts unter `scripts/`
+ *  via `require('../tournament-config')`) eingebunden. Es darf nirgendwo
+ *  sonst eine zweite Turnier-Tabelle, ein zweiter Regelsatz oder eine
+ *  zweite Firestore-Collection-Liste existieren – wer ein neues Turnier
+ *  ergänzen oder Regeln ändern will, tut das ausschliesslich hier.
  *
  *  Aktuell ist NUR `wm2026` produktiv. Andere Turniere bleiben als Templates
  *  in der Konfiguration, sind aber per `available: false` und/oder
@@ -12,30 +18,23 @@
  *  Dev-Switcher noch per Domain-Mapping aktiviert werden, solange keine
  *  passende `data-<key>.js`-Datei existiert.
  *
- *  Domain-Mapping (Standard pro Netlify-Site / Domain):
- *    - dt.alae.app      →  wm2026 (WM 2026 DreamTeam)
- *    - localhost / 127.0.0.1 / Deploy Previews / unbekannte Hosts
- *      →  Fallback (`wm2026`)
- *
- *  Aktives Turnier wird in dieser Reihenfolge bestimmt:
+ *  Aktives Turnier wird in dieser Reihenfolge bestimmt (nur Browser):
  *    1. URL-Parameter ?tournament=<key>             (Test-Override, nicht
  *       persistent – wirkt nur auf den aktuellen Seitenaufruf)
  *    2. Host-spezifischer Dev-Override aus localStorage
  *       (`dreamteam_dev_override_${hostname}`)
  *    3. Domain-Mapping (DOMAIN_TOURNAMENT_MAP)
- *    4. Genereller Fallback (`wm2026`)
+ *    4. Genereller Fallback (`FALLBACK_TOURNAMENT_KEY`)
  *
- *  Ungültige oder deaktivierte Werte (unbekannter Key, `available: false`,
- *  `dataReady: false`) fallen sicher auf das Default-Turnier zurück. Damit
- *  brechen alte Bookmarks zu nicht mehr verfügbaren Turnieren die App nicht.
+ *  In Node-Scripts gilt zusätzlich:
+ *    process.env.TOURNAMENT_KEY  > sonst FALLBACK_TOURNAMENT_KEY
  *
- *  Wichtig: Damit dieselbe Codebasis später wieder mehrere Turniere ausspielen
- *  kann, gibt es bewusst KEINEN globalen Default ausserhalb dieser Datei. Jede
- *  andere Stelle muss `APP_CONFIG.activeTournamentKey` / `APP_CONFIG.activeTournament`
- *  abfragen, statt selbst hart "wm2026" zu wählen.
+ *  Ungültige oder deaktivierte Werte fallen sicher auf das Default-Turnier
+ *  zurück. Damit brechen alte Bookmarks zu nicht mehr verfügbaren Turnieren
+ *  die App nicht.
  * ============================================================================= */
 
-window.APP_CONFIG = (() => {
+const APP_CONFIG = (() => {
   // Ultimativer Fallback, falls keine Domain-Zuordnung greift (z. B. lokal
   // oder auf Deploy-Previews). Bewusst nur an dieser einen Stelle hart
   // gesetzt – alle anderen Module sollen den aktiven Key konsumieren.
@@ -818,3 +817,10 @@ window.APP_CONFIG = (() => {
     getDb
   };
 })();
+
+if (typeof window !== "undefined") {
+  window.APP_CONFIG = APP_CONFIG;
+}
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = APP_CONFIG;
+}
