@@ -44,6 +44,7 @@ moment they try to write to Firestore.
 | `auth.js`                         | `window.DreamTeamAuth` — Firebase Auth + Firestore + pending-team helpers (UI-free).   |
 | `auth-modal.css`                  | Minimal, namespaced (`.dt-auth-*`) styles for the modal and the top-right login chip. |
 | `auth-modal.js`                   | `window.DreamTeamAuthModal` — the modal UI (register / login / verify views).          |
+| `auth-action.html`                | Custom Firebase email-action handler (replaces the default `/__/auth/action` page so verifications no longer require two extra confirmation clicks). |
 | `LAZY_REGISTRATION_INTEGRATION.md`| This document.                                                                         |
 
 > Hinweis zu den Firestore-Rules: Die Rules werden **nicht mehr im Repo
@@ -252,9 +253,45 @@ In the [Firebase console](https://console.firebase.google.com/project/dreamteam-
 
 1. **Authentication → Sign-in method** — enable **Email/Password**.
 2. **Authentication → Templates → Email verification** — adjust the
-   template if you want a custom sender name / subject. The link target is
-   handled by Firebase; the optional `actionUrl` passed to
-   `DreamTeamAuth.init()` controls where users land after clicking.
+   template if you want a custom sender name / subject.
+
+   **Wichtig (Custom Action Handler):** Damit Nutzer:innen nach dem Klick
+   auf den Bestätigungs-Link nicht zuerst Firebases englische
+   „Verify Email Address / COMPLETE VERIFICATION"-Seite und danach noch
+   die deutsche „Ihre E-Mail-Adresse wurde bestätigt / WEITER"-Seite
+   sehen müssen, sondern sofort wieder in der App landen, muss in der
+   Firebase Console der **eigene Action-Handler** aktiviert werden:
+
+   - Im Console-Pfad **Authentication → Templates** für jedes der vier
+     Template-Formulare („Email address verification", „Password reset",
+     „Email address change", „SMS verification") auf das Stift-Symbol
+     klicken und unten **„customise action URL"** öffnen.
+   - Dort die Adresse `https://dt.alae.app/auth-action.html` eintragen
+     (eine zentrale Domain reicht — `auth-action.html` liest den
+     `continueUrl`-Parameter und schickt die Nutzer:innen anschließend
+     zurück auf die Ursprungs-Domain, auch wenn das z. B. die
+     `em24dt.alae.app` war).
+   - Die Adresse `https://dt.alae.app/auth-action.html` muss zudem
+     unter **Authentication → Settings → Authorized domains** stehen
+     (`dt.alae.app` reicht; die Datei liegt dort ausgeliefert vor).
+
+   Sobald die Custom-Action-URL gespeichert ist, sieht der Klick-Flow so
+   aus:
+
+   ```text
+   Klick im E-Mail-Postfach
+        │
+        ▼
+   auth-action.html  ← appliziert oobCode still im Hintergrund
+        │             (kein zusätzlicher Klick nötig)
+        ▼
+   continueUrl        ← Original-Seite der App, eingeloggt &
+                        E-Mail verifiziert
+   ```
+
+   Die optionale `actionUrl` aus `DreamTeamAuth.init()` wird Firebase
+   weiterhin als `continueUrl` mitgegeben und bestimmt, wohin
+   `auth-action.html` nach erfolgreicher Bestätigung springt.
 3. **Authentication → Settings → Authorized domains** — add
    `dt.alae.app`, `em24dt.alae.app`, and any Netlify preview domains.
 4. **Firestore → Rules** — die Regeln werden direkt in der Firebase
