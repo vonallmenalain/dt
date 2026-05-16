@@ -79,6 +79,13 @@
         try {
             var html = document.documentElement;
             var override = null;
+            // Bewusst als String-Literal: tournament-config.js ist hier
+            // noch nicht geladen, ein Zugriff auf
+            // APP_CONFIG.storage.globalKeys.indexViewMode ist also
+            // unmöglich. Falls dieser Key jemals umbenannt wird,
+            // muss er sowohl in tournament-config.js
+            // (storage.globalKeys.indexViewMode) als auch hier
+            // angepasst werden.
             try { override = localStorage.getItem('dreamteamIndexViewMode'); } catch (e) {}
 
             if (override === 'pre' || override === 'post') {
@@ -5845,7 +5852,13 @@
             : new Date();
     }
 
-    const DEV_TOGGLE_KEY = "dreamteamIndexViewMode";
+    // Zentral aus APP_CONFIG.storage.globalKeys – siehe Erläuterung
+    // dort, warum dieser Key bewusst NICHT turnier-namespaced ist.
+    const DEV_TOGGLE_KEY = (window.APP_CONFIG
+        && window.APP_CONFIG.storage
+        && window.APP_CONFIG.storage.globalKeys
+        && window.APP_CONFIG.storage.globalKeys.indexViewMode)
+        || "dreamteamIndexViewMode";
     const DEV_MODES = ["auto", "pre", "post"];
     const DEV_LABELS = { auto: "DEV: Auto", pre: "DEV: Vor Start", post: "DEV: Nach Start" };
 
