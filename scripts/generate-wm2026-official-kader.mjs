@@ -58,6 +58,7 @@ const MIN_PLAYERS_PER_TEAM = 23;
 
 const TARGET_DATA_FILE = path.join(REPO_ROOT, "data-wm2026.js");
 const POSITION_OVERRIDES_FILE = path.join(REPO_ROOT, "position-overrides.js");
+const MANUAL_KADER_FILE = path.join(REPO_ROOT, "manual-kader-wm2026.js");
 const REPORTS_DIR = path.join(REPO_ROOT, "reports");
 const REPORT_MD = path.join(REPORTS_DIR, "wm2026-official-kader-generated.md");
 
@@ -86,8 +87,8 @@ function appendStepSummary(markdown) {
   } catch (_e) {}
 }
 
-function buildHeader({ generatedAt, teamsCount, playersCount, overrideStats }) {
-  return [
+function buildHeader({ generatedAt, teamsCount, playersCount, overrideStats, overlayStats }) {
+  const lines = [
     "// WM 2026 Kader (OFFIZIELL)",
     `// Turnier: ${TOURNAMENT_NAME}`,
     `// Quelle: API-Football /players?league=${LEAGUE_ID}&season=${SEASON}`,
@@ -97,10 +98,113 @@ function buildHeader({ generatedAt, teamsCount, playersCount, overrideStats }) {
     `// Positions-Overrides angewendet: ${overrideStats.appliedCount}`,
     `// Positions-Overrides bereits identisch: ${overrideStats.identicalCount}`,
     `// Positions-Overrides ohne Treffer: ${overrideStats.missingCount}`,
+  ];
+  if (overlayStats) {
+    lines.push(
+      "//",
+      "// Manuelle Overlays (aus manual-kader-wm2026.js) automatisch angewendet:",
+      `//   - Manuell ergänzte Spieler:   ${overlayStats.added}`,
+      `//   - Manuell überschriebene IDs: ${overlayStats.overwritten}`,
+      `//   - Manuell entfernte IDs:      ${overlayStats.removed}`,
+      `//   - Namens-Overrides definiert: ${overlayStats.totalNameOverrides}`,
+      `//   - Namens-Overrides angewendet: ${overlayStats.renamed}`,
+    );
+  }
+  lines.push(
     "//",
     "// Hinweis: Diakritika und Sonderzeichen in Spielernamen werden bewusst",
     "// beibehalten – die App-Suche ist diakritikatolerant.",
-  ].join("\n");
+  );
+  return lines.join("\n");
+}
+
+/* ---------- Manuelles Overlay (manual-kader-wm2026.js) -------------- */
+
+/**
+ * Lädt das Overlay aus `manual-kader-wm2026.js`. Die Datei setzt
+ * `window.MANUAL_KADER_WM2026` bzw. exportiert das gleiche Objekt
+ * als CommonJS-Module. Wir laden sie in einer minimalen Sandbox, damit
+ * das ESM-Generator-Script die CJS-Datei lesen kann.
+ */
+function loadManualOverlay(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return { addPlayers: [], removeIds: [], nameOverrides: {} };
+    const raw = fs.readFileSync(filePath, "utf8");
+    const sandboxWindow = {};
+    const sandboxModule = { exports: {} };
+    const fn = new Function(
+      "window",
+      "module",
+      "exports",
+      `${raw}\nreturn module.exports && Object.keys(module.exports).length ? module.exports : window.MANUAL_KADER_WM2026;`,
+    );
+    const api = fn(sandboxWindow, sandboxModule, sandboxModule.exports) || {};
+    return {
+      addPlayers: Array.isArray(api.addPlayers) ? api.addPlayers : [],
+      removeIds: Array.isArray(api.removeIds) ? api.removeIds.map(String) : [],
+      nameOverrides:
+        api.nameOverrides && typeof api.nameOverrides === "object" ? api.nameOverrides : {},
+    };
+  } catch (err) {
+    log(`Warnung: manual-kader-wm2026.js konnte nicht geladen werden: ${err.message || err}`);
+    return { addPlayers: [], removeIds: [], nameOverrides: {} };
+  }
+}
+
+/**
+ * Wendet das Overlay auf die finale playersData-Liste an. Reihenfolge
+ * identisch zur Browser-Pipeline in adm-generate-kader-wm2026.html:
+ *   1) removeIds entfernen
+ *   2) addPlayers anhängen (player.id-Kollision → manuell gewinnt)
+ *   3) nameOverrides anwenden
+ *   4) am Ende neu sortieren (Nation, Name)
+ */
+function applyManualOverlay(playersData, overlay) {
+  const stats = { added: 0, overwritten: 0, removed: 0, renamed: 0 };
+
+  if (overlay.removeIds.length) {
+    const removeSet = new Set(overlay.removeIds);
+    const before = playersData.length;
+    for (let i = playersData.length - 1; i >= 0; i--) {
+      if (removeSet.has(String(playersData[i]["player.id"]))) playersData.splice(i, 1);
+    }
+    stats.removed = before - playersData.length;
+  }
+
+  if (overlay.addPlayers.length) {
+    const idx = new Map();
+    playersData.forEach((p, i) => idx.set(String(p["player.id"]), i));
+    for (const manual of overlay.addPlayers) {
+      if (!manual || manual["player.id"] == null) continue;
+      const key = String(manual["player.id"]);
+      const existing = idx.get(key);
+      if (existing !== undefined) {
+        playersData[existing] = manual;
+        stats.overwritten++;
+      } else {
+        playersData.push(manual);
+        idx.set(key, playersData.length - 1);
+        stats.added++;
+      }
+    }
+  }
+
+  const overrideKeys = Object.keys(overlay.nameOverrides);
+  stats.totalNameOverrides = overrideKeys.length;
+  if (overrideKeys.length) {
+    const overrideMap = new Map(
+      overrideKeys.map((k) => [String(k), String(overlay.nameOverrides[k])]),
+    );
+    for (const p of playersData) {
+      const target = overrideMap.get(String(p["player.id"]));
+      if (target && p.Spielername !== target) {
+        p.Spielername = target;
+        stats.renamed++;
+      }
+    }
+  }
+
+  return stats;
 }
 
 function buildReportMarkdown({
@@ -305,6 +409,28 @@ async function main() {
       `${overrideStats.missingCount} ohne Treffer.`,
   );
 
+  // ---------------- Phase 5b: Manuelle Overlays anwenden ----------------
+  // Spiegelbild der Browser-Pipeline in adm-generate-kader-wm2026.html:
+  // ergänzt Stars/Verletzte, entfernt Falsch-IDs, fixt Schreibweisen.
+  const manualOverlay = loadManualOverlay(MANUAL_KADER_FILE);
+  const overlayStats = applyManualOverlay(playersData, manualOverlay);
+  log(
+    `Manuelles Overlay: +${overlayStats.added} ergänzt, ` +
+      `${overlayStats.overwritten} überschrieben, ` +
+      `${overlayStats.removed} entfernt, ` +
+      `${overlayStats.renamed}/${overlayStats.totalNameOverrides} Namens-Overrides angewendet.`,
+  );
+  // Nach Overlay neu sortieren, damit manuell ergänzte Spieler im
+  // sortierten Output landen.
+  playersData.sort((a, b) => {
+    const nation = String(a["Nationalteam.name"] || "").localeCompare(
+      String(b["Nationalteam.name"] || ""),
+      "de",
+    );
+    if (nation !== 0) return nation;
+    return String(a["Spielername"] || "").localeCompare(String(b["Spielername"] || ""), "de");
+  });
+
   // ---------------- Phase 6: Ready-Check ----------------
   const incomplete = teams
     .map((t) => ({ id: t.id, name: t.name, count: perTeamCount.get(Number(t.id)) || 0 }))
@@ -345,6 +471,7 @@ async function main() {
     teamsCount: teams.length,
     playersCount: playersData.length,
     overrideStats,
+    overlayStats,
   });
   const body = `const playersData = ${JSON.stringify(playersData, null, 4)};\n`;
   const fileContent = `${header}\n\n${body}`;

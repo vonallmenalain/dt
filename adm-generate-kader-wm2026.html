@@ -738,10 +738,33 @@
         return last;
     }
 
+    /**
+     * HTML-Entitäten (insb. &apos; / &#039;) und gängige Mojibake-Reste
+     * aus API-Football-Namen entfernen. Beispiele aus produktiven Daten:
+     *   - "Nico O&apos;Reilly"   → "Nico O’Reilly"
+     *   - "Oston O&apos;runov"   → "Oston Oʻrunov" (siehe Name-Override)
+     *   - "Aiden O&apos;Neill"   → "Aiden O’Neill"
+     * Wir mappen den ASCII-Apostroph hier auf das typografische "’", weil
+     * das in den meisten Verbandsschreibweisen der korrektere Glyph ist.
+     * Sonderfälle (z.B. usbekisches "Oʻ") werden zusätzlich über
+     * MANUAL_NAME_OVERRIDES gepflegt.
+     */
+    function decodeNameEntities(value) {
+        const s = String(value || "");
+        if (!s) return s;
+        return s
+            .replace(/&apos;|&#0?39;|&#x27;/g, "’")
+            .replace(/&quot;|&#0?34;|&#x22;/g, '"')
+            .replace(/&amp;/g, "&")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&nbsp;/g, " ");
+    }
+
     function buildCleanName(player) {
-        const apiName = String(player?.name || "").trim();
-        const firstname = String(player?.firstname || "").trim();
-        const lastname = String(player?.lastname || "").trim();
+        const apiName = decodeNameEntities(player?.name).trim();
+        const firstname = decodeNameEntities(player?.firstname).trim();
+        const lastname = decodeNameEntities(player?.lastname).trim();
 
         const firstWord = (firstname.split(/\s+/).filter(Boolean)[0]) || "";
 

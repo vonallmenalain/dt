@@ -4,10 +4,11 @@
 // Generiert am: 16.5.2026, 11:01:15
 //
 // Manuelle Overlays (aus manual-kader-wm2026.js) automatisch angewendet:
-//   - Manuell ergänzte Spieler:   10
-//   - Manuell überschriebene IDs: 1
+//   - Manuell ergänzte Spieler:   0
+//   - Manuell überschriebene IDs: 23
 //   - Manuell entfernte IDs:      0
-//   - Namens-Overrides definiert: 1
+//   - Namens-Overrides definiert: 14
+//   - Namens-Overrides angewendet: 3
 //
 // Originalnamen mit Diakritika (Dembélé, Ødegaard, Vinícius Júnior, …)
 // bleiben erhalten — die App-Suche ist diakritikatolerant.
@@ -103,19 +104,6 @@ const playersData = [
         "Geburtsdatum": "2000-02-16",
         "Groesse": "180",
         "Gewicht": "72"
-    },
-    {
-        "player.id": 2194,
-        "Spielername": "Amir Bensebaïni",
-        "Spielerfoto": "https://media.api-sports.io/football/players/2194.png",
-        "Position": "DEFENDER",
-        "Nationalteam.name": "Algeria",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/1532.png",
-        "Club.name": "Borussia Dortmund",
-        "Club.logo": "https://media.api-sports.io/football/teams/165.png",
-        "Geburtsdatum": "1995-04-16",
-        "Groesse": "187",
-        "Gewicht": "82"
     },
     {
         "player.id": 326067,
@@ -324,6 +312,19 @@ const playersData = [
         "Geburtsdatum": "1998-05-26",
         "Groesse": "183",
         "Gewicht": "76"
+    },
+    {
+        "player.id": 2194,
+        "Spielername": "Ramy Bensebaini",
+        "Spielerfoto": "https://media.api-sports.io/football/players/2194.png",
+        "Position": "DEFENDER",
+        "Nationalteam.name": "Algeria",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/1532.png",
+        "Club.name": "Borussia Dortmund",
+        "Club.logo": "https://media.api-sports.io/football/teams/165.png",
+        "Geburtsdatum": "1995-04-16",
+        "Groesse": "187",
+        "Gewicht": "82"
     },
     {
         "player.id": 21138,
@@ -925,7 +926,7 @@ const playersData = [
     },
     {
         "player.id": 7050,
-        "Spielername": "Aiden O&apos;Neill",
+        "Spielername": "Aiden O’Neill",
         "Spielerfoto": "https://media.api-sports.io/football/players/7050.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Australia",
@@ -2874,6 +2875,19 @@ const playersData = [
         "Gewicht": "76"
     },
     {
+        "player.id": 9000009,
+        "Spielername": "Neymar",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Neymar%20-%20Santos%20vs%20Juventude%20-%2004-08-2025.jpg",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Brazil",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
+        "Club.name": "Santos",
+        "Club.logo": "https://media.api-sports.io/football/teams/128.png",
+        "Geburtsdatum": "1992-02-05",
+        "Groesse": "175",
+        "Gewicht": "68"
+    },
+    {
         "player.id": 133910,
         "Spielername": "Paulo Henrique",
         "Spielerfoto": "https://media.api-sports.io/football/players/133910.png",
@@ -2937,6 +2951,19 @@ const playersData = [
         "Geburtsdatum": "2001-01-09",
         "Groesse": "174",
         "Gewicht": "64"
+    },
+    {
+        "player.id": 9000010,
+        "Spielername": "Sávio",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Palermo%20FC%20v%20Manchester%20City%20FC%2C%209%20August%202025%20-%2041%20%28Savinho%29.jpg",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Brazil",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
+        "Club.name": "Manchester City",
+        "Club.logo": "https://media.api-sports.io/football/teams/50.png",
+        "Geburtsdatum": "2004-04-10",
+        "Groesse": "176",
+        "Gewicht": "66"
     },
     {
         "player.id": 196156,
@@ -3015,6 +3042,19 @@ const playersData = [
         "Geburtsdatum": "2000-10-10",
         "Groesse": "180",
         "Gewicht": "70"
+    },
+    {
+        "player.id": 9000004,
+        "Spielername": "Alphonso Davies",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Alphonso%20Davies%20-%20cropped.jpg",
+        "Position": "DEFENDER",
+        "Nationalteam.name": "Canada",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
+        "Club.name": "Bayern München",
+        "Club.logo": "https://media.api-sports.io/football/teams/157.png",
+        "Geburtsdatum": "2000-11-02",
+        "Groesse": "183",
+        "Gewicht": "75"
     },
     {
         "player.id": 146325,
@@ -4016,6 +4056,19 @@ const playersData = [
         "Geburtsdatum": "1993-05-11",
         "Groesse": "188",
         "Gewicht": "85"
+    },
+    {
+        "player.id": 9000014,
+        "Spielername": "Jhon Durán",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Jhon%20Dur%C3%A1n%2C%20Esteghlal%20FC%20vs%20Al-Nassr%20FC%20%28ACLElite%29%3B%203%20Mar%202025.png",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Colombia",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/8.png",
+        "Club.name": "Fenerbahçe",
+        "Club.logo": "https://media.api-sports.io/football/teams/611.png",
+        "Geburtsdatum": "2003-12-13",
+        "Groesse": "185",
+        "Gewicht": "82"
     },
     {
         "player.id": 1929,
@@ -5955,6 +6008,19 @@ const playersData = [
         "Gewicht": "82"
     },
     {
+        "player.id": 406303,
+        "Spielername": "Kendry Páez",
+        "Spielerfoto": "https://media.api-sports.io/football/players/406303.png",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Ecuador",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/2382.png",
+        "Club.name": "River Plate",
+        "Club.logo": "https://media.api-sports.io/football/teams/435.png",
+        "Geburtsdatum": "2007-05-04",
+        "Groesse": "178",
+        "Gewicht": "71"
+    },
+    {
         "player.id": 361966,
         "Spielername": "Kevin Rodríguez",
         "Spielerfoto": "https://media.api-sports.io/football/players/361966.png",
@@ -6070,19 +6136,6 @@ const playersData = [
         "Geburtsdatum": "2002-01-09",
         "Groesse": "184",
         "Gewicht": "77"
-    },
-    {
-        "player.id": 406303,
-        "Spielername": "Ray Páez",
-        "Spielerfoto": "https://media.api-sports.io/football/players/406303.png",
-        "Position": "ATTACKER",
-        "Nationalteam.name": "Ecuador",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/2382.png",
-        "Club.name": "River Plate",
-        "Club.logo": "https://media.api-sports.io/football/teams/435.png",
-        "Geburtsdatum": "2007-05-04",
-        "Groesse": "178",
-        "Gewicht": "71"
     },
     {
         "player.id": 81224,
@@ -6996,7 +7049,7 @@ const playersData = [
     },
     {
         "player.id": 307123,
-        "Spielername": "Nico O&apos;Reilly",
+        "Spielername": "Nico O’Reilly",
         "Spielerfoto": "https://media.api-sports.io/football/players/307123.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "England",
@@ -7191,7 +7244,7 @@ const playersData = [
     },
     {
         "player.id": 1149,
-        "Spielername": "Dayotchanculle Upamecano",
+        "Spielername": "Dayot Upamecano",
         "Spielerfoto": "https://media.api-sports.io/football/players/1149.png",
         "Position": "DEFENDER",
         "Nationalteam.name": "France",
@@ -7424,19 +7477,6 @@ const playersData = [
         "Gewicht": "90"
     },
     {
-        "player.id": 153,
-        "Spielername": "Masour Dembélé",
-        "Spielerfoto": "https://media.api-sports.io/football/players/153.png",
-        "Position": "ATTACKER",
-        "Nationalteam.name": "France",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/2.png",
-        "Club.name": "Paris Saint Germain",
-        "Club.logo": "https://media.api-sports.io/football/teams/85.png",
-        "Geburtsdatum": "1997-05-15",
-        "Groesse": "178",
-        "Gewicht": "67"
-    },
-    {
         "player.id": 156477,
         "Spielername": "Mathis Cherki",
         "Spielerfoto": "https://media.api-sports.io/football/players/156477.png",
@@ -7500,6 +7540,19 @@ const playersData = [
         "Geburtsdatum": "1991-03-29",
         "Groesse": "168",
         "Gewicht": "68"
+    },
+    {
+        "player.id": 153,
+        "Spielername": "Ousmane Dembélé",
+        "Spielerfoto": "https://media.api-sports.io/football/players/153.png",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "France",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/2.png",
+        "Club.name": "Paris Saint Germain",
+        "Club.logo": "https://media.api-sports.io/football/teams/85.png",
+        "Geburtsdatum": "1997-05-15",
+        "Groesse": "178",
+        "Gewicht": "67"
     },
     {
         "player.id": 162188,
@@ -8984,6 +9037,19 @@ const playersData = [
         "Gewicht": "82"
     },
     {
+        "player.id": 2687,
+        "Spielername": "Hossein Kanaanizadegan",
+        "Spielerfoto": "https://media.api-sports.io/football/players/2687.png",
+        "Position": "DEFENDER",
+        "Nationalteam.name": "Iran",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/22.png",
+        "Club.name": "Persepolis FC",
+        "Club.logo": "https://media.api-sports.io/football/teams/2742.png",
+        "Geburtsdatum": "1994-03-23",
+        "Groesse": "185",
+        "Gewicht": "89"
+    },
+    {
         "player.id": 357029,
         "Spielername": "Mehdi Hashemnejad",
         "Spielerfoto": "https://media.api-sports.io/football/players/357029.png",
@@ -9034,19 +9100,6 @@ const playersData = [
         "Geburtsdatum": "2001-10-07",
         "Groesse": "186",
         "Gewicht": "82"
-    },
-    {
-        "player.id": 2687,
-        "Spielername": "Mohammad Kanani",
-        "Spielerfoto": "https://media.api-sports.io/football/players/2687.png",
-        "Position": "DEFENDER",
-        "Nationalteam.name": "Iran",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/22.png",
-        "Club.name": "Persepolis FC",
-        "Club.logo": "https://media.api-sports.io/football/teams/2742.png",
-        "Geburtsdatum": "1994-03-23",
-        "Groesse": "185",
-        "Gewicht": "89"
     },
     {
         "player.id": 290554,
@@ -9128,7 +9181,7 @@ const playersData = [
     },
     {
         "player.id": 2699,
-        "Spielername": "Sayed Ghoddos",
+        "Spielername": "Saman Ghoddos",
         "Spielerfoto": "https://media.api-sports.io/football/players/2699.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Iran",
@@ -9138,6 +9191,19 @@ const playersData = [
         "Geburtsdatum": "1993-09-06",
         "Groesse": "175",
         "Gewicht": "79"
+    },
+    {
+        "player.id": 9000008,
+        "Spielername": "Sardar Azmoun",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Sardar%20Azmoun%202021.jpg",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Iran",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/22.png",
+        "Club.name": "Shabab Al Ahli Dubai",
+        "Club.logo": "https://media.api-sports.io/football/teams/2870.png",
+        "Geburtsdatum": "1995-01-01",
+        "Groesse": "186",
+        "Gewicht": "78"
     },
     {
         "player.id": 29755,
@@ -9518,7 +9584,7 @@ const playersData = [
     },
     {
         "player.id": 474591,
-        "Spielername": "Christ Inao OulaÃ¯",
+        "Spielername": "Christ Inao Oulaï",
         "Spielerfoto": "https://media.api-sports.io/football/players/474591.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Ivory Coast",
@@ -9777,6 +9843,19 @@ const playersData = [
         "Gewicht": "74"
     },
     {
+        "player.id": 9000012,
+        "Spielername": "Simon Adingra",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Simon%20Adingra%20USG%202023%20cropped.jpg",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Ivory Coast",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/1501.png",
+        "Club.name": "Sunderland",
+        "Club.logo": "https://media.api-sports.io/football/teams/746.png",
+        "Geburtsdatum": "2002-01-08",
+        "Groesse": "178",
+        "Gewicht": "70"
+    },
+    {
         "player.id": 1134,
         "Spielername": "Vakoun Bayo",
         "Spielerfoto": "https://media.api-sports.io/football/players/1134.png",
@@ -9788,6 +9867,19 @@ const playersData = [
         "Geburtsdatum": "1997-01-10",
         "Groesse": "184",
         "Gewicht": "72"
+    },
+    {
+        "player.id": 9000013,
+        "Spielername": "Wilfried Singo",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Singo%20asse%20asm%202425.png",
+        "Position": "DEFENDER",
+        "Nationalteam.name": "Ivory Coast",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/1501.png",
+        "Club.name": "Galatasaray",
+        "Club.logo": "https://media.api-sports.io/football/teams/645.png",
+        "Geburtsdatum": "2000-12-25",
+        "Groesse": "190",
+        "Gewicht": "85"
     },
     {
         "player.id": 18739,
@@ -10167,6 +10259,19 @@ const playersData = [
         "Gewicht": "64"
     },
     {
+        "player.id": 9000015,
+        "Spielername": "Takehiro Tomiyasu",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Takehiro%20Tomiyasu.jpg",
+        "Position": "DEFENDER",
+        "Nationalteam.name": "Japan",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/12.png",
+        "Club.name": "Arsenal",
+        "Club.logo": "https://media.api-sports.io/football/teams/42.png",
+        "Geburtsdatum": "1998-11-05",
+        "Groesse": "188",
+        "Gewicht": "70"
+    },
+    {
         "player.id": 1101,
         "Spielername": "Takumi Minamino",
         "Spielerfoto": "https://media.api-sports.io/football/players/1101.png",
@@ -10376,7 +10481,7 @@ const playersData = [
     },
     {
         "player.id": 53913,
-        "Spielername": "Baha&apos; Faisal",
+        "Spielername": "Baha’ Faisal",
         "Spielerfoto": "https://media.api-sports.io/football/players/53913.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Jordan",
@@ -10869,19 +10974,6 @@ const playersData = [
         "Gewicht": "66"
     },
     {
-        "player.id": 2098,
-        "Spielername": "Francisco Ochoa",
-        "Spielerfoto": "https://media.api-sports.io/football/players/2098.png",
-        "Position": "GOALKEEPER",
-        "Nationalteam.name": "Mexico",
-        "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
-        "Club.name": "AEL",
-        "Club.logo": "https://media.api-sports.io/football/teams/3396.png",
-        "Geburtsdatum": "1985-07-13",
-        "Groesse": "190",
-        "Gewicht": "85"
-    },
-    {
         "player.id": 6485,
         "Spielername": "Germán Berterame",
         "Spielerfoto": "https://media.api-sports.io/football/players/6485.png",
@@ -10919,6 +11011,19 @@ const playersData = [
         "Geburtsdatum": "1995-03-15",
         "Groesse": "191",
         "Gewicht": "91"
+    },
+    {
+        "player.id": 2098,
+        "Spielername": "Guillermo Ochoa",
+        "Spielerfoto": "https://media.api-sports.io/football/players/2098.png",
+        "Position": "GOALKEEPER",
+        "Nationalteam.name": "Mexico",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
+        "Club.name": "AEL",
+        "Club.logo": "https://media.api-sports.io/football/teams/3396.png",
+        "Geburtsdatum": "1985-07-13",
+        "Groesse": "190",
+        "Gewicht": "85"
     },
     {
         "player.id": 248,
@@ -11233,6 +11338,19 @@ const playersData = [
         "Gewicht": "70"
     },
     {
+        "player.id": 9000006,
+        "Spielername": "Santiago Giménez",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Santiago%20Gim%C3%A9nez%20-%202023.jpg",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "Mexico",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
+        "Club.name": "AC Milan",
+        "Club.logo": "https://media.api-sports.io/football/teams/489.png",
+        "Geburtsdatum": "2001-04-18",
+        "Groesse": "183",
+        "Gewicht": "78"
+    },
+    {
         "player.id": 129943,
         "Spielername": "Víctor Guzmán",
         "Spielerfoto": "https://media.api-sports.io/football/players/129943.png",
@@ -11322,6 +11440,19 @@ const playersData = [
         "Geburtsdatum": "1993-06-25",
         "Groesse": "182",
         "Gewicht": "79"
+    },
+    {
+        "player.id": 9000011,
+        "Spielername": "Ayyoub Bouaddi",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Ayyoub%20Bouaddi.jpg",
+        "Position": "MIDFIELDER",
+        "Nationalteam.name": "Morocco",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/31.png",
+        "Club.name": "Lille",
+        "Club.logo": "https://media.api-sports.io/football/teams/79.png",
+        "Geburtsdatum": "2007-10-02",
+        "Groesse": "180",
+        "Gewicht": "-"
     },
     {
         "player.id": 129678,
@@ -12297,6 +12428,19 @@ const playersData = [
         "Geburtsdatum": "1994-12-22",
         "Groesse": "180",
         "Gewicht": "78"
+    },
+    {
+        "player.id": 9000007,
+        "Spielername": "Chris Wood",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Chris%20Wood%2C%20Nottingham%20Forest%2C%202025.jpg",
+        "Position": "ATTACKER",
+        "Nationalteam.name": "New Zealand",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/4673.png",
+        "Club.name": "Nottingham Forest",
+        "Club.logo": "https://media.api-sports.io/football/teams/65.png",
+        "Geburtsdatum": "1991-12-07",
+        "Groesse": "191",
+        "Gewicht": "82"
     },
     {
         "player.id": 18931,
@@ -17460,6 +17604,19 @@ const playersData = [
         "Gewicht": "72"
     },
     {
+        "player.id": 9000005,
+        "Spielername": "Dejan Kulusevski",
+        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Dejan%20Kulusevski%202022.jpg",
+        "Position": "MIDFIELDER",
+        "Nationalteam.name": "Sweden",
+        "Nationalteam.logo": "https://media.api-sports.io/football/teams/5.png",
+        "Club.name": "Tottenham",
+        "Club.logo": "https://media.api-sports.io/football/teams/47.png",
+        "Geburtsdatum": "2000-04-25",
+        "Groesse": "186",
+        "Gewicht": "75"
+    },
+    {
         "player.id": 226765,
         "Spielername": "Elliot Stroud",
         "Spielerfoto": "https://media.api-sports.io/football/players/226765.png",
@@ -19996,7 +20153,7 @@ const playersData = [
     },
     {
         "player.id": 73507,
-        "Spielername": "Abduvohid Ne&apos;matov",
+        "Spielername": "Abduvohid Ne’matov",
         "Spielerfoto": "https://media.api-sports.io/football/players/73507.png",
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Uzbekistan",
@@ -20191,7 +20348,7 @@ const playersData = [
     },
     {
         "player.id": 72127,
-        "Spielername": "Oston O&apos;runov",
+        "Spielername": "Oston Oʻrunov",
         "Spielerfoto": "https://media.api-sports.io/football/players/72127.png",
         "Position": "ATTACKER",
         "Nationalteam.name": "Uzbekistan",
