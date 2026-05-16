@@ -1,0 +1,151 @@
+name: WM 2026 Official Kader Check
+
+# Prüft täglich (und auf Wunsch manuell), ob API-Football bereits offizielle
+# Kaderdaten für alle 48 WM-2026-Teams liefert. Wenn ja, wird automatisch eine
+# neue data-wm2026.js generiert und als Pull Request vorgeschlagen.
+#
+# Benötigtes Repo-Secret (Settings → Secrets and variables → Actions):
+#   API_FOOTBALL_KEY   API-Football / RapidAPI Key (v3.football.api-sports.io)
+#
+# Manuell starten:
+#   GitHub → Actions → "WM 2026 Official Kader Check" → "Run workflow".
+#   Optional „force_generate=true" setzen, um data-wm2026.js auch dann zu
+#   regenerieren, wenn der Datenstand noch nicht ready ist (z.B. zum Test).
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_generate:
+        description: "Trotz nicht-ready Datenstand data-wm2026.js neu generieren?"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # täglich 04:17 UTC
+    - cron: "17 4 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: wm2026-official-kader-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-and-generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install script dependencies (falls package.json vorhanden)
+        run: |
+          if [ -f scripts/package.json ]; then
+            echo "scripts/package.json gefunden – npm install."
+            (cd scripts && npm install --no-audit --no-fund --omit=dev)
+          else
+            echo "Keine scripts/package.json gefunden – plain Node-Modus."
+          fi
+
+      - name: Run availability check
+        id: check
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: node scripts/check-wm2026-official-kader.mjs
+
+      - name: Show check report in step summary
+        if: always()
+        run: |
+          if [ -f reports/wm2026-official-kader-status.md ]; then
+            cat reports/wm2026-official-kader-status.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Decide whether to generate
+        id: decide
+        run: |
+          ready="${{ steps.check.outputs.ready }}"
+          force="${{ github.event.inputs.force_generate }}"
+          if [ "$ready" = "true" ]; then
+            echo "should_generate=true" >> "$GITHUB_OUTPUT"
+            echo "force_flag=" >> "$GITHUB_OUTPUT"
+            echo "Datenstand ready – generiere data-wm2026.js."
+          elif [ "$force" = "true" ]; then
+            echo "should_generate=true" >> "$GITHUB_OUTPUT"
+            echo "force_flag=--force" >> "$GITHUB_OUTPUT"
+            echo "force_generate=true – generiere data-wm2026.js trotz nicht-ready."
+          else
+            echo "should_generate=false" >> "$GITHUB_OUTPUT"
+            echo "force_flag=" >> "$GITHUB_OUTPUT"
+            echo "Datenstand nicht ready und kein force_generate – kein PR."
+          fi
+
+      - name: Generate data-wm2026.js
+        if: steps.decide.outputs.should_generate == 'true'
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: node scripts/generate-wm2026-official-kader.mjs ${{ steps.decide.outputs.force_flag }}
+
+      - name: Show generation report in step summary
+        if: steps.decide.outputs.should_generate == 'true'
+        run: |
+          if [ -f reports/wm2026-official-kader-generated.md ]; then
+            cat reports/wm2026-official-kader-generated.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Detect data-wm2026.js changes
+        if: steps.decide.outputs.should_generate == 'true'
+        id: diff
+        run: |
+          if git diff --quiet -- data-wm2026.js; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "data-wm2026.js unverändert."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "data-wm2026.js wurde geändert."
+          fi
+
+      - name: Read PR body from generated report
+        if: steps.diff.outputs.changed == 'true'
+        id: prbody
+        run: |
+          {
+            echo 'body<<__WM2026_PR_BODY_EOF__'
+            if [ -f reports/wm2026-official-kader-generated.md ]; then
+              cat reports/wm2026-official-kader-generated.md
+            else
+              echo "Automatisch generierter offizieller WM-2026-Kader."
+            fi
+            echo ""
+            echo "---"
+            echo "Erzeugt durch Workflow \`wm2026-official-kader.yml\`."
+            echo '__WM2026_PR_BODY_EOF__'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create or update Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: auto/wm2026-official-kader
+          base: ${{ github.ref_name }}
+          commit-message: "WM 2026: offizielles Kader aktualisieren"
+          title: "WM 2026: offizielles Kader aktualisieren"
+          body: ${{ steps.prbody.outputs.body }}
+          add-paths: |
+            data-wm2026.js
+            reports/**
+          delete-branch: false
+          draft: false
+
+      - name: Note when nothing to do
+        if: steps.decide.outputs.should_generate != 'true'
+        run: |
+          echo "Datenstand noch nicht ready und kein force_generate – Workflow endet erfolgreich ohne PR." >> "$GITHUB_STEP_SUMMARY"
