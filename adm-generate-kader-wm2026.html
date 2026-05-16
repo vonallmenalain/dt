@@ -418,6 +418,18 @@
             Neu-Generierung berücksichtigt als auch zur Laufzeit in der App
             (Dashboard, Team-Builder, Teams, Analyse, Rangliste) automatisch
             angewendet.
+            <br><br>
+            <strong>Manuelle Kader-Eingriffe (Add / Remove / Namens-Fix):</strong>
+            Spieler, die in <code>/players/squads</code> fehlen (Verletzung,
+            Squad-Update verzögert), sowie Namens-Korrekturen und
+            <code>player.id</code>-Blocklisten werden zentral in
+            <code>manual-kader-wm2026.js</code> gepflegt. Die Einträge dort
+            werden bei jeder Neu-Generierung automatisch angewendet, sodass
+            du <code>data-wm2026.js</code> jederzeit überschreiben kannst,
+            ohne die manuellen Anpassungen zu verlieren. Sonderzeichen in
+            Spielernamen (z.B. <em>Dembélé</em>, <em>Ødegaard</em>,
+            <em>Vinícius</em>) werden NICHT mehr normalisiert — die Suche
+            in der App ist diakritikatolerant.
         </div>
 
         <div class="storage-note">
@@ -463,6 +475,7 @@
 
 <script src="tournament-config.js"></script>
 <script src="position-overrides.js"></script>
+<script src="manual-kader-wm2026.js"></script>
 <script src="admin-api-key-storage.js"></script>
 <script>
     /* =========================================================================
@@ -544,6 +557,46 @@
         apiKeyInput.type = "password";
         toggleKeyVisibilityBtn.textContent = "👁️ Key anzeigen";
         if (didClear) log("🗑️ Session-API-Key wurde gelöscht.", "log-warning");
+    }
+
+    /* ---------- Manuelle Kader-Overlays (Add / Remove / Name) ----------- */
+    /*
+     * Quelle: manual-kader-wm2026.js (window.MANUAL_KADER_WM2026).
+     * Dort liegen drei Listen:
+     *   - addPlayers:    Spieler, die der API-Squad nicht enthält, die
+     *                    aber zwingend ins Aufgebot gehören
+     *                    (z.B. Stars in Verletzungspause).
+     *   - removeIds:     player.id-Werte, die nach dem API-Lauf entfernt
+     *                    werden sollen.
+     *   - nameOverrides: Map player.id → korrigierter Anzeigename
+     *                    (z.B. "Christian Pulisic" statt API-"Pulišić").
+     *
+     * Damit kann adm-generate-kader-wm2026.html jederzeit neu ausgeführt
+     * und das Ergebnis direkt in data-wm2026.js übernommen werden, ohne
+     * dass die manuell gepflegten Eingriffe verloren gehen.
+     */
+
+    const MANUAL_OVERLAY = (window.MANUAL_KADER_WM2026) || {
+        addPlayers: [],
+        removeIds: [],
+        nameOverrides: {}
+    };
+
+    const MANUAL_ADD_PLAYERS = Array.isArray(MANUAL_OVERLAY.addPlayers)
+        ? MANUAL_OVERLAY.addPlayers : [];
+    const MANUAL_REMOVE_ID_SET = new Set(
+        (Array.isArray(MANUAL_OVERLAY.removeIds) ? MANUAL_OVERLAY.removeIds : [])
+            .map(id => String(id))
+    );
+    const MANUAL_NAME_OVERRIDE_MAP = (MANUAL_OVERLAY.nameOverrides && typeof MANUAL_OVERLAY.nameOverrides === 'object')
+        ? MANUAL_OVERLAY.nameOverrides : {};
+
+    function getManualNameOverride(playerId) {
+        const key = String(playerId);
+        if (Object.prototype.hasOwnProperty.call(MANUAL_NAME_OVERRIDE_MAP, key)) {
+            return String(MANUAL_NAME_OVERRIDE_MAP[key] || "").trim() || null;
+        }
+        return null;
     }
 
     /* ---------- Position-Normalisierung & Overrides ---------------------- */
@@ -1021,7 +1074,15 @@
                             const label = fullPlayer.name || entry.squadName || entry.playerId;
                             log(`  ⏭️ Übersprungen (kein Profilbild): ${label}`, "log-warning");
                         } else {
-                            const cleanName = buildCleanName(fullPlayer) || entry.squadName || "Unbekannt";
+                            let cleanName = buildCleanName(fullPlayer) || entry.squadName || "Unbekannt";
+
+                            // Manuelle Namens-Overrides aus manual-kader-wm2026.js
+                            // anwenden (z.B. "Christian Pulisic" statt API-"Pulišić").
+                            const nameOverride = getManualNameOverride(fullPlayer.id);
+                            if (nameOverride) {
+                                log(`  ✏️ Namens-Override: ${cleanName} → ${nameOverride}`, "log-warning");
+                                cleanName = nameOverride;
+                            }
 
                             // Position: bevorzugt aus Statistik, sonst aus Squad-Daten.
                             const apiPos = (allStats[0]?.games?.position) || entry.squadPosition || "";
@@ -1073,6 +1134,63 @@
                 );
             }
 
+            /* ----- PHASE 4: Manuelle Overlays anwenden ----- */
+            /*
+             * Reihenfolge:
+             *   a) MANUAL_REMOVE_IDS aus dem API-Ergebnis entfernen.
+             *   b) MANUAL_ADD_PLAYERS anhängen; bei `player.id`-Kollision
+             *      mit einem API-Eintrag gewinnt der manuelle Eintrag
+             *      (dedupliziert via Map).
+             *
+             * So bleiben sämtliche Eingriffe aus manual-kader-wm2026.js
+             * bei jeder Neu-Generierung erhalten.
+             */
+            log(`\n--- PHASE 4: Manuelle Overlays aus manual-kader-wm2026.js anwenden ---`, "log-warning");
+
+            let removedByOverlay = 0;
+            if (MANUAL_REMOVE_ID_SET.size > 0) {
+                const before = finalData.length;
+                for (let i = finalData.length - 1; i >= 0; i--) {
+                    if (MANUAL_REMOVE_ID_SET.has(String(finalData[i]["player.id"]))) {
+                        log(`  🗑️ Entfernt: ${finalData[i].Spielername} (id=${finalData[i]["player.id"]})`, "log-warning");
+                        finalData.splice(i, 1);
+                    }
+                }
+                removedByOverlay = before - finalData.length;
+            }
+
+            let addedByOverlay = 0;
+            let overwrittenByOverlay = 0;
+            if (MANUAL_ADD_PLAYERS.length > 0) {
+                const indexById = new Map();
+                finalData.forEach((p, idx) => indexById.set(String(p["player.id"]), idx));
+
+                for (const manual of MANUAL_ADD_PLAYERS) {
+                    if (!manual || manual["player.id"] === undefined || manual["player.id"] === null) continue;
+                    const key = String(manual["player.id"]);
+                    const existingIdx = indexById.get(key);
+                    if (existingIdx !== undefined) {
+                        log(`  ♻️ Manuell überschrieben: ${manual.Spielername} (id=${key})`, "log-warning");
+                        finalData[existingIdx] = manual;
+                        overwrittenByOverlay++;
+                    } else {
+                        log(`  ➕ Manuell ergänzt: ${manual.Spielername} (id=${key})`, "log-success");
+                        finalData.push(manual);
+                        indexById.set(key, finalData.length - 1);
+                        addedByOverlay++;
+                    }
+                }
+            }
+
+            log(
+                `\n✅ Overlay-Bilanz: ` +
+                `+${addedByOverlay} ergänzt, ` +
+                `${overwrittenByOverlay} überschrieben, ` +
+                `${removedByOverlay} entfernt, ` +
+                `${Object.keys(MANUAL_NAME_OVERRIDE_MAP).length} Namens-Overrides definiert.`,
+                "log-success"
+            );
+
             /* ----- Sortierung wie data-em2024.js ----- */
             finalData.sort((a, b) => {
                 const nationCompare = String(a["Nationalteam.name"] || "").localeCompare(
@@ -1087,11 +1205,22 @@
             /* ----- Datei-Inhalt im exakten data-em2024.js-Format bauen ----- */
             const jsonStr = JSON.stringify(finalData, null, 4);
             const generatedAt = new Date().toLocaleString();
+            const overlayHeader =
+`//
+// Manuelle Overlays (aus manual-kader-wm2026.js) automatisch angewendet:
+//   - Manuell ergänzte Spieler:   ${addedByOverlay}
+//   - Manuell überschriebene IDs: ${overwrittenByOverlay}
+//   - Manuell entfernte IDs:      ${removedByOverlay}
+//   - Namens-Overrides definiert: ${Object.keys(MANUAL_NAME_OVERRIDE_MAP).length}
+//
+// Originalnamen mit Diakritika (Dembélé, Ødegaard, Vinícius Júnior, …)
+// bleiben erhalten — die App-Suche ist diakritikatolerant.`;
             const finalCode =
 `// WM 2026 Kader (PROVISORISCH)
 // Turnier: ${WM2026.name || "Weltmeisterschaft 2026"}
 // Quelle: API-Football /players/squads pro qualifiziertem Team
 // Generiert am: ${generatedAt}
+${overlayHeader}
 
 const playersData = ${jsonStr};`;
 
