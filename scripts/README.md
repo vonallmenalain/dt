@@ -1,17 +1,21 @@
 # DreamTeam Cron-Scripts
 
-In diesem Ordner liegen die server-seitigen Pendants zu zwei
-Admin-Seiten, die früher nur im Browser nutzbar waren:
+In diesem Ordner liegen die server-seitigen Auto-Workflows, die früher
+über zwei Admin-HTML-Seiten manuell im Browser ausgelöst wurden. Die
+Browser-Seiten gibt es nicht mehr – die Aktionen laufen ausschliesslich
+serverseitig als GitHub Actions, weil Firestore-Schreibzugriffe nicht
+aus dem Browser stattfinden sollen:
 
-| Script                  | Browser-Pendant            | Default-Cron               |
-| ----------------------- | -------------------------- | -------------------------- |
-| `auto-points-upload.js` | `adm-upload-points.html`   | alle 5 Minuten             |
-| `sync-fixtures.js`      | `adm-sync-fixtures.html`   | täglich 04:00 UTC (≈ 06:00 CH) |
+| Script                  | Früheres Browser-Pendant (entfernt) | Default-Cron               |
+| ----------------------- | ----------------------------------- | -------------------------- |
+| `auto-points-upload.js` | `adm-upload-points.html` (entfernt) | alle 5 Minuten             |
+| `sync-fixtures.js`      | `adm-sync-fixtures.html` (entfernt) | täglich 04:00 UTC (≈ 06:00 CH) |
 
 Beide Workflows laufen vollautomatisch als GitHub-Action und benutzen
 dieselben zwei Repo-Secrets (`RAPIDAPI_KEY`, `FIREBASE_SERVICE_ACCOUNT`).
-Die Browser-Seiten bleiben unverändert nutzbar – z.B. für einmalige
-Catch-Ups oder manuelle Re-Computes.
+Manuelle Catch-Ups oder Re-Computes werden über den **Run workflow**-
+Button im Actions-Tab ausgelöst (siehe Abschnitte "Manuelles Auslösen"
+weiter unten).
 
 ---
 
@@ -31,7 +35,7 @@ ohne dass jemand einen Browser-Tab geöffnet haben muss.
    Fall, beendet sich der Job sofort. Damit kostet jeder Cron-Tick
    ausserhalb der Spieltage praktisch nichts.
 
-2. **Punkte-Workflow (analog zur Seite `adm-upload-points.html`):**
+2. **Punkte-Workflow (vormals in der entfernten Seite `adm-upload-points.html`):**
    - Lädt alle Fixtures vom `api-football`-Endpunkt.
    - Holt Detail-Stats für jedes als beendet gemeldete Spiel.
    - Wendet die zentralen Punkteregeln aus `tournament-config.js` an
@@ -96,8 +100,8 @@ Im Tab **Actions** → Workflow **Auto Punkte-Upload** → Button
 
 - `tournament_key` setzen (überschreibt das Default-Turnier).
 - `force_run` aktivieren – überspringt den Pre-Check und führt einen
-  vollständigen Recompute aus (analog zum manuellen Button auf
-  `adm-upload-points.html`).
+  vollständigen Recompute aus (entspricht dem früheren manuellen Button
+  auf der entfernten Seite `adm-upload-points.html`).
 - `dry_run` aktivieren – Skript loggt nur, schreibt nichts in Firestore.
 
 ## Lokal testen (optional)
@@ -119,14 +123,15 @@ Workflow inklusive API-Calls läuft aber bis zum Ende. Mit `FORCE_RUN=1`
 kann man den Pre-Check überspringen, um z.B. einen kompletten
 Catch-Up-Lauf zu erzwingen (verbraucht entsprechend mehr API-Quota).
 
-## Verhältnis zur Seite `adm-upload-points.html`
+## Was ist mit der früheren Seite `adm-upload-points.html` passiert?
 
-- Der manuelle Button auf `adm-upload-points.html` bleibt **unverändert
-  funktionsfähig** und macht exakt denselben Upload (gleiche Punkte­regeln,
-  gleiche Firestore-Targets). Sinnvoll für einmalige Catch-Ups oder zum
-  Re-Computen nach manuellen Daten-Korrekturen.
-- Die frühere Browser-Auto-Modus-Box wurde entfernt – diese Aufgabe
-  übernimmt jetzt vollständig dieser Cron-Workflow.
+- Die Seite wurde entfernt, weil produktive Firestore-Schreibzugriffe
+  nicht aus dem Browser kommen sollen (Security: Service-Account-
+  Berechtigungen gehören nicht in clientseitigen Code).
+- Manuelle Catch-Ups bzw. Re-Computes laufen jetzt über
+  **Actions → Auto Punkte-Upload → Run workflow** (siehe oben). Mit
+  `force_run = true` erzwingt man einen kompletten Recompute, identisch
+  zum früheren manuellen Button.
 
 ---
 
@@ -148,8 +153,8 @@ sichtbar.
    einmal (kein Quota-Verschwender, neue Stadien werden automatisch
    nachgeladen).
 3. Schreibt pro Spiel ein Firestore-Dokument in `fixturesCollection`
-   (z.B. `Spiele WM 2026`) im exakt gleichen Schema wie
-   `adm-sync-fixtures.html`.
+   (z.B. `Spiele WM 2026`) im etablierten Spielplan-Schema (gleiche
+   Felder/Keys wie zuvor in der entfernten Seite `adm-sync-fixtures.html`).
 4. Erhöht `fixturesVersion` und setzt `fixturesUpdatedAt` im
    Meta-Dokument – das ist das Signal, mit dem `index.html` &
    `rangliste.html` ihren Cache invalidieren.
@@ -196,11 +201,12 @@ export DRY_RUN=1
 npm run sync-fixtures
 ```
 
-### Verhältnis zur Seite `adm-sync-fixtures.html`
+### Was ist mit der früheren Seite `adm-sync-fixtures.html` passiert?
 
-- Die Seite bleibt **unverändert funktionsfähig** und macht exakt
-  denselben Sync. Sinnvoll für einmalige Ad-hoc-Refreshes oder zum
-  Testen lokaler Anpassungen.
-- Der tägliche Cron-Workflow ersetzt aber den Bedarf, die Seite
-  überhaupt zu öffnen – die Finalrunden-Spiele landen automatisch
-  in Firebase, sobald die API sie kennt.
+- Die Seite wurde entfernt – aus denselben Sicherheitsgründen wie
+  `adm-upload-points.html` (keine Firestore-Schreibzugriffe aus dem
+  Browser).
+- Der tägliche Cron-Workflow sorgt automatisch dafür, dass z.B. die
+  Finalrunden-Spiele in Firebase landen, sobald die API sie kennt.
+- Ad-hoc-Refreshes laufen über **Actions → Auto Spielplan-Sync → Run
+  workflow** (siehe oben).

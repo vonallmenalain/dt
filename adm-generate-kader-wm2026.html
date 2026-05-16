@@ -433,8 +433,11 @@
         </div>
 
         <div class="storage-note">
-            Es wird derselbe Session-API-Key verwendet wie in
-            <strong>adm-upload-points.html</strong>.
+            Der hier eingegebene API-Key wird ausschliesslich für diesen
+            Generator-Tab im Browser-Session-Storage gehalten und nirgends
+            anders gespeichert. Die produktiven Auto-Workflows
+            (Punkte-Upload und Spielplan-Sync) laufen serverseitig als
+            GitHub Actions und benutzen ihren eigenen Repo-Secret-Key.
         </div>
     </div>
 
