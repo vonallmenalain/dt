@@ -29,6 +29,17 @@
  *    isAdmin()               → boolean (aktueller User ist Admin?)
  *    getUid()                → string | null (aktueller User-UID)
  *    isAdminUid(uid)         → boolean (UID-spezifischer Check)
+ *    getDevViewOverride()    → "pre" | "post" | null
+ *                              Liest den Dev-Toggle-Wert aus localStorage
+ *                              ("dreamteamIndexViewMode"), aber NUR wenn
+ *                              der aktuelle User aktuell als Admin
+ *                              authentifiziert ist. Für alle anderen
+ *                              Aufrufer (inkl. manipuliertem localStorage)
+ *                              gibt die Funktion `null` zurück, sodass die
+ *                              App auf die echte Spielzeit zurückfällt.
+ *                              Wichtig: Das ist nur eine UI-Schranke,
+ *                              die echte Sperre gehört in die
+ *                              Firestore Rules / das Backend.
  *    onAdminChange(cb)       → unsubscribe()
  *                              cb({ isAdmin, uid }) feuert sofort einmal
  *                              mit dem aktuellen Stand, dann bei jeder
@@ -52,6 +63,15 @@
     const ADMIN_UIDS = Object.freeze([
         'lSw9kxsnp8a7qb0s7UzuTQVwRAu1'
     ]);
+
+    /**
+     * localStorage-Key des Pre/Post-Spielstart-Dev-Toggles. Wird sowohl
+     * vom Dev-Knopf auf index.html geschrieben, als auch von den
+     * View-Mode-Helfern (team-builder.html, auth-modal.js) ausgelesen.
+     * Hier zentral gehalten, damit die Allow-/Block-Logik nur an einer
+     * Stelle gepflegt werden muss.
+     */
+    const DEV_VIEW_STORAGE_KEY = 'dreamteamIndexViewMode';
 
     const listeners = new Set();
     let currentUid = null;
@@ -109,11 +129,37 @@
         }, 100);
     }
 
+    /**
+     * Liefert den vom Admin gesetzten Pre/Post-Override – ABER nur, wenn
+     * im Moment ein Admin-Account angemeldet ist. Für alle anderen Nutzer
+     * (oder solange Firebase Auth noch nicht aufgelöst hat) gibt die
+     * Funktion `null` zurück, sodass aufrufender Code auf die echte
+     * Spielzeit zurückfällt.
+     *
+     * Hintergrund: Der localStorage-Wert ist clientseitig manipulierbar.
+     * Würde irgendein UI-Code ihn unkonditional auswerten, könnte ein
+     * Manipulator nach Spielstart in den "pre"-Modus springen und
+     * versuchen, Aktionen wie das Einreichen eines Teams zu erzwingen.
+     * Indem wir den Override hier zentral hinter `isAdmin()` setzen, gilt
+     * der Dev-Schalter nur noch für den Admin-Account – und der echte
+     * Schutz gegen unzulässige Schreibzugriffe muss weiterhin über die
+     * Firestore Rules / Cloud Functions erfolgen.
+     */
+    function getDevViewOverride() {
+        if (!currentIsAdmin) return null;
+        try {
+            const value = window.localStorage && window.localStorage.getItem(DEV_VIEW_STORAGE_KEY);
+            if (value === 'pre' || value === 'post') return value;
+        } catch (_) { /* localStorage geblockt – Override ignorieren */ }
+        return null;
+    }
+
     window.DreamTeamAdmin = {
         ADMIN_UIDS,
         isAdmin()   { return currentIsAdmin; },
         getUid()    { return currentUid; },
         isAdminUid,
+        getDevViewOverride,
         onAdminChange(cb) {
             if (typeof cb !== 'function') return function () {};
             listeners.add(cb);

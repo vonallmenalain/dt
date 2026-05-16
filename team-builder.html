@@ -4319,9 +4319,23 @@
 
     /* =========================================================
        TOURNAMENT STATUS CHECK
+       =========================================================
+       SICHERHEITSHINWEIS:
+       Der Dev-Override (`dreamteamIndexViewMode = "pre" | "post"`) wird
+       hier bewusst NUR berücksichtigt, wenn aktuell ein Admin-Account
+       (siehe admin.js / DreamTeamAdmin.ADMIN_UIDS) eingeloggt ist.
+       Damit lässt sich die Abgabe-Sperre nicht mehr clientseitig durch
+       blosses Setzen des localStorage-Wertes umgehen – ein normaler
+       Manipulator landet immer auf der echten APP_CONFIG.DREAMTEAM_START
+       und sieht dieselbe gesperrte UI wie alle anderen Nutzer.
+       Die *eigentliche* Sicherheitsschicht muss weiterhin in den
+       Firestore Rules bzw. einer Cloud Function liegen.
        ========================================================= */
     function isTournamentStarted() {
-        const override = localStorage.getItem('dreamteamIndexViewMode') || 'auto';
+        const Admin = window.DreamTeamAdmin;
+        const override = (Admin && typeof Admin.getDevViewOverride === 'function')
+            ? Admin.getDevViewOverride()
+            : null;
         if (override === 'pre') return false;
         if (override === 'post') return true;
         // Startzeitpunkt kommt zentral aus APP_CONFIG.DREAMTEAM_START
@@ -4685,23 +4699,62 @@
 
     /* =========================================================
        TOURNAMENT CLOSED – UI LOCK
+       =========================================================
+       Die Sperre ist reaktiv: Beim ersten Aufruf (DOMContentLoaded) ist
+       Firebase Auth meist noch nicht aufgelöst, deshalb gilt für ALLE
+       Nutzer initial die Sperre nach Spielstart. Sobald sich der
+       Admin-Status ändert (Login eines Admins → Override greift, oder
+       Logout → Override fällt wieder weg), evaluieren wir den Zustand
+       erneut und entsperren bzw. sperren die UI entsprechend.
        ========================================================= */
     function applyTournamentClosedState() {
-        if (!isTournamentStarted()) return;
-
+        const closed = isTournamentStarted();
         const banner = document.getElementById('tournament-closed-banner');
-        if (banner) banner.style.display = 'flex';
+        if (banner) banner.style.display = closed ? 'flex' : 'none';
 
         if (dom.submitBtn) {
-            dom.submitBtn.disabled = true;
-            dom.submitBtn.textContent = '⛔ Einreichung gesperrt';
-            dom.submitBtn.setAttribute('aria-label', 'Einreichung gesperrt – Turnier hat begonnen');
+            if (closed) {
+                dom.submitBtn.disabled = true;
+                dom.submitBtn.textContent = '⛔ Einreichung gesperrt';
+                dom.submitBtn.setAttribute('aria-label', 'Einreichung gesperrt – Turnier hat begonnen');
+            } else {
+                dom.submitBtn.removeAttribute('aria-label');
+                setSubmitDefaultLabel();
+            }
         }
 
         if (dom.managerName) {
-            dom.managerName.disabled = true;
-            dom.managerName.placeholder = '⛔ Einreichung nach Turnierstart gesperrt';
+            if (closed) {
+                dom.managerName.disabled = true;
+                dom.managerName.placeholder = '⛔ Einreichung nach Turnierstart gesperrt';
+            } else {
+                dom.managerName.disabled = false;
+                dom.managerName.placeholder = '';
+            }
         }
+
+        /* Beim Entsperren bestimmt validateForm() den korrekten
+           disabled-Zustand des Submit-Buttons (15 Spieler, Captain,
+           Manager-Name etc.). Beim Sperren bleibt disabled=true. */
+        if (!closed) {
+            validateForm();
+        }
+    }
+
+    /**
+     * Hängt sich an den Admin-Status (siehe admin.js / DreamTeamAdmin):
+     * Der Dev-Override für Pre/Post-Spielstart wird ja nur dann
+     * angewandt, wenn ein Admin angemeldet ist. Wenn sich das ändert
+     * (Login / Logout / Admin-Status-Bestätigung nach Auth-Boot), muss
+     * die Sperre neu ausgewertet werden – sonst bliebe ein Admin nach
+     * Spielstart trotz "pre"-Override hinter der Sperre, und ein
+     * frischer Logout aus dem Admin-Account würde nicht zur Sperre
+     * zurückführen.
+     */
+    function bindTournamentLockToAdminState() {
+        const Admin = window.DreamTeamAdmin;
+        if (!Admin || typeof Admin.onAdminChange !== 'function') return;
+        Admin.onAdminChange(() => applyTournamentClosedState());
     }
 
     /* =========================================================
@@ -4719,6 +4772,7 @@
         updateSearchClearButton();
 
         applyTournamentClosedState();
+        bindTournamentLockToAdminState();
 
         /* Button events */
         if (dom.clearTeamBtn) dom.clearTeamBtn.addEventListener('click', clearTeam);

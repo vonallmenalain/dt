@@ -55,8 +55,7 @@
          alte „kurz Vor-Start sehen, dann auf Nach-Start umspringen"-
          Flicker beim Aufruf nach Spielstart entfällt.
 
-         Reihenfolge der Quellen (gleiche Priorität wie der spätere
-         applyIndexViewMode()-Aufruf weiter unten):
+         Reihenfolge der Quellen:
            1. dreamteamIndexViewMode = "pre" / "post" (Dev-Override)
            2. dreamteamLastView (sessionStorage; vom letzten Render
               dieser Seite gesetzt – hält den Wert über Reloads stabil)
@@ -65,11 +64,15 @@
               Wird nur beim allerersten Besuch genutzt; danach übernimmt
               der sessionStorage-Cache.
 
-         Der spätere applyIndexViewMode() schreibt das Attribut
-         deterministisch erneut, sodass jeder kleine Spezialfall
-         (URL-Param ?tournament=, Dev-Override-Toggle, Auto-Flip beim
-         Spielstart) am Ende konsistent gewinnt – das hier ist nur die
-         „best guess vor JS-Boot"-Schicht.
+         Sicherheitshinweis:
+         Der Dev-Override wird hier rein kosmetisch (Best-Guess-Layer
+         vor JS-Boot) ausgewertet. Sobald der echte JS-Boot läuft,
+         schreibt das gegate-te applyIndexViewMode() das Attribut
+         deterministisch neu – und der Override wirkt dort NUR für
+         Admin-Accounts (siehe admin.js / DreamTeamAdmin). Ein
+         Manipulator des localStorage-Wertes würde also höchstens
+         einen kurzen Paint-Flicker provozieren; die echte
+         Pre/Post-Logik bleibt admin-only.
     -->
     <script>
     (function () {
@@ -5850,9 +5853,21 @@
      * Gibt den effektiven Anzeigemodus zurück:
      * "pre"  → Vor-Spielstart-Ansicht anzeigen
      * "post" → Nach-Spielstart-/Live-Ansicht anzeigen
+     *
+     * SICHERHEITSHINWEIS:
+     * Der Dev-Override (`dreamteamIndexViewMode`) gilt nur dann, wenn
+     * gerade ein Admin-Account angemeldet ist (siehe admin.js /
+     * DreamTeamAdmin.getDevViewOverride). Für alle anderen Nutzer fällt
+     * die Funktion automatisch auf den echten DREAMTEAM_START-Zeitpunkt
+     * zurück, selbst wenn jemand den localStorage-Wert per DevTools
+     * gesetzt hat. Damit ist der Wechsel zwischen Vor-/Nach-Spielstart-
+     * Ansicht im Frontend ein reines Admin-Werkzeug.
      */
     function getEffectiveIndexViewMode() {
-        const override = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
+        const Admin = window.DreamTeamAdmin;
+        const override = (Admin && typeof Admin.getDevViewOverride === 'function')
+            ? Admin.getDevViewOverride()
+            : null;
         if (override === "pre") return "pre";
         if (override === "post") return "post";
         return new Date() >= getDreamteamStart() ? "post" : "pre";
@@ -5925,6 +5940,19 @@
      *   wenden wir den Modus sofort neu an, falls die Zielzeit zwischenzeitlich
      *   erreicht wurde (z. B. nach Sleep des Geräts).
      */
+    /**
+     * Liefert den derzeit *wirksamen* Dev-Override – also nur dann, wenn
+     * ein Admin angemeldet ist (siehe admin.js). Für alle anderen Nutzer
+     * gibt es per Definition keinen Override, deshalb läuft für sie der
+     * Auto-Flip ganz normal.
+     */
+    function getActiveDevOverride() {
+        const Admin = window.DreamTeamAdmin;
+        return (Admin && typeof Admin.getDevViewOverride === 'function')
+            ? Admin.getDevViewOverride()
+            : null;
+    }
+
     let _autoFlipTimerId = null;
     function scheduleAutoModeFlip() {
         if (_autoFlipTimerId) {
@@ -5932,8 +5960,9 @@
             _autoFlipTimerId = null;
         }
 
-        const override = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
-        if (override !== "auto") return;
+        // Wenn ein Admin den Override aktiv gesetzt hat, ist Auto-Modus
+        // bewusst ausser Kraft – kein Live-Flip nötig.
+        if (getActiveDevOverride() !== null) return;
 
         const start = getDreamteamStart();
         if (!(start instanceof Date) || isNaN(start.getTime())) return;
@@ -5949,10 +5978,9 @@
 
         _autoFlipTimerId = setTimeout(() => {
             _autoFlipTimerId = null;
-            // Erneut prüfen – wenn der Override mittlerweile gesetzt wurde,
-            // ist Auto deaktiviert und wir nichts mehr.
-            const stillAuto = (localStorage.getItem(DEV_TOGGLE_KEY) || "auto") === "auto";
-            if (!stillAuto) return;
+            // Erneut prüfen – wenn ein Admin zwischenzeitlich den Override
+            // gesetzt hat, ist Auto deaktiviert und wir machen nichts mehr.
+            if (getActiveDevOverride() !== null) return;
 
             if (Date.now() >= start.getTime()) {
                 // Spielstart erreicht: Ansicht und Render aktualisieren.
@@ -5977,7 +6005,10 @@
      */
     function handleAutoModeVisibilityChange() {
         if (document.visibilityState !== "visible") return;
-        if ((localStorage.getItem(DEV_TOGGLE_KEY) || "auto") !== "auto") return;
+        // Im Admin-Override-Modus stoppt der Auto-Flip ganz bewusst.
+        // Für alle anderen Nutzer (Override greift nicht) führen wir die
+        // normale Auto-Logik aus.
+        if (getActiveDevOverride() !== null) return;
         applyIndexViewMode();
         updateDevToggleLabel();
         scheduleAutoModeFlip();
@@ -6027,7 +6058,21 @@
             if (!window.DreamTeamAdmin || typeof window.DreamTeamAdmin.onAdminChange !== "function") {
                 return false;
             }
-            window.DreamTeamAdmin.onAdminChange(({ isAdmin }) => applyAdminVisibility(!!isAdmin));
+            window.DreamTeamAdmin.onAdminChange(({ isAdmin }) => {
+                applyAdminVisibility(!!isAdmin);
+                // Admin-Status wirkt sich auf die Override-Auswertung aus
+                // (siehe getEffectiveIndexViewMode): Bei einem Wechsel
+                // muss die Ansicht neu evaluiert und der Auto-Flip-Timer
+                // ggf. neu geplant werden, damit ein frischer Logout
+                // sofort auf "Auto"-Verhalten zurückfällt.
+                if (_lastRenderedData) {
+                    render(_lastRenderedData);
+                } else {
+                    applyIndexViewMode();
+                }
+                updateDevToggleLabel();
+                scheduleAutoModeFlip();
+            });
             return true;
         }
 
