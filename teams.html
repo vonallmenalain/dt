@@ -1930,24 +1930,28 @@
                 const basePts = fullP ? (playerPointsData[fullP['player.id']] || 0) : 0;
                 const finalPts = p.isCaptain ? basePts * 2 : basePts;
 
-                // Stored-XSS-Härtung: Anzeigewerte stammen ausschliesslich
-                // aus den kanonischen Spielerdaten (data-wm2026.js). Den vom
-                // User im Team-Dokument gespeicherten p.name verwenden wir
-                // nur noch als Notnagel, falls der Spieler nicht mehr im
-                // aktuellen Kader auffindbar ist – und auch dann fliesst er
+                // Stored-XSS-Härtung: Anzeigewerte stammen primär aus den
+                // kanonischen Spielerdaten (data-wm2026.js). Wenn der Spieler
+                // dort nicht mehr auftaucht, fallen wir auf den im Team-
+                // Dokument mitgespeicherten Snapshot (name, photo, club,
+                // clubLogo, flag) zurück. Das verhindert Foto-Platzhalter
+                // und „?"-Felder bei Spielern, die nach einem Kader-Update
+                // verschwunden sind. Sämtliche Strings fliessen weiterhin
                 // ausschliesslich über escapeHtml() in den DOM.
+                const isOrphan = !fullP;
                 return {
                     name: fullP ? fullP.Spielername : (p.name || 'Unbekannt'),
                     pos,
                     slotNum,
                     pts: finalPts,
                     isCaptain: !!p.isCaptain,
-                    photo: fullP ? fullP.Spielerfoto : 'https://via.placeholder.com/100',
-                    nation: fullP ? fullP['Nationalteam.name'] : '?',
-                    flag: fullP ? fullP['Nationalteam.logo'] : '',
-                    club: fullP ? fullP['Club.name'] : '?',
-                    clubLogo: fullP ? fullP['Club.logo'] : '',
-                    id: fullP ? String(fullP['player.id']) : `fallback-${idx}-${Math.random()}`,
+                    photo: fullP ? fullP.Spielerfoto : (p.photo || 'https://via.placeholder.com/100'),
+                    nation: fullP ? fullP['Nationalteam.name'] : (p.nation || '?'),
+                    flag: fullP ? fullP['Nationalteam.logo'] : (p.flag || ''),
+                    club: fullP ? fullP['Club.name'] : (p.club || '?'),
+                    clubLogo: fullP ? fullP['Club.logo'] : (p.clubLogo || ''),
+                    id: fullP ? String(fullP['player.id']) : (p.playerId != null ? String(p.playerId) : `fallback-${idx}-${Math.random()}`),
+                    isOrphan,
                     rank: null
                 };
             }).sort((a, b) => a.slotNum - b.slotNum);

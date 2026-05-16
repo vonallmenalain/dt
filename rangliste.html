@@ -2115,8 +2115,11 @@
                 let fullP = getPlayerById(p.playerId);
                 if (!fullP) fullP = playersData.find(pd => pd.Spielername === p.name) || null;
 
-                const playerId = fullP ? String(fullP["player.id"]) : `fallback-${idx}-${Math.random()}`;
+                const playerId = fullP
+                    ? String(fullP["player.id"])
+                    : (p.playerId != null ? String(p.playerId) : `fallback-${idx}-${Math.random()}`);
                 const basePts = fullP ? (playerPointsMap[playerId] || 0) : 0;
+                const isOrphan = !fullP;
                 const finalPts = p.isCaptain ? basePts * 2 : basePts;
                 const matchesMap = fullP ? (playerMatchPoints[playerId] || {}) : {};
                 const matchCount = Object.keys(matchesMap).length;
@@ -2127,8 +2130,14 @@
                     pts: finalPts,
                     basePts,
                     isCaptain: !!p.isCaptain,
-                    photo: fullP ? (fullP.Spielerfoto || "https://via.placeholder.com/50") : "https://via.placeholder.com/50",
-                    nation: fullP ? (fullP["Nationalteam.name"] || "?") : "?",
+                    // Wenn der Spieler nicht mehr im aktuellen Kader auftaucht
+                    // (z.B. nach einem Kader-Update), greifen wir auf den im
+                    // Team-Doc gespeicherten Snapshot zurück. So bleiben Foto
+                    // und Land sichtbar, statt durch Platzhalter / "?" ersetzt
+                    // zu werden.
+                    photo: fullP ? (fullP.Spielerfoto || "https://via.placeholder.com/50") : (p.photo || "https://via.placeholder.com/50"),
+                    nation: fullP ? (fullP["Nationalteam.name"] || "?") : (p.nation || "?"),
+                    isOrphan,
                     matchPoints: matchesMap,
                     matchCount
                 };
