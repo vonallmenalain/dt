@@ -1,11 +1,21 @@
 name: Auto Punkte-Upload
 
 # Vollautomatisches Punkte-Update für das aktive Turnier laut
-# tournament-config.js. Läuft alle 5 Minuten als GitHub-Cron-Job
-# (zusätzlich manuell auslösbar via "Run workflow"). Innerhalb des
-# Skripts gibt es einen Pre-Check, der prüft, ob im aktuellen Tick
-# überhaupt ein Spiel im Trigger-Fenster liegt – ist dem nicht so,
-# wird KEIN API-Call abgesetzt.
+# tournament-config.js. Läuft während des WM-Zeitraums alle 5
+# Minuten als GitHub-Cron-Job (zusätzlich jederzeit manuell auslösbar
+# via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check,
+# der prüft, ob im aktuellen Tick überhaupt ein Spiel im Trigger-
+# Fenster liegt (100–260 Minuten NACH ANPFIFF, also während/kurz nach
+# dem Match) – ist dem nicht so, wird KEIN API-Call abgesetzt.
+#
+# WICHTIG: Der Cron unten ist bewusst auf den WM-Zeitraum
+# (11.06.2026 – 21.07.2026) beschränkt, damit nicht das ganze Jahr
+# alle 5 Minuten Scheduled-Runs starten und Firestore-Reads erzeugen.
+# Zusätzlich gibt es im Skript einen harten Guard auf Basis von
+# AUTO_POINTS_FROM / AUTO_POINTS_UNTIL aus tournament-config.js, der
+# außerhalb des Turnierfensters sofort exit 0 macht – ohne Firebase-
+# Init, ohne Firestore-Read und ohne API-Call. Manuelle Läufe mit
+# force_run=true (FORCE_RUN=1) übersteuern diesen Guard.
 #
 # Benötigte Repo-Secrets (Settings → Secrets and variables → Actions):
 #   RAPIDAPI_KEY               RapidAPI / API-Football Key.
@@ -18,11 +28,16 @@ name: Auto Punkte-Upload
 #                         tournament-config.js. Aktuell unterstützt:
 #                         wm2026.
 #   POINTS_WINDOW_START_MIN  Default 100 – untere Grenze des Trigger-
-#                            Fensters in Minuten nach Anstoss.
-#   POINTS_WINDOW_END_MIN    Default 260 – obere Grenze.
+#                            Fensters in Minuten NACH ANPFIFF.
+#   POINTS_WINDOW_END_MIN    Default 260 – obere Grenze (ebenfalls in
+#                            Minuten NACH ANPFIFF).
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    # Alle 5 Minuten vom 11.–30. Juni 2026 (WM-Gruppenphase + KO-Start).
+    - cron: "*/5 * 11-30 6 *"
+    # Alle 5 Minuten vom 01.–21. Juli 2026 (KO-Runden + Sicherheitsbuffer
+    # nach dem Finale am 19.07.2026).
+    - cron: "*/5 * 1-21 7 *"
   workflow_dispatch:
     inputs:
       tournament_key:

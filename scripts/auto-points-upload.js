@@ -7,11 +7,19 @@
  *  nach Firebase – kein Browser-Tab und keine Admin-Seite nötig.
  *
  *  Ablauf pro Lauf:
+ *    0. Phasen-Guard: wenn das aktive Turnier `AUTO_POINTS_FROM` /
+ *       `AUTO_POINTS_UNTIL` definiert und die aktuelle Zeit ausserhalb
+ *       dieses Fensters liegt, beendet sich der Lauf SOFORT mit Exit 0
+ *       – ohne Firebase Admin zu initialisieren, ohne Firestore-Read
+ *       und ohne API-Call. So entstehen ausserhalb der Turnierphase
+ *       keine Quota-Kosten, selbst wenn der Workflow versehentlich
+ *       läuft. `FORCE_RUN=1` übersteuert diesen Guard (manuelle Tests).
  *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
- *    2. Bestimmt Kandidaten-Spiele (Anstoss zwischen WINDOW_END_MIN und
- *       WINDOW_START_MIN Minuten in der Vergangenheit, Status noch nicht
- *       FT/AET/PEN). Wenn keine Kandidaten existieren, beendet sich der
- *       Lauf ohne API-Call (Quota-Schutz).
+ *    2. Bestimmt Kandidaten-Spiele (Anpfiff liegt zwischen
+ *       `WINDOW_START_MIN` und `WINDOW_END_MIN` Minuten in der
+ *       Vergangenheit, d. h. Spiel läuft gerade bzw. ist gerade frisch
+ *       beendet; Status noch nicht FT/AET/PEN). Wenn keine Kandidaten
+ *       existieren, beendet sich der Lauf ohne API-Call (Quota-Schutz).
  *    3. Punkte-Workflow: API-Fixtures laden, Detail-Stats pro beendetem
  *       Spiel auswerten, Punkte summieren, in Firestore schreiben und
  *       Meta-Dokument (`pointsUpdatedAt`, `pointsVersion`) hochzählen.
@@ -30,9 +38,12 @@
  *                              `wm2026` produktiv konfiguriert; andere
  *                              Keys führen zu einem expliziten Abbruch.
  *    WINDOW_START_MIN          Optional, Default 100. Untere Grenze des
- *                              Trigger-Fensters in Minuten nach Anpfiff.
- *    WINDOW_END_MIN            Optional, Default 260. Obere Grenze.
- *    FORCE_RUN                 Falls `1`/`true`: Pre-Check überspringen.
+ *                              Trigger-Fensters in Minuten NACH ANPFIFF
+ *                              (nicht nach Abpfiff!).
+ *    WINDOW_END_MIN            Optional, Default 260. Obere Grenze,
+ *                              ebenfalls in Minuten NACH ANPFIFF.
+ *    FORCE_RUN                 Falls `1`/`true`: Phasen-Guard UND
+ *                              Pre-Check überspringen (manuelle Tests).
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
  *
  *  Exit-Codes:
@@ -90,6 +101,18 @@ function envInt(name, fallback) {
 
 function nowMs() {
   return Date.now();
+}
+
+/**
+ * Parst einen ISO-8601-Zeitstempel (z. B. "2026-06-11T22:40:00+02:00")
+ * defensiv und liefert Millisekunden seit Epoch zurück. Bei ungültigem
+ * oder fehlendem Wert wird `null` zurückgegeben, damit der Aufrufer
+ * entscheiden kann, was zu tun ist (üblicherweise: Feld ignorieren).
+ */
+function parseIsoToMs(value) {
+  if (!value) return null;
+  const ms = Date.parse(String(value));
+  return Number.isFinite(ms) ? ms : null;
 }
 
 function logInfo(msg) {
@@ -207,7 +230,12 @@ function initFirebase() {
  *  Pre-Check (nur Firestore – keine API-Quota)
  *
  *  Lädt einmalig den kompletten Spielplan und entscheidet, ob der teure
- *  Upload-Workflow überhaupt anlaufen muss.
+ *  Upload-Workflow überhaupt anlaufen muss. Ein Spiel zählt als Kandidat,
+ *  wenn sein Anpfiff (kickoffTimestamp) zwischen `windowStartMin` und
+ *  `windowEndMin` Minuten in der Vergangenheit liegt – die Maße beziehen
+ *  sich also auf den ANPFIFF, nicht auf den Abpfiff. Beispiel mit den
+ *  Defaults 100/260: das Skript triggert ab ca. 100 min nach Anpfiff
+ *  (ungefähr beim regulären Abpfiff) bis 260 min danach.
  * ───────────────────────────────────────────────────────────────────────────── */
 async function findCandidateFixtures(db, tournament, opts) {
   const collectionName = tournament.firestore.fixturesCollection;
@@ -645,9 +673,41 @@ async function main() {
   };
 
   logInfo(`Starte Auto-Upload für ${tournament.shortLabel} (${tournament.key}).` +
-    ` Trigger-Fenster: ${opts.windowStartMin}–${opts.windowEndMin} min nach Anpfiff.` +
+    ` Trigger-Fenster: ${opts.windowStartMin}–${opts.windowEndMin} min NACH ANPFIFF` +
+    ` (Spiel läuft bzw. ist gerade frisch beendet).` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
     (opts.dryRun ? ' [DRY_RUN]' : ''));
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phasen-Guard: nur innerhalb des konfigurierten Turnierfensters wird
+  // überhaupt gearbeitet. Vor- und nach dem Turnier soll der Workflow
+  // weder Firebase initialisieren noch Firestore lesen noch die externe
+  // API ansprechen. FORCE_RUN übersteuert den Guard, damit manuelle
+  // Tests jederzeit möglich sind.
+  // ─────────────────────────────────────────────────────────────────────
+  if (!opts.forceRun) {
+    const fromMs = parseIsoToMs(tournament.AUTO_POINTS_FROM);
+    const untilMs = parseIsoToMs(tournament.AUTO_POINTS_UNTIL);
+    const now = nowMs();
+
+    const beforePhase = fromMs != null && now < fromMs;
+    const afterPhase = untilMs != null && now > untilMs;
+
+    if (beforePhase || afterPhase) {
+      const fromStr = tournament.AUTO_POINTS_FROM || '(nicht gesetzt)';
+      const untilStr = tournament.AUTO_POINTS_UNTIL || '(nicht gesetzt)';
+      logInfo(
+        `Auto-Punkte-Phase ist nicht aktiv – beende ohne Firebase-Read ` +
+        `und ohne API-Call. (Fenster: ${fromStr} bis ${untilStr}, ` +
+        `aktuell ${new Date(now).toISOString()}, ` +
+        `${beforePhase ? 'vor Phasenstart' : 'nach Phasenende'}.) ` +
+        `Tipp: workflow_dispatch mit force_run=true setzen, um den Guard zu übersteuern.`
+      );
+      return;
+    }
+  } else {
+    logInfo('FORCE_RUN aktiv – Phasen-Guard (AUTO_POINTS_FROM/UNTIL) wird übersprungen.');
+  }
 
   let db;
   try {
@@ -670,7 +730,7 @@ async function main() {
       }
       candidates.forEach(c => {
         const ageMin = Math.round((nowMs() - c.kickoffMs) / 60_000);
-        logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", Anpfiff vor ${ageMin} min.`);
+        logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${ageMin} min NACH ANPFIFF.`);
       });
       candidateIds = new Set(candidates.map(c => String(c.id)));
     }
