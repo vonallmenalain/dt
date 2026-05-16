@@ -2,10 +2,11 @@
 /* =============================================================================
  *  scripts/auto-points-upload.js
  *
- *  Server-seitiges Pendant zur manuellen Seite `adm-upload-points.html`.
- *  Wird via GitHub Actions (Cron, alle paar Minuten) aufgerufen, damit
- *  Punkt-Updates auch dann automatisch in Firebase landen, wenn KEIN
- *  Browser-Tab geöffnet ist.
+ *  Server-seitiger Auto-Upload der Punkte. Wird via GitHub Actions (Cron,
+ *  alle paar Minuten) aufgerufen und schreibt die berechneten Punkte direkt
+ *  nach Firebase – kein Browser-Tab und keine Admin-Seite mehr nötig.
+ *  (Die frühere Browser-Pendant-Seite `adm-upload-points.html` wurde
+ *  entfernt, sobald dieser Cron stabil lief.)
  *
  *  Ablauf pro Lauf:
  *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
@@ -315,8 +316,9 @@ async function findCandidateFixtures(db, tournament, opts) {
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Punkte-Berechnung pro Spiel
  *
- *  1:1 Logik aus adm-upload-points.html – nur in Node-Form. Verändert
- *  `allPlayerPoints` in place.
+ *  Punkte-Workflow (vormals 1:1 aus `adm-upload-points.html` portiert, die
+ *  Browser-Seite wurde inzwischen entfernt). Verändert `allPlayerPoints` in
+ *  place.
  * ───────────────────────────────────────────────────────────────────────────── */
 function buildEmptyPlayerObject(player) {
   const pObj = { playerName: player.Spielername, totalPoints: 0 };

@@ -2,19 +2,21 @@
 /* =============================================================================
  *  scripts/sync-fixtures.js
  *
- *  Server-seitiges Pendant zur manuellen Seite `adm-sync-fixtures.html`.
- *  Wird via GitHub Actions (z.B. einmal pro Tag) aufgerufen, damit der
- *  Spielplan automatisch aktualisiert wird – inkl. der Finalrunden-Spiele,
- *  sobald die Paarungen bei der API feststehen. Kein Browser-Tab und
- *  kein manuelles API-Key-Eintippen mehr nötig.
+ *  Server-seitiger Auto-Sync für den Spielplan. Wird via GitHub Actions
+ *  (z.B. einmal pro Tag) aufgerufen und aktualisiert den Spielplan inkl.
+ *  Finalrunden-Spiele automatisch, sobald die Paarungen bei der API
+ *  feststehen. Kein Browser-Tab und kein manuelles API-Key-Eintippen mehr
+ *  nötig. (Die frühere Browser-Pendant-Seite `adm-sync-fixtures.html` wurde
+ *  entfernt, sobald dieser Cron stabil lief.)
  *
  *  Ablauf pro Lauf:
  *    1. Lädt alle Fixtures des konfigurierten Turniers von api-football
  *       (Zeitzone Europe/Zurich, identisch zum Browser-Skript).
  *    2. Sammelt eindeutige Venue-IDs und holt jede Venue genau einmal
  *       (deckt neue Stadien automatisch ab).
- *    3. Baut pro Spiel ein Firestore-Dokument exakt im selben Schema wie
- *       die Seite `adm-sync-fixtures.html` (gleiche Felder, gleiche Keys).
+ *    3. Baut pro Spiel ein Firestore-Dokument im seit der WM-2026-Einführung
+ *       etablierten Schema (gleiche Felder, gleiche Keys wie zuvor in der
+ *       inzwischen entfernten Browser-Seite `adm-sync-fixtures.html`).
  *    4. Schreibt alle Fixture-Dokumente in Batches à 400 nach
  *       `fixturesCollection` (z.B. "Spiele WM 2026").
  *    5. Aktualisiert das Meta-Dokument (`fixturesVersion` += 1,
@@ -205,7 +207,8 @@ async function fetchVenueDetails(venueId, apiKey, venueCache) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  Firestore-Dokument bauen – Schema 1:1 wie adm-sync-fixtures.html
+ *  Firestore-Dokument bauen – etabliertes Spielplan-Schema (siehe data.js
+ *  und rangliste.html).
  * ───────────────────────────────────────────────────────────────────────────── */
 function buildFixtureDocument(fixture, venueDetails, tournament) {
   const f = fixture.fixture || {};
