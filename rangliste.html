@@ -3136,9 +3136,9 @@
     }
 
     /**
-     * Fallback fuer Turniere ohne (vollstaendige) Fixture-Sammlung
-     * (z.B. EM 2024): Liest die Mannschaftsnamen aus dem Resultat-String
-     * eines Spiel_<matchId>-Eintrags der Punktedaten. Erwartetes Format:
+     * Fallback fuer Turniere ohne (vollstaendige) Fixture-Sammlung:
+     * Liest die Mannschaftsnamen aus dem Resultat-String eines
+     * Spiel_<matchId>-Eintrags der Punktedaten. Erwartetes Format:
      * "<HomeName> <H>:<A> <AwayName>" (z.B. "Schweiz 2 : 1 Italien").
      */
     function findTeamsFromPointsByMatchId(points, matchId) {
@@ -3217,7 +3217,7 @@
             }
 
             // Fallback: Mannschaften aus Resultat-String der Punktedaten
-            // ableiten (relevant fuer Turniere wie EM 2024, in denen die
+            // ableiten (relevant fuer Turniere, in denen die
             // Fixtures-Sammlung evtl. unvollstaendig ist).
             if (!homeName || !awayName) {
                 const fb = findTeamsFromPointsByMatchId(points, latestMatchId);

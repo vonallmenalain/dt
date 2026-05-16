@@ -24,8 +24,9 @@
  *  Env-Variablen (alle aus GitHub Actions Secrets/Variables):
  *    RAPIDAPI_KEY                 RapidAPI / API-Football Key (zwingend)
  *    FIREBASE_SERVICE_ACCOUNT     Service-Account-JSON als String (zwingend)
- *    TOURNAMENT_KEY               Optional, Default `wm2026`. Beliebige Keys
- *                                 aus tournament-config.js (z.B. `em2024`).
+ *    TOURNAMENT_KEY               Optional, Default `wm2026`. Aktuell ist nur
+ *                                 `wm2026` produktiv konfiguriert; ungültige
+ *                                 Keys führen zu einem klaren Abbruch.
  *    DRY_RUN                      Falls `1`/`true`: nichts in Firestore
  *                                 schreiben – nur Logs. Praktisch für
  *                                 manuelle Test-Runs.
@@ -67,32 +68,12 @@ if (!fetchFn) {
  *  Bewusst eine kompakte Kopie, weil das Browser-Modul `window.location`
  *  und `window.firebase` referenziert. Wenn dort Werte geändert werden,
  *  muss diese Tabelle nachgezogen werden.
+ *
+ *  Aktuell ist nur `wm2026` aktiv konfiguriert. Wird via GitHub-Action-
+ *  Variable ein anderer Key gesetzt, bricht das Script in `main()` mit
+ *  einer klaren Fehlermeldung ab.
  * ───────────────────────────────────────────────────────────────────────────── */
 const TOURNAMENTS = {
-  wm2022: {
-    key: 'wm2022',
-    shortLabel: 'WM 2022',
-    type: 'WM',
-    year: '2022',
-    api: { competitionParam: 'league', competitionId: 1, season: '2022' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_wm2022',
-      fixturesCollection: 'Spiele WM 2022'
-    }
-  },
-  em2024: {
-    key: 'em2024',
-    shortLabel: 'EM 2024',
-    type: 'EM',
-    year: '2024',
-    api: { competitionParam: 'league', competitionId: 4, season: '2024' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_em2024',
-      fixturesCollection: 'Spiele EM 2024'
-    }
-  },
   wm2026: {
     key: 'wm2026',
     shortLabel: 'WM 2026',
@@ -103,30 +84,6 @@ const TOURNAMENTS = {
       metaCollection: 'app_meta',
       metaDocId: 'turnier_wm2026',
       fixturesCollection: 'Spiele WM 2026'
-    }
-  },
-  em2028: {
-    key: 'em2028',
-    shortLabel: 'EM 2028',
-    type: 'EM',
-    year: '2028',
-    api: { competitionParam: 'league', competitionId: 4, season: '2028' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_em2028',
-      fixturesCollection: 'Spiele EM 2028'
-    }
-  },
-  wm2030: {
-    key: 'wm2030',
-    shortLabel: 'WM 2030',
-    type: 'WM',
-    year: '2030',
-    api: { competitionParam: 'league', competitionId: 1, season: '2030' },
-    firestore: {
-      metaCollection: 'app_meta',
-      metaDocId: 'turnier_wm2030',
-      fixturesCollection: 'Spiele WM 2030'
     }
   }
 };
@@ -459,7 +416,12 @@ async function main() {
   const tournamentKey = (process.env.TOURNAMENT_KEY || 'wm2026').trim().toLowerCase();
   const tournament = TOURNAMENTS[tournamentKey];
   if (!tournament) {
-    logError(`Unbekannter TOURNAMENT_KEY="${tournamentKey}". Bekannt: ${Object.keys(TOURNAMENTS).join(', ')}`);
+    logError(
+      `Ungültiger TOURNAMENT_KEY="${tournamentKey}". ` +
+      `Aktuell unterstützt: ${Object.keys(TOURNAMENTS).join(', ')}. ` +
+      `Bitte GitHub-Action-Variable FIXTURES_SYNC_TOURNAMENT_KEY entsprechend setzen ` +
+      `oder leer lassen, dann gilt der Default "wm2026".`
+    );
     process.exit(1);
   }
   if (!tournament.api.competitionId) {

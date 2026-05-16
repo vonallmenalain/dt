@@ -6,18 +6,17 @@
  *  Wichtig:
  *  - Service Worker laufen pro Origin/Domain getrennt. Trotzdem wird der
  *    Cache-Name HOSTBASIERT vergeben, damit:
- *      * em24dt.alae.app  → Cache `dreamteam-em24dt.alae.app-vYYYY-MM-DD-...`
  *      * dt.alae.app      → Cache `dreamteam-dt.alae.app-vYYYY-MM-DD-...`
  *      * localhost / Deploy Previews → eigener Cache pro Hostname
- *    So gibt es selbst bei einem versehentlichen Domain-Switch oder einem
- *    Pflegezugriff via anderer Sub-Domain keine vermischten Inhalte.
+ *    So gibt es selbst bei einem Pflegezugriff via anderer Sub-Domain keine
+ *    vermischten Inhalte.
  *  - Die Cache-Version wurde bewusst erhöht, damit der Browser nach dem
- *    Domain-Mapping-Umbau einen frischen Stand zieht und keine alten
- *    Assets aus dem Vor-Umbau-Cache als neuer Inhalt erscheinen.
+ *    Aufräumen der EM-2024-Reste einen frischen Stand zieht und alte Caches
+ *    (inkl. `data-em2024.js` und `dashboard.html`) zuverlässig verschwinden.
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-05-16-one-team-per-email';
+const CACHE_VERSION = 'v2026-05-16-wm2026-only';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -28,14 +27,12 @@ const APP_SHELL = [
   './teams.html',
   './spieleranalyse.html',
   './rangliste.html',
-  './dashboard.html',
   './styles.css',
   './nav.js',
   './admin.js',
   './tournament-config.js',
   './country-aliases.js',
   './data.js',
-  './data-em2024.js',
   './data-wm2026.js',
   './position-overrides.js',
   './cache.js',

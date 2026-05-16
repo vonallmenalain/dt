@@ -6,27 +6,33 @@
  *  Firestore-Collections, LocalStorage-/Cache-Prefixes, Spielstartzeitpunkt,
  *  Fallback-Spiele) an EINEM Ort.
  *
+ *  Aktuell ist NUR `wm2026` produktiv. Andere Turniere bleiben als Templates
+ *  in der Konfiguration, sind aber per `available: false` und/oder
+ *  `dataReady: false` deaktiviert und können weder per URL-Parameter, per
+ *  Dev-Switcher noch per Domain-Mapping aktiviert werden, solange keine
+ *  passende `data-<key>.js`-Datei existiert.
+ *
  *  Domain-Mapping (Standard pro Netlify-Site / Domain):
- *    - em24dt.alae.app  →  em2024 (EM 2024 DreamTeam)
  *    - dt.alae.app      →  wm2026 (WM 2026 DreamTeam)
  *    - localhost / 127.0.0.1 / Deploy Previews / unbekannte Hosts
  *      →  Fallback (`wm2026`)
  *
  *  Aktives Turnier wird in dieser Reihenfolge bestimmt:
- *    1. URL-Parameter ?tournament=em2024|wm2026|...   (Test-Override, nicht
+ *    1. URL-Parameter ?tournament=<key>             (Test-Override, nicht
  *       persistent – wirkt nur auf den aktuellen Seitenaufruf)
  *    2. Host-spezifischer Dev-Override aus localStorage
  *       (`dreamteam_dev_override_${hostname}`)
  *    3. Domain-Mapping (DOMAIN_TOURNAMENT_MAP)
  *    4. Genereller Fallback (`wm2026`)
  *
- *  Ungültige Werte fallen sicher auf das Default-Turnier zurück.
+ *  Ungültige oder deaktivierte Werte (unbekannter Key, `available: false`,
+ *  `dataReady: false`) fallen sicher auf das Default-Turnier zurück. Damit
+ *  brechen z.B. alte Bookmarks wie `?tournament=em2024` die App nicht.
  *
- *  Wichtig: Damit dieselbe Codebasis auf mehreren Netlify-Domains
- *  unterschiedliche Turniere ausspielen kann, gibt es bewusst KEINEN
- *  globalen Default ausserhalb dieser Datei. Jede andere Stelle muss
- *  `APP_CONFIG.activeTournamentKey` / `APP_CONFIG.activeTournament`
- *  abfragen, statt selbst hart "em2024" oder "wm2026" zu wählen.
+ *  Wichtig: Damit dieselbe Codebasis später wieder mehrere Turniere ausspielen
+ *  kann, gibt es bewusst KEINEN globalen Default ausserhalb dieser Datei. Jede
+ *  andere Stelle muss `APP_CONFIG.activeTournamentKey` / `APP_CONFIG.activeTournament`
+ *  abfragen, statt selbst hart "wm2026" zu wählen.
  * ============================================================================= */
 
 window.APP_CONFIG = (() => {
@@ -41,9 +47,9 @@ window.APP_CONFIG = (() => {
    * Domain → Turnier Mapping.
    * Diese Map ist die einzige Quelle der Wahrheit für die
    * Auswahl des Standard-Turniers pro Domain.
+   * Aktuell ist nur `dt.alae.app → wm2026` produktiv aktiv.
    * ───────────────────────────────────────────────────────── */
   const DOMAIN_TOURNAMENT_MAP = {
-    "em24dt.alae.app": "em2024",
     "dt.alae.app": "wm2026"
   };
 
@@ -51,8 +57,7 @@ window.APP_CONFIG = (() => {
    * LocalStorage-Schlüssel für den Dev-Override.
    *
    * Bewusst HOST-spezifisch, damit eine alte Test-Auswahl auf
-   * dem Mobile-Client nicht über Domains hinweg "klebt"
-   * (z. B. nicht versehentlich em2024 auf dt.alae.app erzwingt).
+   * dem Mobile-Client nicht über Domains hinweg "klebt".
    *
    * Alte/generische Keys aus früheren Iterationen werden beim
    * ersten Laden migriert/aufgeräumt – siehe `cleanupLegacyKeys()`.
@@ -87,42 +92,6 @@ window.APP_CONFIG = (() => {
    * Fallback-Spiele pro Turnier (für leere Datenstände / Dev).
    * Echte Spiele aus Firestore haben Vorrang.
    * ───────────────────────────────────────────────────────── */
-  const FALLBACK_FIXTURES_EM2024 = [
-    {
-      id: "em2024_test_1",
-      teamA: "Germany",
-      homeLogo: "https://media.api-sports.io/football/teams/25.png",
-      teamB: "Scotland",
-      awayLogo: "https://media.api-sports.io/football/teams/1108.png",
-      date: "2024-06-14T21:00:00+02:00",
-      venue: "Allianz Arena",
-      venueCity: "München",
-      statusShort: "NS"
-    },
-    {
-      id: "em2024_test_2",
-      teamA: "Hungary",
-      homeLogo: "https://media.api-sports.io/football/teams/769.png",
-      teamB: "Switzerland",
-      awayLogo: "https://media.api-sports.io/football/teams/15.png",
-      date: "2024-06-15T15:00:00+02:00",
-      venue: "RheinEnergieStadion",
-      venueCity: "Köln",
-      statusShort: "NS"
-    },
-    {
-      id: "em2024_test_3",
-      teamA: "Spain",
-      homeLogo: "https://media.api-sports.io/football/teams/9.png",
-      teamB: "Croatia",
-      awayLogo: "https://media.api-sports.io/football/teams/3.png",
-      date: "2024-06-15T18:00:00+02:00",
-      venue: "Olympiastadion",
-      venueCity: "Berlin",
-      statusShort: "NS"
-    }
-  ];
-
   // Provisorische Platzhalter-Spiele für WM 2026 – werden ersetzt,
   // sobald echte Daten aus der API/Firestore vorliegen.
   const FALLBACK_FIXTURES_WM2026 = [
@@ -162,70 +131,20 @@ window.APP_CONFIG = (() => {
   ];
 
   /* ─────────────────────────────────────────────────────────
-   * Definition aller bekannten Turniere
+   * Definition aller bekannten Turniere.
+   *
+   *  - `available: true`  →  darf via URL-Param / Dev-Switcher /
+   *                          Domain-Mapping ausgewählt werden.
+   *  - `dataReady: true`  →  zugehörige `data-<key>.js` existiert
+   *                          und ist im Build vorhanden.
+   *
+   *  Nur Turniere mit `available: true && dataReady: true` werden
+   *  von `getAvailableTournamentKeys()` / `isTournamentAvailable()`
+   *  als wirklich nutzbar zurückgeliefert. Templates für künftige
+   *  Turniere (z.B. em2028, wm2030) bleiben deaktiviert, bis ihre
+   *  Kader-Datei vorhanden ist.
    * ───────────────────────────────────────────────────────── */
   const TOURNAMENTS = {
-    wm2022: {
-      key: "wm2022",
-      type: "WM",
-      year: "2022",
-      name: "Weltmeisterschaft 2022",
-      shortLabel: "WM 2022",
-      longLabel: "FIFA World Cup 2022",
-      brandName: "DreamTeam WM 2022",
-      pageTitlePrefix: "WM 2022 DreamTeam",
-      competitionName: "FIFA World Cup",
-      timezone: "Europe/Zurich",
-      // Spielstart laut alter Konfiguration: WM 2022 begann am 20.11.2022.
-      DREAMTEAM_START: "2022-11-20T17:00:00+01:00",
-      storagePrefix: "dreamteam_wm2022",
-      cachePrefix: "dreamteam-wm2022",
-      dataFile: "data-wm2022.js",
-      api: {
-        competitionParam: "league",
-        competitionId: 1,
-        season: "2022"
-      },
-      firestore: {
-        metaCollection: "app_meta",
-        metaDocId: "turnier_wm2022",
-        teamsCollection: "Teams WM 2022",
-        pointsCollection: "Punkte Spieler WM 2022",
-        fixturesCollection: "Spiele WM 2022"
-      },
-      fallbackFixtures: []
-    },
-
-    em2024: {
-      key: "em2024",
-      type: "EM",
-      year: "2024",
-      name: "Europameisterschaft 2024",
-      shortLabel: "EM 2024",
-      longLabel: "UEFA Euro 2024",
-      brandName: "DreamTeam EM 2024",
-      pageTitlePrefix: "EM 2024 DreamTeam",
-      competitionName: "UEFA Euro",
-      timezone: "Europe/Zurich",
-      DREAMTEAM_START: "2024-06-14T21:00:00+02:00",
-      storagePrefix: "dreamteam_em2024",
-      cachePrefix: "dreamteam-em2024",
-      dataFile: "data-em2024.js",
-      api: {
-        competitionParam: "league",
-        competitionId: 4,
-        season: "2024"
-      },
-      firestore: {
-        metaCollection: "app_meta",
-        metaDocId: "turnier_em2024",
-        teamsCollection: "Teams EM 2024",
-        pointsCollection: "Punkte Spieler EM 2024",
-        fixturesCollection: "Spiele EM 2024"
-      },
-      fallbackFixtures: FALLBACK_FIXTURES_EM2024
-    },
-
     wm2026: {
       key: "wm2026",
       type: "WM",
@@ -237,6 +156,8 @@ window.APP_CONFIG = (() => {
       pageTitlePrefix: "WM 2026 DreamTeam",
       competitionName: "FIFA World Cup",
       timezone: "Europe/Zurich",
+      available: true,
+      dataReady: true,
       DREAMTEAM_START: "2026-06-11T21:00:00+02:00",
       storagePrefix: "dreamteam_wm2026",
       cachePrefix: "dreamteam-wm2026",
@@ -254,68 +175,59 @@ window.APP_CONFIG = (() => {
         fixturesCollection: "Spiele WM 2026"
       },
       fallbackFixtures: FALLBACK_FIXTURES_WM2026
-    },
-
-    em2028: {
-      key: "em2028",
-      type: "EM",
-      year: "2028",
-      name: "Europameisterschaft 2028",
-      shortLabel: "EM 2028",
-      longLabel: "UEFA Euro 2028",
-      brandName: "DreamTeam EM 2028",
-      pageTitlePrefix: "EM 2028 DreamTeam",
-      competitionName: "UEFA Euro",
-      timezone: "Europe/Zurich",
-      DREAMTEAM_START: "2028-06-09T21:00:00+02:00",
-      storagePrefix: "dreamteam_em2028",
-      cachePrefix: "dreamteam-em2028",
-      dataFile: "data-em2028.js",
-      api: {
-        competitionParam: "league",
-        competitionId: 4,
-        season: "2028"
-      },
-      firestore: {
-        metaCollection: "app_meta",
-        metaDocId: "turnier_em2028",
-        teamsCollection: "Teams EM 2028",
-        pointsCollection: "Punkte Spieler EM 2028",
-        fixturesCollection: "Spiele EM 2028"
-      },
-      fallbackFixtures: []
-    },
-
-    wm2030: {
-      key: "wm2030",
-      type: "WM",
-      year: "2030",
-      name: "Weltmeisterschaft 2030",
-      shortLabel: "WM 2030",
-      longLabel: "FIFA World Cup 2030",
-      brandName: "DreamTeam WM 2030",
-      pageTitlePrefix: "WM 2030 DreamTeam",
-      competitionName: "FIFA World Cup",
-      timezone: "Europe/Zurich",
-      DREAMTEAM_START: "2030-06-08T21:00:00+02:00",
-      storagePrefix: "dreamteam_wm2030",
-      cachePrefix: "dreamteam-wm2030",
-      dataFile: "data-wm2030.js",
-      api: {
-        competitionParam: "league",
-        competitionId: 1,
-        season: "2030"
-      },
-      firestore: {
-        metaCollection: "app_meta",
-        metaDocId: "turnier_wm2030",
-        teamsCollection: "Teams WM 2030",
-        pointsCollection: "Punkte Spieler WM 2030",
-        fixturesCollection: "Spiele WM 2030"
-      },
-      fallbackFixtures: []
     }
+
+    /* ─────────────────────────────────────────────────────────
+     * Beispiel-Templates für künftige Turniere (deaktiviert).
+     *
+     * Wenn ein neues Turnier ergänzt werden soll, neuen Block
+     * unten anlegen, `data-<key>.js` mit-deployen und dann
+     * `available: true` + `dataReady: true` setzen.
+     *
+     *  em2028: {
+     *    key: "em2028", type: "EM", year: "2028",
+     *    name: "Europameisterschaft 2028", shortLabel: "EM 2028",
+     *    longLabel: "UEFA Euro 2028", brandName: "DreamTeam EM 2028",
+     *    pageTitlePrefix: "EM 2028 DreamTeam",
+     *    competitionName: "UEFA Euro", timezone: "Europe/Zurich",
+     *    available: false,
+     *    dataReady: false,
+     *    DREAMTEAM_START: "2028-06-09T21:00:00+02:00",
+     *    storagePrefix: "dreamteam_em2028",
+     *    cachePrefix: "dreamteam-em2028",
+     *    dataFile: "data-em2028.js",
+     *    api: { competitionParam: "league", competitionId: 4, season: "2028" },
+     *    firestore: {
+     *      metaCollection: "app_meta", metaDocId: "turnier_em2028",
+     *      teamsCollection: "Teams EM 2028",
+     *      pointsCollection: "Punkte Spieler EM 2028",
+     *      fixturesCollection: "Spiele EM 2028"
+     *    },
+     *    fallbackFixtures: []
+     *  }
+     * ───────────────────────────────────────────────────────── */
   };
+
+  /* ─────────────────────────────────────────────────────────
+   * Verfügbarkeit prüfen.
+   *
+   * Ein Turnier gilt nur dann als wirklich nutzbar, wenn es
+   * sowohl `available !== false` als auch `dataReady === true`
+   * besitzt. So bleiben Templates für künftige Turniere zwar in
+   * der Map sichtbar, sind aber nicht aktivierbar, solange keine
+   * passende `data-<key>.js` mitausgeliefert wird.
+   * ───────────────────────────────────────────────────────── */
+  function isTournamentAvailable(key) {
+    const t = key ? TOURNAMENTS[key] : null;
+    if (!t) return false;
+    if (t.available === false) return false;
+    if (t.dataReady !== true) return false;
+    return true;
+  }
+
+  function getAvailableTournamentKeys() {
+    return Object.keys(TOURNAMENTS).filter(isTournamentAvailable);
+  }
 
   /* ─────────────────────────────────────────────────────────
    * Aktives Turnier robust auflösen.
@@ -326,7 +238,8 @@ window.APP_CONFIG = (() => {
    *   3. Domain-Mapping (DOMAIN_TOURNAMENT_MAP)
    *   4. Globaler Fallback (FALLBACK_TOURNAMENT_KEY)
    *
-   * Ungültige Werte (unbekannter Key) werden ignoriert.
+   * Ungültige oder nicht verfügbare Keys werden ignoriert und führen
+   * letztlich auf den globalen Fallback zurück.
    * ───────────────────────────────────────────────────────── */
   function readUrlTournamentKey() {
     try {
@@ -367,17 +280,28 @@ window.APP_CONFIG = (() => {
     }
   }
 
-  // Einmal-Aufräumen alter, nicht host-spezifischer Override-Keys.
-  // Wichtig, damit auf Mobile-Clients keine alte Auswahl die Domain
-  // überstimmt (z. B. EM 2024 auf dt.alae.app sichtbar machen).
+  // Einmal-Aufräumen alter, nicht host-spezifischer Override-Keys
+  // sowie alter Dev-Overrides, die auf inzwischen nicht mehr
+  // verfügbare Turniere zeigen (z.B. `em2024`). Wichtig, damit
+  // weder generische Legacy-Keys noch tote Werte die Auswahl
+  // verfälschen können.
   function cleanupLegacyKeys() {
     try {
       if (typeof window === "undefined" || !window.localStorage) return;
+
       LEGACY_GLOBAL_OVERRIDE_KEYS.forEach((legacyKey) => {
         if (window.localStorage.getItem(legacyKey) !== null) {
           window.localStorage.removeItem(legacyKey);
         }
       });
+
+      // Host-spezifischer Override, der auf ein nicht (mehr)
+      // verfügbares Turnier zeigt → entfernen.
+      const hostKey = devOverrideStorageKey();
+      const stored = window.localStorage.getItem(hostKey);
+      if (stored && !isTournamentAvailable(stored.trim().toLowerCase())) {
+        window.localStorage.removeItem(hostKey);
+      }
     } catch (err) {
       // ignore
     }
@@ -388,7 +312,7 @@ window.APP_CONFIG = (() => {
     if (!host) return null;
     if (Object.prototype.hasOwnProperty.call(DOMAIN_TOURNAMENT_MAP, host)) {
       const mapped = DOMAIN_TOURNAMENT_MAP[host];
-      return mapped && TOURNAMENTS[mapped] ? mapped : null;
+      return mapped && isTournamentAvailable(mapped) ? mapped : null;
     }
     return null;
   }
@@ -408,12 +332,14 @@ window.APP_CONFIG = (() => {
   /**
    * Zentrale Auflösung des aktiven Turnier-Keys.
    * Reihenfolge: URL > host-spezifischer Dev-Override > Domain > Fallback.
+   * Akzeptiert ausschliesslich verfügbare Turniere (siehe
+   * `isTournamentAvailable`); alles andere fällt durch.
    */
   function resolveTournamentKey() {
     cleanupLegacyKeys();
 
     const fromUrl = readUrlTournamentKey();
-    if (fromUrl && TOURNAMENTS[fromUrl]) {
+    if (fromUrl && isTournamentAvailable(fromUrl)) {
       // Bewusst NICHT persistieren – ?tournament= ist ein einmaliger
       // Test-Override und darf den Domain-Default nicht dauerhaft
       // umstellen.
@@ -421,7 +347,7 @@ window.APP_CONFIG = (() => {
     }
 
     const fromOverride = readDevOverrideKey();
-    if (fromOverride && TOURNAMENTS[fromOverride]) {
+    if (fromOverride && isTournamentAvailable(fromOverride)) {
       return fromOverride;
     }
 
@@ -505,7 +431,7 @@ window.APP_CONFIG = (() => {
     const tournament = TOURNAMENTS[ACTIVE_TOURNAMENT_KEY];
     if (!tournament) {
       // Notfall-Fallback – sollte nie eintreten, da Auflösung validiert.
-      return TOURNAMENTS[DEFAULT_TOURNAMENT_KEY];
+      return TOURNAMENTS[FALLBACK_TOURNAMENT_KEY];
     }
     return tournament;
   }
@@ -541,15 +467,16 @@ window.APP_CONFIG = (() => {
    * Speichert die Auswahl host-spezifisch in localStorage
    * (`dreamteam_dev_override_${hostname}`) und lädt die Seite neu.
    *
-   * Wichtig: Der Override gilt nur für die aktuelle Domain. Auf
-   * jeder anderen Domain bleibt der domain-basierte Standard aktiv.
+   * Wichtig: Der Override gilt nur für die aktuelle Domain und nur
+   * für aktuell verfügbare Turniere. Nicht verfügbare/deaktivierte
+   * Keys werden ignoriert.
    * ───────────────────────────────────────────────────────── */
   function setActiveTournament(key, options) {
     const opts = options || {};
     const normalized = (key || "").toLowerCase();
 
-    if (!TOURNAMENTS[normalized]) {
-      console.warn(`[APP_CONFIG] Unbekanntes Turnier: ${key}`);
+    if (!isTournamentAvailable(normalized)) {
+      console.warn(`[APP_CONFIG] Turnier "${key}" ist aktuell nicht verfügbar.`);
       return false;
     }
 
@@ -606,13 +533,13 @@ window.APP_CONFIG = (() => {
 
   function isDevOverrideActive() {
     const override = readDevOverrideKey();
-    if (!override || !TOURNAMENTS[override]) return false;
+    if (!override || !isTournamentAvailable(override)) return false;
     return override !== resolveDomainDefaultKey();
   }
 
   function isUrlOverrideActive() {
     const fromUrl = readUrlTournamentKey();
-    if (!fromUrl || !TOURNAMENTS[fromUrl]) return false;
+    if (!fromUrl || !isTournamentAvailable(fromUrl)) return false;
     // URL-Override gilt als "aktiv", wenn er vom Resultat nach Override-
     // Auflösung abweicht – also wenn er real gerade verwendet wird.
     return ACTIVE_TOURNAMENT_KEY === fromUrl;
@@ -629,6 +556,13 @@ window.APP_CONFIG = (() => {
     get activeTournament() {
       return getActiveTournament();
     },
+
+    get availableTournamentKeys() {
+      return getAvailableTournamentKeys();
+    },
+
+    isTournamentAvailable,
+    getAvailableTournamentKeys,
 
     get domainDefaultKey() {
       return resolveDomainDefaultKey();

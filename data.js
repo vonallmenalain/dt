@@ -2,13 +2,13 @@
  *  data.js – Shim für turnierspezifische Kaderdaten + Positions-Overrides
  *
  *  Diese Datei lädt ZUR LADEZEIT synchron (in dieser Reihenfolge):
- *    1. Die zum aktiven Turnier passende Kader-Datei (data-em2024.js,
- *       data-wm2026.js, …).
+ *    1. Die zum aktiven Turnier passende Kader-Datei (aktuell ausschliesslich
+ *       `data-wm2026.js`; weitere Turniere werden später ergänzt).
  *    2. position-overrides.js (turnierspezifische manuelle Positions-
  *       anpassungen).
  *    3. Einen kleinen Inline-Block, der die Overrides für das aktive
  *       Turnier auf `playersData` anwendet, BEVOR irgendeine andere
- *       App-Logik (cache.js, Dashboard, Team-Builder, Rangliste, …) auf
+ *       App-Logik (cache.js, Team-Builder, Rangliste, …) auf
  *       playersData zugreift.
  *
  *  Damit greifen manuelle Positionsanpassungen aus position-overrides.js
@@ -25,33 +25,15 @@
  *    benutzt diesen Wert als Basis, damit sie sich nicht selbst täuscht
  *    und weiterhin die "echte" Original-Position anzeigt.
  *
- *  Fallback: Falls APP_CONFIG nicht vorhanden ist, wird – in Anlehnung an
- *  das Domain-Mapping in tournament-config.js – versucht, anhand von
- *  window.location.hostname die richtige Datei zu wählen. Ist das
- *  nicht möglich, wird das aktuelle Default-Turnier (data-wm2026.js)
- *  geladen.
+ *  Fallback: Falls APP_CONFIG nicht vorhanden ist (z.B. Script-Ladefehler
+ *  bei tournament-config.js), wird hart auf das aktuelle Default-Turnier
+ *  (`data-wm2026.js`) zurückgefallen.
  * ============================================================================= */
 (function () {
   // Notfall-Fallback (entspricht dem FALLBACK_TOURNAMENT_KEY in
   // tournament-config.js, falls dort etwas schiefläuft).
   var fileName = "data-wm2026.js";
   var activeKey = "wm2026";
-
-  function fallbackFromHostname() {
-    try {
-      if (typeof window === "undefined" || !window.location) return null;
-      var host = String(window.location.hostname || "").toLowerCase();
-      if (host === "em24dt.alae.app") {
-        return { key: "em2024", file: "data-em2024.js" };
-      }
-      if (host === "dt.alae.app") {
-        return { key: "wm2026", file: "data-wm2026.js" };
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
 
   try {
     if (window.APP_CONFIG && window.APP_CONFIG.data && typeof window.APP_CONFIG.data.fileName === "function") {
@@ -64,24 +46,21 @@
       activeKey = window.APP_CONFIG.activeTournamentKey;
     } else if (window.APP_CONFIG && typeof window.APP_CONFIG.key === "string") {
       activeKey = window.APP_CONFIG.key;
-    } else {
-      // APP_CONFIG nicht vorhanden – Hostname-Fallback verwenden,
-      // damit em24dt.alae.app nicht versehentlich WM-2026-Daten lädt.
-      var hostFallback = fallbackFromHostname();
-      if (hostFallback) {
-        fileName = hostFallback.file;
-        activeKey = hostFallback.key;
-      }
     }
-  } catch (err) {
-    var hostFallback2 = fallbackFromHostname();
-    if (hostFallback2) {
-      fileName = hostFallback2.file;
-      activeKey = hostFallback2.key;
-    } else {
+
+    // Defence-in-depth: Wenn APP_CONFIG einen Key für ein deaktiviertes
+    // oder nicht verfügbares Turnier liefert (z.B. alte Bookmarks mit
+    // ?tournament=… oder gestrichene Templates), nicht auf eine fehlende
+    // Datei zugreifen, sondern auf den Default zurückfallen.
+    if (window.APP_CONFIG
+        && typeof window.APP_CONFIG.isTournamentAvailable === "function"
+        && !window.APP_CONFIG.isTournamentAvailable(activeKey)) {
       fileName = "data-wm2026.js";
       activeKey = "wm2026";
     }
+  } catch (err) {
+    fileName = "data-wm2026.js";
+    activeKey = "wm2026";
   }
 
   // 1) Per-Turnier Kaderdaten (synchron) – stellt globales `playersData` bereit.
