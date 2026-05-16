@@ -219,12 +219,15 @@
          * Spieler, die /players/squads aktuell nicht zurückliefert, die
          * aber als DreamTeam-relevante Stars zwingend ins Aufgebot
          * gehören. Pseudo-IDs ab 9_000_004 vergeben.
-         * Quellen Spielerfoto: Wikimedia Commons (öffentlich, dauerhaft
-         * via Special:FilePath). */
+         * Quellen Spielerfoto: bevorzugt das offizielle API-Sports-
+         * Profilfoto (media.api-sports.io/football/players/<echte-id>.png)
+         * — sofern für den Spieler eine echte API-Sports-ID existiert,
+         * obwohl /players/squads ihn aktuell nicht ausspielt. Andernfalls
+         * Wikimedia Commons via Special:FilePath. */
         {
             "player.id": 9000004,
             "Spielername": "Alphonso Davies",
-            "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Alphonso%20Davies%20-%20cropped.jpg",
+            "Spielerfoto": "https://media.api-sports.io/football/players/19063.png",
             "Position": "DEFENDER",
             "Nationalteam.name": "Canada",
             "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
@@ -289,7 +292,7 @@
         {
             "player.id": 9000009,
             "Spielername": "Neymar",
-            "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Neymar%20-%20Santos%20vs%20Juventude%20-%2004-08-2025.jpg",
+            "Spielerfoto": "https://media.api-sports.io/football/players/276.png",
             "Position": "ATTACKER",
             "Nationalteam.name": "Brazil",
             "Nationalteam.logo": "https://media.api-sports.io/football/teams/6.png",
