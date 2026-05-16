@@ -60,14 +60,38 @@ export function cleanWeight(value) {
 /* ---------- Voller Spielername (Diakritika beibehalten) -------------- */
 
 /**
+ * HTML-Entitäten und gängige Mojibake-Reste aus API-Football-Namen
+ * entfernen. Beispiele aus produktiven Daten:
+ *   - "Nico O&apos;Reilly"   → "Nico O’Reilly"
+ *   - "Aiden O&apos;Neill"   → "Aiden O’Neill"
+ *   - "Oston O&apos;runov"   → "Oston O’runov"
+ * Wir mappen den HTML-Apostroph auf "’" (typografischer Apostroph), weil
+ * das in den Verbandsschreibweisen der korrektere Glyph ist. Sonderfälle
+ * wie das usbekische "Oʻ" werden zusätzlich über MANUAL_NAME_OVERRIDES
+ * gepflegt.
+ */
+export function decodeNameEntities(value) {
+  const s = String(value == null ? "" : value);
+  if (!s) return s;
+  return s
+    .replace(/&apos;|&#0?39;|&#x27;/g, "’")
+    .replace(/&quot;|&#0?34;|&#x22;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ");
+}
+
+/**
  * Vollständiger Name: bevorzugt `firstname + " " + lastname`, mit Fallback auf
  * `player.name`. Sonderzeichen/Diakritika werden NICHT entfernt – die App-Suche
- * ist diakritikatolerant.
+ * ist diakritikatolerant. HTML-Entitäten in den API-Feldern werden vor dem
+ * Zusammensetzen dekodiert.
  */
 export function buildFullName(player) {
-  const firstname = String(player?.firstname || "").trim();
-  const lastname = String(player?.lastname || "").trim();
-  const apiName = String(player?.name || "").trim();
+  const firstname = decodeNameEntities(player?.firstname).trim();
+  const lastname = decodeNameEntities(player?.lastname).trim();
+  const apiName = decodeNameEntities(player?.name).trim();
 
   const combined = `${firstname} ${lastname}`.replace(/\s+/g, " ").trim();
   if (combined) return combined;
