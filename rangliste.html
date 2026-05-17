@@ -759,6 +759,60 @@
             box-shadow: 0 0 0 2px rgba(255,215,0,0.25), 0 4px 12px rgba(0,0,0,0.4);
         }
 
+        /* Pre-start Banner */
+        #rl-prestart-banner { display: none; }
+        body.teams-locked #rl-prestart-banner { display: flex; }
+        .rl-prestart-banner {
+            align-items: center;
+            gap: 14px;
+            margin: 12px 0 20px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background:
+                radial-gradient(120% 80% at 0% 0%, rgba(34,197,94,0.10), transparent 60%),
+                rgba(0,0,0,0.30);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-main);
+        }
+        .rl-prestart-banner .rl-prestart-icon {
+            font-size: 1.6rem;
+            flex: none;
+            filter: drop-shadow(0 0 10px rgba(34,197,94,0.45));
+        }
+        .rl-prestart-banner .rl-prestart-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            line-height: 1.35;
+        }
+        .rl-prestart-banner .rl-prestart-text strong { font-weight: 800; }
+        .rl-prestart-banner .rl-prestart-text span {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Locked avatar (pre-start): keine echten Spielerbilder
+           preisgeben, nur eine generische Silhouette. */
+        .avatar-link.is-locked {
+            cursor: default;
+            background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(34,197,94,0.06));
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.12);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            color: var(--text-muted);
+            overflow: hidden;
+        }
+        .avatar-link.is-locked .locked-avatar-icon {
+            font-size: 1.1rem;
+            line-height: 1;
+            opacity: 0.85;
+            filter: drop-shadow(0 0 8px rgba(34,197,94,0.35));
+        }
+        .avatar-link.is-locked::after { display: none !important; }
+        .avatar-link.is-locked:hover {
+            transform: none;
+        }
+
         .avatar-link.is-captain::after {
             content: 'C';
             position: absolute;
@@ -1704,6 +1758,17 @@
 
     <div class="page-shell">
 
+        <!-- Pre-Start Hinweisbanner: bleibt nur sichtbar, solange das
+             Turnier noch nicht angefangen hat (DREAMTEAM_START). Sobald
+             der Anpfiff erreicht ist, blendet ihn body.teams-locked aus. -->
+        <div id="rl-prestart-banner" class="rl-prestart-banner" role="status" aria-live="polite">
+            <span class="rl-prestart-icon" aria-hidden="true">🔒</span>
+            <div class="rl-prestart-text">
+                <strong>Kader noch versteckt</strong>
+                <span>Die Spieler der Teilnehmer werden mit dem Anpfiff automatisch enthüllt.</span>
+            </div>
+        </div>
+
         <!-- Loading -->
         <div id="loading" role="status" aria-live="polite">Berechne Rangliste... ⏳</div>
 
@@ -2296,6 +2361,12 @@
         };
     }
 
+    function isTeamsLocked() {
+        try {
+            return !!(window.APP_CONFIG && window.APP_CONFIG.isPreStart && window.APP_CONFIG.isPreStart());
+        } catch (_) { return true; }
+    }
+
     function generateAvatarsHTML(top3, isList) {
         if (!top3 || top3.length === 0) return "";
 
@@ -2305,8 +2376,19 @@
         const baseClass = isList ? "list-avatar" : "podium-avatar";
         let html = "";
 
+        // Vor Turnierstart bleiben die gedrafteten Spieler geheim:
+        // wir rendern anonyme Silhouetten ohne Link/Name/Punkte.
+        const locked = isTeamsLocked();
+
         const buildAvatar = (p, rankClass) => {
             if (!p) return "";
+            if (locked) {
+                return `
+                    <span class="avatar-link ${baseClass} ${rankClass} is-locked" aria-label="Spieler noch versteckt" title="Wird mit Turnierstart enthüllt">
+                        <span class="locked-avatar-icon" aria-hidden="true">🔒</span>
+                    </span>
+                `;
+            }
             const captainClass = p.isCaptain ? "is-captain" : "";
             const titleText = p.isCaptain ? `${p.name} (Captain)` : p.name;
             const href = p.id
@@ -3399,8 +3481,39 @@
         });
     }
 
+    function applyRanglisteLockState() {
+        document.body.classList.toggle('teams-locked', isTeamsLocked());
+    }
+
     async function initRanking() {
         bindStaticEvents();
+        applyRanglisteLockState();
+
+        // Live-Umschaltung exakt zum DREAMTEAM_START: wenn die Seite
+        // beim Anpfiff geöffnet ist, sollen die Avatare nicht mehr
+        // 🔒-Silhouetten zeigen, sondern die echten Spieler.
+        try {
+            if (window.APP_CONFIG && typeof window.APP_CONFIG.onReveal === 'function') {
+                window.APP_CONFIG.onReveal(() => {
+                    applyRanglisteLockState();
+                    if (typeof renderRankingView === 'function') {
+                        renderRankingView();
+                    }
+                });
+            }
+        } catch (_) { /* ignore */ }
+
+        // Admin-Dev-Override wirkt sofort: bei Statusänderung neu rendern.
+        try {
+            if (window.DreamTeamAdmin && typeof window.DreamTeamAdmin.onAdminChange === 'function') {
+                window.DreamTeamAdmin.onAdminChange(() => {
+                    applyRanglisteLockState();
+                    if (typeof renderRankingView === 'function' && hasRenderedOnce) {
+                        renderRankingView();
+                    }
+                });
+            }
+        } catch (_) { /* ignore */ }
 
         try {
             // bootstrap() ersetzt die alte Sequenz `getCachedBundle +
