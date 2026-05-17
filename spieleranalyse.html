@@ -4879,11 +4879,21 @@
         });
     }
 
+    function isTeamsLocked() {
+        try {
+            return !!(window.APP_CONFIG && window.APP_CONFIG.isPreStart && window.APP_CONFIG.isPreStart());
+        } catch (_) { return true; }
+    }
+
     function getManagersForPlayer(playerId) {
+        // Vor Turnierstart bleiben die Draft-Entscheidungen geheim.
+        if (isTeamsLocked()) return [];
         return playerManagersMap.get(String(playerId)) || [];
     }
 
     function isPlayerDrafted(playerId) {
+        // Vor Turnierstart: niemand wurde "öffentlich" gedraftet.
+        if (isTeamsLocked()) return false;
         return (playerSelectedMap.get(String(playerId)) || 0) > 0;
     }
 
@@ -5246,23 +5256,30 @@
         badge.textContent = `${totalPts > 0 ? '+' : ''}${totalPts} Pkt.`;
         badge.className = `player-score-pill ${totalPts > 0 ? 'pos' : (totalPts < 0 ? 'neg' : 'zero')}`;
 
-        // Managers
+        // Managers — vor Turnierstart bleiben Draft-Entscheidungen geheim.
         const pickedBy = [];
         const captainedBy = [];
-        allTeams.forEach(team => {
-            const teamPlayer = (team.players || []).find(tp =>
-                String(tp.playerId) === String(player['player.id']) || tp.name === player.Spielername
-            );
-            if (teamPlayer) {
-                pickedBy.push(team.manager);
-                if (teamPlayer.isCaptain) captainedBy.push(team.manager);
-            }
-        });
+        const teamsLocked = isTeamsLocked();
+        if (!teamsLocked) {
+            allTeams.forEach(team => {
+                const teamPlayer = (team.players || []).find(tp =>
+                    String(tp.playerId) === String(player['player.id']) || tp.name === player.Spielername
+                );
+                if (teamPlayer) {
+                    pickedBy.push(team.manager);
+                    if (teamPlayer.isCaptain) captainedBy.push(team.manager);
+                }
+            });
+        }
 
         const mgrBox = document.getElementById('detail-managers');
-        mgrBox.innerHTML = pickedBy.length > 0
-            ? pickedBy.map(m => `<a href="teams.html?manager=${encodeURIComponent(m)}" class="manager-badge" aria-label="Team von ${escapeHtml(m)} ansehen">👤 ${escapeHtml(m)}</a>`).join('')
-            : '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">Noch nicht gedraftet.</div>';
+        if (teamsLocked) {
+            mgrBox.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">🔒 Wird mit Turnierstart enthüllt.</div>';
+        } else {
+            mgrBox.innerHTML = pickedBy.length > 0
+                ? pickedBy.map(m => `<a href="teams.html?manager=${encodeURIComponent(m)}" class="manager-badge" aria-label="Team von ${escapeHtml(m)} ansehen">👤 ${escapeHtml(m)}</a>`).join('')
+                : '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">Noch nicht gedraftet.</div>';
+        }
 
         // Awards + points breakdown
         const combinedPointsBox = document.getElementById('card-points-container');
@@ -6390,14 +6407,20 @@
             games: 0
         };
 
-        // Count drafted by managers (popularity)
-        stats.draftCount = playerSelectedMap.get(String(playerId)) || 0;
+        // Count drafted by managers (popularity) — pre-start sind die
+        // Draft-Entscheidungen geheim, also stets 0.
+        const teamsLockedForStats = isTeamsLocked();
+        stats.draftCount = teamsLockedForStats
+            ? 0
+            : (playerSelectedMap.get(String(playerId)) || 0);
         let captainCount = 0;
-        (allTeams || []).forEach(team => {
-            (team.players || []).forEach(tp => {
-                if (String(tp.playerId) === String(playerId) && tp.isCaptain) captainCount++;
+        if (!teamsLockedForStats) {
+            (allTeams || []).forEach(team => {
+                (team.players || []).forEach(tp => {
+                    if (String(tp.playerId) === String(playerId) && tp.isCaptain) captainCount++;
+                });
             });
-        });
+        }
         stats.captainCount = captainCount;
 
         Object.entries(doc).forEach(([key, val]) => {
@@ -7761,6 +7784,10 @@
     function applyDataset(data, options = {}) {
         const preserveCurrentPlayer = !!options.preserveCurrentPlayer;
 
+        // Letzten Datensatz cachen, damit ein Lock-State-Wechsel (Anpfiff
+        // oder Admin-Override) ohne neuen Cache-Roundtrip re-rendern kann.
+        try { window.__spaLastData = data; } catch (_) { /* ignore */ }
+
         pointsData = data.points || {};
         allTeams = Array.isArray(data.teams) ? data.teams : [];
 
@@ -7989,7 +8016,42 @@
     /* =========================================================
        INIT
        ========================================================= */
+    function applyAnalysisLockState() {
+        document.body.classList.toggle('teams-locked', isTeamsLocked());
+    }
+
     async function init() {
+        applyAnalysisLockState();
+
+        // Live-Umschaltung exakt zum DREAMTEAM_START: rerender, damit
+        // "Gewählt von …" und Captain-Badges erscheinen, sobald der
+        // Anpfiff erreicht ist.
+        try {
+            if (window.APP_CONFIG && typeof window.APP_CONFIG.onReveal === 'function') {
+                window.APP_CONFIG.onReveal(() => {
+                    applyAnalysisLockState();
+                    if (typeof applyDataset === 'function' && hasRenderedOnce) {
+                        // Re-apply current dataset to refresh derived state.
+                        const lastData = window.__spaLastData;
+                        if (lastData) applyDataset(lastData, { preserveCurrentPlayer: true });
+                    }
+                });
+            }
+        } catch (_) { /* ignore */ }
+
+        // Admin-Override: bei Login/Logout des Admin-Accounts neu rendern.
+        try {
+            if (window.DreamTeamAdmin && typeof window.DreamTeamAdmin.onAdminChange === 'function') {
+                window.DreamTeamAdmin.onAdminChange(() => {
+                    applyAnalysisLockState();
+                    const lastData = window.__spaLastData;
+                    if (lastData && hasRenderedOnce && typeof applyDataset === 'function') {
+                        applyDataset(lastData, { preserveCurrentPlayer: true });
+                    }
+                });
+            }
+        } catch (_) { /* ignore */ }
+
         try {
             initComparisonsEventsOnce();
             // bootstrap() ersetzt die alte Sequenz `getCachedBundle +
