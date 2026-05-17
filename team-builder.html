@@ -4376,19 +4376,28 @@
     /* =========================================================
        DUPLICATE CHECK
        ========================================================= */
-    async function managerNameExists(name) {
+    async function managerNameExists(name, ignoreTeamId = null) {
         const normalized = name.trim().toLowerCase();
         if (!normalized) return false;
 
+        /* When editing an existing team we must ignore the user's own document,
+           otherwise saving without changing the name would always be blocked.
+           We therefore fetch up to two matches per query and treat the result
+           as a duplicate only if at least one hit has a different doc id. */
+        const limit = ignoreTeamId ? 2 : 1;
+
+        const hasForeignMatch = (snap) =>
+            snap.docs.some(doc => doc.id !== ignoreTeamId);
+
         const snap1 = await db.collection(TEAMS_COLLECTION)
             .where('managerNormalized', '==', normalized)
-            .limit(1).get();
-        if (!snap1.empty) return true;
+            .limit(limit).get();
+        if (hasForeignMatch(snap1)) return true;
 
         const snap2 = await db.collection(TEAMS_COLLECTION)
             .where('manager', '==', name.trim())
-            .limit(1).get();
-        return !snap2.empty;
+            .limit(limit).get();
+        return hasForeignMatch(snap2);
     }
 
     /* =========================================================
@@ -4744,16 +4753,16 @@
         setSubmitBusy(true, '⏳ Speichere…');
 
         try {
-            /* Duplicate manager-name check applies only when creating a new team. */
-            if (!editingTeamId) {
-                const duplicateExists = await managerNameExists(name);
-                if (duplicateExists) {
-                    if (dom.duplicateWarning) dom.duplicateWarning.style.display = 'block';
-                    isSubmitting = false;
-                    setSubmitDefaultLabel();
-                    validateForm();
-                    return;
-                }
+            /* Duplicate manager-name check runs for both new and existing teams.
+               When updating, the user's own document is ignored so that saving
+               without a name change is still allowed. */
+            const duplicateExists = await managerNameExists(name, editingTeamId);
+            if (duplicateExists) {
+                if (dom.duplicateWarning) dom.duplicateWarning.style.display = 'block';
+                isSubmitting = false;
+                setSubmitDefaultLabel();
+                validateForm();
+                return;
             }
 
             const payload = buildTeamPayload(name);
