@@ -619,6 +619,102 @@ const APP_CONFIG = (() => {
       return raw instanceof Date ? raw : new Date(raw);
     },
 
+    /* ─────────────────────────────────────────────────────────
+     * Pre-/Post-Start-Helper.
+     *
+     * Zentrale Quelle der Wahrheit für die App-weite Frage
+     * „Dürfen Team-Inhalte (Kader, Pick-Listen, Aggregate über
+     *  gedraftete Spieler etc.) angezeigt werden?".
+     *
+     * Vor `DREAMTEAM_START` werden die Teams der Teilnehmer
+     * applikationsweit versteckt; erst ab dem Anpfiff
+     * (z.B. WM 2026: 2026-06-11T21:00 +02:00, also 21:00 Uhr
+     * Schweizer Zeit) sind sie öffentlich sichtbar.
+     *
+     * Berücksichtigt den Admin-Dev-Override aus admin.js
+     * (`DreamTeamAdmin.getDevViewOverride()` → "pre" / "post"),
+     * der nur für angemeldete Admin-Accounts gilt. Manipulierte
+     * localStorage-Werte bei normalen Usern werden ignoriert.
+     * ───────────────────────────────────────────────────────── */
+    getEffectiveViewMode() {
+      const Admin = (typeof window !== "undefined") ? window.DreamTeamAdmin : null;
+      const override = (Admin && typeof Admin.getDevViewOverride === "function")
+        ? Admin.getDevViewOverride()
+        : null;
+      if (override === "pre") return "pre";
+      if (override === "post") return "post";
+
+      try {
+        const raw = getActiveTournament().DREAMTEAM_START;
+        const start = raw instanceof Date ? raw : new Date(raw);
+        if (start instanceof Date && !isNaN(start.getTime())) {
+          return Date.now() >= start.getTime() ? "post" : "pre";
+        }
+      } catch (_) { /* fall through to conservative default */ }
+
+      // Wenn aus irgendeinem Grund keine Startzeit ermittelbar ist,
+      // bewusst restriktiv defaulten: Teams bleiben versteckt.
+      return "pre";
+    },
+
+    isPreStart() {
+      return this.getEffectiveViewMode() === "pre";
+    },
+
+    isPostStart() {
+      return this.getEffectiveViewMode() === "post";
+    },
+
+    /**
+     * Sind die Kader der Teilnehmer aktuell öffentlich sichtbar?
+     * Vor `DREAMTEAM_START` → false; ab Anpfiff → true. Honoriert
+     * Admin-Override (siehe `getEffectiveViewMode`).
+     */
+    isTeamsRevealed() {
+      return this.isPostStart();
+    },
+
+    /**
+     * Plant einen einmaligen Callback genau zum `DREAMTEAM_START`,
+     * damit eine bereits offene Seite nahtlos von Pre- auf Post-
+     * Start umschaltet. Browser drosseln sehr lange Timer; deshalb
+     * unterteilen wir den Wartezeitraum in 6h-Etappen. Liefert eine
+     * Cancel-Funktion zurück.
+     */
+    onReveal(callback) {
+      if (typeof callback !== "function") return function () {};
+      if (typeof window === "undefined") return function () {};
+
+      let cancelled = false;
+      let timerId = null;
+      const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+      const self = this;
+
+      function tick() {
+        if (cancelled) return;
+        const start = self.DREAMTEAM_START;
+        if (!(start instanceof Date) || isNaN(start.getTime())) return;
+        const ms = start.getTime() - Date.now();
+        if (ms <= 0) {
+          try { callback(); } catch (err) {
+            console.error("[APP_CONFIG] onReveal callback error:", err);
+          }
+          return;
+        }
+        const delay = Math.min(ms, SIX_HOURS_MS);
+        timerId = setTimeout(tick, delay);
+      }
+
+      tick();
+      return function cancel() {
+        cancelled = true;
+        if (timerId) {
+          clearTimeout(timerId);
+          timerId = null;
+        }
+      };
+    },
+
     get fallbackFixtures() {
       const list = getActiveTournament().fallbackFixtures;
       return Array.isArray(list) ? list : [];

@@ -643,6 +643,96 @@
         }
 
         /* =====================================================
+           PRE-START LOCK PLACEHOLDER
+           ----------------------------------------------------- */
+        /* Vor dem Anpfiff (DREAMTEAM_START) werden die Kader der
+           Teilnehmer hier vollständig versteckt – stattdessen wird
+           der #team-lock-placeholder eingeblendet. Die Sidebar /
+           Manager-Liste bleiben sichtbar, damit User ihre Mit-
+           spielerinnen finden, aber wer was draftet, bleibt geheim. */
+        #team-lock-placeholder { display: none; }
+        body.teams-locked .team-board-card,
+        body.teams-locked .mobile-team-sections,
+        body.teams-locked .team-totals-section,
+        body.teams-locked .team-totals,
+        body.teams-locked #manager-awards,
+        body.teams-locked .display-rank-link,
+        body.teams-locked #display-rank-link,
+        body.teams-locked #display-total-points {
+            display: none !important;
+        }
+        body.teams-locked #team-lock-placeholder { display: block; }
+
+        #team-lock-placeholder {
+            margin-top: 16px;
+            padding: 48px 24px;
+            text-align: center;
+            border-radius: 20px;
+            background:
+                radial-gradient(120% 80% at 50% 0%, rgba(34,197,94,0.10), transparent 60%),
+                rgba(0,0,0,0.30);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-main);
+            animation: fadeIn 0.4s ease both;
+        }
+        #team-lock-placeholder .lock-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 14px;
+            filter: drop-shadow(0 0 12px rgba(34,197,94,0.45));
+        }
+        #team-lock-placeholder .lock-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 0.2px;
+        }
+        #team-lock-placeholder .lock-sub {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 480px;
+            margin: 0 auto 18px;
+            line-height: 1.45;
+        }
+        #team-lock-placeholder .lock-countdown {
+            display: inline-flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        #team-lock-placeholder .lock-cd-cell {
+            min-width: 64px;
+            text-align: center;
+        }
+        #team-lock-placeholder .lock-cd-num {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--green-light);
+            font-variant-numeric: tabular-nums;
+        }
+        #team-lock-placeholder .lock-cd-label {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+        #team-lock-placeholder .lock-reveal-time {
+            margin-top: 14px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* =====================================================
            TEAM BOARD CONTAINER
            ===================================================== */
         .team-board-card {
@@ -1647,6 +1737,23 @@
                     </div>
                 </div>
 
+                <!-- Pre-Start Lock Placeholder -->
+                <div id="team-lock-placeholder" role="status" aria-live="polite">
+                    <span class="lock-icon" aria-hidden="true">🔒</span>
+                    <div class="lock-title">Team noch versteckt</div>
+                    <p class="lock-sub">
+                        Die Aufstellungen aller Teilnehmer bleiben bis zum Anpfiff geheim.
+                        Sobald das Turnier startet, werden alle Kader hier automatisch enthüllt.
+                    </p>
+                    <div class="lock-countdown" id="team-lock-countdown" aria-label="Countdown bis zum Turnierstart">
+                        <div class="lock-cd-cell"><span class="lock-cd-num" id="team-lock-cd-d">–</span><span class="lock-cd-label">Tage</span></div>
+                        <div class="lock-cd-cell"><span class="lock-cd-num" id="team-lock-cd-h">–</span><span class="lock-cd-label">Std.</span></div>
+                        <div class="lock-cd-cell"><span class="lock-cd-num" id="team-lock-cd-m">–</span><span class="lock-cd-label">Min.</span></div>
+                        <div class="lock-cd-cell"><span class="lock-cd-num" id="team-lock-cd-s">–</span><span class="lock-cd-label">Sek.</span></div>
+                    </div>
+                    <div class="lock-reveal-time" id="team-lock-reveal-time"></div>
+                </div>
+
                 <!-- Desktop: Pitch / Board View -->
                 <div class="team-board-card">
                     <div class="team-board">
@@ -2172,9 +2279,14 @@
             managerPill.style.display = '';
         }
 
-        if (team && rankPill && rankVal) {
+        // Rang ist pre-start nicht aussagekräftig (alle 0 Punkte) und
+        // suggeriert ggf., dass Kader-Daten schon ausgewertet wurden –
+        // wir blenden ihn deshalb mit dem Lock-State aus.
+        if (team && rankPill && rankVal && !isTeamsLocked()) {
             rankVal.textContent = team.currentRank || '–';
             rankPill.style.display = '';
+        } else if (rankPill) {
+            rankPill.style.display = 'none';
         }
     }
 
@@ -2189,8 +2301,12 @@
         if (team) {
             nameEl.textContent = team.manager;
             if (metaEl) {
-                const rankStr = team.currentRank ? ` · Rang ${team.currentRank}` : '';
-                metaEl.textContent = `${team.totalScore} Pkt.${rankStr}`;
+                if (isTeamsLocked()) {
+                    metaEl.textContent = '🔒 Kader noch versteckt';
+                } else {
+                    const rankStr = team.currentRank ? ` · Rang ${team.currentRank}` : '';
+                    metaEl.textContent = `${team.totalScore} Pkt.${rankStr}`;
+                }
             }
         } else {
             nameEl.textContent = '– Kein Team gewählt –';
@@ -2225,7 +2341,10 @@
 
             const rankSpan = document.createElement('span');
             rankSpan.className = 'manager-item-rank';
-            rankSpan.textContent = team.currentRank ? `#${team.currentRank}` : '';
+            // Vor Turnierstart sind alle Punkte 0 und Ränge zufällig – wir
+            // unterdrücken den Rang in der Liste, damit nichts an die
+            // (noch geheimen) Kader-Informationen erinnert.
+            rankSpan.textContent = (!isTeamsLocked() && team.currentRank) ? `#${team.currentRank}` : '';
 
             div.appendChild(nameSpan);
             div.appendChild(rankSpan);
@@ -2261,7 +2380,11 @@
 
             const ptsSpan = document.createElement('span');
             ptsSpan.className = 'team-picker-item-pts';
-            ptsSpan.textContent = team.currentRank ? `#${team.currentRank} · ${team.totalScore} Pkt.` : `${team.totalScore} Pkt.`;
+            if (isTeamsLocked()) {
+                ptsSpan.textContent = '🔒';
+            } else {
+                ptsSpan.textContent = team.currentRank ? `#${team.currentRank} · ${team.totalScore} Pkt.` : `${team.totalScore} Pkt.`;
+            }
 
             item.appendChild(nameSpan);
             item.appendChild(ptsSpan);
@@ -2659,6 +2782,116 @@
     }
 
     /* =====================================================
+       PRE-START TEAM LOCK
+       -----------------------------------------------------
+       Vor dem Anpfiff (APP_CONFIG.DREAMTEAM_START) bleiben
+       alle Kader versteckt. Diese Helfer setzen den
+       Sperr-Zustand (body.teams-locked) und steuern den
+       Countdown im #team-lock-placeholder. Admins können
+       per Dev-Toggle vorzeitig in den Post-Start-Modus
+       wechseln (siehe APP_CONFIG.getEffectiveViewMode). */
+    function isTeamsLocked() {
+        try {
+            return !!(window.APP_CONFIG && window.APP_CONFIG.isPreStart && window.APP_CONFIG.isPreStart());
+        } catch (_) {
+            return true;
+        }
+    }
+
+    function getRevealDate() {
+        try {
+            return (window.APP_CONFIG && window.APP_CONFIG.DREAMTEAM_START) || null;
+        } catch (_) { return null; }
+    }
+
+    let _lockCountdownTimer = null;
+    function stopLockCountdown() {
+        if (_lockCountdownTimer) {
+            clearInterval(_lockCountdownTimer);
+            _lockCountdownTimer = null;
+        }
+    }
+    function tickLockCountdown() {
+        const start = getRevealDate();
+        const d = document.getElementById('team-lock-cd-d');
+        const h = document.getElementById('team-lock-cd-h');
+        const m = document.getElementById('team-lock-cd-m');
+        const s = document.getElementById('team-lock-cd-s');
+        if (!d || !h || !m || !s) return;
+        if (!(start instanceof Date) || isNaN(start.getTime())) {
+            d.textContent = h.textContent = m.textContent = s.textContent = '–';
+            return;
+        }
+        let ms = start.getTime() - Date.now();
+        if (ms <= 0) {
+            stopLockCountdown();
+            applyTeamsLockState();
+            return;
+        }
+        const days = Math.floor(ms / (24 * 3600 * 1000));
+        ms -= days * 24 * 3600 * 1000;
+        const hours = Math.floor(ms / (3600 * 1000));
+        ms -= hours * 3600 * 1000;
+        const mins = Math.floor(ms / (60 * 1000));
+        ms -= mins * 60 * 1000;
+        const secs = Math.floor(ms / 1000);
+        d.textContent = String(days);
+        h.textContent = String(hours).padStart(2, '0');
+        m.textContent = String(mins).padStart(2, '0');
+        s.textContent = String(secs).padStart(2, '0');
+    }
+    function startLockCountdown() {
+        stopLockCountdown();
+        const revealTimeEl = document.getElementById('team-lock-reveal-time');
+        const start = getRevealDate();
+        if (revealTimeEl && start instanceof Date && !isNaN(start.getTime())) {
+            try {
+                const fmt = new Intl.DateTimeFormat('de-CH', {
+                    weekday: 'long',
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                    timeZone: 'Europe/Zurich'
+                });
+                revealTimeEl.textContent = `Enthüllung am ${fmt.format(start)} Uhr`;
+            } catch (_) {
+                revealTimeEl.textContent = `Enthüllung am ${start.toLocaleString('de-CH')}`;
+            }
+        }
+        tickLockCountdown();
+        _lockCountdownTimer = setInterval(tickLockCountdown, 1000);
+    }
+
+    function applyTeamsLockState() {
+        const locked = isTeamsLocked();
+        document.body.classList.toggle('teams-locked', locked);
+        if (locked) {
+            startLockCountdown();
+        } else {
+            stopLockCountdown();
+        }
+    }
+
+    // Live-Umschaltung exakt zum DREAMTEAM_START (Tab kann offen bleiben).
+    let _autoRevealCancel = null;
+    function scheduleTeamsAutoReveal() {
+        if (typeof _autoRevealCancel === 'function') {
+            _autoRevealCancel();
+            _autoRevealCancel = null;
+        }
+        if (!(window.APP_CONFIG && typeof window.APP_CONFIG.onReveal === 'function')) return;
+        _autoRevealCancel = window.APP_CONFIG.onReveal(() => {
+            applyTeamsLockState();
+            // Aktuell angezeigtes Team neu rendern, damit Kader sichtbar wird.
+            const currentDisplayed = document.getElementById('display-manager-name');
+            if (currentDisplayed && Array.isArray(allTeams)) {
+                const name = currentDisplayed.textContent.trim();
+                const team = allTeams.find(t => t.manager === name);
+                if (team) loadTeam(team);
+            }
+        });
+    }
+
+    /* =====================================================
        LOAD TEAM
        ===================================================== */
     function loadTeam(team) {
@@ -2678,6 +2911,18 @@
         if (rankLink) {
             rankLink.href = 'rangliste.html';
             rankLink.title = team.currentRank ? `Zur Rangliste wechseln (aktueller Rang ${team.currentRank})` : 'Zur Rangliste wechseln';
+        }
+
+        // Wenn Teams aktuell gesperrt sind, NICHT das Kader rendern: nur
+        // Manager-Name (Header) und Lock-Placeholder werden gezeigt. Wir
+        // überspringen Awards, Punkte-Animation, Hero-Pills und Karten.
+        if (isTeamsLocked()) {
+            applyTeamsLockState();
+            clearBoard();
+            const awardsEl = document.getElementById('manager-awards');
+            if (awardsEl) awardsEl.innerHTML = '';
+            updateMobilePickerBtn(team);
+            return;
         }
 
         renderManagerAwards(team);
@@ -2861,6 +3106,23 @@
        INIT
        ===================================================== */
     async function init() {
+        applyTeamsLockState();
+        scheduleTeamsAutoReveal();
+
+        // Wenn ein Admin den Dev-Override umstellt, ändert sich
+        // isTeamsLocked() – wir reagieren live, ohne Page-Reload.
+        if (window.DreamTeamAdmin && typeof window.DreamTeamAdmin.onAdminChange === 'function') {
+            window.DreamTeamAdmin.onAdminChange(() => {
+                applyTeamsLockState();
+                const currentDisplayed = document.getElementById('display-manager-name');
+                if (currentDisplayed && Array.isArray(allTeams)) {
+                    const name = currentDisplayed.textContent.trim();
+                    const team = allTeams.find(t => t.manager === name);
+                    if (team) loadTeam(team);
+                }
+            });
+        }
+
         initSearchListeners();
         initModalEvents();
         initTiltObserver();
@@ -2928,6 +3190,8 @@
 
     window.addEventListener('beforeunload', () => {
         if (typeof metaUnsubscribe === 'function') metaUnsubscribe();
+        stopLockCountdown();
+        if (typeof _autoRevealCancel === 'function') _autoRevealCancel();
     });
 </script>
 </body>
