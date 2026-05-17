@@ -294,36 +294,34 @@ In der [Firebase Console](https://console.firebase.google.com/project/dreamteam-
    App, ohne erst die englische Firebase-Bestätigungsseite zu sehen.
 3. **Authentication → Settings → Authorized domains** – `dt.alae.app`
    und Netlify-Preview-Domains hinterlegen.
-4. **Firestore → Rules** – wird direkt in der Firebase Console
-   gepflegt (Copy & Paste), **nicht** mehr im Repo. Wichtig für den
-   Anti-Duplikat-Schutz: Die `update`-Regel muss zusätzlich zur
-   `userId`-Bedingung auch
-   `resource.data.userEmailLower == request.auth.token.email.lower()`
-   akzeptieren, damit Cross-Provider-Edits (Google ↔ E-Mail/Passwort ↔
-   E-Mail-Link) funktionieren. Beispiel:
+4. **Firestore → Rules** – Quelle der Wahrheit ist `firestore.rules`
+   im Repo-Root. Den Inhalt 1:1 in die Firebase Console (Firestore →
+   Rules) reinkopieren und **Veröffentlichen** klicken, oder via
+   Firebase CLI deployen (`firebase deploy --only firestore:rules`).
 
-   ```text
-   match /Teams\ WM\ 2026/{teamId} {
-       allow read: if true;
+   Die Datei ist bewusst kompakt gehalten und nutzt nur
+   Console-kompatible Konstrukte (keine Funktions-Parameter, keine
+   Pfade mit Leerzeichen). Collection-Namen mit Leerzeichen wie
+   `Teams WM 2026` werden über `match /{collection}/{docId}` plus
+   String-Vergleich erkannt – ein direkter Match-Pfad
+   `/Teams WM 2026/...` ist in Firestore Rules **nicht** zulässig.
 
-       allow create: if request.auth != null
-                  && request.auth.token.email_verified == true
-                  && request.resource.data.userId == request.auth.uid
-                  && request.resource.data.userEmailLower
-                       == request.auth.token.email.lower();
+   Wesentliche Eigenschaften:
 
-       allow update, delete: if request.auth != null
-                  && request.auth.token.email_verified == true
-                  && (
-                       resource.data.userId == request.auth.uid
-                       || (
-                           resource.data.userEmailLower is string
-                        && resource.data.userEmailLower
-                             == request.auth.token.email.lower()
-                       )
-                     );
-   }
-   ```
+   - Public-Reads nur für `Teams WM 2026`, `Spiele WM 2026`,
+     `Punkte Spieler WM 2026` und das Meta-Dokument
+     `app_meta/turnier_wm2026`.
+   - Team-Writes verlangen verifizierte E-Mail; Eigentum wird über
+     `userId` **oder** `userEmailLower` erkannt (Cross-Provider).
+   - Team-Schema: genau 15 Spieler, Felder als Allowlist.
+   - Schreibzugriff auf Teams ist nach dem Anpfiff (2026-06-11
+     19:00 UTC) gesperrt; Admin (UID
+     `lSw9kxsnp8a7qb0s7UzuTQVwRAu1`) bleibt schreibberechtigt.
+   - Verifizierte User dürfen `teamsVersion` im Meta-Dokument nur um
+     +1 erhöhen.
+   - Alle anderen Collections und Schreibzugriffe sind explizit
+     verboten; Spielplan- und Punkte-Updates laufen über die Cron-
+     Skripte mit Admin-SDK (umgeht Rules).
 
 ---
 
