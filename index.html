@@ -4220,6 +4220,86 @@
         }
 
         /* ===================================================
+           PRE-START "TEAMS LOCKED" NOTICE
+           =================================================== */
+        .prestart-teams-lock {
+            position: relative;
+            margin: 24px auto 32px;
+            max-width: 720px;
+            padding: 36px 28px 32px;
+            text-align: center;
+            border-radius: 22px;
+            background:
+                radial-gradient(120% 80% at 50% 0%, rgba(34,197,94,0.18), transparent 60%),
+                rgba(0,0,0,0.30);
+            border: 1px solid rgba(255,255,255,0.10);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #e6edf3;
+        }
+        .prestart-teams-lock .ptl-icon {
+            font-size: 2.8rem;
+            display: inline-block;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 14px rgba(34,197,94,0.5));
+        }
+        .prestart-teams-lock .ptl-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin: 0 0 8px;
+            letter-spacing: 0.2px;
+        }
+        .prestart-teams-lock .ptl-sub {
+            color: rgba(230,237,243,0.7);
+            font-size: 1rem;
+            line-height: 1.5;
+            max-width: 540px;
+            margin: 0 auto 18px;
+        }
+        .prestart-teams-lock .ptl-countdown {
+            display: inline-flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.10);
+        }
+        .prestart-teams-lock .ptl-cd-cell {
+            min-width: 64px;
+            text-align: center;
+        }
+        .prestart-teams-lock .ptl-cd-num {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #4ade80;
+            font-variant-numeric: tabular-nums;
+        }
+        .prestart-teams-lock .ptl-cd-label {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(230,237,243,0.55);
+        }
+        .prestart-teams-lock .ptl-reveal-time {
+            margin-top: 14px;
+            font-size: 0.9rem;
+            color: rgba(230,237,243,0.7);
+        }
+        @media (max-width: 480px) {
+            .prestart-teams-lock { padding: 28px 18px 26px; }
+            .prestart-teams-lock .ptl-title { font-size: 1.35rem; }
+            .prestart-teams-lock .ptl-countdown { gap: 6px; padding: 12px 12px; }
+            .prestart-teams-lock .ptl-cd-cell { min-width: 56px; }
+            .prestart-teams-lock .ptl-cd-num { font-size: 1.5rem; }
+        }
+
+        /* ===================================================
            PRE-START-SPECIFIC LAYOUT/BACKGROUND
            =================================================== */
         #indexHomePreStart.prestart-home {
@@ -5523,9 +5603,37 @@
 </section>
 
 <!-- =====================================================
+     PRE-START "TEAMS LOCKED" NOTICE
+     -----------------------------------------------------
+     Die Aggregat-Kacheln (Captain Watch, Top-Vereine usw.)
+     enthüllen indirekt, was die Teilnehmer gedraftet haben.
+     Sie bleiben deshalb bis zum Anpfiff komplett versteckt –
+     stattdessen wird hier ein klarer Hinweis mit Countdown
+     gezeigt. Sobald `APP_CONFIG.DREAMTEAM_START` erreicht ist
+     (oder ein Admin auf "post" wechselt), wird die Sektion
+     ohne Page-Reload eingeblendet.
+     ===================================================== -->
+<section id="prestart-teams-lock" class="prestart-teams-lock" role="status" aria-live="polite">
+    <span class="ptl-icon" aria-hidden="true">🔒</span>
+    <h2 class="ptl-title">Teams noch versteckt</h2>
+    <p class="ptl-sub">
+        Damit niemand die Aufstellungen der Konkurrenz vorab studieren kann,
+        bleiben sämtliche Kader bis zum Anpfiff der WM 2026 geheim.
+        Sobald das Turnier startet, werden alle Teams automatisch enthüllt.
+    </p>
+    <div class="ptl-countdown" id="ptl-countdown" aria-label="Countdown bis zum Turnierstart">
+        <div class="ptl-cd-cell"><span class="ptl-cd-num" id="ptl-cd-d">–</span><span class="ptl-cd-label">Tage</span></div>
+        <div class="ptl-cd-cell"><span class="ptl-cd-num" id="ptl-cd-h">–</span><span class="ptl-cd-label">Std.</span></div>
+        <div class="ptl-cd-cell"><span class="ptl-cd-num" id="ptl-cd-m">–</span><span class="ptl-cd-label">Min.</span></div>
+        <div class="ptl-cd-cell"><span class="ptl-cd-num" id="ptl-cd-s">–</span><span class="ptl-cd-label">Sek.</span></div>
+    </div>
+    <div class="ptl-reveal-time" id="ptl-reveal-time"></div>
+</section>
+
+<!-- =====================================================
      PRE-START DASHBOARD AREA
      ===================================================== -->
-<main class="dashboard-area" id="dashboard-area">
+<main class="dashboard-area" id="dashboard-area" hidden>
 
 
     <!-- ── Row 2: Captain Watch + Beliebteste Vereine ── -->
@@ -5897,6 +6005,67 @@
         btn.dataset.mode = storedMode;
     }
 
+    /* =========================================================
+       PRE-START "Teams locked" COUNTDOWN
+       ---------------------------------------------------------
+       Lebt eigenständig (kein Kader-Daten-Bezug) und tickt jede
+       Sekunde herunter. Sobald 0 erreicht ist, übernimmt der
+       Auto-Mode-Flip die View-Umschaltung.
+       ========================================================= */
+    let _ptlTimerId = null;
+    function _ptlTick() {
+        const d = document.getElementById("ptl-cd-d");
+        const h = document.getElementById("ptl-cd-h");
+        const m = document.getElementById("ptl-cd-m");
+        const s = document.getElementById("ptl-cd-s");
+        if (!d || !h || !m || !s) return;
+        const start = getDreamteamStart();
+        if (!(start instanceof Date) || isNaN(start.getTime())) {
+            d.textContent = h.textContent = m.textContent = s.textContent = "–";
+            return;
+        }
+        let ms = start.getTime() - Date.now();
+        if (ms <= 0) {
+            d.textContent = "0"; h.textContent = "00"; m.textContent = "00"; s.textContent = "00";
+            if (_ptlTimerId) { clearInterval(_ptlTimerId); _ptlTimerId = null; }
+            return;
+        }
+        const days = Math.floor(ms / (24 * 3600 * 1000));
+        ms -= days * 24 * 3600 * 1000;
+        const hours = Math.floor(ms / (3600 * 1000));
+        ms -= hours * 3600 * 1000;
+        const mins = Math.floor(ms / (60 * 1000));
+        ms -= mins * 60 * 1000;
+        const secs = Math.floor(ms / 1000);
+        d.textContent = String(days);
+        h.textContent = String(hours).padStart(2, "0");
+        m.textContent = String(mins).padStart(2, "0");
+        s.textContent = String(secs).padStart(2, "0");
+    }
+    function startPrestartLockCountdown() {
+        const revealEl = document.getElementById("ptl-reveal-time");
+        const start = getDreamteamStart();
+        if (revealEl && start instanceof Date && !isNaN(start.getTime())) {
+            try {
+                const fmt = new Intl.DateTimeFormat("de-CH", {
+                    weekday: "long",
+                    day: "2-digit", month: "2-digit", year: "numeric",
+                    hour: "2-digit", minute: "2-digit",
+                    timeZone: "Europe/Zurich"
+                });
+                revealEl.textContent = `Enthüllung am ${fmt.format(start)} Uhr`;
+            } catch (_) {
+                revealEl.textContent = `Enthüllung am ${start.toLocaleString("de-CH")}`;
+            }
+        }
+        _ptlTick();
+        if (_ptlTimerId) clearInterval(_ptlTimerId);
+        _ptlTimerId = setInterval(_ptlTick, 1000);
+    }
+    function stopPrestartLockCountdown() {
+        if (_ptlTimerId) { clearInterval(_ptlTimerId); _ptlTimerId = null; }
+    }
+
     /**
      * Zeigt die Pre-Start- oder Post-Start-Sektion an
      * und versteckt die jeweils andere.
@@ -5929,9 +6098,11 @@
         if (mode === "post") {
             pre.style.display = "none";
             post.style.display = "";
+            stopPrestartLockCountdown();
         } else {
             pre.style.display = "";
             post.style.display = "none";
+            startPrestartLockCountdown();
         }
     }
 
