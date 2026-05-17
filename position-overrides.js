@@ -49,6 +49,7 @@ window.POSITION_OVERRIDES = {
         "51620": "ATTACKER", // Facundo Torres
         "276670": "ATTACKER", // Fares Chaibi
         "51553": "ATTACKER", // Federico Martinez
+        "1361": "DEFENDER", // Ferdi Kadioglu
         "449249": "ATTACKER", // Franco Mastantuono
         "482605": "ATTACKER", // Gilberto Mora
         "161921": "ATTACKER", // Giovanni Reyna
