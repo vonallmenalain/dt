@@ -1,0 +1,282 @@
+// =============================================================================
+//  Firestore Security Rules for DreamTeam – Pre-Launch hardened (WM 2026)
+//
+//  Diese Datei ist die Quelle der Wahrheit für die im Firebase-Projekt
+//  hinterlegten Security Rules. Änderungen hier bitte zusätzlich in der
+//  Firebase Console (Firestore → Rules) deployen, oder via Firebase CLI:
+//      firebase deploy --only firestore:rules
+//
+//  Härtungen gegenüber dem letzten Stand:
+//    1) Team-Writes (create/update/delete) sind nach dem WM-Anpfiff
+//       serverseitig gesperrt (request.time-Vergleich gegen die feste
+//       Deadline). Admins behalten Schreibzugriff für Korrekturen.
+//    2) Team-Schema verlangt jetzt EXAKT 15 Spieler (statt <= 25) – passt
+//       zur UI-Validation (count === 15 in team-builder.html).
+//    3) Collection-Matches sind eng auf die WM-2026-Namen zugeschnitten;
+//       Test-/Alt-Collections mit ähnlichem Namen sind nicht mehr
+//       implizit öffentlich lesbar oder beschreibbar.
+// =============================================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------
+    // Konstanten
+    // -------------------------------------------------------------------
+
+    // Abgabe-Deadline für Team-Writes (Anpfiff WM 2026):
+    //   2026-06-11 21:00:00 Europe/Zurich (CEST, UTC+2)
+    // = 2026-06-11 19:00:00 UTC
+    // = 1781204400000 ms (Unix-Epoch in Millisekunden)
+    //
+    // Nach diesem Zeitpunkt dürfen normale Nutzer keine Teams mehr
+    // anlegen, ändern oder löschen. Admins (siehe isAdmin) bleiben
+    // bewusst schreibberechtigt, damit nachträgliche Korrekturen oder
+    // Cleanup-Operationen weiterhin möglich sind.
+    function teamWriteDeadlineMillis() {
+      return 1781204400000;
+    }
+
+    function isBeforeTeamDeadline() {
+      return request.time.toMillis() < teamWriteDeadlineMillis();
+    }
+
+    // -------------------------------------------------------------------
+    // Helper Functions (Auth & Ownership)
+    // -------------------------------------------------------------------
+
+    function isSignedInVerifiedWithEmail() {
+      return request.auth != null
+          && request.auth.token.email_verified == true
+          && request.auth.token.email is string
+          && request.auth.token.email.size() > 0;
+    }
+
+    function authEmailLower() {
+      return request.auth.token.email.lower();
+    }
+
+    function isAdmin() {
+      return request.auth != null
+          && request.auth.uid in [
+              'lSw9kxsnp8a7qb0s7UzuTQVwRAu1'
+          ];
+    }
+
+    // Incoming Team-Dokument muss zur aktuell eingeloggten, verifizierten
+    // E-Mail passen. Dadurch kann ein User nicht einfach userEmailLower
+    // auf eine fremde Adresse setzen.
+    function incomingEmailMatchesAuth() {
+      return isSignedInVerifiedWithEmail()
+          && request.resource.data.userEmailLower is string
+          && request.resource.data.userEmailLower == authEmailLower()
+          && (
+              !('userEmail' in request.resource.data)
+              || request.resource.data.userEmail == null
+              || (
+                  request.resource.data.userEmail is string
+                  && request.resource.data.userEmail.lower() == authEmailLower()
+              )
+          );
+    }
+
+    // Existing Team darf auch über E-Mail erkannt werden.
+    // Wichtig für: Google-UID A erstellt Team, Passwort-UID B mit gleicher
+    // verifizierter E-Mail bearbeitet dasselbe Team.
+    function existingEmailMatchesAuth() {
+      return isSignedInVerifiedWithEmail()
+          && ('userEmailLower' in resource.data)
+          && resource.data.userEmailLower is string
+          && resource.data.userEmailLower == authEmailLower();
+    }
+
+    function ownsExistingByUid() {
+      return isSignedInVerifiedWithEmail()
+          && ('userId' in resource.data)
+          && resource.data.userId == request.auth.uid;
+    }
+
+    function canWriteIncomingTeamAsCurrentUser() {
+      return isSignedInVerifiedWithEmail()
+          && request.resource.data.userId == request.auth.uid
+          && incomingEmailMatchesAuth();
+    }
+
+    // Verifizierte User dürfen den teamsVersion-Counter im app_meta-Dokument
+    // nur um genau +1 erhöhen.
+    function isTeamsVersionBumpOnly() {
+      return request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['teamsVersion', 'teamsUpdatedAt', 'year'])
+          && request.resource.data.teamsVersion is int
+          && request.resource.data.teamsVersion
+                 == resource.data.get('teamsVersion', 0) + 1
+          && request.resource.data.teamsUpdatedAt is int
+          && request.resource.data.teamsUpdatedAt > 0;
+    }
+
+    // Schema-Allowlist für Team-Dokumente.
+    // - userEmailLower ist Pflicht und muss kleingeschrieben sein.
+    // - players ist eine Liste mit GENAU 15 Einträgen (= UI-Validation
+    //   in team-builder.html, count === 15). Damit kann ein
+    //   manipulierter Client kein leeres / aufgeblähtes Team mehr
+    //   einreichen. Tiefere Validierung pro Spieler (Captain-Anzahl,
+    //   Nationen-Eindeutigkeit, Position) bleibt clientseitig bzw. einer
+    //   späteren Cloud Function vorbehalten.
+    function teamSchemaOk(data) {
+      return data.keys().hasAll(['userId', 'userEmailLower', 'manager', 'players'])
+          && data.keys().hasOnly([
+              'userId',
+              'userEmail',
+              'userEmailLower',
+              'manager',
+              'managerNormalized',
+              'players',
+              'status',
+              'timestamp',
+              'updatedAt'
+          ])
+
+          && data.userId is string
+          && data.userId.size() >= 1
+          && data.userId.size() <= 128
+
+          && data.userEmailLower is string
+          && data.userEmailLower.size() >= 3
+          && data.userEmailLower.size() <= 254
+          && data.userEmailLower == data.userEmailLower.lower()
+
+          && (
+              !('userEmail' in data)
+              || data.userEmail == null
+              || (
+                  data.userEmail is string
+                  && data.userEmail.size() <= 254
+              )
+          )
+
+          && data.manager is string
+          && data.manager.size() >= 1
+          && data.manager.size() <= 80
+
+          && (
+              !('managerNormalized' in data)
+              || (
+                  data.managerNormalized is string
+                  && data.managerNormalized.size() <= 80
+              )
+          )
+
+          && (
+              !('status' in data)
+              || data.status == 'verified'
+          )
+
+          && data.players is list
+          && data.players.size() == 15;
+    }
+
+    function validTeamCreate() {
+      return canWriteIncomingTeamAsCurrentUser()
+          && teamSchemaOk(request.resource.data);
+    }
+
+    function validTeamUpdate() {
+      return canWriteIncomingTeamAsCurrentUser()
+          && teamSchemaOk(request.resource.data)
+          && (
+              ownsExistingByUid()
+              || existingEmailMatchesAuth()
+          );
+    }
+
+    function validTeamDelete() {
+      return isSignedInVerifiedWithEmail()
+          && (
+              ownsExistingByUid()
+              || existingEmailMatchesAuth()
+          );
+    }
+
+    // -------------------------------------------------------------------
+    // Top-Level Collections
+    //
+    // Bewusst eng auf die exakten WM-2026-Collection-Namen geschnitten.
+    // Damit kann später nicht versehentlich eine Test-/Alt-/Admin-
+    // Collection mit ähnlichem Namen ('Teams Test', 'Spiele EM 2024',
+    // …) öffentlich lesbar oder beschreibbar werden, solange diese
+    // Rules aktiv sind.
+    //
+    // Collection-Namen mit Leerzeichen werden über {collection}/{docId}
+    // gematcht und anschließend per String-Vergleich exakt geprüft.
+    // -------------------------------------------------------------------
+    match /{collection}/{docId} {
+
+      // Public Reads – ausschließlich für die WM-2026-Collections und das
+      // eine zugehörige app_meta-Dokument.
+      allow read:
+        if collection == 'Teams WM 2026'
+        || collection == 'Spiele WM 2026'
+        || collection == 'Punkte Spieler WM 2026'
+        || (collection == 'app_meta' && docId == 'turnier_wm2026');
+
+      // Team Create – Schema + E-Mail-Match + Deadline (Admin-Bypass).
+      allow create:
+        if (
+            collection == 'Teams WM 2026'
+            && (isBeforeTeamDeadline() || isAdmin())
+            && validTeamCreate()
+        )
+        || (
+            collection == 'app_meta'
+            && docId == 'turnier_wm2026'
+            && isAdmin()
+        );
+
+      // Team Update – wie Create + Eigentümer-Check (UID oder E-Mail).
+      // App_meta-Updates für verifizierte User sind weiterhin nur als
+      // reiner teamsVersion-Bump erlaubt; Admin darf alles ändern.
+      allow update:
+        if (
+            collection == 'Teams WM 2026'
+            && (isBeforeTeamDeadline() || isAdmin())
+            && validTeamUpdate()
+        )
+        || (
+            collection == 'app_meta'
+            && docId == 'turnier_wm2026'
+            && (
+                isAdmin()
+                || (
+                    isSignedInVerifiedWithEmail()
+                    && isTeamsVersionBumpOnly()
+                )
+            )
+        );
+
+      // Team Delete – nur Eigentümer und nur bis zur Deadline.
+      allow delete:
+        if (
+            collection == 'Teams WM 2026'
+            && (isBeforeTeamDeadline() || isAdmin())
+            && validTeamDelete()
+        )
+        || (
+            collection == 'app_meta'
+            && docId == 'turnier_wm2026'
+            && isAdmin()
+        );
+    }
+
+    // Default-Deny für alles andere. Schreibzugriffe auf 'Spiele WM 2026'
+    // und 'Punkte Spieler WM 2026' laufen ausschließlich über das
+    // Admin-SDK in den Cron-Skripten (siehe scripts/sync-fixtures.js und
+    // scripts/auto-points-upload.js); das Admin-SDK umgeht diese Rules.
+    match /{document=**} {
+      allow read:  if false;
+      allow write: if false;
+    }
+  }
+}
