@@ -217,11 +217,6 @@
                     <input id="new-pw" type="password" autocomplete="new-password"
                            minlength="6" placeholder="Mindestens 6 Zeichen" />
                 </div>
-                <div class="field">
-                    <label for="new-pw2">Passwort bestätigen</label>
-                    <input id="new-pw2" type="password" autocomplete="new-password"
-                           minlength="6" placeholder="Erneut eingeben" />
-                </div>
                 <div class="error hidden" id="reset-error"></div>
                 <button class="btn" id="reset-submit">Passwort speichern</button>
             </div>
@@ -283,8 +278,7 @@
             resetSubmit:    document.getElementById('reset-submit'),
             resetDone:      document.getElementById('view-reset-done'),
             resetCont:      document.getElementById('reset-continue'),
-            newPw:          document.getElementById('new-pw'),
-            newPw2:         document.getElementById('new-pw2')
+            newPw:          document.getElementById('new-pw')
         };
 
         /* -----------------------------------------------------------------
@@ -473,18 +467,12 @@
             showOnly('reset');
             els.newPw.focus();
 
-            els.resetSubmit.addEventListener('click', async () => {
+            async function submitNewPassword() {
                 els.resetError.classList.add('hidden');
                 const pw1 = els.newPw.value || '';
-                const pw2 = els.newPw2.value || '';
 
                 if (pw1.length < 6) {
                     els.resetError.textContent = 'Bitte mindestens 6 Zeichen verwenden.';
-                    els.resetError.classList.remove('hidden');
-                    return;
-                }
-                if (pw1 !== pw2) {
-                    els.resetError.textContent = 'Die Passwörter stimmen nicht überein.';
                     els.resetError.classList.remove('hidden');
                     return;
                 }
@@ -503,6 +491,14 @@
                     els.resetError.classList.remove('hidden');
                     els.resetSubmit.disabled = false;
                     els.resetSubmit.textContent = prevText;
+                }
+            }
+
+            els.resetSubmit.addEventListener('click', submitNewPassword);
+            els.newPw.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    submitNewPassword();
                 }
             });
         }
