@@ -343,7 +343,7 @@
         // Chooser buttons
         chooserView.querySelector('#dt-auth-google-btn').addEventListener('click', handleGoogleSignIn);
         chooserView.querySelector('#dt-auth-emaillink-btn').addEventListener('click', () => setMode('email-link'));
-        chooserView.querySelector('#dt-auth-password-btn').addEventListener('click', () => setMode('register'));
+        chooserView.querySelector('#dt-auth-password-btn').addEventListener('click', () => setMode('login'));
 
         // Email-link view
         emailLinkView.addEventListener('submit', handleEmailLinkSubmit);
