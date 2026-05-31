@@ -3313,9 +3313,21 @@
 
             let homeName = "";
             let awayName = "";
-            if (fixture && fixture.teams) {
-                if (fixture.teams.home && fixture.teams.home.name) homeName = String(fixture.teams.home.name);
-                if (fixture.teams.away && fixture.teams.away.name) awayName = String(fixture.teams.away.name);
+            if (fixture && typeof fixture === "object") {
+                // Primaer das aktuelle Fixture-Schema (homeTeam/awayTeam)
+                // beruecksichtigen, das von scripts/sync-fixtures.js
+                // geschrieben wird. Auf das aeltere teams.home/teams.away
+                // Schema nur als Fallback zurueckfallen.
+                if (fixture.homeTeam && fixture.homeTeam.name) {
+                    homeName = String(fixture.homeTeam.name);
+                } else if (fixture.teams && fixture.teams.home && fixture.teams.home.name) {
+                    homeName = String(fixture.teams.home.name);
+                }
+                if (fixture.awayTeam && fixture.awayTeam.name) {
+                    awayName = String(fixture.awayTeam.name);
+                } else if (fixture.teams && fixture.teams.away && fixture.teams.away.name) {
+                    awayName = String(fixture.teams.away.name);
+                }
             }
 
             // Fallback: Mannschaften aus Resultat-String der Punktedaten
