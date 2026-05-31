@@ -2165,10 +2165,31 @@
     }
 
     function isNationStillAlive(nationInfo, maxNationGames) {
+        // WM 2026 hat 48 Teams in einem Round-of-32-Format. Eine Nation
+        // spielt maximal 8 Spiele (3 Gruppenspiele + Sechzehntel-,
+        // Achtel-, Viertel- und Halbfinale + Finale bzw. Spiel um Platz 3).
+        // Die fruehere Heuristik ging implizit vom alten 32er-Format mit
+        // maximal 7 Spielen aus und hat dadurch ab dem Halbfinale ALLE
+        // Spieler faelschlich als "nicht mehr aktiv" gewertet.
+        //
+        // Spiele pro Runde (kumuliert) im WM-2026-Format:
+        //   Gruppenphase   : 3
+        //   Sechzehntel (R32): 4
+        //   Achtelfinale     : 5
+        //   Viertelfinale    : 6
+        //   Halbfinale       : 7
+        //   Finale / Platz 3 : 8
         if (!nationInfo) return true;
-        if (maxNationGames >= 7) return false;
+        // Turnier komplett vorbei: sobald irgendeine Nation 8 Spiele
+        // gespielt hat (Finale/Spiel um Platz 3), lebt niemand mehr.
+        if (maxNationGames >= 8) return false;
+        // Gruppenphase (<= 3 Spiele): Ausscheiden laesst sich aus den
+        // reinen Punktedaten nicht zuverlaessig ableiten -> als aktiv werten.
         if (nationInfo.totalGames < 4) return true;
-        if (maxNationGames === 6 && nationInfo.totalGames === 6) return true;
+        // Halbfinalisten (7 Spiele) sind weiterhin aktiv – auch die
+        // Verlierer spielen noch um Platz 3, treten also ein 8. Mal an.
+        if (maxNationGames === 7 && nationInfo.totalGames === 7) return true;
+        // In den K.-o.-Runden bedeutet eine Niederlage das Aus.
         return nationInfo.outcome !== "loss";
     }
 
