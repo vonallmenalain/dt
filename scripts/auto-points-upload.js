@@ -15,11 +15,16 @@
  *       keine Quota-Kosten, selbst wenn der Workflow versehentlich
  *       läuft. `FORCE_RUN=1` übersteuert diesen Guard (manuelle Tests).
  *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
- *    2. Bestimmt Kandidaten-Spiele (Anpfiff liegt zwischen
- *       `WINDOW_START_MIN` und `WINDOW_END_MIN` Minuten in der
- *       Vergangenheit, d. h. Spiel läuft gerade bzw. ist gerade frisch
- *       beendet; Status noch nicht FT/AET/PEN). Wenn keine Kandidaten
- *       existieren, beendet sich der Lauf ohne API-Call (Quota-Schutz).
+ *    2. Bestimmt Kandidaten-Spiele: Anpfiff liegt mindestens
+ *       `WINDOW_START_MIN` Minuten in der Vergangenheit UND der Status
+ *       ist in Firestore noch nicht FT/AET/PEN. `WINDOW_END_MIN` dient
+ *       nur noch als Schwelle, ab der ein offenes Spiel als
+ *       "ueberfaellig" (Catch-up) markiert/geloggt wird – es gibt
+ *       bewusst KEINE obere Zeitgrenze mehr fuer die Kandidatur, damit
+ *       Spiele, die das urspruengliche Fenster wegen API-/Netz-Problemen
+ *       verpasst haben, beim naechsten Tick automatisch nachgezogen
+ *       werden. Wenn keine Kandidaten existieren, beendet sich der Lauf
+ *       ohne API-Call (Quota-Schutz).
  *    3. Punkte-Workflow: API-Fixtures laden, Detail-Stats pro beendetem
  *       Spiel auswerten, Punkte summieren, in Firestore schreiben und
  *       Meta-Dokument (`pointsUpdatedAt`, `pointsVersion`) hochzählen.
@@ -28,7 +33,11 @@
  *       rangliste.html ist also nur dann frisch, wenn neue Daten wirklich
  *       in Firebase liegen.
  *    4. Aktualisiert Status/Resultat im `fixturesCollection`, sodass das
- *       Spiel beim nächsten Tick nicht erneut als Kandidat gewertet wird.
+ *       Spiel beim nächsten Tick nicht erneut als Kandidat gewertet wird,
+ *       und erhöht `fixturesVersion` im Meta-Dokument, sobald ein
+ *       Kandidat tatsächlich beendet wurde – so laden Clients die
+ *       frischen Spielstände/Resultate sofort nach (statt erst beim
+ *       täglichen Spielplan-Sync).
  *
  *  Env-Variablen (aus GitHub Actions Secrets / Variables):
  *    RAPIDAPI_KEY              RapidAPI / API-Football Key (zwingend)
@@ -40,8 +49,12 @@
  *    WINDOW_START_MIN          Optional, Default 100. Untere Grenze des
  *                              Trigger-Fensters in Minuten NACH ANPFIFF
  *                              (nicht nach Abpfiff!).
- *    WINDOW_END_MIN            Optional, Default 260. Obere Grenze,
- *                              ebenfalls in Minuten NACH ANPFIFF.
+ *    WINDOW_END_MIN            Optional, Default 260. Nur noch
+ *                              Catch-up-Schwelle: offene Spiele, deren
+ *                              Anpfiff laenger als dieser Wert zurueck-
+ *                              liegt, werden als "ueberfaellig" geloggt.
+ *                              Begrenzt die Kandidatur NICHT mehr nach
+ *                              oben (siehe Ablauf-Schritt 2).
  *    FORCE_RUN                 Falls `1`/`true`: Phasen-Guard UND
  *                              Pre-Check überspringen (manuelle Tests).
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
@@ -280,10 +293,31 @@ async function findCandidateFixtures(db, tournament, opts) {
     if (!fxInfo.kickoffMs) return;
 
     const ageMs = now - fxInfo.kickoffMs;
-    const inWindow = ageMs >= windowStartMs && ageMs <= windowEndMs;
     const notFinished = !FINISHED_STATUSES.has(fxInfo.statusShort);
 
-    if (inWindow && notFinished) candidates.push(fxInfo);
+    // Ein Spiel ist Kandidat, sobald sein Anpfiff mindestens
+    // `windowStartMin` Minuten zurueckliegt UND es in Firestore noch
+    // NICHT als beendet (FT/AET/PEN) markiert ist. Es gibt bewusst
+    // KEINE obere Zeitgrenze mehr fuer die Kandidatur (frueher
+    // `windowEndMin`):
+    //
+    //   Ein Spiel, das das urspruengliche Trigger-Fenster wegen API-/
+    //   Netzwerkproblemen verpasst hat, blieb sonst dauerhaft ungescored,
+    //   bis jemand manuell FORCE_RUN ausloest. Mit diesem Catch-up
+    //   triggert jeder weitere Tick erneut, bis der Status in Firestore
+    //   auf beendet gesetzt wurde (was nach erfolgreicher Verarbeitung
+    //   in updateFixtureStatusInFirestore passiert).
+    //
+    // Quota-Schutz bleibt erhalten: pro Tick faellt nur EIN Firestore-
+    // Read (Spielplan) an; die teuren Detail-Calls werden in
+    // runFullPointsUpload uebersprungen, solange die API das Spiel noch
+    // nicht als beendet meldet. Das Phasen-Fenster (AUTO_POINTS_UNTIL)
+    // begrenzt das Catch-up zeitlich nach oben.
+    if (ageMs >= windowStartMs && notFinished) {
+      fxInfo.ageMin = Math.round(ageMs / 60_000);
+      fxInfo.overdue = ageMs > windowEndMs;
+      candidates.push(fxInfo);
+    }
   });
 
   return { all, candidates };
@@ -505,6 +539,21 @@ async function bumpPointsMetaVersion(db, tournament, opts) {
   }, { merge: true });
 }
 
+async function bumpFixturesMetaVersion(db, tournament, opts) {
+  if (opts.dryRun) return;
+  const FieldValue = admin.firestore.FieldValue;
+  const ref = db.collection(tournament.firestore.metaCollection).doc(tournament.firestore.metaDocId);
+  await ref.set({
+    tournamentKey: tournament.key,
+    tournamentType: tournament.type,
+    tournamentYear: tournament.year,
+    tournamentLabel: tournament.shortLabel,
+    year: tournament.year,
+    fixturesVersion: FieldValue.increment(1),
+    fixturesUpdatedAt: Date.now()
+  }, { merge: true });
+}
+
 async function updateFixtureStatusInFirestore(db, tournament, finishedGames, opts) {
   const collection = tournament.firestore.fixturesCollection;
   if (!collection || !finishedGames || finishedGames.length === 0) return 0;
@@ -692,9 +741,27 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
     logWarn('Keine Spieler mit Punkten – Meta-Version nicht hochgezählt.');
   }
 
+  // Anzahl der Kandidaten, die laut API jetzt beendet sind. Bei FORCE_RUN
+  // gibt es kein Kandidaten-Set – dann werten wir den Lauf als
+  // vollstaendige Neuberechnung und behandeln die Fixtures als geaendert.
+  const candidatesNowFinished = candidateFixtureIds
+    ? finishedGames.filter(g => candidateFixtureIds.has(String(g.fixture.id))).length
+    : finishedGames.length;
+
   try {
     const updated = await updateFixtureStatusInFirestore(db, tournament, finishedGames, opts);
     logInfo(`Fixture-Status für ${updated} Spiele ${opts.dryRun ? '(DRY-RUN) berechnet' : 'aktualisiert'}.`);
+
+    // fixturesVersion nur dann erhoehen, wenn sich ein Spielstatus
+    // tatsaechlich geaendert hat (ein Kandidat ist jetzt beendet) bzw.
+    // bei einer vollstaendigen Neuberechnung (FORCE_RUN). Ohne diesen
+    // Bump laedt cache.js die aktualisierten Spielstaende/Resultate erst
+    // beim naechsten taeglichen Spielplan-Sync nach – Clients saehen
+    // sonst neue Punkte, aber veraltete Match-Status/Resultate.
+    if (updated > 0 && (candidateFixtureIds == null || candidatesNowFinished > 0)) {
+      await bumpFixturesMetaVersion(db, tournament, opts);
+      logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhöht – Clients laden frische Spielstände sofort nach.`);
+    }
   } catch (err) {
     logWarn(`Fixture-Status-Update fehlgeschlagen (Punkte sind trotzdem geschrieben): ${err.message}`);
   }
@@ -703,9 +770,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
     ok: true,
     writeSuccess,
     finishedGames: finishedGames.length,
-    candidatesNowFinished: candidateFixtureIds
-      ? finishedGames.filter(g => candidateFixtureIds.has(String(g.fixture.id))).length
-      : finishedGames.length
+    candidatesNowFinished
   };
 }
 
@@ -795,8 +860,9 @@ async function main() {
         return;
       }
       candidates.forEach(c => {
-        const ageMin = Math.round((nowMs() - c.kickoffMs) / 60_000);
-        logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${ageMin} min NACH ANPFIFF.`);
+        const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
+        const tag = c.overdue ? ' [CATCH-UP / ueberfaellig]' : '';
+        logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${ageMin} min NACH ANPFIFF.${tag}`);
       });
       candidateIds = new Set(candidates.map(c => String(c.id)));
     }
