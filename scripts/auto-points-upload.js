@@ -131,6 +131,20 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Teilt ein Array in Bloecke fester Maximalgroesse auf. Wird genutzt,
+ * um Detail-Calls fuer Fixtures gebuendelt abzusetzen (API-FOOTBALL
+ * unterstuetzt ueber den `ids`-Parameter bis zu 20 IDs pro Request).
+ */
+function chunk(items, size) {
+  const result = [];
+  if (!Array.isArray(items) || size <= 0) return result;
+  for (let i = 0; i < items.length; i += size) {
+    result.push(items.slice(i, i + size));
+  }
+  return result;
+}
+
 function normalizePosition(pos) {
   const value = String(pos || '').toUpperCase();
   if (value === 'FORWARD') return 'ATTACKER';
@@ -451,7 +465,12 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts) {
 
     if (!opts.dryRun) {
       const docRef = db.collection(collection).doc(String(pid));
-      batch.set(docRef, obj, { merge: true });
+      // Spielerdokumente werden bei jedem Lauf vollstaendig neu berechnet.
+      // Deshalb das Dokument komplett ersetzen statt mergen: dadurch
+      // verschwinden veraltete Felder (z. B. ein `Spiel_<id>`, das die
+      // API nachtraeglich entfernt hat) zuverlaessig aus dem Dokument
+      // und Summe-zu-Detail-Inkonsistenzen werden vermieden.
+      batch.set(docRef, obj);
       countInBatch++;
     }
 
@@ -588,32 +607,79 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
 
   // Detail-Calls für ALLE beendeten Spiele (nicht nur Kandidaten), damit
   // die Punkte-Summen identisch zum Browser-Skript sind und nicht durch
-  // Auslassungen früherer Läufe driften.
-  for (let i = 0; i < finishedGames.length; i++) {
-    const game = finishedGames[i];
-    const fixId = game.fixture.id;
-    const detailUrl = `https://v3.football.api-sports.io/fixtures?id=${fixId}`;
+  // Auslassungen früherer Läufe driften. API-FOOTBALL erlaubt bis zu
+  // 20 Fixture-IDs pro Aufruf (Parameter `ids=id-id-id`). Bei einer
+  // vollständigen Neuberechnung nach dem Finale reduziert das die Zahl
+  // der Requests von rund 100+ auf wenige Batches.
+  const fixtureIds = finishedGames.map(g => String(g.fixture.id));
+  const finishedById = new Map(finishedGames.map(g => [String(g.fixture.id), g]));
+  const expectedIds = new Set(fixtureIds);
+  const processedIds = new Set();
 
+  const batches = chunk(fixtureIds, 20);
+  logInfo(`Detail-Calls in ${batches.length} Batch(es) zu max. 20 IDs (${fixtureIds.length} Fixtures insgesamt).`);
+
+  for (let b = 0; b < batches.length; b++) {
+    const ids = batches[b];
+    const detailUrl = `https://v3.football.api-sports.io/fixtures?ids=${ids.join('-')}`;
+
+    let detailRes;
     try {
-      const detailRes = await fetchFn(detailUrl, { headers });
-      if (!detailRes.ok) {
-        logWarn(`Detail-Call für Spiel ${fixId} lieferte HTTP ${detailRes.status} – überspringe.`);
+      detailRes = await fetchFn(detailUrl, { headers });
+    } catch (err) {
+      // Netzwerkfehler beenden den Lauf, damit keine unvollstaendigen
+      // Punktestaende veroeffentlicht werden. Beim naechsten Tick wird
+      // ein neuer Versuch unternommen.
+      throw new Error(`Detail-Batch ${b + 1}/${batches.length} fehlgeschlagen (Netzwerkfehler): ${err.message}`);
+    }
+    if (!detailRes.ok) {
+      throw new Error(`Detail-Batch ${b + 1}/${batches.length} lieferte HTTP ${detailRes.status}.`);
+    }
+
+    let detailData;
+    try {
+      detailData = await detailRes.json();
+    } catch (err) {
+      throw new Error(`Detail-Batch ${b + 1}/${batches.length}: Antwort liess sich nicht als JSON parsen: ${err.message}`);
+    }
+    if (!detailData || !Array.isArray(detailData.response)) {
+      throw new Error(`Detail-Batch ${b + 1}/${batches.length}: ungueltige API-Antwort (kein response-Array).`);
+    }
+
+    for (const fixtureDetail of detailData.response) {
+      const fixIdRaw = fixtureDetail && fixtureDetail.fixture && fixtureDetail.fixture.id;
+      const fixId = (fixIdRaw != null) ? String(fixIdRaw) : '';
+      if (!fixId) {
+        logWarn(`Detail-Batch ${b + 1}: Eintrag ohne fixture.id wird ignoriert.`);
         continue;
       }
-      const detailData = await detailRes.json();
-      if (detailData.response && detailData.response.length > 0) {
-        processFixtureDetail(detailData.response[0], game, allPlayerPoints, playersData);
+      const summary = finishedById.get(fixId);
+      if (!summary) {
+        logWarn(`Detail-Batch ${b + 1}: unerwartete Fixture-ID ${fixId} in der Antwort, wird ignoriert.`);
+        continue;
       }
-    } catch (err) {
-      logWarn(`Fehler bei Detail-Call für Spiel ${fixId}: ${err.message}`);
+      processFixtureDetail(fixtureDetail, summary, allPlayerPoints, playersData);
+      processedIds.add(fixId);
     }
 
-    if ((i + 1) % 10 === 0 || i === finishedGames.length - 1) {
-      logInfo(`Detail-Calls: ${i + 1}/${finishedGames.length}`);
-    }
+    logInfo(`Detail-Batch ${b + 1}/${batches.length} verarbeitet (${detailData.response.length} Fixtures).`);
 
-    // Höflichkeitsabstand zwischen Calls (RapidAPI Rate-Limit Schonung).
-    await delay(350);
+    // Höflichkeitsabstand zwischen Batches (RapidAPI Rate-Limit Schonung).
+    if (b < batches.length - 1) await delay(350);
+  }
+
+  // Veröffentlichungs-Guard: Punkte werden nur dann nach Firestore
+  // geschrieben, wenn ALLE erwarteten Fixtures verarbeitet wurden.
+  // Damit sehen Nutzer nie einen halbfertigen Zwischenstand
+  // (z. B. tiefere Gesamtpunktzahlen wegen eines transienten Fehlers).
+  const missingIds = [...expectedIds].filter(id => !processedIds.has(id));
+  if (missingIds.length > 0) {
+    throw new Error(
+      `Punkte-Update abgebrochen: ${missingIds.length} von ${expectedIds.size} ` +
+      `beendeten Fixtures fehlen in den Detail-Antworten ` +
+      `(IDs: ${missingIds.join(', ')}). Es wird nichts publiziert; ` +
+      `der naechste Cron-Lauf versucht es erneut.`
+    );
   }
 
   const writeSuccess = await writePointsToFirestore(db, tournament, allPlayerPoints, opts);
