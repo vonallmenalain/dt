@@ -70,7 +70,6 @@ Schreibzugriffe finden ausschliesslich hier statt, nicht im Browser.
 | ----------------------- | ------------------------------------------------------------------------- | ----------------------------- |
 | `auto-points-upload.js` | Punkte berechnen + nach Firestore schreiben, Meta-Version hochzählen.     | alle 5 Minuten                |
 | `sync-fixtures.js`      | Fixtures + Venues von api-football laden + nach Firestore schreiben.      | täglich 04:00 UTC (≈ 06:00 CH)|
-| `enrich-fifa-2026-squad-base-players.mjs` | Offizielle FIFA-26er-Liste mit API-Football IDs, Fotos, Logos, Clubdaten und Gewicht anreichern. | manuell |
 
 Beide Scripts lesen die Turnier-Konfiguration **direkt aus
 `tournament-config.js`** – keine lokale Kopie pflegen.
@@ -146,7 +145,6 @@ export DRY_RUN=1
 
 npm run auto-upload      # Auto-Punkte-Upload
 npm run sync-fixtures    # Spielplan-Sync
-npm run enrich-wm2026-squad -- --write-data
 ```
 
 Mit `DRY_RUN=1` läuft der ganze Workflow inkl. API-Calls bis zum Ende,
@@ -155,40 +153,6 @@ Auto-Upload zusätzlich den Pre-Check.
 
 `TOURNAMENT_KEY` lässt man typischerweise leer – dann gilt der Default
 aus `tournament-config.js`.
-
-### WM-2026-Kader aus offizieller FIFA-Liste anreichern
-
-`fifa_2026_squad_base_players.json` bleibt die Quelle der Wahrheit fuer
-Kaderzugehoerigkeit und Position. Das Enrichment-Script matched diese
-Liste gegen API-Football und schreibt standardmaessig:
-
-- `fifa_2026_squad_enriched_players.json`
-- `reports/wm2026-squad-enrichment-report.md`
-- `reports/wm2026-squad-enrichment-report.json`
-
-Mit `--write-data` wird zusaetzlich `data-wm2026.js` im DreamTeam-Format
-geschrieben, aber nur wenn alle offiziellen Spieler eine `player.id`
-erhalten haben. Falls bewusst trotz Restluecken geschrieben werden soll:
-
-```bash
-cd scripts
-export RAPIDAPI_KEY="..."
-npm run enrich-wm2026-squad -- --write-data --force-data-file
-```
-
-Windows PowerShell:
-
-```powershell
-cd scripts
-$env:RAPIDAPI_KEY="..."
-npm.cmd run enrich-wm2026-squad -- --write-data
-```
-
-Zum gefahrlosen lokalen Matching-Test ohne API:
-
-```bash
-node scripts/enrich-fifa-2026-squad-base-players.mjs --offline-local-data --dry-run
-```
 
 ---
 
