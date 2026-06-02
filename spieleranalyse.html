@@ -421,6 +421,68 @@
             flex-shrink: 0;
         }
 
+        .player-photo-shell {
+            position: relative;
+            display: block;
+            overflow: hidden;
+            background: linear-gradient(180deg, #3b4350 0%, #232a34 100%);
+        }
+
+        .player-photo-shell > img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        .player-photo-shell:not(.has-player-photo) > img {
+            display: none;
+        }
+
+        .player-photo-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 50% 26%, rgba(255,255,255,0.14), transparent 30%),
+                linear-gradient(180deg, #424a57 0%, #2a3039 100%);
+            color: var(--text-muted);
+            z-index: 1;
+        }
+
+        .player-photo-shell.has-player-photo .player-photo-placeholder {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .player-photo-placeholder::before,
+        .player-photo-placeholder::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #b8bec8 0%, #818895 100%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 8px 18px rgba(0,0,0,0.22);
+        }
+
+        .player-photo-placeholder::before {
+            width: 34%;
+            aspect-ratio: 1;
+            top: 22%;
+            border-radius: 50%;
+        }
+
+        .player-photo-placeholder::after {
+            width: 62%;
+            height: 36%;
+            bottom: 15%;
+            border-radius: 999px 999px 34% 34%;
+        }
+
         .list-info {
             flex: 1;
             display: flex;
@@ -681,6 +743,17 @@
             position: relative;
             z-index: 1;
             transition: transform 0.5s ease;
+        }
+
+        .player-photo-frame .player-photo-placeholder::before {
+            width: 30%;
+            top: 20%;
+        }
+
+        .player-photo-frame .player-photo-placeholder::after {
+            width: 64%;
+            height: 34%;
+            bottom: 12%;
         }
 
         .player-hero-card.is-switching .player-main-photo {
@@ -1898,13 +1971,6 @@
             border: 1px solid var(--glass-border);
             flex: 0 0 auto;
         }
-        .cmp-player-photo-fallback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
         .cmp-player-info-mini {
             display: flex;
             flex-direction: column;
@@ -1994,20 +2060,17 @@
             background: var(--dark-card);
             border: 1px solid var(--glass-border);
         }
-        .cmp-cap-avatar img,
-        .cmp-cap-avatar .cmp-cap-photo-fallback {
+        .cmp-cap-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        .cmp-cap-avatar img {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
             display: block;
-        }
-        .cmp-cap-avatar .cmp-cap-photo-fallback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 1rem;
         }
         .cmp-cap-avatar .cmp-cap-c-badge {
             position: absolute;
@@ -2111,6 +2174,13 @@
         }
         .cmp-diff-item img {
             width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            background: var(--dark-card);
+        }
+        .cmp-diff-photo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex: 0 0 auto;
             background: var(--dark-card);
         }
         .cmp-diff-info { flex: 1; min-width: 0; }
@@ -2415,13 +2485,6 @@
             flex: 0 0 auto;
             display: block;
         }
-        .cmp-alt-photo-fallback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
         .cmp-alt-info {
             display: flex;
             flex-direction: column;
@@ -2548,6 +2611,7 @@
             transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
         }
         .cmp-img-link img,
+        .cmp-img-link > .player-photo-shell,
         .cmp-img-link > div {
             transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
         }
@@ -2557,6 +2621,8 @@
         }
         .cmp-img-link:hover img,
         .cmp-img-link:focus-visible img,
+        .cmp-img-link:hover > .player-photo-shell,
+        .cmp-img-link:focus-visible > .player-photo-shell,
         .cmp-img-link:hover > div,
         .cmp-img-link:focus-visible > div {
             transform: scale(1.06);
@@ -2639,6 +2705,7 @@
                 flex-wrap: wrap;
             }
             .cmp-matchwinner-grid .cmp-diff-item img,
+            .cmp-matchwinner-grid .cmp-diff-item .cmp-diff-photo,
             .cmp-matchwinner-grid .cmp-diff-item > div:first-child:not(.cmp-diff-info) { display: none; }
             .cmp-matchwinner-grid .cmp-diff-name {
                 font-size: 0.8rem;
@@ -4084,12 +4151,13 @@
 
                             <!-- Portrait stage: big photo + score pill -->
                             <div class="player-portrait-stage">
-                                <div class="player-photo-frame" id="player-photo-frame">
+                                <div class="player-photo-frame player-photo-shell" id="player-photo-frame">
                                     <img src="" id="detail-photo"
                                          class="player-main-photo"
                                          alt="Spielerfoto"
                                          width="280" height="280"
                                          loading="eager">
+                                    <span class="player-photo-placeholder" aria-hidden="true"></span>
                                 </div>
                                 <div id="detail-total-pts" class="player-score-pill zero" aria-live="polite">0 Pkt.</div>
                             </div>
@@ -4431,6 +4499,51 @@
         return String(text ?? '')
             .replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function normalizePlayerPhotoUrl(photo) {
+        const value = String(photo || '').trim();
+        if (!value) return '';
+        const lower = value.toLowerCase();
+        if (lower === '-' || lower === 'null' || lower === 'undefined' || lower === 'n/a') return '';
+        if (lower.includes('placeholder.com') || lower.includes('via.placeholder')) return '';
+        return value;
+    }
+
+    function renderPlayerPhotoShell(photo, name, className, options = {}) {
+        const url = normalizePlayerPhotoUrl(photo);
+        const classes = ['player-photo-shell', className, url ? 'has-player-photo' : '', options.extraClass || '']
+            .filter(Boolean)
+            .join(' ');
+        const label = name ? `Foto von ${name}` : 'Spielerfoto';
+        const loading = options.loading || 'lazy';
+        const width = options.width ? ` width="${escapeHtml(options.width)}"` : '';
+        const height = options.height ? ` height="${escapeHtml(options.height)}"` : '';
+        const img = url
+            ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(label)}" loading="${escapeHtml(loading)}" decoding="async"${width}${height} onerror="this.parentElement.classList.remove('has-player-photo')">`
+            : '';
+
+        return `<span class="${escapeHtml(classes)}" role="img" aria-label="${escapeHtml(label)}">${img}<span class="player-photo-placeholder" aria-hidden="true"></span></span>`;
+    }
+
+    function updateDetailPlayerPhoto(player) {
+        const frame = document.getElementById('player-photo-frame');
+        const photoEl = document.getElementById('detail-photo');
+        if (!frame || !photoEl) return;
+
+        const label = `Foto von ${player.Spielername}`;
+        const url = normalizePlayerPhotoUrl(player.Spielerfoto);
+        frame.setAttribute('aria-label', label);
+        photoEl.alt = label;
+        photoEl.onerror = () => frame.classList.remove('has-player-photo');
+
+        if (url) {
+            frame.classList.add('has-player-photo');
+            photoEl.src = url;
+        } else {
+            frame.classList.remove('has-player-photo');
+            photoEl.removeAttribute('src');
+        }
     }
 
     /* Diacritic- und sonderzeichenunabhängige Suche:
@@ -5017,7 +5130,7 @@
                     playerId: String(fullP['player.id']),
                     name: fullP.Spielername, nation, club,
                     position: translatePosition(fullP.Position),
-                    photo: fullP.Spielerfoto || 'https://via.placeholder.com/40',
+                    photo: fullP.Spielerfoto || '',
                     totalPoints: typeof val.TotalPunkte === 'number' ? val.TotalPunkte : 0,
                     drafted: isPlayerDrafted(fullP['player.id'])
                 });
@@ -5110,8 +5223,7 @@
             const isDrafted = isPlayerDrafted(player['player.id']);
 
             div.innerHTML = `
-                <img src="${escapeHtml(player.Spielerfoto)}" class="list-avatar"
-                     alt="${escapeHtml(player.Spielername)}" loading="lazy" width="38" height="38">
+                ${renderPlayerPhotoShell(player.Spielerfoto, player.Spielername, 'list-avatar', { width: 38, height: 38 })}
                 <div class="list-info">
                     <div class="list-name">${escapeHtml(player.Spielername)}</div>
                     <div class="list-pos">${escapeHtml(translatePosition(player.Position))} | ${escapeHtml(player['Nationalteam.name'])}</div>
@@ -5221,10 +5333,7 @@
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('detail-view').style.display = 'flex';
 
-        // Photo
-        const photoEl = document.getElementById('detail-photo');
-        photoEl.src = player.Spielerfoto || 'https://via.placeholder.com/280';
-        photoEl.alt = `Foto von ${player.Spielername}`;
+        updateDetailPlayerPhoto(player);
 
         // Glow pulse on portrait frame
         const frame = document.getElementById('player-photo-frame');
@@ -5843,7 +5952,6 @@
     }
 
     function renderSchedulePlayerCard(p, hasMatchData) {
-        const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
         const nameEncoded = encodeURIComponent(p.name);
         const idEncoded = p.playerId ? encodeURIComponent(p.playerId) : '';
         const pts = Number(p.totalPoints) || 0;
@@ -5854,9 +5962,7 @@
             ? `${pts > 0 ? '+' : ''}${pts} Pkt.`
             : '— Pkt.';
         const draftedCls = p.drafted ? ' drafted' : '';
-        const photoHtml = photo
-            ? `<img src="${escapeHtml(photo)}" class="sc-player-card-photo" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.visibility='hidden'">`
-            : `<div class="sc-player-card-photo" aria-hidden="true" style="display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--text-muted);">👤</div>`;
+        const photoHtml = renderPlayerPhotoShell(p.photo, p.name, 'sc-player-card-photo', { width: 72, height: 72 });
         const managersHtml = renderSchedulePlayerManagers(p.playerId);
         return `<div class="sc-player-card${draftedCls}">
             <button type="button" class="sc-player-card-main"
@@ -5956,11 +6062,9 @@
         function renderScheduleAvatars(players, alignRight = false) {
             if (!players || !players.length) return '';
             const avatarsHtml = players.map(p => {
-                const photo = p.photo && !p.photo.includes('placeholder') ? p.photo : '';
-                if (!photo) return '';
                 const nameEncoded = encodeURIComponent(p.name);
                 const idEncoded = p.playerId ? encodeURIComponent(p.playerId) : '';
-                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen"><img src="${escapeHtml(photo)}" class="sc-player-avatar" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.style.display='none'"></button>`;
+                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen">${renderPlayerPhotoShell(p.photo, p.name, 'sc-player-avatar', { width: 30, height: 30 })}</button>`;
             }).filter(Boolean).join('');
             if (!avatarsHtml) return '';
             const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
@@ -6645,9 +6749,7 @@
         const capDiffCls = capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw');
 
         const renderCapAvatar = (cap) => {
-            const photo = cap && cap.photo
-                ? `<img src="${escapeHtml(cap.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
-                : `<div class="cmp-cap-photo-fallback">⚽</div>`;
+            const photo = renderPlayerPhotoShell(cap && cap.photo, cap && cap.name, 'cmp-cap-photo', { width: 52, height: 52 });
             const inner = `<div class="cmp-cap-avatar">${photo}<div class="cmp-cap-c-badge" aria-label="Captain">C</div></div>`;
             return cap && (cap.name || cap.playerId) ? cmpPlayerImgLink(cap.name, inner, cap.playerId) : inner;
         };
@@ -6688,9 +6790,7 @@
             if (!p) {
                 return `<div class="side ${side}"><span class="cmp-player-empty">— kein Spieler —</span></div>`;
             }
-            const photoInner = p.photo
-                ? `<img class="cmp-player-photo-sm" src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
-                : `<div class="cmp-player-photo-sm cmp-player-photo-fallback">⚽</div>`;
+            const photoInner = renderPlayerPhotoShell(p.photo, p.name, 'cmp-player-photo-sm', { width: 32, height: 32 });
             const photoHtml = cmpPlayerImgLink(p.name, photoInner, p.playerId);
             const captainTag = p.isCaptain ? '<span class="cmp-cap-tag" title="Captain">C</span>' : '';
             const meta = p.slotNum >= 11 ? 'Bank' : (p.nation || '');
@@ -6796,9 +6896,7 @@
             const itemCls = side === 'b' ? 'cmp-diff-item is-right' : 'cmp-diff-item';
             if (!items.length) return `<div style="color:var(--text-muted);font-size:0.85rem;padding:8px 4px;">Keine unterschiedlichen Spieler.</div>`;
             return `<div class="cmp-diff-list">${items.map(p => {
-                const photoInner = p.photo
-                    ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
-                    : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>';
+                const photoInner = renderPlayerPhotoShell(p.photo, p.name, 'cmp-diff-photo', { width: 36, height: 36 });
                 const photoLinked = cmpPlayerImgLink(p.name, photoInner, p.playerId);
                 const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name), '', p.playerId);
                 return `
@@ -7044,11 +7142,11 @@
     }
 
     function renderPlayerCardForCmp(stats, isWinner) {
-        const photoInner = stats.photo && !String(stats.photo).includes('placeholder')
-            ? `<img src="${escapeHtml(stats.photo)}" class="cmp-player-photo" alt="${escapeHtml(stats.player.Spielername)}" loading="lazy" onerror="this.style.display='none'">`
-            : `<div class="cmp-player-photo" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">${stats.virtual ? '📊' : '⚽'}</div>`;
         const playerName = stats.player.Spielername || '';
         const playerId = stats.virtual ? null : (stats.id || null);
+        const photoInner = stats.virtual
+            ? `<div class="cmp-player-photo" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">📊</div>`
+            : renderPlayerPhotoShell(stats.photo, playerName, 'cmp-player-photo', { width: 96, height: 96 });
         const photo = stats.virtual ? photoInner : cmpPlayerImgLink(playerName, photoInner, playerId);
         const nameDisplay = escapeHtml(playerName || '–');
         const nameHtml = stats.virtual ? nameDisplay : cmpPlayerLink(playerName, nameDisplay, '', playerId);
@@ -7278,9 +7376,7 @@
             </div>`;
 
         const renderWhatIfCapAvatar = (player, badgeChar, badgeClass) => {
-            const photo = player && player.photo
-                ? `<img src="${escapeHtml(player.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
-                : `<div class="cmp-cap-photo-fallback">⚽</div>`;
+            const photo = renderPlayerPhotoShell(player && player.photo, player && player.name, 'cmp-cap-photo', { width: 52, height: 52 });
             const badge = badgeChar
                 ? `<div class="cmp-cap-c-badge ${badgeClass || ''}" aria-hidden="true">${badgeChar}</div>`
                 : '';
@@ -7344,9 +7440,7 @@
             </div>`;
 
         const renderAltAvatar = (photo, name, playerId) => {
-            const inner = photo
-                ? `<img class="cmp-alt-photo" src="${escapeHtml(photo)}" alt="" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
-                : `<div class="cmp-alt-photo cmp-alt-photo-fallback">⚽</div>`;
+            const inner = renderPlayerPhotoShell(photo, name, 'cmp-alt-photo', { width: 40, height: 40 });
             return (name || playerId) ? cmpPlayerImgLink(name, inner, playerId) : inner;
         };
 
@@ -7384,9 +7478,7 @@
 
         // Best/worst picks card
         const renderPickRow = (p) => {
-            const photoInner = p.photo
-                ? `<img src="${escapeHtml(p.photo)}" alt="" loading="lazy" onerror="this.style.display='none'">`
-                : '<div style="width:36px;height:36px;border-radius:50%;background:var(--dark-card);display:flex;align-items:center;justify-content:center;">⚽</div>';
+            const photoInner = renderPlayerPhotoShell(p.photo, p.name, 'cmp-diff-photo', { width: 36, height: 36 });
             const photoLinked = cmpPlayerImgLink(p.name, photoInner, p.playerId);
             const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name), '', p.playerId);
             return `
