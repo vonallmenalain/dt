@@ -13580,7 +13580,7 @@ const playersData = [
     {
         "player.id": 753,
         "Spielername": "Marcos Llorente",
-        "Spielerfoto": "https://media.api-sports.io/football/players/753.png",
+        "Spielerfoto": "https://www.realmadrid.com/de-DE/der-club/geschichte/fussballlenden/marcos-llorente-moreno",
         "Position": "DEFENDER",
         "Nationalteam.name": "Spain",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/9.png",
