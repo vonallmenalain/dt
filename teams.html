@@ -444,6 +444,15 @@
             opacity: 0.8;
         }
 
+        .manager-item.has-roster-warning {
+            border-color: rgba(248,113,113,0.28);
+        }
+
+        .manager-item.has-roster-warning .manager-item-rank {
+            color: #fca5a5;
+            opacity: 0.95;
+        }
+
         /* =====================================================
            MAIN VIEW
            ===================================================== */
@@ -615,6 +624,33 @@
         .manager-award.scouting { background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25); color: #67e8f9; }
         .manager-award.perfect  { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; }
         .manager-award.instinct { background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.25); color: #d8b4fe; }
+        .manager-award.roster   { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+
+        .team-roster-warning {
+            display: none;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(248,113,113,0.10);
+            border: 1px solid rgba(248,113,113,0.34);
+            color: #fecaca;
+            font-size: 0.86rem;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .team-roster-warning.visible {
+            display: flex;
+        }
+
+        .team-roster-warning-icon {
+            flex-shrink: 0;
+            color: #f87171;
+            font-size: 1rem;
+            line-height: 1.35;
+        }
 
         /* Header animation */
         .animate-header-text { animation: textFlyIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
@@ -656,6 +692,7 @@
         body.teams-locked .team-totals-section,
         body.teams-locked .team-totals,
         body.teams-locked #manager-awards,
+        body.teams-locked #team-roster-warning,
         body.teams-locked .display-rank-link,
         body.teams-locked #display-rank-link,
         body.teams-locked #display-total-points {
@@ -986,6 +1023,39 @@
             box-shadow: 0 0 0 1px rgba(255,193,7,0.15), 0 8px 24px rgba(255,193,7,0.15), 0 8px 30px rgba(0,0,0,0.5);
         }
 
+        .player-card.is-orphan {
+            border: 1.5px solid rgba(248,113,113,0.65);
+            box-shadow: 0 0 0 1px rgba(248,113,113,0.24), 0 8px 24px rgba(248,113,113,0.16), 0 8px 30px rgba(0,0,0,0.5);
+        }
+
+        .player-card.is-orphan .card-avatar {
+            filter: grayscale(0.55) brightness(0.88);
+        }
+
+        .player-card.is-orphan .card-info {
+            padding-bottom: 20px;
+        }
+
+        .orphan-card-badge {
+            position: absolute;
+            left: 50%;
+            bottom: 7px;
+            transform: translateX(-50%) translateZ(36px);
+            max-width: calc(100% - 14px);
+            background: rgba(248,113,113,0.96);
+            color: #1a0c0c;
+            font-size: 9px;
+            font-weight: 900;
+            line-height: 1.1;
+            text-align: center;
+            text-transform: uppercase;
+            padding: 3px 7px;
+            border-radius: 999px;
+            z-index: 35;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.42);
+        }
+
         @media (hover: hover) and (pointer: fine) {
             .player-card:hover {
                 box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(74,222,128,0.35) !important;
@@ -1001,6 +1071,7 @@
             .player-card:hover .card-info { transform: translateZ(32px); }
             .player-card:hover .card-pts { transform: translateZ(58px) scale(1.05); }
             .player-card:hover .captain-badge { transform: translateZ(58px) scale(1.1); }
+            .player-card:hover .orphan-card-badge { transform: translateX(-50%) translateZ(58px) scale(1.04); }
             .player-card:hover .card-avatar { transform: scale(1.12); }
         }
 
@@ -1625,11 +1696,18 @@
                 font-size: 11px; padding: 4px 7px;
             }
 
+            .mobile-card-wrapper .orphan-card-badge {
+                bottom: 4px;
+                font-size: 7px;
+                padding: 2px 5px;
+            }
+
             /* Remove 3D transforms on touch */
             .mobile-card-wrapper .avatar-wrapper,
             .mobile-card-wrapper .card-info,
             .mobile-card-wrapper .card-pts,
-            .mobile-card-wrapper .captain-badge {
+            .mobile-card-wrapper .captain-badge,
+            .mobile-card-wrapper .orphan-card-badge {
                 transform: none !important;
                 transition: none !important;
             }
@@ -1735,6 +1813,7 @@
                             </a>
                         </div>
                     </div>
+                    <div id="team-roster-warning" class="team-roster-warning" role="alert" aria-live="polite"></div>
                 </div>
 
                 <!-- Pre-Start Lock Placeholder -->
@@ -2093,6 +2172,7 @@
             const captainCard = mergedPlayers.find(player => player.isCaptain) || null;
             const captainPoints = captainCard ? captainCard.pts : 0;
             const captainShare = teamTotal > 0 ? captainPoints / teamTotal : 0;
+            const orphanPlayers = mergedPlayers.filter(player => player.isOrphan);
 
             return {
                 ...team,
@@ -2101,6 +2181,8 @@
                 positionTotals,
                 captainPoints,
                 captainShare,
+                orphanCount: orphanPlayers.length,
+                orphanPlayers,
                 favoriteClub: getFavoriteClubAwardData(mergedPlayers),
                 scoutingCount: 0,
                 perfectHits: 0,
@@ -2225,6 +2307,9 @@
         if (!team) { awardsEl.innerHTML = ''; return; }
 
         const awards = [];
+        if (team.orphanCount > 0) {
+            awards.push({ type: 'roster', label: `${team.orphanCount} nicht aufgeboten`, title: `${team.orphanCount} Spieler aus diesem Team stehen nicht im aktuellen WM-Kader`, emoji: '⚠️' });
+        }
 
         if (team.favoriteClub && team.favoriteClub.count >= 2) {
             awards.push({ type: 'club', label: 'Lieblingsclub', title: `${team.favoriteClub.name} (${team.favoriteClub.count} Spieler, ${team.favoriteClub.points} Pkt.)`, logo: team.favoriteClub.logo || '', emoji: '🏢' });
@@ -2322,7 +2407,8 @@
                     metaEl.textContent = '🔒 Kader noch versteckt';
                 } else {
                     const rankStr = team.currentRank ? ` · Rang ${team.currentRank}` : '';
-                    metaEl.textContent = `${team.totalScore} Pkt.${rankStr}`;
+                    const rosterStr = team.orphanCount > 0 ? ` · ⚠ ${team.orphanCount} nicht aufgeboten` : '';
+                    metaEl.textContent = `${team.totalScore} Pkt.${rankStr}${rosterStr}`;
                 }
             }
         } else {
@@ -2352,6 +2438,10 @@
             div.setAttribute('role', 'option');
             div.setAttribute('aria-selected', team.manager === currentManager ? 'true' : 'false');
             if (team.manager === currentManager) div.classList.add('active');
+            if (!isTeamsLocked() && team.orphanCount > 0) {
+                div.classList.add('has-roster-warning');
+                div.title = `${team.orphanCount} Spieler nicht im aktuellen WM-Kader`;
+            }
 
             const nameSpan = document.createElement('span');
             nameSpan.textContent = team.manager;
@@ -2361,7 +2451,13 @@
             // Vor Turnierstart sind alle Punkte 0 und Ränge zufällig – wir
             // unterdrücken den Rang in der Liste, damit nichts an die
             // (noch geheimen) Kader-Informationen erinnert.
-            rankSpan.textContent = (!isTeamsLocked() && team.currentRank) ? `#${team.currentRank}` : '';
+            if (!isTeamsLocked()) {
+                const rankText = team.currentRank ? `#${team.currentRank}` : '';
+                const warningText = team.orphanCount > 0 ? `⚠ ${team.orphanCount}` : '';
+                rankSpan.textContent = [rankText, warningText].filter(Boolean).join(' · ');
+            } else {
+                rankSpan.textContent = '';
+            }
 
             div.appendChild(nameSpan);
             div.appendChild(rankSpan);
@@ -2400,7 +2496,9 @@
             if (isTeamsLocked()) {
                 ptsSpan.textContent = '🔒';
             } else {
-                ptsSpan.textContent = team.currentRank ? `#${team.currentRank} · ${team.totalScore} Pkt.` : `${team.totalScore} Pkt.`;
+                const rankText = team.currentRank ? `#${team.currentRank} · ` : '';
+                const warningText = team.orphanCount > 0 ? ` · ⚠ ${team.orphanCount}` : '';
+                ptsSpan.textContent = `${rankText}${team.totalScore} Pkt.${warningText}`;
             }
 
             item.appendChild(nameSpan);
@@ -2587,6 +2685,7 @@
         const els = [
             document.getElementById('display-manager-name'),
             document.getElementById('manager-awards'),
+            document.getElementById('team-roster-warning'),
             document.getElementById('display-total-points'),
             document.getElementById('display-rank-link')
         ];
@@ -2711,15 +2810,45 @@
     /* =====================================================
        CARD HTML BUILDER
        ===================================================== */
+    function formatOrphanPlayerNames(players) {
+        const names = (players || []).map(player => player && player.name).filter(Boolean);
+        if (!names.length) return '';
+        const visibleNames = names.slice(0, 4).join(', ');
+        const remaining = names.length - 4;
+        return remaining > 0 ? `${visibleNames} und ${remaining} weitere` : visibleNames;
+    }
+
+    function updateTeamRosterWarning(team) {
+        const warningEl = document.getElementById('team-roster-warning');
+        if (!warningEl) return;
+
+        const orphanPlayers = team && Array.isArray(team.orphanPlayers) ? team.orphanPlayers : [];
+        if (!team || isTeamsLocked() || orphanPlayers.length === 0) {
+            warningEl.classList.remove('visible');
+            warningEl.innerHTML = '';
+            return;
+        }
+
+        const count = orphanPlayers.length;
+        const names = formatOrphanPlayerNames(orphanPlayers);
+        warningEl.innerHTML = `
+            <span class="team-roster-warning-icon" aria-hidden="true">⚠️</span>
+            <span>${count} Spieler in diesem Team ${count === 1 ? 'steht' : 'stehen'} nicht im aktuellen WM-Kader${names ? `: ${escapeHtml(names)}` : ''}.</span>
+        `;
+        warningEl.classList.add('visible');
+    }
+
     function buildCardHtml(mergedP, idx, wrapperClass) {
         const ptsClass  = mergedP.pts > 0 ? 'pos' : (mergedP.pts < 0 ? 'neg' : '');
         const sign      = mergedP.pts > 0 ? '+' : '';
-        const analysisUrl = mergedP.id
+        const analysisUrl = mergedP.id && !mergedP.isOrphan
             ? `spieleranalyse.html?playerId=${encodeURIComponent(mergedP.id)}`
             : `spieleranalyse.html?player=${encodeURIComponent(mergedP.name)}`;
         const animStyle = `animation-delay: ${idx * 0.04}s;`;
         const capClass  = mergedP.isCaptain ? 'is-captain' : '';
+        const orphanClass = mergedP.isOrphan ? 'is-orphan' : '';
         const capBadge  = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';
+        const orphanBadge = mergedP.isOrphan ? '<div class="orphan-card-badge" title="Nicht im aktuellen WM-Kader">Nicht aufgeboten</div>' : '';
         const ptsId     = `pts-${mergedP.id}-${mergedP.slotNum}`;
 
         // Defense-in-Depth: Sämtliche dynamischen Werte werden HTML-
@@ -2731,6 +2860,7 @@
         const safeWrapperCls  = escapeHtml(wrapperClass);
         const safeAnimStyle   = escapeHtml(animStyle);
         const safeCapClass    = escapeHtml(capClass);
+        const safeOrphanClass = escapeHtml(orphanClass);
         const safePtsClass    = escapeHtml(ptsClass);
         const safePtsId       = escapeHtml(ptsId);
         const safeSignPts     = escapeHtml(`${sign}${mergedP.pts}`);
@@ -2743,8 +2873,9 @@
 
         return `
             <div class="${safeWrapperCls}" style="${safeAnimStyle}">
-                <a href="${safeAnalysisUrl}" class="player-card ${safeCapClass}">
+                <a href="${safeAnalysisUrl}" class="player-card ${safeCapClass} ${safeOrphanClass}">
                     ${capBadge}
+                    ${orphanBadge}
                     <div class="card-pts ${safePtsClass}" id="${safePtsId}">${safeSignPts}</div>
                     <div class="avatar-wrapper"><img src="${safePhoto}" class="card-avatar" alt="${safeName}" loading="lazy"></div>
                     <div class="card-info">
@@ -2920,6 +3051,7 @@
         // Header
         const nameEl = document.getElementById('display-manager-name');
         if (nameEl) nameEl.textContent = team.manager;
+        updateTeamRosterWarning(null);
 
         const rankEl = document.getElementById('display-rank');
         if (rankEl) rankEl.textContent = team.currentRank ? team.currentRank : '–';
@@ -2938,11 +3070,13 @@
             clearBoard();
             const awardsEl = document.getElementById('manager-awards');
             if (awardsEl) awardsEl.innerHTML = '';
+            updateTeamRosterWarning(null);
             updateMobilePickerBtn(team);
             return;
         }
 
         renderManagerAwards(team);
+        updateTeamRosterWarning(team);
         animateHeader();
         animateValue("display-total-points", 0, team.totalScore, 900, " Pkt.");
 

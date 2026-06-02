@@ -294,6 +294,12 @@
             color: var(--green-light);
         }
 
+        .dsb-pill.roster-warning {
+            background: rgba(248,113,113,0.12);
+            border: 1px solid rgba(248,113,113,0.3);
+            color: #fca5a5;
+        }
+
         .dsb-pill.captain-ok {
             background: rgba(255,215,0,0.12);
             border: 1px solid rgba(255,215,0,0.3);
@@ -385,6 +391,12 @@
             font-size: 0.85rem;
             font-weight: 600;
             line-height: 1.5;
+        }
+
+        .builder-notice-bar.roster-warning .builder-notice-inner {
+            background: rgba(248,113,113,0.10);
+            border-color: rgba(248,113,113,0.36);
+            color: #fecaca;
         }
 
         /* =====================================================
@@ -743,6 +755,11 @@
         }
         .mobile-slot-row.is-orphan .mobile-slot-avatar img {
             filter: grayscale(0.6) brightness(0.9);
+        }
+
+        .mobile-slot-row.is-orphan {
+            border-color: rgba(248,113,113,0.36);
+            background: rgba(248,113,113,0.08);
         }
 
         .js-tilt-glare { border-radius: 12px; }
@@ -3291,19 +3308,56 @@
     /* =========================================================
        BUILDER NOTICE
        ========================================================= */
-    function showBuilderNotice(message) {
+    function showBuilderNotice(message, type = '') {
         if (!message) {
-            dom.builderNotice.classList.remove('visible');
+            dom.builderNotice.classList.remove('visible', 'roster-warning');
             if (dom.builderNoticeInner) dom.builderNoticeInner.textContent = '';
             return;
         }
         if (dom.builderNoticeInner) dom.builderNoticeInner.textContent = message;
+        dom.builderNotice.classList.remove('roster-warning');
+        if (type) dom.builderNotice.classList.add(type);
         dom.builderNotice.classList.add('visible');
     }
 
     function hideBuilderNotice() {
-        dom.builderNotice.classList.remove('visible');
+        dom.builderNotice.classList.remove('visible', 'roster-warning');
         if (dom.builderNoticeInner) dom.builderNoticeInner.textContent = '';
+    }
+
+    function getSelectedOrphanPlayers() {
+        return Object.values(selectedTeam)
+            .map(playerId => getPlayerById(playerId))
+            .filter(player => player && player.isOrphan);
+    }
+
+    function formatOrphanNames(players) {
+        const names = (players || []).map(player => player && player.name).filter(Boolean);
+        if (!names.length) return '';
+        const visibleNames = names.slice(0, 4).join(', ');
+        const remaining = names.length - 4;
+        return remaining > 0 ? `${visibleNames} und ${remaining} weitere` : visibleNames;
+    }
+
+    function buildRosterNotice(orphanPlayers) {
+        const count = orphanPlayers.length;
+        if (!count) return '';
+        const names = formatOrphanNames(orphanPlayers);
+        const detail = names ? ` (${names})` : '';
+        const captainHint = orphanPlayers.some(player => String(player.id) === String(selectedCaptainId))
+            ? ' Dein Captain ist betroffen; bitte ersetze ihn und setze danach einen neuen Captain.'
+            : '';
+        return `Achtung: ${count} Spieler aus deinem Team ${count === 1 ? 'steht' : 'stehen'} nicht im aktuellen WM-Kader${detail}. Bitte ersetze ${count === 1 ? 'diesen Spieler' : 'diese Spieler'}, bevor du dein Team speicherst.${captainHint}`;
+    }
+
+    function refreshRosterNotice(orphanPlayers = getSelectedOrphanPlayers()) {
+        if (orphanPlayers.length) {
+            showBuilderNotice(buildRosterNotice(orphanPlayers), 'roster-warning');
+            return;
+        }
+        if (dom.builderNotice && dom.builderNotice.classList.contains('roster-warning')) {
+            hideBuilderNotice();
+        }
     }
 
     /* =========================================================
@@ -3312,7 +3366,12 @@
     function updateStatusBar() {
         const count = Object.keys(selectedTeam).length;
         const teamPlayerIds = Object.values(selectedTeam).map(String);
-        const hasValidCaptain = selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId));
+        const orphanPlayers = getSelectedOrphanPlayers();
+        const orphanCount = orphanPlayers.length;
+        const captainPlayer = selectedCaptainId !== null ? getPlayerById(selectedCaptainId) : null;
+        const hasValidCaptain = selectedCaptainId !== null
+            && teamPlayerIds.includes(String(selectedCaptainId))
+            && !!(captainPlayer && !captainPlayer.isOrphan);
 
         /* Progress */
         const pct = Math.round((count / 15) * 100);
@@ -3322,13 +3381,17 @@
         if (dom.submitProgressLabel) dom.submitProgressLabel.textContent = `${count} / 15`;
 
         /* Players pill */
-        if (dom.dsbPlayersPill) dom.dsbPlayersPill.textContent = `${count} / 15 gewählt`;
+        if (dom.dsbPlayersPill) {
+            dom.dsbPlayersPill.textContent = orphanCount
+                ? `${count} / 15 gewählt · ${orphanCount} ersetzen`
+                : `${count} / 15 gewählt`;
+            dom.dsbPlayersPill.className = `dsb-pill ${orphanCount ? 'roster-warning' : 'players'}`;
+        }
 
         /* Captain pill */
         if (dom.dsbCaptainPill) {
             if (hasValidCaptain) {
-                const cap = getPlayerById(selectedCaptainId);
-                dom.dsbCaptainPill.textContent = cap ? `👑 ${cap.name}` : '👑 Captain gewählt';
+                dom.dsbCaptainPill.textContent = captainPlayer ? `👑 ${captainPlayer.name}` : '👑 Captain gewählt';
                 dom.dsbCaptainPill.className = 'dsb-pill captain-ok';
             } else {
                 dom.dsbCaptainPill.textContent = '👑 Captain fehlt';
@@ -3353,19 +3416,20 @@
         }
 
         /* Submit hints */
-        updateSubmitHints(count, hasValidCaptain);
+        updateSubmitHints(count, hasValidCaptain, orphanCount);
+        refreshRosterNotice(orphanPlayers);
 
         /* Submit card ready state */
         const nameInput = dom.managerName ? dom.managerName.value.trim() : '';
         const words = nameInput.split(' ').filter(w => w.length > 0);
         const isFullName = words.length >= 2;
-        const isReady = count === 15 && isFullName && hasValidCaptain;
+        const isReady = count === 15 && isFullName && hasValidCaptain && orphanCount === 0;
         if (dom.submitCard) {
             dom.submitCard.classList.toggle('ready', isReady);
         }
     }
 
-    function updateSubmitHints(count, hasValidCaptain) {
+    function updateSubmitHints(count, hasValidCaptain, orphanCount = 0) {
         if (!dom.submitHints) return;
         const hints = [];
         const remaining = 15 - count;
@@ -3381,6 +3445,10 @@
             hints.push({ text: `✓ Captain: ${cap ? cap.name : 'gesetzt'}`, cls: 'ok' });
         } else if (count === 15) {
             hints.push({ text: '⚠️ Captain fehlt', cls: 'warn' });
+        }
+
+        if (orphanCount > 0) {
+            hints.push({ text: `⚠ ${orphanCount} nicht aufgeboten`, cls: 'error' });
         }
 
         dom.submitHints.innerHTML = hints
@@ -4025,6 +4093,12 @@
        ========================================================= */
     function setCaptain(playerId) {
         if (!Object.values(selectedTeam).map(String).includes(String(playerId))) return;
+        const cap = getPlayerById(playerId);
+        if (cap && cap.isOrphan) {
+            showToast('⚠️ Dieser Spieler ist nicht im aktuellen WM-Kader. Bitte zuerst ersetzen.');
+            refreshRosterNotice();
+            return;
+        }
 
         selectedCaptainId = String(playerId);
         renderAllSlots();
@@ -4033,7 +4107,6 @@
         saveStateToLocal();
         updateStatusBar();
 
-        const cap = getPlayerById(playerId);
         showToast(`👑 Captain: ${cap ? cap.name : 'gesetzt'}`, 'captain');
 
         /* Captain glow on desktop card */
@@ -4083,6 +4156,8 @@
         }
 
         const teamPlayerIds  = Object.values(selectedTeam).map(String);
+        const orphanPlayers  = getSelectedOrphanPlayers();
+        const hasOrphanPlayers = orphanPlayers.length > 0;
 
         /* Captain is "valid" only when the chosen player still resolves to
          * a real (non-orphan) entry. An orphaned captain — i.e. one whose
@@ -4100,7 +4175,7 @@
         }
 
         const hasDuplicateWarning = dom.duplicateWarning && dom.duplicateWarning.style.display === 'block';
-        const isEnabled = (count === 15 && isFullName && hasValidCaptain) && !isSubmitting && !hasDuplicateWarning;
+        const isEnabled = (count === 15 && isFullName && hasValidCaptain && !hasOrphanPlayers) && !isSubmitting && !hasDuplicateWarning;
 
         if (dom.submitBtn) dom.submitBtn.disabled = !isEnabled;
 
@@ -4564,7 +4639,6 @@
             const newTeam = {};
             let newCaptain = null;
             const orphanList = [];
-            let captainIsOrphan = false;
             (data.players || []).forEach(p => {
                 const slotId = String(p.slot || '').replace(/^slot-/, '');
                 if (!isValidSlotId(slotId)) return;
@@ -4579,7 +4653,6 @@
                     if (orphan) {
                         playerById.set(playerId, orphan);
                         orphanList.push(orphan);
-                        if (p.isCaptain) captainIsOrphan = true;
                     }
                 }
             });
@@ -4597,14 +4670,7 @@
             setSubmitDefaultLabel();
 
             if (orphanList.length) {
-                const names = orphanList.map(o => o.name).filter(Boolean);
-                const list  = names.length ? ` (${names.join(', ')})` : '';
-                const captainHint = captainIsOrphan
-                    ? ' Dein Captain ist betroffen – bitte zuerst ersetzen.'
-                    : '';
-                showBuilderNotice(
-                    `Achtung: ${orphanList.length} Spieler aus deinem Team sind nicht mehr im aktuellen Kader${list}. Bitte ersetze sie vor Anpfiff.${captainHint}`
-                );
+                showBuilderNotice(buildRosterNotice(orphanList), 'roster-warning');
             } else {
                 showToast('✏️ Dein Team wurde zur Bearbeitung geladen.');
             }
@@ -4750,9 +4816,16 @@
         const words         = name.split(' ').filter(w => w.length > 0);
         const isFullName    = words.length >= 2;
         const teamPlayerIds = Object.values(selectedTeam).map(String);
-        const hasValidCaptain = selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId));
+        const orphanPlayers = getSelectedOrphanPlayers();
+        const captainPlayer = selectedCaptainId !== null ? getPlayerById(selectedCaptainId) : null;
+        const hasValidCaptain = selectedCaptainId !== null
+            && teamPlayerIds.includes(String(selectedCaptainId))
+            && !!(captainPlayer && !captainPlayer.isOrphan);
 
-        if (!(count === 15 && isFullName && hasValidCaptain)) {
+        if (!(count === 15 && isFullName && hasValidCaptain && orphanPlayers.length === 0)) {
+            if (orphanPlayers.length) {
+                showBuilderNotice(buildRosterNotice(orphanPlayers), 'roster-warning');
+            }
             validateForm();
             return;
         }
