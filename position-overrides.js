@@ -8,5 +8,7 @@
 
 window.POSITION_OVERRIDES = {
     wm2026: {
-           }
+        644: "ATTACKER",
+        291964: "MIDFIELDER"
+    }
 };
