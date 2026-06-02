@@ -5510,7 +5510,7 @@
         </div>
 
         <section class="test-carousel-copy" id="test-carousel-copy" aria-label="Karussell der Fan-Lieblinge">
-            <h2 class="tcc-section-title" id="indexTestCarouselTitle" aria-live="polite">Stars der WM 2026</h2>
+            <h2 class="tcc-section-title" id="indexTestCarouselTitle" aria-live="polite">WM 2026 Stars</h2>
             <div class="tcc-carousel" id="indexTestCarousel" aria-label="Fan-Lieblinge-Karussell">
                 <div class="tcc-track" id="indexTestCarouselTrack"></div>
             </div>
@@ -8832,8 +8832,7 @@
         const titleEl  = root.querySelector('#indexTestCarouselTitle');
         if (!track || !carousel) return;
 
-        const TITLE_FALLBACK = 'Stars der WM 2026';
-        const TITLE_TOP_DRAFTS = 'Meistgewählte Spieler';
+        const DEFAULT_CAROUSEL_TITLE = 'WM 2026 Stars';
         const VARIANT_STORAGE_KEY = 'tcc_carousel_last_variant';
 
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -8907,31 +8906,60 @@
             return [];
         }
 
-        // Kuratierte Star-Liste als Fallback, damit das Karussell sofort
-        // beim Laden gefüllt ist – auch wenn (noch) keine lokalen Draft-Daten
-        // vorhanden sind. Reihenfolge bestimmt die Darstellungsreihenfolge.
-        const FALLBACK_PLAYER_NAMES = [
-            'Kylian Mbappé',
-            'Erling Haaland',
-            'Jude Bellingham',
-            'Vinícius Júnior',
-            'Jamal Musiala',
-            'Lamine Yamal',
-            'Phil Foden',
-            'Florian Wirtz',
-            'Harry Kane',
-            'Rodri',
-            'Bukayo Saka',
-            'Federico Valverde',
-            'Lautaro Martínez',
-            'Manuel Akanji',
-            'Lionel Messi'
+        const wm2026StarRotation = [
+            {
+                id: "wm_stars_set_1",
+                title: "WM 2026 Stars",
+                players: [
+                    { name: "Kylian Mbappé", nation: "Frankreich", position: "ANG" },
+                    { name: "Lionel Messi", nation: "Argentinien", position: "ANG" },
+                    { name: "Jude Bellingham", nation: "England", position: "MIT" },
+                    { name: "Vinícius Júnior", nation: "Brasilien", position: "ANG" },
+                    { name: "Erling Haaland", nation: "Norwegen", position: "ANG" },
+                    { name: "Cristiano Ronaldo", nation: "Portugal", position: "ANG" },
+                    { name: "Lamine Yamal", nation: "Spanien", position: "ANG" },
+                    { name: "Christian Pulisic", nation: "USA", position: "ANG" },
+                    { name: "Federico Valverde", nation: "Uruguay", position: "MIT" },
+                    { name: "Son Heung-min", nation: "Südkorea", position: "ANG" },
+                    { name: "Harry Kane", nation: "England", position: "ANG" },
+                    { name: "Florian Wirtz", nation: "Deutschland", position: "MIT" },
+                    { name: "Virgil van Dijk", nation: "Niederlande", position: "DEF" },
+                    { name: "Thibaut Courtois", nation: "Belgien", position: "TOR" },
+                    { name: "Alexander Isak", nation: "Schweden", position: "ANG" }
+                ]
+            },
+            {
+                id: "wm_stars_set_2",
+                title: "Weitere WM 2026 Stars",
+                players: [
+                    { name: "Luka Modrić", nation: "Kroatien", position: "MIT" },
+                    { name: "Luis Díaz", nation: "Kolumbien", position: "ANG" },
+                    { name: "Achraf Hakimi", nation: "Marokko", position: "DEF" },
+                    { name: "Mohamed Salah", nation: "Ägypten", position: "ANG" },
+                    { name: "Hakan Çalhanoğlu", nation: "Türkei", position: "MIT" },
+                    { name: "Takefusa Kubo", nation: "Japan", position: "MIT/ANG" },
+                    { name: "Moisés Caicedo", nation: "Ecuador", position: "MIT" },
+                    { name: "Sadio Mané", nation: "Senegal", position: "ANG" },
+                    { name: "Riyad Mahrez", nation: "Algerien", position: "ANG" },
+                    { name: "Edin Džeko", nation: "Bosnien & Herzegowina", position: "ANG" },
+                    { name: "Akram Afif", nation: "Katar", position: "ANG" },
+                    { name: "Granit Xhaka", nation: "Schweiz", position: "MIT" },
+                    { name: "Patrik Schick", nation: "Tschechien", position: "ANG" },
+                    { name: "Abdukodir Khusanov", nation: "Usbekistan", position: "DEF" },
+                    { name: "Salem Al-Dawsari", nation: "Saudi-Arabien", position: "ANG" }
+                ]
+            },
+            {
+                id: "most_picked_players",
+                title: "Meistgewählte Spieler",
+                type: "dynamic",
+                source: "mostPickedPlayers"
+            }
         ];
 
-        // Aliase für Namensvarianten zwischen Anzeigeliste oben und dem
-        // tatsächlichen Datensatz (z. B. "Phil Foden" → "Philip Foden").
-        const FALLBACK_NAME_ALIASES = {
-            'phil foden': ['philip foden']
+        const STAR_NAME_ALIASES = {
+            "abdukodir khusanov": ["abduqodir khusanov"],
+            "salem al-dawsari": ["salem al dawsari"]
         };
 
         function getPlayersDataset() {
@@ -8948,51 +8976,64 @@
             return [];
         }
 
-        function buildFallbackItems(limit = 15) {
+        function getPlayerLookup() {
             const dataset = getPlayersDataset();
-            if (!dataset.length) return [];
             const byNormName = new Map();
             dataset.forEach((p) => {
-                byNormName.set(normalizeName(p.Spielername), p);
+                const key = normalizeName(p.Spielername);
+                if (key && !byNormName.has(key)) byNormName.set(key, p);
             });
-            const picked = [];
-            const pickedIds = new Set();
+            return byNormName;
+        }
 
-            const lookup = (name) => {
-                const norm = normalizeName(name);
-                if (byNormName.has(norm)) return byNormName.get(norm);
-                const aliases = FALLBACK_NAME_ALIASES[norm];
-                if (aliases) {
-                    for (const alt of aliases) {
-                        const found = byNormName.get(normalizeName(alt));
-                        if (found) return found;
-                    }
-                }
-                return null;
-            };
-
-            FALLBACK_PLAYER_NAMES.forEach((name) => {
-                const raw = lookup(name);
-                if (!raw) return;
-                const id = String(raw['player.id']);
-                if (pickedIds.has(id)) return;
-                pickedIds.add(id);
-                picked.push(normalizePlayer(raw));
-            });
-
-            // Falls die kuratierte Liste zu klein ist (z. B. weil Namen nicht
-            // matchen), füllen wir mit weiteren Spielern aus dem Datensatz auf.
-            if (picked.length < limit) {
-                for (const raw of dataset) {
-                    if (picked.length >= limit) break;
-                    const id = String(raw['player.id']);
-                    if (pickedIds.has(id)) continue;
-                    pickedIds.add(id);
-                    picked.push(normalizePlayer(raw));
+        function resolveDatasetPlayerByName(name, byNormName) {
+            const norm = normalizeName(name);
+            if (byNormName.has(norm)) return byNormName.get(norm);
+            const aliases = STAR_NAME_ALIASES[norm];
+            if (aliases) {
+                for (const alt of aliases) {
+                    const found = byNormName.get(normalizeName(alt));
+                    if (found) return found;
                 }
             }
+            return null;
+        }
 
-            return picked.slice(0, limit);
+        function buildStaticPlayerId(name) {
+            const slug = normalizeName(name)
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            return `static:${slug || 'player'}`;
+        }
+
+        function buildStaticPlayerItem(star, byNormName) {
+            const raw = resolveDatasetPlayerByName(star.name, byNormName);
+            if (raw) {
+                return {
+                    ...normalizePlayer(raw),
+                    name: star.name,
+                    nation: star.nation || '',
+                    position: star.position || ''
+                };
+            }
+            return {
+                id: buildStaticPlayerId(star.name),
+                name: star.name,
+                country: star.nation || '',
+                countryFlag: '',
+                club: star.position || '',
+                clubLogo: '',
+                img: '',
+                nation: star.nation || '',
+                position: star.position || ''
+            };
+        }
+
+        function buildStaticStarItems(group, limit = 15) {
+            const byNormName = getPlayerLookup();
+            return (group.players || [])
+                .map((star) => buildStaticPlayerItem(star, byNormName))
+                .slice(0, limit);
         }
 
         function buildTopDraftedPlayers(limit = 15) {
@@ -9015,56 +9056,50 @@
                 .slice(0, limit);
         }
 
-        function buildFanFavoriteItems(limit = 15) {
-            const drafted = buildTopDraftedPlayers(limit);
-            if (drafted.length) return drafted;
-            // Kein einziger Draft im LocalStorage → kuratierter Fallback,
-            // damit das Karussell nie leer ist.
-            return buildFallbackItems(limit);
+        function getRotationEntry(id) {
+            return wm2026StarRotation.find((entry) => entry.id === id) || null;
         }
 
-        // Wechselt bei jedem Seitenaufruf zwischen "Stars der WM 2026"
-        // (kuratierte Fallback-Liste) und "Meistgewählte Spieler"
-        // (echte Top-Drafts aus dem LocalStorage). Falls die gewünschte
-        // Variante keine Spieler liefert (z. B. noch keine Drafts), greifen
-        // wir zur jeweils anderen.
-        //
-        // `forceVariant` überspringt das Alternieren – wird beim Refresh
-        // genutzt, damit ein nachgeladener Datensatz die aktuell
-        // angezeigte Variante neu rendert, statt sofort umzuschalten.
+        function getNextRotationEntry(lastVariant) {
+            const lastIndex = wm2026StarRotation.findIndex((entry) => entry.id === lastVariant);
+            const nextIndex = lastIndex >= 0 ? (lastIndex + 1) % wm2026StarRotation.length : 0;
+            return wm2026StarRotation[nextIndex];
+        }
+
+        function buildRotationItems(entry, limit = 15) {
+            if (entry?.type === 'dynamic' && entry.source === 'mostPickedPlayers') {
+                return buildTopDraftedPlayers(limit);
+            }
+            return buildStaticStarItems(entry, limit);
+        }
+
         function pickVariantAndItems(limit = 15, forceVariant = null) {
             let lastVariant = null;
             try { lastVariant = localStorage.getItem(VARIANT_STORAGE_KEY); } catch (_) {}
-            const desired = forceVariant
-                ? forceVariant
-                : (lastVariant === 'top' ? 'stars' : 'top');
+            let entry = forceVariant ? getRotationEntry(forceVariant) : getNextRotationEntry(lastVariant);
+            if (!entry) entry = wm2026StarRotation[0];
 
-            const drafts = buildTopDraftedPlayers(limit);
-            const stars  = buildFallbackItems(limit);
-
-            let variant;
-            let items;
-            if (desired === 'top' && drafts.length) {
-                variant = 'top';
-                items = drafts;
-            } else if (desired === 'stars' && stars.length) {
-                variant = 'stars';
-                items = stars;
-            } else if (drafts.length) {
-                variant = 'top';
-                items = drafts;
-            } else {
-                variant = 'stars';
-                items = stars;
+            let items = buildRotationItems(entry, limit);
+            if (!items.length) {
+                for (const fallbackEntry of wm2026StarRotation) {
+                    if (fallbackEntry.id === entry.id) continue;
+                    const fallbackItems = buildRotationItems(fallbackEntry, limit);
+                    if (fallbackItems.length) {
+                        entry = fallbackEntry;
+                        items = fallbackItems;
+                        break;
+                    }
+                }
             }
 
-            try { localStorage.setItem(VARIANT_STORAGE_KEY, variant); } catch (_) {}
-            return { variant, items };
+            try { localStorage.setItem(VARIANT_STORAGE_KEY, entry.id); } catch (_) {}
+            return { variant: entry.id, items };
         }
 
         function setCarouselTitle(variant) {
             if (!titleEl) return;
-            titleEl.textContent = variant === 'top' ? TITLE_TOP_DRAFTS : TITLE_FALLBACK;
+            const entry = getRotationEntry(variant);
+            titleEl.textContent = entry?.title || DEFAULT_CAROUSEL_TITLE;
         }
 
         let players = [];
