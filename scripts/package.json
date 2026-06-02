@@ -8,7 +8,8 @@
   },
   "scripts": {
     "auto-upload": "node auto-points-upload.js",
-    "sync-fixtures": "node sync-fixtures.js"
+    "sync-fixtures": "node sync-fixtures.js",
+    "enrich-wm2026-squad": "node enrich-fifa-2026-squad-base-players.mjs"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"
