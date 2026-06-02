@@ -2095,6 +2095,20 @@
         return playersData.find(pd => String(pd["player.id"]) === String(playerId)) || null;
     }
 
+    function getPlayerByStoredSnapshot(savedPlayer) {
+        if (!savedPlayer || !savedPlayer.name) return null;
+        return playersData.find(pd => {
+            if (pd.Spielername !== savedPlayer.name) return false;
+            return !savedPlayer.nation || (pd["Nationalteam.name"] || "") === savedPlayer.nation;
+        }) || null;
+    }
+
+    function resolveStoredPlayer(savedPlayer) {
+        const byId = getPlayerById(savedPlayer && savedPlayer.playerId);
+        if (byId && (!savedPlayer || !savedPlayer.name || byId.Spielername === savedPlayer.name)) return byId;
+        return getPlayerByStoredSnapshot(savedPlayer) || byId;
+    }
+
     function buildPlayerPointsMap(rawPoints) {
         const map = {};
         Object.entries(rawPoints || {}).forEach(([id, docData]) => {
@@ -2198,8 +2212,7 @@
 
         return teams.map(team => {
             const mergedPlayers = (team.players || []).map((p, idx) => {
-                let fullP = getPlayerById(p.playerId);
-                if (!fullP) fullP = playersData.find(pd => pd.Spielername === p.name) || null;
+                const fullP = resolveStoredPlayer(p);
 
                 const playerId = fullP
                     ? String(fullP["player.id"])

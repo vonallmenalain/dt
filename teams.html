@@ -2003,6 +2003,24 @@
         return upper || 'UNKNOWN';
     }
 
+    function getPlayerById(playerId) {
+        return playersData.find(pd => String(pd['player.id']) === String(playerId)) || null;
+    }
+
+    function getPlayerByStoredSnapshot(savedPlayer) {
+        if (!savedPlayer || !savedPlayer.name) return null;
+        return playersData.find(pd => {
+            if (pd.Spielername !== savedPlayer.name) return false;
+            return !savedPlayer.nation || (pd['Nationalteam.name'] || '') === savedPlayer.nation;
+        }) || null;
+    }
+
+    function resolveStoredPlayer(savedPlayer) {
+        const byId = getPlayerById(savedPlayer && savedPlayer.playerId);
+        if (byId && (!savedPlayer || !savedPlayer.name || byId.Spielername === savedPlayer.name)) return byId;
+        return getPlayerByStoredSnapshot(savedPlayer) || byId;
+    }
+
     function getFavoriteClubAwardData(mergedPlayers) {
         const clubMap = {};
         (mergedPlayers || []).forEach(player => {
@@ -2024,8 +2042,7 @@
 
         return teams.map(team => {
             const mergedPlayers = (team.players || []).map((p, idx) => {
-                let fullP = playersData.find(pd => String(pd['player.id']) === String(p.playerId));
-                if (!fullP) fullP = playersData.find(pd => pd.Spielername === p.name);
+                const fullP = resolveStoredPlayer(p);
 
                 const slotNum = p.slot ? parseInt(String(p.slot).replace('slot-', ''), 10) : -1;
                 // Live-Position aus playersData bevorzugen, damit manuelle

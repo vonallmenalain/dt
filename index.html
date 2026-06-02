@@ -6141,8 +6141,18 @@
         return playersData.find((p) => p.Spielername === name);
     }
 
+    function getPlayerByStoredSnapshot(tp) {
+        if (!tp || !tp.name) return null;
+        return playersData.find((p) => {
+            if (p.Spielername !== tp.name) return false;
+            return !tp.nation || (p['Nationalteam.name'] || '') === tp.nation;
+        }) || null;
+    }
+
     function resolvePlayer(tp) {
-        return getPlayerById(tp.playerId) || (tp.name ? getPlayerByName(tp.name) : null);
+        const byId = getPlayerById(tp.playerId);
+        if (byId && (!tp.name || byId.Spielername === tp.name)) return byId;
+        return getPlayerByStoredSnapshot(tp) || byId || (tp.name ? getPlayerByName(tp.name) : null);
     }
 
     /* =========================================================
@@ -8517,10 +8527,7 @@
     function champEnrichTeams(rawTeams, playerPointsMap, playerMatchPoints) {
         return (Array.isArray(rawTeams) ? rawTeams : []).map((team) => {
             const mergedPlayers = (team.players || []).map((p, idx) => {
-                let fullP = getPlayerById(p.playerId);
-                if (!fullP && Array.isArray(playersData)) {
-                    fullP = playersData.find((pd) => pd.Spielername === p.name) || null;
-                }
+                const fullP = resolvePlayer(p);
                 const playerId = fullP ? String(fullP['player.id']) : `fallback-${idx}`;
                 const basePts = fullP ? (playerPointsMap[playerId] || 0) : 0;
                 const finalPts = p.isCaptain ? basePts * 2 : basePts;

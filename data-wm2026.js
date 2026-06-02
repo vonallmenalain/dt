@@ -3,6 +3,7 @@
 // Master: offizielle FIFA-Squadliste; Zusatzdaten: API-Football/angereicherte JSON.
 // Hinweis: player.id >= 990000000 sind synthetische Fallback-IDs für offizielle Spieler ohne API-playerId.
 // Lokal nachgezogen: Spielerfotos/player.id über Foto/ID Helper.
+// Fix: Marcos Llorente nutzt 990000127, weil 753 zu Martin Odegaard gehoert.
 
 const playersData = [
     {
@@ -13578,7 +13579,7 @@ const playersData = [
         "Gewicht": "77"
     },
     {
-        "player.id": 753,
+        "player.id": 990000127,
         "Spielername": "Marcos Llorente",
         "Spielerfoto": "https://img.uefa.com/imgml/TP/players/1/2026/324x324/250079670.jpg",
         "Position": "DEFENDER",

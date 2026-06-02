@@ -4517,6 +4517,30 @@
         return playersData.find(p => String(p['player.id']) === String(playerId)) || null;
     }
 
+    function getPlayerByName(name) {
+        return playersData.find(p => p.Spielername === name) || null;
+    }
+
+    function getPlayerByStoredSnapshot(savedPlayer) {
+        if (!savedPlayer || !savedPlayer.name) return null;
+        return playersData.find(p => {
+            if (p.Spielername !== savedPlayer.name) return false;
+            return !savedPlayer.nation || (p['Nationalteam.name'] || '') === savedPlayer.nation;
+        }) || null;
+    }
+
+    function resolveStoredPlayer(savedPlayer) {
+        const byId = getPlayerById(savedPlayer && savedPlayer.playerId);
+        if (byId && (!savedPlayer || !savedPlayer.name || byId.Spielername === savedPlayer.name)) return byId;
+        return getPlayerByStoredSnapshot(savedPlayer) || byId;
+    }
+
+    function resolvePlayerIdentity(playerId, playerName) {
+        const byId = getPlayerById(playerId);
+        if (byId && (!playerName || byId.Spielername === playerName)) return byId;
+        return (playerName ? getPlayerByName(playerName) : null) || byId;
+    }
+
     function prefersReducedMotion() {
         return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
@@ -4864,7 +4888,8 @@
         allTeams.forEach(team => {
             const manager = team.manager || 'Unbekannt';
             (team.players || []).forEach(tp => {
-                const key = String(tp.playerId);
+                const fullP = resolveStoredPlayer(tp);
+                const key = fullP ? String(fullP['player.id']) : String(tp.playerId);
                 playerSelectedMap.set(key, (playerSelectedMap.get(key) || 0) + 1);
                 if (!playerManagersMap.has(key)) playerManagersMap.set(key, []);
                 playerManagersMap.get(key).push({ manager, isCaptain: !!tp.isCaptain });
@@ -6273,8 +6298,7 @@
         if (enrichedTeamsCache && enrichedTeamsCache.length) return enrichedTeamsCache;
         const teams = (allTeams || []).map(team => {
             const merged = (team.players || []).map((p, idx) => {
-                let fullP = playersData.find(pd => String(pd['player.id']) === String(p.playerId));
-                if (!fullP) fullP = playersData.find(pd => pd.Spielername === p.name);
+                const fullP = resolveStoredPlayer(p);
                 const pos = cmpNormalizePosition((fullP && fullP.Position) || p.pos || 'UNKNOWN');
                 const slotNum = p.slot ? parseInt(String(p.slot).replace('slot-', ''), 10) : -1;
                 const basePts = fullP ? getPlayerBasePoints(fullP['player.id']) : 0;
@@ -6417,7 +6441,9 @@
         if (!teamsLockedForStats) {
             (allTeams || []).forEach(team => {
                 (team.players || []).forEach(tp => {
-                    if (String(tp.playerId) === String(playerId) && tp.isCaptain) captainCount++;
+                    const fullP = resolveStoredPlayer(tp);
+                    const id = fullP ? String(fullP['player.id']) : String(tp.playerId || '');
+                    if (id === String(playerId) && tp.isCaptain) captainCount++;
                 });
             });
         }
@@ -7729,13 +7755,13 @@
         let player = null;
         if (playerIdOrName != null && playerIdOrName !== '') {
             const idCandidate = String(playerIdOrName);
-            player = playersData.find(p => String(p['player.id']) === idCandidate);
+            player = resolvePlayerIdentity(idCandidate, fallbackName);
             if (!player) {
-                player = playersData.find(p => p.Spielername === idCandidate);
+                player = getPlayerByName(idCandidate);
             }
         }
         if (!player && fallbackName) {
-            player = playersData.find(p => p.Spielername === fallbackName);
+            player = getPlayerByName(fallbackName);
         }
         if (!player) return;
         currentPlayerId = String(player['player.id']);
@@ -7866,10 +7892,10 @@
         // bookmarks keep working.
         let targetPlayer = null;
         if (currentPlayerId) {
-            targetPlayer = playersData.find(p => String(p['player.id']) === String(currentPlayerId));
+            targetPlayer = resolvePlayerIdentity(currentPlayerId, currentPlayerName);
         }
         if (!targetPlayer && currentPlayerName) {
-            targetPlayer = playersData.find(p => p.Spielername === currentPlayerName);
+            targetPlayer = getPlayerByName(currentPlayerName);
         }
         if (!targetPlayer && filteredData.length > 0) {
             targetPlayer = filteredData[0];

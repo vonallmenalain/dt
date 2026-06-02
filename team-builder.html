@@ -3021,6 +3021,20 @@
         return playerById.get(String(playerId)) || null;
     }
 
+    function getPlayerByStoredSnapshot(savedPlayer) {
+        if (!savedPlayer || !savedPlayer.name) return null;
+        return preparedPlayers.find(player => {
+            if (player.name !== savedPlayer.name) return false;
+            return !savedPlayer.nation || player.nation === savedPlayer.nation;
+        }) || null;
+    }
+
+    function resolveSavedPlayer(savedPlayer) {
+        const byId = getPlayerById(savedPlayer && savedPlayer.playerId);
+        if (byId && (!savedPlayer || !savedPlayer.name || byId.name === savedPlayer.name)) return byId;
+        return getPlayerByStoredSnapshot(savedPlayer) || byId;
+    }
+
     function getSlotPlayerId(slotId) {
         return selectedTeam[String(slotId)] ? String(selectedTeam[String(slotId)]) : null;
     }
@@ -4563,10 +4577,12 @@
                 const slotId = String(p.slot || '').replace(/^slot-/, '');
                 if (!isValidSlotId(slotId)) return;
                 const playerId = String(p.playerId);
-                newTeam[slotId] = playerId;
-                if (p.isCaptain) newCaptain = playerId;
+                const resolvedPlayer = resolveSavedPlayer(p);
+                const canonicalPlayerId = resolvedPlayer ? String(resolvedPlayer.id) : playerId;
+                newTeam[slotId] = canonicalPlayerId;
+                if (p.isCaptain) newCaptain = canonicalPlayerId;
 
-                if (!playerById.has(playerId)) {
+                if (!resolvedPlayer && !playerById.has(playerId)) {
                     const orphan = buildOrphanPlayerFromSnapshot(p);
                     if (orphan) {
                         playerById.set(playerId, orphan);
