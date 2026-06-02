@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Manueller Kader-Generator</title>
+    <title>Admin - API Kader-Generator</title>
     <meta name="theme-color" content="#1f7a5b">
     <link rel="manifest" href="Icons/site.webmanifest">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
@@ -12,11 +12,12 @@
     <style>
         :root {
             --page: #151719;
-            --panel: #22262a;
-            --panel-soft: #2d3338;
-            --line: #47515a;
-            --text: #f4f7f5;
-            --muted: #aab4ba;
+            --panel: #24292d;
+            --panel-soft: #2e353a;
+            --line: #4a555d;
+            --field: #101315;
+            --text: #f3f7f5;
+            --muted: #aeb9bf;
             --green: #27ae60;
             --green-dark: #1f8f50;
             --blue: #2980b9;
@@ -24,7 +25,6 @@
             --yellow: #f1c40f;
             --red: #c0392b;
             --red-dark: #9f2d22;
-            --field: #101214;
         }
 
         * {
@@ -41,43 +41,43 @@
         }
 
         .admin-container {
-            width: min(1320px, 100%);
+            width: min(1280px, 100%);
             margin: 0 auto;
+            padding: 24px;
             background: var(--panel);
             border: 1px solid var(--line);
             border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.38);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.38);
         }
 
         h1 {
             margin: 0 0 8px;
             color: var(--yellow);
             text-align: center;
-            font-size: clamp(24px, 3vw, 36px);
+            font-size: clamp(24px, 3vw, 34px);
             letter-spacing: 0;
         }
 
         .intro {
+            max-width: 780px;
             margin: 0 auto 22px;
-            max-width: 760px;
             color: var(--muted);
             text-align: center;
         }
 
         .layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+            grid-template-columns: minmax(340px, 0.78fr) minmax(0, 1.22fr);
             gap: 18px;
             align-items: start;
         }
 
         .section {
+            margin-bottom: 18px;
+            padding: 18px;
             background: var(--panel-soft);
             border: 1px solid var(--line);
             border-radius: 8px;
-            padding: 18px;
-            margin-bottom: 18px;
         }
 
         .section-title {
@@ -92,10 +92,6 @@
             gap: 12px;
         }
 
-        .form-grid.three {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
         .field.full {
             grid-column: 1 / -1;
         }
@@ -103,7 +99,7 @@
         label {
             display: block;
             margin-bottom: 6px;
-            color: #dbe3df;
+            color: #dde6e2;
             font-size: 13px;
             font-weight: 700;
         }
@@ -112,7 +108,7 @@
         select,
         textarea {
             width: 100%;
-            border: 1px solid #57636b;
+            border: 1px solid #5a6871;
             border-radius: 6px;
             background: var(--field);
             color: var(--text);
@@ -126,7 +122,7 @@
         }
 
         textarea {
-            min-height: 170px;
+            min-height: 132px;
             padding: 12px;
             font-family: Consolas, "Courier New", monospace;
             font-size: 12px;
@@ -140,9 +136,30 @@
             border-color: var(--green);
         }
 
+        .checks {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .check {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .check input {
+            width: auto;
+            min-height: auto;
+            margin-top: 3px;
+        }
+
         .button-row {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
             margin-top: 14px;
         }
@@ -155,18 +172,23 @@
             color: white;
             font-weight: 800;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s;
+            transition: background-color 0.2s, transform 0.2s, opacity 0.2s;
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             transform: translateY(-1px);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.58;
         }
 
         .btn-primary {
             background: var(--green);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background: var(--green-dark);
         }
 
@@ -174,7 +196,7 @@
             background: var(--blue);
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: var(--blue-dark);
         }
 
@@ -182,7 +204,7 @@
             background: var(--red);
         }
 
-        .btn-danger:hover {
+        .btn-danger:hover:not(:disabled) {
             background: var(--red-dark);
         }
 
@@ -190,130 +212,23 @@
             background: #53616b;
         }
 
-        .btn-neutral:hover {
+        .btn-neutral:hover:not(:disabled) {
             background: #647480;
-        }
-
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .status {
-            min-height: 24px;
-            color: var(--yellow);
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .player-list {
-            display: grid;
-            gap: 8px;
-            max-height: 360px;
-            overflow: auto;
-            padding-right: 4px;
-        }
-
-        .player-row {
-            display: grid;
-            grid-template-columns: 42px minmax(0, 1fr) 116px 82px;
-            gap: 10px;
-            align-items: center;
-            min-height: 58px;
-            padding: 9px;
-            border: 1px solid #424b52;
-            border-radius: 6px;
-            background: #1d2125;
-        }
-
-        .avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 6px;
-            object-fit: cover;
-            background: #0a0b0c;
-            border: 1px solid #3a4248;
-        }
-
-        .player-main {
-            min-width: 0;
-        }
-
-        .player-name {
-            overflow: hidden;
-            color: var(--text);
-            font-weight: 800;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .player-meta {
-            overflow: hidden;
-            color: var(--muted);
-            font-size: 12px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .pill {
-            justify-self: start;
-            min-width: 98px;
-            padding: 5px 8px;
-            border-radius: 6px;
-            background: #36434d;
-            color: #dce9ee;
-            font-size: 11px;
-            font-weight: 800;
-            text-align: center;
-        }
-
-        .row-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-
-        .row-actions button {
-            min-height: 34px;
-            padding: 6px 8px;
-            font-size: 12px;
-        }
-
-        .output {
-            min-height: 520px;
-        }
-
-        .compact-note {
-            margin: 8px 0 0;
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        .quick-example {
-            margin-top: 8px;
-            color: var(--muted);
-            font-family: Consolas, "Courier New", monospace;
-            font-size: 12px;
-            word-break: break-word;
         }
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .stat {
-            min-height: 70px;
+            min-height: 72px;
             padding: 12px;
-            border: 1px solid #424b52;
+            background: #1d2225;
+            border: 1px solid #444f56;
             border-radius: 6px;
-            background: #1d2125;
             text-align: center;
         }
 
@@ -330,13 +245,78 @@
             text-transform: uppercase;
         }
 
+        .progress {
+            height: 22px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            background: #111416;
+            border: 1px solid #444f56;
+            border-radius: 999px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--green), var(--yellow));
+            transition: width 0.25s;
+        }
+
+        .log-box {
+            min-height: 250px;
+            max-height: 390px;
+            overflow: auto;
+            margin-bottom: 14px;
+            padding: 14px;
+            background: #050707;
+            border: 1px solid #444f56;
+            border-radius: 6px;
+            color: #9fffae;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        .log-error {
+            color: #ff7f7f;
+        }
+
+        .log-warning {
+            color: #ffd761;
+        }
+
+        .log-info {
+            color: #8ed5ff;
+        }
+
+        .output {
+            min-height: 520px;
+        }
+
+        .status-line {
+            min-height: 22px;
+            margin-top: 10px;
+            color: var(--yellow);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .small-note {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
         @media (max-width: 980px) {
             .layout {
                 grid-template-columns: 1fr;
             }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
-        @media (max-width: 700px) {
+        @media (max-width: 640px) {
             body {
                 padding: 12px;
             }
@@ -346,178 +326,136 @@
             }
 
             .form-grid,
-            .form-grid.three,
             .button-row,
             .stats {
                 grid-template-columns: 1fr;
             }
 
-            .player-row {
-                grid-template-columns: 42px minmax(0, 1fr);
-            }
-
-            .pill,
-            .row-actions {
-                grid-column: 1 / -1;
-                width: 100%;
+            .field.full {
+                grid-column: auto;
             }
         }
     </style>
 </head>
 <body>
 <main class="admin-container">
-    <h1>Manueller Kader-Generator</h1>
+    <h1>API Kader-Generator</h1>
     <p class="intro">
-        Erfasse offizielle Kader per Formular oder Schnellerfassung und kopiere das fertige
-        <code>playersData</code>-Snippet in deine JavaScript-Datei.
+        Laedt Kader aus API-Football und erzeugt eine kopierbare
+        <code>const playersData = [...]</code>-Ausgabe im bestehenden Projektformat.
     </p>
 
     <div class="layout">
-        <div>
-            <section class="section" aria-labelledby="team-title">
-                <h2 id="team-title" class="section-title">Teamdaten</h2>
-                <div class="form-grid">
-                    <div class="field">
-                        <label for="nationalTeamName">Nationalteam.name</label>
-                        <input id="nationalTeamName" type="text" placeholder="Algeria" autocomplete="off">
-                    </div>
-                    <div class="field">
-                        <label for="nationalTeamId">Nationalteam API-ID</label>
-                        <input id="nationalTeamId" type="number" min="0" step="1" placeholder="1532">
-                    </div>
-                    <div class="field full">
-                        <label for="nationalTeamLogo">Nationalteam.logo</label>
-                        <input id="nationalTeamLogo" type="url" placeholder="https://media.api-sports.io/football/teams/1532.png" autocomplete="off">
-                    </div>
-                </div>
-                <div class="button-row">
-                    <button id="buildTeamLogoBtn" type="button" class="btn-neutral">Logo aus Team-ID</button>
-                    <button id="clearTeamBtn" type="button" class="btn-neutral">Teamdaten leeren</button>
-                    <button id="saveDraftBtn" type="button" class="btn-secondary">Entwurf sichern</button>
-                </div>
-            </section>
+        <section class="section" aria-labelledby="settings-title">
+            <h2 id="settings-title" class="section-title">API und Quelle</h2>
 
-            <section class="section" aria-labelledby="player-title">
-                <h2 id="player-title" class="section-title">Spieler erfassen</h2>
-                <form id="playerForm" autocomplete="off">
-                    <div class="form-grid three">
-                        <div class="field">
-                            <label for="playerId">player.id</label>
-                            <input id="playerId" type="number" min="0" step="1" required placeholder="342740">
-                        </div>
-                        <div class="field">
-                            <label for="playerName">Spielername</label>
-                            <input id="playerName" type="text" required placeholder="Achref Abada">
-                        </div>
-                        <div class="field">
-                            <label for="position">Position</label>
-                            <select id="position" required>
-                                <option value="GOALKEEPER">GOALKEEPER</option>
-                                <option value="DEFENDER">DEFENDER</option>
-                                <option value="MIDFIELDER">MIDFIELDER</option>
-                                <option value="ATTACKER">ATTACKER</option>
-                            </select>
-                        </div>
-                        <div class="field full">
-                            <label for="playerPhoto">Spielerfoto</label>
-                            <input id="playerPhoto" type="url" placeholder="https://media.api-sports.io/football/players/342740.png">
-                        </div>
-                        <div class="field">
-                            <label for="clubName">Club.name</label>
-                            <input id="clubName" type="text" placeholder="ASO Chlef">
-                        </div>
-                        <div class="field">
-                            <label for="clubId">Club API-ID</label>
-                            <input id="clubId" type="number" min="0" step="1" placeholder="931">
-                        </div>
-                        <div class="field">
-                            <label for="birthDate">Geburtsdatum</label>
-                            <input id="birthDate" type="date">
-                        </div>
-                        <div class="field full">
-                            <label for="clubLogo">Club.logo</label>
-                            <input id="clubLogo" type="url" placeholder="https://media.api-sports.io/football/teams/931.png">
-                        </div>
-                        <div class="field">
-                            <label for="height">Groesse</label>
-                            <input id="height" type="text" inputmode="numeric" placeholder="181 oder -">
-                        </div>
-                        <div class="field">
-                            <label for="weight">Gewicht</label>
-                            <input id="weight" type="text" inputmode="numeric" placeholder="72 oder -">
-                        </div>
-                    </div>
-                    <div class="button-row">
-                        <button id="addPlayerBtn" type="submit" class="btn-primary">Spieler hinzufuegen</button>
-                        <button id="buildPlayerUrlsBtn" type="button" class="btn-neutral">URLs aus IDs</button>
-                        <button id="resetPlayerBtn" type="button" class="btn-neutral">Formular leeren</button>
-                    </div>
-                </form>
-            </section>
+            <div class="form-grid">
+                <div class="field full">
+                    <label for="apiKey">API-Key</label>
+                    <input id="apiKey" type="password" autocomplete="off" placeholder="x-rapidapi-key">
+                </div>
 
-            <section class="section" aria-labelledby="quick-title">
-                <h2 id="quick-title" class="section-title">Schnellerfassung</h2>
-                <label for="quickInput">Eine Zeile pro Spieler</label>
-                <textarea id="quickInput" spellcheck="false" placeholder="342740 | Achref Abada | DEFENDER | ASO Chlef | 931 | 1999-06-15 | - | -"></textarea>
-                <p class="quick-example">Format: player.id | Spielername | Position | Club.name | Club-ID | Geburtsdatum | Groesse | Gewicht</p>
-                <div class="button-row">
-                    <button id="importQuickBtn" type="button" class="btn-primary">Zeilen importieren</button>
-                    <button id="clearQuickBtn" type="button" class="btn-neutral">Feld leeren</button>
-                    <button id="sortPlayersBtn" type="button" class="btn-secondary">Sortieren</button>
+                <div class="field">
+                    <label for="competitionParam">Teams-Parameter</label>
+                    <input id="competitionParam" type="text" value="league" autocomplete="off">
                 </div>
-            </section>
 
-            <section class="section" aria-labelledby="import-title">
-                <h2 id="import-title" class="section-title">Bestehende Ausgabe importieren</h2>
-                <label for="importInput">playersData-Code oder reines JSON-Array</label>
-                <textarea id="importInput" spellcheck="false" placeholder='const playersData = [
-    {
-        "player.id": 342740,
-        "Spielername": "Achref Abada"
-    }
-];'></textarea>
-                <div class="button-row">
-                    <button id="importCodeBtn" type="button" class="btn-secondary">Code importieren</button>
-                    <button id="clearImportBtn" type="button" class="btn-neutral">Feld leeren</button>
-                    <button id="clearAllBtn" type="button" class="btn-danger">Alles leeren</button>
+                <div class="field">
+                    <label for="competitionId">Wettbewerb-ID</label>
+                    <input id="competitionId" type="number" min="0" step="1" value="1">
                 </div>
-            </section>
-        </div>
 
-        <aside>
-            <section class="section" aria-labelledby="list-title">
-                <div class="toolbar">
-                    <h2 id="list-title" class="section-title">Kader</h2>
-                    <div id="status" class="status" role="status" aria-live="polite"></div>
+                <div class="field">
+                    <label for="competitionSeason">Teams-Saison</label>
+                    <input id="competitionSeason" type="number" min="1900" max="2100" step="1" value="2026">
                 </div>
-                <div class="stats" aria-label="Kaderstatistik">
-                    <div class="stat">
-                        <div id="statPlayers" class="stat-value">0</div>
-                        <div class="stat-label">Spieler</div>
-                    </div>
-                    <div class="stat">
-                        <div id="statTeams" class="stat-value">0</div>
-                        <div class="stat-label">Teams</div>
-                    </div>
-                    <div class="stat">
-                        <div id="statClubs" class="stat-value">0</div>
-                        <div class="stat-label">Clubs</div>
-                    </div>
-                </div>
-                <div id="playerList" class="player-list"></div>
-            </section>
 
-            <section class="section" aria-labelledby="output-title">
-                <h2 id="output-title" class="section-title">Kopierbare JS-Ausgabe</h2>
-                <textarea id="output" class="output" spellcheck="false" readonly></textarea>
-                <div class="button-row">
-                    <button id="copyOutputBtn" type="button" class="btn-primary">Code kopieren</button>
-                    <button id="downloadOutputBtn" type="button" class="btn-secondary">data.js herunterladen</button>
-                    <button id="copyArrayBtn" type="button" class="btn-neutral">Nur Array kopieren</button>
+                <div class="field">
+                    <label for="detailSeasons">Detail-Saisons</label>
+                    <input id="detailSeasons" type="text" value="2026,2025,2024" autocomplete="off">
                 </div>
-                <p class="compact-note">Leere Groesse/Gewicht-Felder bleiben leer; fehlende Geburtsdaten werden als "-" ausgegeben.</p>
-            </section>
-        </aside>
+
+                <div class="field">
+                    <label for="rateDelay">Pause pro API-Call (ms)</label>
+                    <input id="rateDelay" type="number" min="0" max="3000" step="20" value="180">
+                </div>
+
+                <div class="field">
+                    <label for="maxTeams">Max. Teams</label>
+                    <input id="maxTeams" type="number" min="0" step="1" value="0">
+                </div>
+
+                <div class="field full">
+                    <label for="teamIds">Team-IDs direkt laden</label>
+                    <textarea id="teamIds" spellcheck="false" placeholder="Optional: 1532, 26, 25"></textarea>
+                    <p class="small-note">Wenn Team-IDs eingetragen sind, wird die Wettbewerb-Teamsuche uebersprungen.</p>
+                </div>
+            </div>
+
+            <div class="checks">
+                <label class="check">
+                    <input id="nationalOnly" type="checkbox" checked>
+                    Nur Nationalteams aus der Teamsuche verwenden
+                </label>
+                <label class="check">
+                    <input id="loadDetails" type="checkbox" checked>
+                    Spielerdetails laden: Club, Geburtsdatum, Groesse und Gewicht
+                </label>
+                <label class="check">
+                    <input id="dedupePlayers" type="checkbox" checked>
+                    Spieler-IDs ueber alle Teams deduplizieren
+                </label>
+            </div>
+
+            <div class="button-row">
+                <button id="startBtn" type="button" class="btn-primary">Kader generieren</button>
+                <button id="stopBtn" type="button" class="btn-danger" disabled>Abbrechen</button>
+                <button id="toggleKeyBtn" type="button" class="btn-neutral">Key anzeigen</button>
+                <button id="clearBtn" type="button" class="btn-neutral">Ausgabe leeren</button>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="result-title">
+            <h2 id="result-title" class="section-title">Fortschritt und Ausgabe</h2>
+
+            <div class="stats" aria-label="Generator-Statistik">
+                <div class="stat">
+                    <div id="statTeams" class="stat-value">0</div>
+                    <div class="stat-label">Teams</div>
+                </div>
+                <div class="stat">
+                    <div id="statSquads" class="stat-value">0</div>
+                    <div class="stat-label">Squads</div>
+                </div>
+                <div class="stat">
+                    <div id="statPlayers" class="stat-value">0</div>
+                    <div class="stat-label">Spieler</div>
+                </div>
+                <div class="stat">
+                    <div id="statDone" class="stat-value">0</div>
+                    <div class="stat-label">Details</div>
+                </div>
+                <div class="stat">
+                    <div id="statFallback" class="stat-value">0</div>
+                    <div class="stat-label">Fallback</div>
+                </div>
+            </div>
+
+            <div class="progress" aria-hidden="true">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+
+            <div id="logBox" class="log-box">Bereit. API-Key einfuegen und Kader generieren.</div>
+
+            <label for="output">JS-Code</label>
+            <textarea id="output" class="output" spellcheck="false" readonly></textarea>
+
+            <div class="button-row">
+                <button id="copyCodeBtn" type="button" class="btn-primary">Code kopieren</button>
+                <button id="copyArrayBtn" type="button" class="btn-secondary">Nur Array kopieren</button>
+            </div>
+            <div id="statusLine" class="status-line" role="status" aria-live="polite"></div>
+        </section>
     </div>
 </main>
 
@@ -525,387 +463,557 @@
     (function () {
         "use strict";
 
-        const STORAGE_KEY = "dreamteam_manual_kader_generator_v1";
-        const URL_TEAM = "https://media.api-sports.io/football/teams/";
-        const URL_PLAYER = "https://media.api-sports.io/football/players/";
+        const API_HOST = "v3.football.api-sports.io";
+        const API_BASE = "https://" + API_HOST;
+        const PLAYER_PHOTO_BASE = "https://media.api-sports.io/football/players/";
 
-        const players = [];
-        let editingId = null;
-
-        const fields = {
-            nationalTeamName: document.getElementById("nationalTeamName"),
-            nationalTeamId: document.getElementById("nationalTeamId"),
-            nationalTeamLogo: document.getElementById("nationalTeamLogo"),
-            playerId: document.getElementById("playerId"),
-            playerName: document.getElementById("playerName"),
-            playerPhoto: document.getElementById("playerPhoto"),
-            position: document.getElementById("position"),
-            clubName: document.getElementById("clubName"),
-            clubId: document.getElementById("clubId"),
-            clubLogo: document.getElementById("clubLogo"),
-            birthDate: document.getElementById("birthDate"),
-            height: document.getElementById("height"),
-            weight: document.getElementById("weight"),
-            quickInput: document.getElementById("quickInput"),
-            importInput: document.getElementById("importInput"),
-            output: document.getElementById("output")
-        };
+        let API_KEY = "";
+        let RATE_DELAY = 180;
+        let stopRequested = false;
+        let finalData = [];
 
         const els = {
-            playerForm: document.getElementById("playerForm"),
-            addPlayerBtn: document.getElementById("addPlayerBtn"),
-            playerList: document.getElementById("playerList"),
-            status: document.getElementById("status"),
-            statPlayers: document.getElementById("statPlayers"),
+            apiKey: document.getElementById("apiKey"),
+            competitionParam: document.getElementById("competitionParam"),
+            competitionId: document.getElementById("competitionId"),
+            competitionSeason: document.getElementById("competitionSeason"),
+            detailSeasons: document.getElementById("detailSeasons"),
+            rateDelay: document.getElementById("rateDelay"),
+            maxTeams: document.getElementById("maxTeams"),
+            teamIds: document.getElementById("teamIds"),
+            nationalOnly: document.getElementById("nationalOnly"),
+            loadDetails: document.getElementById("loadDetails"),
+            dedupePlayers: document.getElementById("dedupePlayers"),
+            startBtn: document.getElementById("startBtn"),
+            stopBtn: document.getElementById("stopBtn"),
+            toggleKeyBtn: document.getElementById("toggleKeyBtn"),
+            clearBtn: document.getElementById("clearBtn"),
             statTeams: document.getElementById("statTeams"),
-            statClubs: document.getElementById("statClubs")
+            statSquads: document.getElementById("statSquads"),
+            statPlayers: document.getElementById("statPlayers"),
+            statDone: document.getElementById("statDone"),
+            statFallback: document.getElementById("statFallback"),
+            progressBar: document.getElementById("progressBar"),
+            logBox: document.getElementById("logBox"),
+            output: document.getElementById("output"),
+            copyCodeBtn: document.getElementById("copyCodeBtn"),
+            copyArrayBtn: document.getElementById("copyArrayBtn"),
+            statusLine: document.getElementById("statusLine")
         };
 
-        function trim(value) {
+        function text(value) {
             return String(value == null ? "" : value).trim();
         }
 
-        function numberOrString(value) {
-            const cleaned = trim(value);
-            if (!cleaned) return "";
-            const numeric = Number(cleaned);
-            return Number.isFinite(numeric) ? numeric : cleaned;
+        function setStat(el, value) {
+            el.textContent = String(value);
         }
 
-        function urlFromId(base, id) {
-            const cleaned = trim(id);
-            return cleaned ? `${base}${cleaned}.png` : "";
+        function setProgress(done, total) {
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            els.progressBar.style.width = pct + "%";
+        }
+
+        function log(message, className) {
+            const line = document.createElement("div");
+            line.textContent = "[" + new Date().toLocaleTimeString() + "] " + message;
+            if (className) line.className = className;
+            els.logBox.appendChild(line);
+            els.logBox.scrollTop = els.logBox.scrollHeight;
+        }
+
+        function showStatus(message) {
+            els.statusLine.textContent = message;
+            window.clearTimeout(showStatus.timer);
+            showStatus.timer = window.setTimeout(function () {
+                els.statusLine.textContent = "";
+            }, 3500);
+        }
+
+        function delay(ms) {
+            return new Promise(function (resolve) {
+                window.setTimeout(resolve, ms);
+            });
+        }
+
+        function buildHeaders() {
+            return {
+                method: "GET",
+                headers: {
+                    "x-rapidapi-key": API_KEY,
+                    "x-rapidapi-host": API_HOST
+                }
+            };
+        }
+
+        function hasApiErrors(data) {
+            if (!data || !data.errors) return false;
+            if (Array.isArray(data.errors)) return data.errors.length > 0;
+            return Object.keys(data.errors).length > 0;
+        }
+
+        async function apiGet(path) {
+            const url = path.indexOf("http") === 0 ? path : API_BASE + path;
+            const response = await fetch(url, buildHeaders());
+            let data;
+            try {
+                data = await response.json();
+            } catch (err) {
+                throw new Error("Ungueltige JSON-Antwort von " + url);
+            }
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status + " fuer " + url);
+            }
+            if (hasApiErrors(data)) {
+                throw new Error(JSON.stringify(data.errors));
+            }
+            return data;
+        }
+
+        function parseIdList(value) {
+            return text(value)
+                .split(/[\s,;|]+/)
+                .map(function (item) { return text(item); })
+                .filter(Boolean)
+                .filter(function (item, index, list) { return list.indexOf(item) === index; });
+        }
+
+        function parseSeasons() {
+            const seasons = parseIdList(els.detailSeasons.value);
+            if (seasons.length > 0) return seasons;
+            return [text(els.competitionSeason.value) || "2026"];
+        }
+
+        function cleanHeight(value) {
+            if (!value) return "-";
+            return String(value).replace(" cm", "").trim() || "-";
+        }
+
+        function cleanWeight(value) {
+            if (!value) return "-";
+            return String(value).replace(" kg", "").trim() || "-";
         }
 
         function normalizePosition(value) {
-            const raw = trim(value).toUpperCase();
-            const compact = raw.replace(/\s+/g, "");
+            const raw = text(value).toUpperCase().replace(/\s+/g, "");
             const aliases = {
+                G: "GOALKEEPER",
                 GK: "GOALKEEPER",
-                GOALIE: "GOALKEEPER",
+                GOALKEEPER: "GOALKEEPER",
                 KEEPER: "GOALKEEPER",
                 TORWART: "GOALKEEPER",
+                D: "DEFENDER",
                 DF: "DEFENDER",
                 DEF: "DEFENDER",
+                DEFENDER: "DEFENDER",
                 DEFENCE: "DEFENDER",
-                VERTEIDIGER: "DEFENDER",
+                M: "MIDFIELDER",
                 MF: "MIDFIELDER",
                 MID: "MIDFIELDER",
+                MIDFIELDER: "MIDFIELDER",
                 MIDFIELD: "MIDFIELDER",
-                MITTELFELD: "MIDFIELDER",
+                F: "ATTACKER",
                 FW: "ATTACKER",
-                FORWARD: "ATTACKER",
                 ST: "ATTACKER",
+                ATT: "ATTACKER",
                 ATTACK: "ATTACKER",
-                STUERMER: "ATTACKER",
-                STURMER: "ATTACKER"
+                ATTACKER: "ATTACKER",
+                FORWARD: "ATTACKER"
             };
-            if (["GOALKEEPER", "DEFENDER", "MIDFIELDER", "ATTACKER"].includes(compact)) {
-                return compact;
+            return aliases[raw] || "MIDFIELDER";
+        }
+
+        function decodeNameEntities(value) {
+            const raw = text(value);
+            if (!raw || raw.indexOf("&") === -1) return raw;
+            const textarea = document.createElement("textarea");
+            textarea.innerHTML = raw;
+            return textarea.value;
+        }
+
+        function buildCleanName(player, fallbackName) {
+            const apiName = decodeNameEntities(player && player.name).trim();
+            const firstname = decodeNameEntities(player && player.firstname).trim();
+            const lastname = decodeNameEntities(player && player.lastname).trim();
+            const firstWord = firstname.split(/\s+/).filter(Boolean)[0] || "";
+
+            if (!apiName) {
+                return (firstWord + " " + lastname).trim() || text(fallbackName) || "Unbekannt";
             }
-            return aliases[compact] || "MIDFIELDER";
+
+            if (/^[A-Z]\.\s+/.test(apiName) && firstWord) {
+                return (firstWord + " " + apiName.split(".").pop().trim()).trim();
+            }
+
+            const apiTokens = apiName.split(/\s+/).filter(Boolean);
+            if (apiTokens.length <= 2) return apiName;
+
+            const lastnameTokens = lastname.split(/\s+/).filter(Boolean);
+            const firstnameTokens = firstname.split(/\s+/).filter(Boolean);
+            if (firstnameTokens.length >= 2 || lastnameTokens.length >= 2) {
+                return (firstWord + " " + (lastnameTokens[lastnameTokens.length - 1] || "")).trim() || apiName;
+            }
+
+            if (firstname || lastname) {
+                return (firstWord + " " + lastname).trim() || apiName;
+            }
+
+            return apiName;
         }
 
-        function cleanMetric(value) {
-            const cleaned = trim(value);
-            if (!cleaned) return "";
-            const numberOnly = cleaned.match(/\d+/);
-            if (numberOnly) return numberOnly[0];
-            return cleaned;
+        function playerPhotoUrl(playerId) {
+            return playerId ? PLAYER_PHOTO_BASE + encodeURIComponent(playerId) + ".png" : "";
         }
 
-        function currentTeam() {
-            const teamId = trim(fields.nationalTeamId.value);
+        function pickClubFromStats(allStats, nationalTeamId, seasonsTried, competitionId) {
+            if (!Array.isArray(allStats) || allStats.length === 0) {
+                return { name: "Vereinslos", logo: "" };
+            }
+
+            function isClubEntry(stat) {
+                return stat &&
+                    stat.team &&
+                    String(stat.team.id) !== String(nationalTeamId) &&
+                    stat.team.national !== true &&
+                    stat.league &&
+                    String(stat.league.id) !== String(competitionId);
+            }
+
+            for (const season of seasonsTried) {
+                const match = allStats.find(function (stat) {
+                    return isClubEntry(stat) && String(stat.league && stat.league.season) === String(season);
+                });
+                if (match && match.team && match.team.name) {
+                    return { name: match.team.name, logo: match.team.logo || "" };
+                }
+            }
+
+            const firstReal = allStats.find(isClubEntry);
+            if (firstReal && firstReal.team && firstReal.team.name) {
+                return { name: firstReal.team.name, logo: firstReal.team.logo || "" };
+            }
+
+            const fallback = allStats.find(function (stat) {
+                return stat &&
+                    stat.team &&
+                    String(stat.team.id) !== String(nationalTeamId) &&
+                    stat.team.national !== true;
+            });
+            if (fallback && fallback.team && fallback.team.name) {
+                return { name: fallback.team.name, logo: fallback.team.logo || "" };
+            }
+
+            return { name: "Vereinslos", logo: "" };
+        }
+
+        async function loadPlayerDetail(playerId, seasons) {
+            const tried = [];
+            let firstPlayer = null;
+            const combinedStats = [];
+
+            for (const season of seasons) {
+                if (stopRequested) break;
+                tried.push(season);
+                try {
+                    const data = await apiGet("/players?id=" + encodeURIComponent(playerId) + "&season=" + encodeURIComponent(season));
+                    if (data.response && data.response.length > 0) {
+                        const entry = data.response[0];
+                        if (!firstPlayer && entry.player) firstPlayer = entry.player;
+                        if (Array.isArray(entry.statistics)) {
+                            entry.statistics.forEach(function (stat) {
+                                if (stat && stat.league && (stat.league.season == null || stat.league.season === "")) {
+                                    stat.league.season = season;
+                                }
+                                combinedStats.push(stat);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    log("Detail-Fallback fuer Spieler " + playerId + " nach Saison " + season + ": " + err.message, "log-warning");
+                }
+                if (RATE_DELAY > 0) await delay(RATE_DELAY);
+            }
+
+            if (!stopRequested && (!firstPlayer || combinedStats.length === 0)) {
+                try {
+                    const data = await apiGet("/players?id=" + encodeURIComponent(playerId));
+                    if (data.response && data.response.length > 0) {
+                        const entry = data.response[0];
+                        if (!firstPlayer && entry.player) firstPlayer = entry.player;
+                        if (Array.isArray(entry.statistics)) {
+                            entry.statistics.forEach(function (stat) {
+                                combinedStats.push(stat);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    log("Detail ohne Saison fehlgeschlagen fuer Spieler " + playerId + ": " + err.message, "log-warning");
+                }
+                if (RATE_DELAY > 0) await delay(RATE_DELAY);
+            }
+
+            if (!firstPlayer) {
+                return { detail: null, seasonsTried: tried };
+            }
+
             return {
-                name: trim(fields.nationalTeamName.value),
-                logo: trim(fields.nationalTeamLogo.value) || urlFromId(URL_TEAM, teamId)
+                detail: { player: firstPlayer, statistics: combinedStats },
+                seasonsTried: tried
             };
         }
 
-        function buildPlayerFromForm() {
-            const team = currentTeam();
-            const playerId = trim(fields.playerId.value);
-            const clubId = trim(fields.clubId.value);
+        async function loadTeamsByIds(teamIds) {
+            const teams = [];
+            for (const id of teamIds) {
+                if (stopRequested) break;
+                try {
+                    const data = await apiGet("/teams?id=" + encodeURIComponent(id));
+                    const entry = data.response && data.response[0];
+                    const team = entry && entry.team ? entry.team : { id: Number(id), name: "Team " + id, logo: "" };
+                    teams.push(team);
+                    log("Team geladen: " + (team.name || id));
+                } catch (err) {
+                    teams.push({ id: Number(id), name: "Team " + id, logo: "" });
+                    log("Team " + id + " konnte nicht aufgeloest werden, ID wird trotzdem genutzt.", "log-warning");
+                }
+                if (RATE_DELAY > 0) await delay(RATE_DELAY);
+            }
+            return teams;
+        }
+
+        async function loadTeamsByCompetition(param, competitionId, season, nationalOnly) {
+            const query =
+                "/teams?" +
+                encodeURIComponent(param) + "=" + encodeURIComponent(competitionId) +
+                "&season=" + encodeURIComponent(season);
+            const data = await apiGet(query);
+            let teams = (data.response || [])
+                .map(function (entry) { return entry && entry.team; })
+                .filter(function (team) { return team && team.id; });
+            if (nationalOnly) {
+                teams = teams.filter(function (team) { return team.national === true; });
+            }
+            return teams;
+        }
+
+        async function loadSquads(teams) {
+            const squadEntries = [];
+            const seenIds = new Set();
+            let squadsLoaded = 0;
+
+            for (let i = 0; i < teams.length; i++) {
+                if (stopRequested) break;
+
+                const team = teams[i];
+                try {
+                    const data = await apiGet("/players/squads?team=" + encodeURIComponent(team.id));
+                    const entry = data.response && data.response[0];
+                    const players = (entry && entry.players) || [];
+                    const nationalTeam = {
+                        id: (entry && entry.team && entry.team.id) || team.id,
+                        name: (entry && entry.team && entry.team.name) || team.name || "",
+                        logo: (entry && entry.team && entry.team.logo) || team.logo || ""
+                    };
+
+                    squadsLoaded++;
+                    setStat(els.statSquads, squadsLoaded);
+                    log("Squad geladen: " + nationalTeam.name + " (" + players.length + " Spieler)");
+
+                    players.forEach(function (player) {
+                        if (!player || player.id == null) return;
+                        const playerKey = String(player.id);
+                        if (els.dedupePlayers.checked && seenIds.has(playerKey)) return;
+                        seenIds.add(playerKey);
+                        squadEntries.push({
+                            playerId: player.id,
+                            squadName: player.name || "",
+                            squadPosition: player.position || "",
+                            squadPhoto: player.photo || "",
+                            nationalTeam: nationalTeam
+                        });
+                    });
+
+                    setStat(els.statPlayers, squadEntries.length);
+                } catch (err) {
+                    log("Squad-Fehler bei " + (team.name || team.id) + ": " + err.message, "log-error");
+                }
+
+                setProgress(i + 1, Math.max(teams.length, 1));
+                if (RATE_DELAY > 0) await delay(RATE_DELAY);
+            }
+
+            return squadEntries;
+        }
+
+        function buildPlayerEntry(entry, detailResult, competitionId) {
+            const detail = detailResult && detailResult.detail;
+            const seasonsTried = detailResult && detailResult.seasonsTried ? detailResult.seasonsTried : [];
+            const fullPlayer = detail && detail.player ? detail.player : {};
+            const stats = detail && Array.isArray(detail.statistics) ? detail.statistics : [];
+            const clubInfo = pickClubFromStats(stats, entry.nationalTeam.id, seasonsTried, competitionId);
+            const positionFromStats = stats[0] && stats[0].games && stats[0].games.position;
+            const playerId = fullPlayer.id != null ? fullPlayer.id : entry.playerId;
 
             return {
-                "player.id": numberOrString(playerId),
-                "Spielername": trim(fields.playerName.value),
-                "Spielerfoto": trim(fields.playerPhoto.value) || urlFromId(URL_PLAYER, playerId),
-                "Position": normalizePosition(fields.position.value),
-                "Nationalteam.name": team.name,
-                "Nationalteam.logo": team.logo,
-                "Club.name": trim(fields.clubName.value) || "-",
-                "Club.logo": trim(fields.clubLogo.value) || urlFromId(URL_TEAM, clubId),
-                "Geburtsdatum": trim(fields.birthDate.value) || "-",
-                "Groesse": cleanMetric(fields.height.value),
-                "Gewicht": cleanMetric(fields.weight.value)
+                "player.id": playerId,
+                "Spielername": buildCleanName(fullPlayer, entry.squadName),
+                "Spielerfoto": text(fullPlayer.photo) || text(entry.squadPhoto) || playerPhotoUrl(playerId),
+                "Position": normalizePosition(positionFromStats || entry.squadPosition),
+                "Nationalteam.name": entry.nationalTeam.name || "",
+                "Nationalteam.logo": entry.nationalTeam.logo || "",
+                "Club.name": clubInfo.name,
+                "Club.logo": clubInfo.logo,
+                "Geburtsdatum": (fullPlayer.birth && fullPlayer.birth.date) || "-",
+                "Groesse": cleanHeight(fullPlayer.height),
+                "Gewicht": cleanWeight(fullPlayer.weight)
             };
         }
 
-        function normalizePlayer(player) {
-            const id = player && player["player.id"];
-            return {
-                "player.id": numberOrString(id),
-                "Spielername": trim(player && player["Spielername"]),
-                "Spielerfoto": trim(player && player["Spielerfoto"]),
-                "Position": normalizePosition(player && player["Position"]),
-                "Nationalteam.name": trim(player && player["Nationalteam.name"]),
-                "Nationalteam.logo": trim(player && player["Nationalteam.logo"]),
-                "Club.name": trim(player && player["Club.name"]) || "-",
-                "Club.logo": trim(player && player["Club.logo"]),
-                "Geburtsdatum": trim(player && player["Geburtsdatum"]) || "-",
-                "Groesse": cleanMetric(player && player["Groesse"]),
-                "Gewicht": cleanMetric(player && player["Gewicht"])
-            };
-        }
-
-        function sortPlayers() {
-            players.sort((a, b) => {
+        function sortFinalData() {
+            finalData.sort(function (a, b) {
                 const teamCompare = String(a["Nationalteam.name"] || "").localeCompare(
                     String(b["Nationalteam.name"] || ""),
                     "de",
                     { sensitivity: "base" }
                 );
                 if (teamCompare !== 0) return teamCompare;
-                return String(a["Spielername"] || "").localeCompare(
-                    String(b["Spielername"] || ""),
+                return String(a.Spielername || "").localeCompare(
+                    String(b.Spielername || ""),
                     "de",
                     { sensitivity: "base" }
                 );
             });
         }
 
-        function upsertPlayer(player) {
-            const normalized = normalizePlayer(player);
-            if (!normalized["player.id"] && normalized["player.id"] !== 0) {
-                showStatus("player.id fehlt.");
-                return false;
-            }
-            if (!normalized.Spielername) {
-                showStatus("Spielername fehlt.");
-                return false;
-            }
-            if (!normalized["Nationalteam.name"]) {
-                showStatus("Nationalteam.name fehlt.");
-                return false;
-            }
-
-            const key = String(normalized["player.id"]);
-            const index = players.findIndex(item => String(item["player.id"]) === key);
-            if (index >= 0) {
-                players[index] = normalized;
-                showStatus(`${normalized.Spielername} aktualisiert.`);
-            } else {
-                players.push(normalized);
-                showStatus(`${normalized.Spielername} hinzugefuegt.`);
-            }
-            sortPlayers();
-            render();
-            saveDraft();
-            return true;
+        function buildCode() {
+            return "const playersData = " + JSON.stringify(finalData, null, 4) + ";";
         }
 
-        function removePlayer(id) {
-            const key = String(id);
-            const index = players.findIndex(item => String(item["player.id"]) === key);
-            if (index < 0) return;
-            const removed = players.splice(index, 1)[0];
-            if (editingId === key) resetPlayerForm();
-            showStatus(`${removed.Spielername} entfernt.`);
-            render();
-            saveDraft();
+        function renderOutput() {
+            els.output.value = buildCode();
         }
 
-        function editPlayer(id) {
-            const key = String(id);
-            const player = players.find(item => String(item["player.id"]) === key);
-            if (!player) return;
-
-            editingId = key;
-            fields.playerId.value = player["player.id"];
-            fields.playerName.value = player.Spielername || "";
-            fields.playerPhoto.value = player.Spielerfoto || "";
-            fields.position.value = normalizePosition(player.Position);
-            fields.clubName.value = player["Club.name"] || "";
-            fields.clubId.value = extractApiId(player["Club.logo"]);
-            fields.clubLogo.value = player["Club.logo"] || "";
-            fields.birthDate.value = /^\d{4}-\d{2}-\d{2}$/.test(player.Geburtsdatum || "") ? player.Geburtsdatum : "";
-            fields.height.value = player.Groesse || "";
-            fields.weight.value = player.Gewicht || "";
-            fields.nationalTeamName.value = player["Nationalteam.name"] || "";
-            fields.nationalTeamId.value = extractApiId(player["Nationalteam.logo"]);
-            fields.nationalTeamLogo.value = player["Nationalteam.logo"] || "";
-            els.addPlayerBtn.textContent = "Spieler aktualisieren";
-            fields.playerName.focus();
-            showStatus(`${player.Spielername} im Formular.`);
+        function resetRunUi() {
+            setStat(els.statTeams, 0);
+            setStat(els.statSquads, 0);
+            setStat(els.statPlayers, 0);
+            setStat(els.statDone, 0);
+            setStat(els.statFallback, 0);
+            setProgress(0, 1);
+            els.logBox.textContent = "";
+            finalData = [];
+            renderOutput();
         }
 
-        function extractApiId(url) {
-            const match = trim(url).match(/\/(\d+)\.png(?:\?.*)?$/);
-            return match ? match[1] : "";
+        function setRunning(isRunning) {
+            els.startBtn.disabled = isRunning;
+            els.stopBtn.disabled = !isRunning;
+            els.copyCodeBtn.disabled = isRunning;
+            els.copyArrayBtn.disabled = isRunning;
         }
 
-        function resetPlayerForm() {
-            editingId = null;
-            els.playerForm.reset();
-            fields.position.value = "GOALKEEPER";
-            els.addPlayerBtn.textContent = "Spieler hinzufuegen";
-            fields.playerId.focus();
-        }
-
-        function buildOutput() {
-            return `const playersData = ${JSON.stringify(players, null, 4)};`;
-        }
-
-        function render() {
-            els.statPlayers.textContent = String(players.length);
-            els.statTeams.textContent = String(new Set(players.map(p => p["Nationalteam.name"]).filter(Boolean)).size);
-            els.statClubs.textContent = String(new Set(players.map(p => p["Club.name"]).filter(Boolean)).size);
-            fields.output.value = buildOutput();
-
-            if (players.length === 0) {
-                els.playerList.innerHTML = "<div class=\"compact-note\">Noch keine Spieler erfasst.</div>";
+        async function generateSquads() {
+            API_KEY = text(els.apiKey.value);
+            if (!API_KEY) {
+                alert("Bitte API-Key eingeben.");
                 return;
             }
 
-            els.playerList.innerHTML = "";
-            players.forEach(player => {
-                const row = document.createElement("div");
-                row.className = "player-row";
-                row.innerHTML = `
-                    <img class="avatar" src="${escapeHtml(player.Spielerfoto || "")}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-                    <div class="player-main">
-                        <div class="player-name">${escapeHtml(player.Spielername)}</div>
-                        <div class="player-meta">${escapeHtml(player["Nationalteam.name"] || "-")} | ${escapeHtml(player["Club.name"] || "-")} | ID ${escapeHtml(player["player.id"])}</div>
-                    </div>
-                    <div class="pill">${escapeHtml(player.Position)}</div>
-                    <div class="row-actions">
-                        <button type="button" class="btn-secondary" data-action="edit" data-id="${escapeHtml(player["player.id"])}">Edit</button>
-                        <button type="button" class="btn-danger" data-action="delete" data-id="${escapeHtml(player["player.id"])}">Del</button>
-                    </div>
-                `;
-                els.playerList.appendChild(row);
-            });
-        }
+            resetRunUi();
+            setRunning(true);
+            stopRequested = false;
+            RATE_DELAY = Math.max(0, Math.min(3000, Number(els.rateDelay.value) || 180));
 
-        function escapeHtml(value) {
-            return String(value == null ? "" : value)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#39;");
-        }
+            const competitionParam = text(els.competitionParam.value) || "league";
+            const competitionId = text(els.competitionId.value) || "1";
+            const competitionSeason = text(els.competitionSeason.value) || "2026";
+            const detailSeasons = parseSeasons();
+            const directTeamIds = parseIdList(els.teamIds.value);
+            const maxTeams = Math.max(0, Number(els.maxTeams.value) || 0);
+            let fallbackCount = 0;
 
-        function showStatus(message) {
-            els.status.textContent = message;
-            window.clearTimeout(showStatus.timer);
-            showStatus.timer = window.setTimeout(() => {
-                els.status.textContent = "";
-            }, 3500);
-        }
-
-        function parseQuickLine(line) {
-            const parts = line.split("|").map(part => trim(part));
-            if (parts.length < 3) return null;
-            const team = currentTeam();
-            const playerId = parts[0];
-            const clubId = parts[4] || "";
-
-            return normalizePlayer({
-                "player.id": playerId,
-                "Spielername": parts[1],
-                "Position": parts[2],
-                "Nationalteam.name": team.name,
-                "Nationalteam.logo": team.logo,
-                "Spielerfoto": urlFromId(URL_PLAYER, playerId),
-                "Club.name": parts[3] || "-",
-                "Club.logo": urlFromId(URL_TEAM, clubId),
-                "Geburtsdatum": parts[5] || "-",
-                "Groesse": parts[6] || "",
-                "Gewicht": parts[7] || ""
-            });
-        }
-
-        function importQuickLines() {
-            const lines = fields.quickInput.value
-                .split(/\r?\n/)
-                .map(line => trim(line))
-                .filter(line => line && !line.startsWith("#"));
-            let imported = 0;
-
-            lines.forEach(line => {
-                const player = parseQuickLine(line);
-                if (player && upsertPlayer(player)) imported++;
-            });
-
-            showStatus(`${imported} Schnellzeilen importiert.`);
-        }
-
-        function stripJsToArray(code) {
-            const cleaned = String(code || "")
-                .replace(/\/\*[\s\S]*?\*\//g, "")
-                .replace(/^\s*\/\/.*$/gm, "");
-            const start = cleaned.indexOf("[");
-            const end = cleaned.lastIndexOf("]");
-            if (start === -1 || end === -1 || end <= start) {
-                throw new Error("Kein Array gefunden.");
-            }
-            return cleaned.slice(start, end + 1);
-        }
-
-        function importExistingCode() {
             try {
-                const arrayText = stripJsToArray(fields.importInput.value);
-                const parsed = JSON.parse(arrayText);
-                if (!Array.isArray(parsed)) throw new Error("Import ist kein Array.");
-                players.length = 0;
-                parsed.forEach(player => players.push(normalizePlayer(player)));
-                sortPlayers();
-                render();
-                saveDraft();
-                showStatus(`${players.length} Spieler importiert.`);
-            } catch (err) {
-                showStatus(`Import fehlgeschlagen: ${err.message}`);
-            }
-        }
+                log("Start: Kader werden geladen.");
+                log("Quelle: " + (directTeamIds.length ? "Team-IDs direkt" : competitionParam + "=" + competitionId + ", season=" + competitionSeason), "log-info");
 
-        function saveDraft() {
-            const payload = {
-                team: {
-                    name: fields.nationalTeamName.value,
-                    id: fields.nationalTeamId.value,
-                    logo: fields.nationalTeamLogo.value
-                },
-                players
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        }
-
-        function loadDraft() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-                const draft = JSON.parse(raw);
-                fields.nationalTeamName.value = draft.team && draft.team.name ? draft.team.name : "";
-                fields.nationalTeamId.value = draft.team && draft.team.id ? draft.team.id : "";
-                fields.nationalTeamLogo.value = draft.team && draft.team.logo ? draft.team.logo : "";
-                if (Array.isArray(draft.players)) {
-                    draft.players.forEach(player => players.push(normalizePlayer(player)));
+                let teams = [];
+                if (directTeamIds.length > 0) {
+                    teams = await loadTeamsByIds(directTeamIds);
+                } else {
+                    teams = await loadTeamsByCompetition(
+                        competitionParam,
+                        competitionId,
+                        competitionSeason,
+                        els.nationalOnly.checked
+                    );
                 }
-                sortPlayers();
-                showStatus("Entwurf geladen.");
+
+                if (maxTeams > 0) {
+                    teams = teams.slice(0, maxTeams);
+                }
+
+                setStat(els.statTeams, teams.length);
+                log("Teams gefunden: " + teams.length, teams.length ? "log-info" : "log-warning");
+
+                if (!teams.length) {
+                    log("Keine Teams gefunden. Pruefe Wettbewerb-ID, Saison oder Team-ID-Liste.", "log-warning");
+                    return;
+                }
+
+                const squadEntries = await loadSquads(teams);
+                setProgress(0, Math.max(squadEntries.length, 1));
+                log("Squad-Spieler gesamt: " + squadEntries.length, "log-info");
+
+                for (let i = 0; i < squadEntries.length; i++) {
+                    if (stopRequested) break;
+
+                    const entry = squadEntries[i];
+                    let detailResult = { detail: null, seasonsTried: [] };
+                    if (els.loadDetails.checked) {
+                        detailResult = await loadPlayerDetail(entry.playerId, detailSeasons);
+                    }
+
+                    if (!detailResult.detail) {
+                        fallbackCount++;
+                        setStat(els.statFallback, fallbackCount);
+                    }
+
+                    finalData.push(buildPlayerEntry(entry, detailResult, competitionId));
+                    setStat(els.statDone, finalData.length);
+                    setProgress(i + 1, Math.max(squadEntries.length, 1));
+
+                    if ((i + 1) % 20 === 0 || i === squadEntries.length - 1) {
+                        log("Details verarbeitet: " + (i + 1) + "/" + squadEntries.length);
+                    }
+                }
+
+                sortFinalData();
+                renderOutput();
+
+                if (stopRequested) {
+                    log("Abgebrochen. Teilausgabe ist trotzdem kopierbar.", "log-warning");
+                } else {
+                    log("Fertig: " + finalData.length + " Spieler in playersData.", "log-info");
+                }
             } catch (err) {
-                localStorage.removeItem(STORAGE_KEY);
+                log("Kritischer Fehler: " + err.message, "log-error");
+            } finally {
+                setRunning(false);
+                stopRequested = false;
             }
         }
 
-        async function copyText(text, label) {
+        async function copyText(value, label) {
+            const content = String(value || "");
+            if (!content.trim()) {
+                showStatus("Nichts zum Kopieren vorhanden.");
+                return;
+            }
             try {
-                await navigator.clipboard.writeText(text);
+                await navigator.clipboard.writeText(content);
             } catch (err) {
                 const fallback = document.createElement("textarea");
-                fallback.value = text;
+                fallback.value = content;
                 fallback.setAttribute("readonly", "");
                 fallback.style.position = "fixed";
                 fallback.style.left = "-9999px";
@@ -915,112 +1023,41 @@
                 document.execCommand("copy");
                 document.body.removeChild(fallback);
             }
-            showStatus(`${label} kopiert.`);
+            showStatus(label + " kopiert.");
         }
 
-        function downloadOutput() {
-            const blob = new Blob([buildOutput()], { type: "application/javascript;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "data.js";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showStatus("Download gestartet.");
-        }
+        els.startBtn.addEventListener("click", generateSquads);
 
-        document.getElementById("buildTeamLogoBtn").addEventListener("click", () => {
-            fields.nationalTeamLogo.value = urlFromId(URL_TEAM, fields.nationalTeamId.value);
-            saveDraft();
-            render();
+        els.stopBtn.addEventListener("click", function () {
+            stopRequested = true;
+            log("Abbruch angefordert. Der aktuelle API-Call wird noch beendet.", "log-warning");
         });
 
-        document.getElementById("clearTeamBtn").addEventListener("click", () => {
-            fields.nationalTeamName.value = "";
-            fields.nationalTeamId.value = "";
-            fields.nationalTeamLogo.value = "";
-            saveDraft();
-            render();
-            showStatus("Teamdaten geleert.");
-        });
-
-        document.getElementById("saveDraftBtn").addEventListener("click", () => {
-            saveDraft();
-            showStatus("Entwurf gesichert.");
-        });
-
-        document.getElementById("buildPlayerUrlsBtn").addEventListener("click", () => {
-            if (!fields.playerPhoto.value) fields.playerPhoto.value = urlFromId(URL_PLAYER, fields.playerId.value);
-            if (!fields.clubLogo.value) fields.clubLogo.value = urlFromId(URL_TEAM, fields.clubId.value);
-            if (!fields.nationalTeamLogo.value) fields.nationalTeamLogo.value = urlFromId(URL_TEAM, fields.nationalTeamId.value);
-            saveDraft();
-            showStatus("URLs gesetzt.");
-        });
-
-        document.getElementById("resetPlayerBtn").addEventListener("click", resetPlayerForm);
-
-        els.playerForm.addEventListener("submit", event => {
-            event.preventDefault();
-            if (upsertPlayer(buildPlayerFromForm())) {
-                resetPlayerForm();
+        els.toggleKeyBtn.addEventListener("click", function () {
+            if (els.apiKey.type === "password") {
+                els.apiKey.type = "text";
+                els.toggleKeyBtn.textContent = "Key verbergen";
+            } else {
+                els.apiKey.type = "password";
+                els.toggleKeyBtn.textContent = "Key anzeigen";
             }
         });
 
-        fields.nationalTeamName.addEventListener("change", saveDraft);
-        fields.nationalTeamId.addEventListener("change", () => {
-            if (!fields.nationalTeamLogo.value) {
-                fields.nationalTeamLogo.value = urlFromId(URL_TEAM, fields.nationalTeamId.value);
-            }
-            saveDraft();
-            render();
-        });
-        fields.nationalTeamLogo.addEventListener("change", saveDraft);
-
-        els.playerList.addEventListener("click", event => {
-            const button = event.target.closest("button[data-action]");
-            if (!button) return;
-            const id = button.getAttribute("data-id");
-            if (button.getAttribute("data-action") === "edit") editPlayer(id);
-            if (button.getAttribute("data-action") === "delete") removePlayer(id);
+        els.clearBtn.addEventListener("click", function () {
+            stopRequested = true;
+            resetRunUi();
+            els.logBox.textContent = "Bereit. API-Key einfuegen und Kader generieren.";
         });
 
-        document.getElementById("importQuickBtn").addEventListener("click", importQuickLines);
-        document.getElementById("clearQuickBtn").addEventListener("click", () => {
-            fields.quickInput.value = "";
-            showStatus("Schnellerfassung geleert.");
+        els.copyCodeBtn.addEventListener("click", function () {
+            copyText(buildCode(), "Code");
         });
-        document.getElementById("sortPlayersBtn").addEventListener("click", () => {
-            sortPlayers();
-            render();
-            saveDraft();
-            showStatus("Kader sortiert.");
-        });
-        document.getElementById("importCodeBtn").addEventListener("click", importExistingCode);
-        document.getElementById("clearImportBtn").addEventListener("click", () => {
-            fields.importInput.value = "";
-            showStatus("Importfeld geleert.");
-        });
-        document.getElementById("clearAllBtn").addEventListener("click", () => {
-            if (!confirm("Wirklich alle Spieler aus diesem Entwurf entfernen?")) return;
-            players.length = 0;
-            fields.nationalTeamName.value = "";
-            fields.nationalTeamId.value = "";
-            fields.nationalTeamLogo.value = "";
-            fields.quickInput.value = "";
-            fields.importInput.value = "";
-            resetPlayerForm();
-            localStorage.removeItem(STORAGE_KEY);
-            render();
-            showStatus("Alle Spieler entfernt.");
-        });
-        document.getElementById("copyOutputBtn").addEventListener("click", () => copyText(buildOutput(), "Code"));
-        document.getElementById("copyArrayBtn").addEventListener("click", () => copyText(JSON.stringify(players, null, 4), "Array"));
-        document.getElementById("downloadOutputBtn").addEventListener("click", downloadOutput);
 
-        loadDraft();
-        render();
+        els.copyArrayBtn.addEventListener("click", function () {
+            copyText(JSON.stringify(finalData, null, 4), "Array");
+        });
+
+        renderOutput();
     })();
 </script>
 </body>
