@@ -1,0 +1,793 @@
+{
+  "tournament": "WM 2026",
+  "api": {
+    "league": 1,
+    "season": 2026
+  },
+  "generatedAt": "2026-06-02T15:24:32.548Z",
+  "expectedTeams": 48,
+  "minPlayersPerTeam": 23,
+  "teamsFound": 48,
+  "playersTotal": 0,
+  "playersAssigned": 0,
+  "pagesFetched": 1,
+  "ready": false,
+  "warnings": [],
+  "dataQuality": {
+    "missingIds": 0,
+    "missingNames": 0,
+    "missingPhotos": 0
+  },
+  "teams": [
+    {
+      "id": 1,
+      "name": "Belgium",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 2,
+      "name": "France",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 3,
+      "name": "Croatia",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 5,
+      "name": "Sweden",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 6,
+      "name": "Brazil",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 7,
+      "name": "Uruguay",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 8,
+      "name": "Colombia",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 9,
+      "name": "Spain",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 10,
+      "name": "England",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 11,
+      "name": "Panama",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 12,
+      "name": "Japan",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 13,
+      "name": "Senegal",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 15,
+      "name": "Switzerland",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 16,
+      "name": "Mexico",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 17,
+      "name": "South Korea",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 20,
+      "name": "Australia",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 22,
+      "name": "Iran",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 23,
+      "name": "Saudi Arabia",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 25,
+      "name": "Germany",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 26,
+      "name": "Argentina",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 27,
+      "name": "Portugal",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 28,
+      "name": "Tunisia",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 31,
+      "name": "Morocco",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 32,
+      "name": "Egypt",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 770,
+      "name": "Czech Republic",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 775,
+      "name": "Austria",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 777,
+      "name": "Türkiye",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1090,
+      "name": "Norway",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1108,
+      "name": "Scotland",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1113,
+      "name": "Bosnia & Herzegovina",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1118,
+      "name": "Netherlands",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1501,
+      "name": "Ivory Coast",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1504,
+      "name": "Ghana",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1508,
+      "name": "Congo DR",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1531,
+      "name": "South Africa",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1532,
+      "name": "Algeria",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1533,
+      "name": "Cape Verde Islands",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1548,
+      "name": "Jordan",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1567,
+      "name": "Iraq",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1568,
+      "name": "Uzbekistan",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 1569,
+      "name": "Qatar",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 2380,
+      "name": "Paraguay",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 2382,
+      "name": "Ecuador",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 2384,
+      "name": "USA",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 2386,
+      "name": "Haiti",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 4673,
+      "name": "New Zealand",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 5529,
+      "name": "Canada",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    },
+    {
+      "id": 5530,
+      "name": "Curaçao",
+      "playerCount": 0,
+      "goalkeepers": 0,
+      "missingIds": 0,
+      "missingNames": 0,
+      "missingPhotos": 0,
+      "complete": false
+    }
+  ],
+  "incompleteTeams": [
+    {
+      "id": 1,
+      "name": "Belgium",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 2,
+      "name": "France",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 3,
+      "name": "Croatia",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 5,
+      "name": "Sweden",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 6,
+      "name": "Brazil",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 7,
+      "name": "Uruguay",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 8,
+      "name": "Colombia",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 9,
+      "name": "Spain",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 10,
+      "name": "England",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 11,
+      "name": "Panama",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 12,
+      "name": "Japan",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 13,
+      "name": "Senegal",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 15,
+      "name": "Switzerland",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 16,
+      "name": "Mexico",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 17,
+      "name": "South Korea",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 20,
+      "name": "Australia",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 22,
+      "name": "Iran",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 23,
+      "name": "Saudi Arabia",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 25,
+      "name": "Germany",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 26,
+      "name": "Argentina",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 27,
+      "name": "Portugal",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 28,
+      "name": "Tunisia",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 31,
+      "name": "Morocco",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 32,
+      "name": "Egypt",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 770,
+      "name": "Czech Republic",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 775,
+      "name": "Austria",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 777,
+      "name": "Türkiye",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1090,
+      "name": "Norway",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1108,
+      "name": "Scotland",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1113,
+      "name": "Bosnia & Herzegovina",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1118,
+      "name": "Netherlands",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1501,
+      "name": "Ivory Coast",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1504,
+      "name": "Ghana",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1508,
+      "name": "Congo DR",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1531,
+      "name": "South Africa",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1532,
+      "name": "Algeria",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1533,
+      "name": "Cape Verde Islands",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1548,
+      "name": "Jordan",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1567,
+      "name": "Iraq",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1568,
+      "name": "Uzbekistan",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 1569,
+      "name": "Qatar",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 2380,
+      "name": "Paraguay",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 2382,
+      "name": "Ecuador",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 2384,
+      "name": "USA",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 2386,
+      "name": "Haiti",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 4673,
+      "name": "New Zealand",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 5529,
+      "name": "Canada",
+      "playerCount": 0,
+      "goalkeepers": 0
+    },
+    {
+      "id": 5530,
+      "name": "Curaçao",
+      "playerCount": 0,
+      "goalkeepers": 0
+    }
+  ]
+}
