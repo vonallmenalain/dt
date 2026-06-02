@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manueller Kader-Generator</title>
+    <meta name="theme-color" content="#1f7a5b">
+    <link rel="manifest" href="Icons/site.webmanifest">
+    <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Icons/apple-touch-icon.png">
+    <style>
+        :root {
+            --page: #151719;
+            --panel: #22262a;
+            --panel-soft: #2d3338;
+            --line: #47515a;
+            --text: #f4f7f5;
+            --muted: #aab4ba;
+            --green: #27ae60;
+            --green-dark: #1f8f50;
+            --blue: #2980b9;
+            --blue-dark: #216996;
+            --yellow: #f1c40f;
+            --red: #c0392b;
+            --red-dark: #9f2d22;
+            --field: #101214;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: var(--page);
+            color: var(--text);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            line-height: 1.45;
+        }
+
+        .admin-container {
+            width: min(1320px, 100%);
+            margin: 0 auto;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.38);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            color: var(--yellow);
+            text-align: center;
+            font-size: clamp(24px, 3vw, 36px);
+            letter-spacing: 0;
+        }
+
+        .intro {
+            margin: 0 auto 22px;
+            max-width: 760px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .section {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            margin: 0 0 14px;
+            color: var(--yellow);
+            font-size: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .form-grid.three {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #dbe3df;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #57636b;
+            border-radius: 6px;
+            background: var(--field);
+            color: var(--text);
+            font: inherit;
+        }
+
+        input,
+        select {
+            min-height: 42px;
+            padding: 9px 11px;
+        }
+
+        textarea {
+            min-height: 170px;
+            padding: 12px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid rgba(39, 174, 96, 0.55);
+            border-color: var(--green);
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        button {
+            min-height: 42px;
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 13px;
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--green);
+        }
+
+        .btn-primary:hover {
+            background: var(--green-dark);
+        }
+
+        .btn-secondary {
+            background: var(--blue);
+        }
+
+        .btn-secondary:hover {
+            background: var(--blue-dark);
+        }
+
+        .btn-danger {
+            background: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red-dark);
+        }
+
+        .btn-neutral {
+            background: #53616b;
+        }
+
+        .btn-neutral:hover {
+            background: #647480;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .status {
+            min-height: 24px;
+            color: var(--yellow);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .player-list {
+            display: grid;
+            gap: 8px;
+            max-height: 360px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .player-row {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) 116px 82px;
+            gap: 10px;
+            align-items: center;
+            min-height: 58px;
+            padding: 9px;
+            border: 1px solid #424b52;
+            border-radius: 6px;
+            background: #1d2125;
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #0a0b0c;
+            border: 1px solid #3a4248;
+        }
+
+        .player-main {
+            min-width: 0;
+        }
+
+        .player-name {
+            overflow: hidden;
+            color: var(--text);
+            font-weight: 800;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .player-meta {
+            overflow: hidden;
+            color: var(--muted);
+            font-size: 12px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pill {
+            justify-self: start;
+            min-width: 98px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            background: #36434d;
+            color: #dce9ee;
+            font-size: 11px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .row-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .row-actions button {
+            min-height: 34px;
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        .output {
+            min-height: 520px;
+        }
+
+        .compact-note {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .quick-example {
+            margin-top: 8px;
+            color: var(--muted);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .stat {
+            min-height: 70px;
+            padding: 12px;
+            border: 1px solid #424b52;
+            border-radius: 6px;
+            background: #1d2125;
+            text-align: center;
+        }
+
+        .stat-value {
+            color: var(--yellow);
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 12px;
+            }
+
+            .admin-container {
+                padding: 16px;
+            }
+
+            .form-grid,
+            .form-grid.three,
+            .button-row,
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .player-row {
+                grid-template-columns: 42px minmax(0, 1fr);
+            }
+
+            .pill,
+            .row-actions {
+                grid-column: 1 / -1;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="admin-container">
+    <h1>Manueller Kader-Generator</h1>
+    <p class="intro">
+        Erfasse offizielle Kader per Formular oder Schnellerfassung und kopiere das fertige
+        <code>playersData</code>-Snippet in deine JavaScript-Datei.
+    </p>
+
+    <div class="layout">
+        <div>
+            <section class="section" aria-labelledby="team-title">
+                <h2 id="team-title" class="section-title">Teamdaten</h2>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="nationalTeamName">Nationalteam.name</label>
+                        <input id="nationalTeamName" type="text" placeholder="Algeria" autocomplete="off">
+                    </div>
+                    <div class="field">
+                        <label for="nationalTeamId">Nationalteam API-ID</label>
+                        <input id="nationalTeamId" type="number" min="0" step="1" placeholder="1532">
+                    </div>
+                    <div class="field full">
+                        <label for="nationalTeamLogo">Nationalteam.logo</label>
+                        <input id="nationalTeamLogo" type="url" placeholder="https://media.api-sports.io/football/teams/1532.png" autocomplete="off">
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button id="buildTeamLogoBtn" type="button" class="btn-neutral">Logo aus Team-ID</button>
+                    <button id="clearTeamBtn" type="button" class="btn-neutral">Teamdaten leeren</button>
+                    <button id="saveDraftBtn" type="button" class="btn-secondary">Entwurf sichern</button>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="player-title">
+                <h2 id="player-title" class="section-title">Spieler erfassen</h2>
+                <form id="playerForm" autocomplete="off">
+                    <div class="form-grid three">
+                        <div class="field">
+                            <label for="playerId">player.id</label>
+                            <input id="playerId" type="number" min="0" step="1" required placeholder="342740">
+                        </div>
+                        <div class="field">
+                            <label for="playerName">Spielername</label>
+                            <input id="playerName" type="text" required placeholder="Achref Abada">
+                        </div>
+                        <div class="field">
+                            <label for="position">Position</label>
+                            <select id="position" required>
+                                <option value="GOALKEEPER">GOALKEEPER</option>
+                                <option value="DEFENDER">DEFENDER</option>
+                                <option value="MIDFIELDER">MIDFIELDER</option>
+                                <option value="ATTACKER">ATTACKER</option>
+                            </select>
+                        </div>
+                        <div class="field full">
+                            <label for="playerPhoto">Spielerfoto</label>
+                            <input id="playerPhoto" type="url" placeholder="https://media.api-sports.io/football/players/342740.png">
+                        </div>
+                        <div class="field">
+                            <label for="clubName">Club.name</label>
+                            <input id="clubName" type="text" placeholder="ASO Chlef">
+                        </div>
+                        <div class="field">
+                            <label for="clubId">Club API-ID</label>
+                            <input id="clubId" type="number" min="0" step="1" placeholder="931">
+                        </div>
+                        <div class="field">
+                            <label for="birthDate">Geburtsdatum</label>
+                            <input id="birthDate" type="date">
+                        </div>
+                        <div class="field full">
+                            <label for="clubLogo">Club.logo</label>
+                            <input id="clubLogo" type="url" placeholder="https://media.api-sports.io/football/teams/931.png">
+                        </div>
+                        <div class="field">
+                            <label for="height">Groesse</label>
+                            <input id="height" type="text" inputmode="numeric" placeholder="181 oder -">
+                        </div>
+                        <div class="field">
+                            <label for="weight">Gewicht</label>
+                            <input id="weight" type="text" inputmode="numeric" placeholder="72 oder -">
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button id="addPlayerBtn" type="submit" class="btn-primary">Spieler hinzufuegen</button>
+                        <button id="buildPlayerUrlsBtn" type="button" class="btn-neutral">URLs aus IDs</button>
+                        <button id="resetPlayerBtn" type="button" class="btn-neutral">Formular leeren</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="section" aria-labelledby="quick-title">
+                <h2 id="quick-title" class="section-title">Schnellerfassung</h2>
+                <label for="quickInput">Eine Zeile pro Spieler</label>
+                <textarea id="quickInput" spellcheck="false" placeholder="342740 | Achref Abada | DEFENDER | ASO Chlef | 931 | 1999-06-15 | - | -"></textarea>
+                <p class="quick-example">Format: player.id | Spielername | Position | Club.name | Club-ID | Geburtsdatum | Groesse | Gewicht</p>
+                <div class="button-row">
+                    <button id="importQuickBtn" type="button" class="btn-primary">Zeilen importieren</button>
+                    <button id="clearQuickBtn" type="button" class="btn-neutral">Feld leeren</button>
+                    <button id="sortPlayersBtn" type="button" class="btn-secondary">Sortieren</button>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="import-title">
+                <h2 id="import-title" class="section-title">Bestehende Ausgabe importieren</h2>
+                <label for="importInput">playersData-Code oder reines JSON-Array</label>
+                <textarea id="importInput" spellcheck="false" placeholder='const playersData = [
+    {
+        "player.id": 342740,
+        "Spielername": "Achref Abada"
+    }
+];'></textarea>
+                <div class="button-row">
+                    <button id="importCodeBtn" type="button" class="btn-secondary">Code importieren</button>
+                    <button id="clearImportBtn" type="button" class="btn-neutral">Feld leeren</button>
+                    <button id="clearAllBtn" type="button" class="btn-danger">Alles leeren</button>
+                </div>
+            </section>
+        </div>
+
+        <aside>
+            <section class="section" aria-labelledby="list-title">
+                <div class="toolbar">
+                    <h2 id="list-title" class="section-title">Kader</h2>
+                    <div id="status" class="status" role="status" aria-live="polite"></div>
+                </div>
+                <div class="stats" aria-label="Kaderstatistik">
+                    <div class="stat">
+                        <div id="statPlayers" class="stat-value">0</div>
+                        <div class="stat-label">Spieler</div>
+                    </div>
+                    <div class="stat">
+                        <div id="statTeams" class="stat-value">0</div>
+                        <div class="stat-label">Teams</div>
+                    </div>
+                    <div class="stat">
+                        <div id="statClubs" class="stat-value">0</div>
+                        <div class="stat-label">Clubs</div>
+                    </div>
+                </div>
+                <div id="playerList" class="player-list"></div>
+            </section>
+
+            <section class="section" aria-labelledby="output-title">
+                <h2 id="output-title" class="section-title">Kopierbare JS-Ausgabe</h2>
+                <textarea id="output" class="output" spellcheck="false" readonly></textarea>
+                <div class="button-row">
+                    <button id="copyOutputBtn" type="button" class="btn-primary">Code kopieren</button>
+                    <button id="downloadOutputBtn" type="button" class="btn-secondary">data.js herunterladen</button>
+                    <button id="copyArrayBtn" type="button" class="btn-neutral">Nur Array kopieren</button>
+                </div>
+                <p class="compact-note">Leere Groesse/Gewicht-Felder bleiben leer; fehlende Geburtsdaten werden als "-" ausgegeben.</p>
+            </section>
+        </aside>
+    </div>
+</main>
+
+<script>
+    (function () {
+        "use strict";
+
+        const STORAGE_KEY = "dreamteam_manual_kader_generator_v1";
+        const URL_TEAM = "https://media.api-sports.io/football/teams/";
+        const URL_PLAYER = "https://media.api-sports.io/football/players/";
+
+        const players = [];
+        let editingId = null;
+
+        const fields = {
+            nationalTeamName: document.getElementById("nationalTeamName"),
+            nationalTeamId: document.getElementById("nationalTeamId"),
+            nationalTeamLogo: document.getElementById("nationalTeamLogo"),
+            playerId: document.getElementById("playerId"),
+            playerName: document.getElementById("playerName"),
+            playerPhoto: document.getElementById("playerPhoto"),
+            position: document.getElementById("position"),
+            clubName: document.getElementById("clubName"),
+            clubId: document.getElementById("clubId"),
+            clubLogo: document.getElementById("clubLogo"),
+            birthDate: document.getElementById("birthDate"),
+            height: document.getElementById("height"),
+            weight: document.getElementById("weight"),
+            quickInput: document.getElementById("quickInput"),
+            importInput: document.getElementById("importInput"),
+            output: document.getElementById("output")
+        };
+
+        const els = {
+            playerForm: document.getElementById("playerForm"),
+            addPlayerBtn: document.getElementById("addPlayerBtn"),
+            playerList: document.getElementById("playerList"),
+            status: document.getElementById("status"),
+            statPlayers: document.getElementById("statPlayers"),
+            statTeams: document.getElementById("statTeams"),
+            statClubs: document.getElementById("statClubs")
+        };
+
+        function trim(value) {
+            return String(value == null ? "" : value).trim();
+        }
+
+        function numberOrString(value) {
+            const cleaned = trim(value);
+            if (!cleaned) return "";
+            const numeric = Number(cleaned);
+            return Number.isFinite(numeric) ? numeric : cleaned;
+        }
+
+        function urlFromId(base, id) {
+            const cleaned = trim(id);
+            return cleaned ? `${base}${cleaned}.png` : "";
+        }
+
+        function normalizePosition(value) {
+            const raw = trim(value).toUpperCase();
+            const compact = raw.replace(/\s+/g, "");
+            const aliases = {
+                GK: "GOALKEEPER",
+                GOALIE: "GOALKEEPER",
+                KEEPER: "GOALKEEPER",
+                TORWART: "GOALKEEPER",
+                DF: "DEFENDER",
+                DEF: "DEFENDER",
+                DEFENCE: "DEFENDER",
+                VERTEIDIGER: "DEFENDER",
+                MF: "MIDFIELDER",
+                MID: "MIDFIELDER",
+                MIDFIELD: "MIDFIELDER",
+                MITTELFELD: "MIDFIELDER",
+                FW: "ATTACKER",
+                FORWARD: "ATTACKER",
+                ST: "ATTACKER",
+                ATTACK: "ATTACKER",
+                STUERMER: "ATTACKER",
+                STURMER: "ATTACKER"
+            };
+            if (["GOALKEEPER", "DEFENDER", "MIDFIELDER", "ATTACKER"].includes(compact)) {
+                return compact;
+            }
+            return aliases[compact] || "MIDFIELDER";
+        }
+
+        function cleanMetric(value) {
+            const cleaned = trim(value);
+            if (!cleaned) return "";
+            const numberOnly = cleaned.match(/\d+/);
+            if (numberOnly) return numberOnly[0];
+            return cleaned;
+        }
+
+        function currentTeam() {
+            const teamId = trim(fields.nationalTeamId.value);
+            return {
+                name: trim(fields.nationalTeamName.value),
+                logo: trim(fields.nationalTeamLogo.value) || urlFromId(URL_TEAM, teamId)
+            };
+        }
+
+        function buildPlayerFromForm() {
+            const team = currentTeam();
+            const playerId = trim(fields.playerId.value);
+            const clubId = trim(fields.clubId.value);
+
+            return {
+                "player.id": numberOrString(playerId),
+                "Spielername": trim(fields.playerName.value),
+                "Spielerfoto": trim(fields.playerPhoto.value) || urlFromId(URL_PLAYER, playerId),
+                "Position": normalizePosition(fields.position.value),
+                "Nationalteam.name": team.name,
+                "Nationalteam.logo": team.logo,
+                "Club.name": trim(fields.clubName.value) || "-",
+                "Club.logo": trim(fields.clubLogo.value) || urlFromId(URL_TEAM, clubId),
+                "Geburtsdatum": trim(fields.birthDate.value) || "-",
+                "Groesse": cleanMetric(fields.height.value),
+                "Gewicht": cleanMetric(fields.weight.value)
+            };
+        }
+
+        function normalizePlayer(player) {
+            const id = player && player["player.id"];
+            return {
+                "player.id": numberOrString(id),
+                "Spielername": trim(player && player["Spielername"]),
+                "Spielerfoto": trim(player && player["Spielerfoto"]),
+                "Position": normalizePosition(player && player["Position"]),
+                "Nationalteam.name": trim(player && player["Nationalteam.name"]),
+                "Nationalteam.logo": trim(player && player["Nationalteam.logo"]),
+                "Club.name": trim(player && player["Club.name"]) || "-",
+                "Club.logo": trim(player && player["Club.logo"]),
+                "Geburtsdatum": trim(player && player["Geburtsdatum"]) || "-",
+                "Groesse": cleanMetric(player && player["Groesse"]),
+                "Gewicht": cleanMetric(player && player["Gewicht"])
+            };
+        }
+
+        function sortPlayers() {
+            players.sort((a, b) => {
+                const teamCompare = String(a["Nationalteam.name"] || "").localeCompare(
+                    String(b["Nationalteam.name"] || ""),
+                    "de",
+                    { sensitivity: "base" }
+                );
+                if (teamCompare !== 0) return teamCompare;
+                return String(a["Spielername"] || "").localeCompare(
+                    String(b["Spielername"] || ""),
+                    "de",
+                    { sensitivity: "base" }
+                );
+            });
+        }
+
+        function upsertPlayer(player) {
+            const normalized = normalizePlayer(player);
+            if (!normalized["player.id"] && normalized["player.id"] !== 0) {
+                showStatus("player.id fehlt.");
+                return false;
+            }
+            if (!normalized.Spielername) {
+                showStatus("Spielername fehlt.");
+                return false;
+            }
+            if (!normalized["Nationalteam.name"]) {
+                showStatus("Nationalteam.name fehlt.");
+                return false;
+            }
+
+            const key = String(normalized["player.id"]);
+            const index = players.findIndex(item => String(item["player.id"]) === key);
+            if (index >= 0) {
+                players[index] = normalized;
+                showStatus(`${normalized.Spielername} aktualisiert.`);
+            } else {
+                players.push(normalized);
+                showStatus(`${normalized.Spielername} hinzugefuegt.`);
+            }
+            sortPlayers();
+            render();
+            saveDraft();
+            return true;
+        }
+
+        function removePlayer(id) {
+            const key = String(id);
+            const index = players.findIndex(item => String(item["player.id"]) === key);
+            if (index < 0) return;
+            const removed = players.splice(index, 1)[0];
+            if (editingId === key) resetPlayerForm();
+            showStatus(`${removed.Spielername} entfernt.`);
+            render();
+            saveDraft();
+        }
+
+        function editPlayer(id) {
+            const key = String(id);
+            const player = players.find(item => String(item["player.id"]) === key);
+            if (!player) return;
+
+            editingId = key;
+            fields.playerId.value = player["player.id"];
+            fields.playerName.value = player.Spielername || "";
+            fields.playerPhoto.value = player.Spielerfoto || "";
+            fields.position.value = normalizePosition(player.Position);
+            fields.clubName.value = player["Club.name"] || "";
+            fields.clubId.value = extractApiId(player["Club.logo"]);
+            fields.clubLogo.value = player["Club.logo"] || "";
+            fields.birthDate.value = /^\d{4}-\d{2}-\d{2}$/.test(player.Geburtsdatum || "") ? player.Geburtsdatum : "";
+            fields.height.value = player.Groesse || "";
+            fields.weight.value = player.Gewicht || "";
+            fields.nationalTeamName.value = player["Nationalteam.name"] || "";
+            fields.nationalTeamId.value = extractApiId(player["Nationalteam.logo"]);
+            fields.nationalTeamLogo.value = player["Nationalteam.logo"] || "";
+            els.addPlayerBtn.textContent = "Spieler aktualisieren";
+            fields.playerName.focus();
+            showStatus(`${player.Spielername} im Formular.`);
+        }
+
+        function extractApiId(url) {
+            const match = trim(url).match(/\/(\d+)\.png(?:\?.*)?$/);
+            return match ? match[1] : "";
+        }
+
+        function resetPlayerForm() {
+            editingId = null;
+            els.playerForm.reset();
+            fields.position.value = "GOALKEEPER";
+            els.addPlayerBtn.textContent = "Spieler hinzufuegen";
+            fields.playerId.focus();
+        }
+
+        function buildOutput() {
+            return `const playersData = ${JSON.stringify(players, null, 4)};`;
+        }
+
+        function render() {
+            els.statPlayers.textContent = String(players.length);
+            els.statTeams.textContent = String(new Set(players.map(p => p["Nationalteam.name"]).filter(Boolean)).size);
+            els.statClubs.textContent = String(new Set(players.map(p => p["Club.name"]).filter(Boolean)).size);
+            fields.output.value = buildOutput();
+
+            if (players.length === 0) {
+                els.playerList.innerHTML = "<div class=\"compact-note\">Noch keine Spieler erfasst.</div>";
+                return;
+            }
+
+            els.playerList.innerHTML = "";
+            players.forEach(player => {
+                const row = document.createElement("div");
+                row.className = "player-row";
+                row.innerHTML = `
+                    <img class="avatar" src="${escapeHtml(player.Spielerfoto || "")}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+                    <div class="player-main">
+                        <div class="player-name">${escapeHtml(player.Spielername)}</div>
+                        <div class="player-meta">${escapeHtml(player["Nationalteam.name"] || "-")} | ${escapeHtml(player["Club.name"] || "-")} | ID ${escapeHtml(player["player.id"])}</div>
+                    </div>
+                    <div class="pill">${escapeHtml(player.Position)}</div>
+                    <div class="row-actions">
+                        <button type="button" class="btn-secondary" data-action="edit" data-id="${escapeHtml(player["player.id"])}">Edit</button>
+                        <button type="button" class="btn-danger" data-action="delete" data-id="${escapeHtml(player["player.id"])}">Del</button>
+                    </div>
+                `;
+                els.playerList.appendChild(row);
+            });
+        }
+
+        function escapeHtml(value) {
+            return String(value == null ? "" : value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function showStatus(message) {
+            els.status.textContent = message;
+            window.clearTimeout(showStatus.timer);
+            showStatus.timer = window.setTimeout(() => {
+                els.status.textContent = "";
+            }, 3500);
+        }
+
+        function parseQuickLine(line) {
+            const parts = line.split("|").map(part => trim(part));
+            if (parts.length < 3) return null;
+            const team = currentTeam();
+            const playerId = parts[0];
+            const clubId = parts[4] || "";
+
+            return normalizePlayer({
+                "player.id": playerId,
+                "Spielername": parts[1],
+                "Position": parts[2],
+                "Nationalteam.name": team.name,
+                "Nationalteam.logo": team.logo,
+                "Spielerfoto": urlFromId(URL_PLAYER, playerId),
+                "Club.name": parts[3] || "-",
+                "Club.logo": urlFromId(URL_TEAM, clubId),
+                "Geburtsdatum": parts[5] || "-",
+                "Groesse": parts[6] || "",
+                "Gewicht": parts[7] || ""
+            });
+        }
+
+        function importQuickLines() {
+            const lines = fields.quickInput.value
+                .split(/\r?\n/)
+                .map(line => trim(line))
+                .filter(line => line && !line.startsWith("#"));
+            let imported = 0;
+
+            lines.forEach(line => {
+                const player = parseQuickLine(line);
+                if (player && upsertPlayer(player)) imported++;
+            });
+
+            showStatus(`${imported} Schnellzeilen importiert.`);
+        }
+
+        function stripJsToArray(code) {
+            const cleaned = String(code || "")
+                .replace(/\/\*[\s\S]*?\*\//g, "")
+                .replace(/^\s*\/\/.*$/gm, "");
+            const start = cleaned.indexOf("[");
+            const end = cleaned.lastIndexOf("]");
+            if (start === -1 || end === -1 || end <= start) {
+                throw new Error("Kein Array gefunden.");
+            }
+            return cleaned.slice(start, end + 1);
+        }
+
+        function importExistingCode() {
+            try {
+                const arrayText = stripJsToArray(fields.importInput.value);
+                const parsed = JSON.parse(arrayText);
+                if (!Array.isArray(parsed)) throw new Error("Import ist kein Array.");
+                players.length = 0;
+                parsed.forEach(player => players.push(normalizePlayer(player)));
+                sortPlayers();
+                render();
+                saveDraft();
+                showStatus(`${players.length} Spieler importiert.`);
+            } catch (err) {
+                showStatus(`Import fehlgeschlagen: ${err.message}`);
+            }
+        }
+
+        function saveDraft() {
+            const payload = {
+                team: {
+                    name: fields.nationalTeamName.value,
+                    id: fields.nationalTeamId.value,
+                    logo: fields.nationalTeamLogo.value
+                },
+                players
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        }
+
+        function loadDraft() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const draft = JSON.parse(raw);
+                fields.nationalTeamName.value = draft.team && draft.team.name ? draft.team.name : "";
+                fields.nationalTeamId.value = draft.team && draft.team.id ? draft.team.id : "";
+                fields.nationalTeamLogo.value = draft.team && draft.team.logo ? draft.team.logo : "";
+                if (Array.isArray(draft.players)) {
+                    draft.players.forEach(player => players.push(normalizePlayer(player)));
+                }
+                sortPlayers();
+                showStatus("Entwurf geladen.");
+            } catch (err) {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+        }
+
+        async function copyText(text, label) {
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch (err) {
+                const fallback = document.createElement("textarea");
+                fallback.value = text;
+                fallback.setAttribute("readonly", "");
+                fallback.style.position = "fixed";
+                fallback.style.left = "-9999px";
+                document.body.appendChild(fallback);
+                fallback.focus();
+                fallback.select();
+                document.execCommand("copy");
+                document.body.removeChild(fallback);
+            }
+            showStatus(`${label} kopiert.`);
+        }
+
+        function downloadOutput() {
+            const blob = new Blob([buildOutput()], { type: "application/javascript;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "data.js";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showStatus("Download gestartet.");
+        }
+
+        document.getElementById("buildTeamLogoBtn").addEventListener("click", () => {
+            fields.nationalTeamLogo.value = urlFromId(URL_TEAM, fields.nationalTeamId.value);
+            saveDraft();
+            render();
+        });
+
+        document.getElementById("clearTeamBtn").addEventListener("click", () => {
+            fields.nationalTeamName.value = "";
+            fields.nationalTeamId.value = "";
+            fields.nationalTeamLogo.value = "";
+            saveDraft();
+            render();
+            showStatus("Teamdaten geleert.");
+        });
+
+        document.getElementById("saveDraftBtn").addEventListener("click", () => {
+            saveDraft();
+            showStatus("Entwurf gesichert.");
+        });
+
+        document.getElementById("buildPlayerUrlsBtn").addEventListener("click", () => {
+            if (!fields.playerPhoto.value) fields.playerPhoto.value = urlFromId(URL_PLAYER, fields.playerId.value);
+            if (!fields.clubLogo.value) fields.clubLogo.value = urlFromId(URL_TEAM, fields.clubId.value);
+            if (!fields.nationalTeamLogo.value) fields.nationalTeamLogo.value = urlFromId(URL_TEAM, fields.nationalTeamId.value);
+            saveDraft();
+            showStatus("URLs gesetzt.");
+        });
+
+        document.getElementById("resetPlayerBtn").addEventListener("click", resetPlayerForm);
+
+        els.playerForm.addEventListener("submit", event => {
+            event.preventDefault();
+            if (upsertPlayer(buildPlayerFromForm())) {
+                resetPlayerForm();
+            }
+        });
+
+        fields.nationalTeamName.addEventListener("change", saveDraft);
+        fields.nationalTeamId.addEventListener("change", () => {
+            if (!fields.nationalTeamLogo.value) {
+                fields.nationalTeamLogo.value = urlFromId(URL_TEAM, fields.nationalTeamId.value);
+            }
+            saveDraft();
+            render();
+        });
+        fields.nationalTeamLogo.addEventListener("change", saveDraft);
+
+        els.playerList.addEventListener("click", event => {
+            const button = event.target.closest("button[data-action]");
+            if (!button) return;
+            const id = button.getAttribute("data-id");
+            if (button.getAttribute("data-action") === "edit") editPlayer(id);
+            if (button.getAttribute("data-action") === "delete") removePlayer(id);
+        });
+
+        document.getElementById("importQuickBtn").addEventListener("click", importQuickLines);
+        document.getElementById("clearQuickBtn").addEventListener("click", () => {
+            fields.quickInput.value = "";
+            showStatus("Schnellerfassung geleert.");
+        });
+        document.getElementById("sortPlayersBtn").addEventListener("click", () => {
+            sortPlayers();
+            render();
+            saveDraft();
+            showStatus("Kader sortiert.");
+        });
+        document.getElementById("importCodeBtn").addEventListener("click", importExistingCode);
+        document.getElementById("clearImportBtn").addEventListener("click", () => {
+            fields.importInput.value = "";
+            showStatus("Importfeld geleert.");
+        });
+        document.getElementById("clearAllBtn").addEventListener("click", () => {
+            if (!confirm("Wirklich alle Spieler aus diesem Entwurf entfernen?")) return;
+            players.length = 0;
+            fields.nationalTeamName.value = "";
+            fields.nationalTeamId.value = "";
+            fields.nationalTeamLogo.value = "";
+            fields.quickInput.value = "";
+            fields.importInput.value = "";
+            resetPlayerForm();
+            localStorage.removeItem(STORAGE_KEY);
+            render();
+            showStatus("Alle Spieler entfernt.");
+        });
+        document.getElementById("copyOutputBtn").addEventListener("click", () => copyText(buildOutput(), "Code"));
+        document.getElementById("copyArrayBtn").addEventListener("click", () => copyText(JSON.stringify(players, null, 4), "Array"));
+        document.getElementById("downloadOutputBtn").addEventListener("click", downloadOutput);
+
+        loadDraft();
+        render();
+    })();
+</script>
+</body>
+</html>
