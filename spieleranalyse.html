@@ -1794,6 +1794,47 @@
             color: #93c5fd;
         }
 
+        .tournament-manual-hint {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 14px;
+            padding: 11px 14px;
+            border: 1px solid rgba(74,222,128,0.28);
+            border-radius: 10px;
+            background: rgba(34,197,94,0.08);
+            color: var(--text-main);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .tournament-manual-hint[hidden] { display: none; }
+
+        .tournament-manual-hint-grip {
+            flex-shrink: 0;
+            width: 22px;
+            height: 30px;
+            border-radius: 6px;
+            color: var(--green-light);
+            background:
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) center calc(50% - 7px) / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) center 50% / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) center calc(50% + 7px) / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% + 5px) calc(50% - 7px) / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% + 5px) 50% / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% + 5px) calc(50% + 7px) / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% - 5px) calc(50% - 7px) / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% - 5px) 50% / 9px 9px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% - 5px) calc(50% + 7px) / 9px 9px no-repeat;
+        }
+
+        .tournament-manual-hint .hint-mobile { display: none; }
+
+        @media (hover: none), (pointer: coarse) {
+            .tournament-manual-hint .hint-desktop { display: none; }
+            .tournament-manual-hint .hint-mobile { display: inline; }
+        }
+
         .tg-manual-list {
             display: flex;
             flex-direction: column;
@@ -1804,7 +1845,7 @@
 
         .tg-manual-row {
             display: grid;
-            grid-template-columns: 32px 20px minmax(0, 1fr) auto;
+            grid-template-columns: 32px 30px minmax(0, 1fr) auto;
             align-items: center;
             gap: 8px;
             min-height: 46px;
@@ -1813,10 +1854,10 @@
             border-radius: 8px;
             background: rgba(0,0,0,0.12);
             color: var(--text-main);
-            cursor: grab;
             user-select: none;
             -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
+            transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
         }
 
         .tg-manual-row:focus-visible {
@@ -1824,14 +1865,22 @@
             outline-offset: 2px;
         }
 
+        /* Subtle hint that a row can be reordered by dragging its handle. */
+        .tg-manual-row:hover {
+            border-color: rgba(255,255,255,0.14);
+            background: rgba(0,0,0,0.18);
+        }
+
         .tg-manual-row.is-dragging {
             position: fixed;
             z-index: 2000;
-            box-shadow: 0 18px 38px rgba(0,0,0,0.42);
-            border-color: rgba(74,222,128,0.55);
+            box-shadow: 0 18px 38px rgba(0,0,0,0.5);
+            border-color: rgba(74,222,128,0.7);
             background: linear-gradient(135deg, rgba(28,35,51,0.98), rgba(22,27,34,0.98));
             cursor: grabbing;
             touch-action: none;
+            transition: none;
+            transform-origin: center;
         }
 
         .tg-manual-row.is-dragging * {
@@ -1840,26 +1889,48 @@
 
         .tg-manual-placeholder {
             min-height: 46px;
-            border: 1px dashed rgba(74,222,128,0.55);
+            border: 2px dashed rgba(74,222,128,0.6);
             border-radius: 8px;
-            background: rgba(34,197,94,0.08);
+            background: rgba(34,197,94,0.1);
+            transition: none;
         }
 
+        /* Drag handle - a generously sized, obvious grab target that works
+           well with both mouse and touch (touch-action:none lets a touch that
+           starts on the handle begin a drag immediately instead of scrolling). */
         .tg-manual-grip {
-            width: 18px;
-            height: 24px;
-            opacity: 0.62;
-            background:
-                radial-gradient(circle, currentColor 1.4px, transparent 1.6px) 0 2px / 7px 7px,
-                radial-gradient(circle, currentColor 1.4px, transparent 1.6px) 8px 2px / 7px 7px;
+            width: 30px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 7px;
+            opacity: 0.85;
             color: var(--text-muted);
+            cursor: grab;
+            touch-action: none;
             flex-shrink: 0;
+            background:
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) center calc(50% - 7px) / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) center 50% / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) center calc(50% + 7px) / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% + 5px) calc(50% - 7px) / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% + 5px) 50% / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% + 5px) calc(50% + 7px) / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% - 5px) calc(50% - 7px) / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% - 5px) 50% / 8px 8px no-repeat,
+                radial-gradient(circle, currentColor 1.5px, transparent 1.7px) calc(50% - 5px) calc(50% + 7px) / 8px 8px no-repeat;
+        }
+
+        .tg-manual-grip:active {
+            cursor: grabbing;
         }
 
         .tg-manual-row:hover .tg-manual-grip,
         .tg-manual-row.is-dragging .tg-manual-grip {
             color: var(--green-light);
-            opacity: 0.9;
+            opacity: 1;
+            background-color: rgba(74,222,128,0.12);
         }
 
         .tg-manual-meta {
@@ -1889,11 +1960,22 @@
         }
 
         .tournament-third-manual-list .tg-manual-row {
-            grid-template-columns: 32px 20px minmax(0, 1fr) 44px 98px;
+            grid-template-columns: 32px 30px minmax(0, 1fr) 44px 98px;
         }
 
+        /* While reordering we only suppress text selection and show the grab
+           cursor. Crucially we do NOT hide overflow here: toggling the page
+           scrollbar mid-drag reflows the whole layout and makes the floating
+           row appear to jump sideways. Page scrolling during a drag is handled
+           with edge auto-scroll in JS instead. */
         body.is-tournament-dragging {
-            overflow: hidden;
+            cursor: grabbing;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body.is-tournament-dragging * {
+            cursor: grabbing !important;
         }
 
         .tg-team-cell {
@@ -3393,9 +3475,10 @@
             .tournament-groups-grid { grid-template-columns: 1fr; }
             .tournament-group-header { flex-wrap: wrap; align-items: flex-start; }
             .tournament-group-actions { width: 100%; justify-content: space-between; }
-            .tg-manual-row { grid-template-columns: 30px 18px minmax(0, 1fr); }
+            .tg-manual-row { grid-template-columns: 28px 34px minmax(0, 1fr); column-gap: 6px; }
+            .tg-manual-grip { width: 34px; height: 44px; }
             .tg-manual-meta { grid-column: 3; justify-content: flex-start; font-size: 0.68rem; }
-            .tournament-third-manual-list .tg-manual-row { grid-template-columns: 30px 18px minmax(0, 1fr); }
+            .tournament-third-manual-list .tg-manual-row { grid-template-columns: 28px 34px minmax(0, 1fr); }
             .tournament-third-manual-list .tg-status { grid-column: 3; justify-self: flex-start; }
             .tournament-table th,
             .tournament-table td { padding: 8px 7px; }
@@ -5209,6 +5292,15 @@
                         <button type="button" class="tour-mode-btn active" data-tournament-mode="auto" aria-pressed="true">Auto</button>
                         <button type="button" class="tour-mode-btn" data-tournament-mode="manual" aria-pressed="false">Manuell</button>
                     </div>
+                </div>
+
+                <div id="tournament-manual-hint" class="tournament-manual-hint" role="note" hidden>
+                    <span class="tournament-manual-hint-grip" aria-hidden="true"></span>
+                    <span class="tournament-manual-hint-text">
+                        <strong>Reihenfolge selbst festlegen:</strong>
+                        <span class="hint-desktop">Ziehe eine Kachel am Griff in die gewuenschte Position. Tipp: Mit Tab eine Kachel anwaehlen und mit Pfeil hoch / runter verschieben.</span>
+                        <span class="hint-mobile">Tippe den Griff an und ziehe - oder halte eine Kachel kurz gedrueckt und ziehe sie dann an die gewuenschte Stelle.</span>
+                    </span>
                 </div>
 
                 <div id="tournament-tab-groups" class="tournament-tab-panel active" role="tabpanel">
@@ -7319,6 +7411,11 @@
             btn.classList.toggle('active', isActive);
             btn.setAttribute('aria-pressed', String(isActive));
         });
+        const hint = document.getElementById('tournament-manual-hint');
+        if (hint) {
+            // Only relevant where rows can actually be reordered (group stage).
+            hint.hidden = !(isTournamentManualMode() && currentTournamentTab === 'groups');
+        }
     }
 
     function setTournamentMode(mode) {
@@ -8027,10 +8124,81 @@
         renderTournamentView();
     }
 
+    // Distance (px) from the viewport edge where dragging starts auto-scrolling
+    // the page, plus the maximum scroll step per animation frame.
+    const TOURNAMENT_DRAG_EDGE = 72;
+    const TOURNAMENT_DRAG_MAX_SPEED = 20;
+    // Movement (px) required before a press turns into a drag. Keeping this above
+    // zero means a plain click/tap never enters the floating drag state, which is
+    // what previously made every click feel like the tile jumped.
+    const TOURNAMENT_DRAG_THRESHOLD = 5;
+
+    function stopTournamentAutoScroll() {
+        const state = tournamentManualDragState;
+        if (state && state.autoScrollRAF) {
+            cancelAnimationFrame(state.autoScrollRAF);
+            state.autoScrollRAF = null;
+        }
+    }
+
+    function tournamentAutoScrollTick() {
+        const state = tournamentManualDragState;
+        if (!state || !state.active) return;
+        const viewportH = window.innerHeight || document.documentElement.clientHeight;
+        const y = state.lastClientY;
+        let delta = 0;
+        if (y < TOURNAMENT_DRAG_EDGE) {
+            delta = -Math.ceil(((TOURNAMENT_DRAG_EDGE - y) / TOURNAMENT_DRAG_EDGE) * TOURNAMENT_DRAG_MAX_SPEED);
+        } else if (y > viewportH - TOURNAMENT_DRAG_EDGE) {
+            delta = Math.ceil(((y - (viewportH - TOURNAMENT_DRAG_EDGE)) / TOURNAMENT_DRAG_EDGE) * TOURNAMENT_DRAG_MAX_SPEED);
+        }
+        if (delta !== 0) {
+            const before = window.scrollY;
+            window.scrollBy(0, delta);
+            if (window.scrollY !== before) {
+                updateTournamentDragVisual();
+                updateTournamentDragPlaceholder();
+            }
+        }
+        state.autoScrollRAF = requestAnimationFrame(tournamentAutoScrollTick);
+    }
+
+    function updateTournamentDragVisual() {
+        const state = tournamentManualDragState;
+        if (!state || !state.active) return;
+        // The dragged row is position:fixed, so its translation is purely the
+        // pointer delta from where the drag began (independent of page scroll).
+        const dx = state.lastClientX - state.startX;
+        const dy = state.lastClientY - state.startY;
+        state.item.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(1.02)`;
+    }
+
+    function updateTournamentDragPlaceholder() {
+        const state = tournamentManualDragState;
+        if (!state || !state.active) return;
+        const y = state.lastClientY;
+        const siblings = Array.from(state.list.querySelectorAll('[data-manual-sort-item]'))
+            .filter(item => item !== state.item);
+        const next = siblings.find(item => {
+            const rect = item.getBoundingClientRect();
+            return y < rect.top + (rect.height / 2);
+        });
+        if (next) {
+            if (state.placeholder.nextElementSibling !== next) {
+                state.list.insertBefore(state.placeholder, next);
+                state.moved = true;
+            }
+        } else if (state.placeholder !== state.list.lastElementChild) {
+            state.list.appendChild(state.placeholder);
+            state.moved = true;
+        }
+    }
+
     function finishTournamentManualDrag(shouldCommit) {
         const state = tournamentManualDragState;
         if (!state) return;
         clearTimeout(state.longPressTimer);
+        stopTournamentAutoScroll();
 
         if (state.active) {
             if (state.placeholder && state.placeholder.parentNode) {
@@ -8038,68 +8206,88 @@
                 state.placeholder.remove();
             }
             state.item.classList.remove('is-dragging');
+            state.item.style.position = '';
             state.item.style.left = '';
             state.item.style.top = '';
             state.item.style.width = '';
             state.item.style.height = '';
+            state.item.style.margin = '';
             state.item.style.transform = '';
             state.item.style.touchAction = '';
             document.body.classList.remove('is-tournament-dragging');
         }
 
         try { state.item.releasePointerCapture(state.pointerId); } catch (_) { /* ignore */ }
+        const list = state.list;
+        const wasActive = state.active;
+        const moved = state.moved;
         tournamentManualDragState = null;
-        if (shouldCommit && state.active) commitTournamentManualSortOrder(state.list);
+        // Only persist/re-render when the order actually changed. A plain tap on
+        // the handle (no movement) leaves everything exactly where it was.
+        if (shouldCommit && wasActive && moved) commitTournamentManualSortOrder(list);
     }
 
     function startTournamentManualDrag(state) {
         if (!state || state.active) return;
+        clearTimeout(state.longPressTimer);
         const rect = state.item.getBoundingClientRect();
         const placeholder = document.createElement('div');
         placeholder.className = 'tg-manual-placeholder';
         placeholder.style.height = `${rect.height}px`;
         state.placeholder = placeholder;
         state.active = true;
-        state.offsetX = state.startX - rect.left;
-        state.offsetY = state.startY - rect.top;
+        state.moved = false;
 
         state.item.parentNode.insertBefore(placeholder, state.item.nextSibling);
         state.item.classList.add('is-dragging');
+        // Pin the row in the viewport exactly where it currently sits. Because we
+        // no longer toggle the page scrollbar, these coordinates stay valid and
+        // the row does not jump on grab.
+        state.item.style.position = 'fixed';
         state.item.style.left = `${rect.left}px`;
         state.item.style.top = `${rect.top}px`;
         state.item.style.width = `${rect.width}px`;
         state.item.style.height = `${rect.height}px`;
+        state.item.style.margin = '0';
         state.item.style.touchAction = 'none';
         document.body.classList.add('is-tournament-dragging');
         try { state.item.setPointerCapture(state.pointerId); } catch (_) { /* ignore */ }
+        if (state.pointerType !== 'mouse' && navigator.vibrate) {
+            try { navigator.vibrate(14); } catch (_) { /* ignore */ }
+        }
+        updateTournamentDragVisual();
+        state.autoScrollRAF = requestAnimationFrame(tournamentAutoScrollTick);
     }
 
     function moveTournamentManualDrag(event) {
         const state = tournamentManualDragState;
-        if (!state) return;
+        if (!state || event.pointerId !== state.pointerId) return;
 
-        const dx = event.clientX - state.startX;
-        const dy = event.clientY - state.startY;
+        state.lastClientX = event.clientX;
+        state.lastClientY = event.clientY;
+
         if (!state.active) {
+            const dist = Math.hypot(event.clientX - state.startX, event.clientY - state.startY);
             if (state.pointerType === 'touch' || state.pointerType === 'pen') {
-                if (Math.hypot(dx, dy) > 8) finishTournamentManualDrag(false);
-                return;
+                // A finger that started on the row body (not the handle) and moves
+                // before the long-press fires is a scroll gesture - let it scroll.
+                if (!state.viaHandle) {
+                    if (dist > 10) {
+                        clearTimeout(state.longPressTimer);
+                        finishTournamentManualDrag(false);
+                    }
+                    return;
+                }
+                if (dist > TOURNAMENT_DRAG_THRESHOLD) startTournamentManualDrag(state);
+            } else if (dist > TOURNAMENT_DRAG_THRESHOLD) {
+                startTournamentManualDrag(state);
             }
-            if (Math.hypot(dx, dy) > 4) startTournamentManualDrag(state);
+            if (!state.active) return;
         }
-        if (!state.active) return;
 
         event.preventDefault();
-        state.item.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-
-        const siblings = Array.from(state.list.querySelectorAll('[data-manual-sort-item]'))
-            .filter(item => item !== state.item);
-        const next = siblings.find(item => {
-            const rect = item.getBoundingClientRect();
-            return event.clientY < rect.top + (rect.height / 2);
-        });
-        if (next) state.list.insertBefore(state.placeholder, next);
-        else state.list.appendChild(state.placeholder);
+        updateTournamentDragVisual();
+        updateTournamentDragPlaceholder();
     }
 
     function bindTournamentManualSortables() {
@@ -8107,27 +8295,44 @@
         document.querySelectorAll('[data-manual-sort-item]').forEach(item => {
             item.addEventListener('pointerdown', event => {
                 if (event.pointerType === 'mouse' && event.button !== 0) return;
+                if (tournamentManualDragState) finishTournamentManualDrag(false);
                 const list = item.closest('[data-manual-sort-list]');
                 if (!list) return;
+                const pointerType = event.pointerType || 'mouse';
+                const viaHandle = !!(event.target.closest && event.target.closest('.tg-manual-grip'));
                 tournamentManualDragState = {
                     item,
                     list,
                     pointerId: event.pointerId,
-                    pointerType: event.pointerType || 'mouse',
+                    pointerType,
+                    viaHandle,
                     startX: event.clientX,
                     startY: event.clientY,
+                    lastClientX: event.clientX,
+                    lastClientY: event.clientY,
                     active: false,
+                    moved: false,
                     longPressTimer: null,
-                    placeholder: null
+                    placeholder: null,
+                    autoScrollRAF: null
                 };
-                if (event.pointerType === 'touch' || event.pointerType === 'pen') {
-                    tournamentManualDragState.longPressTimer = setTimeout(() => {
-                        startTournamentManualDrag(tournamentManualDragState);
-                    }, 280);
-                } else {
+
+                if (viaHandle) {
+                    // The dedicated handle starts a drag right away on mouse and,
+                    // for touch/pen, after a tiny move (touch-action:none on the
+                    // handle prevents the page from scrolling instead).
                     event.preventDefault();
-                    startTournamentManualDrag(tournamentManualDragState);
+                    if (pointerType === 'mouse') {
+                        startTournamentManualDrag(tournamentManualDragState);
+                    }
+                } else if (pointerType === 'touch' || pointerType === 'pen') {
+                    // Press-and-hold anywhere on the row to pick it up.
+                    tournamentManualDragState.longPressTimer = setTimeout(() => {
+                        if (tournamentManualDragState) startTournamentManualDrag(tournamentManualDragState);
+                    }, 300);
                 }
+                // Mouse on the row body: wait until the pointer moves past the
+                // threshold before lifting the row (handled in move).
             });
 
             item.addEventListener('keydown', event => {
@@ -8135,13 +8340,28 @@
                 const list = item.closest('[data-manual-sort-list]');
                 if (!list) return;
                 event.preventDefault();
+                let changed = false;
                 if (event.key === 'ArrowUp' && item.previousElementSibling) {
                     list.insertBefore(item, item.previousElementSibling);
-                    commitTournamentManualSortOrder(list);
+                    changed = true;
                 } else if (event.key === 'ArrowDown' && item.nextElementSibling) {
                     list.insertBefore(item.nextElementSibling, item);
-                    commitTournamentManualSortOrder(list);
+                    changed = true;
                 }
+                if (!changed) return;
+                // Capture identifying attributes before the commit triggers a full
+                // re-render (which detaches item/list), then restore keyboard focus
+                // onto the same row in the freshly rendered DOM.
+                const kind = item.getAttribute('data-sort-kind') || '';
+                const group = item.getAttribute('data-group') || '';
+                const teamKey = item.getAttribute('data-team-key') || '';
+                const esc = (window.CSS && CSS.escape) ? CSS.escape.bind(CSS) : (val => val);
+                commitTournamentManualSortOrder(list);
+                const selector = teamKey
+                    ? `[data-manual-sort-item][data-team-key="${esc(teamKey)}"]`
+                    : `[data-manual-sort-item][data-sort-kind="${esc(kind)}"][data-group="${esc(group)}"]`;
+                const moved = document.querySelector(selector);
+                if (moved) moved.focus();
             });
         });
     }
