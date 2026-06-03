@@ -1508,14 +1508,23 @@
                 radial-gradient(ellipse at bottom left, rgba(250,204,21,0.12), transparent 56%);
         }
 
+        .tour-toolbar {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
         .tour-pill-nav {
             display: flex;
+            flex: 1 1 auto;
+            min-width: 0;
             gap: 8px;
             background: var(--dark-card);
             border: 1px solid var(--glass-border);
             border-radius: 32px;
             padding: 5px;
-            margin-bottom: 16px;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
@@ -1550,40 +1559,45 @@
             box-shadow: 0 4px 14px rgba(34,197,94,0.35);
         }
 
+        .tour-mode-toggle {
+            display: flex;
+            flex: 0 0 auto;
+            gap: 5px;
+            padding: 5px;
+            border-radius: 32px;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+        }
+
+        .tour-mode-btn {
+            min-height: 44px;
+            min-width: 82px;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 28px;
+            background: transparent;
+            color: var(--text-muted);
+            font: inherit;
+            font-size: 0.84rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: background 0.22s, color 0.22s, box-shadow 0.22s;
+            white-space: nowrap;
+        }
+
+        .tour-mode-btn.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(34,197,94,0.35);
+        }
+
+        .tour-mode-btn:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 3px;
+        }
+
         .tournament-tab-panel { animation: fadeSlideDown 0.35s ease both; }
         .tournament-tab-panel[hidden] { display: none; }
-
-        .tournament-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .tournament-summary-item {
-            background: rgba(255,255,255,0.045);
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 8px;
-            padding: 12px 14px;
-            min-width: 0;
-        }
-
-        .tournament-summary-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            margin-bottom: 4px;
-        }
-
-        .tournament-summary-value {
-            font-size: 1.35rem;
-            line-height: 1.05;
-            font-weight: 900;
-            color: var(--text-main);
-            font-variant-numeric: tabular-nums;
-        }
 
         .tournament-groups-grid {
             display: grid;
@@ -1780,6 +1794,108 @@
             color: #93c5fd;
         }
 
+        .tg-manual-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            padding: 10px;
+            touch-action: pan-y;
+        }
+
+        .tg-manual-row {
+            display: grid;
+            grid-template-columns: 32px 20px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            min-height: 46px;
+            padding: 8px 10px;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.12);
+            color: var(--text-main);
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .tg-manual-row:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 2px;
+        }
+
+        .tg-manual-row.is-dragging {
+            position: fixed;
+            z-index: 2000;
+            box-shadow: 0 18px 38px rgba(0,0,0,0.42);
+            border-color: rgba(74,222,128,0.55);
+            background: linear-gradient(135deg, rgba(28,35,51,0.98), rgba(22,27,34,0.98));
+            cursor: grabbing;
+            touch-action: none;
+        }
+
+        .tg-manual-row.is-dragging * {
+            pointer-events: none;
+        }
+
+        .tg-manual-placeholder {
+            min-height: 46px;
+            border: 1px dashed rgba(74,222,128,0.55);
+            border-radius: 8px;
+            background: rgba(34,197,94,0.08);
+        }
+
+        .tg-manual-grip {
+            width: 18px;
+            height: 24px;
+            opacity: 0.62;
+            background:
+                radial-gradient(circle, currentColor 1.4px, transparent 1.6px) 0 2px / 7px 7px,
+                radial-gradient(circle, currentColor 1.4px, transparent 1.6px) 8px 2px / 7px 7px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .tg-manual-row:hover .tg-manual-grip,
+        .tg-manual-row.is-dragging .tg-manual-grip {
+            color: var(--green-light);
+            opacity: 0.9;
+        }
+
+        .tg-manual-meta {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 900;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .tg-manual-status {
+            min-width: 54px;
+            text-align: right;
+            color: var(--green-light);
+        }
+
+        .tournament-third-manual-list {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            touch-action: pan-y;
+        }
+
+        .tournament-third-manual-list .tg-manual-row {
+            grid-template-columns: 32px 20px minmax(0, 1fr) 44px 98px;
+        }
+
+        body.is-tournament-dragging {
+            overflow: hidden;
+        }
+
         .tg-team-cell {
             display: flex;
             align-items: center;
@@ -1960,6 +2076,32 @@
         }
 
         .tb-slot + .tb-slot { margin-top: 6px; }
+
+        .tb-slot-btn {
+            width: 100%;
+            border: 0;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .tb-slot-btn:hover {
+            background: rgba(34,197,94,0.12);
+        }
+
+        .tb-slot-btn:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 2px;
+        }
+
+        .tb-slot--winner {
+            background: rgba(34,197,94,0.16);
+            color: #fff;
+        }
+
+        .tb-slot--loser {
+            opacity: 0.58;
+        }
 
         .tb-slot-label {
             min-width: 0;
@@ -3243,12 +3385,18 @@
             .cmp-pill-label-short { display: inline; }
             .cmp-hero { padding: 18px 16px; }
             .cmp-hero-title { font-size: 1.2rem; }
+            .tour-toolbar { flex-wrap: wrap; }
+            .tour-mode-toggle { width: 100%; }
+            .tour-mode-btn { flex: 1 1 0; min-width: 0; }
             .tour-pill-nav { padding: 4px; }
             .tour-pill { padding: 10px 12px; font-size: 0.82rem; }
-            .tournament-summary-grid { grid-template-columns: repeat(2, 1fr); }
             .tournament-groups-grid { grid-template-columns: 1fr; }
             .tournament-group-header { flex-wrap: wrap; align-items: flex-start; }
             .tournament-group-actions { width: 100%; justify-content: space-between; }
+            .tg-manual-row { grid-template-columns: 30px 18px minmax(0, 1fr); }
+            .tg-manual-meta { grid-column: 3; justify-content: flex-start; font-size: 0.68rem; }
+            .tournament-third-manual-list .tg-manual-row { grid-template-columns: 30px 18px minmax(0, 1fr); }
+            .tournament-third-manual-list .tg-status { grid-column: 3; justify-self: flex-start; }
             .tournament-table th,
             .tournament-table td { padding: 8px 7px; }
             .tournament-bracket {
@@ -5052,13 +5200,18 @@
                     <div class="cmp-hero-subtitle">Gruppenphase, Drittplatzierte und Finalrunde.</div>
                 </div>
 
-                <div class="tour-pill-nav" role="tablist" aria-label="Turnierbereich wählen">
-                    <button type="button" class="tour-pill active" data-tournament-tab="groups" role="tab" aria-selected="true">Gruppenphase</button>
-                    <button type="button" class="tour-pill" data-tournament-tab="knockout" role="tab" aria-selected="false">Finalrunde</button>
+                <div class="tour-toolbar">
+                    <div class="tour-pill-nav" role="tablist" aria-label="Turnierbereich wählen">
+                        <button type="button" class="tour-pill active" data-tournament-tab="groups" role="tab" aria-selected="true">Gruppenphase</button>
+                        <button type="button" class="tour-pill" data-tournament-tab="knockout" role="tab" aria-selected="false">Finalrunde</button>
+                    </div>
+                    <div class="tour-mode-toggle" role="group" aria-label="Turniermodus">
+                        <button type="button" class="tour-mode-btn active" data-tournament-mode="auto" aria-pressed="true">Auto</button>
+                        <button type="button" class="tour-mode-btn" data-tournament-mode="manual" aria-pressed="false">Manuell</button>
+                    </div>
                 </div>
 
                 <div id="tournament-tab-groups" class="tournament-tab-panel active" role="tabpanel">
-                    <div id="tournament-summary" class="tournament-summary-grid"></div>
                     <div id="tournament-groups-list" class="tournament-groups-grid"></div>
                     <div id="tournament-third-places" class="tournament-third-section"></div>
                 </div>
@@ -5128,6 +5281,15 @@
     let scheduleNationList = [];
     let currentTournamentTab = 'groups';
     const expandedTournamentGroups = new Set();
+    const TOURNAMENT_MODE_AUTO = 'auto';
+    const TOURNAMENT_MODE_MANUAL = 'manual';
+    const TOURNAMENT_MANUAL_STORAGE_VERSION = 1;
+    const TOURNAMENT_MANUAL_STORAGE_KEY = `dreamteamTournamentManual:${APP.key || TOURNAMENT_YEAR || 'current'}`;
+    let tournamentManualState = loadTournamentManualState();
+    let currentTournamentMode = tournamentManualState.mode === TOURNAMENT_MODE_MANUAL
+        ? TOURNAMENT_MODE_MANUAL
+        : TOURNAMENT_MODE_AUTO;
+    let tournamentManualDragState = null;
 
     let matchCatalog = [];
     let matchByNumber = new Map();
@@ -7091,6 +7253,81 @@
     /* =========================================================
        TOURNAMENT VIEW (groups + knockout)
        ========================================================= */
+    const FIFA_THIRD_PLACE_WINNER_ORDER = ['A', 'B', 'D', 'E', 'G', 'I', 'K', 'L'];
+    const FIFA_THIRD_PLACE_WINNER_MATCH = { A: 79, B: 85, D: 81, E: 74, G: 82, I: 77, K: 87, L: 80 };
+    const FIFA_THIRD_PLACE_ASSIGNMENT_DATA = 'EFGHIJKL:EJIFHGLK|DFGHIJKL:HGIDJFLK|DEGHIJKL:EJIDHGLK|DEFHIJKL:EJIDHFLK|DEFGIJKL:EGIDJFLK|DEFGHJKL:EGJDHFLK|DEFGHIKL:EGIDHFLK|DEFGHIJL:EGJDHFLI|DEFGHIJK:EGJDHFIK|CFGHIJKL:HGICJFLK|CEGHIJKL:EJICHGLK|CEFHIJKL:EJICHFLK|CEFGIJKL:EGICJFLK|CEFGHJKL:EGJCHFLK|CEFGHIKL:EGICHFLK|CEFGHIJL:EGJCHFLI|CEFGHIJK:EGJCHFIK|CDGHIJKL:HGICJDLK|CDFHIJKL:CJIDHFLK|CDFGIJKL:CGIDJFLK|CDFGHJKL:CGJDHFLK|CDFGHIKL:CGIDHFLK|CDFGHIJL:CGJDHFLI|CDFGHIJK:CGJDHFIK|CDEHIJKL:EJICHDLK|CDEGIJKL:EGICJDLK|CDEGHJKL:EGJCHDLK|CDEGHIKL:EGICHDLK|CDEGHIJL:EGJCHDLI|CDEGHIJK:EGJCHDIK|CDEFIJKL:CJEDIFLK|CDEFHJKL:CJEDHFLK|CDEFHIKL:CEIDHFLK|CDEFHIJL:CJEDHFLI|CDEFHIJK:CJEDHFIK|CDEFGJKL:CGEDJFLK|CDEFGIKL:CGEDIFLK|CDEFGIJL:CGEDJFLI|CDEFGIJK:CGEDJFIK|CDEFGHKL:CGEDHFLK|CDEFGHJL:CGJDHFLE|CDEFGHJK:CGJDHFEK|CDEFGHIL:CGEDHFLI|CDEFGHIK:CGEDHFIK|CDEFGHIJ:CGJDHFEI|BFGHIJKL:HJBFIGLK|BEGHIJKL:EJIBHGLK|BEFHIJKL:EJBFIHLK|BEFGIJKL:EJBFIGLK|BEFGHJKL:EJBFHGLK|BEFGHIKL:EGBFIHLK|BEFGHIJL:EJBFHGLI|BEFGHIJK:EJBFHGIK|BDGHIJKL:HJBDIGLK|BDFHIJKL:HJBDIFLK|BDFGIJKL:IGBDJFLK|BDFGHJKL:HGBDJFLK|BDFGHIKL:HGBDIFLK|BDFGHIJL:HGBDJFLI|BDFGHIJK:HGBDJFIK|BDEHIJKL:EJBDIHLK|BDEGIJKL:EJBDIGLK|BDEGHJKL:EJBDHGLK|BDEGHIKL:EGBDIHLK|BDEGHIJL:EJBDHGLI|BDEGHIJK:EJBDHGIK|BDEFIJKL:EJBDIFLK|BDEFHJKL:EJBDHFLK|BDEFHIKL:EIBDHFLK|BDEFHIJL:EJBDHFLI|BDEFHIJK:EJBDHFIK|BDEFGJKL:EGBDJFLK|BDEFGIKL:EGBDIFLK|BDEFGIJL:EGBDJFLI|BDEFGIJK:EGBDJFIK|BDEFGHKL:EGBDHFLK|BDEFGHJL:HGBDJFLE|BDEFGHJK:HGBDJFEK|BDEFGHIL:EGBDHFLI|BDEFGHIK:EGBDHFIK|BDEFGHIJ:HGBDJFEI|BCGHIJKL:HJBCIGLK|BCFHIJKL:HJBCIFLK|BCFGIJKL:IGBCJFLK|BCFGHJKL:HGBCJFLK|BCFGHIKL:HGBCIFLK|BCFGHIJL:HGBCJFLI|BCFGHIJK:HGBCJFIK|BCEHIJKL:EJBCIHLK|BCEGIJKL:EJBCIGLK|BCEGHJKL:EJBCHGLK|BCEGHIKL:EGBCIHLK|BCEGHIJL:EJBCHGLI|BCEGHIJK:EJBCHGIK|BCEFIJKL:EJBCIFLK|BCEFHJKL:EJBCHFLK|BCEFHIKL:EIBCHFLK|BCEFHIJL:EJBCHFLI|BCEFHIJK:EJBCHFIK|BCEFGJKL:EGBCJFLK|BCEFGIKL:EGBCIFLK|BCEFGIJL:EGBCJFLI|BCEFGIJK:EGBCJFIK|BCEFGHKL:EGBCHFLK|BCEFGHJL:HGBCJFLE|BCEFGHJK:HGBCJFEK|BCEFGHIL:EGBCHFLI|BCEFGHIK:EGBCHFIK|BCEFGHIJ:HGBCJFEI|BCDHIJKL:HJBCIDLK|BCDGIJKL:IGBCJDLK|BCDGHJKL:HGBCJDLK|BCDGHIKL:HGBCIDLK|BCDGHIJL:HGBCJDLI|BCDGHIJK:HGBCJDIK|BCDFIJKL:CJBDIFLK|BCDFHJKL:CJBDHFLK|BCDFHIKL:CIBDHFLK|BCDFHIJL:CJBDHFLI|BCDFHIJK:CJBDHFIK|BCDFGJKL:CGBDJFLK|BCDFGIKL:CGBDIFLK|BCDFGIJL:CGBDJFLI|BCDFGIJK:CGBDJFIK|BCDFGHKL:CGBDHFLK|BCDFGHJL:CGBDHFLJ|BCDFGHJK:HGBCJFDK|BCDFGHIL:CGBDHFLI|BCDFGHIK:CGBDHFIK|BCDFGHIJ:HGBCJFDI|BCDEIJKL:EJBCIDLK|BCDEHJKL:EJBCHDLK|BCDEHIKL:EIBCHDLK|BCDEHIJL:EJBCHDLI|BCDEHIJK:EJBCHDIK|BCDEGJKL:EGBCJDLK|BCDEGIKL:EGBCIDLK|BCDEGIJL:EGBCJDLI|BCDEGIJK:EGBCJDIK|BCDEGHKL:EGBCHDLK|BCDEGHJL:HGBCJDLE|BCDEGHJK:HGBCJDEK|BCDEGHIL:EGBCHDLI|BCDEGHIK:EGBCHDIK|BCDEGHIJ:HGBCJDEI|BCDEFJKL:CJBDEFLK|BCDEFIKL:CEBDIFLK|BCDEFIJL:CJBDEFLI|BCDEFIJK:CJBDEFIK|BCDEFHKL:CEBDHFLK|BCDEFHJL:CJBDHFLE|BCDEFHJK:CJBDHFEK|BCDEFHIL:CEBDHFLI|BCDEFHIK:CEBDHFIK|BCDEFHIJ:CJBDHFEI|BCDEFGKL:CGBDEFLK|BCDEFGJL:CGBDJFLE|BCDEFGJK:CGBDJFEK|BCDEFGIL:CGBDEFLI|BCDEFGIK:CGBDEFIK|BCDEFGIJ:CGBDJFEI|BCDEFGHL:CGBDHFLE|BCDEFGHK:CGBDHFEK|BCDEFGHJ:HGBCJFDE|BCDEFGHI:CGBDHFEI|AFGHIJKL:HJIFAGLK|AEGHIJKL:EJIAHGLK|AEFHIJKL:EJIFAHLK|AEFGIJKL:EJIFAGLK|AEFGHJKL:EGJFAHLK|AEFGHIKL:EGIFAHLK|AEFGHIJL:EGJFAHLI|AEFGHIJK:EGJFAHIK|ADGHIJKL:HJIDAGLK|ADFHIJKL:HJIDAFLK|ADFGIJKL:IGJDAFLK|ADFGHJKL:HGJDAFLK|ADFGHIKL:HGIDAFLK|ADFGHIJL:HGJDAFLI|ADFGHIJK:HGJDAFIK|ADEHIJKL:EJIDAHLK|ADEGIJKL:EJIDAGLK|ADEGHJKL:EGJDAHLK|ADEGHIKL:EGIDAHLK|ADEGHIJL:EGJDAHLI|ADEGHIJK:EGJDAHIK|ADEFIJKL:EJIDAFLK|ADEFHJKL:HJEDAFLK|ADEFHIKL:HEIDAFLK|ADEFHIJL:HJEDAFLI|ADEFHIJK:HJEDAFIK|ADEFGJKL:EGJDAFLK|ADEFGIKL:EGIDAFLK|ADEFGIJL:EGJDAFLI|ADEFGIJK:EGJDAFIK|ADEFGHKL:HGEDAFLK|ADEFGHJL:HGJDAFLE|ADEFGHJK:HGJDAFEK|ADEFGHIL:HGEDAFLI|ADEFGHIK:HGEDAFIK|ADEFGHIJ:HGJDAFEI|ACGHIJKL:HJICAGLK|ACFHIJKL:HJICAFLK|ACFGIJKL:IGJCAFLK|ACFGHJKL:HGJCAFLK|ACFGHIKL:HGICAFLK|ACFGHIJL:HGJCAFLI|ACFGHIJK:HGJCAFIK|ACEHIJKL:EJICAHLK|ACEGIJKL:EJICAGLK|ACEGHJKL:EGJCAHLK|ACEGHIKL:EGICAHLK|ACEGHIJL:EGJCAHLI|ACEGHIJK:EGJCAHIK|ACEFIJKL:EJICAFLK|ACEFHJKL:HJECAFLK|ACEFHIKL:HEICAFLK|ACEFHIJL:HJECAFLI|ACEFHIJK:HJECAFIK|ACEFGJKL:EGJCAFLK|ACEFGIKL:EGICAFLK|ACEFGIJL:EGJCAFLI|ACEFGIJK:EGJCAFIK|ACEFGHKL:HGECAFLK|ACEFGHJL:HGJCAFLE|ACEFGHJK:HGJCAFEK|ACEFGHIL:HGECAFLI|ACEFGHIK:HGECAFIK|ACEFGHIJ:HGJCAFEI|ACDHIJKL:HJICADLK|ACDGIJKL:IGJCADLK|ACDGHJKL:HGJCADLK|ACDGHIKL:HGICADLK|ACDGHIJL:HGJCADLI|ACDGHIJK:HGJCADIK|ACDFIJKL:CJIDAFLK|ACDFHJKL:HJFCADLK|ACDFHIKL:HFICADLK|ACDFHIJL:HJFCADLI|ACDFHIJK:HJFCADIK|ACDFGJKL:CGJDAFLK|ACDFGIKL:CGIDAFLK|ACDFGIJL:CGJDAFLI|ACDFGIJK:CGJDAFIK|ACDFGHKL:HGFCADLK|ACDFGHJL:CGJDAFLH|ACDFGHJK:HGJCAFDK|ACDFGHIL:HGFCADLI|ACDFGHIK:HGFCADIK|ACDFGHIJ:HGJCAFDI|ACDEIJKL:EJICADLK|ACDEHJKL:HJECADLK|ACDEHIKL:HEICADLK|ACDEHIJL:HJECADLI|ACDEHIJK:HJECADIK|ACDEGJKL:EGJCADLK|ACDEGIKL:EGICADLK|ACDEGIJL:EGJCADLI|ACDEGIJK:EGJCADIK|ACDEGHKL:HGECADLK|ACDEGHJL:HGJCADLE|ACDEGHJK:HGJCADEK|ACDEGHIL:HGECADLI|ACDEGHIK:HGECADIK|ACDEGHIJ:HGJCADEI|ACDEFJKL:CJEDAFLK|ACDEFIKL:CEIDAFLK|ACDEFIJL:CJEDAFLI|ACDEFIJK:CJEDAFIK|ACDEFHKL:HEFCADLK|ACDEFHJL:HJFCADLE|ACDEFHJK:HJECAFDK|ACDEFHIL:HEFCADLI|ACDEFHIK:HEFCADIK|ACDEFHIJ:HJECAFDI|ACDEFGKL:CGEDAFLK|ACDEFGJL:CGJDAFLE|ACDEFGJK:CGJDAFEK|ACDEFGIL:CGEDAFLI|ACDEFGIK:CGEDAFIK|ACDEFGIJ:CGJDAFEI|ACDEFGHL:HGFCADLE|ACDEFGHK:HGECAFDK|ACDEFGHJ:HGJCAFDE|ACDEFGHI:HGECAFDI|ABGHIJKL:HJBAIGLK|ABFHIJKL:HJBAIFLK|ABFGIJKL:IJBFAGLK|ABFGHJKL:HJBFAGLK|ABFGHIKL:HGBAIFLK|ABFGHIJL:HJBFAGLI|ABFGHIJK:HJBFAGIK|ABEHIJKL:EJBAIHLK|ABEGIJKL:EJBAIGLK|ABEGHJKL:EJBAHGLK|ABEGHIKL:EGBAIHLK|ABEGHIJL:EJBAHGLI|ABEGHIJK:EJBAHGIK|ABEFIJKL:EJBAIFLK|ABEFHJKL:EJBFAHLK|ABEFHIKL:EIBFAHLK|ABEFHIJL:EJBFAHLI|ABEFHIJK:EJBFAHIK|ABEFGJKL:EJBFAGLK|ABEFGIKL:EGBAIFLK|ABEFGIJL:EJBFAGLI|ABEFGIJK:EJBFAGIK|ABEFGHKL:EGBFAHLK|ABEFGHJL:HJBFAGLE|ABEFGHJK:HJBFAGEK|ABEFGHIL:EGBFAHLI|ABEFGHIK:EGBFAHIK|ABEFGHIJ:HJBFAGEI|ABDHIJKL:IJBDAHLK|ABDGIJKL:IJBDAGLK|ABDGHJKL:HJBDAGLK|ABDGHIKL:IGBDAHLK|ABDGHIJL:HJBDAGLI|ABDGHIJK:HJBDAGIK|ABDFIJKL:IJBDAFLK|ABDFHJKL:HJBDAFLK|ABDFHIKL:HIBDAFLK|ABDFHIJL:HJBDAFLI|ABDFHIJK:HJBDAFIK|ABDFGJKL:FJBDAGLK|ABDFGIKL:IGBDAFLK|ABDFGIJL:FJBDAGLI|ABDFGIJK:FJBDAGIK|ABDFGHKL:HGBDAFLK|ABDFGHJL:HGBDAFLJ|ABDFGHJK:HGBDAFJK|ABDFGHIL:HGBDAFLI|ABDFGHIK:HGBDAFIK|ABDFGHIJ:HGBDAFIJ|ABDEIJKL:EJBAIDLK|ABDEHJKL:EJBDAHLK|ABDEHIKL:EIBDAHLK|ABDEHIJL:EJBDAHLI|ABDEHIJK:EJBDAHIK|ABDEGJKL:EJBDAGLK|ABDEGIKL:EGBAIDLK|ABDEGIJL:EJBDAGLI|ABDEGIJK:EJBDAGIK|ABDEGHKL:EGBDAHLK|ABDEGHJL:HJBDAGLE|ABDEGHJK:HJBDAGEK|ABDEGHIL:EGBDAHLI|ABDEGHIK:EGBDAHIK|ABDEGHIJ:HJBDAGEI|ABDEFJKL:EJBDAFLK|ABDEFIKL:EIBDAFLK|ABDEFIJL:EJBDAFLI|ABDEFIJK:EJBDAFIK|ABDEFHKL:HEBDAFLK|ABDEFHJL:HJBDAFLE|ABDEFHJK:HJBDAFEK|ABDEFHIL:HEBDAFLI|ABDEFHIK:HEBDAFIK|ABDEFHIJ:HJBDAFEI|ABDEFGKL:EGBDAFLK|ABDEFGJL:EGBDAFLJ|ABDEFGJK:EGBDAFJK|ABDEFGIL:EGBDAFLI|ABDEFGIK:EGBDAFIK|ABDEFGIJ:EGBDAFIJ|ABDEFGHL:HGBDAFLE|ABDEFGHK:HGBDAFEK|ABDEFGHJ:HGBDAFEJ|ABDEFGHI:HGBDAFEI|ABCHIJKL:IJBCAHLK|ABCGIJKL:IJBCAGLK|ABCGHJKL:HJBCAGLK|ABCGHIKL:IGBCAHLK|ABCGHIJL:HJBCAGLI|ABCGHIJK:HJBCAGIK|ABCFIJKL:IJBCAFLK|ABCFHJKL:HJBCAFLK|ABCFHIKL:HIBCAFLK|ABCFHIJL:HJBCAFLI|ABCFHIJK:HJBCAFIK|ABCFGJKL:CJBFAGLK|ABCFGIKL:IGBCAFLK|ABCFGIJL:CJBFAGLI|ABCFGIJK:CJBFAGIK|ABCFGHKL:HGBCAFLK|ABCFGHJL:HGBCAFLJ|ABCFGHJK:HGBCAFJK|ABCFGHIL:HGBCAFLI|ABCFGHIK:HGBCAFIK|ABCFGHIJ:HGBCAFIJ|ABCEIJKL:EJBAICLK|ABCEHJKL:EJBCAHLK|ABCEHIKL:EIBCAHLK|ABCEHIJL:EJBCAHLI|ABCEHIJK:EJBCAHIK|ABCEGJKL:EJBCAGLK|ABCEGIKL:EGBAICLK|ABCEGIJL:EJBCAGLI|ABCEGIJK:EJBCAGIK|ABCEGHKL:EGBCAHLK|ABCEGHJL:HJBCAGLE|ABCEGHJK:HJBCAGEK|ABCEGHIL:EGBCAHLI|ABCEGHIK:EGBCAHIK|ABCEGHIJ:HJBCAGEI|ABCEFJKL:EJBCAFLK|ABCEFIKL:EIBCAFLK|ABCEFIJL:EJBCAFLI|ABCEFIJK:EJBCAFIK|ABCEFHKL:HEBCAFLK|ABCEFHJL:HJBCAFLE|ABCEFHJK:HJBCAFEK|ABCEFHIL:HEBCAFLI|ABCEFHIK:HEBCAFIK|ABCEFHIJ:HJBCAFEI|ABCEFGKL:EGBCAFLK|ABCEFGJL:EGBCAFLJ|ABCEFGJK:EGBCAFJK|ABCEFGIL:EGBCAFLI|ABCEFGIK:EGBCAFIK|ABCEFGIJ:EGBCAFIJ|ABCEFGHL:HGBCAFLE|ABCEFGHK:HGBCAFEK|ABCEFGHJ:HGBCAFEJ|ABCEFGHI:HGBCAFEI|ABCDIJKL:IJBCADLK|ABCDHJKL:HJBCADLK|ABCDHIKL:HIBCADLK|ABCDHIJL:HJBCADLI|ABCDHIJK:HJBCADIK|ABCDGJKL:CJBDAGLK|ABCDGIKL:IGBCADLK|ABCDGIJL:CJBDAGLI|ABCDGIJK:CJBDAGIK|ABCDGHKL:HGBCADLK|ABCDGHJL:HGBCADLJ|ABCDGHJK:HGBCADJK|ABCDGHIL:HGBCADLI|ABCDGHIK:HGBCADIK|ABCDGHIJ:HGBCADIJ|ABCDFJKL:CJBDAFLK|ABCDFIKL:CIBDAFLK|ABCDFIJL:CJBDAFLI|ABCDFIJK:CJBDAFIK|ABCDFHKL:HFBCADLK|ABCDFHJL:CJBDAFLH|ABCDFHJK:HJBCAFDK|ABCDFHIL:HFBCADLI|ABCDFHIK:HFBCADIK|ABCDFHIJ:HJBCAFDI|ABCDFGKL:CGBDAFLK|ABCDFGJL:CGBDAFLJ|ABCDFGJK:CGBDAFJK|ABCDFGIL:CGBDAFLI|ABCDFGIK:CGBDAFIK|ABCDFGIJ:CGBDAFIJ|ABCDFGHL:CGBDAFLH|ABCDFGHK:HGBCAFDK|ABCDFGHJ:HGBCAFDJ|ABCDFGHI:HGBCAFDI|ABCDEJKL:EJBCADLK|ABCDEIKL:EIBCADLK|ABCDEIJL:EJBCADLI|ABCDEIJK:EJBCADIK|ABCDEHKL:HEBCADLK|ABCDEHJL:HJBCADLE|ABCDEHJK:HJBCADEK|ABCDEHIL:HEBCADLI|ABCDEHIK:HEBCADIK|ABCDEHIJ:HJBCADEI|ABCDEGKL:EGBCADLK|ABCDEGJL:EGBCADLJ|ABCDEGJK:EGBCADJK|ABCDEGIL:EGBCADLI|ABCDEGIK:EGBCADIK|ABCDEGIJ:EGBCADIJ|ABCDEGHL:HGBCADLE|ABCDEGHK:HGBCADEK|ABCDEGHJ:HGBCADEJ|ABCDEGHI:HGBCADEI|ABCDEFKL:CEBDAFLK|ABCDEFJL:CJBDAFLE|ABCDEFJK:CJBDAFEK|ABCDEFIL:CEBDAFLI|ABCDEFIK:CEBDAFIK|ABCDEFIJ:CJBDAFEI|ABCDEFHL:HFBCADLE|ABCDEFHK:HEBCAFDK|ABCDEFHJ:HJBCAFDE|ABCDEFHI:HEBCAFDI|ABCDEFGL:CGBDAFLE|ABCDEFGK:CGBDAFEK|ABCDEFGJ:CGBDAFEJ|ABCDEFGI:CGBDAFEI|ABCDEFGH:HGBCAFDE';
+    const FIFA_THIRD_PLACE_ASSIGNMENTS = new Map(
+        FIFA_THIRD_PLACE_ASSIGNMENT_DATA.split('|')
+            .map(item => item.split(':'))
+            .filter(parts => parts.length === 2 && parts[0] && parts[1])
+    );
+
+    function createDefaultTournamentManualState() {
+        return {
+            version: TOURNAMENT_MANUAL_STORAGE_VERSION,
+            mode: TOURNAMENT_MODE_AUTO,
+            groupOrders: {},
+            thirdOrder: [],
+            winners: {}
+        };
+    }
+
+    function normalizeTournamentManualState(raw) {
+        const base = createDefaultTournamentManualState();
+        if (!raw || typeof raw !== 'object') return base;
+        const mode = raw.mode === TOURNAMENT_MODE_MANUAL ? TOURNAMENT_MODE_MANUAL : TOURNAMENT_MODE_AUTO;
+        return {
+            ...base,
+            ...raw,
+            version: TOURNAMENT_MANUAL_STORAGE_VERSION,
+            mode,
+            groupOrders: raw.groupOrders && typeof raw.groupOrders === 'object' ? raw.groupOrders : {},
+            thirdOrder: Array.isArray(raw.thirdOrder) ? raw.thirdOrder.map(value => String(value).toUpperCase()) : [],
+            winners: raw.winners && typeof raw.winners === 'object' ? raw.winners : {}
+        };
+    }
+
+    function loadTournamentManualState() {
+        try {
+            const raw = window.localStorage ? window.localStorage.getItem(TOURNAMENT_MANUAL_STORAGE_KEY) : null;
+            if (!raw) return createDefaultTournamentManualState();
+            return normalizeTournamentManualState(JSON.parse(raw));
+        } catch (_) {
+            return createDefaultTournamentManualState();
+        }
+    }
+
+    function saveTournamentManualState() {
+        tournamentManualState = normalizeTournamentManualState({
+            ...tournamentManualState,
+            mode: currentTournamentMode
+        });
+        try {
+            if (window.localStorage) {
+                window.localStorage.setItem(TOURNAMENT_MANUAL_STORAGE_KEY, JSON.stringify(tournamentManualState));
+            }
+        } catch (_) { /* localStorage may be unavailable */ }
+    }
+
+    function isTournamentManualMode() {
+        return currentTournamentMode === TOURNAMENT_MODE_MANUAL;
+    }
+
+    function syncTournamentModeUi() {
+        document.querySelectorAll('[data-tournament-mode]').forEach(btn => {
+            const isActive = btn.dataset.tournamentMode === currentTournamentMode;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', String(isActive));
+        });
+    }
+
+    function setTournamentMode(mode) {
+        currentTournamentMode = mode === TOURNAMENT_MODE_MANUAL ? TOURNAMENT_MODE_MANUAL : TOURNAMENT_MODE_AUTO;
+        saveTournamentManualState();
+        syncTournamentModeUi();
+        renderTournamentView();
+    }
+
     function normalizeTournamentName(value) {
         if (value === null || value === undefined) return '';
         return String(value)
@@ -7441,6 +7678,151 @@
         return { groups: groupResults, thirdRows, groupRankMap, thirdByGroup, playedMatches, totalPlayed };
     }
 
+    function areTournamentOrdersEqual(a, b) {
+        if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+        return a.every((value, idx) => String(value) === String(b[idx]));
+    }
+
+    function sanitizeTournamentOrder(savedOrder, validOrder) {
+        const valid = (validOrder || []).map(value => String(value));
+        const validSet = new Set(valid);
+        const seen = new Set();
+        const clean = [];
+        (Array.isArray(savedOrder) ? savedOrder : []).forEach(value => {
+            const key = String(value);
+            if (!validSet.has(key) || seen.has(key)) return;
+            seen.add(key);
+            clean.push(key);
+        });
+        valid.forEach(key => {
+            if (seen.has(key)) return;
+            seen.add(key);
+            clean.push(key);
+        });
+        return clean;
+    }
+
+    function buildTournamentBestThirdAssignments(context) {
+        const qualifiedGroups = (context.thirdRows || [])
+            .filter(row => row.qualifiesAsThird)
+            .map(row => String(row.group || '').toUpperCase())
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, 'de'))
+            .join('');
+        const encoded = FIFA_THIRD_PLACE_ASSIGNMENTS.get(qualifiedGroups) || '';
+        const byMatch = new Map();
+        const byWinnerGroup = new Map();
+        if (encoded.length === FIFA_THIRD_PLACE_WINNER_ORDER.length) {
+            encoded.split('').forEach((thirdGroup, idx) => {
+                const winnerGroup = FIFA_THIRD_PLACE_WINNER_ORDER[idx];
+                const matchNumber = FIFA_THIRD_PLACE_WINNER_MATCH[winnerGroup];
+                if (!matchNumber || !thirdGroup) return;
+                byMatch.set(matchNumber, thirdGroup);
+                byWinnerGroup.set(winnerGroup, thirdGroup);
+            });
+        }
+        return { key: qualifiedGroups, byMatch, byWinnerGroup };
+    }
+
+    function attachTournamentBestThirdAssignments(context) {
+        const assignments = buildTournamentBestThirdAssignments(context);
+        context.bestThirdAssignmentKey = assignments.key;
+        context.bestThirdByMatch = assignments.byMatch;
+        context.bestThirdByWinnerGroup = assignments.byWinnerGroup;
+        return context;
+    }
+
+    function hydrateTournamentManualOrders(context) {
+        tournamentManualState = normalizeTournamentManualState(tournamentManualState);
+        let changed = false;
+
+        context.groups.forEach(group => {
+            const groupKey = String(group.group || '').toUpperCase();
+            const validOrder = group.rows.map(row => row.key);
+            const clean = sanitizeTournamentOrder(tournamentManualState.groupOrders[groupKey], validOrder);
+            if (!areTournamentOrdersEqual(tournamentManualState.groupOrders[groupKey], clean)) {
+                tournamentManualState.groupOrders[groupKey] = clean;
+                changed = true;
+            }
+        });
+
+        const validThirdGroups = context.groups.map(group => String(group.group || '').toUpperCase()).filter(Boolean);
+        const cleanThirdOrder = sanitizeTournamentOrder(tournamentManualState.thirdOrder, validThirdGroups);
+        if (!areTournamentOrdersEqual(tournamentManualState.thirdOrder, cleanThirdOrder)) {
+            tournamentManualState.thirdOrder = cleanThirdOrder;
+            changed = true;
+        }
+
+        if (changed) saveTournamentManualState();
+    }
+
+    function cloneTournamentRowForManual(row, rank) {
+        return {
+            ...row,
+            rank,
+            rankNote: 'Manuell'
+        };
+    }
+
+    function applyTournamentManualState(autoContext) {
+        hydrateTournamentManualOrders(autoContext);
+
+        const groupResults = autoContext.groups.map(group => {
+            const groupKey = String(group.group || '').toUpperCase();
+            const rowsByKey = new Map(group.rows.map(row => [row.key, row]));
+            const rankedRows = (tournamentManualState.groupOrders[groupKey] || [])
+                .map((teamKey, idx) => {
+                    const row = rowsByKey.get(teamKey);
+                    return row ? cloneTournamentRowForManual(row, idx + 1) : null;
+                })
+                .filter(Boolean);
+            const manualRowsByKey = new Map(rankedRows.map(row => [row.key, row]));
+            return {
+                ...group,
+                rankedRows,
+                rowsByKey: manualRowsByKey
+            };
+        });
+
+        const groupByLetter = new Map(groupResults.map(group => [String(group.group).toUpperCase(), group]));
+        const groupRankMap = new Map();
+        groupResults.forEach(group => {
+            group.rankedRows.forEach(row => {
+                groupRankMap.set(`${group.group}:${row.rank}`, row);
+            });
+        });
+
+        const thirdRows = (tournamentManualState.thirdOrder || [])
+            .map(groupLetter => {
+                const group = groupByLetter.get(String(groupLetter).toUpperCase());
+                const row = group && group.rankedRows[2] ? group.rankedRows[2] : null;
+                return row ? { ...row, sourceGroup: group } : null;
+            })
+            .filter(Boolean)
+            .map((row, idx) => ({
+                ...row,
+                thirdRank: idx + 1,
+                qualifiesAsThird: idx < 8,
+                rankNote: 'Manuell'
+            }));
+
+        const context = attachTournamentBestThirdAssignments({
+            ...autoContext,
+            groups: groupResults,
+            thirdRows,
+            groupRankMap,
+            thirdByGroup: new Map(thirdRows.map(row => [row.group, row]))
+        });
+        pruneTournamentManualWinners(context);
+        return context;
+    }
+
+    function buildTournamentContext() {
+        const autoContext = attachTournamentBestThirdAssignments(buildTournamentStandings());
+        if (!isTournamentManualMode()) return autoContext;
+        return applyTournamentManualState(autoContext);
+    }
+
     function formatTournamentDate(value) {
         const dt = value ? new Date(value) : null;
         if (!dt || Number.isNaN(dt.getTime())) return '';
@@ -7453,7 +7835,47 @@
         return `<div class="tg-team-cell">${flagHtml}<span class="tg-team-name">${escapeHtml(row.displayName || row.name)}</span></div>`;
     }
 
+    function formatTournamentManualRowMeta(row) {
+        const gd = Number(row.gd || 0);
+        const gdText = gd > 0 ? `+${gd}` : String(gd);
+        return `${row.pts || 0} P / ${gdText}`;
+    }
+
+    function renderTournamentManualRankRow(row, options) {
+        const status = row.rank <= 2 ? 'Top 2' : (row.rank === 3 ? 'Dritter' : 'Raus');
+        const statusClass = row.rank <= 2 ? 'tg-row--qualified' : (row.rank === 3 ? 'tg-row--third' : 'tg-row--out');
+        return `<div class="tg-manual-row ${statusClass}" data-manual-sort-item data-sort-kind="group" data-group="${escapeHtml(options.group)}" data-team-key="${escapeHtml(row.key)}" tabindex="0" role="option" aria-selected="false">
+            <span class="tg-rank-pill">${escapeHtml(row.rank)}</span>
+            <span class="tg-manual-grip" aria-hidden="true"></span>
+            ${renderTournamentTeamCell(row)}
+            <div class="tg-manual-meta">
+                <span>${escapeHtml(formatTournamentManualRowMeta(row))}</span>
+                <span class="tg-manual-status">${escapeHtml(status)}</span>
+            </div>
+        </div>`;
+    }
+
+    function renderTournamentManualGroupTable(group) {
+        const rowsHtml = group.rankedRows
+            .map(row => renderTournamentManualRankRow(row, { group: group.group }))
+            .join('');
+
+        return `<section class="tournament-group-card is-manual">
+            <div class="tournament-group-header">
+                <div class="tournament-group-title">Gruppe ${escapeHtml(group.group)}</div>
+                <div class="tournament-group-actions">
+                    <div class="tournament-group-meta">${escapeHtml(group.playedMatches)} / 6 Spiele</div>
+                </div>
+            </div>
+            <div class="tg-manual-list" data-manual-sort-list data-sort-kind="group" data-group="${escapeHtml(group.group)}" role="listbox" aria-label="Manuelle Rangliste Gruppe ${escapeHtml(group.group)}">
+                ${rowsHtml}
+            </div>
+        </section>`;
+    }
+
     function renderTournamentGroupTable(group) {
+        if (isTournamentManualMode()) return renderTournamentManualGroupTable(group);
+
         const isExpanded = expandedTournamentGroups.has(String(group.group));
         const rowsHtml = group.rankedRows.map(row => {
             const cls = row.rank <= 2 ? 'tg-row--qualified' : (row.rank === 3 ? 'tg-row--third' : 'tg-row--out');
@@ -7520,7 +7942,33 @@
         });
     }
 
+    function renderTournamentManualThirdPlacesTable(context) {
+        const rowsHtml = context.thirdRows.map(row => {
+            const statusClass = row.qualifiesAsThird ? 'tg-status--in' : 'tg-status--out';
+            const statusLabel = row.qualifiesAsThird ? 'drin' : 'raus';
+            return `<div class="tg-manual-row ${row.qualifiesAsThird ? 'tg-row--third' : 'tg-row--out'}" data-manual-sort-item data-sort-kind="third" data-group="${escapeHtml(row.group)}" tabindex="0" role="option" aria-selected="false">
+                <span class="tg-rank-pill">${escapeHtml(row.thirdRank)}</span>
+                <span class="tg-manual-grip" aria-hidden="true"></span>
+                ${renderTournamentTeamCell(row)}
+                <div class="tg-manual-meta">${escapeHtml(row.group)}</div>
+                <span class="tg-status ${statusClass}">${escapeHtml(statusLabel)}</span>
+            </div>`;
+        }).join('');
+
+        return `<section class="tournament-third-card">
+            <div class="tournament-third-header">
+                <div class="tournament-third-title">Drittplatzierte</div>
+                <div class="tournament-third-meta">Top 8 qualifizieren sich</div>
+            </div>
+            <div class="tournament-third-manual-list" data-manual-sort-list data-sort-kind="third" role="listbox" aria-label="Manuelle Tabelle der Drittplatzierten">
+                ${rowsHtml}
+            </div>
+        </section>`;
+    }
+
     function renderTournamentThirdPlacesTable(context) {
+        if (isTournamentManualMode()) return renderTournamentManualThirdPlacesTable(context);
+
         const rowsHtml = context.thirdRows.map(row => {
             const gd = row.gd > 0 ? `+${row.gd}` : String(row.gd);
             const statusClass = row.qualifiesAsThird ? 'tg-status--in' : 'tg-status--out';
@@ -7561,19 +8009,249 @@
         </section>`;
     }
 
-    function renderTournamentSummary(context) {
-        const qualifiedTopTwo = context.groups.reduce((sum, group) => sum + group.rankedRows.filter(row => row.rank <= 2).length, 0);
-        const thirdIn = context.thirdRows.filter(row => row.qualifiesAsThird).length;
-        const totalMatches = context.groups.length * 6;
+    function commitTournamentManualSortOrder(list) {
+        if (!list) return;
+        const kind = list.getAttribute('data-sort-kind');
+        if (kind === 'group') {
+            const group = String(list.getAttribute('data-group') || '').toUpperCase();
+            if (!group) return;
+            tournamentManualState.groupOrders[group] = Array.from(list.querySelectorAll('[data-manual-sort-item]'))
+                .map(item => item.getAttribute('data-team-key'))
+                .filter(Boolean);
+        } else if (kind === 'third') {
+            tournamentManualState.thirdOrder = Array.from(list.querySelectorAll('[data-manual-sort-item]'))
+                .map(item => String(item.getAttribute('data-group') || '').toUpperCase())
+                .filter(Boolean);
+        }
+        saveTournamentManualState();
+        renderTournamentView();
+    }
+
+    function finishTournamentManualDrag(shouldCommit) {
+        const state = tournamentManualDragState;
+        if (!state) return;
+        clearTimeout(state.longPressTimer);
+
+        if (state.active) {
+            if (state.placeholder && state.placeholder.parentNode) {
+                state.placeholder.parentNode.insertBefore(state.item, state.placeholder);
+                state.placeholder.remove();
+            }
+            state.item.classList.remove('is-dragging');
+            state.item.style.left = '';
+            state.item.style.top = '';
+            state.item.style.width = '';
+            state.item.style.height = '';
+            state.item.style.transform = '';
+            state.item.style.touchAction = '';
+            document.body.classList.remove('is-tournament-dragging');
+        }
+
+        try { state.item.releasePointerCapture(state.pointerId); } catch (_) { /* ignore */ }
+        tournamentManualDragState = null;
+        if (shouldCommit && state.active) commitTournamentManualSortOrder(state.list);
+    }
+
+    function startTournamentManualDrag(state) {
+        if (!state || state.active) return;
+        const rect = state.item.getBoundingClientRect();
+        const placeholder = document.createElement('div');
+        placeholder.className = 'tg-manual-placeholder';
+        placeholder.style.height = `${rect.height}px`;
+        state.placeholder = placeholder;
+        state.active = true;
+        state.offsetX = state.startX - rect.left;
+        state.offsetY = state.startY - rect.top;
+
+        state.item.parentNode.insertBefore(placeholder, state.item.nextSibling);
+        state.item.classList.add('is-dragging');
+        state.item.style.left = `${rect.left}px`;
+        state.item.style.top = `${rect.top}px`;
+        state.item.style.width = `${rect.width}px`;
+        state.item.style.height = `${rect.height}px`;
+        state.item.style.touchAction = 'none';
+        document.body.classList.add('is-tournament-dragging');
+        try { state.item.setPointerCapture(state.pointerId); } catch (_) { /* ignore */ }
+    }
+
+    function moveTournamentManualDrag(event) {
+        const state = tournamentManualDragState;
+        if (!state) return;
+
+        const dx = event.clientX - state.startX;
+        const dy = event.clientY - state.startY;
+        if (!state.active) {
+            if (state.pointerType === 'touch' || state.pointerType === 'pen') {
+                if (Math.hypot(dx, dy) > 8) finishTournamentManualDrag(false);
+                return;
+            }
+            if (Math.hypot(dx, dy) > 4) startTournamentManualDrag(state);
+        }
+        if (!state.active) return;
+
+        event.preventDefault();
+        state.item.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+
+        const siblings = Array.from(state.list.querySelectorAll('[data-manual-sort-item]'))
+            .filter(item => item !== state.item);
+        const next = siblings.find(item => {
+            const rect = item.getBoundingClientRect();
+            return event.clientY < rect.top + (rect.height / 2);
+        });
+        if (next) state.list.insertBefore(state.placeholder, next);
+        else state.list.appendChild(state.placeholder);
+    }
+
+    function bindTournamentManualSortables() {
+        if (!isTournamentManualMode()) return;
+        document.querySelectorAll('[data-manual-sort-item]').forEach(item => {
+            item.addEventListener('pointerdown', event => {
+                if (event.pointerType === 'mouse' && event.button !== 0) return;
+                const list = item.closest('[data-manual-sort-list]');
+                if (!list) return;
+                tournamentManualDragState = {
+                    item,
+                    list,
+                    pointerId: event.pointerId,
+                    pointerType: event.pointerType || 'mouse',
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    active: false,
+                    longPressTimer: null,
+                    placeholder: null
+                };
+                if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+                    tournamentManualDragState.longPressTimer = setTimeout(() => {
+                        startTournamentManualDrag(tournamentManualDragState);
+                    }, 280);
+                } else {
+                    event.preventDefault();
+                    startTournamentManualDrag(tournamentManualDragState);
+                }
+            });
+
+            item.addEventListener('keydown', event => {
+                if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+                const list = item.closest('[data-manual-sort-list]');
+                if (!list) return;
+                event.preventDefault();
+                if (event.key === 'ArrowUp' && item.previousElementSibling) {
+                    list.insertBefore(item, item.previousElementSibling);
+                    commitTournamentManualSortOrder(list);
+                } else if (event.key === 'ArrowDown' && item.nextElementSibling) {
+                    list.insertBefore(item.nextElementSibling, item);
+                    commitTournamentManualSortOrder(list);
+                }
+            });
+        });
+    }
+
+    function getTournamentAllBracketFixtures() {
+        const bracket = APP && APP.knockoutBracket ? APP.knockoutBracket : {};
         return [
-            { label: 'Gruppen', value: context.groups.length },
-            { label: 'Gruppenspiele', value: `${context.totalPlayed}/${totalMatches}` },
-            { label: 'Top 2', value: qualifiedTopTwo },
-            { label: 'Dritte drin', value: `${thirdIn}/8` }
-        ].map(item => `<div class="tournament-summary-item">
-            <div class="tournament-summary-label">${escapeHtml(item.label)}</div>
-            <div class="tournament-summary-value">${escapeHtml(item.value)}</div>
-        </div>`).join('');
+            ...(Array.isArray(bracket.roundOf32) ? bracket.roundOf32 : []),
+            ...(Array.isArray(bracket.roundOf16) ? bracket.roundOf16 : []),
+            ...(Array.isArray(bracket.quarterFinals) ? bracket.quarterFinals : []),
+            ...(Array.isArray(bracket.semiFinals) ? bracket.semiFinals : []),
+            bracket.final,
+            bracket.thirdPlace
+        ].filter(Boolean);
+    }
+
+    function getTournamentFixtureByMatchNumber(matchNumber) {
+        const n = Number(matchNumber);
+        if (!Number.isFinite(n)) return null;
+        return getTournamentAllBracketFixtures().find(fixture => Number(fixture && fixture.match) === n) || null;
+    }
+
+    function getTournamentBestThirdGroupForFixture(slot, context, fixture) {
+        if (!slot || slot.type !== 'bestThird') return '';
+        const matchNumber = getTournamentFixtureMatchNumber(fixture);
+        const assigned = matchNumber && context.bestThirdByMatch ? context.bestThirdByMatch.get(matchNumber) : '';
+        if (assigned) return assigned;
+        const groups = Array.isArray(slot.fromGroups) ? slot.fromGroups.map(value => String(value).toUpperCase()) : [];
+        const possible = context.thirdRows.filter(row => row.qualifiesAsThird && groups.includes(row.group));
+        return possible.length === 1 ? possible[0].group : '';
+    }
+
+    function resolveTournamentSlotRow(slot, context, fixture = null, visiting = new Set()) {
+        if (!slot || !context) return null;
+        if (slot.type === 'groupRank') {
+            return context.groupRankMap.get(`${slot.group}:${slot.rank}`) || null;
+        }
+        if (slot.type === 'bestThird') {
+            const group = getTournamentBestThirdGroupForFixture(slot, context, fixture);
+            const row = group && context.thirdByGroup ? context.thirdByGroup.get(group) : null;
+            return row && row.qualifiesAsThird ? row : null;
+        }
+        if (slot.winnerOf || slot.runnerUpOf) {
+            if (!isTournamentManualMode()) return null;
+            const sourceMatch = Number(slot.winnerOf || slot.runnerUpOf);
+            if (!Number.isFinite(sourceMatch)) return null;
+            const result = getTournamentManualMatchResult(sourceMatch, context, visiting);
+            return slot.winnerOf ? result.winner : result.runnerUp;
+        }
+        return null;
+    }
+
+    function getTournamentManualMatchResult(matchNumber, context, visiting = new Set()) {
+        const n = Number(matchNumber);
+        if (!Number.isFinite(n) || visiting.has(n)) {
+            return { home: null, away: null, winner: null, runnerUp: null };
+        }
+        const fixture = getTournamentFixtureByMatchNumber(n);
+        if (!fixture) return { home: null, away: null, winner: null, runnerUp: null };
+
+        const nextVisiting = new Set(visiting);
+        nextVisiting.add(n);
+        const home = resolveTournamentSlotRow(fixture.home, context, fixture, nextVisiting);
+        const away = resolveTournamentSlotRow(fixture.away, context, fixture, nextVisiting);
+        const winnerKey = String((tournamentManualState.winners || {})[String(n)] || '');
+        const homeWins = !!(home && winnerKey && home.key === winnerKey);
+        const awayWins = !!(away && winnerKey && away.key === winnerKey);
+        const winner = homeWins ? home : (awayWins ? away : null);
+        const runnerUp = winner ? (homeWins ? away : home) : null;
+        return { home, away, winner, runnerUp };
+    }
+
+    function pruneTournamentManualWinners(context) {
+        if (!tournamentManualState || !tournamentManualState.winners) return;
+        let changed = false;
+        let didPrune = true;
+        while (didPrune) {
+            didPrune = false;
+            Object.entries({ ...tournamentManualState.winners }).forEach(([matchNumber, teamKey]) => {
+                const result = getTournamentManualMatchResult(matchNumber, context);
+                const validKeys = [result.home && result.home.key, result.away && result.away.key].filter(Boolean);
+                if (!validKeys.includes(String(teamKey))) {
+                    delete tournamentManualState.winners[matchNumber];
+                    didPrune = true;
+                    changed = true;
+                }
+            });
+        }
+        if (changed) saveTournamentManualState();
+    }
+
+    function setTournamentManualMatchWinner(matchNumber, teamKey) {
+        if (!isTournamentManualMode()) return;
+        const n = Number(matchNumber);
+        const key = String(teamKey || '');
+        if (!Number.isFinite(n) || !key) return;
+        tournamentManualState.winners[String(n)] = key;
+        saveTournamentManualState();
+        renderTournamentView();
+    }
+
+    function bindTournamentKnockoutPicks() {
+        document.querySelectorAll('[data-tournament-match-winner]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTournamentManualMatchWinner(
+                    btn.getAttribute('data-tournament-match-winner'),
+                    btn.getAttribute('data-team-key')
+                );
+            });
+        });
     }
 
     function formatTournamentSlotFallback(slot) {
@@ -7585,31 +8263,28 @@
         return 'offen';
     }
 
-    function resolveTournamentSlot(slot, context) {
+    function resolveTournamentSlot(slot, context, fixture = null) {
         if (!slot) return { label: 'offen', placeholder: true, sub: '' };
 
-        if (slot.type === 'groupRank') {
-            const row = context.groupRankMap.get(`${slot.group}:${slot.rank}`);
-            if (row) {
-                return {
-                    label: row.displayName || row.name,
-                    flag: getTournamentFlag(row),
-                    sub: `${slot.rank}. Gruppe ${slot.group}`
-                };
-            }
+        const row = resolveTournamentSlotRow(slot, context, fixture);
+        if (row) {
+            let sub = '';
+            if (slot.type === 'groupRank') sub = `${slot.rank}. Gruppe ${slot.group}`;
+            else if (slot.type === 'bestThird') sub = `Dritter Gruppe ${row.group}`;
+            else if (slot.winnerOf) sub = `Sieger Spiel ${slot.winnerOf}`;
+            else if (slot.runnerUpOf) sub = `Verlierer Spiel ${slot.runnerUpOf}`;
+            return {
+                label: row.displayName || row.name,
+                flag: getTournamentFlag(row),
+                sub,
+                teamKey: row.key,
+                row
+            };
         }
 
         if (slot.type === 'bestThird') {
             const groups = Array.isArray(slot.fromGroups) ? slot.fromGroups.map(String) : [];
             const possible = context.thirdRows.filter(row => row.qualifiesAsThird && groups.includes(row.group));
-            if (possible.length === 1) {
-                const row = possible[0];
-                return {
-                    label: row.displayName || row.name,
-                    flag: getTournamentFlag(row),
-                    sub: `Dritter Gruppe ${row.group}`
-                };
-            }
             return {
                 label: groups.length ? `Dritter ${groups.join('/')}` : 'Drittplatzierter',
                 placeholder: true,
@@ -7619,21 +8294,33 @@
             };
         }
 
+        if (slot.winnerOf) return { label: `Sieger Spiel ${slot.winnerOf}`, placeholder: true, sub: '' };
+        if (slot.runnerUpOf) return { label: `Verlierer Spiel ${slot.runnerUpOf}`, placeholder: true, sub: '' };
+
         return { label: formatTournamentSlotFallback(slot), placeholder: true, sub: '' };
     }
 
-    function renderTournamentSlot(slot, context) {
-        const resolved = resolveTournamentSlot(slot, context);
+    function renderTournamentSlot(slot, context, fixture, side) {
+        const resolved = resolveTournamentSlot(slot, context, fixture);
         const flagHtml = resolved.flag
             ? renderFlagImageHtml('tb-slot-flag', resolved.flag, '', resolved.label)
             : `<span class="tb-slot-flag" aria-hidden="true"></span>`;
-        return `<div class="tb-slot${resolved.placeholder ? ' tb-slot-placeholder' : ''}">
+        const matchNumber = getTournamentFixtureMatchNumber(fixture);
+        const pickedWinner = matchNumber ? String((tournamentManualState.winners || {})[String(matchNumber)] || '') : '';
+        const isWinner = !!(resolved.teamKey && pickedWinner && resolved.teamKey === pickedWinner);
+        const isLoser = !!(resolved.teamKey && pickedWinner && resolved.teamKey !== pickedWinner);
+        const isPickable = isTournamentManualMode() && !!matchNumber && !!resolved.teamKey && !resolved.placeholder;
+        const tag = isPickable ? 'button' : 'div';
+        const attrs = isPickable
+            ? ` type="button" data-tournament-match-winner="${escapeHtml(matchNumber)}" data-team-key="${escapeHtml(resolved.teamKey)}" aria-label="${escapeHtml(resolved.label)} als Sieger von Spiel ${matchNumber} wählen"`
+            : '';
+        return `<${tag} class="tb-slot${isPickable ? ' tb-slot-btn' : ''}${resolved.placeholder ? ' tb-slot-placeholder' : ''}${isWinner ? ' tb-slot--winner' : ''}${isLoser ? ' tb-slot--loser' : ''}" data-side="${escapeHtml(side || '')}"${attrs}>
             ${flagHtml}
             <div style="min-width:0;">
                 <div class="tb-slot-label">${escapeHtml(resolved.label)}</div>
                 ${resolved.sub ? `<div class="tb-slot-sub" title="${escapeHtml(resolved.sub)}">${escapeHtml(resolved.sub)}</div>` : ''}
             </div>
-        </div>`;
+        </${tag}>`;
     }
 
     function getTournamentRoundFixtures(roundKey) {
@@ -7790,8 +8477,8 @@
                 <span>${escapeHtml(isThirdPlace ? 'Platz 3' : matchLabel)}</span>
                 ${fixture.match ? `<span class="tb-match-number">#${escapeHtml(fixture.match)}</span>` : ''}
             </div>
-            ${renderTournamentSlot(fixture.home, context)}
-            ${renderTournamentSlot(fixture.away, context)}
+            ${renderTournamentSlot(fixture.home, context, fixture, 'home')}
+            ${renderTournamentSlot(fixture.away, context, fixture, 'away')}
             ${meta ? `<div class="tb-match-meta">${escapeHtml(meta)}</div>` : ''}
         </article>`;
     }
@@ -7871,27 +8558,27 @@
     }
 
     function renderTournamentView() {
-        const summaryEl = document.getElementById('tournament-summary');
         const groupsEl = document.getElementById('tournament-groups-list');
         const thirdEl = document.getElementById('tournament-third-places');
         const bracketEl = document.getElementById('tournament-bracket');
-        if (!summaryEl || !groupsEl || !thirdEl || !bracketEl) return;
+        if (!groupsEl || !thirdEl || !bracketEl) return;
 
-        const context = buildTournamentStandings();
+        syncTournamentModeUi();
+        const context = buildTournamentContext();
         if (!context.groups.length) {
             const empty = '<div class="tournament-empty">Keine Turniergruppen konfiguriert.</div>';
-            summaryEl.innerHTML = '';
             groupsEl.innerHTML = empty;
             thirdEl.innerHTML = '';
             bracketEl.innerHTML = empty;
             return;
         }
 
-        summaryEl.innerHTML = renderTournamentSummary(context);
         groupsEl.innerHTML = context.groups.map(renderTournamentGroupTable).join('');
         bindTournamentGroupToggles();
         thirdEl.innerHTML = renderTournamentThirdPlacesTable(context);
         bracketEl.innerHTML = renderTournamentBracket(context);
+        bindTournamentManualSortables();
+        bindTournamentKnockoutPicks();
         syncSidebarHeight();
     }
 
@@ -9647,6 +10334,7 @@
             panel.classList.toggle('active', isActive);
         });
         syncTournamentTabUi();
+        syncTournamentModeUi();
 
         // Prefer resolving the target player by ID (canonical identity).
         // Fall back to a name lookup so legacy ?player=<name> URLs and
@@ -9697,6 +10385,12 @@
     document.querySelectorAll('.tour-pill').forEach(btn => {
         btn.addEventListener('click', () => setTournamentTab(btn.dataset.tournamentTab, true));
     });
+    document.querySelectorAll('[data-tournament-mode]').forEach(btn => {
+        btn.addEventListener('click', () => setTournamentMode(btn.dataset.tournamentMode));
+    });
+    document.addEventListener('pointermove', moveTournamentManualDrag, { passive: false });
+    document.addEventListener('pointerup', () => finishTournamentManualDrag(true), { passive: true });
+    document.addEventListener('pointercancel', () => finishTournamentManualDrag(false), { passive: true });
 
     document.getElementById('tile-nation').addEventListener('click', () => {
         const nat = document.getElementById('detail-nation-name').textContent;
