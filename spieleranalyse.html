@@ -5367,6 +5367,13 @@
                 </div>
 
                 <div id="tournament-tab-knockout" class="tournament-tab-panel" role="tabpanel" hidden>
+                    <div id="tournament-knockout-manual-hint" class="tournament-manual-hint" role="note" hidden>
+                        <span class="tournament-manual-hint-grip" aria-hidden="true"></span>
+                        <span class="tournament-manual-hint-text">
+                            <strong>Gewinner selbst festlegen:</strong>
+                            <span>Klicke auf ein Land.</span>
+                        </span>
+                    </div>
                     <div id="tournament-bracket" class="tournament-bracket-wrap"></div>
                 </div>
             </div>
@@ -7501,6 +7508,10 @@
         if (hint) {
             // Only relevant where rows can actually be reordered (group stage).
             hint.hidden = !(isTournamentManualMode() && currentTournamentTab === 'groups');
+        }
+        const knockoutHint = document.getElementById('tournament-knockout-manual-hint');
+        if (knockoutHint) {
+            knockoutHint.hidden = !(isTournamentManualMode() && currentTournamentTab === 'knockout');
         }
     }
 
