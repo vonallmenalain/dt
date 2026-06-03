@@ -2091,9 +2091,35 @@
         }
 
         .tournament-bracket-wrap {
+            --tournament-bracket-zoom: 1;
+            --tournament-bracket-width: 1180px;
+            --tournament-bracket-height: 1px;
             overflow-x: auto;
             padding-bottom: 6px;
             -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+            touch-action: pan-x pan-y;
+        }
+
+        .tournament-bracket-zoom-stage {
+            width: fit-content;
+            min-width: 100%;
+            overflow: hidden;
+        }
+
+        .tournament-bracket-wrap.has-bracket-zoom-metrics .tournament-bracket-zoom-stage {
+            width: max(100%, calc(var(--tournament-bracket-width) * var(--tournament-bracket-zoom)));
+            height: calc(var(--tournament-bracket-height) * var(--tournament-bracket-zoom));
+        }
+
+        .tournament-bracket-zoom-stage > .tournament-bracket {
+            transform: scale(var(--tournament-bracket-zoom));
+            transform-origin: top left;
+            transition: transform 0.16s ease;
+        }
+
+        .tournament-bracket-wrap.is-pinch-zooming .tournament-bracket {
+            transition: none;
         }
 
         .tournament-bracket {
@@ -5404,6 +5430,11 @@
     let currentScheduleNationFilter = 'ALL';
     let scheduleNationList = [];
     let currentTournamentTab = 'groups';
+    let tournamentBracketZoom = 1;
+    let tournamentBracketPinch = null;
+    const TOURNAMENT_BRACKET_ZOOM_MIN = 0.55;
+    const TOURNAMENT_BRACKET_ZOOM_MAX = 2.2;
+    const TOURNAMENT_BRACKET_ZOOM_RESET = 1;
     const expandedTournamentGroups = new Set();
     const TOURNAMENT_MODE_AUTO = 'auto';
     const TOURNAMENT_MODE_MANUAL = 'manual';
@@ -8922,7 +8953,7 @@
             </section>`;
         }).join('');
 
-        return `<div class="tournament-bracket">${bracketHtml}</div>`;
+        return `<div class="tournament-bracket-zoom-stage"><div class="tournament-bracket">${bracketHtml}</div></div>`;
 
         /*
         const html = rounds.map(round => {
@@ -8951,6 +8982,127 @@
         */
     }
 
+    function clampTournamentBracketZoom(value) {
+        return Math.min(TOURNAMENT_BRACKET_ZOOM_MAX, Math.max(TOURNAMENT_BRACKET_ZOOM_MIN, value || TOURNAMENT_BRACKET_ZOOM_RESET));
+    }
+
+    function getTournamentBracketWrap() {
+        return document.getElementById('tournament-bracket');
+    }
+
+    function getTournamentBracketContent(wrap = getTournamentBracketWrap()) {
+        return wrap ? wrap.querySelector('.tournament-bracket') : null;
+    }
+
+    function applyTournamentBracketZoom(value) {
+        tournamentBracketZoom = clampTournamentBracketZoom(value);
+        const wrap = getTournamentBracketWrap();
+        if (!wrap) return;
+        wrap.style.setProperty('--tournament-bracket-zoom', tournamentBracketZoom.toFixed(3));
+        wrap.classList.toggle('is-bracket-zoomed', Math.abs(tournamentBracketZoom - TOURNAMENT_BRACKET_ZOOM_RESET) > 0.01);
+    }
+
+    function syncTournamentBracketZoomMetrics() {
+        if (currentTournamentTab !== 'knockout') return;
+        const wrap = getTournamentBracketWrap();
+        const bracket = getTournamentBracketContent(wrap);
+        if (!wrap || !bracket) return;
+
+        const width = Math.ceil(Math.max(bracket.scrollWidth, bracket.offsetWidth));
+        const height = Math.ceil(Math.max(bracket.scrollHeight, bracket.offsetHeight));
+        if (!width || !height) return;
+
+        wrap.style.setProperty('--tournament-bracket-width', `${width}px`);
+        wrap.style.setProperty('--tournament-bracket-height', `${height}px`);
+        wrap.classList.add('has-bracket-zoom-metrics');
+        applyTournamentBracketZoom(tournamentBracketZoom);
+    }
+
+    function resetTournamentBracketZoom(options = {}) {
+        tournamentBracketPinch = null;
+        applyTournamentBracketZoom(TOURNAMENT_BRACKET_ZOOM_RESET);
+        const wrap = getTournamentBracketWrap();
+        if (wrap) {
+            wrap.classList.remove('is-pinch-zooming');
+            if (options.resetScroll !== false) {
+                wrap.scrollLeft = 0;
+                wrap.scrollTop = 0;
+            }
+        }
+        if (!options.skipSidebarSync) syncSidebarHeight();
+    }
+
+    function getTournamentTouchDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+    }
+
+    function getTournamentTouchCenter(touches) {
+        return {
+            x: (touches[0].clientX + touches[1].clientX) / 2,
+            y: (touches[0].clientY + touches[1].clientY) / 2
+        };
+    }
+
+    function isTournamentBracketZoomActiveTarget(event) {
+        const wrap = getTournamentBracketWrap();
+        return !!wrap && event.currentTarget === wrap && currentView === 'tournament' && currentTournamentTab === 'knockout';
+    }
+
+    function startTournamentBracketPinch(event) {
+        if (!isTournamentBracketZoomActiveTarget(event) || !event.touches || event.touches.length < 2) return;
+
+        syncTournamentBracketZoomMetrics();
+        const wrap = getTournamentBracketWrap();
+        const distance = getTournamentTouchDistance(event.touches);
+        if (!wrap || !distance) return;
+
+        const center = getTournamentTouchCenter(event.touches);
+        const rect = wrap.getBoundingClientRect();
+        tournamentBracketPinch = {
+            startDistance: distance,
+            startScale: tournamentBracketZoom,
+            focusX: (wrap.scrollLeft + center.x - rect.left) / tournamentBracketZoom,
+            focusY: (wrap.scrollTop + center.y - rect.top) / tournamentBracketZoom
+        };
+        wrap.classList.add('is-pinch-zooming');
+        event.preventDefault();
+    }
+
+    function moveTournamentBracketPinch(event) {
+        if (!tournamentBracketPinch || !isTournamentBracketZoomActiveTarget(event) || !event.touches || event.touches.length < 2) return;
+
+        event.preventDefault();
+        const wrap = getTournamentBracketWrap();
+        const distance = getTournamentTouchDistance(event.touches);
+        if (!wrap || !distance) return;
+
+        const center = getTournamentTouchCenter(event.touches);
+        const rect = wrap.getBoundingClientRect();
+        const nextScale = clampTournamentBracketZoom(tournamentBracketPinch.startScale * (distance / tournamentBracketPinch.startDistance));
+        applyTournamentBracketZoom(nextScale);
+
+        wrap.scrollLeft = (tournamentBracketPinch.focusX * tournamentBracketZoom) - (center.x - rect.left);
+        wrap.scrollTop = (tournamentBracketPinch.focusY * tournamentBracketZoom) - (center.y - rect.top);
+    }
+
+    function finishTournamentBracketPinch(event) {
+        if (event && event.touches && event.touches.length >= 2) {
+            startTournamentBracketPinch(event);
+            return;
+        }
+        if (!tournamentBracketPinch) return;
+        tournamentBracketPinch = null;
+        const wrap = getTournamentBracketWrap();
+        if (wrap) wrap.classList.remove('is-pinch-zooming');
+        syncSidebarHeight();
+    }
+
+    function preventTournamentBracketNativeGesture(event) {
+        if (isTournamentBracketZoomActiveTarget(event)) event.preventDefault();
+    }
+
     function syncTournamentTabUi() {
         document.querySelectorAll('.tour-pill').forEach(btn => {
             const isActive = btn.dataset.tournamentTab === currentTournamentTab;
@@ -8967,7 +9119,9 @@
     }
 
     function setTournamentTab(tab, push = false) {
-        currentTournamentTab = ['groups','knockout'].includes(tab) ? tab : 'groups';
+        const nextTab = ['groups','knockout'].includes(tab) ? tab : 'groups';
+        currentTournamentTab = nextTab;
+        if (nextTab !== 'knockout') resetTournamentBracketZoom({ skipSidebarSync: true });
         syncTournamentTabUi();
         renderTournamentView();
         updateUrl(push);
@@ -8994,6 +9148,10 @@
         bindTournamentGroupToggles();
         thirdEl.innerHTML = renderTournamentThirdPlacesTable(context);
         bracketEl.innerHTML = renderTournamentBracket(context);
+        if (currentTournamentTab === 'knockout') {
+            syncTournamentBracketZoomMetrics();
+            requestAnimationFrame(syncTournamentBracketZoomMetrics);
+        }
         bindTournamentManualSortables();
         bindTournamentKnockoutPicks();
         syncSidebarHeight();
@@ -10720,6 +10878,7 @@
         cmpPlayerB = state.cmpPlayerB || '';
         cmpWhatIfMgr = state.cmpWhatIfMgr || '';
         currentTournamentTab = state.tournamentTab || 'groups';
+        if (currentTournamentTab !== 'knockout') resetTournamentBracketZoom({ skipSidebarSync: true });
 
         if (!preserveCurrentPlayer) {
             currentPlayerId = state.playerId || null;
@@ -10809,6 +10968,18 @@
     if (tournamentManualResetBtn) {
         tournamentManualResetBtn.addEventListener('click', resetTournamentManualStateToPrediction);
     }
+    const tournamentBracketWrap = getTournamentBracketWrap();
+    if (tournamentBracketWrap) {
+        tournamentBracketWrap.addEventListener('touchstart', startTournamentBracketPinch, { passive: false });
+        tournamentBracketWrap.addEventListener('touchmove', moveTournamentBracketPinch, { passive: false });
+        tournamentBracketWrap.addEventListener('touchend', finishTournamentBracketPinch, { passive: false });
+        tournamentBracketWrap.addEventListener('touchcancel', finishTournamentBracketPinch, { passive: false });
+        tournamentBracketWrap.addEventListener('gesturestart', preventTournamentBracketNativeGesture, { passive: false });
+        tournamentBracketWrap.addEventListener('gesturechange', preventTournamentBracketNativeGesture, { passive: false });
+    }
+    window.addEventListener('resize', () => {
+        if (currentTournamentTab === 'knockout') syncTournamentBracketZoomMetrics();
+    });
     document.addEventListener('pointermove', moveTournamentManualDrag, { passive: false });
     document.addEventListener('pointerup', () => finishTournamentManualDrag(true), { passive: true });
     document.addEventListener('pointercancel', () => finishTournamentManualDrag(false), { passive: true });
