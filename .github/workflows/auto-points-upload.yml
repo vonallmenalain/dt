@@ -63,6 +63,26 @@ on:
         required: false
         type: boolean
         default: false
+      window_start_min:
+        description: "Optionaler Test-Override: Start des Live-Fensters in Minuten relativ zum Anpfiff."
+        required: false
+        type: string
+        default: ""
+      window_end_min:
+        description: "Optionaler Test-Override: Ende des Live-Fensters in Minuten relativ zum Anpfiff."
+        required: false
+        type: string
+        default: ""
+      live_ticks_per_run:
+        description: "Optionaler Test-Override: Anzahl Live-Ticks in diesem Run."
+        required: false
+        type: string
+        default: ""
+      live_tick_interval_sec:
+        description: "Optionaler Test-Override: Sekunden zwischen Live-Ticks."
+        required: false
+        type: string
+        default: ""
 
 concurrency:
   group: auto-points-upload-${{ github.ref }}
@@ -94,10 +114,10 @@ jobs:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
-          WINDOW_START_MIN: ${{ vars.POINTS_WINDOW_START_MIN }}
-          WINDOW_END_MIN: ${{ vars.POINTS_WINDOW_END_MIN }}
-          LIVE_TICKS_PER_RUN: ${{ vars.POINTS_LIVE_TICKS_PER_RUN }}
-          LIVE_TICK_INTERVAL_SEC: ${{ vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
+          WINDOW_START_MIN: ${{ inputs.window_start_min != '' && inputs.window_start_min || vars.POINTS_WINDOW_START_MIN }}
+          WINDOW_END_MIN: ${{ inputs.window_end_min != '' && inputs.window_end_min || vars.POINTS_WINDOW_END_MIN }}
+          LIVE_TICKS_PER_RUN: ${{ inputs.live_ticks_per_run != '' && inputs.live_ticks_per_run || vars.POINTS_LIVE_TICKS_PER_RUN }}
+          LIVE_TICK_INTERVAL_SEC: ${{ inputs.live_tick_interval_sec != '' && inputs.live_tick_interval_sec || vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
           FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
         run: node auto-points-upload.js

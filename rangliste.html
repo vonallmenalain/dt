@@ -193,6 +193,12 @@
             z-index: 20;
         }
 
+        .rl-hero-update.is-live {
+            border-color: rgba(34, 197, 94, 0.45);
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.72), rgba(15, 23, 42, 0.92));
+            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.12), 0 12px 28px rgba(0, 0, 0, 0.24);
+        }
+
         .rl-hero-update-label {
             font-size: 0.62rem;
             font-weight: 700;
@@ -213,6 +219,18 @@
             box-shadow: 0 0 8px rgba(74, 222, 128, 0.55);
             animation: rlPulseDot 2.4s ease-in-out infinite;
             flex-shrink: 0;
+        }
+
+        .rl-hero-update.is-live .rl-hero-update-label {
+            color: var(--green-light);
+        }
+
+        .rl-hero-update.is-live .rl-hero-update-label::before {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16), 0 0 14px rgba(34, 197, 94, 0.9);
+            animation-duration: 1.2s;
         }
 
         @keyframes rlPulseDot {
@@ -244,6 +262,18 @@
         .rl-hero-update-game-teams {
             color: var(--text-main);
             font-weight: 600;
+        }
+
+        .rl-hero-update-live-score {
+            color: var(--text-main);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .rl-hero-update-live-minute {
+            color: var(--green-light);
+            font-weight: 800;
+            white-space: nowrap;
         }
 
         /* Clickable last-update game link – navigates to Analyse/Spiele
@@ -1723,7 +1753,7 @@
 
         <!-- Last-Update Info, oben rechts -->
         <div class="rl-hero-update" id="rl-hero-update" style="display:none;" aria-live="polite">
-            <div class="rl-hero-update-label">Zuletzt aktualisiert</div>
+            <div class="rl-hero-update-label" id="rl-hero-update-label">Zuletzt aktualisiert</div>
             <div class="rl-hero-update-time" id="rl-hero-update-time">—</div>
             <div class="rl-hero-update-game" id="rl-hero-update-game"></div>
         </div>
@@ -3311,8 +3341,80 @@
         return `${dateStr}, ${timeStr} Uhr`;
     }
 
+    const LIVE_FIXTURE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
+
+    function getFixtureTeamName(fixture, side) {
+        if (!fixture || typeof fixture !== "object") return "";
+        const primary = side === "home" ? fixture.homeTeam : fixture.awayTeam;
+        if (primary && primary.name) return String(primary.name);
+        const legacyTeam = fixture.teams && fixture.teams[side];
+        if (legacyTeam && legacyTeam.name) return String(legacyTeam.name);
+        return "";
+    }
+
+    function getFixtureGoal(fixture, side) {
+        const goals = fixture && fixture.goals;
+        if (!goals || goals[side] === null || goals[side] === undefined) return 0;
+        const n = Number(goals[side]);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    function getFixtureId(fixture, fallbackId) {
+        if (fixture && fixture.fixtureId !== undefined && fixture.fixtureId !== null) return String(fixture.fixtureId);
+        if (fallbackId !== undefined && fallbackId !== null) return String(fallbackId);
+        return "";
+    }
+
+    function formatLiveMinute(status) {
+        const short = status && status.short ? String(status.short) : "";
+        const elapsed = status && status.elapsed !== undefined && status.elapsed !== null
+            ? Number(status.elapsed)
+            : null;
+        if (short === "HT") return "Halbzeit";
+        if (short === "BT") return "Pause";
+        if (short === "SUSP") return "Unterbrochen";
+        if (short === "INT") return "Unterbrochen";
+        if (Number.isFinite(elapsed) && elapsed > 0) return `${elapsed}. Min`;
+        if (short === "ET") return "Verlängerung";
+        if (short === "P") return "Elfmeterschiessen";
+        return "Live";
+    }
+
+    function findLiveFixture(fixtures) {
+        const entries = Object.entries(fixtures || {});
+        const live = entries
+            .map(([id, fixture]) => ({ id, fixture }))
+            .filter(item => {
+                const statusShort = item.fixture && item.fixture.status && item.fixture.status.short
+                    ? String(item.fixture.status.short)
+                    : "";
+                return LIVE_FIXTURE_STATUSES.has(statusShort);
+            })
+            .sort((a, b) => {
+                const aTs = Number(a.fixture && a.fixture.kickoffTimestamp) || 0;
+                const bTs = Number(b.fixture && b.fixture.kickoffTimestamp) || 0;
+                return aTs - bTs;
+            });
+        return live.length ? live[0] : null;
+    }
+
+    function buildGameAnalysisHref(matchId) {
+        const linkParams = new URLSearchParams();
+        linkParams.set("view", "games");
+        linkParams.set("matchId", String(matchId));
+        const sortedAllMatchIds = Array.from(new Set(allMatchIdsRaw)).sort((a, b) => a - b);
+        const numericMatchId = Number(matchId);
+        const spielNr = Number.isFinite(numericMatchId) ? sortedAllMatchIds.indexOf(numericMatchId) + 1 : 0;
+        if (spielNr > 0) linkParams.set("matchNr", String(spielNr));
+        return {
+            href: `spieleranalyse.html?${linkParams.toString()}`,
+            labelPrefix: spielNr > 0 ? `Spiel ${spielNr}` : `Spiel #${matchId}`
+        };
+    }
+
     function renderLastUpdateInfo(data) {
         const containerEl = document.getElementById("rl-hero-update");
+        const labelEl = document.getElementById("rl-hero-update-label");
         const timeEl = document.getElementById("rl-hero-update-time");
         const gameEl = document.getElementById("rl-hero-update-game");
         if (!containerEl || !timeEl || !gameEl) return;
@@ -3326,6 +3428,34 @@
         const fallbackUpdatedAt = pointsUpdatedAt || teamsUpdatedAt;
 
         const latestMatchId = getLatestMatchIdFromPoints(points);
+        const liveFixtureInfo = findLiveFixture(fixtures);
+
+        containerEl.classList.toggle("is-live", !!liveFixtureInfo);
+        if (labelEl) {
+            labelEl.textContent = liveFixtureInfo ? "Live Punkte-Update" : "Zuletzt aktualisiert";
+        }
+
+        if (liveFixtureInfo) {
+            const fixture = liveFixtureInfo.fixture;
+            const matchId = getFixtureId(fixture, liveFixtureInfo.id);
+            const homeName = getFixtureTeamName(fixture, "home") || "Heimteam";
+            const awayName = getFixtureTeamName(fixture, "away") || "Auswärtsteam";
+            const homeGoals = getFixtureGoal(fixture, "home");
+            const awayGoals = getFixtureGoal(fixture, "away");
+            const minute = formatLiveMinute(fixture.status || {});
+            const link = buildGameAnalysisHref(matchId);
+
+            containerEl.style.display = "";
+            timeEl.textContent = `${minute} · ${homeGoals}:${awayGoals}`;
+            gameEl.innerHTML =
+                `<a class="rl-hero-update-game-link" href="${link.href}" ` +
+                `title="${escapeHtml(`${homeName} – ${awayName} in der Spiele-Analyse öffnen`)}" ` +
+                `aria-label="${escapeHtml(`${homeName} – ${awayName} in der Spiele-Analyse öffnen`)}">` +
+                `<span class="rl-hero-update-game-label">${escapeHtml(link.labelPrefix)}:</span>` +
+                `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} – ${escapeHtml(awayName)}</span>` +
+                `</a>`;
+            return;
+        }
 
         if (!fallbackUpdatedAt && latestMatchId === null) {
             containerEl.style.display = "none";
@@ -3341,8 +3471,6 @@
         }
 
         if (latestMatchId !== null) {
-            const sortedAllMatchIds = Array.from(new Set(allMatchIdsRaw)).sort((a, b) => a - b);
-            const spielNr = sortedAllMatchIds.indexOf(latestMatchId) + 1;
             const fixture = findFixtureByMatchId(fixtures, latestMatchId);
 
             let homeName = "";
@@ -3375,28 +3503,18 @@
                 }
             }
 
-            const labelPrefix = spielNr > 0 ? `Spiel ${spielNr}` : `Spiel #${latestMatchId}`;
-
-            // Build link target: open Analyse/Spiele with the relevant
-            // game pre-expanded. Pass both matchId (rawMatchId / fixtureId)
-            // and the human-readable Spiel-Nr. so the receiving view can
-            // resolve the card via either signal.
-            const linkParams = new URLSearchParams();
-            linkParams.set("view", "games");
-            linkParams.set("matchId", String(latestMatchId));
-            if (spielNr > 0) linkParams.set("matchNr", String(spielNr));
-            const href = `spieleranalyse.html?${linkParams.toString()}`;
+            const link = buildGameAnalysisHref(latestMatchId);
             const titleText = homeName && awayName
-                ? `${labelPrefix}: ${homeName} – ${awayName} in der Spiele-Analyse öffnen`
-                : `${labelPrefix} in der Spiele-Analyse öffnen`;
+                ? `${link.labelPrefix}: ${homeName} – ${awayName} in der Spiele-Analyse öffnen`
+                : `${link.labelPrefix} in der Spiele-Analyse öffnen`;
 
             const inner = (homeName && awayName)
-                ? `<span class="rl-hero-update-game-label">${escapeHtml(labelPrefix)}:</span>` +
+                ? `<span class="rl-hero-update-game-label">${escapeHtml(link.labelPrefix)}:</span>` +
                   `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} – ${escapeHtml(awayName)}</span>`
-                : escapeHtml(labelPrefix);
+                : escapeHtml(link.labelPrefix);
 
             gameEl.innerHTML =
-                `<a class="rl-hero-update-game-link" href="${href}" ` +
+                `<a class="rl-hero-update-game-link" href="${link.href}" ` +
                 `title="${escapeHtml(titleText)}" ` +
                 `aria-label="${escapeHtml(titleText)}">${inner}</a>`;
         } else {

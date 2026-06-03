@@ -139,6 +139,9 @@ Tab **Actions** → Workflow auswählen → **Run workflow**. Inputs:
 - `force_run` *(nur Auto-Punkte-Upload)* – Pre-Check überspringen
   (kompletter Recompute).
 - `dry_run` – Skript loggt nur, schreibt nichts in Firestore.
+- `window_start_min`, `window_end_min`, `live_ticks_per_run`,
+  `live_tick_interval_sec` *(nur Auto-Punkte-Upload)* – optionale
+  Test-Overrides für einen einzelnen manuellen Lauf.
 - `skip_venues` *(nur Spielplan-Sync)* – Venue-Detail-Calls auslassen
   (spart API-Quota, wenn sich an den Stadien nichts ändert).
 
