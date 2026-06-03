@@ -165,7 +165,7 @@ const APP_CONFIG = (() => {
       // WM-Zeitraum eingeschränkt – diese Werte sind die zweite
       // Verteidigungslinie und gelten auch für manuell ausgelöste
       // Läufe ohne FORCE_RUN.
-      AUTO_POINTS_FROM: "2026-06-11T22:40:00+02:00",
+      AUTO_POINTS_FROM: "2026-06-11T20:50:00+02:00",
       AUTO_POINTS_UNTIL: "2026-07-21T08:00:00+02:00",
       storagePrefix: "dreamteam_wm2026",
       cachePrefix: "dreamteam-wm2026",

@@ -16,28 +16,28 @@
  *       läuft. `FORCE_RUN=1` übersteuert diesen Guard (manuelle Tests).
  *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
  *    2. Bestimmt Kandidaten-Spiele: Anpfiff liegt mindestens
- *       `WINDOW_START_MIN` Minuten in der Vergangenheit UND der Status
- *       ist in Firestore noch nicht FT/AET/PEN. `WINDOW_END_MIN` dient
- *       nur noch als Schwelle, ab der ein offenes Spiel als
+ *       `WINDOW_START_MIN` Minuten entfernt/zurueck UND der Status ist
+ *       in Firestore noch nicht FT/AET/PEN. Mit den Defaults -10/150
+ *       startet der Live-Load 10 Minuten vor Anpfiff. `WINDOW_END_MIN`
+ *       dient danach als Schwelle, ab der ein offenes Spiel als
  *       "ueberfaellig" (Catch-up) markiert/geloggt wird – es gibt
- *       bewusst KEINE obere Zeitgrenze mehr fuer die Kandidatur, damit
- *       Spiele, die das urspruengliche Fenster wegen API-/Netz-Problemen
- *       verpasst haben, beim naechsten Tick automatisch nachgezogen
+ *       bewusst KEINE harte obere Zeitgrenze mehr fuer die Kandidatur,
+ *       damit verlaengerte oder verpasste Spiele automatisch nachgezogen
  *       werden. Wenn keine Kandidaten existieren, beendet sich der Lauf
  *       ohne API-Call (Quota-Schutz).
- *    3. Punkte-Workflow: API-Fixtures laden, Detail-Stats pro beendetem
- *       Spiel auswerten, Punkte summieren, in Firestore schreiben und
- *       Meta-Dokument (`pointsUpdatedAt`, `pointsVersion`) hochzählen.
+ *    3. Punkte-Workflow: API-Fixtures laden, Detail-Stats fuer Live- und
+ *       Finalspiele auswerten, Punkte summieren, in Firestore schreiben
+ *       und Meta-Dokument (`pointsUpdatedAt`, `pointsVersion`) hochzählen.
+ *       Laufende Spiele werden als Delta auf Basis der bestehenden
+ *       Punktedokumente geschrieben; sobald ein Kandidat final ist oder
+ *       FORCE_RUN aktiv ist, erfolgt eine volle Neuberechnung.
  *       `pointsUpdatedAt` wird ausschliesslich nach einem erfolgreichen
  *       Schreibvorgang erhöht – die "Zuletzt aktualisiert"-Anzeige auf
  *       rangliste.html ist also nur dann frisch, wenn neue Daten wirklich
  *       in Firebase liegen.
- *    4. Aktualisiert Status/Resultat im `fixturesCollection`, sodass das
- *       Spiel beim nächsten Tick nicht erneut als Kandidat gewertet wird,
- *       und erhöht `fixturesVersion` im Meta-Dokument, sobald ein
- *       Kandidat tatsächlich beendet wurde – so laden Clients die
- *       frischen Spielstände/Resultate sofort nach (statt erst beim
- *       täglichen Spielplan-Sync).
+ *    4. Aktualisiert Status/Resultat im `fixturesCollection` und erhöht
+ *       `fixturesVersion`, sobald Live-/Finaldaten geschrieben wurden –
+ *       so laden Clients frische Spielstände/Resultate sofort nach.
  *
  *  Env-Variablen (aus GitHub Actions Secrets / Variables):
  *    RAPIDAPI_KEY              RapidAPI / API-Football Key (zwingend)
@@ -46,15 +46,17 @@
  *                              tournament-config.js. Aktuell ist nur
  *                              `wm2026` produktiv konfiguriert; andere
  *                              Keys führen zu einem expliziten Abbruch.
- *    WINDOW_START_MIN          Optional, Default 100. Untere Grenze des
- *                              Trigger-Fensters in Minuten NACH ANPFIFF
- *                              (nicht nach Abpfiff!).
- *    WINDOW_END_MIN            Optional, Default 260. Nur noch
- *                              Catch-up-Schwelle: offene Spiele, deren
- *                              Anpfiff laenger als dieser Wert zurueck-
- *                              liegt, werden als "ueberfaellig" geloggt.
- *                              Begrenzt die Kandidatur NICHT mehr nach
- *                              oben (siehe Ablauf-Schritt 2).
+ *    WINDOW_START_MIN          Optional, Default -10. Start des Live-
+ *                              Fensters relativ zum Anpfiff.
+ *    WINDOW_END_MIN            Optional, Default 150. Normales Ende des
+ *                              Live-Fensters relativ zum Anpfiff. Danach
+ *                              bleibt ein offenes Spiel als Catch-up-
+ *                              Kandidat aktiv (siehe Ablauf-Schritt 2).
+ *    LIVE_TICKS_PER_RUN        Optional, Default 5. Anzahl Ticks innerhalb
+ *                              eines GitHub-Runs, wenn Kandidaten aktiv
+ *                              sind. FORCE_RUN macht immer nur einen Tick.
+ *    LIVE_TICK_INTERVAL_SEC    Optional, Default 60. Abstand zwischen den
+ *                              Live-Ticks innerhalb desselben Runs.
  *    FORCE_RUN                 Falls `1`/`true`: Phasen-Guard UND
  *                              Pre-Check überspringen (manuelle Tests).
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
@@ -98,6 +100,12 @@ const TOURNAMENTS = APP_CONFIG.tournaments;
 const RULES = APP_CONFIG.rules;
 
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
+const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
+const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
+const DEFAULT_WINDOW_START_MIN = -10;
+const DEFAULT_WINDOW_END_MIN = 150;
+const DEFAULT_LIVE_TICKS_PER_RUN = 5;
+const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 
 function envBool(name, fallback = false) {
@@ -162,6 +170,35 @@ function normalizePosition(pos) {
   const value = String(pos || '').toUpperCase();
   if (value === 'FORWARD') return 'ATTACKER';
   return value;
+}
+
+function getFixtureStatusShort(game) {
+  return (game && game.fixture && game.fixture.status && game.fixture.status.short) || '';
+}
+
+function isFinishedFixture(game) {
+  return FINISHED_STATUSES.has(getFixtureStatusShort(game));
+}
+
+function isScoringFixture(game) {
+  return SCORING_STATUSES.has(getFixtureStatusShort(game));
+}
+
+function formatAgeMin(ageMin) {
+  if (typeof ageMin !== 'number' || !Number.isFinite(ageMin)) return 'unbekannter Abstand';
+  if (ageMin < 0) return `${Math.abs(ageMin)} min VOR ANPFIFF`;
+  if (ageMin === 0) return '0 min NACH ANPFIFF';
+  return `${ageMin} min NACH ANPFIFF`;
+}
+
+function uniqueGamesByFixtureId(games) {
+  const byId = new Map();
+  (games || []).forEach(game => {
+    const id = game && game.fixture && game.fixture.id;
+    if (id == null) return;
+    byId.set(String(id), game);
+  });
+  return Array.from(byId.values());
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -258,11 +295,12 @@ function initFirebase() {
  *
  *  Lädt einmalig den kompletten Spielplan und entscheidet, ob der teure
  *  Upload-Workflow überhaupt anlaufen muss. Ein Spiel zählt als Kandidat,
- *  wenn sein Anpfiff (kickoffTimestamp) zwischen `windowStartMin` und
- *  `windowEndMin` Minuten in der Vergangenheit liegt – die Maße beziehen
- *  sich also auf den ANPFIFF, nicht auf den Abpfiff. Beispiel mit den
- *  Defaults 100/260: das Skript triggert ab ca. 100 min nach Anpfiff
- *  (ungefähr beim regulären Abpfiff) bis 260 min danach.
+ *  wenn sein Anpfiff (kickoffTimestamp) mindestens `windowStartMin`
+ *  Minuten entfernt ist und das Spiel in Firestore noch nicht als beendet
+ *  markiert ist. Mit den Live-Defaults -10/150 startet der teure API-Teil
+ *  kurz vor dem Kickoff und läuft während des Spiels. Nach `windowEndMin`
+ *  bleibt ein offenes Spiel als Catch-up-Kandidat aktiv, bis Firestore den
+ *  Finalstatus kennt.
  * ───────────────────────────────────────────────────────────────────────────── */
 async function findCandidateFixtures(db, tournament, opts) {
   const collectionName = tournament.firestore.fixturesCollection;
@@ -296,10 +334,9 @@ async function findCandidateFixtures(db, tournament, opts) {
     const notFinished = !FINISHED_STATUSES.has(fxInfo.statusShort);
 
     // Ein Spiel ist Kandidat, sobald sein Anpfiff mindestens
-    // `windowStartMin` Minuten zurueckliegt UND es in Firestore noch
-    // NICHT als beendet (FT/AET/PEN) markiert ist. Es gibt bewusst
-    // KEINE obere Zeitgrenze mehr fuer die Kandidatur (frueher
-    // `windowEndMin`):
+    // `windowStartMin` Minuten entfernt/zurueckliegt UND es in Firestore
+    // noch NICHT als beendet (FT/AET/PEN) markiert ist. Es gibt bewusst
+    // KEINE harte obere Zeitgrenze fuer die Kandidatur:
     //
     //   Ein Spiel, das das urspruengliche Trigger-Fenster wegen API-/
     //   Netzwerkproblemen verpasst hat, blieb sonst dauerhaft ungescored,
@@ -333,49 +370,136 @@ function buildEmptyPlayerObject(player) {
   return pObj;
 }
 
-function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData) {
+function collectLineupPlayerIds(lineup, key) {
+  const ids = new Set();
+  const rows = lineup && Array.isArray(lineup[key]) ? lineup[key] : [];
+  rows.forEach(row => {
+    const id = row && row.player && row.player.id;
+    if (id != null) ids.add(String(id));
+  });
+  return ids;
+}
+
+function findLineupForTeam(fixtureData, teamId) {
+  const lineups = fixtureData && Array.isArray(fixtureData.lineups) ? fixtureData.lineups : [];
+  const target = teamId != null ? String(teamId) : '';
+  return lineups.find(entry => entry && entry.team && String(entry.team.id) === target) || null;
+}
+
+function getPrimaryStats(pStats) {
+  return (pStats && Array.isArray(pStats.statistics) && pStats.statistics[0]) || {};
+}
+
+function getMinutes(stats) {
+  return (stats && stats.games && typeof stats.games.minutes === 'number') ? stats.games.minutes : 0;
+}
+
+function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, opts = {}) {
   const events = fixtureData.events || [];
   const playersDataList = fixtureData.players || [];
 
-  const homeName = game.teams.home.name;
-  const awayName = game.teams.away.name;
-  const homeGoals = game.goals.home || 0;
-  const awayGoals = game.goals.away || 0;
-  const isDraw = game.teams.home.winner === null;
-  const homeWon = game.teams.home.winner === true;
-  const awayWon = game.teams.away.winner === true;
+  const statusShort = getFixtureStatusShort(game);
+  const matchHasStarted = SCORING_STATUSES.has(statusShort);
+  const matchIsFinished = FINISHED_STATUSES.has(statusShort);
+
+  const homeName = (game.teams && game.teams.home && game.teams.home.name) || '';
+  const awayName = (game.teams && game.teams.away && game.teams.away.name) || '';
+  const homeGoals = (game.goals && game.goals.home != null) ? game.goals.home : 0;
+  const awayGoals = (game.goals && game.goals.away != null) ? game.goals.away : 0;
+  const isDraw = matchIsFinished && game.teams && game.teams.home && game.teams.home.winner === null;
+  const homeWon = matchIsFinished && game.teams && game.teams.home && game.teams.home.winner === true;
+  const awayWon = matchIsFinished && game.teams && game.teams.away && game.teams.away.winner === true;
   const fixId = game.fixture.id;
   const resultString = `${homeName} ${homeGoals} : ${awayGoals} ${awayName}`;
+  let processedPlayers = 0;
 
   const subbedOutPlayerIds = events
     .filter(e => e.type && e.type.toLowerCase() === 'subst')
-    .map(e => e.player && e.player.id);
+    .map(e => e.player && e.player.id)
+    .filter(id => id != null)
+    .map(id => String(id));
+
+  const subbedInPlayerIds = events
+    .filter(e => e.type && e.type.toLowerCase() === 'subst')
+    .map(e => e.assist && e.assist.id)
+    .filter(id => id != null)
+    .map(id => String(id));
 
   const ownGoalsMap = {};
   events.forEach(e => {
     if (e.type && e.type.toLowerCase() === 'goal' && e.detail && e.detail.toLowerCase() === 'own goal') {
-      if (e.player && e.player.id) ownGoalsMap[e.player.id] = (ownGoalsMap[e.player.id] || 0) + 1;
+      if (e.player && e.player.id) {
+        const id = String(e.player.id);
+        ownGoalsMap[id] = (ownGoalsMap[id] || 0) + 1;
+      }
     }
   });
 
-  playersDataList.forEach(teamStats => {
-    const isHome = teamStats.team.id === game.teams.home.id;
+  const teamsToProcess = [
+    { team: game.teams && game.teams.home, isHome: true },
+    { team: game.teams && game.teams.away, isHome: false }
+  ];
+
+  teamsToProcess.forEach(teamRef => {
+    const teamId = teamRef.team && teamRef.team.id;
+    if (teamId == null) return;
+
+    const teamStats = playersDataList.find(entry =>
+      entry && entry.team && String(entry.team.id) === String(teamId)
+    ) || { team: teamRef.team, players: [] };
+
+    const lineup = findLineupForTeam(fixtureData, teamId);
+    const starterIds = collectLineupPlayerIds(lineup, 'startXI');
+    const substituteIds = collectLineupPlayerIds(lineup, 'substitutes');
+    const statsByPid = new Map();
+
+    (teamStats.players || []).forEach(pStats => {
+      const id = pStats && pStats.player && pStats.player.id;
+      if (id != null) statsByPid.set(String(id), pStats);
+    });
+
+    const participantIds = new Set();
+    statsByPid.forEach((pStats, pid) => {
+      const stats = getPrimaryStats(pStats);
+      const minutes = getMinutes(stats);
+      const isApiStarter = stats.games && stats.games.substitute === false;
+      if (minutes > 0 || (matchHasStarted && isApiStarter)) {
+        participantIds.add(pid);
+      }
+    });
+
+    if (matchHasStarted) {
+      starterIds.forEach(pid => participantIds.add(pid));
+      subbedInPlayerIds.forEach(pid => {
+        if (substituteIds.has(pid) || statsByPid.has(pid)) participantIds.add(pid);
+      });
+    }
+
+    const isHome = teamRef.isHome;
     const opponentName = isHome ? awayName : homeName;
     const teamGoals = isHome ? homeGoals : awayGoals;
     const teamConceded = isHome ? awayGoals : homeGoals;
     const isWin = isHome ? homeWon : awayWon;
     const isLoss = !isDraw && !isWin;
 
-    (teamStats.players || []).forEach(pStats => {
-      const pid = String(pStats.player.id);
+    participantIds.forEach(pid => {
       if (!allPlayerPoints[pid]) return;
 
       const pObj = allPlayerPoints[pid];
-      const stats = pStats.statistics && pStats.statistics[0];
-      if (!stats) return;
+      const pStats = statsByPid.get(pid) || { player: { id: pid }, statistics: [{}] };
+      const stats = getPrimaryStats(pStats);
+      const minutes = getMinutes(stats);
+      const started = matchHasStarted && (
+        starterIds.has(pid) ||
+        (stats.games && stats.games.substitute === false)
+      );
+      const subbedIn = !started && (
+        minutes > 0 ||
+        subbedInPlayerIds.includes(pid) ||
+        (stats.games && stats.games.substitute === true)
+      );
 
-      const minutes = (stats.games && stats.games.minutes) || 0;
-      if (minutes <= 0) return;
+      if (!started && !subbedIn) return;
 
       const detailPts = {};
       Object.keys(RULES).forEach(k => { detailPts[k] = 0; });
@@ -383,7 +507,7 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData) {
       const playerInfo = playersData.find(x => String(x['player.id']) === pid);
       const pos = normalizePosition((playerInfo && playerInfo.Position) || 'UNKNOWN');
 
-      if (stats.games.substitute === false) {
+      if (started) {
         detailPts.START = RULES.START;
         pObj.START += RULES.START;
       } else {
@@ -391,7 +515,7 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData) {
         pObj.SUBBED_IN += RULES.SUBBED_IN;
       }
 
-      if (subbedOutPlayerIds.includes(pStats.player.id)) {
+      if (subbedOutPlayerIds.includes(pid)) {
         detailPts.SUBBED_OUT = RULES.SUBBED_OUT;
         pObj.SUBBED_OUT += RULES.SUBBED_OUT;
       }
@@ -404,7 +528,7 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData) {
         else                           { detailPts.GOAL_ATT = goals * RULES.GOAL_ATT; pObj.GOAL_ATT += detailPts.GOAL_ATT; }
       }
 
-      const ownGoals = ownGoalsMap[pStats.player.id] || 0;
+      const ownGoals = ownGoalsMap[pid] || 0;
       if (ownGoals > 0) {
         detailPts.OWN_GOAL = ownGoals * RULES.OWN_GOAL;
         pObj.OWN_GOAL += detailPts.OWN_GOAL;
@@ -460,9 +584,11 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData) {
       if (pSaved > 0)    { detailPts.PEN_SAVED = pSaved * RULES.PEN_SAVED;     pObj.PEN_SAVED += detailPts.PEN_SAVED; }
       if (pWon > 0)      { detailPts.PEN_WON = pWon * RULES.PEN_WON;           pObj.PEN_WON += detailPts.PEN_WON; }
 
-      if (isWin)        { detailPts.WIN = RULES.WIN;   pObj.WIN += RULES.WIN; }
-      else if (isDraw)  { detailPts.DRAW = RULES.DRAW; pObj.DRAW += RULES.DRAW; }
-      else if (isLoss)  { detailPts.LOSS = RULES.LOSS; pObj.LOSS += RULES.LOSS; }
+      if (matchIsFinished) {
+        if (isWin)        { detailPts.WIN = RULES.WIN;   pObj.WIN += RULES.WIN; }
+        else if (isDraw)  { detailPts.DRAW = RULES.DRAW; pObj.DRAW += RULES.DRAW; }
+        else if (isLoss)  { detailPts.LOSS = RULES.LOSS; pObj.LOSS += RULES.LOSS; }
+      }
 
       const matchPts = Object.values(detailPts).reduce((acc, val) => acc + val, 0);
 
@@ -476,39 +602,133 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData) {
       };
 
       pObj.totalPoints += matchPts;
+      processedPlayers++;
+      if (opts.changedPlayerIds) opts.changedPlayerIds.add(pid);
     });
   });
+
+  return processedPlayers;
+}
+
+function cloneExistingPointObject(source, player) {
+  const target = buildEmptyPlayerObject(player);
+  if (!source || typeof source !== 'object') return target;
+
+  target.playerName = source.playerName || player.Spielername;
+  Object.keys(RULES).forEach(k => {
+    target[k] = (typeof source[k] === 'number') ? source[k] : 0;
+  });
+
+  Object.entries(source).forEach(([key, value]) => {
+    if (key.startsWith('Spiel_') && value && typeof value === 'object') {
+      target[key] = value;
+    }
+  });
+
+  target.totalPoints = (typeof source.totalPoints === 'number') ? source.totalPoints : 0;
+  return target;
+}
+
+function recalculateTotalPoints(pointObject) {
+  pointObject.totalPoints = Object.keys(RULES)
+    .reduce((sum, key) => sum + ((typeof pointObject[key] === 'number') ? pointObject[key] : 0), 0);
+  return pointObject.totalPoints;
+}
+
+function hasAnyPointValue(pointObject) {
+  if (!pointObject || typeof pointObject !== 'object') return false;
+  if (Object.keys(pointObject).some(key => key.startsWith('Spiel_'))) return true;
+  return Object.keys(RULES).some(key => typeof pointObject[key] === 'number' && pointObject[key] !== 0);
+}
+
+function removeFixturePoints(pointObject, fixtureId) {
+  if (!pointObject || fixtureId == null) return false;
+  const key = `Spiel_${fixtureId}`;
+  const previous = pointObject[key];
+  if (!previous || typeof previous !== 'object') return false;
+
+  const lineup = previous.Aufstellung || {};
+  Object.keys(RULES).forEach(ruleKey => {
+    const value = (typeof lineup[ruleKey] === 'number') ? lineup[ruleKey] : 0;
+    pointObject[ruleKey] = ((typeof pointObject[ruleKey] === 'number') ? pointObject[ruleKey] : 0) - value;
+  });
+  delete pointObject[key];
+  recalculateTotalPoints(pointObject);
+  return true;
+}
+
+async function readExistingPointsFromFirestore(db, tournament) {
+  const snap = await db.collection(tournament.firestore.pointsCollection).get();
+  const points = {};
+  snap.forEach(doc => {
+    points[doc.id] = doc.data() || {};
+  });
+  return points;
+}
+
+function buildPointBaseFromExisting(playersData, existingPoints, fixtureIdsToReplace, changedPlayerIds) {
+  const allPlayerPoints = {};
+  const replaceIds = new Set(Array.from(fixtureIdsToReplace || []).map(id => String(id)));
+
+  playersData.forEach(player => {
+    const pid = String(player['player.id']);
+    const obj = cloneExistingPointObject(existingPoints && existingPoints[pid], player);
+    replaceIds.forEach(fixtureId => {
+      if (removeFixturePoints(obj, fixtureId) && changedPlayerIds) {
+        changedPlayerIds.add(pid);
+      }
+    });
+    recalculateTotalPoints(obj);
+    allPlayerPoints[pid] = obj;
+  });
+
+  return allPlayerPoints;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Schreib-Workflow
  * ───────────────────────────────────────────────────────────────────────────── */
-async function writePointsToFirestore(db, tournament, allPlayerPoints, opts) {
+async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onlyPlayerIds = null) {
   const FieldValue = admin.firestore.FieldValue;
   const collection = tournament.firestore.pointsCollection;
+  const targetIds = onlyPlayerIds
+    ? Array.from(onlyPlayerIds).map(id => String(id)).filter(id => allPlayerPoints[id])
+    : Object.keys(allPlayerPoints);
+  const isPartialWrite = !!onlyPlayerIds;
 
   let batch = db.batch();
   let countInBatch = 0;
-  let totalWritten = 0;
+  let written = 0;
+  let deleted = 0;
 
-  for (const pid of Object.keys(allPlayerPoints)) {
+  for (const pid of targetIds) {
     const obj = allPlayerPoints[pid];
-    if (obj.START === 0 && obj.SUBBED_IN === 0) continue;
+    const hasPoints = hasAnyPointValue(obj);
 
-    obj.lastUpdated = FieldValue.serverTimestamp();
+    if (!hasPoints && !isPartialWrite) continue;
+
+    if (hasPoints) {
+      obj.lastUpdated = FieldValue.serverTimestamp();
+    }
 
     if (!opts.dryRun) {
       const docRef = db.collection(collection).doc(String(pid));
-      // Spielerdokumente werden bei jedem Lauf vollstaendig neu berechnet.
-      // Deshalb das Dokument komplett ersetzen statt mergen: dadurch
-      // verschwinden veraltete Felder (z. B. ein `Spiel_<id>`, das die
-      // API nachtraeglich entfernt hat) zuverlaessig aus dem Dokument
-      // und Summe-zu-Detail-Inkonsistenzen werden vermieden.
-      batch.set(docRef, obj);
+      if (hasPoints) {
+        // Spielerdokumente werden bei jedem Lauf vollstaendig neu berechnet
+        // bzw. im Live-Modus fuer die betroffenen Spieler voll ersetzt.
+        // Deshalb das Dokument komplett ersetzen statt mergen: dadurch
+        // verschwinden veraltete Felder (z. B. ein `Spiel_<id>`, das die
+        // API nachtraeglich entfernt hat) zuverlaessig aus dem Dokument
+        // und Summe-zu-Detail-Inkonsistenzen werden vermieden.
+        batch.set(docRef, obj);
+      } else {
+        batch.delete(docRef);
+      }
       countInBatch++;
     }
 
-    totalWritten++;
+    if (hasPoints) written++;
+    else deleted++;
 
     if (countInBatch === 400) {
       await batch.commit();
@@ -521,7 +741,11 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts) {
     await batch.commit();
   }
 
-  return totalWritten;
+  return {
+    written,
+    deleted,
+    touched: written + deleted
+  };
 }
 
 async function bumpPointsMetaVersion(db, tournament, opts) {
@@ -554,17 +778,17 @@ async function bumpFixturesMetaVersion(db, tournament, opts) {
   }, { merge: true });
 }
 
-async function updateFixtureStatusInFirestore(db, tournament, finishedGames, opts) {
+async function updateFixtureStatusInFirestore(db, tournament, games, opts) {
   const collection = tournament.firestore.fixturesCollection;
-  if (!collection || !finishedGames || finishedGames.length === 0) return 0;
-  if (opts.dryRun) return finishedGames.length;
+  if (!collection || !games || games.length === 0) return 0;
+  if (opts.dryRun) return games.length;
 
   const FieldValue = admin.firestore.FieldValue;
   let batch = db.batch();
   let batchCount = 0;
   let totalUpdated = 0;
 
-  for (const game of finishedGames) {
+  for (const game of games) {
     const fixtureId = String(game.fixture.id);
     const docRef = db.collection(collection).doc(fixtureId);
 
@@ -599,74 +823,13 @@ async function updateFixtureStatusInFirestore(db, tournament, finishedGames, opt
   return totalUpdated;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
- *  Haupt-Workflow
- * ───────────────────────────────────────────────────────────────────────────── */
-async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
-  const apiKey = process.env.RAPIDAPI_KEY;
-  if (!apiKey) throw new Error('RAPIDAPI_KEY ist nicht gesetzt.');
+async function fetchFixtureDetailsByIds(headers, fixtureIds) {
+  const idsToFetch = Array.from(fixtureIds || []).map(id => String(id)).filter(Boolean);
+  const detailsById = new Map();
+  if (idsToFetch.length === 0) return detailsById;
 
-  const playersData = loadPlayersData(tournament);
-  const overrideStats = applyPositionOverrides(playersData, tournament.key);
-  logInfo(`Kader geladen: ${playersData.length} Spieler aus ${tournament.dataFile}` +
-    ` (Positions-Overrides angewendet: ${overrideStats.applied}/${overrideStats.total}).`);
-
-  const allPlayerPoints = {};
-  playersData.forEach(p => { allPlayerPoints[String(p['player.id'])] = buildEmptyPlayerObject(p); });
-
-  const headers = {
-    'x-rapidapi-key': apiKey,
-    'x-rapidapi-host': 'v3.football.api-sports.io'
-  };
-
-  const baseQuery = `${tournament.api.competitionParam}=${tournament.api.competitionId}&season=${tournament.api.season}`;
-  const fixturesUrl = `https://v3.football.api-sports.io/fixtures?${baseQuery}`;
-
-  logInfo(`Lade Fixtures von API: ${fixturesUrl}`);
-  const fixRes = await fetchFn(fixturesUrl, { headers });
-  if (!fixRes.ok) throw new Error(`API-Fixtures lieferte HTTP ${fixRes.status}`);
-  const fixData = await fixRes.json();
-  if (!fixData || !Array.isArray(fixData.response)) {
-    throw new Error('API hat keine gültigen Fixture-Daten geliefert.');
-  }
-
-  const finishedGames = fixData.response.filter(f =>
-    FINISHED_STATUSES.has((f && f.fixture && f.fixture.status && f.fixture.status.short) || '')
-  );
-
-  logInfo(`API meldet ${finishedGames.length} beendete Spiele insgesamt.`);
-
-  if (finishedGames.length === 0) {
-    return { ok: true, writeSuccess: 0, finishedGames: 0, candidatesNowFinished: 0 };
-  }
-
-  // Quoten-Sicherheit: wenn keiner der Kandidaten laut API beendet ist,
-  // brechen wir hier ab. Spart die N Detail-Calls. Manuelle Catch-Up
-  // Läufe (FORCE_RUN) überspringen diese Prüfung.
-  if (candidateFixtureIds && candidateFixtureIds.size > 0 && !opts.forceRun) {
-    const finishedCandidateIds = new Set(
-      finishedGames.map(g => String(g.fixture.id)).filter(id => candidateFixtureIds.has(id))
-    );
-    if (finishedCandidateIds.size === 0) {
-      logInfo('Keiner der Kandidaten ist laut API bereits beendet – überspringe Detail-Calls.');
-      return { ok: true, writeSuccess: 0, finishedGames: finishedGames.length, candidatesNowFinished: 0 };
-    }
-    logInfo(`${finishedCandidateIds.size} der ${candidateFixtureIds.size} Kandidaten sind laut API beendet.`);
-  }
-
-  // Detail-Calls für ALLE beendeten Spiele (nicht nur Kandidaten), damit
-  // die Punkte-Summen identisch zum Browser-Skript sind und nicht durch
-  // Auslassungen früherer Läufe driften. API-FOOTBALL erlaubt bis zu
-  // 20 Fixture-IDs pro Aufruf (Parameter `ids=id-id-id`). Bei einer
-  // vollständigen Neuberechnung nach dem Finale reduziert das die Zahl
-  // der Requests von rund 100+ auf wenige Batches.
-  const fixtureIds = finishedGames.map(g => String(g.fixture.id));
-  const finishedById = new Map(finishedGames.map(g => [String(g.fixture.id), g]));
-  const expectedIds = new Set(fixtureIds);
-  const processedIds = new Set();
-
-  const batches = chunk(fixtureIds, 20);
-  logInfo(`Detail-Calls in ${batches.length} Batch(es) zu max. 20 IDs (${fixtureIds.length} Fixtures insgesamt).`);
+  const batches = chunk(idsToFetch, 20);
+  logInfo(`Detail-Calls in ${batches.length} Batch(es) zu max. 20 IDs (${idsToFetch.length} Fixtures insgesamt).`);
 
   for (let b = 0; b < batches.length; b++) {
     const ids = batches[b];
@@ -676,9 +839,6 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
     try {
       detailRes = await fetchFn(detailUrl, { headers });
     } catch (err) {
-      // Netzwerkfehler beenden den Lauf, damit keine unvollstaendigen
-      // Punktestaende veroeffentlicht werden. Beim naechsten Tick wird
-      // ein neuer Versuch unternommen.
       throw new Error(`Detail-Batch ${b + 1}/${batches.length} fehlgeschlagen (Netzwerkfehler): ${err.message}`);
     }
     if (!detailRes.ok) {
@@ -702,43 +862,161 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
         logWarn(`Detail-Batch ${b + 1}: Eintrag ohne fixture.id wird ignoriert.`);
         continue;
       }
-      const summary = finishedById.get(fixId);
-      if (!summary) {
-        logWarn(`Detail-Batch ${b + 1}: unerwartete Fixture-ID ${fixId} in der Antwort, wird ignoriert.`);
-        continue;
-      }
-      processFixtureDetail(fixtureDetail, summary, allPlayerPoints, playersData);
-      processedIds.add(fixId);
+      detailsById.set(fixId, fixtureDetail);
     }
 
-    logInfo(`Detail-Batch ${b + 1}/${batches.length} verarbeitet (${detailData.response.length} Fixtures).`);
+    logInfo(`Detail-Batch ${b + 1}/${batches.length} geladen (${detailData.response.length} Fixtures).`);
 
-    // Höflichkeitsabstand zwischen Batches (RapidAPI Rate-Limit Schonung).
     if (b < batches.length - 1) await delay(350);
   }
+
+  return detailsById;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Haupt-Workflow
+ * ───────────────────────────────────────────────────────────────────────────── */
+async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
+  const apiKey = process.env.RAPIDAPI_KEY;
+  if (!apiKey) throw new Error('RAPIDAPI_KEY ist nicht gesetzt.');
+
+  const playersData = loadPlayersData(tournament);
+  const overrideStats = applyPositionOverrides(playersData, tournament.key);
+  logInfo(`Kader geladen: ${playersData.length} Spieler aus ${tournament.dataFile}` +
+    ` (Positions-Overrides angewendet: ${overrideStats.applied}/${overrideStats.total}).`);
+
+  const allPlayerPoints = {};
+
+  const headers = {
+    'x-rapidapi-key': apiKey,
+    'x-rapidapi-host': 'v3.football.api-sports.io'
+  };
+
+  const baseQuery = `${tournament.api.competitionParam}=${tournament.api.competitionId}&season=${tournament.api.season}`;
+  const fixturesUrl = `https://v3.football.api-sports.io/fixtures?${baseQuery}`;
+
+  logInfo(`Lade Fixtures von API: ${fixturesUrl}`);
+  const fixRes = await fetchFn(fixturesUrl, { headers });
+  if (!fixRes.ok) throw new Error(`API-Fixtures lieferte HTTP ${fixRes.status}`);
+  const fixData = await fixRes.json();
+  if (!fixData || !Array.isArray(fixData.response)) {
+    throw new Error('API hat keine gültigen Fixture-Daten geliefert.');
+  }
+
+  const allApiGames = fixData.response.filter(f => f && f.fixture && f.fixture.id != null);
+  const apiGamesById = new Map(allApiGames.map(g => [String(g.fixture.id), g]));
+  const finishedGames = allApiGames.filter(isFinishedFixture);
+  const candidateGames = candidateFixtureIds
+    ? Array.from(candidateFixtureIds).map(id => apiGamesById.get(String(id))).filter(Boolean)
+    : [];
+
+  if (candidateFixtureIds) {
+    Array.from(candidateFixtureIds).forEach(id => {
+      if (!apiGamesById.has(String(id))) {
+        logWarn(`Kandidat ${id} wurde in der API-Fixture-Liste nicht gefunden.`);
+      }
+    });
+  }
+
+  const scoringCandidateGames = candidateFixtureIds
+    ? candidateGames.filter(isScoringFixture)
+    : [];
+  const liveCandidateGames = scoringCandidateGames.filter(g => !isFinishedFixture(g));
+  const finishedCandidateIds = candidateFixtureIds
+    ? new Set(finishedGames.map(g => String(g.fixture.id)).filter(id => candidateFixtureIds.has(id)))
+    : null;
+  const shouldFullRecompute = opts.forceRun || (finishedCandidateIds && finishedCandidateIds.size > 0);
+
+  const scoringGames = shouldFullRecompute
+    ? uniqueGamesByFixtureId([
+        ...(opts.forceRun ? allApiGames.filter(isScoringFixture) : finishedGames),
+        ...liveCandidateGames
+      ])
+    : uniqueGamesByFixtureId(scoringCandidateGames);
+  const liveGamesForTick = scoringGames.filter(g => !isFinishedFixture(g));
+
+  logInfo(
+    `API meldet ${finishedGames.length} beendete Spiele insgesamt, ` +
+    `${liveGamesForTick.length} laufende Spiele in diesem Tick, ` +
+    `${scoringGames.length} Spiel(e) fuer diesen Punkte-Tick.`
+  );
+
+  if (candidateFixtureIds && finishedCandidateIds && finishedCandidateIds.size > 0) {
+    logInfo(`${finishedCandidateIds.size} der ${candidateFixtureIds.size} Kandidaten sind laut API beendet.`);
+  }
+
+  if (scoringGames.length === 0) {
+    logInfo('Noch kein Kandidat mit Live-/Finalstatus – keine Detail-Calls und kein Punkte-Write.');
+    return {
+      ok: true,
+      writeSuccess: 0,
+      deleteSuccess: 0,
+      finishedGames: finishedGames.length,
+      scoringGames: 0,
+      liveGames: 0,
+      candidatesNowFinished: 0
+    };
+  }
+
+  let changedPlayerIds = null;
+  let modeLabel = 'vollstaendige Neuberechnung';
+  if (shouldFullRecompute) {
+    playersData.forEach(p => { allPlayerPoints[String(p['player.id'])] = buildEmptyPlayerObject(p); });
+  } else {
+    modeLabel = 'Live-Delta';
+    changedPlayerIds = new Set();
+    logInfo('Lade bestehende Punktedokumente als Basis fuer Live-Delta.');
+    const existingPoints = await readExistingPointsFromFirestore(db, tournament);
+    const replaceFixtureIds = new Set(scoringGames.map(g => String(g.fixture.id)));
+    Object.assign(
+      allPlayerPoints,
+      buildPointBaseFromExisting(playersData, existingPoints, replaceFixtureIds, changedPlayerIds)
+    );
+  }
+  logInfo(`Punkte-Modus: ${modeLabel}.`);
+
+  const fixtureIds = scoringGames.map(g => String(g.fixture.id));
+  const detailsById = await fetchFixtureDetailsByIds(headers, fixtureIds);
 
   // Veröffentlichungs-Guard: Punkte werden nur dann nach Firestore
   // geschrieben, wenn ALLE erwarteten Fixtures verarbeitet wurden.
   // Damit sehen Nutzer nie einen halbfertigen Zwischenstand
   // (z. B. tiefere Gesamtpunktzahlen wegen eines transienten Fehlers).
-  const missingIds = [...expectedIds].filter(id => !processedIds.has(id));
+  const missingIds = fixtureIds.filter(id => !detailsById.has(id));
   if (missingIds.length > 0) {
     throw new Error(
-      `Punkte-Update abgebrochen: ${missingIds.length} von ${expectedIds.size} ` +
-      `beendeten Fixtures fehlen in den Detail-Antworten ` +
+      `Punkte-Update abgebrochen: ${missingIds.length} von ${fixtureIds.length} ` +
+      `Live-/Final-Fixtures fehlen in den Detail-Antworten ` +
       `(IDs: ${missingIds.join(', ')}). Es wird nichts publiziert; ` +
       `der naechste Cron-Lauf versucht es erneut.`
     );
   }
 
-  const writeSuccess = await writePointsToFirestore(db, tournament, allPlayerPoints, opts);
-  logInfo(`${writeSuccess} Spieler-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}.`);
+  let processedPlayers = 0;
+  const scoringById = new Map(scoringGames.map(g => [String(g.fixture.id), g]));
+  fixtureIds.forEach(fixId => {
+    processedPlayers += processFixtureDetail(
+      detailsById.get(fixId),
+      scoringById.get(fixId),
+      allPlayerPoints,
+      playersData,
+      { changedPlayerIds }
+    );
+  });
 
-  if (writeSuccess > 0) {
+  Object.values(allPlayerPoints).forEach(recalculateTotalPoints);
+
+  const writeResult = await writePointsToFirestore(db, tournament, allPlayerPoints, opts, changedPlayerIds);
+  logInfo(
+    `${writeResult.written} Spieler-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}, ` +
+    `${writeResult.deleted} geloescht/geleert, ${processedPlayers} Spielereinsaetze verarbeitet.`
+  );
+
+  if (writeResult.touched > 0) {
     await bumpPointsMetaVersion(db, tournament, opts);
     logInfo(`Meta-Dokument ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} ${opts.dryRun ? '(DRY-RUN) ' : ''}aktualisiert.`);
   } else {
-    logWarn('Keine Spieler mit Punkten – Meta-Version nicht hochgezählt.');
+    logWarn('Keine Spieler-Punktedokumente veraendert – pointsVersion nicht hochgezaehlt.');
   }
 
   // Anzahl der Kandidaten, die laut API jetzt beendet sind. Bei FORCE_RUN
@@ -749,18 +1027,18 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
     : finishedGames.length;
 
   try {
-    const updated = await updateFixtureStatusInFirestore(db, tournament, finishedGames, opts);
+    const statusGames = shouldFullRecompute
+      ? uniqueGamesByFixtureId([...(opts.forceRun ? scoringGames : finishedGames), ...liveCandidateGames])
+      : scoringCandidateGames;
+    const updated = await updateFixtureStatusInFirestore(db, tournament, statusGames, opts);
     logInfo(`Fixture-Status für ${updated} Spiele ${opts.dryRun ? '(DRY-RUN) berechnet' : 'aktualisiert'}.`);
 
-    // fixturesVersion nur dann erhoehen, wenn sich ein Spielstatus
-    // tatsaechlich geaendert hat (ein Kandidat ist jetzt beendet) bzw.
-    // bei einer vollstaendigen Neuberechnung (FORCE_RUN). Ohne diesen
-    // Bump laedt cache.js die aktualisierten Spielstaende/Resultate erst
-    // beim naechsten taeglichen Spielplan-Sync nach – Clients saehen
-    // sonst neue Punkte, aber veraltete Match-Status/Resultate.
-    if (updated > 0 && (candidateFixtureIds == null || candidatesNowFinished > 0)) {
+    // Im Live-Modus soll neben den Punkten auch der Spielstand/Status sofort
+    // in den Clients ankommen. Darum erhoehen wir fixturesVersion bei jedem
+    // Tick, der API-Statusdaten fuer ein Live-/Finalspiel geschrieben hat.
+    if (updated > 0) {
       await bumpFixturesMetaVersion(db, tournament, opts);
-      logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhöht – Clients laden frische Spielstände sofort nach.`);
+      logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhoeht – Clients laden frische Spielstaende sofort nach.`);
     }
   } catch (err) {
     logWarn(`Fixture-Status-Update fehlgeschlagen (Punkte sind trotzdem geschrieben): ${err.message}`);
@@ -768,8 +1046,11 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
 
   return {
     ok: true,
-    writeSuccess,
+    writeSuccess: writeResult.written,
+    deleteSuccess: writeResult.deleted,
     finishedGames: finishedGames.length,
+    scoringGames: scoringGames.length,
+    liveGames: liveGamesForTick.length,
     candidatesNowFinished
   };
 }
@@ -777,6 +1058,38 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Entrypoint
  * ───────────────────────────────────────────────────────────────────────────── */
+async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
+  if (totalTicks > 1) {
+    logInfo(`Live-Tick ${tickIndex}/${totalTicks}.`);
+  }
+
+  let candidateIds = null;
+  if (opts.forceRun) {
+    logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
+  } else {
+    const { all, candidates } = await findCandidateFixtures(db, tournament, opts);
+    logInfo(`Spielplan: ${all.length} Spiele in Firestore. Kandidaten in diesem Tick: ${candidates.length}.`);
+    if (candidates.length === 0) {
+      logInfo('Nichts zu tun – kein Spiel im Live-/Catch-up-Fenster mit offenem Status. Beende ohne API-Call.');
+      return { hadCandidates: false, result: null };
+    }
+    candidates.forEach(c => {
+      const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
+      const tag = c.overdue ? ' [CATCH-UP / ueberfaellig]' : '';
+      logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${formatAgeMin(ageMin)}.${tag}`);
+    });
+    candidateIds = new Set(candidates.map(c => String(c.id)));
+  }
+
+  const result = await runFullPointsUpload(db, tournament, opts, candidateIds);
+  logInfo(`Lauf-Tick beendet. Beendete Spiele (gesamt): ${result.finishedGames}, ` +
+    `Scoring-Spiele: ${result.scoringGames}, Live-Spiele: ${result.liveGames}, ` +
+    `Spieler-Dokumente geschrieben: ${result.writeSuccess}, geloescht: ${result.deleteSuccess}, ` +
+    `Kandidaten jetzt beendet: ${result.candidatesNowFinished}.`);
+
+  return { hadCandidates: true, result };
+}
+
 async function main() {
   const envKey = (process.env.TOURNAMENT_KEY || '').trim().toLowerCase();
   const tournamentKey = envKey || APP_CONFIG.activeTournamentKey;
@@ -797,15 +1110,18 @@ async function main() {
   }
 
   const opts = {
-    windowStartMin: envInt('WINDOW_START_MIN', 100),
-    windowEndMin: envInt('WINDOW_END_MIN', 260),
+    windowStartMin: envInt('WINDOW_START_MIN', DEFAULT_WINDOW_START_MIN),
+    windowEndMin: envInt('WINDOW_END_MIN', DEFAULT_WINDOW_END_MIN),
+    liveTicksPerRun: Math.min(10, Math.max(1, envInt('LIVE_TICKS_PER_RUN', DEFAULT_LIVE_TICKS_PER_RUN))),
+    liveTickIntervalSec: Math.max(0, envInt('LIVE_TICK_INTERVAL_SEC', DEFAULT_LIVE_TICK_INTERVAL_SEC)),
     forceRun: envBool('FORCE_RUN', false),
     dryRun: envBool('DRY_RUN', false)
   };
 
   logInfo(`Starte Auto-Upload für ${tournament.shortLabel} (${tournament.key}).` +
-    ` Trigger-Fenster: ${opts.windowStartMin}–${opts.windowEndMin} min NACH ANPFIFF` +
-    ` (Spiel läuft bzw. ist gerade frisch beendet).` +
+    ` Trigger-Fenster: ${opts.windowStartMin} bis ${opts.windowEndMin} min relativ zum Anpfiff` +
+    ` (Live + Catch-up).` +
+    ` Live-Ticks pro Run: ${opts.forceRun ? 1 : opts.liveTicksPerRun}, Abstand: ${opts.liveTickIntervalSec}s.` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
     (opts.dryRun ? ' [DRY_RUN]' : ''));
 
@@ -848,34 +1164,17 @@ async function main() {
     process.exit(1);
   }
 
-  let candidateIds = null;
   try {
-    if (opts.forceRun) {
-      logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
-    } else {
-      const { all, candidates } = await findCandidateFixtures(db, tournament, opts);
-      logInfo(`Spielplan: ${all.length} Spiele in Firestore. Kandidaten in diesem Tick: ${candidates.length}.`);
-      if (candidates.length === 0) {
-        logInfo('Nichts zu tun – kein Spiel im Trigger-Fenster mit offenem Status. Beende ohne API-Call.');
-        return;
+    const totalTicks = opts.forceRun ? 1 : opts.liveTicksPerRun;
+    for (let tick = 1; tick <= totalTicks; tick++) {
+      const tickResult = await runUploadTick(db, tournament, opts, tick, totalTicks);
+      if (!tickResult.hadCandidates || opts.forceRun) break;
+      if (tick < totalTicks) {
+        logInfo(`Warte ${opts.liveTickIntervalSec}s bis zum naechsten Live-Tick.`);
+        await delay(opts.liveTickIntervalSec * 1000);
       }
-      candidates.forEach(c => {
-        const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
-        const tag = c.overdue ? ' [CATCH-UP / ueberfaellig]' : '';
-        logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${ageMin} min NACH ANPFIFF.${tag}`);
-      });
-      candidateIds = new Set(candidates.map(c => String(c.id)));
     }
-  } catch (err) {
-    logError(`Pre-Check fehlgeschlagen: ${err.message}`);
-    process.exit(2);
-  }
-
-  try {
-    const result = await runFullPointsUpload(db, tournament, opts, candidateIds);
-    logInfo(`✅ Lauf beendet. Beendete Spiele (gesamt): ${result.finishedGames}, ` +
-      `Spieler-Dokumente: ${result.writeSuccess}, ` +
-      `Kandidaten jetzt beendet: ${result.candidatesNowFinished}.`);
+    logInfo('Auto-Punkte-Run abgeschlossen.');
   } catch (err) {
     logError(`Upload-Workflow fehlgeschlagen: ${err.message}`);
     if (err.stack) console.error(err.stack);

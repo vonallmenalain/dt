@@ -4,9 +4,11 @@ name: Auto Punkte-Upload
 # tournament-config.js. Läuft während des WM-Zeitraums alle 5
 # Minuten als GitHub-Cron-Job (zusätzlich jederzeit manuell auslösbar
 # via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check,
-# der prüft, ob im aktuellen Tick überhaupt ein Spiel im Trigger-
-# Fenster liegt (100–260 Minuten NACH ANPFIFF, also während/kurz nach
-# dem Match) – ist dem nicht so, wird KEIN API-Call abgesetzt.
+# der prüft, ob im aktuellen Tick überhaupt ein Spiel im Live-/Catch-up-
+# Fenster liegt (Default: 10 Minuten VOR bis 150 Minuten NACH Anpfiff).
+# Nur dann wird die API abgefragt. Während eines aktiven Fensters macht
+# das Skript standardmäßig fünf Ticks mit 60 Sekunden Abstand; so gibt es
+# minütliche Live-Updates, ohne jede Minute einen neuen Runner zu starten.
 #
 # WICHTIG: Der Cron unten ist bewusst auf den WM-Zeitraum
 # (11.06.2026 – 21.07.2026) beschränkt, damit nicht das ganze Jahr
@@ -27,10 +29,16 @@ name: Auto Punkte-Upload
 #   TOURNAMENT_KEY        Überschreibt das Default-Turnier aus
 #                         tournament-config.js. Aktuell unterstützt:
 #                         wm2026.
-#   POINTS_WINDOW_START_MIN  Default 100 – untere Grenze des Trigger-
-#                            Fensters in Minuten NACH ANPFIFF.
-#   POINTS_WINDOW_END_MIN    Default 260 – obere Grenze (ebenfalls in
-#                            Minuten NACH ANPFIFF).
+#   POINTS_WINDOW_START_MIN  Default -10 – Start des Live-Fensters
+#                            relativ zum Anpfiff.
+#   POINTS_WINDOW_END_MIN    Default 150 – Ende des normalen Live-
+#                            Fensters relativ zum Anpfiff. Danach bleibt
+#                            ein offenes Spiel als Catch-up-Kandidat aktiv.
+#   POINTS_LIVE_TICKS_PER_RUN
+#                            Default 5 – Anzahl minütlicher Ticks innerhalb
+#                            eines GitHub-Runs (bei schedule).
+#   POINTS_LIVE_TICK_INTERVAL_SEC
+#                            Default 60 – Abstand zwischen Live-Ticks.
 on:
   schedule:
     # Alle 5 Minuten vom 11.–30. Juni 2026 (WM-Gruppenphase + KO-Start).
@@ -88,6 +96,8 @@ jobs:
           TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
           WINDOW_START_MIN: ${{ vars.POINTS_WINDOW_START_MIN }}
           WINDOW_END_MIN: ${{ vars.POINTS_WINDOW_END_MIN }}
+          LIVE_TICKS_PER_RUN: ${{ vars.POINTS_LIVE_TICKS_PER_RUN }}
+          LIVE_TICK_INTERVAL_SEC: ${{ vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
           FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
         run: node auto-points-upload.js

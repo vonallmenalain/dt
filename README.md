@@ -74,13 +74,20 @@ Schreibzugriffe finden ausschliesslich hier statt, nicht im Browser.
 Beide Scripts lesen die Turnier-Konfiguration **direkt aus
 `tournament-config.js`** – keine lokale Kopie pflegen.
 
-### Pre-Check (auto-points-upload)
+### Pre-Check / Live-Load (auto-points-upload)
 
 Ein Cron-Tick lädt zunächst nur den Spielplan aus Firestore und prüft,
-ob ein Spiel im Trigger-Fenster (Default 100–260 Minuten nach Anstoss)
-liegt, dessen Status noch nicht `FT`/`AET`/`PEN` ist. Ist das nicht der
-Fall, beendet sich der Job sofort. Damit kostet ein Tick ausserhalb
-der Spieltage praktisch nichts (1 Firestore-Read, 0 API-Calls).
+ob ein Spiel im Live-/Catch-up-Fenster (Default: 10 Minuten vor bis
+150 Minuten nach Anstoss) liegt, dessen Status noch nicht `FT`/`AET`/`PEN`
+ist. Ist das nicht der Fall, beendet sich der Job sofort. Damit kostet
+ein Tick ausserhalb der Spieltage praktisch nichts (1 Firestore-Read,
+0 API-Calls).
+
+Während eines aktiven Fensters macht das Script standardmässig fünf
+Ticks mit 60 Sekunden Abstand innerhalb desselben GitHub-Runs. Laufende
+Spiele werden als Delta auf bestehende Punktedokumente geschrieben;
+sobald ein Kandidat final ist oder `FORCE_RUN=1` genutzt wird, erfolgt
+eine vollständige Neuberechnung.
 
 `pointsUpdatedAt` und `pointsVersion` im Meta-Dokument werden nur
 nach einem erfolgreichen Schreibvorgang erhöht. Die "Zuletzt
@@ -115,8 +122,10 @@ Default aus `tournament-config.js` überschreiben will:
 | Name                       | Default                            | Bedeutung                                                       |
 | -------------------------- | ---------------------------------- | --------------------------------------------------------------- |
 | `TOURNAMENT_KEY`           | Fallback aus `tournament-config.js`| Turnier für beide Workflows.                                    |
-| `POINTS_WINDOW_START_MIN`  | `100`                              | Auto-Punkte: untere Grenze des Trigger-Fensters (Min. nach Anpfiff). |
-| `POINTS_WINDOW_END_MIN`    | `260`                              | Auto-Punkte: obere Grenze.                                      |
+| `POINTS_WINDOW_START_MIN`  | `-10`                              | Auto-Punkte: Start des Live-Fensters relativ zum Anpfiff.       |
+| `POINTS_WINDOW_END_MIN`    | `150`                              | Auto-Punkte: normales Ende des Live-Fensters; danach Catch-up für offene Spiele. |
+| `POINTS_LIVE_TICKS_PER_RUN` | `5`                               | Auto-Punkte: Anzahl Live-Ticks innerhalb eines GitHub-Runs.     |
+| `POINTS_LIVE_TICK_INTERVAL_SEC` | `60`                          | Auto-Punkte: Abstand zwischen Live-Ticks in Sekunden.           |
 
 Wer dieselbe Variable früher pro Workflow doppelt (z.B.
 `AUTO_UPLOAD_TOURNAMENT_KEY` + `FIXTURES_SYNC_TOURNAMENT_KEY`) gesetzt
