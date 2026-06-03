@@ -5918,6 +5918,7 @@
      (parallel zum HTML-Parsing). DreamTeamCache/Auth nutzen sie erst
      nach DOMContentLoaded, also nachdem alle defer-Skripte ausgeführt
      wurden. -->
+<script src="country-aliases.js"></script>
 <script src="data.js"></script>
 <script src="cache.js"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
@@ -6211,6 +6212,84 @@
     const $ = (id) => document.getElementById(id);
     const isDesktopHover = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let nationFlagLookup = null;
+
+    function normalizeNationFlagKey(value) {
+        if (typeof normalizeCountryKey === 'function') return normalizeCountryKey(value);
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/['`´’]/g, '')
+            .replace(/&/g, ' and ')
+            .replace(/[^a-zA-Z0-9]+/g, ' ')
+            .trim()
+            .replace(/\s+/g, ' ')
+            .toLowerCase();
+    }
+
+    function getNationFlagAliasNames(nationName) {
+        const names = [nationName];
+        if (typeof getCountryAliases === 'function') {
+            names.push(...getCountryAliases(nationName));
+        }
+        return names.filter(Boolean);
+    }
+
+    function buildNationFlagLookup() {
+        const lookup = new Map();
+        const add = (name, logo) => {
+            const key = normalizeNationFlagKey(name);
+            if (key && logo && !lookup.has(key)) lookup.set(key, logo);
+        };
+
+        playersData.forEach(player => {
+            const nation = player && player['Nationalteam.name'];
+            const logo = player && player['Nationalteam.logo'];
+            if (!nation || !logo) return;
+            getNationFlagAliasNames(nation).forEach(name => add(name, logo));
+        });
+
+        return lookup;
+    }
+
+    function getNationFlag(nationName) {
+        if (!nationName) return '';
+        if (!nationFlagLookup) nationFlagLookup = buildNationFlagLookup();
+
+        for (const name of getNationFlagAliasNames(nationName)) {
+            const flag = nationFlagLookup.get(normalizeNationFlagKey(name));
+            if (flag) return flag;
+        }
+
+        return '';
+    }
+
+    function handleFlagImageError(img) {
+        if (!img) return;
+        const fallback = img.dataset ? img.dataset.fallbackSrc : '';
+        if (fallback && img.src !== fallback) {
+            img.dataset.fallbackSrc = '';
+            img.src = fallback;
+            return;
+        }
+        const placeholder = document.createElement('span');
+        placeholder.className = img.className || '';
+        placeholder.setAttribute('aria-hidden', 'true');
+        placeholder.textContent = '🏳️';
+        img.replaceWith(placeholder);
+    }
+    window.handleFlagImageError = handleFlagImageError;
+
+    function renderFlagImageHtml(className, primaryUrl, fallbackUrl, altText, placeholderStyle = 'font-size:1.1rem;flex-shrink:0;') {
+        const src = primaryUrl || fallbackUrl || '';
+        if (!src) return `<span style="${escapeHtml(placeholderStyle)}" aria-hidden="true">🏳️</span>`;
+        const fallbackAttr = primaryUrl && fallbackUrl && primaryUrl !== fallbackUrl
+            ? ` data-fallback-src="${escapeHtml(fallbackUrl)}"`
+            : '';
+        return `<img class="${escapeHtml(className)}" src="${escapeHtml(src)}" alt="${escapeHtml(altText || '')}" loading="lazy"${fallbackAttr} onerror="handleFlagImageError(this)">`;
+    }
 
     function animateCounter(el, target, duration = 800) {
         if (prefersReducedMotion() || !el) { el && (el.textContent = target); return; }
@@ -6520,8 +6599,7 @@
 
         container.innerHTML = nations.slice(0, 5).map(([nation, pts], i) => {
             const url = `spieleranalyse.html?view=countries&gameNation=${encodeURIComponent(nation)}`;
-            const flagPlayer = playersData.find((p) => p['Nationalteam.name'] === nation);
-            const flagUrl = flagPlayer ? flagPlayer['Nationalteam.logo'] : '';
+            const flagUrl = getNationFlag(nation);
             const barPct = maxPts > 0 ? Math.round((pts / maxPts) * 100) : 0;
             const rankCls = i === 0 ? 'ni-rank-1' : '';
             return `
@@ -7157,15 +7235,10 @@
                 const nations = getNationFromMatchGame(id, data);
                 teamA = nations[0] || '?';
                 teamB = nations[1] || '?';
-                if (!teamAFlag) {
-                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamA);
-                    if (p) teamAFlag = p['Nationalteam.logo'];
-                }
-                if (!teamBFlag) {
-                    const p = playersData.find((pl) => pl['Nationalteam.name'] === teamB);
-                    if (p) teamBFlag = p['Nationalteam.logo'];
-                }
             }
+
+            const teamAFlagFallback = getNationFlag(teamA);
+            const teamBFlagFallback = getNationFlag(teamB);
 
             const playersInMatch = (matchPlayerMap[id] || [])
                 .filter((p) => draftedIds.has(String(p['player.id'])))
@@ -7183,7 +7256,7 @@
             return `
                 <a class="match-item" href="${url}" aria-label="${escapeHtml(teamA)} vs ${escapeHtml(teamB)}, Spiel ${id}">
                     <div class="match-team">
-                        ${teamAFlag ? `<img class="match-team-flag" src="${escapeHtml(teamAFlag)}" alt="${escapeHtml(teamA)}" loading="lazy">` : `<div style="font-size:1.4rem;">🏳️</div>`}
+                        ${renderFlagImageHtml('match-team-flag', teamAFlag, teamAFlagFallback, teamA, 'font-size:1.4rem;')}
                         <div class="match-team-name">${escapeHtml(teamA)}</div>
                     </div>
                     <div class="match-vs">
@@ -7191,7 +7264,7 @@
                         <div class="match-vs-date">${escapeHtml(dateLabel)}</div>
                     </div>
                     <div class="match-team">
-                        ${teamBFlag ? `<img class="match-team-flag" src="${escapeHtml(teamBFlag)}" alt="${escapeHtml(teamB)}" loading="lazy">` : `<div style="font-size:1.4rem;">🏳️</div>`}
+                        ${renderFlagImageHtml('match-team-flag', teamBFlag, teamBFlagFallback, teamB, 'font-size:1.4rem;')}
                         <div class="match-team-name">${escapeHtml(teamB)}</div>
                     </div>
                     ${avatarHtml}
@@ -7943,7 +8016,14 @@
      */
     function normalizeCountry(value) {
         if (!value) return '';
-        const s = String(value).trim().toLowerCase();
+        if (typeof getCanonicalCountryKey === 'function') {
+            return getCanonicalCountryKey(value);
+        }
+        const s = String(value)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .toLowerCase();
 
         // Direct alias map for common Nationalmannschafts-Bezeichnungen
         // (turnierübergreifend; wird bei Bedarf für neue Turniere erweitert)
@@ -8247,15 +8327,10 @@
                 const nations = getNationFromMatchGame(matchId, data);
                 teamA = nations[0] || '?';
                 teamB = nations[1] || '?';
-                if (!flagA) {
-                    const p = playersData.find(pl => pl['Nationalteam.name'] === teamA);
-                    if (p) flagA = p['Nationalteam.logo'];
-                }
-                if (!flagB) {
-                    const p = playersData.find(pl => pl['Nationalteam.name'] === teamB);
-                    if (p) flagB = p['Nationalteam.logo'];
-                }
             }
+
+            const flagAFallback = getNationFlag(teamA);
+            const flagBFallback = getNationFlag(teamB);
 
             let isLive = isMatchLiveStatus(statusShort);
             const scoreParts = getMatchScoreParts(match);
@@ -8356,7 +8431,7 @@
                 <div class="nm-match-row${isLive ? ' live' : ''}">
                     <div class="nm-match-main">
                         <div class="nm-team-side">
-                            ${flagA ? `<img class="nm-team-flag" src="${escapeHtml(flagA)}" alt="${escapeHtml(teamA)}" loading="lazy">` : '<span style="font-size:1.1rem;flex-shrink:0;">🏳️</span>'}
+                            ${renderFlagImageHtml('nm-team-flag', flagA, flagAFallback, teamA)}
                             <span class="nm-team-name">${escapeHtml(teamA)}</span>
                         </div>
                         <div class="nm-center-col">
@@ -8368,7 +8443,7 @@
                             ${venueText ? `<div class="nm-time-sub nm-venue-inline">${escapeHtml(venueText)}</div>` : ''}
                         </div>
                         <div class="nm-team-side right">
-                            ${flagB ? `<img class="nm-team-flag" src="${escapeHtml(flagB)}" alt="${escapeHtml(teamB)}" loading="lazy">` : '<span style="font-size:1.1rem;flex-shrink:0;">🏳️</span>'}
+                            ${renderFlagImageHtml('nm-team-flag', flagB, flagBFallback, teamB)}
                             <span class="nm-team-name">${escapeHtml(teamB)}</span>
                         </div>
                     </div>

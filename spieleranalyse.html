@@ -1789,12 +1789,16 @@
 
         .tg-team-flag,
         .tb-slot-flag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             width: 22px;
             height: 16px;
             border-radius: 3px;
             object-fit: cover;
             background: rgba(255,255,255,0.08);
             flex-shrink: 0;
+            font-size: 10px;
         }
 
         .tg-team-name {
@@ -5644,9 +5648,82 @@
     /* =========================================================
        NATION FLAG HELPER
        ========================================================= */
+    let nationFlagLookup = null;
+
+    function normalizeNationFlagKey(value) {
+        if (typeof normalizeCountryKey === 'function') return normalizeCountryKey(value);
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/['`´’]/g, '')
+            .replace(/&/g, ' and ')
+            .replace(/[^a-zA-Z0-9]+/g, ' ')
+            .trim()
+            .replace(/\s+/g, ' ')
+            .toLowerCase();
+    }
+
+    function getNationFlagAliasNames(nationName) {
+        const names = [nationName];
+        if (typeof getCountryAliases === 'function') {
+            names.push(...getCountryAliases(nationName));
+        }
+        return names.filter(Boolean);
+    }
+
+    function buildNationFlagLookup() {
+        const lookup = new Map();
+        const add = (name, logo) => {
+            const key = normalizeNationFlagKey(name);
+            if (key && logo && !lookup.has(key)) lookup.set(key, logo);
+        };
+
+        playersData.forEach(player => {
+            const nation = player && player['Nationalteam.name'];
+            const logo = player && player['Nationalteam.logo'];
+            if (!nation || !logo) return;
+            getNationFlagAliasNames(nation).forEach(name => add(name, logo));
+        });
+
+        return lookup;
+    }
+
     function getNationFlag(nationName) {
-        const player = playersData.find(p => p['Nationalteam.name'] === nationName);
-        return player ? (player['Nationalteam.logo'] || '') : '';
+        if (!nationName) return '';
+        if (!nationFlagLookup) nationFlagLookup = buildNationFlagLookup();
+
+        for (const name of getNationFlagAliasNames(nationName)) {
+            const flag = nationFlagLookup.get(normalizeNationFlagKey(name));
+            if (flag) return flag;
+        }
+
+        return '';
+    }
+
+    function handleFlagImageError(img) {
+        if (!img) return;
+        const fallback = img.dataset ? img.dataset.fallbackSrc : '';
+        if (fallback && img.src !== fallback) {
+            img.dataset.fallbackSrc = '';
+            img.src = fallback;
+            return;
+        }
+        const placeholder = document.createElement('span');
+        placeholder.className = img.className || '';
+        placeholder.setAttribute('aria-hidden', 'true');
+        placeholder.textContent = '🏳️';
+        img.replaceWith(placeholder);
+    }
+    window.handleFlagImageError = handleFlagImageError;
+
+    function renderFlagImageHtml(className, primaryUrl, fallbackUrl, altText, placeholderClass = className) {
+        const src = primaryUrl || fallbackUrl || '';
+        if (!src) return `<span class="${escapeHtml(placeholderClass)}" aria-hidden="true">🏳️</span>`;
+        const fallbackAttr = primaryUrl && fallbackUrl && primaryUrl !== fallbackUrl
+            ? ` data-fallback-src="${escapeHtml(fallbackUrl)}"`
+            : '';
+        return `<img class="${escapeHtml(className)}" src="${escapeHtml(src)}" alt="${escapeHtml(altText || '')}" loading="lazy"${fallbackAttr} onerror="handleFlagImageError(this)">`;
     }
 
     /* =========================================================
@@ -6773,12 +6850,8 @@
 
         const homeFlagUrl = getNationFlag(m.teamA);
         const awayFlagUrl = getNationFlag(m.teamB);
-        const homeLogo = (m.teamALogo || homeFlagUrl)
-            ? `<img class="sc-expanded-team-logo" src="${escapeHtml(m.teamALogo || homeFlagUrl)}" alt="${escapeHtml(m.teamA)}" loading="lazy" onerror="this.style.display='none'">`
-            : `<span class="sc-team-logo-placeholder">🏳️</span>`;
-        const awayLogo = (m.teamBLogo || awayFlagUrl)
-            ? `<img class="sc-expanded-team-logo" src="${escapeHtml(m.teamBLogo || awayFlagUrl)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
-            : `<span class="sc-team-logo-placeholder">🏳️</span>`;
+        const homeLogo = renderFlagImageHtml('sc-expanded-team-logo', m.teamALogo, homeFlagUrl, m.teamA, 'sc-team-logo-placeholder');
+        const awayLogo = renderFlagImageHtml('sc-expanded-team-logo', m.teamBLogo, awayFlagUrl, m.teamB, 'sc-team-logo-placeholder');
 
         const emptyMsg = `<div class="sc-expanded-empty">Keine Spieler erfasst.</div>`;
         const homeBody = homePlayers.length
@@ -6926,12 +6999,8 @@
                 // Team logos (flag from player data)
                 const homeFlagUrl = getNationFlag(m.teamA);
                 const awayFlagUrl = getNationFlag(m.teamB);
-                const homeLogo = (m.teamALogo || homeFlagUrl)
-                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamALogo || homeFlagUrl)}" alt="${escapeHtml(m.teamA)}" loading="lazy" onerror="this.style.display='none'">`
-                    : `<span class="sc-team-logo-placeholder">🏳️</span>`;
-                const awayLogo = (m.teamBLogo || awayFlagUrl)
-                    ? `<img class="sc-team-logo" src="${escapeHtml(m.teamBLogo || awayFlagUrl)}" alt="${escapeHtml(m.teamB)}" loading="lazy" onerror="this.style.display='none'">`
-                    : `<span class="sc-team-logo-placeholder">🏳️</span>`;
+                const homeLogo = renderFlagImageHtml('sc-team-logo', m.teamALogo, homeFlagUrl, m.teamA, 'sc-team-logo-placeholder');
+                const awayLogo = renderFlagImageHtml('sc-team-logo', m.teamBLogo, awayFlagUrl, m.teamB, 'sc-team-logo-placeholder');
 
                 // Venue text (no image)
                 const venueText = m.venue && m.venue !== 'Spielort folgt'
@@ -7380,9 +7449,7 @@
 
     function renderTournamentTeamCell(row) {
         const flag = getTournamentFlag(row);
-        const flagHtml = flag
-            ? `<img class="tg-team-flag" src="${escapeHtml(flag)}" alt="${escapeHtml(row.displayName || row.name)}" loading="lazy">`
-            : `<span class="tg-team-flag" aria-hidden="true"></span>`;
+        const flagHtml = renderFlagImageHtml('tg-team-flag', flag, '', row.displayName || row.name);
         return `<div class="tg-team-cell">${flagHtml}<span class="tg-team-name">${escapeHtml(row.displayName || row.name)}</span></div>`;
     }
 
@@ -7558,7 +7625,7 @@
     function renderTournamentSlot(slot, context) {
         const resolved = resolveTournamentSlot(slot, context);
         const flagHtml = resolved.flag
-            ? `<img class="tb-slot-flag" src="${escapeHtml(resolved.flag)}" alt="${escapeHtml(resolved.label)}" loading="lazy">`
+            ? renderFlagImageHtml('tb-slot-flag', resolved.flag, '', resolved.label)
             : `<span class="tb-slot-flag" aria-hidden="true"></span>`;
         return `<div class="tb-slot${resolved.placeholder ? ' tb-slot-placeholder' : ''}">
             ${flagHtml}
