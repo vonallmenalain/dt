@@ -5376,8 +5376,27 @@
     const expandedTournamentGroups = new Set();
     const TOURNAMENT_MODE_AUTO = 'auto';
     const TOURNAMENT_MODE_MANUAL = 'manual';
-    const TOURNAMENT_MANUAL_STORAGE_VERSION = 1;
+    const TOURNAMENT_MANUAL_STORAGE_VERSION = 2;
     const TOURNAMENT_MANUAL_STORAGE_KEY = `dreamteamTournamentManual:${APP.key || TOURNAMENT_YEAR || 'current'}`;
+    const TOURNAMENT_MANUAL_PREDICTIONS = {
+        wm2026: {
+            groupOrders: {
+                A: ['Mexico', 'Korea Republic', 'Czechia', 'South Africa'],
+                B: ['Switzerland', 'Canada', 'Bosnia and Herzegovina', 'Qatar'],
+                C: ['Brazil', 'Morocco', 'Scotland', 'Haiti'],
+                D: ['USA', 'Turkiye', 'Australia', 'Paraguay'],
+                E: ['Germany', 'Ecuador', 'Ivory Coast', 'Curacao'],
+                F: ['Netherlands', 'Japan', 'Sweden', 'Tunisia'],
+                G: ['Belgium', 'Egypt', 'Iran', 'New Zealand'],
+                H: ['Spain', 'Uruguay', 'Saudi Arabia', 'Cape Verde'],
+                I: ['France', 'Senegal', 'Norway', 'Iraq'],
+                J: ['Argentina', 'Austria', 'Algeria', 'Jordan'],
+                K: ['Portugal', 'Colombia', 'DR Congo', 'Uzbekistan'],
+                L: ['England', 'Croatia', 'Panama', 'Ghana']
+            },
+            thirdOrder: ['G', 'D', 'J', 'I', 'L', 'E', 'F', 'A', 'C', 'K', 'H', 'B']
+        }
+    };
     let tournamentManualState = loadTournamentManualState();
     let currentTournamentMode = tournamentManualState.mode === TOURNAMENT_MODE_MANUAL
         ? TOURNAMENT_MODE_MANUAL
@@ -7359,6 +7378,7 @@
         return {
             version: TOURNAMENT_MANUAL_STORAGE_VERSION,
             mode: TOURNAMENT_MODE_AUTO,
+            manualPredictionInitialized: false,
             groupOrders: {},
             thirdOrder: [],
             winners: {}
@@ -7374,6 +7394,7 @@
             ...raw,
             version: TOURNAMENT_MANUAL_STORAGE_VERSION,
             mode,
+            manualPredictionInitialized: raw.manualPredictionInitialized === true,
             groupOrders: raw.groupOrders && typeof raw.groupOrders === 'object' ? raw.groupOrders : {},
             thirdOrder: Array.isArray(raw.thirdOrder) ? raw.thirdOrder.map(value => String(value).toUpperCase()) : [],
             winners: raw.winners && typeof raw.winners === 'object' ? raw.winners : {}
@@ -7800,6 +7821,143 @@
         return clean;
     }
 
+    function getTournamentManualPredictionConfig() {
+        const key = String(APP?.key || TOURNAMENT_YEAR || '').toLowerCase();
+        return TOURNAMENT_MANUAL_PREDICTIONS[key] || null;
+    }
+
+    function getTournamentDefaultGroupOrder(group) {
+        return (group?.rows || [])
+            .slice()
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(row => row.key);
+    }
+
+    function hasTournamentManualOrder(order) {
+        return Array.isArray(order) && order.length > 0;
+    }
+
+    function hasTournamentManualWinnerPicks() {
+        return tournamentManualState?.winners
+            && typeof tournamentManualState.winners === 'object'
+            && Object.keys(tournamentManualState.winners).length > 0;
+    }
+
+    function isTournamentManualStateUntouched(context) {
+        if (hasTournamentManualWinnerPicks()) return false;
+
+        const groups = context?.groups || [];
+        for (const group of groups) {
+            const groupKey = String(group.group || '').toUpperCase();
+            const savedOrder = tournamentManualState.groupOrders?.[groupKey];
+            if (!hasTournamentManualOrder(savedOrder)) continue;
+
+            const validOrder = (group.rows || []).map(row => row.key);
+            const cleanOrder = sanitizeTournamentOrder(savedOrder, validOrder);
+            const defaultOrder = getTournamentDefaultGroupOrder(group);
+            if (!areTournamentOrdersEqual(cleanOrder, defaultOrder)) return false;
+        }
+
+        const savedThirdOrder = tournamentManualState.thirdOrder;
+        if (hasTournamentManualOrder(savedThirdOrder)) {
+            const validThirdGroups = groups.map(group => String(group.group || '').toUpperCase()).filter(Boolean);
+            const cleanThirdOrder = sanitizeTournamentOrder(savedThirdOrder, validThirdGroups);
+            if (!areTournamentOrdersEqual(cleanThirdOrder, validThirdGroups)) return false;
+        }
+
+        return true;
+    }
+
+    function findTournamentPredictionRow(group, teamName) {
+        const key = normalizeTournamentName(teamName);
+        if (!key) return null;
+        return (group?.rows || []).find(row =>
+            row.key === key
+            || getTournamentTeamNames(row).some(name => normalizeTournamentName(name) === key)
+        ) || null;
+    }
+
+    function buildTournamentManualPrediction(context) {
+        const config = getTournamentManualPredictionConfig();
+        const groupPrediction = config?.groupOrders || {};
+        const groupOrders = {};
+
+        (context?.groups || []).forEach(group => {
+            const groupKey = String(group.group || '').toUpperCase();
+            const seen = new Set();
+            const order = [];
+            (groupPrediction[groupKey] || []).forEach(teamName => {
+                const row = findTournamentPredictionRow(group, teamName);
+                if (!row || seen.has(row.key)) return;
+                seen.add(row.key);
+                order.push(row.key);
+            });
+            (group.rows || []).forEach(row => {
+                if (seen.has(row.key)) return;
+                seen.add(row.key);
+                order.push(row.key);
+            });
+            groupOrders[groupKey] = order;
+        });
+
+        const validThirdGroups = (context?.groups || [])
+            .map(group => String(group.group || '').toUpperCase())
+            .filter(Boolean);
+        const thirdOrder = sanitizeTournamentOrder(config?.thirdOrder || [], validThirdGroups);
+
+        return { groupOrders, thirdOrder };
+    }
+
+    function ensureTournamentManualPredictionDefaults(context) {
+        const config = getTournamentManualPredictionConfig();
+        if (!config || !context?.groups?.length) return false;
+
+        tournamentManualState = normalizeTournamentManualState(tournamentManualState);
+        const prediction = buildTournamentManualPrediction(context);
+        const canReplaceExistingDefaults = !tournamentManualState.manualPredictionInitialized
+            && isTournamentManualStateUntouched(context);
+        let changed = false;
+
+        context.groups.forEach(group => {
+            const groupKey = String(group.group || '').toUpperCase();
+            const validOrder = (group.rows || []).map(row => row.key);
+            const savedOrder = tournamentManualState.groupOrders[groupKey];
+            const cleanSavedOrder = hasTournamentManualOrder(savedOrder)
+                ? sanitizeTournamentOrder(savedOrder, validOrder)
+                : [];
+            const predictedOrder = sanitizeTournamentOrder(prediction.groupOrders[groupKey] || [], validOrder);
+            const nextOrder = (canReplaceExistingDefaults || !cleanSavedOrder.length)
+                ? predictedOrder
+                : cleanSavedOrder;
+
+            if (!areTournamentOrdersEqual(savedOrder, nextOrder)) {
+                tournamentManualState.groupOrders[groupKey] = nextOrder;
+                changed = true;
+            }
+        });
+
+        const validThirdGroups = context.groups.map(group => String(group.group || '').toUpperCase()).filter(Boolean);
+        const cleanSavedThirdOrder = hasTournamentManualOrder(tournamentManualState.thirdOrder)
+            ? sanitizeTournamentOrder(tournamentManualState.thirdOrder, validThirdGroups)
+            : [];
+        const predictedThirdOrder = sanitizeTournamentOrder(prediction.thirdOrder || [], validThirdGroups);
+        const nextThirdOrder = (canReplaceExistingDefaults || !cleanSavedThirdOrder.length)
+            ? predictedThirdOrder
+            : cleanSavedThirdOrder;
+
+        if (!areTournamentOrdersEqual(tournamentManualState.thirdOrder, nextThirdOrder)) {
+            tournamentManualState.thirdOrder = nextThirdOrder;
+            changed = true;
+        }
+
+        if (!tournamentManualState.manualPredictionInitialized) {
+            tournamentManualState.manualPredictionInitialized = true;
+            changed = true;
+        }
+
+        return changed;
+    }
+
     function buildTournamentBestThirdAssignments(context) {
         const qualifiedGroups = (context.thirdRows || [])
             .filter(row => row.qualifiesAsThird)
@@ -7863,7 +8021,9 @@
     }
 
     function applyTournamentManualState(autoContext) {
+        const predictionChanged = ensureTournamentManualPredictionDefaults(autoContext);
         hydrateTournamentManualOrders(autoContext);
+        if (predictionChanged) saveTournamentManualState();
 
         const groupResults = autoContext.groups.map(group => {
             const groupKey = String(group.group || '').toUpperCase();
