@@ -8129,10 +8129,9 @@
     // the page, plus the maximum scroll step per animation frame.
     const TOURNAMENT_DRAG_EDGE = 72;
     const TOURNAMENT_DRAG_MAX_SPEED = 20;
-    // For touch/pen we still allow a small wiggle before deciding it's a drag,
-    // so that scrolling the page with a finger is not hijacked. A mouse press
-    // is always intentional and picks the tile up on the first frame.
-    const TOURNAMENT_DRAG_TOUCH_THRESHOLD = 6;
+    // A plain click/tap must never lift the row. We wait for a real movement,
+    // then keep the originally grabbed pixel under the pointer.
+    const TOURNAMENT_DRAG_START_THRESHOLD = 6;
 
     function stopTournamentAutoScroll() {
         const state = tournamentManualDragState;
@@ -8226,8 +8225,9 @@
         const wasActive = state.active;
         const moved = state.moved;
         tournamentManualDragState = null;
-        // Only persist/re-render when the order actually changed. A plain tap on
-        // the row (no movement) leaves everything exactly where it was.
+        // Only persist/re-render when the order actually changed. A plain click
+        // or tap that never crossed the drag threshold leaves everything exactly
+        // where it was.
         if (shouldCommit && wasActive && moved) commitTournamentManualSortOrder(list);
     }
 
@@ -8246,6 +8246,11 @@
         state.moved = false;
 
         state.item.parentNode.insertBefore(placeholder, state.item.nextSibling);
+        // Keep the placeholder in the list, but render the floating row from
+        // <body>. Some ancestor panels use transforms/filters, which make
+        // position:fixed relative to that ancestor and caused the row to jump
+        // far away from the cursor.
+        document.body.appendChild(state.item);
         state.item.classList.add('is-dragging');
         // Set position, dimensions AND the initial location together so the
         // very first paint already shows the row under the cursor - no flash
@@ -8281,20 +8286,19 @@
             const dist = Math.hypot(event.clientX - state.startX, event.clientY - state.startY);
             if (state.pointerType === 'touch' || state.pointerType === 'pen') {
                 // A finger that started on the row body (not the handle) and
-                // moves before the long-press fires is a scroll gesture, so
-                // let the page scroll naturally.
-                if (!state.viaHandle) {
+                // moves before the long-press arms the drag is a scroll gesture,
+                // so let the page scroll naturally.
+                if (!state.dragReady) {
                     if (dist > 10) {
                         clearTimeout(state.longPressTimer);
                         finishTournamentManualDrag(false);
                     }
                     return;
                 }
-                if (dist > TOURNAMENT_DRAG_TOUCH_THRESHOLD) startTournamentManualDrag(state);
+                if (dist > TOURNAMENT_DRAG_START_THRESHOLD) startTournamentManualDrag(state);
+            } else if (dist > TOURNAMENT_DRAG_START_THRESHOLD) {
+                startTournamentManualDrag(state);
             }
-            // For mouse pointers we already activated the drag on pointerdown,
-            // so reaching this branch with state.active === false would only
-            // happen for touch/pen above.
             if (!state.active) return;
         }
 
@@ -8332,31 +8336,27 @@
                     offsetY: event.clientY - rect.top,
                     active: false,
                     moved: false,
+                    dragReady: pointerType === 'mouse' || viaHandle,
                     longPressTimer: null,
                     placeholder: null,
                     autoScrollRAF: null
                 };
 
                 if (pointerType === 'mouse') {
-                    // A mouse click on the tile is always intentional. Pick the
-                    // row up on the very first frame so it tracks the cursor
-                    // without any threshold-induced jump, and so a plain click
-                    // that never moves simply puts the row back where it was
-                    // when released.
-                    event.preventDefault();
-                    startTournamentManualDrag(tournamentManualDragState);
+                    // Mouse: remember the grab point now, but do not lift the
+                    // row until the pointer actually moves. A click-and-release
+                    // therefore has no visual side effects.
+                    return;
                 } else if (viaHandle) {
-                    // Touch/pen on the dedicated handle: pick up immediately
-                    // (touch-action:none on the handle prevents page scroll).
+                    // Touch/pen on the dedicated handle: it can start as soon
+                    // as the finger moves (touch-action:none prevents scroll).
                     event.preventDefault();
-                    tournamentManualDragState.longPressTimer = setTimeout(() => {
-                        if (tournamentManualDragState) startTournamentManualDrag(tournamentManualDragState);
-                    }, 80);
                 } else {
-                    // Touch/pen on the row body: press-and-hold to pick it up,
-                    // so a quick swipe still scrolls the list naturally.
+                    // Touch/pen on the row body: press-and-hold arms dragging,
+                    // then the first real movement lifts the row. Quick swipes
+                    // still scroll the list naturally.
                     tournamentManualDragState.longPressTimer = setTimeout(() => {
-                        if (tournamentManualDragState) startTournamentManualDrag(tournamentManualDragState);
+                        if (tournamentManualDragState) tournamentManualDragState.dragReady = true;
                     }, 300);
                 }
             });
