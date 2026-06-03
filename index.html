@@ -3316,6 +3316,15 @@
             font-weight: 600;
         }
 
+        .nm-stage-label {
+            margin-top: 2px;
+            font-size: 0.68rem;
+            color: #4ade80;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+
         .nm-venue-inline {
             font-size: 0.62rem;
             max-width: 140px;
@@ -8133,6 +8142,51 @@
         }, { total: 0, count: 0 });
     }
 
+    function getMatchOrderingMs(match) {
+        const ts = Number(match?.kickoffTimestamp);
+        if (Number.isFinite(ts) && ts > 0) return ts * 1000;
+        const raw = match?.date || match?.datetime || match?.kickoff || '';
+        const ms = raw ? new Date(raw).getTime() : NaN;
+        return Number.isFinite(ms) ? ms : Number.MAX_SAFE_INTEGER;
+    }
+
+    function getMatchIdentityKeys(match) {
+        if (!match) return [];
+        const keys = [];
+        ['fixtureId', 'id', 'gameNumber', 'matchId'].forEach((field) => {
+            if (match[field] !== undefined && match[field] !== null && match[field] !== '') {
+                keys.push(`${field}:${match[field]}`);
+            }
+        });
+        const date = match.date || match.datetime || match.kickoff || '';
+        const home = match.teamA || match.home || match.homeTeam || '';
+        const away = match.teamB || match.away || match.awayTeam || '';
+        if (date || home || away) keys.push(`pair:${date}|${home}|${away}`);
+        return Array.from(new Set(keys));
+    }
+
+    function buildMatchNumberLookup(matches) {
+        const lookup = new Map();
+        const ordered = [...(matches || [])].sort((a, b) => {
+            const da = getMatchOrderingMs(a);
+            const db = getMatchOrderingMs(b);
+            if (da !== db) return da - db;
+            return String(a.id || a.gameNumber || a.matchId || '').localeCompare(String(b.id || b.gameNumber || b.matchId || ''), 'de');
+        });
+        ordered.forEach((match, idx) => {
+            getMatchIdentityKeys(match).forEach((key) => lookup.set(key, idx + 1));
+        });
+        return lookup;
+    }
+
+    function getMatchDisplayNumber(match, lookup) {
+        for (const key of getMatchIdentityKeys(match)) {
+            const n = lookup.get(key);
+            if (n) return n;
+        }
+        return null;
+    }
+
     function renderNextMatchesTile(data, teams) {
         const container = $('tile-post-next-matches');
         if (!container) return;
@@ -8173,6 +8227,8 @@
         if (!upcoming.length) {
             upcoming = getTournamentFallbackFixtures();
         }
+
+        const matchNumberLookup = buildMatchNumberLookup(matchInfos.length ? matchInfos : upcoming);
 
         if (!upcoming.length) {
             container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div>Keine bevorstehenden Spiele gefunden.</div>`;
@@ -8278,6 +8334,11 @@
                     <div class="nm-players-side right">${buildChips(draftedAway)}</div>
                 </div>` : '';
 
+            const displayMatchNumber = getMatchDisplayNumber(match, matchNumberLookup);
+            const stageLabel = APP && typeof APP.groupStageLabelForMatch === 'function'
+                ? APP.groupStageLabelForMatch({ ...match, teamA, teamB, round: match.round || '' }, displayMatchNumber)
+                : '';
+
             const homePoints = isLive ? getDraftedPointsSummary(draftedHome, data, matchId) : { total: 0, count: 0 };
             const awayPoints = isLive ? getDraftedPointsSummary(draftedAway, data, matchId) : { total: 0, count: 0 };
             const livePointsHtml = isLive && (homePoints.count || awayPoints.count) ? `
@@ -8303,6 +8364,7 @@
                             <div class="nm-time-badge ${timeBadgeCls}">${escapeHtml(timeBadgeText)}</div>
                             ${liveScoreHtml}
                             ${livePointsHtml}
+                            ${stageLabel ? `<div class="nm-stage-label">${escapeHtml(stageLabel)}</div>` : ''}
                             ${timeSubText ? `<div class="nm-time-sub">${escapeHtml(timeSubText)}</div>` : ''}
                             ${venueText ? `<div class="nm-time-sub nm-venue-inline">${escapeHtml(venueText)}</div>` : ''}
                         </div>

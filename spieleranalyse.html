@@ -3426,6 +3426,11 @@
             margin-top: 2px;
         }
 
+        .sc-round-group {
+            color: var(--green-light);
+            letter-spacing: 0.6px;
+        }
+
         .sc-venue-center {
             font-size: 0.65rem;
             color: var(--text-muted);
@@ -5987,6 +5992,13 @@
         return { home: parsed.homeGoals, away: parsed.awayGoals };
     }
 
+    function getScheduleDisplayMatchNumber(m, mc) {
+        const idx = scheduleCatalog.indexOf(m);
+        if (idx >= 0) return idx + 1;
+        if (mc && mc.number) return mc.number;
+        return null;
+    }
+
     function getScheduleDraftedPointsSummary(players, hasMatchData) {
         if (!hasMatchData) return { total: 0, count: 0 };
         return (players || []).reduce((acc, p) => {
@@ -6359,14 +6371,16 @@
                     ? `${m.venue}${m.venueCity ? ' · ' + m.venueCity : ''}`
                     : '';
 
-                // Round label
-                const roundText = m.round ? m.round.replace(/Regular Season -\s*/i, '').replace(/Group Stage -\s*/i, 'Gruppe: ') : '';
-
                 // Resolve catalog entry to enable drafted lookup, spielNr label
                 // and expanded view rendering.
                 const matchKey = getScheduleMatchKey(m, mc);
                 const isExpanded = expandedScheduleMatchKeys.has(matchKey);
-                const spielNrLabel = mc && mc.number ? `Spiel ${mc.number}` : '';
+                const displayMatchNumber = getScheduleDisplayMatchNumber(m, mc);
+                const groupStageLabel = APP && typeof APP.groupStageLabelForMatch === 'function'
+                    ? APP.groupStageLabelForMatch(m, displayMatchNumber)
+                    : '';
+                const roundText = groupStageLabel || (m.round ? m.round.replace(/Regular Season -\s*/i, '').replace(/Group Stage -\s*/i, 'Gruppe: ') : '');
+                const spielNrLabel = groupStageLabel ? '' : (displayMatchNumber ? `Spiel ${displayMatchNumber}` : '');
 
                 // Small drafted-player avatars are shown in the collapsed
                 // card as a quick visual hint of "who from my managers'
@@ -6389,7 +6403,8 @@
                     </div>`;
                 }
 
-                const ariaLabel = `${spielNrLabel ? spielNrLabel + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
+                const ariaLabelPrefix = groupStageLabel || spielNrLabel;
+                const ariaLabel = `${ariaLabelPrefix ? ariaLabelPrefix + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
 
                 html += `<div class="sc-card ${matchStatusCls}${isExpanded ? ' is-expanded' : ''}"
                     data-match-key="${escapeHtml(matchKey)}"
@@ -6413,7 +6428,7 @@
                         <div class="sc-center">
                             ${centerHtml}
                             ${spielNrLabel ? `<div class="sc-card-spielnr">${escapeHtml(spielNrLabel)}</div>` : ''}
-                            ${roundText ? `<div class="sc-round">${escapeHtml(roundText)}</div>` : ''}
+                            ${roundText ? `<div class="sc-round${groupStageLabel ? ' sc-round-group' : ''}">${escapeHtml(roundText)}</div>` : ''}
                             ${venueText ? `<div class="sc-venue-center">🏟️ ${escapeHtml(venueText)}</div>` : ''}
                         </div>
                         <div class="sc-team sc-team-away">

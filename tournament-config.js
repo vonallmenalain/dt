@@ -129,6 +129,21 @@ const APP_CONFIG = (() => {
     }
   ];
 
+  const GROUP_STAGE_GROUPS_WM2026 = [
+    { group: "A", teams: ["Mexico", "South Korea", "Korea Republic", "South Africa", "Czechia", "Czech Republic", "Denmark", "Republic of Ireland", "Ireland", "North Macedonia", "UEFA Playoff D winner"] },
+    { group: "B", teams: ["Canada", "Switzerland", "Qatar", "Italy", "Wales", "Bosnia and Herzegovina", "Bosnia & Herzegovina", "Northern Ireland", "UEFA Playoff A winner"] },
+    { group: "C", teams: ["Brazil", "Morocco", "Scotland", "Haiti"] },
+    { group: "D", teams: ["USA", "United States", "United States of America", "Paraguay", "Australia", "Turkey", "Turkiye", "Slovakia", "Kosovo", "Romania", "UEFA Playoff C winner"] },
+    { group: "E", teams: ["Germany", "Ecuador", "Ivory Coast", "Cote d Ivoire", "Curacao"] },
+    { group: "F", teams: ["Netherlands", "Japan", "Tunisia", "Ukraine", "Poland", "Albania", "Sweden", "UEFA Playoff B winner"] },
+    { group: "G", teams: ["Belgium", "Iran", "Egypt", "New Zealand"] },
+    { group: "H", teams: ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde", "Cape Verde Islands"] },
+    { group: "I", teams: ["France", "Senegal", "Norway", "Iraq", "Bolivia", "Suriname", "Inter-confederation Playoff 2"] },
+    { group: "J", teams: ["Argentina", "Austria", "Algeria", "Jordan"] },
+    { group: "K", teams: ["Portugal", "Colombia", "Uzbekistan", "DR Congo", "Congo DR", "Jamaica", "New Caledonia", "Inter-confederation Playoff 1"] },
+    { group: "L", teams: ["England", "Croatia", "Panama", "Ghana"] }
+  ];
+
   /* ─────────────────────────────────────────────────────────
    * Definition aller bekannten Turniere.
    *
@@ -182,7 +197,8 @@ const APP_CONFIG = (() => {
         pointsCollection: "Punkte Spieler WM 2026",
         fixturesCollection: "Spiele WM 2026"
       },
-      fallbackFixtures: FALLBACK_FIXTURES_WM2026
+      fallbackFixtures: FALLBACK_FIXTURES_WM2026,
+      groupStageGroups: GROUP_STAGE_GROUPS_WM2026
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -214,6 +230,69 @@ const APP_CONFIG = (() => {
 
   function getAvailableTournamentKeys() {
     return Object.keys(TOURNAMENTS).filter(isTournamentAvailable);
+  }
+
+  function normalizeTournamentTeamName(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/['`]/g, "")
+      .replace(/&/g, " and ")
+      .replace(/[^a-zA-Z0-9]+/g, " ")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+  }
+
+  function getGroupStageGroups() {
+    const list = getActiveTournament().groupStageGroups;
+    return Array.isArray(list) ? list : [];
+  }
+
+  function findGroupStageGroup(teamA, teamB) {
+    const teamKeys = [normalizeTournamentTeamName(teamA), normalizeTournamentTeamName(teamB)].filter(Boolean);
+    if (!teamKeys.length) return null;
+
+    const groups = getGroupStageGroups().map((entry) => ({
+      group: entry.group,
+      teamKeys: (entry.teams || []).map(normalizeTournamentTeamName).filter(Boolean)
+    }));
+
+    const matchingBoth = groups.find((entry) => (
+      teamKeys.length >= 2 &&
+      teamKeys.every((key) => entry.teamKeys.includes(key))
+    ));
+    if (matchingBoth) return matchingBoth.group;
+
+    const matchingOne = groups.filter((entry) => (
+      teamKeys.some((key) => entry.teamKeys.includes(key))
+    ));
+    return matchingOne.length === 1 ? matchingOne[0].group : null;
+  }
+
+  function isGroupStageRound(roundText) {
+    const value = String(roundText || "").trim().toLowerCase();
+    if (!value) return true;
+    return /group|matchday|spieltag|regular season/.test(value);
+  }
+
+  function buildGroupStageLabelForMatch(match, matchNumber) {
+    const m = match || {};
+    const roundText = String(m.round || (m.league && m.league.round) || "").trim();
+    if (!isGroupStageRound(roundText)) return "";
+
+    const homeTeam = (m.homeTeam && typeof m.homeTeam === "object") ? m.homeTeam.name : m.homeTeam;
+    const awayTeam = (m.awayTeam && typeof m.awayTeam === "object") ? m.awayTeam.name : m.awayTeam;
+    const teamA = m.teamA || m.home || homeTeam || "";
+    const teamB = m.teamB || m.away || awayTeam || "";
+    const group = findGroupStageGroup(teamA, teamB);
+    if (!group) return "";
+
+    const n = Number(matchNumber);
+    return Number.isFinite(n) && n > 0
+      ? `Gruppe ${group} - Spiel ${n}`
+      : `Gruppe ${group}`;
   }
 
   /* ─────────────────────────────────────────────────────────
@@ -718,6 +797,18 @@ const APP_CONFIG = (() => {
     get fallbackFixtures() {
       const list = getActiveTournament().fallbackFixtures;
       return Array.isArray(list) ? list : [];
+    },
+
+    get groupStageGroups() {
+      return getGroupStageGroups();
+    },
+
+    getGroupStageGroup(teamA, teamB) {
+      return findGroupStageGroup(teamA, teamB);
+    },
+
+    groupStageLabelForMatch(match, matchNumber) {
+      return buildGroupStageLabelForMatch(match, matchNumber);
     },
 
     firebaseConfig,
