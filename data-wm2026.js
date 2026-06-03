@@ -2947,7 +2947,7 @@ const playersData = [
     {
         "player.id": 9000004,
         "Spielername": "Alphonso Davies",
-        "Spielerfoto": "https://commons.wikimedia.org/wiki/Special:FilePath/Alphonso%20Davies%202018.jpg",
+        "Spielerfoto": "https://img.uefa.com/imgml/TP/players/1/2026/324x324/250128120.jpg",
         "Position": "DEFENDER",
         "Nationalteam.name": "Canada",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/5529.png",
