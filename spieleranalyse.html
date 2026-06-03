@@ -1540,14 +1540,14 @@
         }
 
         .tour-pill:focus-visible {
-            outline: 2px solid #60a5fa;
+            outline: 2px solid #4ade80;
             outline-offset: 3px;
         }
 
         .tour-pill.active {
-            background: linear-gradient(135deg, #2563eb, #16a34a);
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             color: #fff;
-            box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+            box-shadow: 0 4px 14px rgba(34,197,94,0.35);
         }
 
         .tournament-tab-panel { animation: fadeSlideDown 0.35s ease both; }
@@ -1611,6 +1611,14 @@
             background: rgba(255,255,255,0.025);
         }
 
+        .tournament-group-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            min-width: 0;
+        }
+
         .tournament-group-title,
         .tournament-third-title {
             font-size: 0.96rem;
@@ -1627,10 +1635,60 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .tournament-group-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 34px;
+            padding: 7px 10px;
+            border: 1px solid rgba(34,197,94,0.34);
+            border-radius: 8px;
+            background: rgba(34,197,94,0.1);
+            color: var(--green-light);
+            font: inherit;
+            font-size: 0.72rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        .tournament-group-toggle:hover {
+            background: rgba(34,197,94,0.17);
+            border-color: rgba(34,197,94,0.52);
+            color: #fff;
+        }
+
+        .tournament-group-toggle:focus-visible {
+            outline: 2px solid #4ade80;
+            outline-offset: 3px;
+        }
+
+        .tournament-group-toggle-icon {
+            width: 7px;
+            height: 7px;
+            border-right: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            transform: rotate(45deg);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+            margin-top: -3px;
+        }
+
+        .tournament-group-card.is-expanded .tournament-group-toggle-icon {
+            transform: rotate(225deg);
+            margin-top: 3px;
+        }
+
         .tournament-table-wrap {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+        }
+
+        .tournament-table-wrap--compact {
+            overflow-x: hidden;
         }
 
         .tournament-table {
@@ -1638,6 +1696,12 @@
             border-collapse: collapse;
             min-width: 520px;
             font-size: 0.78rem;
+        }
+
+        .tournament-table--compact {
+            min-width: 0;
+            table-layout: fixed;
+            font-size: 0.82rem;
         }
 
         .tournament-table th,
@@ -1669,6 +1733,23 @@
         .tournament-table th:nth-child(2) {
             text-align: left;
             min-width: 150px;
+        }
+
+        .tournament-table--compact td:first-child,
+        .tournament-table--compact th:first-child {
+            width: 42px;
+        }
+
+        .tournament-table--compact td:nth-child(2),
+        .tournament-table--compact th:nth-child(2) {
+            width: auto;
+            min-width: 0;
+        }
+
+        .tournament-table--compact td:last-child,
+        .tournament-table--compact th:last-child {
+            width: 74px;
+            text-align: right;
         }
 
         .tournament-table tr:last-child td { border-bottom: none; }
@@ -1717,6 +1798,7 @@
         }
 
         .tg-team-name {
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             font-weight: 800;
@@ -1784,16 +1866,19 @@
 
         .tournament-bracket {
             display: grid;
+            --tb-match-height: 142px;
+            --tb-match-gap: 12px;
+            --tb-step: calc(var(--tb-match-height) + var(--tb-match-gap));
             grid-template-columns: minmax(260px, 1.25fr) repeat(4, minmax(230px, 1fr));
-            gap: 14px;
+            grid-auto-rows: calc(var(--tb-step) / 2);
+            column-gap: 14px;
+            row-gap: 0;
             align-items: start;
             min-width: 1180px;
         }
 
         .tb-round {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: contents;
             min-width: 0;
         }
 
@@ -1813,10 +1898,30 @@
         }
 
         .tb-match {
+            position: relative;
             background: rgba(255,255,255,0.045);
             border: 1px solid rgba(255,255,255,0.09);
             border-radius: 8px;
             padding: 10px;
+            height: var(--tb-match-height);
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-self: start;
+        }
+
+        .tb-match::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -15px;
+            width: 15px;
+            height: 1px;
+            background: rgba(255,255,255,0.16);
+        }
+
+        .tb-match[data-round="roundOf32"]::before {
+            display: none;
         }
 
         .tb-match-head {
@@ -1879,6 +1984,10 @@
             color: var(--text-muted);
             font-size: 0.7rem;
             line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .tournament-empty {
@@ -3134,6 +3243,8 @@
             .tour-pill { padding: 10px 12px; font-size: 0.82rem; }
             .tournament-summary-grid { grid-template-columns: repeat(2, 1fr); }
             .tournament-groups-grid { grid-template-columns: 1fr; }
+            .tournament-group-header { flex-wrap: wrap; align-items: flex-start; }
+            .tournament-group-actions { width: 100%; justify-content: space-between; }
             .tournament-table th,
             .tournament-table td { padding: 8px 7px; }
             .tournament-bracket {
@@ -5012,6 +5123,7 @@
     let currentScheduleNationFilter = 'ALL';
     let scheduleNationList = [];
     let currentTournamentTab = 'groups';
+    const expandedTournamentGroups = new Set();
 
     let matchCatalog = [];
     let matchByNumber = new Map();
@@ -7275,9 +7387,17 @@
     }
 
     function renderTournamentGroupTable(group) {
+        const isExpanded = expandedTournamentGroups.has(String(group.group));
         const rowsHtml = group.rankedRows.map(row => {
             const cls = row.rank <= 2 ? 'tg-row--qualified' : (row.rank === 3 ? 'tg-row--third' : 'tg-row--out');
             const gd = row.gd > 0 ? `+${row.gd}` : String(row.gd);
+            if (!isExpanded) {
+                return `<tr class="${cls}">
+                    <td><span class="tg-rank-pill">${escapeHtml(row.rank)}</span></td>
+                    <td>${renderTournamentTeamCell(row)}</td>
+                    <td class="tg-points">${escapeHtml(row.pts)}</td>
+                </tr>`;
+            }
             return `<tr class="${cls}">
                 <td><span class="tg-rank-pill">${escapeHtml(row.rank)}</span></td>
                 <td>${renderTournamentTeamCell(row)}</td>
@@ -7292,22 +7412,45 @@
             </tr>`;
         }).join('');
 
-        return `<section class="tournament-group-card">
+        const tableHead = isExpanded
+            ? '<tr><th>R</th><th>Team</th><th>Sp</th><th>S</th><th>U</th><th>N</th><th>Tore</th><th>Diff</th><th>Pk</th><th>Tie</th></tr>'
+            : '<tr><th>R</th><th>Team</th><th>Punkte</th></tr>';
+        const tableClass = isExpanded ? 'tournament-table' : 'tournament-table tournament-table--compact';
+        const wrapClass = isExpanded ? 'tournament-table-wrap' : 'tournament-table-wrap tournament-table-wrap--compact';
+
+        return `<section class="tournament-group-card${isExpanded ? ' is-expanded' : ''}">
             <div class="tournament-group-header">
                 <div class="tournament-group-title">Gruppe ${escapeHtml(group.group)}</div>
-                <div class="tournament-group-meta">${escapeHtml(group.playedMatches)} / 6 Spiele</div>
+                <div class="tournament-group-actions">
+                    <div class="tournament-group-meta">${escapeHtml(group.playedMatches)} / 6 Spiele</div>
+                    <button type="button" class="tournament-group-toggle" data-tournament-group-toggle="${escapeHtml(group.group)}" aria-expanded="${escapeHtml(isExpanded)}">
+                        <span>Details</span>
+                        <span class="tournament-group-toggle-icon" aria-hidden="true"></span>
+                    </button>
+                </div>
             </div>
-            <div class="tournament-table-wrap">
-                <table class="tournament-table" aria-label="Tabelle Gruppe ${escapeHtml(group.group)}">
-                    <thead>
-                        <tr>
-                            <th>R</th><th>Team</th><th>Sp</th><th>S</th><th>U</th><th>N</th><th>Tore</th><th>Diff</th><th>Pk</th><th>Tie</th>
-                        </tr>
-                    </thead>
+            <div class="${wrapClass}">
+                <table class="${tableClass}" aria-label="Tabelle Gruppe ${escapeHtml(group.group)}">
+                    <thead>${tableHead}</thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>
             </div>
         </section>`;
+    }
+
+    function bindTournamentGroupToggles() {
+        document.querySelectorAll('[data-tournament-group-toggle]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const groupKey = String(btn.getAttribute('data-tournament-group-toggle') || '');
+                if (!groupKey) return;
+                if (expandedTournamentGroups.has(groupKey)) {
+                    expandedTournamentGroups.delete(groupKey);
+                } else {
+                    expandedTournamentGroups.add(groupKey);
+                }
+                renderTournamentView();
+            });
+        });
     }
 
     function renderTournamentThirdPlacesTable(context) {
@@ -7437,6 +7580,155 @@
         return Array.isArray(bracket[roundKey]) ? bracket[roundKey] : [];
     }
 
+    function getTournamentFixtureMatchNumber(fixture) {
+        const n = Number(fixture?.match);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function getTournamentSlotSourceMatch(slot) {
+        if (!slot) return null;
+        const raw = slot.winnerOf ?? slot.runnerUpOf;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function getTournamentFixtureSourceMatches(fixture) {
+        return [getTournamentSlotSourceMatch(fixture?.home), getTournamentSlotSourceMatch(fixture?.away)]
+            .filter(n => Number.isFinite(n));
+    }
+
+    function buildTournamentBracketNode(fixture, fixturesByMatch, matchRoundByNumber, visiting = new Set()) {
+        const matchNumber = getTournamentFixtureMatchNumber(fixture);
+        if (!matchNumber || visiting.has(matchNumber)) {
+            return {
+                fixture,
+                matchNumber,
+                roundKey: matchRoundByNumber.get(matchNumber) || '',
+                children: [],
+                leafMin: matchNumber || Infinity
+            };
+        }
+
+        const nextVisiting = new Set(visiting);
+        nextVisiting.add(matchNumber);
+
+        const sourceMatches = getTournamentFixtureSourceMatches(fixture);
+        const children = sourceMatches
+            .map(source => fixturesByMatch.get(source))
+            .filter(Boolean)
+            .map(child => buildTournamentBracketNode(child, fixturesByMatch, matchRoundByNumber, nextVisiting))
+            .sort((a, b) => {
+                if (a.leafMin !== b.leafMin) return a.leafMin - b.leafMin;
+                return (a.matchNumber || 9999) - (b.matchNumber || 9999);
+            });
+
+        const childMins = children.map(child => child.leafMin).filter(Number.isFinite);
+        const fallbackMins = sourceMatches.filter(source => !fixturesByMatch.has(source));
+        const allMins = [...childMins, ...fallbackMins, matchNumber].filter(Number.isFinite);
+
+        return {
+            fixture,
+            matchNumber,
+            roundKey: matchRoundByNumber.get(matchNumber) || '',
+            children,
+            leafMin: allMins.length ? Math.min(...allMins) : Infinity
+        };
+    }
+
+    function buildTournamentBracketLayout(rounds) {
+        const fixturesByMatch = new Map();
+        const matchRoundByNumber = new Map();
+        const roundIndexByKey = new Map(rounds.map((round, idx) => [round.key, idx]));
+
+        rounds.forEach(round => {
+            round.fixtures.forEach(fixture => {
+                const matchNumber = getTournamentFixtureMatchNumber(fixture);
+                if (!matchNumber) return;
+                fixturesByMatch.set(matchNumber, fixture);
+                matchRoundByNumber.set(matchNumber, round.key);
+            });
+        });
+
+        const layout = new Map();
+        let leafIndex = 0;
+
+        const placeNode = (node) => {
+            if (!node || !node.matchNumber) return null;
+            if (layout.has(node.matchNumber)) return layout.get(node.matchNumber).rowStart;
+
+            let rowStart = null;
+            if (node.children.length) {
+                const childRows = node.children.map(placeNode).filter(Number.isFinite);
+                if (childRows.length) {
+                    rowStart = (Math.min(...childRows) + Math.max(...childRows)) / 2;
+                }
+            }
+
+            if (!Number.isFinite(rowStart)) {
+                rowStart = 2 + (leafIndex * 2);
+                leafIndex += 1;
+            }
+            rowStart = Math.round(rowStart);
+
+            const col = (roundIndexByKey.get(node.roundKey) ?? 0) + 1;
+            layout.set(node.matchNumber, { col, rowStart, roundKey: node.roundKey });
+            return rowStart;
+        };
+
+        const bracket = APP && APP.knockoutBracket ? APP.knockoutBracket : {};
+        const finalFixture = bracket.final || null;
+        const root = finalFixture
+            ? buildTournamentBracketNode(finalFixture, fixturesByMatch, matchRoundByNumber)
+            : null;
+        if (root) placeNode(root);
+
+        const finalNumber = getTournamentFixtureMatchNumber(finalFixture);
+        const finalLayout = finalNumber ? layout.get(finalNumber) : null;
+        const thirdPlaceNumber = getTournamentFixtureMatchNumber(bracket.thirdPlace);
+        if (thirdPlaceNumber && fixturesByMatch.has(thirdPlaceNumber)) {
+            layout.set(thirdPlaceNumber, {
+                col: (roundIndexByKey.get('finals') ?? rounds.length - 1) + 1,
+                rowStart: finalLayout ? finalLayout.rowStart + 3 : 2 + (leafIndex * 2),
+                roundKey: 'finals'
+            });
+            if (!finalLayout) leafIndex += 1;
+        }
+
+        rounds.forEach(round => {
+            round.fixtures.forEach(fixture => {
+                const matchNumber = getTournamentFixtureMatchNumber(fixture);
+                if (!matchNumber || layout.has(matchNumber)) return;
+                layout.set(matchNumber, {
+                    col: (roundIndexByKey.get(round.key) ?? 0) + 1,
+                    rowStart: 2 + (leafIndex * 2),
+                    roundKey: round.key
+                });
+                leafIndex += 1;
+            });
+        });
+
+        return layout;
+    }
+
+    function renderTournamentBracketMatch(fixture, round, context, layout) {
+        const matchLabel = fixture.match ? `Spiel ${fixture.match}` : '';
+        const meta = [formatTournamentDate(fixture.date), fixture.venue].filter(Boolean).join(' / ');
+        const thirdPlaceMatch = getTournamentFixtureMatchNumber(APP.knockoutBracket?.thirdPlace);
+        const isThirdPlace = thirdPlaceMatch && getTournamentFixtureMatchNumber(fixture) === thirdPlaceMatch;
+        const gridStyle = layout
+            ? ` style="grid-column: ${escapeHtml(layout.col)}; grid-row: ${escapeHtml(layout.rowStart)} / span 2;"`
+            : '';
+        return `<article class="tb-match" data-round="${escapeHtml(round.key)}"${gridStyle}>
+            <div class="tb-match-head">
+                <span>${escapeHtml(isThirdPlace ? 'Platz 3' : matchLabel)}</span>
+                ${fixture.match ? `<span class="tb-match-number">#${escapeHtml(fixture.match)}</span>` : ''}
+            </div>
+            ${renderTournamentSlot(fixture.home, context)}
+            ${renderTournamentSlot(fixture.away, context)}
+            ${meta ? `<div class="tb-match-meta">${escapeHtml(meta)}</div>` : ''}
+        </article>`;
+    }
+
     function renderTournamentBracket(context) {
         const rounds = [
             { key: 'roundOf32', label: 'Sechzehntelfinal' },
@@ -7446,6 +7738,22 @@
             { key: 'finals', label: 'Finale' }
         ];
 
+        const layoutRounds = rounds.map(round => ({ ...round, fixtures: getTournamentRoundFixtures(round.key) }));
+        const layout = buildTournamentBracketLayout(layoutRounds);
+        const bracketHtml = layoutRounds.map((round, roundIdx) => {
+            const matchesHtml = round.fixtures.map(fixture => {
+                const matchNumber = getTournamentFixtureMatchNumber(fixture);
+                return renderTournamentBracketMatch(fixture, round, context, layout.get(matchNumber));
+            }).join('');
+            return `<section class="tb-round">
+                <div class="tb-round-title" style="grid-column: ${escapeHtml(roundIdx + 1)}; grid-row: 1;">${escapeHtml(round.label)}</div>
+                ${matchesHtml || `<div class="tournament-empty" style="grid-column: ${escapeHtml(roundIdx + 1)}; grid-row: 2 / span 2;">Keine Paarungen konfiguriert.</div>`}
+            </section>`;
+        }).join('');
+
+        return `<div class="tournament-bracket">${bracketHtml}</div>`;
+
+        /*
         const html = rounds.map(round => {
             const fixtures = getTournamentRoundFixtures(round.key);
             const matchesHtml = fixtures.map(fixture => {
@@ -7469,6 +7777,7 @@
         }).join('');
 
         return `<div class="tournament-bracket">${html}</div>`;
+        */
     }
 
     function syncTournamentTabUi() {
@@ -7513,6 +7822,7 @@
 
         summaryEl.innerHTML = renderTournamentSummary(context);
         groupsEl.innerHTML = context.groups.map(renderTournamentGroupTable).join('');
+        bindTournamentGroupToggles();
         thirdEl.innerHTML = renderTournamentThirdPlacesTable(context);
         bracketEl.innerHTML = renderTournamentBracket(context);
         syncSidebarHeight();
