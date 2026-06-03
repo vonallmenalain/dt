@@ -213,45 +213,45 @@ const APP_CONFIG = (() => {
   const KNOCKOUT_BRACKET_WM2026 = {
     qualifiers: { groupRanks: [1, 2], bestThirdPlaces: 8, eliminatedGroupRanks: [4] },
     roundOf32: [
-      { match: 73, date: "2026-06-28", venue: "Los Angeles Stadium", home: { type: "groupRank", group: "A", rank: 2 }, away: { type: "groupRank", group: "B", rank: 2 } },
-      { match: 74, date: "2026-06-29", venue: "Boston Stadium", home: { type: "groupRank", group: "E", rank: 1 }, away: { type: "bestThird", fromGroups: ["A", "B", "C", "D", "F"] } },
-      { match: 75, date: "2026-06-29", venue: "Estadio Monterrey", home: { type: "groupRank", group: "F", rank: 1 }, away: { type: "groupRank", group: "C", rank: 2 } },
-      { match: 76, date: "2026-06-29", venue: "Houston Stadium", home: { type: "groupRank", group: "C", rank: 1 }, away: { type: "groupRank", group: "F", rank: 2 } },
-      { match: 77, date: "2026-06-30", venue: "New York New Jersey Stadium", home: { type: "groupRank", group: "I", rank: 1 }, away: { type: "bestThird", fromGroups: ["C", "D", "F", "G", "H"] } },
-      { match: 78, date: "2026-06-30", venue: "Dallas Stadium", home: { type: "groupRank", group: "E", rank: 2 }, away: { type: "groupRank", group: "I", rank: 2 } },
-      { match: 79, date: "2026-06-30", venue: "Mexico City Stadium", home: { type: "groupRank", group: "A", rank: 1 }, away: { type: "bestThird", fromGroups: ["C", "E", "F", "H", "I"] } },
-      { match: 80, date: "2026-07-01", venue: "Atlanta Stadium", home: { type: "groupRank", group: "L", rank: 1 }, away: { type: "bestThird", fromGroups: ["E", "H", "I", "J", "K"] } },
-      { match: 81, date: "2026-07-01", venue: "San Francisco Bay Area Stadium", home: { type: "groupRank", group: "D", rank: 1 }, away: { type: "bestThird", fromGroups: ["B", "E", "F", "I", "J"] } },
-      { match: 82, date: "2026-07-01", venue: "Seattle Stadium", home: { type: "groupRank", group: "G", rank: 1 }, away: { type: "bestThird", fromGroups: ["A", "E", "H", "I", "J"] } },
-      { match: 83, date: "2026-07-02", venue: "Toronto Stadium", home: { type: "groupRank", group: "K", rank: 2 }, away: { type: "groupRank", group: "L", rank: 2 } },
-      { match: 84, date: "2026-07-02", venue: "Los Angeles Stadium", home: { type: "groupRank", group: "H", rank: 1 }, away: { type: "groupRank", group: "J", rank: 2 } },
-      { match: 85, date: "2026-07-02", venue: "BC Place Vancouver", home: { type: "groupRank", group: "B", rank: 1 }, away: { type: "bestThird", fromGroups: ["E", "F", "G", "I", "J"] } },
-      { match: 86, date: "2026-07-03", venue: "Miami Stadium", home: { type: "groupRank", group: "J", rank: 1 }, away: { type: "groupRank", group: "H", rank: 2 } },
-      { match: 87, date: "2026-07-03", venue: "Kansas City Stadium", home: { type: "groupRank", group: "K", rank: 1 }, away: { type: "bestThird", fromGroups: ["D", "E", "I", "J", "L"] } },
-      { match: 88, date: "2026-07-03", venue: "Dallas Stadium", home: { type: "groupRank", group: "D", rank: 2 }, away: { type: "groupRank", group: "G", rank: 2 } }
+      { match: 73, date: "2026-06-28T21:00:00+02:00", venue: "Los Angeles Stadium", home: { type: "groupRank", group: "A", rank: 2 }, away: { type: "groupRank", group: "B", rank: 2 } },
+      { match: 74, date: "2026-06-29T22:30:00+02:00", venue: "Boston Stadium", home: { type: "groupRank", group: "E", rank: 1 }, away: { type: "bestThird", fromGroups: ["A", "B", "C", "D", "F"] } },
+      { match: 75, date: "2026-06-30T03:00:00+02:00", venue: "Estadio Monterrey", home: { type: "groupRank", group: "F", rank: 1 }, away: { type: "groupRank", group: "C", rank: 2 } },
+      { match: 76, date: "2026-06-29T19:00:00+02:00", venue: "Houston Stadium", home: { type: "groupRank", group: "C", rank: 1 }, away: { type: "groupRank", group: "F", rank: 2 } },
+      { match: 77, date: "2026-06-30T23:00:00+02:00", venue: "New York New Jersey Stadium", home: { type: "groupRank", group: "I", rank: 1 }, away: { type: "bestThird", fromGroups: ["C", "D", "F", "G", "H"] } },
+      { match: 78, date: "2026-06-30T19:00:00+02:00", venue: "Dallas Stadium", home: { type: "groupRank", group: "E", rank: 2 }, away: { type: "groupRank", group: "I", rank: 2 } },
+      { match: 79, date: "2026-07-01T03:00:00+02:00", venue: "Mexico City Stadium", home: { type: "groupRank", group: "A", rank: 1 }, away: { type: "bestThird", fromGroups: ["C", "E", "F", "H", "I"] } },
+      { match: 80, date: "2026-07-01T18:00:00+02:00", venue: "Atlanta Stadium", home: { type: "groupRank", group: "L", rank: 1 }, away: { type: "bestThird", fromGroups: ["E", "H", "I", "J", "K"] } },
+      { match: 81, date: "2026-07-02T02:00:00+02:00", venue: "San Francisco Bay Area Stadium", home: { type: "groupRank", group: "D", rank: 1 }, away: { type: "bestThird", fromGroups: ["B", "E", "F", "I", "J"] } },
+      { match: 82, date: "2026-07-01T22:00:00+02:00", venue: "Seattle Stadium", home: { type: "groupRank", group: "G", rank: 1 }, away: { type: "bestThird", fromGroups: ["A", "E", "H", "I", "J"] } },
+      { match: 83, date: "2026-07-03T01:00:00+02:00", venue: "Toronto Stadium", home: { type: "groupRank", group: "K", rank: 2 }, away: { type: "groupRank", group: "L", rank: 2 } },
+      { match: 84, date: "2026-07-02T21:00:00+02:00", venue: "Los Angeles Stadium", home: { type: "groupRank", group: "H", rank: 1 }, away: { type: "groupRank", group: "J", rank: 2 } },
+      { match: 85, date: "2026-07-03T05:00:00+02:00", venue: "BC Place Vancouver", home: { type: "groupRank", group: "B", rank: 1 }, away: { type: "bestThird", fromGroups: ["E", "F", "G", "I", "J"] } },
+      { match: 86, date: "2026-07-04T00:00:00+02:00", venue: "Miami Stadium", home: { type: "groupRank", group: "J", rank: 1 }, away: { type: "groupRank", group: "H", rank: 2 } },
+      { match: 87, date: "2026-07-04T03:30:00+02:00", venue: "Kansas City Stadium", home: { type: "groupRank", group: "K", rank: 1 }, away: { type: "bestThird", fromGroups: ["D", "E", "I", "J", "L"] } },
+      { match: 88, date: "2026-07-03T20:00:00+02:00", venue: "Dallas Stadium", home: { type: "groupRank", group: "D", rank: 2 }, away: { type: "groupRank", group: "G", rank: 2 } }
     ],
     roundOf16: [
-      { match: 89, home: { winnerOf: 74 }, away: { winnerOf: 77 } },
-      { match: 90, home: { winnerOf: 73 }, away: { winnerOf: 75 } },
-      { match: 91, home: { winnerOf: 76 }, away: { winnerOf: 78 } },
-      { match: 92, home: { winnerOf: 79 }, away: { winnerOf: 80 } },
-      { match: 93, home: { winnerOf: 83 }, away: { winnerOf: 84 } },
-      { match: 94, home: { winnerOf: 81 }, away: { winnerOf: 82 } },
-      { match: 95, home: { winnerOf: 86 }, away: { winnerOf: 88 } },
-      { match: 96, home: { winnerOf: 85 }, away: { winnerOf: 87 } }
+      { match: 89, date: "2026-07-04T23:00:00+02:00", venue: "Philadelphia Stadium", home: { winnerOf: 74 }, away: { winnerOf: 77 } },
+      { match: 90, date: "2026-07-04T19:00:00+02:00", venue: "Houston Stadium", home: { winnerOf: 73 }, away: { winnerOf: 75 } },
+      { match: 91, date: "2026-07-05T22:00:00+02:00", venue: "New York New Jersey Stadium", home: { winnerOf: 76 }, away: { winnerOf: 78 } },
+      { match: 92, date: "2026-07-06T02:00:00+02:00", venue: "Mexico City Stadium", home: { winnerOf: 79 }, away: { winnerOf: 80 } },
+      { match: 93, date: "2026-07-06T21:00:00+02:00", venue: "Dallas Stadium", home: { winnerOf: 83 }, away: { winnerOf: 84 } },
+      { match: 94, date: "2026-07-07T02:00:00+02:00", venue: "Seattle Stadium", home: { winnerOf: 81 }, away: { winnerOf: 82 } },
+      { match: 95, date: "2026-07-07T18:00:00+02:00", venue: "Atlanta Stadium", home: { winnerOf: 86 }, away: { winnerOf: 88 } },
+      { match: 96, date: "2026-07-07T22:00:00+02:00", venue: "BC Place Vancouver", home: { winnerOf: 85 }, away: { winnerOf: 87 } }
     ],
     quarterFinals: [
-      { match: 97, home: { winnerOf: 89 }, away: { winnerOf: 90 } },
-      { match: 98, home: { winnerOf: 93 }, away: { winnerOf: 94 } },
-      { match: 99, home: { winnerOf: 91 }, away: { winnerOf: 92 } },
-      { match: 100, home: { winnerOf: 95 }, away: { winnerOf: 96 } }
+      { match: 97, date: "2026-07-09T22:00:00+02:00", venue: "Boston Stadium", home: { winnerOf: 89 }, away: { winnerOf: 90 } },
+      { match: 98, date: "2026-07-10T21:00:00+02:00", venue: "Los Angeles Stadium", home: { winnerOf: 93 }, away: { winnerOf: 94 } },
+      { match: 99, date: "2026-07-11T23:00:00+02:00", venue: "Miami Stadium", home: { winnerOf: 91 }, away: { winnerOf: 92 } },
+      { match: 100, date: "2026-07-12T03:00:00+02:00", venue: "Kansas City Stadium", home: { winnerOf: 95 }, away: { winnerOf: 96 } }
     ],
     semiFinals: [
-      { match: 101, home: { winnerOf: 97 }, away: { winnerOf: 98 } },
-      { match: 102, home: { winnerOf: 99 }, away: { winnerOf: 100 } }
+      { match: 101, date: "2026-07-14T21:00:00+02:00", venue: "Dallas Stadium", home: { winnerOf: 97 }, away: { winnerOf: 98 } },
+      { match: 102, date: "2026-07-15T21:00:00+02:00", venue: "Atlanta Stadium", home: { winnerOf: 99 }, away: { winnerOf: 100 } }
     ],
-    thirdPlace: { match: 103, home: { runnerUpOf: 101 }, away: { runnerUpOf: 102 } },
-    final: { match: 104, home: { winnerOf: 101 }, away: { winnerOf: 102 } }
+    thirdPlace: { match: 103, date: "2026-07-18T23:00:00+02:00", venue: "Miami Stadium", home: { runnerUpOf: 101 }, away: { runnerUpOf: 102 } },
+    final: { match: 104, date: "2026-07-19T21:00:00+02:00", venue: "New York New Jersey Stadium", home: { winnerOf: 101 }, away: { winnerOf: 102 } }
   };
 
   /* ─────────────────────────────────────────────────────────
