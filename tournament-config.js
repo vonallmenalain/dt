@@ -130,19 +130,129 @@ const APP_CONFIG = (() => {
   ];
 
   const GROUP_STAGE_GROUPS_WM2026 = [
-    { group: "A", teams: ["Mexico", "South Korea", "Korea Republic", "South Africa", "Czechia", "Czech Republic", "Denmark", "Republic of Ireland", "Ireland", "North Macedonia", "UEFA Playoff D winner"] },
-    { group: "B", teams: ["Canada", "Switzerland", "Qatar", "Italy", "Wales", "Bosnia and Herzegovina", "Bosnia & Herzegovina", "Northern Ireland", "UEFA Playoff A winner"] },
-    { group: "C", teams: ["Brazil", "Morocco", "Scotland", "Haiti"] },
-    { group: "D", teams: ["USA", "United States", "United States of America", "Paraguay", "Australia", "Turkey", "Turkiye", "Slovakia", "Kosovo", "Romania", "UEFA Playoff C winner"] },
-    { group: "E", teams: ["Germany", "Ecuador", "Ivory Coast", "Cote d Ivoire", "Curacao"] },
-    { group: "F", teams: ["Netherlands", "Japan", "Tunisia", "Ukraine", "Poland", "Albania", "Sweden", "UEFA Playoff B winner"] },
-    { group: "G", teams: ["Belgium", "Iran", "Egypt", "New Zealand"] },
-    { group: "H", teams: ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde", "Cape Verde Islands"] },
-    { group: "I", teams: ["France", "Senegal", "Norway", "Iraq", "Bolivia", "Suriname", "Inter-confederation Playoff 2"] },
-    { group: "J", teams: ["Argentina", "Austria", "Algeria", "Jordan"] },
-    { group: "K", teams: ["Portugal", "Colombia", "Uzbekistan", "DR Congo", "Congo DR", "Jamaica", "New Caledonia", "Inter-confederation Playoff 1"] },
-    { group: "L", teams: ["England", "Croatia", "Panama", "Ghana"] }
+    { group: "A", teams: [
+      { slot: "A1", name: "Mexico", aliases: ["Mexiko"] },
+      { slot: "A2", name: "South Africa", aliases: ["Suedafrika", "Sudafrika"] },
+      { slot: "A3", name: "Korea Republic", aliases: ["South Korea", "Suedkorea", "Sudkorea"] },
+      { slot: "A4", name: "Czechia", aliases: ["Czech Republic", "Tschechien"] }
+    ] },
+    { group: "B", teams: [
+      { slot: "B1", name: "Canada", aliases: ["Kanada"] },
+      { slot: "B2", name: "Bosnia and Herzegovina", aliases: ["Bosnia & Herzegovina", "Bosnien und Herzegowina"] },
+      { slot: "B3", name: "Qatar", aliases: ["Katar"] },
+      { slot: "B4", name: "Switzerland", aliases: ["Schweiz"] }
+    ] },
+    { group: "C", teams: [
+      { slot: "C1", name: "Brazil", aliases: ["Brasilien"] },
+      { slot: "C2", name: "Morocco", aliases: ["Marokko"] },
+      { slot: "C3", name: "Haiti", aliases: [] },
+      { slot: "C4", name: "Scotland", aliases: ["Schottland"] }
+    ] },
+    { group: "D", teams: [
+      { slot: "D1", name: "USA", aliases: ["United States", "United States of America", "Vereinigte Staaten"] },
+      { slot: "D2", name: "Paraguay", aliases: [] },
+      { slot: "D3", name: "Australia", aliases: ["Australien"] },
+      { slot: "D4", name: "Turkiye", aliases: ["Turkey", "Tuerkei", "Turkey", "Turkei"] }
+    ] },
+    { group: "E", teams: [
+      { slot: "E1", name: "Germany", aliases: ["Deutschland"] },
+      { slot: "E2", name: "Curacao", aliases: ["Curacao", "Curacao"] },
+      { slot: "E3", name: "Ivory Coast", aliases: ["Cote d Ivoire", "Cote d'Ivoire", "Elfenbeinkueste", "Elfenbeinkuste"] },
+      { slot: "E4", name: "Ecuador", aliases: ["Ekuador"] }
+    ] },
+    { group: "F", teams: [
+      { slot: "F1", name: "Netherlands", aliases: ["Niederlande", "Holland"] },
+      { slot: "F2", name: "Japan", aliases: [] },
+      { slot: "F3", name: "Sweden", aliases: ["Schweden"] },
+      { slot: "F4", name: "Tunisia", aliases: ["Tunesien"] }
+    ] },
+    { group: "G", teams: [
+      { slot: "G1", name: "Belgium", aliases: ["Belgien"] },
+      { slot: "G2", name: "Egypt", aliases: ["Aegypten", "Egypt"] },
+      { slot: "G3", name: "Iran", aliases: ["IR Iran"] },
+      { slot: "G4", name: "New Zealand", aliases: ["Neuseeland"] }
+    ] },
+    { group: "H", teams: [
+      { slot: "H1", name: "Spain", aliases: ["Spanien"] },
+      { slot: "H2", name: "Cape Verde", aliases: ["Cape Verde Islands", "Cabo Verde", "Kap Verde"] },
+      { slot: "H3", name: "Saudi Arabia", aliases: ["Saudi-Arabien", "Saudiarabien"] },
+      { slot: "H4", name: "Uruguay", aliases: [] }
+    ] },
+    { group: "I", teams: [
+      { slot: "I1", name: "France", aliases: ["Frankreich"] },
+      { slot: "I2", name: "Senegal", aliases: [] },
+      { slot: "I3", name: "Iraq", aliases: ["Irak"] },
+      { slot: "I4", name: "Norway", aliases: ["Norwegen"] }
+    ] },
+    { group: "J", teams: [
+      { slot: "J1", name: "Argentina", aliases: ["Argentinien"] },
+      { slot: "J2", name: "Algeria", aliases: ["Algerien"] },
+      { slot: "J3", name: "Austria", aliases: ["Oesterreich", "Austria"] },
+      { slot: "J4", name: "Jordan", aliases: ["Jordanien"] }
+    ] },
+    { group: "K", teams: [
+      { slot: "K1", name: "Portugal", aliases: [] },
+      { slot: "K2", name: "DR Congo", aliases: ["Congo DR", "Democratic Republic of the Congo", "Kongo DR"] },
+      { slot: "K3", name: "Uzbekistan", aliases: ["Usbekistan"] },
+      { slot: "K4", name: "Colombia", aliases: ["Kolumbien"] }
+    ] },
+    { group: "L", teams: [
+      { slot: "L1", name: "England", aliases: [] },
+      { slot: "L2", name: "Croatia", aliases: ["Kroatien"] },
+      { slot: "L3", name: "Ghana", aliases: [] },
+      { slot: "L4", name: "Panama", aliases: [] }
+    ] }
   ];
+
+  const GROUP_STAGE_PAIRING_PATTERN = [
+    { matchday: 1, pairings: [[1, 2], [3, 4]] },
+    { matchday: 2, pairings: [[4, 2], [1, 3]] },
+    { matchday: 3, pairings: [[4, 1], [2, 3]] }
+  ];
+
+  const KNOCKOUT_BRACKET_WM2026 = {
+    qualifiers: { groupRanks: [1, 2], bestThirdPlaces: 8, eliminatedGroupRanks: [4] },
+    roundOf32: [
+      { match: 73, date: "2026-06-28", venue: "Los Angeles Stadium", home: { type: "groupRank", group: "A", rank: 2 }, away: { type: "groupRank", group: "B", rank: 2 } },
+      { match: 74, date: "2026-06-29", venue: "Boston Stadium", home: { type: "groupRank", group: "E", rank: 1 }, away: { type: "bestThird", fromGroups: ["A", "B", "C", "D", "F"] } },
+      { match: 75, date: "2026-06-29", venue: "Estadio Monterrey", home: { type: "groupRank", group: "F", rank: 1 }, away: { type: "groupRank", group: "C", rank: 2 } },
+      { match: 76, date: "2026-06-29", venue: "Houston Stadium", home: { type: "groupRank", group: "C", rank: 1 }, away: { type: "groupRank", group: "F", rank: 2 } },
+      { match: 77, date: "2026-06-30", venue: "New York New Jersey Stadium", home: { type: "groupRank", group: "I", rank: 1 }, away: { type: "bestThird", fromGroups: ["C", "D", "F", "G", "H"] } },
+      { match: 78, date: "2026-06-30", venue: "Dallas Stadium", home: { type: "groupRank", group: "E", rank: 2 }, away: { type: "groupRank", group: "I", rank: 2 } },
+      { match: 79, date: "2026-06-30", venue: "Mexico City Stadium", home: { type: "groupRank", group: "A", rank: 1 }, away: { type: "bestThird", fromGroups: ["C", "E", "F", "H", "I"] } },
+      { match: 80, date: "2026-07-01", venue: "Atlanta Stadium", home: { type: "groupRank", group: "L", rank: 1 }, away: { type: "bestThird", fromGroups: ["E", "H", "I", "J", "K"] } },
+      { match: 81, date: "2026-07-01", venue: "San Francisco Bay Area Stadium", home: { type: "groupRank", group: "D", rank: 1 }, away: { type: "bestThird", fromGroups: ["B", "E", "F", "I", "J"] } },
+      { match: 82, date: "2026-07-01", venue: "Seattle Stadium", home: { type: "groupRank", group: "G", rank: 1 }, away: { type: "bestThird", fromGroups: ["A", "E", "H", "I", "J"] } },
+      { match: 83, date: "2026-07-02", venue: "Toronto Stadium", home: { type: "groupRank", group: "K", rank: 2 }, away: { type: "groupRank", group: "L", rank: 2 } },
+      { match: 84, date: "2026-07-02", venue: "Los Angeles Stadium", home: { type: "groupRank", group: "H", rank: 1 }, away: { type: "groupRank", group: "J", rank: 2 } },
+      { match: 85, date: "2026-07-02", venue: "BC Place Vancouver", home: { type: "groupRank", group: "B", rank: 1 }, away: { type: "bestThird", fromGroups: ["E", "F", "G", "I", "J"] } },
+      { match: 86, date: "2026-07-03", venue: "Miami Stadium", home: { type: "groupRank", group: "J", rank: 1 }, away: { type: "groupRank", group: "H", rank: 2 } },
+      { match: 87, date: "2026-07-03", venue: "Kansas City Stadium", home: { type: "groupRank", group: "K", rank: 1 }, away: { type: "bestThird", fromGroups: ["D", "E", "I", "J", "L"] } },
+      { match: 88, date: "2026-07-03", venue: "Dallas Stadium", home: { type: "groupRank", group: "D", rank: 2 }, away: { type: "groupRank", group: "G", rank: 2 } }
+    ],
+    roundOf16: [
+      { match: 89, home: { winnerOf: 74 }, away: { winnerOf: 77 } },
+      { match: 90, home: { winnerOf: 73 }, away: { winnerOf: 75 } },
+      { match: 91, home: { winnerOf: 76 }, away: { winnerOf: 78 } },
+      { match: 92, home: { winnerOf: 79 }, away: { winnerOf: 80 } },
+      { match: 93, home: { winnerOf: 83 }, away: { winnerOf: 84 } },
+      { match: 94, home: { winnerOf: 81 }, away: { winnerOf: 82 } },
+      { match: 95, home: { winnerOf: 86 }, away: { winnerOf: 88 } },
+      { match: 96, home: { winnerOf: 85 }, away: { winnerOf: 87 } }
+    ],
+    quarterFinals: [
+      { match: 97, home: { winnerOf: 89 }, away: { winnerOf: 90 } },
+      { match: 98, home: { winnerOf: 93 }, away: { winnerOf: 94 } },
+      { match: 99, home: { winnerOf: 91 }, away: { winnerOf: 92 } },
+      { match: 100, home: { winnerOf: 95 }, away: { winnerOf: 96 } }
+    ],
+    semiFinals: [
+      { match: 101, home: { winnerOf: 97 }, away: { winnerOf: 98 } },
+      { match: 102, home: { winnerOf: 99 }, away: { winnerOf: 100 } }
+    ],
+    thirdPlace: { match: 103, home: { runnerUpOf: 101 }, away: { runnerUpOf: 102 } },
+    final: { match: 104, home: { winnerOf: 101 }, away: { winnerOf: 102 } }
+  };
 
   /* ─────────────────────────────────────────────────────────
    * Definition aller bekannten Turniere.
@@ -198,7 +308,9 @@ const APP_CONFIG = (() => {
         fixturesCollection: "Spiele WM 2026"
       },
       fallbackFixtures: FALLBACK_FIXTURES_WM2026,
-      groupStageGroups: GROUP_STAGE_GROUPS_WM2026
+      groupStageGroups: GROUP_STAGE_GROUPS_WM2026,
+      groupStagePairingPattern: GROUP_STAGE_PAIRING_PATTERN,
+      knockoutBracket: KNOCKOUT_BRACKET_WM2026
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -250,13 +362,34 @@ const APP_CONFIG = (() => {
     return Array.isArray(list) ? list : [];
   }
 
+  function getGroupStagePairingPattern() {
+    const list = getActiveTournament().groupStagePairingPattern;
+    return Array.isArray(list) ? list : [];
+  }
+
+  function getTournamentTeamNames(team) {
+    if (!team) return [];
+    if (typeof team === "string") return [team];
+    return [team.name, ...(Array.isArray(team.aliases) ? team.aliases : [])].filter(Boolean);
+  }
+
+  function getMatchTeamNames(match) {
+    const m = match || {};
+    const homeTeam = (m.homeTeam && typeof m.homeTeam === "object") ? m.homeTeam.name : m.homeTeam;
+    const awayTeam = (m.awayTeam && typeof m.awayTeam === "object") ? m.awayTeam.name : m.awayTeam;
+    return [
+      m.teamA || m.home || homeTeam || "",
+      m.teamB || m.away || awayTeam || ""
+    ];
+  }
+
   function findGroupStageGroup(teamA, teamB) {
     const teamKeys = [normalizeTournamentTeamName(teamA), normalizeTournamentTeamName(teamB)].filter(Boolean);
     if (!teamKeys.length) return null;
 
     const groups = getGroupStageGroups().map((entry) => ({
       group: entry.group,
-      teamKeys: (entry.teams || []).map(normalizeTournamentTeamName).filter(Boolean)
+      teamKeys: (entry.teams || []).flatMap(getTournamentTeamNames).map(normalizeTournamentTeamName).filter(Boolean)
     }));
 
     const matchingBoth = groups.find((entry) => (
@@ -271,28 +404,141 @@ const APP_CONFIG = (() => {
     return matchingOne.length === 1 ? matchingOne[0].group : null;
   }
 
+  function parseGroupStageMatchday(roundText) {
+    const value = String(roundText || "").trim().toLowerCase();
+    if (!value) return null;
+    const match = value.match(/(?:group|matchday|spieltag|regular season)[^\d]*(\d+)/);
+    const n = match ? Number(match[1]) : NaN;
+    return Number.isFinite(n) && n >= 1 && n <= 3 ? n : null;
+  }
+
   function isGroupStageRound(roundText) {
     const value = String(roundText || "").trim().toLowerCase();
     if (!value) return true;
     return /group|matchday|spieltag|regular season/.test(value);
   }
 
-  function buildGroupStageLabelForMatch(match, matchNumber) {
+  function getMatchSortValue(match) {
+    const ts = Number(match && match.kickoffTimestamp);
+    if (Number.isFinite(ts) && ts > 0) return ts * 1000;
+    const raw = match && (match.date || match.datetime || match.kickoff || match.kickoffIso);
+    const ms = raw ? new Date(raw).getTime() : NaN;
+    return Number.isFinite(ms) ? ms : Number.MAX_SAFE_INTEGER;
+  }
+
+  function getMatchIdentity(match) {
+    if (!match) return "";
+    const id = match.fixtureId || match.id || match.gameNumber || match.matchId || "";
+    if (id) return `id:${id}`;
+    const [teamA, teamB] = getMatchTeamNames(match).map(normalizeTournamentTeamName);
+    const date = match.date || match.datetime || match.kickoff || match.kickoffIso || "";
+    return `pair:${date}|${teamA}|${teamB}`;
+  }
+
+  function getGroupStageMatchday(match, matches) {
+    const m = match || {};
+    const roundText = String(m.round || (m.league && m.league.round) || "").trim();
+    const explicit = parseGroupStageMatchday(roundText);
+    if (explicit) return explicit;
+
+    const [teamA, teamB] = getMatchTeamNames(m);
+    const group = findGroupStageGroup(teamA, teamB);
+    if (!group || !Array.isArray(matches) || !matches.length) return null;
+
+    const targetId = getMatchIdentity(m);
+    const groupMatches = matches
+      .filter((item) => {
+        const names = getMatchTeamNames(item);
+        return findGroupStageGroup(names[0], names[1]) === group;
+      })
+      .sort((a, b) => {
+        const da = getMatchSortValue(a);
+        const db = getMatchSortValue(b);
+        if (da !== db) return da - db;
+        return getMatchIdentity(a).localeCompare(getMatchIdentity(b), "de");
+      });
+
+    const appearances = {};
+    for (const item of groupMatches) {
+      const names = getMatchTeamNames(item).map(normalizeTournamentTeamName);
+      const nextMatchday = Math.max(appearances[names[0]] || 0, appearances[names[1]] || 0) + 1;
+      if (item === m || getMatchIdentity(item) === targetId) return Math.min(nextMatchday, 3);
+      appearances[names[0]] = (appearances[names[0]] || 0) + 1;
+      appearances[names[1]] = (appearances[names[1]] || 0) + 1;
+    }
+
+    return null;
+  }
+
+  function buildGroupStagePairings(groupLetter) {
+    const groupKey = String(groupLetter || "").toUpperCase();
+    const group = getGroupStageGroups().find((entry) => String(entry.group || "").toUpperCase() === groupKey);
+    if (!group) return [];
+
+    return getGroupStagePairingPattern().map((round) => ({
+      matchday: round.matchday,
+      pairings: (round.pairings || []).map(([a, b]) => ({
+        home: group.teams[a - 1] || null,
+        away: group.teams[b - 1] || null
+      }))
+    }));
+  }
+
+  function buildGroupStageLabelForMatch(match, options) {
     const m = match || {};
     const roundText = String(m.round || (m.league && m.league.round) || "").trim();
     if (!isGroupStageRound(roundText)) return "";
 
-    const homeTeam = (m.homeTeam && typeof m.homeTeam === "object") ? m.homeTeam.name : m.homeTeam;
-    const awayTeam = (m.awayTeam && typeof m.awayTeam === "object") ? m.awayTeam.name : m.awayTeam;
-    const teamA = m.teamA || m.home || homeTeam || "";
-    const teamB = m.teamB || m.away || awayTeam || "";
+    const [teamA, teamB] = getMatchTeamNames(m);
     const group = findGroupStageGroup(teamA, teamB);
     if (!group) return "";
 
-    const n = Number(matchNumber);
+    const n = Number(
+      options && typeof options === "object"
+        ? (options.matchday || getGroupStageMatchday(m, options.matches))
+        : getGroupStageMatchday(m, null)
+    );
     return Number.isFinite(n) && n > 0
       ? `Gruppe ${group} - Spiel ${n}`
       : `Gruppe ${group}`;
+  }
+
+  function formatGroupRankLabel(rank) {
+    const labels = {
+      1: "Sieger",
+      2: "Zweiter",
+      3: "Dritter",
+      4: "Vierter"
+    };
+    return labels[rank] || `${rank}.`;
+  }
+
+  function formatKnockoutSlotLabel(slot) {
+    if (!slot) return "";
+    if (slot.type === "groupRank") {
+      return `${formatGroupRankLabel(slot.rank)} Gruppe ${slot.group}`;
+    }
+    if (slot.type === "bestThird") {
+      const groups = Array.isArray(slot.fromGroups) ? slot.fromGroups.join("/") : "";
+      return groups ? `Dritter aus Gruppe ${groups}` : "Drittplatzierter";
+    }
+    if (slot.winnerOf) return `Sieger Spiel ${slot.winnerOf}`;
+    if (slot.runnerUpOf) return `Verlierer Spiel ${slot.runnerUpOf}`;
+    return "";
+  }
+
+  function getKnockoutBracketRound(roundKey) {
+    const bracket = getActiveTournament().knockoutBracket || {};
+    const round = bracket[roundKey];
+    return Array.isArray(round) ? round : [];
+  }
+
+  function buildRoundOf32Preview() {
+    return getKnockoutBracketRound("roundOf32").map((fixture) => ({
+      ...fixture,
+      homeLabel: formatKnockoutSlotLabel(fixture.home),
+      awayLabel: formatKnockoutSlotLabel(fixture.away)
+    }));
   }
 
   /* ─────────────────────────────────────────────────────────
@@ -803,12 +1049,45 @@ const APP_CONFIG = (() => {
       return getGroupStageGroups();
     },
 
+    get groupStagePairingPattern() {
+      return getGroupStagePairingPattern();
+    },
+
+    get knockoutBracket() {
+      return getActiveTournament().knockoutBracket || null;
+    },
+
     getGroupStageGroup(teamA, teamB) {
       return findGroupStageGroup(teamA, teamB);
     },
 
-    groupStageLabelForMatch(match, matchNumber) {
-      return buildGroupStageLabelForMatch(match, matchNumber);
+    getGroupStageMatchday(match, matches) {
+      return getGroupStageMatchday(match, matches);
+    },
+
+    getGroupStagePairings(groupLetter) {
+      return buildGroupStagePairings(groupLetter);
+    },
+
+    groupStageLabelForMatch(match, options) {
+      return buildGroupStageLabelForMatch(match, options);
+    },
+
+    getRoundOf32Fixtures() {
+      const bracket = getActiveTournament().knockoutBracket;
+      return bracket && Array.isArray(bracket.roundOf32) ? bracket.roundOf32 : [];
+    },
+
+    getRoundOf32Preview() {
+      return buildRoundOf32Preview();
+    },
+
+    getKnockoutBracketRound(roundKey) {
+      return getKnockoutBracketRound(roundKey);
+    },
+
+    formatKnockoutSlotLabel(slot) {
+      return formatKnockoutSlotLabel(slot);
     },
 
     firebaseConfig,

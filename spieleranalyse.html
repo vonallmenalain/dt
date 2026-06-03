@@ -6390,7 +6390,7 @@
                 const isExpanded = expandedScheduleMatchKeys.has(matchKey);
                 const displayMatchNumber = getScheduleDisplayMatchNumber(m, mc);
                 const groupStageLabel = APP && typeof APP.groupStageLabelForMatch === 'function'
-                    ? APP.groupStageLabelForMatch(m, displayMatchNumber)
+                    ? APP.groupStageLabelForMatch(m, { matches: scheduleCatalog })
                     : '';
                 const roundText = groupStageLabel || (m.round ? m.round.replace(/Regular Season -\s*/i, '').replace(/Group Stage -\s*/i, 'Gruppe: ') : '');
                 const spielNrLabel = groupStageLabel ? '' : (displayMatchNumber ? `Spiel ${displayMatchNumber}` : '');

@@ -8228,13 +8228,12 @@
             upcoming = getTournamentFallbackFixtures();
         }
 
-        const matchNumberLookup = buildMatchNumberLookup(matchInfos.length ? matchInfos : upcoming);
-
         if (!upcoming.length) {
             container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div>Keine bevorstehenden Spiele gefunden.</div>`;
             return;
         }
 
+        const scheduleContext = matchInfos.length ? matchInfos : upcoming;
         const html = upcoming.map((match) => {
             const matchId = match.gameNumber || match.matchId || match.id;
             let teamA = match.teamA || match.home || match.homeTeam || '';
@@ -8334,9 +8333,9 @@
                     <div class="nm-players-side right">${buildChips(draftedAway)}</div>
                 </div>` : '';
 
-            const displayMatchNumber = getMatchDisplayNumber(match, matchNumberLookup);
+            const stageMatch = { ...match, teamA, teamB, round: match.round || '' };
             const stageLabel = APP && typeof APP.groupStageLabelForMatch === 'function'
-                ? APP.groupStageLabelForMatch({ ...match, teamA, teamB, round: match.round || '' }, displayMatchNumber)
+                ? APP.groupStageLabelForMatch(stageMatch, { matches: scheduleContext })
                 : '';
 
             const homePoints = isLive ? getDraftedPointsSummary(draftedHome, data, matchId) : { total: 0, count: 0 };
