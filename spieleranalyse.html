@@ -1596,6 +1596,35 @@
             outline-offset: 3px;
         }
 
+        .tour-reset-btn {
+            min-height: 44px;
+            flex: 0 0 auto;
+            padding: 10px 14px;
+            border: 1px dashed rgba(248,113,113,0.38);
+            border-radius: 28px;
+            background: rgba(248,113,113,0.07);
+            color: var(--red-soft);
+            font: inherit;
+            font-size: 0.84rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: background 0.22s, border-color 0.22s, color 0.22s;
+            white-space: nowrap;
+        }
+
+        .tour-reset-btn:hover {
+            background: rgba(248,113,113,0.13);
+            border-color: rgba(248,113,113,0.58);
+            color: #fff;
+        }
+
+        .tour-reset-btn:focus-visible {
+            outline: 2px solid var(--red-soft);
+            outline-offset: 3px;
+        }
+
+        .tour-reset-btn[hidden] { display: none; }
+
         .tournament-tab-panel { animation: fadeSlideDown 0.35s ease both; }
         .tournament-tab-panel[hidden] { display: none; }
 
@@ -3471,6 +3500,7 @@
             .tour-toolbar { flex-wrap: wrap; }
             .tour-mode-toggle { width: 100%; }
             .tour-mode-btn { flex: 1 1 0; min-width: 0; }
+            .tour-reset-btn { width: 100%; }
             .tour-pill-nav { padding: 4px; }
             .tour-pill { padding: 10px 12px; font-size: 0.82rem; }
             .tournament-groups-grid { grid-template-columns: 1fr; }
@@ -5293,6 +5323,7 @@
                         <button type="button" class="tour-mode-btn active" data-tournament-mode="auto" aria-pressed="true">Auto</button>
                         <button type="button" class="tour-mode-btn" data-tournament-mode="manual" aria-pressed="false">Manuell</button>
                     </div>
+                    <button type="button" id="tournament-manual-reset" class="tour-reset-btn" aria-label="Manuelle Turnier-Prognose zuruecksetzen" hidden>Reset Prognose</button>
                 </div>
 
                 <div id="tournament-manual-hint" class="tournament-manual-hint" role="note" hidden>
@@ -7433,6 +7464,8 @@
             btn.classList.toggle('active', isActive);
             btn.setAttribute('aria-pressed', String(isActive));
         });
+        const resetBtn = document.getElementById('tournament-manual-reset');
+        if (resetBtn) resetBtn.hidden = !isTournamentManualMode();
         const hint = document.getElementById('tournament-manual-hint');
         if (hint) {
             // Only relevant where rows can actually be reordered (group stage).
@@ -7956,6 +7989,32 @@
         }
 
         return changed;
+    }
+
+    function resetTournamentManualStateToPrediction() {
+        if (!isTournamentManualMode()) return;
+        const autoContext = attachTournamentBestThirdAssignments(buildTournamentStandings());
+        if (!autoContext?.groups?.length) return;
+        const prediction = buildTournamentManualPrediction(autoContext);
+        const groupOrders = {};
+
+        autoContext.groups.forEach(group => {
+            const groupKey = String(group.group || '').toUpperCase();
+            const validOrder = (group.rows || []).map(row => row.key);
+            groupOrders[groupKey] = sanitizeTournamentOrder(prediction.groupOrders[groupKey] || [], validOrder);
+        });
+
+        const validThirdGroups = autoContext.groups.map(group => String(group.group || '').toUpperCase()).filter(Boolean);
+        tournamentManualState = normalizeTournamentManualState({
+            ...tournamentManualState,
+            mode: TOURNAMENT_MODE_MANUAL,
+            manualPredictionInitialized: true,
+            groupOrders,
+            thirdOrder: sanitizeTournamentOrder(prediction.thirdOrder || [], validThirdGroups),
+            winners: {}
+        });
+        saveTournamentManualState();
+        renderTournamentView();
     }
 
     function buildTournamentBestThirdAssignments(context) {
@@ -10746,6 +10805,10 @@
     document.querySelectorAll('[data-tournament-mode]').forEach(btn => {
         btn.addEventListener('click', () => setTournamentMode(btn.dataset.tournamentMode));
     });
+    const tournamentManualResetBtn = document.getElementById('tournament-manual-reset');
+    if (tournamentManualResetBtn) {
+        tournamentManualResetBtn.addEventListener('click', resetTournamentManualStateToPrediction);
+    }
     document.addEventListener('pointermove', moveTournamentManualDrag, { passive: false });
     document.addEventListener('pointerup', () => finishTournamentManualDrag(true), { passive: true });
     document.addEventListener('pointercancel', () => finishTournamentManualDrag(false), { passive: true });
