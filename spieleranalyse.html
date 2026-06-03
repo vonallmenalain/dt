@@ -3226,6 +3226,11 @@
             display: inline-flex;
             flex-shrink: 0;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+        }
+
+        .sc-player-avatar-btn.has-points {
+            margin-bottom: 12px;
         }
 
         .sc-player-avatar-btn:hover {
@@ -3249,6 +3254,31 @@
             background: var(--dark-card);
             display: block;
         }
+
+        .sc-player-avatar-points {
+            position: absolute;
+            left: 50%;
+            bottom: -10px;
+            transform: translateX(-50%);
+            min-width: 28px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: rgba(8,12,18,0.92);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.28);
+            color: var(--text-main);
+            font-size: 0.6rem;
+            font-weight: 900;
+            line-height: 1.1;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .sc-player-avatar-points.pos,
+        .sc-live-points .pos { color: var(--green-light); }
+
+        .sc-player-avatar-points.neg,
+        .sc-live-points .neg { color: var(--red-soft); }
 
         /* When the card is expanded, the same drafted players are listed
            below in larger cards, so hide the small preview avatars to
@@ -3318,6 +3348,58 @@
 
         .sc-score.sc-live {
             color: #f87171;
+        }
+
+        .sc-live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(248,113,113,0.14);
+            border: 1px solid rgba(248,113,113,0.3);
+            color: #f87171;
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+
+        .sc-live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f87171;
+            box-shadow: 0 0 0 0 rgba(248,113,113,0.5);
+            animation: scLiveDotPulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes scLiveDotPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(248,113,113,0.45); }
+            50% { transform: scale(1.25); box-shadow: 0 0 0 5px rgba(248,113,113,0); }
+        }
+
+        .sc-live-points {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 4px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(74,222,128,0.22);
+            color: var(--text-main);
+            font-size: 0.62rem;
+            font-weight: 800;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .sc-live-points-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .sc-time {
@@ -5882,6 +5964,39 @@
         ) || null;
     }
 
+    function formatScheduleSignedPoints(points) {
+        const value = Number(points) || 0;
+        return `${value > 0 ? '+' : ''}${value}`;
+    }
+
+    function getSchedulePointsClass(points) {
+        const value = Number(points) || 0;
+        if (value > 0) return 'pos';
+        if (value < 0) return 'neg';
+        return 'zero';
+    }
+
+    function getScheduleScoreParts(m, mc) {
+        const goals = m?.goals || {};
+        const home = goals.home ?? goals.homeGoals ?? m?.homeGoals ?? m?.scoreHome ?? m?.homeScore ?? null;
+        const away = goals.away ?? goals.awayGoals ?? m?.awayGoals ?? m?.scoreAway ?? m?.awayScore ?? null;
+        if (home !== null || away !== null) return { home: home ?? 0, away: away ?? 0 };
+
+        const parsed = mc ? parseResultString(mc.resultText || '') : null;
+        if (!parsed) return null;
+        return { home: parsed.homeGoals, away: parsed.awayGoals };
+    }
+
+    function getScheduleDraftedPointsSummary(players, hasMatchData) {
+        if (!hasMatchData) return { total: 0, count: 0 };
+        return (players || []).reduce((acc, p) => {
+            if (!p) return acc;
+            acc.total += Number(p.totalPoints) || 0;
+            acc.count += 1;
+            return acc;
+        }, { total: 0, count: 0 });
+    }
+
     function getDraftedPlayersForScheduleTeam(m, mc, teamName) {
         // Prefer drafted players from a played match (matchCatalog) – has
         // actual match-day points / line-up information.
@@ -6132,12 +6247,17 @@
             return;
         }
 
-        function renderScheduleAvatars(players, alignRight = false) {
+        function renderScheduleAvatars(players, alignRight = false, showPoints = false) {
             if (!players || !players.length) return '';
             const avatarsHtml = players.map(p => {
                 const nameEncoded = encodeURIComponent(p.name);
                 const idEncoded = p.playerId ? encodeURIComponent(p.playerId) : '';
-                return `<button type="button" class="sc-player-avatar-btn" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen">${renderPlayerPhotoShell(p.photo, p.name, 'sc-player-avatar', { width: 30, height: 30 })}</button>`;
+                const pts = Number(p.totalPoints) || 0;
+                const ptsHtml = showPoints
+                    ? `<span class="sc-player-avatar-points ${getSchedulePointsClass(pts)}">${escapeHtml(formatScheduleSignedPoints(pts))}</span>`
+                    : '';
+                const ptsLabel = showPoints ? `, ${formatScheduleSignedPoints(pts)} Punkte in diesem Spiel` : '';
+                return `<button type="button" class="sc-player-avatar-btn${showPoints ? ' has-points' : ''}" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen${escapeHtml(ptsLabel)}">${renderPlayerPhotoShell(p.photo, p.name, 'sc-player-avatar', { width: 30, height: 30 })}${ptsHtml}</button>`;
             }).filter(Boolean).join('');
             if (!avatarsHtml) return '';
             const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';
@@ -6201,19 +6321,25 @@
                 const validDt = dt && !Number.isNaN(dt.getTime());
                 const timeLabel = validDt ? dt.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
-                const statusShort = m.status?.short || '';
+                const statusShort = String(m.status?.short || '').toUpperCase();
                 const isFinished = FINISHED.includes(statusShort);
                 const isLive = LIVE_STATUSES.includes(statusShort);
+                const mc = findMatchCatalogForScheduleEntry(m);
+                const scoreParts = getScheduleScoreParts(m, mc);
 
                 // Score / time center display
                 let centerHtml = '';
                 let matchStatusCls = '';
-                if (isFinished && m.goals) {
-                    centerHtml = `<div class="sc-score sc-finished">${m.goals.home ?? '?'}<span class="sc-colon">:</span>${m.goals.away ?? '?'}</div>`;
-                    matchStatusCls = 'sc-card--finished';
-                } else if (isLive && m.goals) {
-                    centerHtml = `<div class="sc-score sc-live">🔴 ${m.goals.home ?? '?'}<span class="sc-colon">:</span>${m.goals.away ?? '?'}</div>`;
+                if (isLive) {
+                    const elapsed = m.status?.elapsed ? `${m.status.elapsed}'` : '';
+                    centerHtml = `<div class="sc-live-pill"><span class="sc-live-dot"></span>Live${elapsed ? ` ${escapeHtml(elapsed)}` : ''}</div>`;
+                    centerHtml += scoreParts
+                        ? `<div class="sc-score sc-live">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`
+                        : `<div class="sc-time">${escapeHtml(timeLabel)}</div><div class="sc-vs">VS</div>`;
                     matchStatusCls = 'sc-card--live';
+                } else if (isFinished && scoreParts) {
+                    centerHtml = `<div class="sc-score sc-finished">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`;
+                    matchStatusCls = 'sc-card--finished';
                 } else {
                     centerHtml = `<div class="sc-time">${escapeHtml(timeLabel)}</div><div class="sc-vs">VS</div>`;
                 }
@@ -6238,7 +6364,6 @@
 
                 // Resolve catalog entry to enable drafted lookup, spielNr label
                 // and expanded view rendering.
-                const mc = findMatchCatalogForScheduleEntry(m);
                 const matchKey = getScheduleMatchKey(m, mc);
                 const isExpanded = expandedScheduleMatchKeys.has(matchKey);
                 const spielNrLabel = mc && mc.number ? `Spiel ${mc.number}` : '';
@@ -6250,8 +6375,19 @@
                 // re-renders the same players in larger cards.
                 const homeDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamA);
                 const awayDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamB);
-                const homeAvatars = renderScheduleAvatars(homeDrafted, false);
-                const awayAvatars = renderScheduleAvatars(awayDrafted, true);
+                const showLivePlayerPoints = isLive && !!mc;
+                const homeAvatars = renderScheduleAvatars(homeDrafted, false, showLivePlayerPoints);
+                const awayAvatars = renderScheduleAvatars(awayDrafted, true, showLivePlayerPoints);
+                const homeLivePoints = getScheduleDraftedPointsSummary(homeDrafted, showLivePlayerPoints);
+                const awayLivePoints = getScheduleDraftedPointsSummary(awayDrafted, showLivePlayerPoints);
+                if (isLive && (homeLivePoints.count || awayLivePoints.count)) {
+                    centerHtml += `<div class="sc-live-points" title="Punkte der gewaehlten Spieler in diesem Spiel">
+                        <span class="sc-live-points-label">Managerwahl</span>
+                        <span class="${getSchedulePointsClass(homeLivePoints.total)}">${escapeHtml(formatScheduleSignedPoints(homeLivePoints.total))}</span>
+                        <span class="sc-colon">:</span>
+                        <span class="${getSchedulePointsClass(awayLivePoints.total)}">${escapeHtml(formatScheduleSignedPoints(awayLivePoints.total))}</span>
+                    </div>`;
+                }
 
                 const ariaLabel = `${spielNrLabel ? spielNrLabel + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
 
