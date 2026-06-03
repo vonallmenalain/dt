@@ -3888,15 +3888,22 @@
             .sc-team,
             .sc-team-info {
                 width: 100%;
+                min-width: 0;
             }
 
             .sc-team-info {
-                align-items: flex-start;
+                align-items: center;
+                overflow: hidden;
+            }
+
+            .sc-team-info-away {
+                justify-content: flex-end;
             }
 
             .sc-team-logo {
                 width: 24px;
                 height: 24px;
+                flex: 0 0 24px;
             }
 
             .sc-player-avatar {
@@ -3907,12 +3914,14 @@
             .sc-team-name {
                 font-size: 0.82rem;
                 line-height: 1.15;
-                white-space: normal;
-                overflow-wrap: anywhere;
-                display: -webkit-box;
-                -webkit-box-orient: vertical;
-                -webkit-line-clamp: 2;
-                text-overflow: clip;
+                display: block;
+                min-width: 0;
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                overflow-wrap: normal;
+                word-break: normal;
             }
 
             .sc-score {
@@ -3949,6 +3958,7 @@
             .sc-team-logo {
                 width: 22px;
                 height: 22px;
+                flex-basis: 22px;
             }
 
             .sc-team-info {
@@ -3957,6 +3967,9 @@
 
             .sc-team-name {
                 font-size: 0.78rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .sc-time {
