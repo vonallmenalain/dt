@@ -1,0 +1,163 @@
+player.id,Spielername,Nationalteam.name,Club.name,Reason
+732,L. Zidane,Algeria,,empty-club-name
+327599,Y. Titraoui,Algeria,,empty-club-name
+334915,F. Ghedjemis,Algeria,,empty-club-name
+20869,S. Chergui,Algeria,,empty-club-name
+2465,J. Musso,Argentina,,empty-club-name
+6,L. Balerdi,Argentina,,empty-club-name
+426480,Lucas Herrington,Australia,,empty-club-name
+296645,T. Yengi,Australia,,empty-club-name
+7525,A. Schlager,Austria,,empty-club-name
+126640,D. Affengruber,Austria,,empty-club-name
+25287,K. Danso,Austria,,empty-club-name
+1095,X. Schlager,Austria,,empty-club-name
+264094,B. Tahirovic,Bosnia & Herzegovina,,empty-club-name
+7318,A. Dedic,Bosnia & Herzegovina,,empty-club-name
+70514,A. Gigovic,Bosnia & Herzegovina,,empty-club-name
+314377,S. Bazdar,Bosnia & Herzegovina,,empty-club-name
+46930,E. Demirovic,Bosnia & Herzegovina,,empty-club-name
+790,E. Dzeko,Bosnia & Herzegovina,,empty-club-name
+78494,J. Waterman,Canada,,empty-club-name
+50788,M. Choinière,Canada,,empty-club-name
+35570,S. Eustáquio,Canada,,empty-club-name
+328046,I. Koné,Canada,,empty-club-name
+2001,C. Larin,Canada,,empty-club-name
+8489,J. David,Canada,,empty-club-name
+19182,A. Tuanzebe,Congo DR,,empty-club-name
+8445,D. Batubinsika,Congo DR,,empty-club-name
+375598,N. Mukau,Congo DR,,empty-club-name
+129670,N. Mbuku,Congo DR,,empty-club-name
+21101,S. Moutoussamy,Congo DR,,empty-club-name
+279482,B. Cipenga,Congo DR,,empty-club-name
+726,Andrej Kramarić,Croatia,,empty-club-name
+754,L. Modric,Croatia,,empty-club-name
+46746,A. Budimir,Croatia,,empty-club-name
+14268,I. Pandur,Croatia,,empty-club-name
+842,N. Vlasic,Croatia,,empty-club-name
+207,I. Perisic,Croatia,,empty-club-name
+128793,D. Jurásek,Czech Republic,,empty-club-name
+66387,P. Sulc,Czech Republic,,empty-club-name
+66347,J. Stanek,Czech Republic,,empty-club-name
+66353,L. Provod,Czech Republic,,empty-club-name
+241,M. Sadílek,Czech Republic,,empty-club-name
+818,T. Chorý,Czech Republic,,empty-club-name
+2649,Ahmed Fatouh,Egypt,,empty-club-name
+16813,Hamdi Fathy,Egypt,,empty-club-name
+2656,Karim Hafez,Egypt,,empty-club-name
+16831,Al Mahdi Soliman,Egypt,,empty-club-name
+16841,Mohanad Lasheen,Egypt,,empty-club-name
+2660,Nabil Emad Dunga,Egypt,,empty-club-name
+664079,Ahmed Zizo,Egypt,,empty-club-name
+550469,M. Alaa,Egypt,,empty-club-name
+25927,J. Mateta,France,,empty-club-name
+347211,R. Risser,France,,empty-club-name
+156477,R. Cherki,France,,empty-club-name
+274300,M. Akliouche,France,,empty-club-name
+20995,M. Lacroix,France,,empty-club-name
+497,M. Neuer,Germany,,empty-club-name
+475575,Caleb Marfo Yirenkyi,Ghana,FC Nordsjælland,no-safe-logo-match
+47294,Iñaki Dannis Williams,Ghana,,empty-club-name
+337426,A. Boakye,Ghana,,empty-club-name
+199837,K. Sulemana,Ghana,,empty-club-name
+25341,D. Luckassen,Ghana,,empty-club-name
+350856,E. Nuamah,Ghana,,empty-club-name
+540857,C. F. Sainte,Haiti,,empty-club-name
+643918,M. Ghaedi,Iran,,empty-club-name
+343405,Aria Yousefi,Iran,,empty-club-name
+29937,Amirhossein Hosseinzadeh,Iran,,empty-club-name
+533035,A. Nemati,Iran,,empty-club-name
+89982,S. Moghanlou,Iran,,empty-club-name
+341844,M. Ghorbani,Iran,,empty-club-name
+29755,H. Hosseini,Iran,,empty-club-name
+532950,D. Eiri,Iran,,empty-club-name
+123802,Fahad Talib,Iraq,Al Talaba SC,no-safe-logo-match
+542697,Meme,Iraq,,empty-club-name
+542842,A. Y. Hashim,Iraq,,empty-club-name
+49451,Aymen Hussein,Iraq,Al Karma SC,no-safe-logo-match
+626479,Z. Ismaeel,Iraq,,empty-club-name
+33889,Kaishu Sano,Japan,,empty-club-name
+351014,Junnosuke Suzuki,Japan,FC København,no-safe-logo-match
+422572,K. Shiogai,Japan,,empty-club-name
+140607,Yazid Abu Layla,Jordan,,empty-club-name
+542710,M. Abu Hasheesh,Jordan,,empty-club-name
+310835,Abdallah Naseeb,Jordan,,empty-club-name
+542822,H. Abu Al Dahab,Jordan,,empty-club-name
+568556,O. Al Fakhouri,Jordan,,empty-club-name
+542768,Ibrahim Sa'deh,Jordan,,empty-club-name
+651096,M. Al Daoud,Jordan,,empty-club-name
+664028,A. Badawi,Jordan,,empty-club-name
+186,Heung-Min Heungmin,South Korea,LAFC,no-safe-logo-match
+547307,Cho Wi-Je,South Korea,,empty-club-name
+197985,Young-Woo Seol,South Korea,,empty-club-name
+280358,J. Castrop,South Korea,,empty-club-name
+34168,Kim Jin-Gyu,South Korea,,empty-club-name
+237050,Eom Ji-Sung,South Korea,,empty-club-name
+34431,Lee Dong-Gyeong,South Korea,,empty-club-name
+270774,J. Rangel,Mexico,,empty-club-name
+2722,Ayoub El Kaabi,Morocco,Olympiacos FC,no-safe-logo-match
+535046,A. Amaimouni,Morocco,,empty-club-name
+2703,A. Tagnaouti,Morocco,,empty-club-name
+277003,N. El Aynaoui,Morocco,,empty-club-name
+430835,Tyler Bindon,New Zealand,Sheffield United FC,no-safe-logo-match
+36777,M. Woud,New Zealand,,empty-club-name
+242,R. Thomas,New Zealand,,empty-club-name
+6932,C. Elliot,New Zealand,,empty-club-name
+405957,L. Bayliss,New Zealand,,empty-club-name
+51307,T. Smith,New Zealand,,empty-club-name
+19172,Ø. Nyland,Norway,,empty-club-name
+554208,C. Martinez,Panama,,empty-club-name
+535737,R. Fernandez,Paraguay,,empty-club-name
+195992,J. Cáceres,Paraguay,,empty-club-name
+2500,F. Balbuena,Paraguay,,empty-club-name
+2499,J. Alonso,Paraguay,,empty-club-name
+196298,R. Sosa,Paraguay,,empty-club-name
+42207,Mahmud Ibrahim Abunada,Qatar,,empty-club-name
+2530,Pedro Miguel,Qatar,,empty-club-name
+42288,Lucas Mendes,Qatar,,empty-club-name
+542536,G. Laye,Qatar,,empty-club-name
+200981,Jassem Gaber,Qatar,,empty-club-name
+2533,Abdulaziz Hatem,Qatar,,empty-club-name
+542548,A. Al Oui,Qatar,,empty-club-name
+542542,A. Al Hussain,Qatar,,empty-club-name
+593759,Ala Al Haji,Saudi Arabia,,empty-club-name
+543059,J. Thakri,Saudi Arabia,,empty-club-name
+903,Scott McTominay,Scotland,,empty-club-name
+19066,G. Hanley,Scotland,,empty-club-name
+1117,K. Tierney,Scotland,,empty-club-name
+19191,J. McGinn,Scotland,,empty-club-name
+557460,T. Fletcher,Scotland,,empty-club-name
+45307,L. Dykes,Scotland,,empty-club-name
+354831,Thapelo Maseko,South Africa,,empty-club-name
+158433,Sphephelo Sithole,South Africa,,empty-club-name
+510799,M. Mbokazi,South Africa,,empty-club-name
+127429,I. Rayners,South Africa,,empty-club-name
+46417,S. Chaine,South Africa,,empty-club-name
+201354,E. Makgopa,South Africa,,empty-club-name
+153430,Anthony Junior Elanga,Sweden,,empty-club-name
+158700,V. Johansson,Sweden,,empty-club-name
+2860,K. Sema,Sweden,,empty-club-name
+47903,H. Ekdal,Sweden,,empty-club-name
+47988,C. Starfelt,Sweden,,empty-club-name
+48047,J. Karlström,Sweden,,empty-club-name
+533394,C. Abdelmouhib,Tunisia,,empty-club-name
+25300,Rani Khedira,Tunisia,,empty-club-name
+533295,K. Ayari,Tunisia,,empty-club-name
+67195,H. Mahmoud,Tunisia,,empty-club-name
+49424,A. Dahmen,Tunisia,,empty-club-name
+21587,E. Skhiri,Tunisia,,empty-club-name
+566059,R. Elloumi,Tunisia,,empty-club-name
+533360,R. Chikhaoui,Tunisia,,empty-club-name
+51530,Federico Viñas Barboza,Uruguay,,empty-club-name
+51466,J. Piquerez,Uruguay,,empty-club-name
+429,F. Muslera,Uruguay,,empty-club-name
+135334,S. Bueno,Uruguay,,empty-club-name
+162891,J. Sanabria,Uruguay,,empty-club-name
+108563,R. Zalazar,Uruguay,,empty-club-name
+532759,F. Sayfiev,Uzbekistan,,empty-club-name
+416952,A. Abdullaev,Uzbekistan,,empty-club-name
+65584,Azizbek Amonov,Uzbekistan,,empty-club-name
+72128,I. Sergeev,Uzbekistan,,empty-club-name
+263676,A. Fayzullaev,Uzbekistan,,empty-club-name
+363723,S. Esanov,Uzbekistan,,empty-club-name
+416964,B. Karimov,Uzbekistan,,empty-club-name
+65571,A. Ulmasaliev,Uzbekistan,,empty-club-name
