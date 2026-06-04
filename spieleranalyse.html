@@ -9613,6 +9613,15 @@
         const out = document.getElementById('cmp-mgr-result');
         if (!out) return;
 
+        if (isTeamsLocked()) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">🔒</span>
+                    Wird mit Turnierstart enthüllt.
+                </div>`;
+            return;
+        }
+
         const a = getEnrichedTeamByManager(cmpMgrA);
         const b = getEnrichedTeamByManager(cmpMgrB);
 
@@ -9938,6 +9947,15 @@
         const out = document.getElementById('cmp-pl-result');
         if (!out) return;
 
+        if (isTeamsLocked()) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">🔒</span>
+                    Wird mit Turnierstart enthüllt.
+                </div>`;
+            return;
+        }
+
         let stA = cmpPlayerA ? buildPlayerStats(cmpPlayerA) : null;
         let stB = null;
 
@@ -10207,6 +10225,15 @@
     function renderWhatIfAnalysis() {
         const out = document.getElementById('cmp-whatif-result');
         if (!out) return;
+
+        if (isTeamsLocked()) {
+            out.innerHTML = `
+                <div class="cmp-empty">
+                    <span class="cmp-empty-icon">🔒</span>
+                    Wird mit Turnierstart enthüllt.
+                </div>`;
+            return;
+        }
 
         const team = getEnrichedTeamByManager(cmpWhatIfMgr);
         if (!team) {
