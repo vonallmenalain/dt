@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - WM 2026 Provisorischer Kader-Generator</title>
+    <title>Admin - WM 2026 Kader-Generator (Definitiv)</title>
     <meta name="theme-color" content="#28a745">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -349,14 +349,15 @@
 <div class="admin-container">
     <h1 id="page-title">🌍 WM 2026 Kader-Generator</h1>
     <p id="page-intro" class="page-intro">
-        Erstellt eine <strong>provisorische Kaderliste der FIFA WM 2026</strong>
-        und schreibt das Ergebnis im etablierten <code>playersData</code>-Format
-        direkt in <strong>data-wm2026.js</strong>.
+        Erstellt die <strong>definitive Kaderliste der FIFA WM 2026</strong>
+        direkt aus dem offiziellen Turnier-Endpunkt (<code>league=1, season=2026</code>)
+        und gibt das Ergebnis im etablierten <code>playersData</code>-Format aus.
     </p>
 
     <div class="lock-banner">
-        🔒 Diese Seite ist fest auf <strong>WM 2026</strong> gelockt – es können
-        keine Daten anderer Turniere überschrieben werden.
+        🔒 Diese Seite ist fest auf <strong>WM 2026</strong> gelockt –
+        Quelle: <strong>league=1, season=2026</strong> (offizielle Turnier-Registrierung).
+        Keine Daten anderer Turniere können überschrieben werden.
     </div>
 
     <div class="info-box">
@@ -400,13 +401,18 @@
             </div>
         </div>
 
-        <button id="btnStart" class="btn-start">🚀 Provisorischen WM-2026-Kader generieren</button>
+        <button id="btnStart" class="btn-start">🚀 Definitiven WM-2026-Kader generieren</button>
 
         <div class="hint">
-            Der Generator nutzt die <strong>aktuellen Nationalmannschafts-Squads</strong>
-            (<code>/players/squads</code>) jedes für die WM 2026 qualifizierten Teams.
-            Für jeden Spieler werden zusätzlich Geburtsdatum, Grösse, Gewicht und
-            der aktuelle Verein über <code>/players?id=…</code> geladen.
+            Der Generator lädt die <strong>definitiven, offiziell beim Turnier
+            registrierten Spieler</strong> direkt über
+            <code>/players?league=1&amp;season=2026&amp;team=&lt;id&gt;</code>
+            pro qualifiziertem Team (mit automatischer Seiten-Paginierung für
+            bis zu 26 Spieler je Team). Dieser Endpunkt liefert vollständige
+            Bio-Daten (Vor- und Nachname, Geburtsdatum, Grösse, Gewicht, Foto)
+            direkt aus dem WM-2026-Turnier-Datensatz – für jeden Spieler wird
+            anschliessend über <code>/players?id=…&amp;season=2026</code> der
+            aktuelle Verein nachgeladen.
             <br><br>
             <strong>Filter:</strong> Spieler ohne Vornamen oder ohne Profilbild
             werden NICHT in <code>data-wm2026.js</code> exportiert.
@@ -1008,57 +1014,89 @@
             setStat(statTeams, teamsList.length);
             log(`✅ ${teamsList.length} qualifizierte Teams gefunden.\n`, "log-success");
 
-            /* ----- PHASE 2: Squads pro Team ----- */
-            log(`--- PHASE 2: Lade aktuellen Nationalmannschafts-Squad pro Team ---`, "log-warning");
+            /* ----- PHASE 2: Spieler direkt aus WM-2026-Tournament laden ----- */
+            /*
+             * Wir verwenden /players?league=1&season=2026&team=<id>&page=N statt
+             * /players/squads, weil dieser Endpoint die definitiven, beim Turnier
+             * registrierten Spieler mit vollständigen Bio-Daten (Vorname, Nachname,
+             * Geburtsdatum, Grösse, Gewicht, Foto) zurückgibt.
+             * Die API liefert 20 Einträge pro Seite – bei 26 Spielern wird
+             * automatisch auf Seite 2 nachgeladen.
+             */
+            log(`--- PHASE 2: Lade Spieler direkt aus WM 2026 (${COMPETITION_PARAM}=${COMPETITION_ID}, season=${PRIMARY_SEASON}) ---`, "log-warning");
 
-            const squadEntries = []; // {playerId, position, nationalTeam:{id,name,logo}}
+            const squadEntries = []; // {playerId, squadPosition, squadName, squadPhoto, nationalTeam, preloadedPlayer}
             const seenPlayerIds = new Set();
             let squadsLoaded = 0;
+            const MAX_PAGES_PER_TEAM = 5; // 5 × 20 = 100 – ausreichend für max. 26 WM-Kader-Plätze
 
             for (let i = 0; i < teamsList.length; i++) {
                 const team = teamsList[i];
+                let teamPlayerCount = 0;
                 try {
-                    const sq = await apiGet(`/players/squads?team=${team.id}`);
-                    const entry = sq.response && sq.response[0];
-                    const players = (entry && entry.players) || [];
+                    let page = 1;
+                    let totalPages = 1;
 
-                    if (players.length === 0) {
-                        log(`⚠️ Squad leer für ${team.name} (id=${team.id}).`, "log-warning");
-                    }
+                    do {
+                        if (page > 1) await delay(RATE_DELAY);
+                        const url = `/players?${COMPETITION_PARAM}=${COMPETITION_ID}&season=${encodeURIComponent(PRIMARY_SEASON)}&team=${team.id}&page=${page}`;
+                        const sq = await apiGet(url);
+                        const entries = sq.response || [];
+                        totalPages = (sq.pager && sq.pager.total) ? Number(sq.pager.total) : 1;
 
-                    for (const p of players) {
-                        if (!p || !p.id) continue;
-                        if (seenPlayerIds.has(p.id)) continue;
-                        seenPlayerIds.add(p.id);
-                        squadEntries.push({
-                            playerId: p.id,
-                            squadPosition: p.position || "",
-                            squadName: p.name || "",
-                            squadPhoto: p.photo || "",
-                            nationalTeam: { id: team.id, name: team.name, logo: team.logo }
-                        });
-                    }
+                        for (const sqEntry of entries) {
+                            const p = sqEntry.player;
+                            const stats = sqEntry.statistics || [];
+                            if (!p || !p.id) continue;
+                            if (seenPlayerIds.has(p.id)) continue;
+                            seenPlayerIds.add(p.id);
+
+                            squadEntries.push({
+                                playerId: p.id,
+                                squadPosition: stats[0]?.games?.position || "",
+                                squadName: p.name || "",
+                                squadPhoto: p.photo || "",
+                                nationalTeam: { id: team.id, name: team.name, logo: team.logo },
+                                preloadedPlayer: p
+                            });
+                            teamPlayerCount++;
+                        }
+
+                        page++;
+                    } while (page <= totalPages && page <= MAX_PAGES_PER_TEAM);
 
                     squadsLoaded++;
                     setStat(statSquads, squadsLoaded);
                     setStat(statPlayers, squadEntries.length);
-                    log(`  [${i + 1}/${teamsList.length}] ${team.name}: ${players.length} Spieler`);
+                    log(`  [${i + 1}/${teamsList.length}] ${team.name}: ${teamPlayerCount} Spieler`);
+
+                    if (teamPlayerCount === 0) {
+                        log(`⚠️ Keine Spieler im WM-Kader für ${team.name} (id=${team.id}).`, "log-warning");
+                    }
                 } catch (e) {
-                    log(`⚠️ Fehler beim Squad von ${team.name}: ${e.message}`, "log-error");
+                    log(`⚠️ Fehler beim Laden von ${team.name}: ${e.message}`, "log-error");
                 }
                 await delay(RATE_DELAY);
             }
 
-            log(`\n✅ ${squadEntries.length} eindeutige Spieler aus ${squadsLoaded} Squads gesammelt.\n`, "log-success");
+            log(`\n✅ ${squadEntries.length} eindeutige Spieler aus ${squadsLoaded} Teams geladen.\n`, "log-success");
 
             if (squadEntries.length === 0) {
                 throw new Error(
-                    "Keine Spieler in den Squads gefunden. Vermutlich unterstützt dein API-Plan den Endpunkt /players/squads nicht."
+                    `Keine Spieler für WM 2026 (${COMPETITION_PARAM}=${COMPETITION_ID}, season=${PRIMARY_SEASON}) gefunden. ` +
+                    `Prüfe deinen API-Plan (Free-Plan unterstützt manche Endpunkte nicht).`
                 );
             }
 
-            /* ----- PHASE 3: Spielerdetails laden ----- */
-            log(`--- PHASE 3: Lade Spielerdetails (Verein, Geburtsdatum, Grösse, Gewicht) ---`, "log-warning");
+            /* ----- PHASE 3: Verein & erweiterte Details pro Spieler laden -----
+             *
+             * Da wir in Phase 2 bereits vollständige Bio-Daten (firstname, lastname,
+             * birth, height, weight, photo) aus dem WM-Endpunkt haben, benutzen wir
+             * entry.preloadedPlayer als Fallback-Quelle. Die individuelle Abfrage
+             * /players?id=X&season=Y wird primär genutzt, um die Club-Statistiken
+             * zu ermitteln – die WM-Statistiken enthalten nur Länderspieldaten.
+             */
+            log(`--- PHASE 3: Lade Club-Infos pro Spieler (Verein, ggf. Geburtsdatum, Grösse, Gewicht) ---`, "log-warning");
 
             const finalData = [];
             const total = squadEntries.length;
@@ -1070,16 +1108,19 @@
                 try {
                     const { detail, seasonsTried } = await loadPlayerDetail(entry.playerId, seasons);
 
-                    // (A) Komplett ohne Details → überspringen, da kein Vorname
-                    //     ermittelt werden kann.
-                    if (!detail || !detail.player) {
+                    // Bevorzuge die Detail-Antwort der individuellen Abfrage;
+                    // falle auf preloadedPlayer aus Phase 2 zurück, falls keine
+                    // individuelle Antwort eintrifft (kann bei sehr neuen IDs passieren).
+                    const fullPlayer = (detail && detail.player) || entry.preloadedPlayer || null;
+
+                    // (A) Weder individueller Datensatz noch Phase-2-Daten vorhanden → überspringen.
+                    if (!fullPlayer) {
                         skippedCount++;
                         skipReasons.noDetail++;
                         setStat(statSkipped, skippedCount);
-                        log(`  ⏭️ Übersprungen (keine Details): ${entry.squadName || entry.playerId}`, "log-warning");
+                        log(`  ⏭️ Übersprungen (keine Daten): ${entry.squadName || entry.playerId}`, "log-warning");
                     } else {
-                        const fullPlayer = detail.player;
-                        const allStats = detail.statistics || [];
+                        const allStats = (detail && detail.statistics) || [];
 
                         const firstnameRaw = String(fullPlayer.firstname || "").trim();
                         const photoRaw = String(fullPlayer.photo || entry.squadPhoto || "").trim();
@@ -1226,7 +1267,7 @@
                 return String(a["Spielername"] || "").localeCompare(String(b["Spielername"] || ""), 'de');
             });
 
-            log(`\n✅ Provisorischer WM-2026-Kader fertig: ${finalData.length} Spieler aus ${squadsLoaded} Teams.`, "log-success");
+            log(`\n✅ Definitiver WM-2026-Kader fertig: ${finalData.length} Spieler aus ${squadsLoaded} Teams.`, "log-success");
 
             /* ----- Datei-Inhalt im etablierten playersData-Format bauen ----- */
             const jsonStr = JSON.stringify(finalData, null, 4);
@@ -1240,11 +1281,11 @@
 //   - Namens-Overrides definiert: ${Object.keys(MANUAL_NAME_OVERRIDE_MAP).length}
 //
 // Originalnamen mit Diakritika (Dembélé, Ødegaard, Vinícius Júnior, …)
-// bleiben erhalten — die App-Suche ist diakritikatolerant.`;
+// bleiben erhalten — die Suche in der App ist diakritikatolerant.`;
             const finalCode =
-`// WM 2026 Kader (PROVISORISCH)
+`// WM 2026 Kader (DEFINITIV)
 // Turnier: ${WM2026.name || "Weltmeisterschaft 2026"}
-// Quelle: API-Football /players/squads pro qualifiziertem Team
+// Quelle: API-Football /players?league=1&season=2026&team=<id> (offizielle Turnier-Registrierung)
 // Generiert am: ${generatedAt}
 ${overlayHeader}
 
