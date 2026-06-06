@@ -6788,7 +6788,7 @@ const playersData = [
     {
         "player.id": 573613,
         "Spielername": "Keeto Thermoncy",
-        "Spielerfoto": "https://media.api-sports.io/football/players/573613.png",
+        "Spielerfoto": "https://media.frapp.ch/image/2025/09/1320165/conversions/CcHqNSSGDrkKyEsvyEuJebw5jbh6D6Dwvsia3j8H-400x400.jpg",
         "Position": "DEFENDER",
         "Nationalteam.name": "Haiti",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2386.png",
