@@ -4240,7 +4240,22 @@
             text-align: center;
             margin-top: 3px;
             line-height: 1.3;
-            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .sc-venue-name,
+        .sc-venue-city {
+            display: block;
+            max-width: 100%;
+        }
+
+        .sc-venue-name {
+            font-weight: 800;
+            color: rgba(255,255,255,0.72);
+        }
+
+        .sc-venue-city {
+            margin-top: 1px;
         }
 
         .sc-meta {
@@ -4681,9 +4696,9 @@
         @media (max-width: 600px) {
             .sc-card-inner {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) minmax(64px, auto) minmax(0, 1fr) 28px;
+                grid-template-columns: minmax(86px, 1fr) minmax(68px, 74px) minmax(86px, 1fr) 24px;
                 align-items: start;
-                column-gap: 8px;
+                column-gap: 6px;
                 row-gap: 8px;
                 padding: 12px 14px;
             }
@@ -4701,6 +4716,11 @@
 
             .sc-team-info-away {
                 justify-content: flex-end;
+            }
+
+            .sc-player-avatars {
+                width: 100%;
+                min-width: 86px;
             }
 
             .sc-team-logo {
@@ -4735,6 +4755,13 @@
                 min-width: 0;
                 max-width: none;
                 width: 100%;
+                overflow-wrap: anywhere;
+            }
+
+            .sc-venue-center {
+                font-size: 0.6rem;
+                line-height: 1.18;
+                margin-top: 2px;
             }
 
             .sc-time {
@@ -4753,9 +4780,9 @@
 
         @media (max-width: 380px) {
             .sc-card-inner {
-                grid-template-columns: minmax(0, 1fr) 58px minmax(0, 1fr) 24px;
-                column-gap: 6px;
-                padding-inline: 12px;
+                grid-template-columns: minmax(80px, 1fr) 64px minmax(80px, 1fr) 22px;
+                column-gap: 3px;
+                padding-inline: 10px;
             }
 
             .sc-team-logo {
@@ -4765,7 +4792,17 @@
             }
 
             .sc-team-info {
-                gap: 6px;
+                gap: 5px;
+            }
+
+            .sc-player-avatars {
+                min-width: 80px;
+                gap: 4px;
+            }
+
+            .sc-player-avatar {
+                width: 24px;
+                height: 24px;
             }
 
             .sc-team-name {
@@ -7346,8 +7383,11 @@
                 const awayLogo = renderFlagImageHtml('sc-team-logo', m.teamBLogo, awayFlagUrl, m.teamB, 'sc-team-logo-placeholder');
 
                 // Venue text (no image)
-                const venueText = m.venue && m.venue !== 'Spielort folgt'
-                    ? `${m.venue}${m.venueCity ? ' · ' + m.venueCity : ''}`
+                const venueName = m.venue && m.venue !== 'Spielort folgt' ? String(m.venue).trim() : '';
+                const venueCity = venueName && m.venueCity ? String(m.venueCity).trim() : '';
+                const venueTitle = [venueName, venueCity].filter(Boolean).join(' · ');
+                const venueHtml = venueName
+                    ? `<div class="sc-venue-center" title="${escapeHtml(venueTitle)}"><span class="sc-venue-name">🏟️ ${escapeHtml(venueName)}</span>${venueCity ? `<span class="sc-venue-city">${escapeHtml(venueCity)}</span>` : ''}</div>`
                     : '';
 
                 // Resolve catalog entry to enable drafted lookup, spielNr label
@@ -7408,7 +7448,7 @@
                             ${centerHtml}
                             ${spielNrLabel ? `<div class="sc-card-spielnr">${escapeHtml(spielNrLabel)}</div>` : ''}
                             ${roundText ? `<div class="sc-round${groupStageLabel ? ' sc-round-group' : ''}">${escapeHtml(roundText)}</div>` : ''}
-                            ${venueText ? `<div class="sc-venue-center">🏟️ ${escapeHtml(venueText)}</div>` : ''}
+                            ${venueHtml}
                         </div>
                         <div class="sc-team sc-team-away">
                             <div class="sc-team-info sc-team-info-away">
