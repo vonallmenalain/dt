@@ -9242,7 +9242,7 @@
                     { name: "Lamine Yamal", nation: "Spanien", position: "ANG" },
                     { name: "Christian Pulisic", nation: "USA", position: "ANG" },
                     { name: "Federico Valverde", nation: "Uruguay", position: "MIT" },
-                    { name: "Son Heung-min", nation: "Südkorea", position: "ANG" },
+                    { playerId: 186, name: "Heungmin Son", nation: "South Korea", position: "ANG" },
                     { name: "Harry Kane", nation: "England", position: "ANG" },
                     { name: "Florian Wirtz", nation: "Deutschland", position: "MIT" },
                     { name: "Virgil van Dijk", nation: "Niederlande", position: "DEF" },
@@ -9300,11 +9300,14 @@
         function getPlayerLookup() {
             const dataset = getPlayersDataset();
             const byNormName = new Map();
+            const byId = new Map();
             dataset.forEach((p) => {
                 const key = normalizeName(p.Spielername);
                 if (key && !byNormName.has(key)) byNormName.set(key, p);
+                const id = String(p['player.id'] ?? '');
+                if (id && !byId.has(id)) byId.set(id, p);
             });
-            return byNormName;
+            return { byNormName, byId };
         }
 
         function resolveDatasetPlayerByName(name, byNormName) {
@@ -9320,6 +9323,14 @@
             return null;
         }
 
+        function resolveDatasetPlayer(star, lookup) {
+            if (star?.playerId != null) {
+                const foundById = lookup.byId.get(String(star.playerId));
+                if (foundById) return foundById;
+            }
+            return resolveDatasetPlayerByName(star?.name, lookup.byNormName);
+        }
+
         function buildStaticPlayerId(name) {
             const slug = normalizeName(name)
                 .replace(/[^a-z0-9]+/g, '-')
@@ -9327,8 +9338,8 @@
             return `static:${slug || 'player'}`;
         }
 
-        function buildStaticPlayerItem(star, byNormName) {
-            const raw = resolveDatasetPlayerByName(star.name, byNormName);
+        function buildStaticPlayerItem(star, lookup) {
+            const raw = resolveDatasetPlayer(star, lookup);
             if (raw) {
                 return {
                     ...normalizePlayer(raw),
@@ -9351,9 +9362,9 @@
         }
 
         function buildStaticStarItems(group, limit = 15) {
-            const byNormName = getPlayerLookup();
+            const lookup = getPlayerLookup();
             return (group.players || [])
-                .map((star) => buildStaticPlayerItem(star, byNormName))
+                .map((star) => buildStaticPlayerItem(star, lookup))
                 .slice(0, limit);
         }
 
