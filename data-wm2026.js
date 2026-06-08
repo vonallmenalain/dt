@@ -3724,8 +3724,8 @@ const playersData = [
         "Position": "GOALKEEPER",
         "Nationalteam.name": "Croatia",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/3.png",
-        "Club.name": "GNK Dinamo Zagreb",
-        "Club.logo": "",
+         "Club.name": "Dinamo Zagreb",
+        "Club.logo": "https://media.api-sports.io/football/teams/620.png",
         "Geburtsdatum": "1995-01-09",
         "Groesse": "188",
         "Gewicht": "79"
