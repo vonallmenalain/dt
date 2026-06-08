@@ -40,10 +40,11 @@
  *                              Wichtig: Das ist nur eine UI-Schranke,
  *                              die echte Sperre gehört in die
  *                              Firestore Rules / das Backend.
+ *    isAuthResolved()        → boolean (initialer Firebase-Auth-Status da?)
  *    onAdminChange(cb)       → unsubscribe()
- *                              cb({ isAdmin, uid }) feuert sofort einmal
- *                              mit dem aktuellen Stand, dann bei jeder
- *                              Änderung.
+ *                              cb({ isAdmin, uid, authResolved }) feuert
+ *                              sofort einmal mit dem aktuellen Stand, dann
+ *                              bei jeder Änderung.
  *
  *  Voraussetzungen:
  *    - firebase-app-compat + firebase-auth-compat müssen geladen sein,
@@ -92,6 +93,7 @@
     const listeners = new Set();
     let currentUid = null;
     let currentIsAdmin = false;
+    let authResolved = false;
     let firebaseHooked = false;
 
     function isAdminUid(uid) {
@@ -99,7 +101,7 @@
     }
 
     function notifyAll() {
-        const payload = { isAdmin: currentIsAdmin, uid: currentUid };
+        const payload = { isAdmin: currentIsAdmin, uid: currentUid, authResolved };
         listeners.forEach((cb) => {
             try { cb(payload); } catch (err) {
                 console.error('[DreamTeamAdmin] listener error:', err);
@@ -110,7 +112,9 @@
     function setAuthUser(user) {
         const nextUid = (user && user.uid) || null;
         const nextIsAdmin = isAdminUid(nextUid);
-        if (nextUid === currentUid && nextIsAdmin === currentIsAdmin) return;
+        const wasResolved = authResolved;
+        authResolved = true;
+        if (wasResolved && nextUid === currentUid && nextIsAdmin === currentIsAdmin) return;
         currentUid = nextUid;
         currentIsAdmin = nextIsAdmin;
         notifyAll();
@@ -174,13 +178,15 @@
         ADMIN_UIDS,
         isAdmin()   { return currentIsAdmin; },
         getUid()    { return currentUid; },
+        isAuthResolved() { return authResolved; },
+        isAuthReady() { return authResolved; },
         isAdminUid,
         getDevViewOverride,
         onAdminChange(cb) {
             if (typeof cb !== 'function') return function () {};
             listeners.add(cb);
             try {
-                cb({ isAdmin: currentIsAdmin, uid: currentUid });
+                cb({ isAdmin: currentIsAdmin, uid: currentUid, authResolved });
             } catch (err) {
                 console.error('[DreamTeamAdmin] listener error (initial):', err);
             }

@@ -94,11 +94,15 @@
             }
 
             // 2) Letzter bekannter Render dieser Seite (sessionStorage).
-            var cached = null;
-            try { cached = sessionStorage.getItem('dreamteamLastView'); } catch (e) {}
-            if (cached === 'pre' || cached === 'post') {
-                html.dataset.view = cached;
-                return;
+            // Wenn der Dev-Schalter explizit auf "auto" steht, darf ein
+            // alter Session-Wert aus einem vorherigen Override nicht gewinnen.
+            if (override !== 'auto') {
+                var cached = null;
+                try { cached = sessionStorage.getItem('dreamteamLastView'); } catch (e) {}
+                if (cached === 'pre' || cached === 'post') {
+                    html.dataset.view = cached;
+                    return;
+                }
             }
 
             // 3) Hartkodierte Domain → Tournament-Start-Map (Spiegel aus
@@ -5958,6 +5962,25 @@
     const DEV_MODES = ["auto", "pre", "post"];
     const DEV_LABELS = { auto: "DEV: Auto", pre: "DEV: Vor Start", post: "DEV: Nach Start" };
 
+    function readStoredDevViewOverride() {
+        try {
+            const value = localStorage.getItem(DEV_TOGGLE_KEY);
+            if (value === "pre" || value === "post") return value;
+        } catch (_) { /* localStorage unavailable */ }
+        return null;
+    }
+
+    function isAdminAuthResolved() {
+        const Admin = window.DreamTeamAdmin;
+        if (Admin && typeof Admin.isAuthResolved === "function") {
+            return Admin.isAuthResolved();
+        }
+        if (Admin && typeof Admin.isAuthReady === "function") {
+            return Admin.isAuthReady();
+        }
+        return false;
+    }
+
     /**
      * Gibt den effektiven Anzeigemodus zurück:
      * "pre"  → Vor-Spielstart-Ansicht anzeigen
@@ -5979,6 +6002,17 @@
             : null;
         if (override === "pre") return "pre";
         if (override === "post") return "post";
+
+        // Firebase Auth liefert den persistierten User asynchron. Solange
+        // noch unklar ist, ob der aktuelle Browser-User Admin ist, behalten
+        // wir denselben Best-Guess wie das Head-Script bei. Sonst springt
+        // die Seite bei gespeichertem "Nach Start" kurz auf "Vor Start",
+        // bevor der Admin-Status ankommt.
+        const pendingOverride = readStoredDevViewOverride();
+        if (pendingOverride && Admin && !isAdminAuthResolved()) {
+            return pendingOverride;
+        }
+
         return new Date() >= getDreamteamStart() ? "post" : "pre";
     }
 
@@ -6292,16 +6326,45 @@
     }
 
     function animateCounter(el, target, duration = 800) {
-        if (prefersReducedMotion() || !el) { el && (el.textContent = target); return; }
-        const start = 0;
+        if (!el) return;
+
+        const numericTarget = Number(target);
+        const targetText = String(target);
+        if (!Number.isFinite(numericTarget) || prefersReducedMotion()) {
+            el.textContent = targetText;
+            el.dataset.counterTarget = targetText;
+            el.dataset.counterAnimating = "0";
+            return;
+        }
+
+        if (el.dataset.counterTarget === targetText) {
+            if (el.dataset.counterAnimating === "1") return;
+            if (el.textContent.trim() === targetText) return;
+        }
+
+        if (el.dataset.counterRafId) {
+            cancelAnimationFrame(Number(el.dataset.counterRafId));
+        }
+
+        const current = Number(String(el.textContent || "").replace(/[^\d.-]/g, ""));
+        const start = Number.isFinite(current) ? current : 0;
         const startTime = performance.now();
+        el.dataset.counterTarget = targetText;
+        el.dataset.counterAnimating = "1";
+
         const step = (now) => {
             const t = Math.min((now - startTime) / duration, 1);
             const eased = 1 - Math.pow(1 - t, 3);
-            el.textContent = Math.round(start + (target - start) * eased);
-            if (t < 1) requestAnimationFrame(step);
+            el.textContent = Math.round(start + (numericTarget - start) * eased);
+            if (t < 1) {
+                el.dataset.counterRafId = String(requestAnimationFrame(step));
+            } else {
+                el.textContent = targetText;
+                el.dataset.counterAnimating = "0";
+                delete el.dataset.counterRafId;
+            }
         };
-        requestAnimationFrame(step);
+        el.dataset.counterRafId = String(requestAnimationFrame(step));
     }
 
     /* =========================================================
@@ -9680,9 +9743,44 @@
     }
 
     let _lastRenderedData = null;
+    let _lastRenderSignature = null;
 
-    function render(data) {
+    function getRenderSignature(data) {
+        const meta = data && data.meta ? data.meta : null;
+        if (!meta) return null;
+
+        const hasVersion =
+            meta.teamsVersion !== undefined ||
+            meta.pointsVersion !== undefined ||
+            meta.fixturesVersion !== undefined;
+        if (!hasVersion) return null;
+
+        const teamsCount = Array.isArray(data.teams) ? data.teams.length : 0;
+        const pointsCount = data.points ? Object.keys(data.points).length : 0;
+        const fixturesCount = data.fixtures ? Object.keys(data.fixtures).length : 0;
+
+        return [
+            getEffectiveIndexViewMode(),
+            meta.tournamentKey || "",
+            meta.teamsVersion ?? "",
+            meta.pointsVersion ?? "",
+            meta.fixturesVersion ?? "",
+            teamsCount,
+            pointsCount,
+            fixturesCount
+        ].join("|");
+    }
+
+    function render(data, options = {}) {
         _lastRenderedData = data;
+        const signature = getRenderSignature(data);
+        if (!options.force && signature && signature === _lastRenderSignature) {
+            applyIndexViewMode();
+            updateDevToggleLabel();
+            return;
+        }
+        _lastRenderSignature = signature;
+
         renderIndexHome(data);
         // Frische Team-Daten landen über DreamTeamCache.bootstrap im
         // LocalStorage. Das Karussell der "Meistgewählten Spieler" liest
