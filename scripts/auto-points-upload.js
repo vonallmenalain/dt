@@ -17,20 +17,22 @@
  *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
  *    2. Bestimmt Kandidaten-Spiele: Anpfiff liegt mindestens
  *       `WINDOW_START_MIN` Minuten entfernt/zurueck UND der Status ist
- *       in Firestore noch nicht FT/AET/PEN. Mit den Defaults -10/150
- *       startet der Live-Load 10 Minuten vor Anpfiff. `WINDOW_END_MIN`
- *       dient danach als Schwelle, ab der ein offenes Spiel als
- *       "ueberfaellig" (Catch-up) markiert/geloggt wird – es gibt
- *       bewusst KEINE harte obere Zeitgrenze mehr fuer die Kandidatur,
+ *       entweder noch nicht FT/AET/PEN oder liegt als finaler Status noch
+ *       im Reconciliation-Fenster (`FINAL_RECHECK_MIN`). Mit den Defaults
+ *       -10/150 startet der Live-Load 10 Minuten vor Anpfiff.
+ *       `WINDOW_END_MIN` dient danach als Schwelle, ab der ein offenes
+ *       Spiel als "ueberfaellig" (Catch-up) markiert/geloggt wird – es
+ *       gibt bewusst KEINE harte obere Zeitgrenze mehr fuer offene Spiele,
  *       damit verlaengerte oder verpasste Spiele automatisch nachgezogen
  *       werden. Wenn keine Kandidaten existieren, beendet sich der Lauf
  *       ohne API-Call (Quota-Schutz).
  *    3. Punkte-Workflow: API-Fixtures laden, Detail-Stats fuer Live- und
  *       Finalspiele auswerten, Punkte summieren, in Firestore schreiben
  *       und Meta-Dokument (`pointsUpdatedAt`, `pointsVersion`) hochzählen.
- *       Laufende Spiele werden als Delta auf Basis der bestehenden
- *       Punktedokumente geschrieben; sobald ein Kandidat final ist oder
- *       FORCE_RUN aktiv ist, erfolgt eine volle Neuberechnung.
+ *       Laufende und Final-Recheck-Kandidaten werden als Delta auf Basis
+ *       der bestehenden Punktedokumente geschrieben; sobald ein Kandidat
+ *       neu final wird oder FORCE_RUN aktiv ist, erfolgt eine volle
+ *       Neuberechnung aller beendeten bzw. scoring-faehigen Spiele.
  *       `pointsUpdatedAt` wird ausschliesslich nach einem erfolgreichen
  *       Schreibvorgang erhöht – die "Zuletzt aktualisiert"-Anzeige auf
  *       rangliste.html ist also nur dann frisch, wenn neue Daten wirklich
@@ -52,6 +54,10 @@
  *                              Live-Fensters relativ zum Anpfiff. Danach
  *                              bleibt ein offenes Spiel als Catch-up-
  *                              Kandidat aktiv (siehe Ablauf-Schritt 2).
+ *    FINAL_RECHECK_MIN         Optional, Default 360. Beendete Spiele
+ *                              bleiben bis so viele Minuten nach Anpfiff
+ *                              Kandidaten, damit nachtraegliche API-
+ *                              Korrekturen automatisch nachgezogen werden.
  *    LIVE_TICKS_PER_RUN        Optional, Default 5. Anzahl Ticks innerhalb
  *                              eines GitHub-Runs, wenn Kandidaten aktiv
  *                              sind. FORCE_RUN macht immer nur einen Tick.
@@ -104,6 +110,7 @@ const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT',
 const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
+const DEFAULT_FINAL_RECHECK_MIN = 360;
 const DEFAULT_LIVE_TICKS_PER_RUN = 5;
 const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
@@ -297,10 +304,13 @@ function initFirebase() {
  *  Upload-Workflow überhaupt anlaufen muss. Ein Spiel zählt als Kandidat,
  *  wenn sein Anpfiff (kickoffTimestamp) mindestens `windowStartMin`
  *  Minuten entfernt ist und das Spiel in Firestore noch nicht als beendet
- *  markiert ist. Mit den Live-Defaults -10/150 startet der teure API-Teil
- *  kurz vor dem Kickoff und läuft während des Spiels. Nach `windowEndMin`
- *  bleibt ein offenes Spiel als Catch-up-Kandidat aktiv, bis Firestore den
- *  Finalstatus kennt.
+ *  markiert ist oder noch im finalen Reconciliation-Fenster liegt. Mit den
+ *  Live-Defaults -10/150 startet der teure API-Teil kurz vor dem Kickoff
+ *  und läuft während des Spiels. Nach `windowEndMin` bleibt ein offenes
+ *  Spiel als Catch-up-Kandidat aktiv, bis Firestore den Finalstatus kennt.
+ *  Danach wird ein finaler Status noch `finalRecheckMin` Minuten nach
+ *  Anpfiff weiter geprüft, damit nachtraegliche API-Korrekturen nicht
+ *  manuell nachgezogen werden muessen.
  * ───────────────────────────────────────────────────────────────────────────── */
 async function findCandidateFixtures(db, tournament, opts) {
   const collectionName = tournament.firestore.fixturesCollection;
@@ -309,6 +319,7 @@ async function findCandidateFixtures(db, tournament, opts) {
   const now = nowMs();
   const windowStartMs = opts.windowStartMin * 60_000;
   const windowEndMs = opts.windowEndMin * 60_000;
+  const finalRecheckMs = opts.finalRecheckMin * 60_000;
 
   const all = [];
   const candidates = [];
@@ -324,6 +335,13 @@ async function findCandidateFixtures(db, tournament, opts) {
       id: doc.id,
       kickoffMs: (typeof kickoffSec === 'number') ? kickoffSec * 1000 : null,
       statusShort,
+      statusLong: (data.status && data.status.long) || '',
+      statusElapsed: (data.status && data.status.elapsed) != null ? data.status.elapsed : null,
+      goalsHome: (data.goals && data.goals.home) != null ? data.goals.home : null,
+      goalsAway: (data.goals && data.goals.away) != null ? data.goals.away : null,
+      score: data.score || {},
+      homeWinner: (data.homeTeam && data.homeTeam.winner != null) ? data.homeTeam.winner : null,
+      awayWinner: (data.awayTeam && data.awayTeam.winner != null) ? data.awayTeam.winner : null,
       label: (homeName && awayName) ? `${homeName} vs ${awayName}` : `Spiel ${doc.id}`
     };
     all.push(fxInfo);
@@ -331,12 +349,15 @@ async function findCandidateFixtures(db, tournament, opts) {
     if (!fxInfo.kickoffMs) return;
 
     const ageMs = now - fxInfo.kickoffMs;
-    const notFinished = !FINISHED_STATUSES.has(fxInfo.statusShort);
+    const isFinished = FINISHED_STATUSES.has(fxInfo.statusShort);
+    const notFinished = !isFinished;
+    const inFinalRecheck = isFinished && opts.finalRecheckMin > 0 && ageMs >= 0 && ageMs <= finalRecheckMs;
 
     // Ein Spiel ist Kandidat, sobald sein Anpfiff mindestens
-    // `windowStartMin` Minuten entfernt/zurueckliegt UND es in Firestore
-    // noch NICHT als beendet (FT/AET/PEN) markiert ist. Es gibt bewusst
-    // KEINE harte obere Zeitgrenze fuer die Kandidatur:
+    // `windowStartMin` Minuten entfernt/zurueckliegt UND es entweder in
+    // Firestore noch NICHT als beendet (FT/AET/PEN) markiert ist oder noch
+    // im finalen Reconciliation-Fenster liegt. Es gibt bewusst KEINE harte
+    // obere Zeitgrenze fuer offene Spiele:
     //
     //   Ein Spiel, das das urspruengliche Trigger-Fenster wegen API-/
     //   Netzwerkproblemen verpasst hat, blieb sonst dauerhaft ungescored,
@@ -345,14 +366,19 @@ async function findCandidateFixtures(db, tournament, opts) {
     //   auf beendet gesetzt wurde (was nach erfolgreicher Verarbeitung
     //   in updateFixtureStatusInFirestore passiert).
     //
-    // Quota-Schutz bleibt erhalten: pro Tick faellt nur EIN Firestore-
-    // Read (Spielplan) an; die teuren Detail-Calls werden in
-    // runFullPointsUpload uebersprungen, solange die API das Spiel noch
-    // nicht als beendet meldet. Das Phasen-Fenster (AUTO_POINTS_UNTIL)
-    // begrenzt das Catch-up zeitlich nach oben.
-    if (ageMs >= windowStartMs && notFinished) {
+    // Beendete Spiele werden danach noch fuer `FINAL_RECHECK_MIN` Minuten
+    // nach Anpfiff erneut geprueft. Damit zieht der naechste Cron-Tick
+    // spaete API-Korrekturen an Scorern, Assists, Karten usw. automatisch
+    // nach.
+    //
+    // Quota-Schutz bleibt erhalten: pro Tick faellt zuerst nur EIN
+    // Firestore-Read (Spielplan) an. Das Phasen-Fenster
+    // (AUTO_POINTS_UNTIL) begrenzt Catch-up und Reconciliation zeitlich
+    // nach oben.
+    if (ageMs >= windowStartMs && (notFinished || inFinalRecheck)) {
       fxInfo.ageMin = Math.round(ageMs / 60_000);
-      fxInfo.overdue = ageMs > windowEndMs;
+      fxInfo.overdue = notFinished && ageMs > windowEndMs;
+      fxInfo.finalRecheck = inFinalRecheck;
       candidates.push(fxInfo);
     }
   });
@@ -683,6 +709,32 @@ function hasAnyPointValue(pointObject) {
   return Object.keys(RULES).some(key => typeof pointObject[key] === 'number' && pointObject[key] !== 0);
 }
 
+function stableNormalize(value) {
+  if (value === undefined) return null;
+  if (value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(stableNormalize);
+
+  const out = {};
+  Object.keys(value).sort().forEach(key => {
+    const normalized = stableNormalize(value[key]);
+    if (normalized !== undefined) out[key] = normalized;
+  });
+  return out;
+}
+
+function normalizePointObjectForComparison(pointObject) {
+  const normalized = stableNormalize(pointObject || {});
+  if (normalized && typeof normalized === 'object' && !Array.isArray(normalized)) {
+    delete normalized.lastUpdated;
+  }
+  return normalized;
+}
+
+function pointObjectsEqual(a, b) {
+  return JSON.stringify(normalizePointObjectForComparison(a)) ===
+    JSON.stringify(normalizePointObjectForComparison(b));
+}
+
 function removeFixturePoints(pointObject, fixtureId) {
   if (!pointObject || fixtureId == null) return false;
   const key = `Spiel_${fixtureId}`;
@@ -730,7 +782,7 @@ function buildPointBaseFromExisting(playersData, existingPoints, fixtureIdsToRep
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Schreib-Workflow
  * ───────────────────────────────────────────────────────────────────────────── */
-async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onlyPlayerIds = null) {
+async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onlyPlayerIds = null, existingPoints = null) {
   const FieldValue = admin.firestore.FieldValue;
   const collection = tournament.firestore.pointsCollection;
   const targetIds = onlyPlayerIds
@@ -742,12 +794,25 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
   let countInBatch = 0;
   let written = 0;
   let deleted = 0;
+  let skipped = 0;
 
   for (const pid of targetIds) {
     const obj = allPlayerPoints[pid];
     const hasPoints = hasAnyPointValue(obj);
+    const previous = existingPoints ? existingPoints[pid] : null;
 
     if (!hasPoints && !isPartialWrite) continue;
+
+    if (existingPoints) {
+      if (hasPoints && previous && pointObjectsEqual(obj, previous)) {
+        skipped++;
+        continue;
+      }
+      if (!hasPoints && (!previous || !hasAnyPointValue(previous))) {
+        skipped++;
+        continue;
+      }
+    }
 
     if (hasPoints) {
       obj.lastUpdated = FieldValue.serverTimestamp();
@@ -786,6 +851,7 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
   return {
     written,
     deleted,
+    skipped,
     touched: written + deleted
   };
 }
@@ -820,37 +886,58 @@ async function bumpFixturesMetaVersion(db, tournament, opts) {
   }, { merge: true });
 }
 
-async function updateFixtureStatusInFirestore(db, tournament, games, opts) {
+function buildFixtureStatusUpdate(game) {
+  return {
+    status: {
+      long: (game.fixture.status && game.fixture.status.long) || '',
+      short: (game.fixture.status && game.fixture.status.short) || '',
+      elapsed: (game.fixture.status && game.fixture.status.elapsed) != null ? game.fixture.status.elapsed : null
+    },
+    goals: {
+      home: (game.goals && game.goals.home) != null ? game.goals.home : null,
+      away: (game.goals && game.goals.away) != null ? game.goals.away : null
+    },
+    score: game.score || {},
+    'homeTeam.winner': (game.teams && game.teams.home && game.teams.home.winner != null) ? game.teams.home.winner : null,
+    'awayTeam.winner': (game.teams && game.teams.away && game.teams.away.winner != null) ? game.teams.away.winner : null
+  };
+}
+
+function fixtureStatusMatchesSnapshot(update, snapshot) {
+  if (!snapshot) return false;
+  return snapshot.statusLong === update.status.long &&
+    snapshot.statusShort === update.status.short &&
+    snapshot.statusElapsed === update.status.elapsed &&
+    snapshot.goalsHome === update.goals.home &&
+    snapshot.goalsAway === update.goals.away &&
+    snapshot.homeWinner === update['homeTeam.winner'] &&
+    snapshot.awayWinner === update['awayTeam.winner'] &&
+    JSON.stringify(stableNormalize(snapshot.score || {})) === JSON.stringify(stableNormalize(update.score || {}));
+}
+
+async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtureSnapshotsById = null) {
   const collection = tournament.firestore.fixturesCollection;
-  if (!collection || !games || games.length === 0) return 0;
-  if (opts.dryRun) return games.length;
+  if (!collection || !games || games.length === 0) return { updated: 0, skipped: 0 };
+  if (opts.dryRun) return { updated: games.length, skipped: 0 };
 
   const FieldValue = admin.firestore.FieldValue;
   let batch = db.batch();
   let batchCount = 0;
   let totalUpdated = 0;
+  let skipped = 0;
 
   for (const game of games) {
     const fixtureId = String(game.fixture.id);
     const docRef = db.collection(collection).doc(fixtureId);
+    const update = buildFixtureStatusUpdate(game);
+    const snapshot = fixtureSnapshotsById ? fixtureSnapshotsById.get(fixtureId) : null;
 
-    const update = {
-      status: {
-        long: (game.fixture.status && game.fixture.status.long) || '',
-        short: (game.fixture.status && game.fixture.status.short) || '',
-        elapsed: (game.fixture.status && game.fixture.status.elapsed) != null ? game.fixture.status.elapsed : null
-      },
-      goals: {
-        home: (game.goals && game.goals.home) != null ? game.goals.home : null,
-        away: (game.goals && game.goals.away) != null ? game.goals.away : null
-      },
-      score: game.score || {},
-      'homeTeam.winner': (game.teams && game.teams.home && game.teams.home.winner != null) ? game.teams.home.winner : null,
-      'awayTeam.winner': (game.teams && game.teams.away && game.teams.away.winner != null) ? game.teams.away.winner : null,
-      updatedAt: FieldValue.serverTimestamp()
-    };
+    if (fixtureStatusMatchesSnapshot(update, snapshot)) {
+      skipped++;
+      continue;
+    }
 
-    batch.set(docRef, update, { merge: true });
+    batch.set(docRef, { ...update, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     batchCount++;
     totalUpdated++;
 
@@ -862,7 +949,7 @@ async function updateFixtureStatusInFirestore(db, tournament, games, opts) {
   }
 
   if (batchCount > 0) await batch.commit();
-  return totalUpdated;
+  return { updated: totalUpdated, skipped };
 }
 
 async function fetchFixtureDetailsByIds(headers, fixtureIds) {
@@ -918,7 +1005,7 @@ async function fetchFixtureDetailsByIds(headers, fixtureIds) {
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Haupt-Workflow
  * ───────────────────────────────────────────────────────────────────────────── */
-async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
+async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fixtureSnapshotsById = null) {
   const apiKey = process.env.RAPIDAPI_KEY;
   if (!apiKey) throw new Error('RAPIDAPI_KEY ist nicht gesetzt.');
 
@@ -967,7 +1054,13 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
   const finishedCandidateIds = candidateFixtureIds
     ? new Set(finishedGames.map(g => String(g.fixture.id)).filter(id => candidateFixtureIds.has(id)))
     : null;
-  const shouldFullRecompute = opts.forceRun || (finishedCandidateIds && finishedCandidateIds.size > 0);
+  const newlyFinishedCandidateIds = finishedCandidateIds
+    ? new Set(Array.from(finishedCandidateIds).filter(id => {
+        const snapshot = fixtureSnapshotsById ? fixtureSnapshotsById.get(id) : null;
+        return !snapshot || !FINISHED_STATUSES.has(snapshot.statusShort);
+      }))
+    : null;
+  const shouldFullRecompute = opts.forceRun || (newlyFinishedCandidateIds && newlyFinishedCandidateIds.size > 0);
 
   const scoringGames = shouldFullRecompute
     ? uniqueGamesByFixtureId([
@@ -985,6 +1078,9 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
 
   if (candidateFixtureIds && finishedCandidateIds && finishedCandidateIds.size > 0) {
     logInfo(`${finishedCandidateIds.size} der ${candidateFixtureIds.size} Kandidaten sind laut API beendet.`);
+    if (newlyFinishedCandidateIds && newlyFinishedCandidateIds.size > 0) {
+      logInfo(`${newlyFinishedCandidateIds.size} Kandidat(en) sind neu final – fuehre volle Neuberechnung aller beendeten Spiele aus.`);
+    }
   }
 
   if (scoringGames.length === 0) {
@@ -1001,14 +1097,15 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
   }
 
   let changedPlayerIds = null;
+  let existingPoints = null;
   let modeLabel = 'vollstaendige Neuberechnung';
   if (shouldFullRecompute) {
     playersData.forEach(p => { allPlayerPoints[String(p['player.id'])] = buildEmptyPlayerObject(p); });
   } else {
-    modeLabel = 'Live-Delta';
+    modeLabel = 'Delta/Reconciliation';
     changedPlayerIds = new Set();
-    logInfo('Lade bestehende Punktedokumente als Basis fuer Live-Delta.');
-    const existingPoints = await readExistingPointsFromFirestore(db, tournament);
+    logInfo('Lade bestehende Punktedokumente als Basis fuer Delta/Reconciliation.');
+    existingPoints = await readExistingPointsFromFirestore(db, tournament);
     const replaceFixtureIds = new Set(scoringGames.map(g => String(g.fixture.id)));
     Object.assign(
       allPlayerPoints,
@@ -1048,10 +1145,11 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
 
   Object.values(allPlayerPoints).forEach(recalculateTotalPoints);
 
-  const writeResult = await writePointsToFirestore(db, tournament, allPlayerPoints, opts, changedPlayerIds);
+  const writeResult = await writePointsToFirestore(db, tournament, allPlayerPoints, opts, changedPlayerIds, existingPoints);
   logInfo(
     `${writeResult.written} Spieler-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}, ` +
-    `${writeResult.deleted} geloescht/geleert, ${processedPlayers} Spielereinsaetze verarbeitet.`
+    `${writeResult.deleted} geloescht/geleert, ${writeResult.skipped} unveraendert uebersprungen, ` +
+    `${processedPlayers} Spielereinsaetze verarbeitet.`
   );
 
   if (writeResult.touched > 0) {
@@ -1072,13 +1170,14 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds) {
     const statusGames = shouldFullRecompute
       ? uniqueGamesByFixtureId([...(opts.forceRun ? scoringGames : finishedGames), ...liveCandidateGames])
       : scoringCandidateGames;
-    const updated = await updateFixtureStatusInFirestore(db, tournament, statusGames, opts);
-    logInfo(`Fixture-Status für ${updated} Spiele ${opts.dryRun ? '(DRY-RUN) berechnet' : 'aktualisiert'}.`);
+    const fixtureWriteResult = await updateFixtureStatusInFirestore(db, tournament, statusGames, opts, fixtureSnapshotsById);
+    logInfo(`Fixture-Status für ${fixtureWriteResult.updated} Spiele ${opts.dryRun ? '(DRY-RUN) berechnet' : 'aktualisiert'}, ` +
+      `${fixtureWriteResult.skipped} unveraendert uebersprungen.`);
 
     // Im Live-Modus soll neben den Punkten auch der Spielstand/Status sofort
     // in den Clients ankommen. Darum erhoehen wir fixturesVersion bei jedem
     // Tick, der API-Statusdaten fuer ein Live-/Finalspiel geschrieben hat.
-    if (updated > 0) {
+    if (fixtureWriteResult.updated > 0) {
       await bumpFixturesMetaVersion(db, tournament, opts);
       logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhoeht – Clients laden frische Spielstaende sofort nach.`);
     }
@@ -1106,6 +1205,7 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
   }
 
   let candidateIds = null;
+  let fixtureSnapshotsById = null;
   if (opts.forceRun) {
     logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
   } else {
@@ -1117,13 +1217,14 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
     }
     candidates.forEach(c => {
       const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
-      const tag = c.overdue ? ' [CATCH-UP / ueberfaellig]' : '';
+      const tag = c.finalRecheck ? ' [FINAL-RECHECK]' : (c.overdue ? ' [CATCH-UP / ueberfaellig]' : '');
       logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${formatAgeMin(ageMin)}.${tag}`);
     });
     candidateIds = new Set(candidates.map(c => String(c.id)));
+    fixtureSnapshotsById = new Map(candidates.map(c => [String(c.id), c]));
   }
 
-  const result = await runFullPointsUpload(db, tournament, opts, candidateIds);
+  const result = await runFullPointsUpload(db, tournament, opts, candidateIds, fixtureSnapshotsById);
   logInfo(`Lauf-Tick beendet. Beendete Spiele (gesamt): ${result.finishedGames}, ` +
     `Scoring-Spiele: ${result.scoringGames}, Live-Spiele: ${result.liveGames}, ` +
     `Spieler-Dokumente geschrieben: ${result.writeSuccess}, geloescht: ${result.deleteSuccess}, ` +
@@ -1154,6 +1255,7 @@ async function main() {
   const opts = {
     windowStartMin: envInt('WINDOW_START_MIN', DEFAULT_WINDOW_START_MIN),
     windowEndMin: envInt('WINDOW_END_MIN', DEFAULT_WINDOW_END_MIN),
+    finalRecheckMin: Math.max(0, envInt('FINAL_RECHECK_MIN', DEFAULT_FINAL_RECHECK_MIN)),
     liveTicksPerRun: Math.min(10, Math.max(1, envInt('LIVE_TICKS_PER_RUN', DEFAULT_LIVE_TICKS_PER_RUN))),
     liveTickIntervalSec: Math.max(0, envInt('LIVE_TICK_INTERVAL_SEC', DEFAULT_LIVE_TICK_INTERVAL_SEC)),
     forceRun: envBool('FORCE_RUN', false),
@@ -1162,7 +1264,7 @@ async function main() {
 
   logInfo(`Starte Auto-Upload für ${tournament.shortLabel} (${tournament.key}).` +
     ` Trigger-Fenster: ${opts.windowStartMin} bis ${opts.windowEndMin} min relativ zum Anpfiff` +
-    ` (Live + Catch-up).` +
+    ` (Live + Catch-up), Final-Recheck bis ${opts.finalRecheckMin} min nach Anpfiff.` +
     ` Live-Ticks pro Run: ${opts.forceRun ? 1 : opts.liveTicksPerRun}, Abstand: ${opts.liveTickIntervalSec}s.` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
     (opts.dryRun ? ' [DRY_RUN]' : ''));

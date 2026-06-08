@@ -5,10 +5,12 @@ name: Auto Punkte-Upload
 # Minuten als GitHub-Cron-Job (zusätzlich jederzeit manuell auslösbar
 # via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check,
 # der prüft, ob im aktuellen Tick überhaupt ein Spiel im Live-/Catch-up-
-# Fenster liegt (Default: 10 Minuten VOR bis 150 Minuten NACH Anpfiff).
-# Nur dann wird die API abgefragt. Während eines aktiven Fensters macht
-# das Skript standardmäßig fünf Ticks mit 60 Sekunden Abstand; so gibt es
-# minütliche Live-Updates, ohne jede Minute einen neuen Runner zu starten.
+# Fenster liegt (Default: 10 Minuten VOR bis 150 Minuten NACH Anpfiff)
+# oder ob ein beendetes Spiel noch im Final-Recheck liegt (Default:
+# 360 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
+# eines aktiven Fensters macht das Skript standardmäßig fünf Ticks mit
+# 60 Sekunden Abstand; so gibt es minütliche Live-Updates, ohne jede
+# Minute einen neuen Runner zu starten.
 #
 # WICHTIG: Der Cron unten ist bewusst auf den WM-Zeitraum
 # (11.06.2026 – 21.07.2026) beschränkt, damit nicht das ganze Jahr
@@ -34,6 +36,9 @@ name: Auto Punkte-Upload
 #   POINTS_WINDOW_END_MIN    Default 150 – Ende des normalen Live-
 #                            Fensters relativ zum Anpfiff. Danach bleibt
 #                            ein offenes Spiel als Catch-up-Kandidat aktiv.
+#   POINTS_FINAL_RECHECK_MIN Default 360 – beendete Spiele bleiben bis so
+#                            viele Minuten nach Anpfiff Recheck-Kandidaten,
+#                            damit spaete API-Korrekturen nachgezogen werden.
 #   POINTS_LIVE_TICKS_PER_RUN
 #                            Default 5 – Anzahl minütlicher Ticks innerhalb
 #                            eines GitHub-Runs (bei schedule).
@@ -70,6 +75,11 @@ on:
         default: ""
       window_end_min:
         description: "Optionaler Test-Override: Ende des Live-Fensters in Minuten relativ zum Anpfiff."
+        required: false
+        type: string
+        default: ""
+      final_recheck_min:
+        description: "Optionaler Test-Override: Final-Recheck in Minuten nach Anpfiff."
         required: false
         type: string
         default: ""
@@ -116,6 +126,7 @@ jobs:
           TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
           WINDOW_START_MIN: ${{ inputs.window_start_min != '' && inputs.window_start_min || vars.POINTS_WINDOW_START_MIN }}
           WINDOW_END_MIN: ${{ inputs.window_end_min != '' && inputs.window_end_min || vars.POINTS_WINDOW_END_MIN }}
+          FINAL_RECHECK_MIN: ${{ inputs.final_recheck_min != '' && inputs.final_recheck_min || vars.POINTS_FINAL_RECHECK_MIN }}
           LIVE_TICKS_PER_RUN: ${{ inputs.live_ticks_per_run != '' && inputs.live_ticks_per_run || vars.POINTS_LIVE_TICKS_PER_RUN }}
           LIVE_TICK_INTERVAL_SEC: ${{ inputs.live_tick_interval_sec != '' && inputs.live_tick_interval_sec || vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
           FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}

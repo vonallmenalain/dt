@@ -79,15 +79,21 @@ Beide Scripts lesen die Turnier-Konfiguration **direkt aus
 Ein Cron-Tick lädt zunächst nur den Spielplan aus Firestore und prüft,
 ob ein Spiel im Live-/Catch-up-Fenster (Default: 10 Minuten vor bis
 150 Minuten nach Anstoss) liegt, dessen Status noch nicht `FT`/`AET`/`PEN`
-ist. Ist das nicht der Fall, beendet sich der Job sofort. Damit kostet
-ein Tick ausserhalb der Spieltage praktisch nichts (1 Firestore-Read,
-0 API-Calls).
+ist, oder ob ein beendetes Spiel noch im Final-Recheck-Fenster liegt
+(Default: 360 Minuten nach Anpfiff). Ist das nicht der Fall, beendet sich
+der Job sofort. Damit kostet ein Tick ausserhalb der Spieltage praktisch
+nichts (1 Firestore-Read, 0 API-Calls).
 
 Während eines aktiven Fensters macht das Script standardmässig fünf
 Ticks mit 60 Sekunden Abstand innerhalb desselben GitHub-Runs. Laufende
-Spiele werden als Delta auf bestehende Punktedokumente geschrieben;
-sobald ein Kandidat final ist oder `FORCE_RUN=1` genutzt wird, erfolgt
-eine vollständige Neuberechnung.
+und Final-Recheck-Kandidaten werden als Delta auf bestehende
+Punktedokumente geschrieben; sobald ein Kandidat neu final wird oder
+`FORCE_RUN=1` genutzt wird, erfolgt eine vollständige Neuberechnung.
+Beendete Spiele bleiben im Final-Recheck-Fenster Kandidaten, damit
+nachträgliche API-Korrekturen an Scorern, Assists, Karten oder Resultat
+automatisch im nächsten Tick nachgezogen werden. Unveränderte
+Punkte-/Fixture-Dokumente werden übersprungen, damit `pointsVersion` und
+`fixturesVersion` nur bei echten Änderungen steigen.
 
 `pointsUpdatedAt` und `pointsVersion` im Meta-Dokument werden nur
 nach einem erfolgreichen Schreibvorgang erhöht. Die "Zuletzt
@@ -124,6 +130,7 @@ Default aus `tournament-config.js` überschreiben will:
 | `TOURNAMENT_KEY`           | Fallback aus `tournament-config.js`| Turnier für beide Workflows.                                    |
 | `POINTS_WINDOW_START_MIN`  | `-10`                              | Auto-Punkte: Start des Live-Fensters relativ zum Anpfiff.       |
 | `POINTS_WINDOW_END_MIN`    | `150`                              | Auto-Punkte: normales Ende des Live-Fensters; danach Catch-up für offene Spiele. |
+| `POINTS_FINAL_RECHECK_MIN` | `360`                              | Auto-Punkte: beendete Spiele bis so viele Minuten nach Anpfiff weiter prüfen. |
 | `POINTS_LIVE_TICKS_PER_RUN` | `5`                               | Auto-Punkte: Anzahl Live-Ticks innerhalb eines GitHub-Runs.     |
 | `POINTS_LIVE_TICK_INTERVAL_SEC` | `60`                          | Auto-Punkte: Abstand zwischen Live-Ticks in Sekunden.           |
 
@@ -139,8 +146,8 @@ Tab **Actions** → Workflow auswählen → **Run workflow**. Inputs:
 - `force_run` *(nur Auto-Punkte-Upload)* – Pre-Check überspringen
   (kompletter Recompute).
 - `dry_run` – Skript loggt nur, schreibt nichts in Firestore.
-- `window_start_min`, `window_end_min`, `live_ticks_per_run`,
-  `live_tick_interval_sec` *(nur Auto-Punkte-Upload)* – optionale
+- `window_start_min`, `window_end_min`, `final_recheck_min`,
+  `live_ticks_per_run`, `live_tick_interval_sec` *(nur Auto-Punkte-Upload)* – optionale
   Test-Overrides für einen einzelnen manuellen Lauf.
 - `skip_venues` *(nur Spielplan-Sync)* – Venue-Detail-Calls auslassen
   (spart API-Quota, wenn sich an den Stadien nichts ändert).
