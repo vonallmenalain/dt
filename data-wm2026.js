@@ -5176,7 +5176,7 @@ const playersData = [
     {
         "player.id": 550547,
         "Spielername": "Hamza Abdelkarim",
-        "Spielerfoto": "https://media.api-sports.io/football/players/550547.png",
+        "Spielerfoto": "https://imagecache.365scores.com/image/upload/f_png,w_64,h_64,c_limit,q_auto:eco,dpr_3,d_Athletes:default.png,r_max,c_thumb,g_face,z_0.65/Athletes/196091",
         "Position": "ATTACKER",
         "Nationalteam.name": "Egypt",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/32.png",
