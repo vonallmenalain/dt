@@ -199,6 +199,13 @@
             box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.12), 0 12px 28px rgba(0, 0, 0, 0.24);
         }
 
+        .rl-hero-update.is-countdown {
+            border-color: rgba(255, 193, 7, 0.34);
+            background:
+                linear-gradient(135deg, rgba(92, 64, 16, 0.48), rgba(15, 23, 42, 0.92));
+            box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.10), 0 10px 24px rgba(0, 0, 0, 0.22);
+        }
+
         .rl-hero-update-label {
             font-size: 0.62rem;
             font-weight: 700;
@@ -233,6 +240,15 @@
             animation-duration: 1.2s;
         }
 
+        .rl-hero-update.is-countdown .rl-hero-update-label {
+            color: var(--gold-light);
+        }
+
+        .rl-hero-update.is-countdown .rl-hero-update-label::before {
+            background: var(--gold-light);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.58);
+        }
+
         @keyframes rlPulseDot {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.45; }
@@ -251,6 +267,14 @@
             color: var(--text-muted);
             line-height: 1.4;
             max-width: 320px;
+        }
+
+        .rl-hero-update-meta {
+            display: block;
+            margin-top: 4px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            line-height: 1.35;
         }
 
         .rl-hero-update-game-label {
@@ -1977,6 +2001,7 @@
     let currentView = "ranking";
 
     let lastRawData = null;
+    let lastUpdateCountdownTimer = null;
     let matchIdRoundMap = new Map();
     let allMatchIdsRaw = [];
     let selectedRoundKeys = loadSelectedRoundKeys();
@@ -3342,6 +3367,8 @@
     }
 
     const LIVE_FIXTURE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
+    const FINISHED_FIXTURE_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const PENDING_FIXTURE_WINDOW_MS = 4 * 60 * 60 * 1000;
 
     function getFixtureTeamName(fixture, side) {
         if (!fixture || typeof fixture !== "object") return "";
@@ -3365,6 +3392,133 @@
         return "";
     }
 
+    function getFixtureStatusShort(fixture) {
+        return fixture && fixture.status && fixture.status.short
+            ? String(fixture.status.short)
+            : "";
+    }
+
+    function isFixtureFinished(fixture) {
+        return FINISHED_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture));
+    }
+
+    function isFixtureLive(fixture) {
+        return LIVE_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture));
+    }
+
+    function getFixtureKickoffMs(fixture) {
+        if (!fixture || typeof fixture !== "object") return null;
+
+        const rawTs = fixture.kickoffTimestamp;
+        const numericTs = Number(rawTs);
+        if (Number.isFinite(numericTs) && numericTs > 0) {
+            return numericTs > 10000000000 ? numericTs : numericTs * 1000;
+        }
+
+        const rawDate = fixture.kickoffIso || fixture.date || fixture.datetime || fixture.kickoff || "";
+        if (rawDate) {
+            const parsed = Date.parse(rawDate);
+            if (Number.isFinite(parsed)) return parsed;
+        }
+
+        return null;
+    }
+
+    function getSortedFixtureInfos(fixtures) {
+        return Object.entries(fixtures || {})
+            .map(([id, fixture]) => ({
+                id,
+                fixture,
+                kickoffMs: getFixtureKickoffMs(fixture)
+            }))
+            .filter(item => item.fixture && typeof item.fixture === "object" && item.kickoffMs !== null)
+            .sort((a, b) => {
+                if (a.kickoffMs !== b.kickoffMs) return a.kickoffMs - b.kickoffMs;
+                return String(getFixtureId(a.fixture, a.id)).localeCompare(String(getFixtureId(b.fixture, b.id)));
+            });
+    }
+
+    function findNextFixture(fixtures, nowMs = Date.now()) {
+        return getSortedFixtureInfos(fixtures).find(item => (
+            item.kickoffMs > nowMs &&
+            !isFixtureLive(item.fixture) &&
+            !isFixtureFinished(item.fixture)
+        )) || null;
+    }
+
+    function findPendingKickoffFixture(fixtures, nowMs = Date.now()) {
+        return getSortedFixtureInfos(fixtures).find(item => {
+            if (item.kickoffMs > nowMs) return false;
+            if (isFixtureLive(item.fixture) || isFixtureFinished(item.fixture)) return false;
+            return (nowMs - item.kickoffMs) <= PENDING_FIXTURE_WINDOW_MS;
+        }) || null;
+    }
+
+    function isOpeningFixture(fixtures, fixtureInfo) {
+        if (!fixtureInfo) return false;
+        const sorted = getSortedFixtureInfos(fixtures);
+        if (!sorted.length) return false;
+        const firstId = getFixtureId(sorted[0].fixture, sorted[0].id);
+        const currentId = getFixtureId(fixtureInfo.fixture, fixtureInfo.id);
+        return String(firstId) === String(currentId);
+    }
+
+    function getFixtureSequenceNumber(fixtures, matchId) {
+        const target = String(matchId);
+        if (!target) return 0;
+        const sorted = getSortedFixtureInfos(fixtures);
+        const index = sorted.findIndex(item => String(getFixtureId(item.fixture, item.id)) === target);
+        return index >= 0 ? index + 1 : 0;
+    }
+
+    function formatFixtureKickoff(ms) {
+        const d = new Date(ms);
+        if (Number.isNaN(d.getTime())) return "";
+        const today = new Date();
+        const isSameDay = d.getFullYear() === today.getFullYear()
+            && d.getMonth() === today.getMonth()
+            && d.getDate() === today.getDate();
+        const timeStr = d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+        if (isSameDay) return `Heute, ${timeStr} Uhr`;
+        const dateStr = d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
+        return `${dateStr}, ${timeStr} Uhr`;
+    }
+
+    function formatCountdown(diffMs) {
+        const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        const pad = (value) => String(value).padStart(2, "0");
+
+        if (days > 0) {
+            return `${days} Tag${days === 1 ? "" : "e"} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        }
+
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+
+    function formatElapsedSinceKickoff(kickoffMs, nowMs) {
+        const minutes = Math.max(0, Math.floor((nowMs - kickoffMs) / 60000));
+        if (minutes < 1) return "Anpfiff jetzt";
+        if (minutes < 60) return `Seit ${minutes} Min`;
+        const hours = Math.floor(minutes / 60);
+        const rest = minutes % 60;
+        return rest > 0 ? `Seit ${hours} Std ${rest} Min` : `Seit ${hours} Std`;
+    }
+
+    function formatFixtureScore(fixture) {
+        const goals = fixture && fixture.goals;
+        if (!goals || goals.home === null || goals.home === undefined || goals.away === null || goals.away === undefined) {
+            return "";
+        }
+        const home = Number(goals.home);
+        const away = Number(goals.away);
+        if (!Number.isFinite(home) || !Number.isFinite(away)) return "";
+        return `${home}:${away}`;
+    }
+
     function formatLiveMinute(status) {
         const short = status && status.short ? String(status.short) : "";
         const elapsed = status && status.elapsed !== undefined && status.elapsed !== null
@@ -3384,12 +3538,7 @@
         const entries = Object.entries(fixtures || {});
         const live = entries
             .map(([id, fixture]) => ({ id, fixture }))
-            .filter(item => {
-                const statusShort = item.fixture && item.fixture.status && item.fixture.status.short
-                    ? String(item.fixture.status.short)
-                    : "";
-                return LIVE_FIXTURE_STATUSES.has(statusShort);
-            })
+            .filter(item => isFixtureLive(item.fixture))
             .sort((a, b) => {
                 const aTs = Number(a.fixture && a.fixture.kickoffTimestamp) || 0;
                 const bTs = Number(b.fixture && b.fixture.kickoffTimestamp) || 0;
@@ -3398,18 +3547,53 @@
         return live.length ? live[0] : null;
     }
 
-    function buildGameAnalysisHref(matchId) {
+    function buildGameAnalysisHref(matchId, fixtures) {
         const linkParams = new URLSearchParams();
         linkParams.set("view", "games");
         linkParams.set("matchId", String(matchId));
         const sortedAllMatchIds = Array.from(new Set(allMatchIdsRaw)).sort((a, b) => a - b);
         const numericMatchId = Number(matchId);
-        const spielNr = Number.isFinite(numericMatchId) ? sortedAllMatchIds.indexOf(numericMatchId) + 1 : 0;
+        let spielNr = Number.isFinite(numericMatchId) ? sortedAllMatchIds.indexOf(numericMatchId) + 1 : 0;
+        if (spielNr <= 0) {
+            spielNr = getFixtureSequenceNumber(fixtures, matchId);
+        }
         if (spielNr > 0) linkParams.set("matchNr", String(spielNr));
         return {
             href: `spieleranalyse.html?${linkParams.toString()}`,
             labelPrefix: spielNr > 0 ? `Spiel ${spielNr}` : `Spiel #${matchId}`
         };
+    }
+
+    function buildFixtureLinkHtml(fixtureInfo, fixtures) {
+        if (!fixtureInfo) return "";
+        const fixture = fixtureInfo.fixture;
+        const matchId = getFixtureId(fixture, fixtureInfo.id);
+        const homeName = getFixtureTeamName(fixture, "home") || "Heimteam";
+        const awayName = getFixtureTeamName(fixture, "away") || "Auswärtsteam";
+        const link = buildGameAnalysisHref(matchId, fixtures);
+        const titleText = `${link.labelPrefix}: ${homeName} - ${awayName} in der Spiele-Analyse öffnen`;
+
+        return `<a class="rl-hero-update-game-link" href="${escapeHtml(link.href)}" ` +
+            `title="${escapeHtml(titleText)}" aria-label="${escapeHtml(titleText)}">` +
+            `<span class="rl-hero-update-game-label">${escapeHtml(link.labelPrefix)}:</span>` +
+            `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} - ${escapeHtml(awayName)}</span>` +
+            `</a>`;
+    }
+
+    function setLastUpdateCountdownActive(active) {
+        if (active) {
+            if (!lastUpdateCountdownTimer) {
+                lastUpdateCountdownTimer = window.setInterval(() => {
+                    if (lastRawData) renderLastUpdateInfo(lastRawData);
+                }, 1000);
+            }
+            return;
+        }
+
+        if (lastUpdateCountdownTimer) {
+            window.clearInterval(lastUpdateCountdownTimer);
+            lastUpdateCountdownTimer = null;
+        }
     }
 
     function renderLastUpdateInfo(data) {
@@ -3424,102 +3608,140 @@
         const fixtures = data && data.fixtures;
 
         const pointsUpdatedAt = meta && typeof meta.pointsUpdatedAt === "number" ? meta.pointsUpdatedAt : null;
-        const teamsUpdatedAt = meta && typeof meta.teamsUpdatedAt === "number" ? meta.teamsUpdatedAt : null;
-        const fallbackUpdatedAt = pointsUpdatedAt || teamsUpdatedAt;
+        const fixturesUpdatedAt = meta && typeof meta.fixturesUpdatedAt === "number" ? meta.fixturesUpdatedAt : null;
 
         const latestMatchId = getLatestMatchIdFromPoints(points);
+        const hasRealPointMatches = latestMatchId !== null;
+        const latestPointsUpdatedAt = hasRealPointMatches ? pointsUpdatedAt : null;
         const liveFixtureInfo = findLiveFixture(fixtures);
+        const nowMs = Date.now();
+        const pendingFixtureInfo = liveFixtureInfo ? null : findPendingKickoffFixture(fixtures, nowMs);
+        const nextFixtureInfo = liveFixtureInfo || pendingFixtureInfo ? null : findNextFixture(fixtures, nowMs);
 
         containerEl.classList.toggle("is-live", !!liveFixtureInfo);
+        containerEl.classList.toggle("is-countdown", !!nextFixtureInfo);
         if (labelEl) {
-            labelEl.textContent = liveFixtureInfo ? "Live Punkte-Update" : "Zuletzt aktualisiert";
+            labelEl.textContent = liveFixtureInfo
+                ? "Live Punkte-Update"
+                : nextFixtureInfo
+                    ? (isOpeningFixture(fixtures, nextFixtureInfo) && !hasRealPointMatches ? "Countdown zum Eröffnungsspiel" : "Nächstes Spiel")
+                    : pendingFixtureInfo
+                        ? "Anpfiff erreicht"
+                        : "Spielpunkte aktualisiert";
         }
 
         if (liveFixtureInfo) {
             const fixture = liveFixtureInfo.fixture;
-            const matchId = getFixtureId(fixture, liveFixtureInfo.id);
-            const homeName = getFixtureTeamName(fixture, "home") || "Heimteam";
-            const awayName = getFixtureTeamName(fixture, "away") || "Auswärtsteam";
             const homeGoals = getFixtureGoal(fixture, "home");
             const awayGoals = getFixtureGoal(fixture, "away");
             const minute = formatLiveMinute(fixture.status || {});
-            const link = buildGameAnalysisHref(matchId);
+            const freshestUpdate = Math.max(latestPointsUpdatedAt || 0, fixturesUpdatedAt || 0) || null;
 
             containerEl.style.display = "";
-            timeEl.textContent = `${minute} · ${homeGoals}:${awayGoals}`;
+            timeEl.innerHTML =
+                `<span class="rl-hero-update-live-minute">${escapeHtml(minute)}</span> ` +
+                `<span aria-hidden="true">·</span> ` +
+                `<span class="rl-hero-update-live-score">${homeGoals}:${awayGoals}</span>`;
             gameEl.innerHTML =
-                `<a class="rl-hero-update-game-link" href="${link.href}" ` +
-                `title="${escapeHtml(`${homeName} – ${awayName} in der Spiele-Analyse öffnen`)}" ` +
-                `aria-label="${escapeHtml(`${homeName} – ${awayName} in der Spiele-Analyse öffnen`)}">` +
-                `<span class="rl-hero-update-game-label">${escapeHtml(link.labelPrefix)}:</span>` +
-                `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} – ${escapeHtml(awayName)}</span>` +
-                `</a>`;
+                buildFixtureLinkHtml(liveFixtureInfo, fixtures) +
+                (freshestUpdate
+                    ? `<span class="rl-hero-update-meta">Aktualisiert ${escapeHtml(formatUpdatedAt(freshestUpdate))}</span>`
+                    : "");
+            setLastUpdateCountdownActive(false);
             return;
         }
 
-        if (!fallbackUpdatedAt && latestMatchId === null) {
+        if (pendingFixtureInfo) {
+            const kickoffText = formatFixtureKickoff(pendingFixtureInfo.kickoffMs);
+
+            containerEl.style.display = "";
+            timeEl.textContent = formatElapsedSinceKickoff(pendingFixtureInfo.kickoffMs, nowMs);
+            gameEl.innerHTML =
+                buildFixtureLinkHtml(pendingFixtureInfo, fixtures) +
+                (kickoffText ? `<span class="rl-hero-update-meta">Anpfiff ${escapeHtml(kickoffText)}</span>` : "");
+            setLastUpdateCountdownActive(true);
+            return;
+        }
+
+        if (nextFixtureInfo) {
+            const kickoffText = formatFixtureKickoff(nextFixtureInfo.kickoffMs);
+            const latestPointsMeta = latestPointsUpdatedAt
+                ? `<span class="rl-hero-update-meta">Letzte Spielpunkte: ${escapeHtml(formatUpdatedAt(latestPointsUpdatedAt))}</span>`
+                : "";
+
+            containerEl.style.display = "";
+            timeEl.textContent = formatCountdown(nextFixtureInfo.kickoffMs - nowMs);
+            gameEl.innerHTML =
+                buildFixtureLinkHtml(nextFixtureInfo, fixtures) +
+                (kickoffText ? `<span class="rl-hero-update-meta">Anpfiff ${escapeHtml(kickoffText)}</span>` : "") +
+                latestPointsMeta;
+            setLastUpdateCountdownActive(true);
+            return;
+        }
+
+        if (!hasRealPointMatches) {
             containerEl.style.display = "none";
+            setLastUpdateCountdownActive(false);
             return;
         }
 
         containerEl.style.display = "";
 
-        if (fallbackUpdatedAt) {
-            timeEl.textContent = formatUpdatedAt(fallbackUpdatedAt);
+        if (latestPointsUpdatedAt) {
+            timeEl.textContent = formatUpdatedAt(latestPointsUpdatedAt);
         } else {
-            timeEl.textContent = "—";
+            timeEl.textContent = "Spielpunkte erfasst";
         }
 
-        if (latestMatchId !== null) {
-            const fixture = findFixtureByMatchId(fixtures, latestMatchId);
+        const fixture = findFixtureByMatchId(fixtures, latestMatchId);
 
-            let homeName = "";
-            let awayName = "";
-            if (fixture && typeof fixture === "object") {
-                // Primaer das aktuelle Fixture-Schema (homeTeam/awayTeam)
-                // beruecksichtigen, das von scripts/sync-fixtures.js
-                // geschrieben wird. Auf das aeltere teams.home/teams.away
-                // Schema nur als Fallback zurueckfallen.
-                if (fixture.homeTeam && fixture.homeTeam.name) {
-                    homeName = String(fixture.homeTeam.name);
-                } else if (fixture.teams && fixture.teams.home && fixture.teams.home.name) {
-                    homeName = String(fixture.teams.home.name);
-                }
-                if (fixture.awayTeam && fixture.awayTeam.name) {
-                    awayName = String(fixture.awayTeam.name);
-                } else if (fixture.teams && fixture.teams.away && fixture.teams.away.name) {
-                    awayName = String(fixture.teams.away.name);
-                }
+        let homeName = "";
+        let awayName = "";
+        if (fixture && typeof fixture === "object") {
+            // Primaer das aktuelle Fixture-Schema (homeTeam/awayTeam)
+            // beruecksichtigen, das von scripts/sync-fixtures.js
+            // geschrieben wird. Auf das aeltere teams.home/teams.away
+            // Schema nur als Fallback zurueckfallen.
+            if (fixture.homeTeam && fixture.homeTeam.name) {
+                homeName = String(fixture.homeTeam.name);
+            } else if (fixture.teams && fixture.teams.home && fixture.teams.home.name) {
+                homeName = String(fixture.teams.home.name);
             }
-
-            // Fallback: Mannschaften aus Resultat-String der Punktedaten
-            // ableiten (relevant fuer Turniere, in denen die
-            // Fixtures-Sammlung evtl. unvollstaendig ist).
-            if (!homeName || !awayName) {
-                const fb = findTeamsFromPointsByMatchId(points, latestMatchId);
-                if (fb) {
-                    if (!homeName) homeName = fb.home;
-                    if (!awayName) awayName = fb.away;
-                }
+            if (fixture.awayTeam && fixture.awayTeam.name) {
+                awayName = String(fixture.awayTeam.name);
+            } else if (fixture.teams && fixture.teams.away && fixture.teams.away.name) {
+                awayName = String(fixture.teams.away.name);
             }
-
-            const link = buildGameAnalysisHref(latestMatchId);
-            const titleText = homeName && awayName
-                ? `${link.labelPrefix}: ${homeName} – ${awayName} in der Spiele-Analyse öffnen`
-                : `${link.labelPrefix} in der Spiele-Analyse öffnen`;
-
-            const inner = (homeName && awayName)
-                ? `<span class="rl-hero-update-game-label">${escapeHtml(link.labelPrefix)}:</span>` +
-                  `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} – ${escapeHtml(awayName)}</span>`
-                : escapeHtml(link.labelPrefix);
-
-            gameEl.innerHTML =
-                `<a class="rl-hero-update-game-link" href="${link.href}" ` +
-                `title="${escapeHtml(titleText)}" ` +
-                `aria-label="${escapeHtml(titleText)}">${inner}</a>`;
-        } else {
-            gameEl.textContent = "Noch keine Spielpunkte erfasst";
         }
+
+        // Fallback: Mannschaften aus Resultat-String der Punktedaten
+        // ableiten (relevant fuer Turniere, in denen die
+        // Fixtures-Sammlung evtl. unvollstaendig ist).
+        if (!homeName || !awayName) {
+            const fb = findTeamsFromPointsByMatchId(points, latestMatchId);
+            if (fb) {
+                if (!homeName) homeName = fb.home;
+                if (!awayName) awayName = fb.away;
+            }
+        }
+
+        const link = buildGameAnalysisHref(latestMatchId, fixtures);
+        const scoreText = fixture ? formatFixtureScore(fixture) : "";
+        const titleText = homeName && awayName
+            ? `${link.labelPrefix}: ${homeName} - ${awayName} in der Spiele-Analyse öffnen`
+            : `${link.labelPrefix} in der Spiele-Analyse öffnen`;
+
+        const inner = (homeName && awayName)
+            ? `<span class="rl-hero-update-game-label">${escapeHtml(link.labelPrefix)}:</span>` +
+              `<span class="rl-hero-update-game-teams">${escapeHtml(homeName)} - ${escapeHtml(awayName)}</span>`
+            : escapeHtml(link.labelPrefix);
+
+        gameEl.innerHTML =
+            `<a class="rl-hero-update-game-link" href="${escapeHtml(link.href)}" ` +
+            `title="${escapeHtml(titleText)}" ` +
+            `aria-label="${escapeHtml(titleText)}">${inner}</a>` +
+            (scoreText ? `<span class="rl-hero-update-meta">Resultat ${escapeHtml(scoreText)}</span>` : "");
+        setLastUpdateCountdownActive(false);
     }
 
     function applyRankingData(data) {
@@ -3720,6 +3942,7 @@
         if (typeof metaUnsubscribe === "function") {
             metaUnsubscribe();
         }
+        setLastUpdateCountdownActive(false);
         document.removeEventListener("click", handleCompareMenuClickOutside);
         window.removeEventListener("resize", updateHistoryChartCanvasState);
     });
