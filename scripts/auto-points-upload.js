@@ -394,6 +394,49 @@ function getMinutes(stats) {
   return (stats && stats.games && typeof stats.games.minutes === 'number') ? stats.games.minutes : 0;
 }
 
+function getGoalValue(value) {
+  const n = (typeof value === 'number') ? value : parseInt(value, 10);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function resolveMatchOutcome(game, matchHasStarted, matchIsFinished, homeGoals, awayGoals) {
+  if (!matchHasStarted) {
+    return { isDraw: false, homeWon: false, awayWon: false };
+  }
+
+  const homeWinner = game && game.teams && game.teams.home
+    ? game.teams.home.winner
+    : undefined;
+  const awayWinner = game && game.teams && game.teams.away
+    ? game.teams.away.winner
+    : undefined;
+
+  if (
+    matchIsFinished &&
+    (
+      homeWinner === true ||
+      awayWinner === true ||
+      (homeWinner === null && awayWinner === null && homeGoals === awayGoals)
+    )
+  ) {
+    return {
+      isDraw: homeWinner === null && awayWinner === null && homeGoals === awayGoals,
+      homeWon: homeWinner === true,
+      awayWon: awayWinner === true
+    };
+  }
+
+  if (homeGoals === awayGoals) {
+    return { isDraw: true, homeWon: false, awayWon: false };
+  }
+
+  return {
+    isDraw: false,
+    homeWon: homeGoals > awayGoals,
+    awayWon: awayGoals > homeGoals
+  };
+}
+
 function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, opts = {}) {
   const events = fixtureData.events || [];
   const playersDataList = fixtureData.players || [];
@@ -404,11 +447,9 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
 
   const homeName = (game.teams && game.teams.home && game.teams.home.name) || '';
   const awayName = (game.teams && game.teams.away && game.teams.away.name) || '';
-  const homeGoals = (game.goals && game.goals.home != null) ? game.goals.home : 0;
-  const awayGoals = (game.goals && game.goals.away != null) ? game.goals.away : 0;
-  const isDraw = matchIsFinished && game.teams && game.teams.home && game.teams.home.winner === null;
-  const homeWon = matchIsFinished && game.teams && game.teams.home && game.teams.home.winner === true;
-  const awayWon = matchIsFinished && game.teams && game.teams.away && game.teams.away.winner === true;
+  const homeGoals = getGoalValue(game.goals && game.goals.home);
+  const awayGoals = getGoalValue(game.goals && game.goals.away);
+  const matchOutcome = resolveMatchOutcome(game, matchHasStarted, matchIsFinished, homeGoals, awayGoals);
   const fixId = game.fixture.id;
   const resultString = `${homeName} ${homeGoals} : ${awayGoals} ${awayName}`;
   let processedPlayers = 0;
@@ -479,7 +520,8 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
     const opponentName = isHome ? awayName : homeName;
     const teamGoals = isHome ? homeGoals : awayGoals;
     const teamConceded = isHome ? awayGoals : homeGoals;
-    const isWin = isHome ? homeWon : awayWon;
+    const isDraw = matchOutcome.isDraw;
+    const isWin = isHome ? matchOutcome.homeWon : matchOutcome.awayWon;
     const isLoss = !isDraw && !isWin;
 
     participantIds.forEach(pid => {
@@ -584,7 +626,7 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
       if (pSaved > 0)    { detailPts.PEN_SAVED = pSaved * RULES.PEN_SAVED;     pObj.PEN_SAVED += detailPts.PEN_SAVED; }
       if (pWon > 0)      { detailPts.PEN_WON = pWon * RULES.PEN_WON;           pObj.PEN_WON += detailPts.PEN_WON; }
 
-      if (matchIsFinished) {
+      if (matchHasStarted) {
         if (isWin)        { detailPts.WIN = RULES.WIN;   pObj.WIN += RULES.WIN; }
         else if (isDraw)  { detailPts.DRAW = RULES.DRAW; pObj.DRAW += RULES.DRAW; }
         else if (isLoss)  { detailPts.LOSS = RULES.LOSS; pObj.LOSS += RULES.LOSS; }
