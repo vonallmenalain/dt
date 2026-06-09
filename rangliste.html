@@ -580,8 +580,11 @@
            ===================================================== */
         .rl-toggle-wrap {
             display: flex;
-            justify-content: center;
-            margin-bottom: 36px;
+            justify-content: flex-start;
+            max-width: 1220px;
+            margin: 0 auto 36px;
+            padding: 0 20px;
+            box-sizing: border-box;
             animation: fadeSlideDown 0.6s 0.15s ease both;
             position: relative;
             z-index: 5;
@@ -1668,6 +1671,7 @@
 
             .rl-toggle-wrap {
                 margin-bottom: 24px;
+                padding: 0 12px;
             }
 
             .toggle-btn {
@@ -2031,6 +2035,7 @@
         { key: "GROUP_1", label: "1. Runde Gruppenphase" },
         { key: "GROUP_2", label: "2. Runde Gruppenphase" },
         { key: "GROUP_3", label: "3. Runde Gruppenphase" },
+        { key: "ROUND_32", label: "Sechzehntelfinale" },
         { key: "ROUND_16", label: "Achtelfinale" },
         { key: "QF",      label: "Viertelfinale" },
         { key: "SF",      label: "Halbfinale" },
@@ -2046,6 +2051,7 @@
 
         // K.O.-Phase zuerst pruefen (sonst koennte z.B. "Final" mit
         // "1st Round" verwechselt werden, wenn Group-Regex "1" fingert).
+        if (/round\s*of\s*32/.test(r) || /sechzehntel[- ]?finale?/.test(r) || /1\s*\/\s*16[- ]?\s*final/.test(r) || /\br\s*32\b/.test(r) || /\b1\/16\b/.test(r)) return "ROUND_32";
         if (/round\s*of\s*16/.test(r) || /achtelfinale/.test(r) || /1\s*\/\s*8[- ]?\s*final/.test(r) || /\br\s*16\b/.test(r) || /\b1\/8\b/.test(r)) return "ROUND_16";
         if (/quarter[- ]?final/.test(r) || /viertelfinale/.test(r) || /1\s*\/\s*4[- ]?\s*final/.test(r) || /\bqf\b/.test(r) || /\b1\/4\b/.test(r)) return "QF";
         if (/semi[- ]?final/.test(r) || /halbfinale/.test(r) || /1\s*\/\s*2[- ]?\s*final/.test(r) || /\bsf\b/.test(r) || /\b1\/2\b/.test(r)) return "SF";
@@ -2150,6 +2156,10 @@
             const parsed = JSON.parse(raw);
             if (!Array.isArray(parsed)) return new Set(ALL_ROUND_KEYS);
             const filtered = parsed.filter(k => ALL_ROUND_KEYS.includes(k));
+            const legacyRoundKeys = ALL_ROUND_KEYS.filter(k => k !== "ROUND_32");
+            if (!filtered.includes("ROUND_32") && legacyRoundKeys.every(k => filtered.includes(k))) {
+                filtered.push("ROUND_32");
+            }
             return new Set(filtered.length ? filtered : ALL_ROUND_KEYS);
         } catch (e) {
             return new Set(ALL_ROUND_KEYS);
