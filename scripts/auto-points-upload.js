@@ -300,7 +300,6 @@ async function maybeWriteTickAudit(db, audit) {
   try {
     const logRef = db.collection(AUTO_POINTS_LOG_COLLECTION).doc();
     const changedPlayers = audit.changedPlayers instanceof Map ? audit.changedPlayers : new Map();
-    audit.changedPlayersCount = changedPlayers.size;
     await logRef.set(serializeAuditLog(audit));
     await writeChangedPlayerAuditDocs(db, logRef, changedPlayers);
     logInfo(`Audit-Log geschrieben: ${AUTO_POINTS_LOG_COLLECTION}/${logRef.id}`);
@@ -923,6 +922,7 @@ function buildChangedPlayerAudit(playerId, player, before, after) {
 function rememberChangedPlayerForAudit(opts, playerId, player, before, after) {
   const audit = opts && opts.audit;
   if (!audit || !(audit.changedPlayers instanceof Map)) return;
+  audit.changedPlayersCount = (audit.changedPlayersCount || 0) + 1;
   if (audit.changedPlayers.size >= MAX_CHANGED_PLAYER_LOG_DOCS) {
     audit.changedPlayersTruncated = true;
     return;
@@ -1373,7 +1373,6 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
       skipped: writeResult.skipped,
       touched: writeResult.touched
     };
-    opts.audit.changedPlayersCount = opts.audit.changedPlayers instanceof Map ? opts.audit.changedPlayers.size : 0;
   }
   logInfo(
     `${writeResult.written} Spieler-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}, ` +
