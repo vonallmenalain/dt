@@ -191,7 +191,7 @@
             -webkit-backdrop-filter: blur(8px);
             box-sizing: border-box;
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
-            z-index: 20;
+            z-index: 80;
         }
 
         .rl-hero-update.is-live {
@@ -283,6 +283,12 @@
             max-width: none;
         }
 
+        .rl-hero-update.is-countdown .rl-hero-update-game {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
         .rl-hero-update-meta {
             display: block;
             margin-top: 4px;
@@ -369,6 +375,23 @@
             display: block;
             width: 100%;
             box-sizing: border-box;
+        }
+
+        .rl-hero-update.is-countdown a.rl-hero-update-game-link {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 3px 6px;
+            min-height: 38px;
+            margin: 0;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.075);
+        }
+
+        .rl-hero-update.is-countdown .rl-hero-update-game-label,
+        .rl-hero-update.is-countdown .rl-hero-update-game-teams {
+            pointer-events: none;
         }
 
         a.rl-hero-update-game-link:hover,
@@ -470,6 +493,10 @@
             position: relative;
             /* Sicherstellen, dass das offene Dropdown ueber Toggle-Bar / Podest liegt */
             z-index: 60;
+        }
+
+        .rl-round-filter:has(.multi-select.open) {
+            z-index: 120;
         }
 
         .rl-round-filter-label {
