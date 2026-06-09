@@ -16,7 +16,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-09-sync-monitor';
+const CACHE_VERSION = 'v2026-06-09-tournament-dnd-snap';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -34,6 +34,7 @@ const APP_SHELL = [
   './auth.js',
   './auth-modal.js',
   './auth-modal.css',
+  './anime.min.js',
   './tournament-config.js',
   './country-aliases.js',
   './data.js',

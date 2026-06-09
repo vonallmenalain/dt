@@ -1917,6 +1917,12 @@
             pointer-events: none;
         }
 
+        .tg-manual-row.is-snap-target {
+            border-color: rgba(74,222,128,0.82);
+            box-shadow: 0 0 0 2px rgba(74,222,128,0.14), 0 10px 22px rgba(0,0,0,0.28);
+            background: rgba(34,197,94,0.12);
+        }
+
         .tg-manual-placeholder {
             min-height: 46px;
             border: 2px dashed rgba(74,222,128,0.6);
@@ -5439,6 +5445,7 @@
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
+<script src="anime.min.js"></script>
 
 <script>
     /* =========================================================
@@ -7942,6 +7949,46 @@
         return clean;
     }
 
+    function sanitizeTournamentManualGroupOrders(savedGroupOrders, context) {
+        const groups = (context?.groups || []).map(group => ({
+            key: String(group.group || '').toUpperCase(),
+            size: (group.rows || []).length,
+            originalKeys: (group.rows || []).map(row => String(row.key)).filter(Boolean)
+        })).filter(group => group.key && group.size > 0);
+        const allKeys = groups.flatMap(group => group.originalKeys);
+        const allSet = new Set(allKeys);
+        const seen = new Set();
+        const clean = {};
+        const source = savedGroupOrders && typeof savedGroupOrders === 'object' ? savedGroupOrders : {};
+
+        groups.forEach(group => {
+            const order = [];
+            (Array.isArray(source[group.key]) ? source[group.key] : []).forEach(value => {
+                const key = String(value);
+                if (!allSet.has(key) || seen.has(key) || order.length >= group.size) return;
+                seen.add(key);
+                order.push(key);
+            });
+            clean[group.key] = order;
+        });
+
+        groups.forEach(group => {
+            const order = clean[group.key];
+            group.originalKeys.forEach(key => {
+                if (order.length >= group.size || seen.has(key)) return;
+                seen.add(key);
+                order.push(key);
+            });
+            allKeys.forEach(key => {
+                if (order.length >= group.size || seen.has(key)) return;
+                seen.add(key);
+                order.push(key);
+            });
+        });
+
+        return clean;
+    }
+
     function getTournamentManualPredictionConfig() {
         const key = String(APP?.key || TOURNAMENT_YEAR || '').toLowerCase();
         return TOURNAMENT_MANUAL_PREDICTIONS[key] || null;
@@ -7968,13 +8015,13 @@
         if (hasTournamentManualWinnerPicks()) return false;
 
         const groups = context?.groups || [];
+        const cleanGroupOrders = sanitizeTournamentManualGroupOrders(tournamentManualState.groupOrders, context);
         for (const group of groups) {
             const groupKey = String(group.group || '').toUpperCase();
             const savedOrder = tournamentManualState.groupOrders?.[groupKey];
             if (!hasTournamentManualOrder(savedOrder)) continue;
 
-            const validOrder = (group.rows || []).map(row => row.key);
-            const cleanOrder = sanitizeTournamentOrder(savedOrder, validOrder);
+            const cleanOrder = cleanGroupOrders[groupKey] || [];
             const defaultOrder = getTournamentDefaultGroupOrder(group);
             if (!areTournamentOrdersEqual(cleanOrder, defaultOrder)) return false;
         }
@@ -8037,17 +8084,18 @@
         const prediction = buildTournamentManualPrediction(context);
         const canReplaceExistingDefaults = !tournamentManualState.manualPredictionInitialized
             && isTournamentManualStateUntouched(context);
+        const hasAnySavedGroupOrder = Object.values(tournamentManualState.groupOrders || {})
+            .some(order => hasTournamentManualOrder(order));
+        const cleanSavedGroupOrders = sanitizeTournamentManualGroupOrders(tournamentManualState.groupOrders, context);
+        const predictedGroupOrders = sanitizeTournamentManualGroupOrders(prediction.groupOrders || {}, context);
         let changed = false;
 
         context.groups.forEach(group => {
             const groupKey = String(group.group || '').toUpperCase();
-            const validOrder = (group.rows || []).map(row => row.key);
             const savedOrder = tournamentManualState.groupOrders[groupKey];
-            const cleanSavedOrder = hasTournamentManualOrder(savedOrder)
-                ? sanitizeTournamentOrder(savedOrder, validOrder)
-                : [];
-            const predictedOrder = sanitizeTournamentOrder(prediction.groupOrders[groupKey] || [], validOrder);
-            const nextOrder = (canReplaceExistingDefaults || !cleanSavedOrder.length)
+            const cleanSavedOrder = cleanSavedGroupOrders[groupKey] || [];
+            const predictedOrder = predictedGroupOrders[groupKey] || [];
+            const nextOrder = (canReplaceExistingDefaults || !hasAnySavedGroupOrder)
                 ? predictedOrder
                 : cleanSavedOrder;
 
@@ -8138,11 +8186,11 @@
     function hydrateTournamentManualOrders(context) {
         tournamentManualState = normalizeTournamentManualState(tournamentManualState);
         let changed = false;
+        const cleanGroupOrders = sanitizeTournamentManualGroupOrders(tournamentManualState.groupOrders, context);
 
         context.groups.forEach(group => {
             const groupKey = String(group.group || '').toUpperCase();
-            const validOrder = group.rows.map(row => row.key);
-            const clean = sanitizeTournamentOrder(tournamentManualState.groupOrders[groupKey], validOrder);
+            const clean = cleanGroupOrders[groupKey] || [];
             if (!areTournamentOrdersEqual(tournamentManualState.groupOrders[groupKey], clean)) {
                 tournamentManualState.groupOrders[groupKey] = clean;
                 changed = true;
@@ -8159,9 +8207,11 @@
         if (changed) saveTournamentManualState();
     }
 
-    function cloneTournamentRowForManual(row, rank) {
+    function cloneTournamentRowForManual(row, rank, groupKey) {
         return {
             ...row,
+            group: groupKey || row.group,
+            originalGroup: row.originalGroup || row.group,
             rank,
             rankNote: 'Manuell'
         };
@@ -8171,19 +8221,25 @@
         const predictionChanged = ensureTournamentManualPredictionDefaults(autoContext);
         hydrateTournamentManualOrders(autoContext);
         if (predictionChanged) saveTournamentManualState();
+        const rowsByTeamKey = new Map();
+        autoContext.groups.forEach(group => {
+            (group.rows || []).forEach(row => {
+                if (row && row.key) rowsByTeamKey.set(row.key, row);
+            });
+        });
 
         const groupResults = autoContext.groups.map(group => {
             const groupKey = String(group.group || '').toUpperCase();
-            const rowsByKey = new Map(group.rows.map(row => [row.key, row]));
             const rankedRows = (tournamentManualState.groupOrders[groupKey] || [])
                 .map((teamKey, idx) => {
-                    const row = rowsByKey.get(teamKey);
-                    return row ? cloneTournamentRowForManual(row, idx + 1) : null;
+                    const row = rowsByTeamKey.get(teamKey);
+                    return row ? cloneTournamentRowForManual(row, idx + 1, groupKey) : null;
                 })
                 .filter(Boolean);
             const manualRowsByKey = new Map(rankedRows.map(row => [row.key, row]));
             return {
                 ...group,
+                rows: rankedRows,
                 rankedRows,
                 rowsByKey: manualRowsByKey
             };
@@ -8418,20 +8474,35 @@
         </section>`;
     }
 
-    function commitTournamentManualSortOrder(list) {
-        if (!list) return;
-        const kind = list.getAttribute('data-sort-kind');
-        if (kind === 'group') {
-            const group = String(list.getAttribute('data-group') || '').toUpperCase();
-            if (!group) return;
-            tournamentManualState.groupOrders[group] = Array.from(list.querySelectorAll('[data-manual-sort-item]'))
-                .map(item => item.getAttribute('data-team-key'))
-                .filter(Boolean);
-        } else if (kind === 'third') {
-            tournamentManualState.thirdOrder = Array.from(list.querySelectorAll('[data-manual-sort-item]'))
-                .map(item => String(item.getAttribute('data-group') || '').toUpperCase())
-                .filter(Boolean);
-        }
+    function getTournamentManualSortItems(list) {
+        if (!list) return [];
+        return Array.from(list.children)
+            .filter(item => item.matches && item.matches('[data-manual-sort-item]'));
+    }
+
+    function commitTournamentManualSortOrder(listOrLists) {
+        const lists = Array.isArray(listOrLists) ? listOrLists : [listOrLists];
+        const uniqueLists = Array.from(new Set(lists.filter(Boolean)));
+        let changed = false;
+
+        uniqueLists.forEach(list => {
+            const kind = list.getAttribute('data-sort-kind');
+            if (kind === 'group') {
+                const group = String(list.getAttribute('data-group') || '').toUpperCase();
+                if (!group) return;
+                tournamentManualState.groupOrders[group] = getTournamentManualSortItems(list)
+                    .map(item => item.getAttribute('data-team-key'))
+                    .filter(Boolean);
+                changed = true;
+            } else if (kind === 'third') {
+                tournamentManualState.thirdOrder = getTournamentManualSortItems(list)
+                    .map(item => String(item.getAttribute('data-group') || '').toUpperCase())
+                    .filter(Boolean);
+                changed = true;
+            }
+        });
+
+        if (!changed) return;
         saveTournamentManualState();
         renderTournamentView();
     }
@@ -8440,6 +8511,8 @@
     // the page, plus the maximum scroll step per animation frame.
     const TOURNAMENT_DRAG_EDGE = 72;
     const TOURNAMENT_DRAG_MAX_SPEED = 20;
+    const TOURNAMENT_DRAG_LIST_HIT_PAD = 18;
+    const TOURNAMENT_DRAG_SNAP_DURATION = 170;
     // A plain click/tap must never lift the row. We wait for a real movement,
     // then keep the originally grabbed pixel under the pointer.
     const TOURNAMENT_DRAG_START_THRESHOLD = 6;
@@ -8487,58 +8560,256 @@
         state.item.style.top = `${top}px`;
     }
 
-    function updateTournamentDragPlaceholder() {
-        const state = tournamentManualDragState;
-        if (!state || !state.active) return;
-        const y = state.lastClientY;
-        const siblings = Array.from(state.list.querySelectorAll('[data-manual-sort-item]'))
-            .filter(item => item !== state.item);
-        const next = siblings.find(item => {
+    function clearTournamentManualSnapTarget(state) {
+        if (state && state.snapTargetItem) {
+            state.snapTargetItem.classList.remove('is-snap-target');
+            state.snapTargetItem = null;
+        }
+    }
+
+    function setTournamentManualSnapTarget(state, item) {
+        if (!state || state.snapTargetItem === item) return;
+        clearTournamentManualSnapTarget(state);
+        if (item) {
+            item.classList.add('is-snap-target');
+            state.snapTargetItem = item;
+        }
+    }
+
+    function isTournamentManualPointInsideList(list, x, y) {
+        if (!list) return false;
+        const rect = list.getBoundingClientRect();
+        if (!rect.width || !rect.height) return false;
+        return x >= rect.left - TOURNAMENT_DRAG_LIST_HIT_PAD
+            && x <= rect.right + TOURNAMENT_DRAG_LIST_HIT_PAD
+            && y >= rect.top - TOURNAMENT_DRAG_LIST_HIT_PAD
+            && y <= rect.bottom + TOURNAMENT_DRAG_LIST_HIT_PAD;
+    }
+
+    function getTournamentManualPointDistanceToList(list, x, y) {
+        const rect = list.getBoundingClientRect();
+        const cx = Math.min(Math.max(x, rect.left), rect.right);
+        const cy = Math.min(Math.max(y, rect.top), rect.bottom);
+        return Math.hypot(x - cx, y - cy);
+    }
+
+    function getTournamentManualInsertionTarget(list, y) {
+        const items = getTournamentManualSortItems(list);
+        const before = items.find(item => {
             const rect = item.getBoundingClientRect();
             return y < rect.top + (rect.height / 2);
-        });
-        if (next) {
-            if (state.placeholder.nextElementSibling !== next) {
-                state.list.insertBefore(state.placeholder, next);
-                state.moved = true;
+        }) || null;
+        return { type: 'insert', list, before };
+    }
+
+    function getTournamentManualNearestSlotItem(list, y) {
+        let closest = null;
+        let bestDistance = Infinity;
+        getTournamentManualSortItems(list).forEach(item => {
+            const rect = item.getBoundingClientRect();
+            const distance = Math.abs(y - (rect.top + rect.height / 2));
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                closest = item;
             }
-        } else if (state.placeholder !== state.list.lastElementChild) {
-            state.list.appendChild(state.placeholder);
+        });
+        return closest;
+    }
+
+    function findTournamentManualDropTarget(state) {
+        if (!state || !state.active) return null;
+        const kind = state.sortKind;
+        const lists = kind === 'group'
+            ? Array.from(document.querySelectorAll('[data-manual-sort-list][data-sort-kind="group"]'))
+            : [state.originList].filter(Boolean);
+        const candidates = lists
+            .filter(list => isTournamentManualPointInsideList(list, state.lastClientX, state.lastClientY))
+            .sort((a, b) => getTournamentManualPointDistanceToList(a, state.lastClientX, state.lastClientY)
+                - getTournamentManualPointDistanceToList(b, state.lastClientX, state.lastClientY));
+        const list = candidates[0] || null;
+        if (!list) return null;
+
+        if (kind === 'group' && list !== state.originList) {
+            const targetItem = getTournamentManualNearestSlotItem(list, state.lastClientY);
+            return targetItem ? { type: 'swap', list, targetItem } : null;
+        }
+
+        return getTournamentManualInsertionTarget(list, state.lastClientY);
+    }
+
+    function moveTournamentManualPlaceholder(state, list, before) {
+        if (!state || !state.placeholder || !list) return;
+        const targetBefore = before && before.parentNode === list ? before : null;
+        if (state.placeholder.parentNode !== list || state.placeholder.nextElementSibling !== targetBefore) {
+            list.insertBefore(state.placeholder, targetBefore);
             state.moved = true;
+        }
+        state.list = list;
+    }
+
+    function restoreTournamentManualPlaceholderToOrigin(state) {
+        if (!state || !state.originList || !state.placeholder) return;
+        const items = getTournamentManualSortItems(state.originList);
+        const before = items[state.originIndex] || null;
+        moveTournamentManualPlaceholder(state, state.originList, before);
+    }
+
+    function updateTournamentDragPlaceholder() {
+        const state = tournamentManualDragState;
+        if (!state || !state.active || state.finishing) return;
+        const target = findTournamentManualDropTarget(state);
+        state.currentDropTarget = target;
+
+        if (!target) {
+            clearTournamentManualSnapTarget(state);
+            restoreTournamentManualPlaceholderToOrigin(state);
+            return;
+        }
+
+        if (target.type === 'swap') {
+            restoreTournamentManualPlaceholderToOrigin(state);
+            setTournamentManualSnapTarget(state, target.targetItem);
+            state.moved = true;
+            return;
+        }
+
+        clearTournamentManualSnapTarget(state);
+        moveTournamentManualPlaceholder(state, target.list, target.before);
+    }
+
+    function shouldReduceTournamentMotion() {
+        return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+
+    function animateTournamentManualSnap(item, rect) {
+        return new Promise(resolve => {
+            if (!item || !rect) {
+                resolve();
+                return;
+            }
+            const applyFinalRect = () => {
+                item.style.left = `${rect.left}px`;
+                item.style.top = `${rect.top}px`;
+                item.style.width = `${rect.width}px`;
+                item.style.height = `${rect.height}px`;
+            };
+            const animeRunner = typeof window.anime === 'function' ? window.anime : null;
+            if (!animeRunner || shouldReduceTournamentMotion()) {
+                applyFinalRect();
+                requestAnimationFrame(resolve);
+                return;
+            }
+            try {
+                animeRunner.remove(item);
+                animeRunner({
+                    targets: item,
+                    left: `${rect.left}px`,
+                    top: `${rect.top}px`,
+                    width: `${rect.width}px`,
+                    height: `${rect.height}px`,
+                    duration: TOURNAMENT_DRAG_SNAP_DURATION,
+                    easing: 'easeOutCubic',
+                    complete: resolve
+                });
+            } catch (_) {
+                applyFinalRect();
+                requestAnimationFrame(resolve);
+            }
+        });
+    }
+
+    function resetTournamentManualDraggedItemStyles(item) {
+        if (!item) return;
+        item.classList.remove('is-dragging');
+        item.style.position = '';
+        item.style.left = '';
+        item.style.top = '';
+        item.style.width = '';
+        item.style.height = '';
+        item.style.margin = '';
+        item.style.transform = '';
+        item.style.touchAction = '';
+    }
+
+    function buildTournamentManualDropPlan(state, shouldCommit) {
+        if (!state || !state.active) return null;
+        const target = shouldCommit ? (state.currentDropTarget || findTournamentManualDropTarget(state)) : null;
+
+        if (!target) {
+            restoreTournamentManualPlaceholderToOrigin(state);
+            return {
+                type: 'restore',
+                rect: state.placeholder?.getBoundingClientRect() || state.originRect,
+                commit: false,
+                lists: []
+            };
+        }
+
+        if (target.type === 'swap') {
+            return {
+                type: 'swap',
+                rect: target.targetItem.getBoundingClientRect(),
+                commit: true,
+                lists: [state.originList, target.list],
+                list: target.list,
+                targetItem: target.targetItem
+            };
+        }
+
+        moveTournamentManualPlaceholder(state, target.list, target.before);
+        return {
+            type: 'insert',
+            rect: state.placeholder?.getBoundingClientRect() || state.originRect,
+            commit: true,
+            lists: [target.list]
+        };
+    }
+
+    function placeTournamentManualItemAfterDrop(state, plan) {
+        if (!state || !plan) return;
+        if (plan.type === 'swap' && plan.targetItem && plan.targetItem.parentNode === plan.list) {
+            plan.list.insertBefore(state.item, plan.targetItem);
+            if (state.placeholder && state.placeholder.parentNode) {
+                state.placeholder.parentNode.insertBefore(plan.targetItem, state.placeholder);
+                state.placeholder.remove();
+            } else {
+                state.originList.appendChild(plan.targetItem);
+            }
+            return;
+        }
+
+        if (state.placeholder && state.placeholder.parentNode) {
+            state.placeholder.parentNode.insertBefore(state.item, state.placeholder);
+            state.placeholder.remove();
+        } else {
+            state.originList.appendChild(state.item);
         }
     }
 
     function finishTournamentManualDrag(shouldCommit) {
         const state = tournamentManualDragState;
-        if (!state) return;
+        if (!state || state.finishing) return;
+        state.finishing = true;
         stopTournamentAutoScroll();
 
-        if (state.active) {
-            if (state.placeholder && state.placeholder.parentNode) {
-                state.placeholder.parentNode.insertBefore(state.item, state.placeholder);
-                state.placeholder.remove();
-            }
-            state.item.classList.remove('is-dragging');
-            state.item.style.position = '';
-            state.item.style.left = '';
-            state.item.style.top = '';
-            state.item.style.width = '';
-            state.item.style.height = '';
-            state.item.style.margin = '';
-            state.item.style.transform = '';
-            state.item.style.touchAction = '';
-            document.body.classList.remove('is-tournament-dragging');
+        if (!state.active) {
+            try { state.item.releasePointerCapture(state.pointerId); } catch (_) { /* ignore */ }
+            tournamentManualDragState = null;
+            return;
         }
 
         try { state.item.releasePointerCapture(state.pointerId); } catch (_) { /* ignore */ }
-        const list = state.list;
-        const wasActive = state.active;
-        const moved = state.moved;
-        tournamentManualDragState = null;
-        // Only persist/re-render when the order actually changed. A plain click
-        // or tap that never crossed the drag threshold leaves everything exactly
-        // where it was.
-        if (shouldCommit && wasActive && moved) commitTournamentManualSortOrder(list);
+        const plan = buildTournamentManualDropPlan(state, shouldCommit);
+        animateTournamentManualSnap(state.item, plan?.rect || state.originRect).then(() => {
+            placeTournamentManualItemAfterDrop(state, plan);
+            clearTournamentManualSnapTarget(state);
+            resetTournamentManualDraggedItemStyles(state.item);
+            document.body.classList.remove('is-tournament-dragging');
+            const shouldPersist = !!(plan && plan.commit && (state.moved || plan.type === 'swap'));
+            const lists = plan?.lists || [];
+            tournamentManualDragState = null;
+            if (shouldPersist) commitTournamentManualSortOrder(lists);
+        });
     }
 
     function startTournamentManualDrag(state) {
@@ -8551,6 +8822,7 @@
         placeholder.className = 'tg-manual-placeholder';
         placeholder.style.height = `${rect.height}px`;
         state.placeholder = placeholder;
+        state.originRect = rect;
         state.active = true;
         state.moved = false;
 
@@ -8586,7 +8858,7 @@
 
     function moveTournamentManualDrag(event) {
         const state = tournamentManualDragState;
-        if (!state || event.pointerId !== state.pointerId) return;
+        if (!state || state.finishing || event.pointerId !== state.pointerId) return;
 
         state.lastClientX = event.clientX;
         state.lastClientY = event.clientY;
@@ -8623,6 +8895,9 @@
                 tournamentManualDragState = {
                     item,
                     list,
+                    originList: list,
+                    originIndex: getTournamentManualSortItems(list).indexOf(item),
+                    sortKind: list.getAttribute('data-sort-kind'),
                     pointerId: event.pointerId,
                     pointerType,
                     startX: event.clientX,
@@ -8634,7 +8909,11 @@
                     active: false,
                     moved: false,
                     placeholder: null,
-                    autoScrollRAF: null
+                    autoScrollRAF: null,
+                    currentDropTarget: null,
+                    snapTargetItem: null,
+                    finishing: false,
+                    originRect: rect
                 };
 
                 if (pointerType === 'mouse') {
