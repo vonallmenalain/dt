@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Auto-Punkte-Sync</title>
+    <meta name="theme-color" content="#28a745">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DreamTeam">
+    <link rel="manifest" href="Icons/site.webmanifest">
+    <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="Icons/favicon-48x48.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Icons/apple-touch-icon.png">
+    <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
+    <meta name="msapplication-config" content="Icons/browserconfig.xml">
+
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-modal.css">
+
+    <style>
+        :root {
+            --monitor-bg: #090f1a;
+            --monitor-panel: #101827;
+            --monitor-panel-2: #151f31;
+            --monitor-line: rgba(148, 163, 184, 0.22);
+            --monitor-line-strong: rgba(148, 163, 184, 0.38);
+            --monitor-text: #e7edf7;
+            --monitor-muted: #95a3b7;
+            --monitor-green: #34d399;
+            --monitor-gold: #f6c453;
+            --monitor-cyan: #38bdf8;
+            --monitor-red: #f87171;
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            min-height: 100%;
+            background: var(--monitor-bg);
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 12% 0%, rgba(52, 211, 153, 0.14), transparent 32rem),
+                radial-gradient(circle at 88% 8%, rgba(246, 196, 83, 0.12), transparent 28rem),
+                linear-gradient(180deg, #070b12 0%, var(--monitor-bg) 42%, #0c121d 100%);
+            color: var(--monitor-text);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            padding-bottom: 86px;
+        }
+
+        .page {
+            width: min(1680px, 100%);
+            margin: 0 auto;
+            padding: 92px 24px 34px;
+        }
+
+        .hero {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 22px;
+            border: 1px solid var(--monitor-line);
+            background: rgba(16, 24, 39, 0.88);
+            border-radius: 8px;
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.6rem, 2vw, 2.15rem);
+            line-height: 1.1;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--monitor-muted);
+            line-height: 1.55;
+            max-width: 980px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            appearance: none;
+            border: 1px solid var(--monitor-line-strong);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--monitor-text);
+            font: inherit;
+            font-weight: 800;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(52, 211, 153, 0.55);
+        }
+
+        .btn:disabled {
+            cursor: wait;
+            opacity: 0.65;
+            transform: none;
+        }
+
+        .auth-panel,
+        .panel,
+        .stat-card {
+            border: 1px solid var(--monitor-line);
+            background: rgba(16, 24, 39, 0.9);
+            border-radius: 8px;
+        }
+
+        .auth-panel {
+            margin-top: 18px;
+            padding: 28px;
+            text-align: center;
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
+        }
+
+        .auth-panel h2 {
+            margin: 0 0 8px;
+            font-size: 1.35rem;
+        }
+
+        .auth-panel p {
+            margin: 0;
+            color: var(--monitor-muted);
+            line-height: 1.55;
+        }
+
+        .hidden { display: none !important; }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .stat-card {
+            min-height: 112px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .stat-label {
+            color: var(--monitor-muted);
+            font-size: 0.76rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0;
+        }
+
+        .stat-value {
+            font-size: 1.42rem;
+            font-weight: 900;
+            line-height: 1.15;
+            overflow-wrap: anywhere;
+        }
+
+        .stat-value.small {
+            font-size: 1rem;
+            line-height: 1.35;
+            font-weight: 800;
+        }
+
+        .stat-foot {
+            color: var(--monitor-muted);
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        .panel {
+            overflow: hidden;
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--monitor-line);
+            background: rgba(21, 31, 49, 0.82);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 1.12rem;
+            letter-spacing: 0;
+        }
+
+        .panel-meta {
+            color: var(--monitor-muted);
+            font-size: 0.86rem;
+        }
+
+        .table-wrap {
+            overflow: auto;
+            max-height: 72vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1580px;
+        }
+
+        th,
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.88rem;
+            line-height: 1.35;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #121c2d;
+            color: var(--monitor-muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .num {
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .muted {
+            color: var(--monitor-muted);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 58px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--monitor-line);
+            font-size: 0.76rem;
+            font-weight: 900;
+            line-height: 1.15;
+            white-space: nowrap;
+        }
+
+        .pill.ok {
+            color: var(--monitor-green);
+            border-color: rgba(52, 211, 153, 0.42);
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .pill.warn {
+            color: var(--monitor-gold);
+            border-color: rgba(246, 196, 83, 0.44);
+            background: rgba(246, 196, 83, 0.1);
+        }
+
+        .pill.err {
+            color: var(--monitor-red);
+            border-color: rgba(248, 113, 113, 0.45);
+            background: rgba(248, 113, 113, 0.1);
+        }
+
+        .yes { color: var(--monitor-green); font-weight: 900; }
+        .no { color: var(--monitor-muted); font-weight: 800; }
+
+        details summary {
+            cursor: pointer;
+            color: var(--monitor-cyan);
+            font-weight: 850;
+            white-space: nowrap;
+        }
+
+        .detail-box {
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 13, 22, 0.72);
+            border-radius: 8px;
+            min-width: 430px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 150px minmax(0, 1fr);
+            gap: 8px 12px;
+        }
+
+        .detail-label {
+            color: var(--monitor-muted);
+            font-weight: 800;
+        }
+
+        .code-list {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.82rem;
+            overflow-wrap: anywhere;
+        }
+
+        .empty {
+            padding: 24px;
+            color: var(--monitor-muted);
+            text-align: center;
+        }
+
+        .error-box {
+            margin-top: 18px;
+            padding: 16px;
+            border: 1px solid rgba(248, 113, 113, 0.38);
+            background: rgba(248, 113, 113, 0.09);
+            color: #fecaca;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 820px) {
+            body { padding-bottom: 80px; }
+            .page { padding: 82px 14px 24px; }
+            .hero {
+                display: block;
+                padding: 18px;
+            }
+            .actions {
+                justify-content: flex-start;
+                margin-top: 16px;
+            }
+            .status-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .stat-card {
+                min-height: 104px;
+                padding: 12px;
+            }
+            .stat-value {
+                font-size: 1.16rem;
+            }
+            .panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <section class="hero">
+        <div>
+            <h1>Auto-Punkte-Sync</h1>
+            <p class="subtitle">Admin-Monitor für Versionen, Spielstatus, API-Aufwand und die letzten automatischen Punkte-Läufe.</p>
+        </div>
+        <div class="actions">
+            <button type="button" class="btn" id="refreshBtn">Aktualisieren</button>
+        </div>
+    </section>
+
+    <section class="auth-panel" id="loadingPanel">
+        <h2>Prüfe Admin-Zugriff</h2>
+        <p>Die Monitor-Daten werden geladen, sobald dein Admin-Login bestätigt ist.</p>
+    </section>
+
+    <section class="auth-panel hidden" id="lockedPanel">
+        <h2>Nur für Admins</h2>
+        <p>Dieser Sync-Monitor ist für den Admin-Account freigeschaltet. Melde dich oben rechts mit dem Admin-Account an.</p>
+    </section>
+
+    <section class="hidden" id="monitorContent">
+        <div class="status-grid" id="statusGrid"></div>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Letzte Sync-Läufe</h2>
+                    <div class="panel-meta" id="logsMeta">-</div>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zeit</th>
+                            <th>Trigger</th>
+                            <th>Tick</th>
+                            <th>API total</th>
+                            <th>Kandidaten</th>
+                            <th>Scoring</th>
+                            <th>Live</th>
+                            <th>finishedGames</th>
+                            <th>newlyFinished / candidatesNowFinished</th>
+                            <th>Spieler geschrieben</th>
+                            <th>Spieler gelöscht</th>
+                            <th>Spieler übersprungen</th>
+                            <th>pointsVersion</th>
+                            <th>fixturesVersion</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsBody">
+                        <tr><td colspan="16" class="empty">Noch keine Daten geladen.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </section>
+
+    <div class="error-box hidden" id="errorBox"></div>
+</main>
+
+<script src="tournament-config.js"></script>
+<script src="nav.js"></script>
+<script src="admin.js"></script>
+<script src="auth.js"></script>
+<script src="auth-modal.js"></script>
+
+<script>
+(function () {
+    "use strict";
+
+    const LOG_COLLECTION = "Admin Auto Points Logs WM 2026";
+    const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
+    const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
+
+    const els = {
+        loading: document.getElementById("loadingPanel"),
+        locked: document.getElementById("lockedPanel"),
+        content: document.getElementById("monitorContent"),
+        statusGrid: document.getElementById("statusGrid"),
+        logsBody: document.getElementById("logsBody"),
+        logsMeta: document.getElementById("logsMeta"),
+        errorBox: document.getElementById("errorBox"),
+        refreshBtn: document.getElementById("refreshBtn")
+    };
+
+    let db = null;
+    let isLoading = false;
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function numberValue(value, fallback = 0) {
+        return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+    }
+
+    function timestampToMs(value) {
+        if (typeof value === "number" && Number.isFinite(value)) return value;
+        if (value && typeof value.toMillis === "function") return value.toMillis();
+        if (value && typeof value.seconds === "number") return value.seconds * 1000;
+        return null;
+    }
+
+    function formatDateTime(value) {
+        const ms = timestampToMs(value);
+        if (!ms) return "-";
+        return new Intl.DateTimeFormat("de-CH", {
+            dateStyle: "short",
+            timeStyle: "medium"
+        }).format(new Date(ms));
+    }
+
+    function formatShortDateTime(value) {
+        const ms = timestampToMs(value);
+        if (!ms) return "-";
+        return new Intl.DateTimeFormat("de-CH", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        }).format(new Date(ms));
+    }
+
+    function listLength(value) {
+        return Array.isArray(value) ? value.length : 0;
+    }
+
+    function statusInfo(log) {
+        const warnings = Array.isArray(log.warnings) ? log.warnings : [];
+        if (log.error) return { label: "Fehler", cls: "err" };
+        if (warnings.length > 0) return { label: "Warnung", cls: "warn" };
+        return { label: "OK", cls: "ok" };
+    }
+
+    function yesNo(value) {
+        return value
+            ? '<span class="yes">ja</span>'
+            : '<span class="no">nein</span>';
+    }
+
+    function getFixtureStatusShort(fixture) {
+        return fixture && fixture.status && fixture.status.short
+            ? String(fixture.status.short).toUpperCase()
+            : "";
+    }
+
+    function classifyFixtures(fixtures) {
+        const result = { live: 0, open: 0, final: 0 };
+        fixtures.forEach((fixture) => {
+            const status = getFixtureStatusShort(fixture);
+            if (FINISHED_STATUSES.has(status)) {
+                result.final += 1;
+            } else if (LIVE_STATUSES.has(status)) {
+                result.live += 1;
+            } else {
+                result.open += 1;
+            }
+        });
+        return result;
+    }
+
+    function renderStatusCards(meta, fixtures, pointsCount, logs) {
+        const fixtureCounts = classifyFixtures(fixtures);
+        const lastLog = logs[0] || null;
+        const lastStatus = lastLog ? statusInfo(lastLog) : null;
+        const cards = [
+            {
+                label: "pointsVersion",
+                value: meta.pointsVersion ?? "-",
+                foot: `Aktualisiert: ${formatDateTime(meta.pointsUpdatedAt)}`
+            },
+            {
+                label: "fixturesVersion",
+                value: meta.fixturesVersion ?? "-",
+                foot: `Aktualisiert: ${formatDateTime(meta.fixturesUpdatedAt)}`
+            },
+            {
+                label: "Spiele live",
+                value: fixtureCounts.live,
+                foot: `${fixtureCounts.open} offen, ${fixtureCounts.final} final`
+            },
+            {
+                label: "Punkte-Dokumente",
+                value: pointsCount,
+                foot: `${fixtures.length} Spiele im Spielplan`
+            },
+            {
+                label: "Letzter Sync",
+                value: lastLog ? formatShortDateTime(lastLog.createdAtMs || lastLog.createdAt) : "-",
+                valueClass: "small",
+                foot: lastLog
+                    ? `${escapeHtml((lastLog.trigger || "unknown"))} · ${lastStatus.label}`
+                    : "Noch kein Log-Eintrag"
+            },
+            {
+                label: "Letzter API-Aufwand",
+                value: lastLog ? numberValue(lastLog.apiCalls && lastLog.apiCalls.total, 0) : "-",
+                foot: lastLog
+                    ? `Liste ${numberValue(lastLog.apiCalls && lastLog.apiCalls.fixtureList, 0)}, Details ${numberValue(lastLog.apiCalls && lastLog.apiCalls.detailBatches, 0)}`
+                    : "Keine API-Calls bekannt"
+            }
+        ];
+
+        els.statusGrid.innerHTML = cards.map(card => `
+            <article class="stat-card">
+                <div class="stat-label">${escapeHtml(card.label)}</div>
+                <div class="stat-value ${card.valueClass || ""}">${escapeHtml(card.value)}</div>
+                <div class="stat-foot">${card.foot}</div>
+            </article>
+        `).join("");
+    }
+
+    function renderArray(value) {
+        const list = Array.isArray(value) ? value : [];
+        if (!list.length) return '<span class="muted">-</span>';
+        return `<span class="code-list">${escapeHtml(list.join(", "))}</span>`;
+    }
+
+    function renderMessages(value) {
+        const list = Array.isArray(value) ? value.filter(Boolean) : [];
+        if (!list.length) return '<span class="muted">-</span>';
+        return list.map(item => `<div>${escapeHtml(item)}</div>`).join("");
+    }
+
+    function renderDetails(log) {
+        return `
+            <details>
+                <summary>Öffnen</summary>
+                <div class="detail-box">
+                    <div class="detail-grid">
+                        <div class="detail-label">Log-ID</div>
+                        <div class="code-list">${escapeHtml(log.id)}</div>
+                        <div class="detail-label">Fixture-IDs</div>
+                        <div>${renderArray(log.candidateFixtureIds)}</div>
+                        <div class="detail-label">Scoring-IDs</div>
+                        <div>${renderArray(log.scoringFixtureIds)}</div>
+                        <div class="detail-label">Live-IDs</div>
+                        <div>${renderArray(log.liveFixtureIds)}</div>
+                        <div class="detail-label">Neu final</div>
+                        <div>${renderArray(log.newlyFinishedFixtureIds)}</div>
+                        <div class="detail-label">API-Calls</div>
+                        <div class="code-list">fixtureList=${numberValue(log.apiCalls && log.apiCalls.fixtureList, 0)}, detailBatches=${numberValue(log.apiCalls && log.apiCalls.detailBatches, 0)}, total=${numberValue(log.apiCalls && log.apiCalls.total, 0)}</div>
+                        <div class="detail-label">GitHub</div>
+                        <div class="code-list">${escapeHtml([log.githubWorkflow, log.githubRunId, log.githubRunAttempt, log.githubSha].filter(Boolean).join(" / ") || "-")}</div>
+                        <div class="detail-label">Changed Players</div>
+                        <div>${numberValue(log.changedPlayersCount, 0)}${log.changedPlayersTruncated ? " (gekürzt)" : ""}</div>
+                        <div class="detail-label">Warnungen</div>
+                        <div>${renderMessages(log.warnings)}</div>
+                        <div class="detail-label">Fehler</div>
+                        <div>${log.error ? escapeHtml(log.error) : '<span class="muted">-</span>'}</div>
+                    </div>
+                </div>
+            </details>
+        `;
+    }
+
+    function renderLogs(logs) {
+        if (!logs.length) {
+            els.logsBody.innerHTML = '<tr><td colspan="16" class="empty">Noch keine Sync-Logs vorhanden.</td></tr>';
+            els.logsMeta.textContent = "0 Läufe";
+            return;
+        }
+
+        els.logsMeta.textContent = `${logs.length} Läufe geladen`;
+        els.logsBody.innerHTML = logs.map((log) => {
+            const status = statusInfo(log);
+            const writeResult = log.writeResult || {};
+            const fixtureWriteResult = log.fixtureWriteResult || {};
+            const apiCalls = log.apiCalls || {};
+            const trigger = log.trigger || "unknown";
+            const tick = `${numberValue(log.tickIndex, 0) || "-"} / ${numberValue(log.totalTicks, 0) || "-"}`;
+            const newlyFinished = numberValue(log.newlyFinished, listLength(log.newlyFinishedFixtureIds));
+            const candidatesNowFinished = numberValue(log.candidatesNowFinished, 0);
+
+            return `
+                <tr>
+                    <td class="num">${escapeHtml(formatDateTime(log.createdAtMs || log.createdAt))}</td>
+                    <td>${escapeHtml(trigger)}</td>
+                    <td class="num">${escapeHtml(tick)}</td>
+                    <td class="num">${numberValue(apiCalls.total, 0)}</td>
+                    <td class="num">${listLength(log.candidateFixtureIds)}</td>
+                    <td class="num">${listLength(log.scoringFixtureIds)}</td>
+                    <td class="num">${listLength(log.liveFixtureIds)}</td>
+                    <td class="num">${numberValue(log.finishedGamesTotal, 0)}</td>
+                    <td class="num">${newlyFinished} / ${candidatesNowFinished}</td>
+                    <td class="num">${numberValue(writeResult.written, 0)}</td>
+                    <td class="num">${numberValue(writeResult.deleted, 0)}</td>
+                    <td class="num">${numberValue(writeResult.skipped, 0)}</td>
+                    <td>${yesNo(!!log.pointsVersionIncreased)}</td>
+                    <td>${yesNo(!!log.fixturesVersionIncreased)} <span class="muted">(${numberValue(fixtureWriteResult.updated, 0)} upd)</span></td>
+                    <td><span class="pill ${status.cls}">${status.label}</span></td>
+                    <td>${renderDetails(log)}</td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    function showError(message) {
+        els.errorBox.textContent = message;
+        els.errorBox.classList.remove("hidden");
+    }
+
+    function clearError() {
+        els.errorBox.textContent = "";
+        els.errorBox.classList.add("hidden");
+    }
+
+    async function readDocs() {
+        const APP = window.APP_CONFIG;
+        if (!APP || typeof APP.getDb !== "function") {
+            throw new Error("APP_CONFIG konnte nicht geladen werden.");
+        }
+        db = db || APP.getDb();
+
+        const metaCollection = APP.firestore.metaCollection || "app_meta";
+        const metaDocId = APP.firestore.metaDocId();
+        const fixturesCollection = APP.firestore.fixturesCollection();
+        const pointsCollection = APP.firestore.pointsCollection();
+
+        const [metaSnap, fixturesSnap, pointsSnap, logsSnap] = await Promise.all([
+            db.collection(metaCollection).doc(metaDocId).get(),
+            db.collection(fixturesCollection).get(),
+            db.collection(pointsCollection).get(),
+            db.collection(LOG_COLLECTION).orderBy("createdAtMs", "desc").limit(30).get()
+        ]);
+
+        const meta = metaSnap.exists ? (metaSnap.data() || {}) : {};
+        const fixtures = [];
+        fixturesSnap.forEach(doc => fixtures.push({ id: doc.id, ...(doc.data() || {}) }));
+        const logs = [];
+        logsSnap.forEach(doc => logs.push({ id: doc.id, ...(doc.data() || {}) }));
+
+        return { meta, fixtures, pointsCount: pointsSnap.size, logs };
+    }
+
+    async function loadMonitorData() {
+        if (isLoading) return;
+        isLoading = true;
+        clearError();
+        els.refreshBtn.disabled = true;
+        els.refreshBtn.textContent = "Lädt...";
+        try {
+            const data = await readDocs();
+            renderStatusCards(data.meta, data.fixtures, data.pointsCount, data.logs);
+            renderLogs(data.logs);
+        } catch (err) {
+            console.error("[sync-monitor] Laden fehlgeschlagen:", err);
+            showError(err && err.message ? err.message : "Die Monitor-Daten konnten nicht geladen werden.");
+        } finally {
+            isLoading = false;
+            els.refreshBtn.disabled = false;
+            els.refreshBtn.textContent = "Aktualisieren";
+        }
+    }
+
+    function applyAdminState(state) {
+        const isAdmin = !!(state && state.isAdmin);
+        const resolved = !!(state && state.authResolved);
+
+        els.loading.classList.toggle("hidden", resolved);
+        els.locked.classList.toggle("hidden", !resolved || isAdmin);
+        els.content.classList.toggle("hidden", !isAdmin);
+        els.refreshBtn.disabled = !isAdmin;
+
+        if (isAdmin) {
+            loadMonitorData();
+        }
+    }
+
+    function hookAdmin() {
+        if (!window.DreamTeamAdmin || typeof window.DreamTeamAdmin.onAdminChange !== "function") {
+            return false;
+        }
+        window.DreamTeamAdmin.onAdminChange(applyAdminState);
+        return true;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        els.refreshBtn.addEventListener("click", loadMonitorData);
+        els.refreshBtn.disabled = true;
+
+        if (!hookAdmin()) {
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts += 1;
+                if (hookAdmin() || attempts >= 50) clearInterval(interval);
+            }, 100);
+        }
+    });
+})();
+</script>
+</body>
+</html>

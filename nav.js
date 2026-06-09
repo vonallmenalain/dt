@@ -154,7 +154,11 @@ function buildDevTournamentSwitcher(APP) {
     function placeNextToIndexToggle() {
         const toggle = document.getElementById('dev-index-toggle');
         if (!toggle) return;
-        const rect = toggle.getBoundingClientRect();
+        const monitorLink = document.getElementById('admin-sync-monitor-link');
+        const anchor = monitorLink && monitorLink.classList.contains('is-admin-visible')
+            ? monitorLink
+            : toggle;
+        const rect = anchor.getBoundingClientRect();
         if (!rect || !rect.width) return;
         wrapper.style.left = `${Math.round(rect.right + 6)}px`;
         wrapper.style.top = `${Math.round(rect.top)}px`;

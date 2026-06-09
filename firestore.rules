@@ -150,7 +150,8 @@ service cloud.firestore {
         if collection == 'Teams WM 2026'
         || collection == 'Spiele WM 2026'
         || collection == 'Punkte Spieler WM 2026'
-        || (collection == 'app_meta' && docId == 'turnier_wm2026');
+        || (collection == 'app_meta' && docId == 'turnier_wm2026')
+        || (collection == 'Admin Auto Points Logs WM 2026' && isAdmin());
 
       allow create:
         if (
@@ -190,6 +191,16 @@ service cloud.firestore {
             && docId == 'turnier_wm2026'
             && isAdmin()
         );
+    }
+
+    // Admin-Audit-Logs fuer den Auto-Punkte-Sync.
+    // Writes laufen ausschliesslich ueber das Firebase Admin SDK im
+    // GitHub-Action-Script; Client-Schreibzugriffe bleiben verboten.
+    match /{collection}/{docId}/{subdocument=**} {
+      allow read:
+        if collection == 'Admin Auto Points Logs WM 2026' && isAdmin();
+      allow write:
+        if false;
     }
 
     // Default-Deny fuer alles andere. Schreibzugriffe auf

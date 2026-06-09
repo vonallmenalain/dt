@@ -114,6 +114,10 @@ const DEFAULT_FINAL_RECHECK_MIN = 360;
 const DEFAULT_LIVE_TICKS_PER_RUN = 5;
 const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
+const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
+const MAX_CHANGED_PLAYER_LOG_DOCS = 1200;
+
+let activeAuditLog = null;
 
 function envBool(name, fallback = false) {
   const v = (process.env[name] || '').trim().toLowerCase();
@@ -147,7 +151,15 @@ function logInfo(msg) {
   console.log(`[auto-points] ${msg}`);
 }
 
+function recordAuditWarning(msg) {
+  if (!activeAuditLog || !Array.isArray(activeAuditLog.warnings)) return;
+  const value = String(msg || '').trim();
+  if (!value) return;
+  activeAuditLog.warnings.push(value);
+}
+
 function logWarn(msg) {
+  recordAuditWarning(msg);
   console.warn(`[auto-points] ⚠️ ${msg}`);
 }
 
@@ -157,6 +169,144 @@ function logError(msg) {
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function createApiCallCounter() {
+  return { fixtureList: 0, detailBatches: 0, total: 0 };
+}
+
+function incrementApiCallCounter(opts, key) {
+  const audit = opts && opts.audit;
+  if (!audit || !audit.apiCalls) return;
+  if (key === 'fixtureList') {
+    audit.apiCalls.fixtureList += 1;
+  } else if (key === 'detailBatches') {
+    audit.apiCalls.detailBatches += 1;
+  }
+  audit.apiCalls.total = audit.apiCalls.fixtureList + audit.apiCalls.detailBatches;
+}
+
+function createTickAudit(tournament, opts, tickIndex, totalTicks) {
+  return {
+    createdAtMs: Date.now(),
+    tournamentKey: tournament.key,
+    githubRunId: process.env.GITHUB_RUN_ID || '',
+    githubRunAttempt: process.env.GITHUB_RUN_ATTEMPT || '',
+    githubSha: process.env.GITHUB_SHA || '',
+    githubWorkflow: process.env.GITHUB_WORKFLOW || '',
+    trigger: process.env.GITHUB_EVENT_NAME || '',
+    forceRun: !!opts.forceRun,
+    dryRun: !!opts.dryRun,
+    tickIndex,
+    totalTicks,
+    windowStartMin: opts.windowStartMin,
+    windowEndMin: opts.windowEndMin,
+    finalRecheckMin: opts.finalRecheckMin,
+    candidateFixtureIds: [],
+    scoringFixtureIds: [],
+    liveFixtureIds: [],
+    finishedGamesTotal: 0,
+    candidatesNowFinished: 0,
+    newlyFinished: 0,
+    newlyFinishedFixtureIds: [],
+    shouldFullRecompute: false,
+    apiCalls: createApiCallCounter(),
+    writeResult: { written: 0, deleted: 0, skipped: 0, touched: 0 },
+    fixtureWriteResult: { updated: 0, skipped: 0 },
+    pointsVersionIncreased: false,
+    fixturesVersionIncreased: false,
+    changedPlayers: new Map(),
+    changedPlayersCount: 0,
+    changedPlayersTruncated: false,
+    warnings: [],
+    error: null
+  };
+}
+
+function isRelevantAuditTick(audit) {
+  if (!audit) return false;
+  return !!audit.forceRun ||
+    (Array.isArray(audit.candidateFixtureIds) && audit.candidateFixtureIds.length > 0) ||
+    (audit.apiCalls && audit.apiCalls.total > 0) ||
+    (Array.isArray(audit.warnings) && audit.warnings.length > 0) ||
+    !!audit.error;
+}
+
+function serializeAuditLog(audit) {
+  const FieldValue = admin.firestore.FieldValue;
+  return {
+    createdAt: FieldValue.serverTimestamp(),
+    createdAtMs: audit.createdAtMs || Date.now(),
+    tournamentKey: audit.tournamentKey || '',
+    githubRunId: audit.githubRunId || '',
+    githubRunAttempt: audit.githubRunAttempt || '',
+    githubSha: audit.githubSha || '',
+    githubWorkflow: audit.githubWorkflow || '',
+    trigger: audit.trigger || '',
+    forceRun: !!audit.forceRun,
+    dryRun: !!audit.dryRun,
+    tickIndex: audit.tickIndex || 0,
+    totalTicks: audit.totalTicks || 0,
+    windowStartMin: audit.windowStartMin,
+    windowEndMin: audit.windowEndMin,
+    finalRecheckMin: audit.finalRecheckMin,
+    candidateFixtureIds: Array.isArray(audit.candidateFixtureIds) ? audit.candidateFixtureIds : [],
+    scoringFixtureIds: Array.isArray(audit.scoringFixtureIds) ? audit.scoringFixtureIds : [],
+    liveFixtureIds: Array.isArray(audit.liveFixtureIds) ? audit.liveFixtureIds : [],
+    finishedGamesTotal: audit.finishedGamesTotal || 0,
+    candidatesNowFinished: audit.candidatesNowFinished || 0,
+    newlyFinished: audit.newlyFinished || 0,
+    newlyFinishedFixtureIds: Array.isArray(audit.newlyFinishedFixtureIds) ? audit.newlyFinishedFixtureIds : [],
+    shouldFullRecompute: !!audit.shouldFullRecompute,
+    apiCalls: audit.apiCalls || createApiCallCounter(),
+    writeResult: audit.writeResult || { written: 0, deleted: 0, skipped: 0, touched: 0 },
+    fixtureWriteResult: audit.fixtureWriteResult || { updated: 0, skipped: 0 },
+    pointsVersionIncreased: !!audit.pointsVersionIncreased,
+    fixturesVersionIncreased: !!audit.fixturesVersionIncreased,
+    changedPlayersCount: audit.changedPlayersCount || 0,
+    changedPlayersTruncated: !!audit.changedPlayersTruncated,
+    warnings: Array.isArray(audit.warnings) ? audit.warnings : [],
+    error: audit.error || null
+  };
+}
+
+async function writeChangedPlayerAuditDocs(db, logRef, changedPlayers) {
+  const entries = changedPlayers instanceof Map ? Array.from(changedPlayers.entries()) : [];
+  if (entries.length === 0) return;
+
+  let batch = db.batch();
+  let countInBatch = 0;
+
+  for (const [playerId, payload] of entries) {
+    const docRef = logRef.collection('changedPlayers').doc(String(playerId));
+    batch.set(docRef, payload);
+    countInBatch++;
+
+    if (countInBatch === 400) {
+      await batch.commit();
+      batch = db.batch();
+      countInBatch = 0;
+    }
+  }
+
+  if (countInBatch > 0) {
+    await batch.commit();
+  }
+}
+
+async function maybeWriteTickAudit(db, audit) {
+  if (!isRelevantAuditTick(audit)) return;
+
+  try {
+    const logRef = db.collection(AUTO_POINTS_LOG_COLLECTION).doc();
+    const changedPlayers = audit.changedPlayers instanceof Map ? audit.changedPlayers : new Map();
+    audit.changedPlayersCount = changedPlayers.size;
+    await logRef.set(serializeAuditLog(audit));
+    await writeChangedPlayerAuditDocs(db, logRef, changedPlayers);
+    logInfo(`Audit-Log geschrieben: ${AUTO_POINTS_LOG_COLLECTION}/${logRef.id}`);
+  } catch (err) {
+    console.warn(`[auto-points] ⚠️ Audit-Log konnte nicht geschrieben werden: ${err.message}`);
+  }
 }
 
 /**
@@ -735,6 +885,54 @@ function pointObjectsEqual(a, b) {
     JSON.stringify(normalizePointObjectForComparison(b));
 }
 
+function getPointTotal(pointObject) {
+  return pointObject && typeof pointObject.totalPoints === 'number' ? pointObject.totalPoints : 0;
+}
+
+function buildChangedPlayerAudit(playerId, player, before, after) {
+  const beforeObj = before && typeof before === 'object' ? before : {};
+  const afterObj = after && typeof after === 'object' ? after : {};
+  const fixtureKeys = new Set();
+  Object.keys(beforeObj).forEach(key => { if (key.startsWith('Spiel_')) fixtureKeys.add(key); });
+  Object.keys(afterObj).forEach(key => { if (key.startsWith('Spiel_')) fixtureKeys.add(key); });
+
+  const changedFixtureKeys = Array.from(fixtureKeys)
+    .filter(key => JSON.stringify(stableNormalize(beforeObj[key] || null)) !== JSON.stringify(stableNormalize(afterObj[key] || null)))
+    .sort();
+
+  const changedRuleKeys = Object.keys(RULES)
+    .filter(key => ((typeof beforeObj[key] === 'number') ? beforeObj[key] : 0) !== ((typeof afterObj[key] === 'number') ? afterObj[key] : 0))
+    .sort();
+
+  const totalBefore = getPointTotal(beforeObj);
+  const totalAfter = getPointTotal(afterObj);
+
+  return {
+    playerId: String(playerId),
+    playerName: (player && player.Spielername) || afterObj.playerName || beforeObj.playerName || '',
+    nation: (player && player['Nationalteam.name']) || '',
+    position: normalizePosition((player && player.Position) || ''),
+    totalBefore,
+    totalAfter,
+    delta: totalAfter - totalBefore,
+    changedFixtureKeys,
+    changedRuleKeys
+  };
+}
+
+function rememberChangedPlayerForAudit(opts, playerId, player, before, after) {
+  const audit = opts && opts.audit;
+  if (!audit || !(audit.changedPlayers instanceof Map)) return;
+  if (audit.changedPlayers.size >= MAX_CHANGED_PLAYER_LOG_DOCS) {
+    audit.changedPlayersTruncated = true;
+    return;
+  }
+  audit.changedPlayers.set(
+    String(playerId),
+    buildChangedPlayerAudit(playerId, player, before, after)
+  );
+}
+
 function removeFixturePoints(pointObject, fixtureId) {
   if (!pointObject || fixtureId == null) return false;
   const key = `Spiel_${fixtureId}`;
@@ -836,6 +1034,14 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
 
     if (hasPoints) written++;
     else deleted++;
+
+    rememberChangedPlayerForAudit(
+      opts,
+      pid,
+      opts && opts.playerLookup ? opts.playerLookup.get(String(pid)) : null,
+      previous,
+      hasPoints ? obj : null
+    );
 
     if (countInBatch === 400) {
       await batch.commit();
@@ -952,7 +1158,7 @@ async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtu
   return { updated: totalUpdated, skipped };
 }
 
-async function fetchFixtureDetailsByIds(headers, fixtureIds) {
+async function fetchFixtureDetailsByIds(headers, fixtureIds, opts = {}) {
   const idsToFetch = Array.from(fixtureIds || []).map(id => String(id)).filter(Boolean);
   const detailsById = new Map();
   if (idsToFetch.length === 0) return detailsById;
@@ -966,6 +1172,7 @@ async function fetchFixtureDetailsByIds(headers, fixtureIds) {
 
     let detailRes;
     try {
+      incrementApiCallCounter(opts, 'detailBatches');
       detailRes = await fetchFn(detailUrl, { headers });
     } catch (err) {
       throw new Error(`Detail-Batch ${b + 1}/${batches.length} fehlgeschlagen (Netzwerkfehler): ${err.message}`);
@@ -1011,6 +1218,8 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   const playersData = loadPlayersData(tournament);
   const overrideStats = applyPositionOverrides(playersData, tournament.key);
+  const playerLookup = new Map(playersData.map(p => [String(p['player.id']), p]));
+  opts.playerLookup = playerLookup;
   logInfo(`Kader geladen: ${playersData.length} Spieler aus ${tournament.dataFile}` +
     ` (Positions-Overrides angewendet: ${overrideStats.applied}/${overrideStats.total}).`);
 
@@ -1025,6 +1234,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   const fixturesUrl = `https://v3.football.api-sports.io/fixtures?${baseQuery}`;
 
   logInfo(`Lade Fixtures von API: ${fixturesUrl}`);
+  incrementApiCallCounter(opts, 'fixtureList');
   const fixRes = await fetchFn(fixturesUrl, { headers });
   if (!fixRes.ok) throw new Error(`API-Fixtures lieferte HTTP ${fixRes.status}`);
   const fixData = await fixRes.json();
@@ -1069,6 +1279,16 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
       ])
     : uniqueGamesByFixtureId(scoringCandidateGames);
   const liveGamesForTick = scoringGames.filter(g => !isFinishedFixture(g));
+
+  if (opts.audit) {
+    opts.audit.finishedGamesTotal = finishedGames.length;
+    opts.audit.candidatesNowFinished = finishedCandidateIds ? finishedCandidateIds.size : finishedGames.length;
+    opts.audit.newlyFinished = newlyFinishedCandidateIds ? newlyFinishedCandidateIds.size : 0;
+    opts.audit.newlyFinishedFixtureIds = newlyFinishedCandidateIds ? Array.from(newlyFinishedCandidateIds).sort() : [];
+    opts.audit.shouldFullRecompute = !!shouldFullRecompute;
+    opts.audit.scoringFixtureIds = scoringGames.map(g => String(g.fixture.id));
+    opts.audit.liveFixtureIds = liveGamesForTick.map(g => String(g.fixture.id));
+  }
 
   logInfo(
     `API meldet ${finishedGames.length} beendete Spiele insgesamt, ` +
@@ -1115,7 +1335,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   logInfo(`Punkte-Modus: ${modeLabel}.`);
 
   const fixtureIds = scoringGames.map(g => String(g.fixture.id));
-  const detailsById = await fetchFixtureDetailsByIds(headers, fixtureIds);
+  const detailsById = await fetchFixtureDetailsByIds(headers, fixtureIds, opts);
 
   // Veröffentlichungs-Guard: Punkte werden nur dann nach Firestore
   // geschrieben, wenn ALLE erwarteten Fixtures verarbeitet wurden.
@@ -1146,17 +1366,31 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   Object.values(allPlayerPoints).forEach(recalculateTotalPoints);
 
   const writeResult = await writePointsToFirestore(db, tournament, allPlayerPoints, opts, changedPlayerIds, existingPoints);
+  if (opts.audit) {
+    opts.audit.writeResult = {
+      written: writeResult.written,
+      deleted: writeResult.deleted,
+      skipped: writeResult.skipped,
+      touched: writeResult.touched
+    };
+    opts.audit.changedPlayersCount = opts.audit.changedPlayers instanceof Map ? opts.audit.changedPlayers.size : 0;
+  }
   logInfo(
     `${writeResult.written} Spieler-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}, ` +
     `${writeResult.deleted} geloescht/geleert, ${writeResult.skipped} unveraendert uebersprungen, ` +
     `${processedPlayers} Spielereinsaetze verarbeitet.`
   );
 
+  let pointsVersionIncreased = false;
   if (writeResult.touched > 0) {
     await bumpPointsMetaVersion(db, tournament, opts);
+    pointsVersionIncreased = !opts.dryRun;
     logInfo(`Meta-Dokument ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} ${opts.dryRun ? '(DRY-RUN) ' : ''}aktualisiert.`);
   } else {
     logWarn('Keine Spieler-Punktedokumente veraendert – pointsVersion nicht hochgezaehlt.');
+  }
+  if (opts.audit) {
+    opts.audit.pointsVersionIncreased = pointsVersionIncreased;
   }
 
   // Anzahl der Kandidaten, die laut API jetzt beendet sind. Bei FORCE_RUN
@@ -1171,6 +1405,12 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
       ? uniqueGamesByFixtureId([...(opts.forceRun ? scoringGames : finishedGames), ...liveCandidateGames])
       : scoringCandidateGames;
     const fixtureWriteResult = await updateFixtureStatusInFirestore(db, tournament, statusGames, opts, fixtureSnapshotsById);
+    if (opts.audit) {
+      opts.audit.fixtureWriteResult = {
+        updated: fixtureWriteResult.updated,
+        skipped: fixtureWriteResult.skipped
+      };
+    }
     logInfo(`Fixture-Status für ${fixtureWriteResult.updated} Spiele ${opts.dryRun ? '(DRY-RUN) berechnet' : 'aktualisiert'}, ` +
       `${fixtureWriteResult.skipped} unveraendert uebersprungen.`);
 
@@ -1179,6 +1419,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     // Tick, der API-Statusdaten fuer ein Live-/Finalspiel geschrieben hat.
     if (fixtureWriteResult.updated > 0) {
       await bumpFixturesMetaVersion(db, tournament, opts);
+      if (opts.audit) opts.audit.fixturesVersionIncreased = !opts.dryRun;
       logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhoeht – Clients laden frische Spielstaende sofort nach.`);
     }
   } catch (err) {
@@ -1192,7 +1433,11 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     finishedGames: finishedGames.length,
     scoringGames: scoringGames.length,
     liveGames: liveGamesForTick.length,
-    candidatesNowFinished
+    candidatesNowFinished,
+    writeResult,
+    fixtureWriteResult: opts.audit ? opts.audit.fixtureWriteResult : { updated: 0, skipped: 0 },
+    pointsVersionIncreased,
+    fixturesVersionIncreased: !!(opts.audit && opts.audit.fixturesVersionIncreased)
   };
 }
 
@@ -1200,37 +1445,50 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
  *  Entrypoint
  * ───────────────────────────────────────────────────────────────────────────── */
 async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
+  const audit = createTickAudit(tournament, opts, tickIndex, totalTicks);
+  const tickOpts = { ...opts, audit };
+  activeAuditLog = audit;
+
   if (totalTicks > 1) {
     logInfo(`Live-Tick ${tickIndex}/${totalTicks}.`);
   }
 
-  let candidateIds = null;
-  let fixtureSnapshotsById = null;
-  if (opts.forceRun) {
-    logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
-  } else {
-    const { all, candidates } = await findCandidateFixtures(db, tournament, opts);
-    logInfo(`Spielplan: ${all.length} Spiele in Firestore. Kandidaten in diesem Tick: ${candidates.length}.`);
-    if (candidates.length === 0) {
-      logInfo('Nichts zu tun – kein Spiel im Live-/Catch-up-Fenster mit offenem Status. Beende ohne API-Call.');
-      return { hadCandidates: false, result: null };
+  try {
+    let candidateIds = null;
+    let fixtureSnapshotsById = null;
+    if (opts.forceRun) {
+      logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
+    } else {
+      const { all, candidates } = await findCandidateFixtures(db, tournament, tickOpts);
+      logInfo(`Spielplan: ${all.length} Spiele in Firestore. Kandidaten in diesem Tick: ${candidates.length}.`);
+      if (candidates.length === 0) {
+        logInfo('Nichts zu tun – kein Spiel im Live-/Catch-up-Fenster mit offenem Status. Beende ohne API-Call.');
+        return { hadCandidates: false, result: null };
+      }
+      candidates.forEach(c => {
+        const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
+        const tag = c.finalRecheck ? ' [FINAL-RECHECK]' : (c.overdue ? ' [CATCH-UP / ueberfaellig]' : '');
+        logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${formatAgeMin(ageMin)}.${tag}`);
+      });
+      candidateIds = new Set(candidates.map(c => String(c.id)));
+      audit.candidateFixtureIds = Array.from(candidateIds).sort();
+      fixtureSnapshotsById = new Map(candidates.map(c => [String(c.id), c]));
     }
-    candidates.forEach(c => {
-      const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
-      const tag = c.finalRecheck ? ' [FINAL-RECHECK]' : (c.overdue ? ' [CATCH-UP / ueberfaellig]' : '');
-      logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${formatAgeMin(ageMin)}.${tag}`);
-    });
-    candidateIds = new Set(candidates.map(c => String(c.id)));
-    fixtureSnapshotsById = new Map(candidates.map(c => [String(c.id), c]));
+
+    const result = await runFullPointsUpload(db, tournament, tickOpts, candidateIds, fixtureSnapshotsById);
+    logInfo(`Lauf-Tick beendet. Beendete Spiele (gesamt): ${result.finishedGames}, ` +
+      `Scoring-Spiele: ${result.scoringGames}, Live-Spiele: ${result.liveGames}, ` +
+      `Spieler-Dokumente geschrieben: ${result.writeSuccess}, geloescht: ${result.deleteSuccess}, ` +
+      `Kandidaten jetzt beendet: ${result.candidatesNowFinished}.`);
+
+    return { hadCandidates: true, result };
+  } catch (err) {
+    audit.error = err && err.message ? err.message : String(err);
+    throw err;
+  } finally {
+    activeAuditLog = null;
+    await maybeWriteTickAudit(db, audit);
   }
-
-  const result = await runFullPointsUpload(db, tournament, opts, candidateIds, fixtureSnapshotsById);
-  logInfo(`Lauf-Tick beendet. Beendete Spiele (gesamt): ${result.finishedGames}, ` +
-    `Scoring-Spiele: ${result.scoringGames}, Live-Spiele: ${result.liveGames}, ` +
-    `Spieler-Dokumente geschrieben: ${result.writeSuccess}, geloescht: ${result.deleteSuccess}, ` +
-    `Kandidaten jetzt beendet: ${result.candidatesNowFinished}.`);
-
-  return { hadCandidates: true, result };
 }
 
 async function main() {
