@@ -16,7 +16,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-09-tournament-dnd-snap';
+const CACHE_VERSION = 'v2026-06-09-navigation-query-match';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -108,8 +108,8 @@ function fetchAndCache(request) {
   });
 }
 
-async function networkFirstWithTimeout(request, timeoutMs = 3000) {
-  const cached = await caches.match(request);
+async function networkFirstWithTimeout(request, timeoutMs = 3000, matchOptions = undefined) {
+  const cached = await caches.match(request, matchOptions);
 
   let timeoutId;
   const timeoutPromise = new Promise((resolve) => {
@@ -158,6 +158,10 @@ function networkFirst(request) {
   return networkFirstWithTimeout(request);
 }
 
+function networkFirstIgnoreSearch(request) {
+  return networkFirstWithTimeout(request, 3000, { ignoreSearch: true });
+}
+
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
@@ -186,12 +190,12 @@ self.addEventListener('fetch', event => {
   const isImageAsset = /\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$/.test(pathname);
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirstIgnoreSearch(request));
     return;
   }
 
   if (isCriticalAsset) {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirstIgnoreSearch(request));
     return;
   }
 
