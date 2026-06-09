@@ -9094,7 +9094,7 @@ const playersData = [
         "Nationalteam.name": "Mexico",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/16.png",
         "Club.name": "FC Dynamo Moscow",
-        "Club.logo": "",
+        "Club.logo": "https://r2.thesportsdb.com/images/media/team/badge/0p67e71535789184.png",
         "Geburtsdatum": "1996-01-15",
         "Groesse": "178",
         "Gewicht": "73"
@@ -10862,7 +10862,7 @@ const playersData = [
         "Nationalteam.name": "Paraguay",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2380.png",
         "Club.name": "FC Dynamo Moscow",
-        "Club.logo": "",
+        "Club.logo": "https://r2.thesportsdb.com/images/media/team/badge/0p67e71535789184.png",
         "Geburtsdatum": "2000-06-01",
         "Groesse": "173",
         "Gewicht": "62"
