@@ -179,12 +179,13 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 6px;
+            gap: 8px;
             background: var(--dark-card);
             border: 1px solid var(--glass-border);
-            border-radius: 14px;
-            padding: 12px 16px;
-            max-width: 360px;
+            border-radius: 16px;
+            padding: 14px 18px;
+            width: min(460px, calc(100% - 48px));
+            max-width: 460px;
             text-align: right;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -200,10 +201,13 @@
         }
 
         .rl-hero-update.is-countdown {
+            align-items: stretch;
             border-color: rgba(255, 193, 7, 0.34);
             background:
-                linear-gradient(135deg, rgba(92, 64, 16, 0.48), rgba(15, 23, 42, 0.92));
+                radial-gradient(120% 80% at 50% 0%, rgba(34,197,94,0.10), transparent 60%),
+                linear-gradient(135deg, rgba(92, 64, 16, 0.50), rgba(15, 23, 42, 0.94));
             box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.10), 0 10px 24px rgba(0, 0, 0, 0.22);
+            text-align: left;
         }
 
         .rl-hero-update-label {
@@ -262,11 +266,21 @@
             line-height: 1.2;
         }
 
+        .rl-hero-update.is-countdown .rl-hero-update-time {
+            width: 100%;
+        }
+
         .rl-hero-update-game {
             font-size: 0.78rem;
             color: var(--text-muted);
             line-height: 1.4;
-            max-width: 320px;
+            max-width: 390px;
+        }
+
+        .rl-hero-update.is-live .rl-hero-update-game,
+        .rl-hero-update.is-countdown .rl-hero-update-game {
+            width: 100%;
+            max-width: none;
         }
 
         .rl-hero-update-meta {
@@ -300,6 +314,43 @@
             white-space: nowrap;
         }
 
+        .rl-match-countdown {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.045);
+            border: 1px solid rgba(255,255,255,0.09);
+            box-sizing: border-box;
+        }
+
+        .rl-match-cd-cell {
+            min-width: 0;
+            text-align: center;
+        }
+
+        .rl-match-cd-num {
+            display: block;
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: var(--green-light);
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .rl-match-cd-label {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            line-height: 1.1;
+            letter-spacing: 0;
+        }
+
         /* Clickable last-update game link – navigates to Analyse/Spiele
            with the matching game expanded. */
         a.rl-hero-update-game-link {
@@ -311,6 +362,13 @@
             margin: -2px -4px;
             transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
             cursor: pointer;
+        }
+
+        .rl-hero-update.is-live a.rl-hero-update-game-link,
+        .rl-hero-update.is-countdown a.rl-hero-update-game-link {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         a.rl-hero-update-game-link:hover,
@@ -1535,7 +1593,7 @@
                 width: 100%;
                 align-items: flex-start;
                 text-align: left;
-                padding: 11px 14px;
+                padding: 12px 14px;
                 border-radius: 12px;
                 box-sizing: border-box;
             }
@@ -1547,6 +1605,20 @@
             .rl-hero-update-game {
                 max-width: none;
                 font-size: 0.78rem;
+            }
+
+            .rl-match-countdown {
+                gap: 6px;
+                padding: 10px;
+                border-radius: 12px;
+            }
+
+            .rl-match-cd-num {
+                font-size: 1.25rem;
+            }
+
+            .rl-match-cd-label {
+                font-size: 0.62rem;
             }
 
             .rl-hero-stats {
@@ -3484,12 +3556,17 @@
         return `${dateStr}, ${timeStr} Uhr`;
     }
 
-    function formatCountdown(diffMs) {
+    function getCountdownParts(diffMs) {
         const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
         const days = Math.floor(totalSeconds / 86400);
         const hours = Math.floor((totalSeconds % 86400) / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
+        return { days, hours, minutes, seconds };
+    }
+
+    function formatCountdown(diffMs) {
+        const { days, hours, minutes, seconds } = getCountdownParts(diffMs);
         const pad = (value) => String(value).padStart(2, "0");
 
         if (days > 0) {
@@ -3497,6 +3574,25 @@
         }
 
         return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+
+    function buildCountdownHtml(diffMs) {
+        const { days, hours, minutes, seconds } = getCountdownParts(diffMs);
+        const cells = [
+            { value: String(days), label: days === 1 ? "Tag" : "Tage" },
+            { value: String(hours).padStart(2, "0"), label: "Std" },
+            { value: String(minutes).padStart(2, "0"), label: "Min" },
+            { value: String(seconds).padStart(2, "0"), label: "Sek" }
+        ];
+
+        return `<div class="rl-match-countdown" aria-hidden="true">` +
+            cells.map(cell =>
+                `<span class="rl-match-cd-cell">` +
+                    `<span class="rl-match-cd-num">${cell.value}</span>` +
+                    `<span class="rl-match-cd-label">${cell.label}</span>` +
+                `</span>`
+            ).join("") +
+            `</div>`;
     }
 
     function formatElapsedSinceKickoff(kickoffMs, nowMs) {
@@ -3620,6 +3716,8 @@
 
         containerEl.classList.toggle("is-live", !!liveFixtureInfo);
         containerEl.classList.toggle("is-countdown", !!nextFixtureInfo);
+        timeEl.removeAttribute("aria-label");
+        timeEl.removeAttribute("role");
         if (labelEl) {
             labelEl.textContent = liveFixtureInfo
                 ? "Live Punkte-Update"
@@ -3670,7 +3768,10 @@
                 : "";
 
             containerEl.style.display = "";
-            timeEl.textContent = formatCountdown(nextFixtureInfo.kickoffMs - nowMs);
+            const countdownMs = nextFixtureInfo.kickoffMs - nowMs;
+            timeEl.setAttribute("role", "timer");
+            timeEl.setAttribute("aria-label", formatCountdown(countdownMs));
+            timeEl.innerHTML = buildCountdownHtml(countdownMs);
             gameEl.innerHTML =
                 buildFixtureLinkHtml(nextFixtureInfo, fixtures) +
                 (kickoffText ? `<span class="rl-hero-update-meta">Anpfiff ${escapeHtml(kickoffText)}</span>` : "") +
