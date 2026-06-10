@@ -6413,17 +6413,17 @@ const playersData = [
         "Gewicht": "80"
     },
     {
-        "player.id": 494131,
-        "Spielername": "Lennart Karl",
-        "Spielerfoto": "https://media.api-sports.io/football/players/494131.png",
+        "player.id": 380978,
+        "Spielername": "Assan Ouédraogo",
+        "Spielerfoto": "https://media.api-sports.io/football/players/380978.png",
         "Position": "MIDFIELDER",
         "Nationalteam.name": "Germany",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/25.png",
-        "Club.name": "FC Bayern München",
-        "Club.logo": "https://media.api-sports.io/football/teams/157.png",
-        "Geburtsdatum": "2008-02-22",
-        "Groesse": "168",
-        "Gewicht": "67"
+        "Club.name": "RB Leipzig",
+        "Club.logo": "https://media.api-sports.io/football/teams/173.png",
+        "Geburtsdatum": "2006-05-09",
+        "Groesse": "191",
+        "Gewicht": "84"
     },
     {
         "player.id": 26475,
