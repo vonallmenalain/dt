@@ -6481,6 +6481,63 @@
         }, 0);
     }
 
+    function timestampToMillis(value) {
+        if (!value) return 0;
+        if (typeof value.toMillis === 'function') {
+            const ms = Number(value.toMillis());
+            if (Number.isFinite(ms)) return ms;
+        }
+        if (typeof value.toDate === 'function') {
+            const date = value.toDate();
+            const ms = date instanceof Date ? date.getTime() : NaN;
+            if (Number.isFinite(ms)) return ms;
+        }
+        if (value instanceof Date) {
+            const ms = value.getTime();
+            return Number.isFinite(ms) ? ms : 0;
+        }
+        if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+        if (typeof value === 'string') {
+            const parsed = Date.parse(value);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+        if (typeof value === 'object') {
+            const seconds = Number(value.seconds ?? value._seconds);
+            if (Number.isFinite(seconds)) {
+                const nanos = Number(value.nanoseconds ?? value._nanoseconds ?? 0);
+                return seconds * 1000 + (Number.isFinite(nanos) ? Math.floor(nanos / 1000000) : 0);
+            }
+        }
+        return 0;
+    }
+
+    function getTeamSubmissionMillis(team) {
+        const candidates = [
+            team && team.timestamp,
+            team && team.submittedAt,
+            team && team.createdAt,
+            team && team.createdAtMs
+        ];
+        for (const candidate of candidates) {
+            const ms = timestampToMillis(candidate);
+            if (ms > 0) return ms;
+        }
+        return 0;
+    }
+
+    function compareTeamsBySubmissionDesc(a, b) {
+        const diff = getTeamSubmissionMillis(b) - getTeamSubmissionMillis(a);
+        if (diff !== 0) return diff;
+        return String(a && a.manager || '').localeCompare(String(b && b.manager || ''), 'de');
+    }
+
+    function compareByTotalThenSubmission(a, b, totalProp) {
+        const prop = totalProp || 'total';
+        const diff = (Number(b && b[prop]) || 0) - (Number(a && a[prop]) || 0);
+        if (diff !== 0) return diff;
+        return compareTeamsBySubmissionDesc(a, b);
+    }
+
     /*
      * Compute ranking history from match-level points.
      * Returns { teams: [...], matchIds: [...] }
@@ -6515,7 +6572,16 @@
                 const id = full ? String(full['player.id']) : String(tp.playerId || '');
                 return { id, isCaptain: !!tp.isCaptain };
             });
-            return { manager: team.manager || 'Unbekannt', mergedPlayers, total: 0, history: [] };
+            return {
+                manager: team.manager || 'Unbekannt',
+                timestamp: team.timestamp,
+                submittedAt: team.submittedAt,
+                createdAt: team.createdAt,
+                createdAtMs: team.createdAtMs,
+                mergedPlayers,
+                total: 0,
+                history: []
+            };
         });
 
         for (let i = 0; i < orderedMatchIds.length; i++) {
@@ -6528,13 +6594,13 @@
                 team.total += roundPts;
             });
 
-            const sorted = [...enriched].sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
+            const sorted = [...enriched].sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
             sorted.forEach((team, idx) => {
                 team.history[i] = { rank: idx + 1, score: team.total };
             });
         }
 
-        const finalSorted = [...enriched].sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
+        const finalSorted = [...enriched].sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
         finalSorted.forEach((team, idx) => { team.currentRank = idx + 1; });
 
         return { teams: finalSorted, matchIds: orderedMatchIds };
@@ -6932,7 +6998,11 @@
         if (draftedEl) animateCounter(draftedEl, draftedIds.size);
 
         if (leaderEl) {
-            const sorted = [...teams].sort((a, b) => getTeamTotal(b, ptMap) - getTeamTotal(a, ptMap));
+            const sorted = [...teams].sort((a, b) => {
+                const diff = getTeamTotal(b, ptMap) - getTeamTotal(a, ptMap);
+                if (diff !== 0) return diff;
+                return compareTeamsBySubmissionDesc(a, b);
+            });
             const topManager = sorted.length > 0 ? sorted[0].manager : null;
             leaderEl.textContent = topManager ? escapeHtml(topManager) : '–';
             if (topManager && leaderEl.tagName === 'A') {
@@ -8832,6 +8902,33 @@
         return trimmed.split(/\s+/)[0];
     };
 
+    function champFirstNameKey(fullName) {
+        return champFirstNameOf(fullName).toLocaleLowerCase('de-CH');
+    }
+
+    function champDuplicateFirstNameKeys(managers) {
+        const counts = new Map();
+        (managers || []).forEach((manager) => {
+            const key = champFirstNameKey(manager && manager.manager);
+            if (!key) return;
+            counts.set(key, (counts.get(key) || 0) + 1);
+        });
+        return new Set(Array.from(counts.entries()).filter(([, count]) => count > 1).map(([key]) => key));
+    }
+
+    function champShortManagerName(fullName, duplicateFirstNames) {
+        const trimmed = String(fullName || '').trim();
+        if (!trimmed) return 'Manager';
+        const parts = trimmed.split(/\s+/).filter(Boolean);
+        const firstName = parts[0] || 'Manager';
+        if (!duplicateFirstNames || !duplicateFirstNames.has(firstName.toLocaleLowerCase('de-CH'))) {
+            return firstName;
+        }
+        const lastName = parts.length > 1 ? parts[parts.length - 1] : '';
+        const initial = lastName && lastName[0] ? lastName[0].toLocaleUpperCase('de-CH') : '';
+        return initial ? `${firstName} ${initial}.` : firstName;
+    }
+
     function champPlayerAvatarHtml(p) {
         const fallback = champEscapeHtml(champInitials(p.name));
         if (p.photo && /^https?:/i.test(p.photo)) {
@@ -9024,7 +9121,7 @@
         return [...teams].sort((a, b) => {
             const diff = b.totalScore - a.totalScore;
             if (diff !== 0) return diff;
-            return a.manager.localeCompare(b.manager, 'de');
+            return compareTeamsBySubmissionDesc(a, b);
         });
     }
 
@@ -9084,6 +9181,7 @@
 
         const top3 = rankedManagers.slice(0, 3);
         const rest = rankedManagers.slice(3, 7);
+        const duplicateFirstNames = champDuplicateFirstNameKeys(rankedManagers);
 
         top3.forEach((m, i) => {
             const rank = i + 1;
@@ -9099,7 +9197,7 @@
             card.style.setProperty('--firstname-delay', firstnameDelay);
             card.style.setProperty('--points-delay', pointsDelay);
 
-            const firstName = champEscapeHtml(champFirstNameOf(m.manager));
+            const firstName = champEscapeHtml(champShortManagerName(m.manager, duplicateFirstNames));
             card.innerHTML = `
                 ${rank === 1 ? CHAMP_CROWN_SVG : ''}
                 <span class="champ-rank-badge">#${rank}</span>
@@ -9149,7 +9247,7 @@
             row.className = 'champ-chaser';
             row.dataset.rank = String(rank);
             row.style.setProperty('--chaser-delay', (3.7 + i * 0.18).toFixed(2) + 's');
-            const chaserDisplayName = rank <= 7 ? champFirstNameOf(m.manager) : m.manager;
+            const chaserDisplayName = rank <= 7 ? champShortManagerName(m.manager, duplicateFirstNames) : m.manager;
             row.innerHTML = `
                 <button type="button" class="champ-chaser-team"
                         aria-label="Platz ${rank}: ${champEscapeHtml(m.manager)}. Zum Team.">
@@ -9222,9 +9320,13 @@
 
         const teamTotals = teams.map((t) => ({
             manager: t.manager || 'Unbekannt',
+            timestamp: t.timestamp,
+            submittedAt: t.submittedAt,
+            createdAt: t.createdAt,
+            createdAtMs: t.createdAtMs,
             total: getTeamTotal(t, ptMap),
             history: historyByManager.get(t.manager || 'Unbekannt') || []
-        })).sort((a, b) => b.total - a.total || a.manager.localeCompare(b.manager, 'de'));
+        })).sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
 
         renderChampStage(buildChampRanking(data));
 

@@ -2116,6 +2116,56 @@
         return clubs[0].count >= 2 ? clubs[0] : null;
     }
 
+    function timestampToMillis(value) {
+        if (!value) return 0;
+        if (typeof value.toMillis === 'function') {
+            const ms = Number(value.toMillis());
+            if (Number.isFinite(ms)) return ms;
+        }
+        if (typeof value.toDate === 'function') {
+            const date = value.toDate();
+            const ms = date instanceof Date ? date.getTime() : NaN;
+            if (Number.isFinite(ms)) return ms;
+        }
+        if (value instanceof Date) {
+            const ms = value.getTime();
+            return Number.isFinite(ms) ? ms : 0;
+        }
+        if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+        if (typeof value === 'string') {
+            const parsed = Date.parse(value);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+        if (typeof value === 'object') {
+            const seconds = Number(value.seconds ?? value._seconds);
+            if (Number.isFinite(seconds)) {
+                const nanos = Number(value.nanoseconds ?? value._nanoseconds ?? 0);
+                return seconds * 1000 + (Number.isFinite(nanos) ? Math.floor(nanos / 1000000) : 0);
+            }
+        }
+        return 0;
+    }
+
+    function getTeamSubmissionMillis(team) {
+        const candidates = [
+            team && team.timestamp,
+            team && team.submittedAt,
+            team && team.createdAt,
+            team && team.createdAtMs
+        ];
+        for (const candidate of candidates) {
+            const ms = timestampToMillis(candidate);
+            if (ms > 0) return ms;
+        }
+        return 0;
+    }
+
+    function compareTeamsBySubmissionDesc(a, b) {
+        const diff = getTeamSubmissionMillis(b) - getTeamSubmissionMillis(a);
+        if (diff !== 0) return diff;
+        return String(a && a.manager || '').localeCompare(String(b && b.manager || ''), 'de');
+    }
+
     function enrichTeamsWithScores(rawTeams) {
         const teams = Array.isArray(rawTeams) ? rawTeams : [];
 
@@ -2188,13 +2238,13 @@
                 perfectHits: 0,
                 currentRank: null
             };
-        }).sort((a, b) => a.manager.localeCompare(b.manager));
+        }).sort(compareTeamsBySubmissionDesc);
     }
 
     function assignTeamRanks(teams) {
         const ranking = [...teams].sort((a, b) => {
             if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-            return a.manager.localeCompare(b.manager, 'de');
+            return compareTeamsBySubmissionDesc(a, b);
         });
         ranking.forEach((team, index) => { team.currentRank = index + 1; });
         return teams;
