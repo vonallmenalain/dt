@@ -7415,21 +7415,35 @@
     const shortLabel = APP.shortLabel || 'Turnier';
     const pageTitlePrefix = APP.pageTitlePrefix || APP.brandName || 'DreamTeam';
 
+    function setHeroTeamCta(hasTeam) {
+        const label = hasTeam ? 'Team bearbeiten' : 'Team erstellen';
+        const icon = hasTeam ? '\u270F\uFE0F' : '\u26BD';
+        const ariaLabel = `${label} f\u00fcr ${shortLabel}`;
+
+        [$('hero-cta-btn'), $('hero-post-cta-btn')].forEach((btn) => {
+            if (!btn) return;
+            btn.textContent = `${icon} ${label}`;
+            btn.setAttribute('aria-label', ariaLabel);
+            btn.dataset.hasSubmittedTeam = hasTeam ? '1' : '0';
+        });
+    }
+
+    window.addEventListener('dreamteam:user-team-status', (event) => {
+        const detail = event && event.detail ? event.detail : {};
+        setHeroTeamCta(!!detail.hasTeam);
+    });
+
     document.title = `${pageTitlePrefix} - Startseite`;
 
     // Pre-Start hero labels
     const titleLabelEl = $('hero-title-label');
     if (titleLabelEl) titleLabelEl.textContent = shortLabel;
 
-    const ctaBtn = $('hero-cta-btn');
-    if (ctaBtn) ctaBtn.setAttribute('aria-label', `Team erstellen für ${shortLabel}`);
+    setHeroTeamCta(false);
 
     // Post-Start hero labels
     const titleLabelPostEl = $('hero-post-title-label');
     if (titleLabelPostEl) titleLabelPostEl.textContent = shortLabel;
-
-    const ctaBtnPost = $('hero-post-cta-btn');
-    if (ctaBtnPost) ctaBtnPost.setAttribute('aria-label', `Team erstellen für ${shortLabel}`);
 
     /* =========================================================
        PRE START HERO CARDS – MANUELL KONFIGURIERTE SPIELER

@@ -506,9 +506,92 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    const TEAM_BUILDER_ACTION = "team-builder";
+    const TEAM_CREATE_LABEL = "Team erstellen";
+    const TEAM_EDIT_LABEL = "Team bearbeiten";
+    const TEAM_CREATE_ICON = "\u2795";
+    const TEAM_EDIT_ICON = "\u270F\uFE0F";
+    let teamBuilderStatusLookupSeq = 0;
+    let teamBuilderStatusWatcherMounted = false;
+
+    function navActionAttr(item) {
+        return item && item.action ? ` data-nav-action="${item.action}"` : "";
+    }
+
+    function dispatchTeamBuilderStatus(hasTeam) {
+        try {
+            const detail = { hasTeam: !!hasTeam };
+            let event;
+            if (typeof CustomEvent === "function") {
+                event = new CustomEvent("dreamteam:user-team-status", { detail });
+            } else {
+                event = document.createEvent("CustomEvent");
+                event.initCustomEvent("dreamteam:user-team-status", false, false, detail);
+            }
+            window.dispatchEvent(event);
+        } catch (_) { /* older browsers keep the static label */ }
+    }
+
+    function setTopTeamBuilderLabel(hasTeam) {
+        const link = document.querySelector(`body > nav.navbar .nav-links .nav-item[data-nav-action="${TEAM_BUILDER_ACTION}"]`);
+        if (!link) return;
+
+        const label = hasTeam ? TEAM_EDIT_LABEL : TEAM_CREATE_LABEL;
+        const icon = hasTeam ? TEAM_EDIT_ICON : TEAM_CREATE_ICON;
+
+        link.textContent = `${icon} ${label}`;
+        link.setAttribute("aria-label", label);
+        link.dataset.hasSubmittedTeam = hasTeam ? "1" : "0";
+    }
+
+    function setTeamBuilderStatus(hasTeam) {
+        setTopTeamBuilderLabel(hasTeam);
+        dispatchTeamBuilderStatus(hasTeam);
+    }
+
+    async function refreshTeamBuilderStatus(authState) {
+        const lookupSeq = ++teamBuilderStatusLookupSeq;
+        const user = authState && authState.user;
+        const isVerified = !!(authState && authState.isVerified);
+
+        if (!user || !isVerified) {
+            setTeamBuilderStatus(false);
+            return;
+        }
+
+        const Auth = window.DreamTeamAuth;
+        if (!Auth || (typeof Auth.hasSubmittedTeam !== "function" && typeof Auth.fetchUserTeam !== "function")) {
+            setTeamBuilderStatus(false);
+            return;
+        }
+
+        try {
+            const hasTeam = typeof Auth.hasSubmittedTeam === "function"
+                ? await Auth.hasSubmittedTeam(user.uid)
+                : !!(await Auth.fetchUserTeam(user.uid));
+            if (lookupSeq !== teamBuilderStatusLookupSeq) return;
+            setTeamBuilderStatus(hasTeam);
+        } catch (err) {
+            if (lookupSeq !== teamBuilderStatusLookupSeq) return;
+            console.warn("[nav] Team status lookup failed:", err);
+            setTeamBuilderStatus(false);
+        }
+    }
+
+    function initTeamBuilderStatusWatcher() {
+        if (teamBuilderStatusWatcherMounted) return true;
+
+        const Auth = window.DreamTeamAuth;
+        if (!Auth || typeof Auth.onAuthStateChange !== "function") return false;
+
+        teamBuilderStatusWatcherMounted = true;
+        Auth.onAuthStateChange(refreshTeamBuilderStatus);
+        return true;
+    }
+
     const navItems = [
         { href: "index.html", label: "🏠 Dashboard", shortLabel: "Dashboard", icon: "🏠" },
-        { href: "team-builder.html", label: "➕ Team erstellen", shortLabel: "Team", icon: "➕" },
+        { href: "team-builder.html", label: "➕ Team erstellen", shortLabel: "Team", icon: "➕", action: TEAM_BUILDER_ACTION },
         { href: "teams.html", label: "🛡️ Teams", shortLabel: "Teams", icon: "🛡️" },
         { href: "spieleranalyse.html", label: "🔍 Analyse", shortLabel: "Analyse", icon: "🔍" },
         { href: "rangliste.html", label: "🏆 Rangliste", shortLabel: "Rangliste", icon: "🏆" },
@@ -516,12 +599,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     const topNavLinks = navItems
-        .map(item => `<a href="${withTournamentParam(item.href)}" class="nav-item">${item.label}</a>`)
+        .map(item => `<a href="${withTournamentParam(item.href)}" class="nav-item"${navActionAttr(item)}>${item.label}</a>`)
         .join("");
 
     const bottomNavLinks = navItems
         .map(item => `
-            <a href="${withTournamentParam(item.href)}" class="nav-item">
+            <a href="${withTournamentParam(item.href)}" class="nav-item"${navActionAttr(item)}>
                 <span class="icon">${item.icon}</span>
                 <span>${item.shortLabel}</span>
             </a>
@@ -556,6 +639,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.insertAdjacentHTML("afterbegin", navHTML);
 
     initNavAuth(APP);
+    setTeamBuilderStatus(false);
+    if (!initTeamBuilderStatusWatcher()) {
+        let teamStatusAttempts = 0;
+        const maxTeamStatusAttempts = 20;
+        const retryTeamStatusWatcher = () => {
+            teamStatusAttempts += 1;
+            if (initTeamBuilderStatusWatcher() || teamStatusAttempts >= maxTeamStatusAttempts) return;
+            setTimeout(retryTeamStatusWatcher, 100);
+        };
+        setTimeout(retryTeamStatusWatcher, 50);
+    }
 
     const currentPage = window.location.pathname.split("/").pop() || "index.html";
     const navLinks = document.querySelectorAll(".nav-item");

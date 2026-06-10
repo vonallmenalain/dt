@@ -70,6 +70,7 @@
  *
  *    fetchUserTeam(uid?)                  → Promise<{ id, data } | null>   Matches by userId, then by user e-mail
  *                                                                           as a cross-provider fallback.
+ *    hasSubmittedTeam(uid?)               → Promise<boolean>               Same lookup, without changing editor state.
  *    findTeamByEmail(email)               → Promise<{ id, data } | null>   Case-insensitive e-mail lookup. Used
  *                                                                           by saveOrUpdateTeam() to refuse a
  *                                                                           second team for the same address.
@@ -612,8 +613,11 @@
      *      previously created their team via a different sign-in provider
      *      (e.g. Google) ends up editing the same document when they later
      *      log in via e-mail + password (and vice versa).
+     *
+     * `rememberLoadedTeamId` preserves the legacy editor side effect for
+     * fetchUserTeam(), while letting pure UI status checks stay read-only.
      */
-    async function fetchUserTeam(uid) {
+    async function lookupUserTeam(uid, rememberLoadedTeamId) {
         requireInit();
         const user      = state.currentUser;
         const targetUid = uid || (user && user.uid);
@@ -626,7 +630,7 @@
 
         if (!byUid.empty) {
             const doc = byUid.docs[0];
-            state.loadedTeamId = doc.id;
+            if (rememberLoadedTeamId) state.loadedTeamId = doc.id;
             return { id: doc.id, data: doc.data() };
         }
 
@@ -638,13 +642,21 @@
         if (email) {
             const byEmail = await findTeamByEmail(email);
             if (byEmail) {
-                state.loadedTeamId = byEmail.id;
+                if (rememberLoadedTeamId) state.loadedTeamId = byEmail.id;
                 return byEmail;
             }
         }
 
-        state.loadedTeamId = null;
+        if (rememberLoadedTeamId) state.loadedTeamId = null;
         return null;
+    }
+
+    async function fetchUserTeam(uid) {
+        return lookupUserTeam(uid, true);
+    }
+
+    async function hasSubmittedTeam(uid) {
+        return !!(await lookupUserTeam(uid, false));
     }
 
     function buildTeamDocument(payload) {
@@ -826,6 +838,7 @@
         hasPendingTeam,
 
         fetchUserTeam,
+        hasSubmittedTeam,
         findTeamByEmail,
         saveTeamForUser,
         updateTeam,
