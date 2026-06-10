@@ -420,6 +420,44 @@ function applyPositionOverrides(playersData, tournamentKey) {
   return { applied, total: Object.keys(lookup).length };
 }
 
+function buildApiToAppPlayerIdMap(playersData) {
+  const apiToApp = new Map();
+  const duplicates = [];
+  let explicitMappings = 0;
+
+  (playersData || []).forEach(player => {
+    if (!player || player['player.id'] == null) return;
+
+    const appPlayerId = String(player['player.id']);
+    const hasExplicitApiId = player.apiSportsPlayerId != null && String(player.apiSportsPlayerId) !== '';
+    const apiPlayerId = hasExplicitApiId ? String(player.apiSportsPlayerId) : appPlayerId;
+
+    if (hasExplicitApiId && apiPlayerId !== appPlayerId) explicitMappings++;
+
+    const existingAppId = apiToApp.get(apiPlayerId);
+    if (existingAppId && existingAppId !== appPlayerId) {
+      duplicates.push(`${apiPlayerId} -> ${existingAppId} / ${appPlayerId}`);
+      return;
+    }
+    apiToApp.set(apiPlayerId, appPlayerId);
+  });
+
+  if (duplicates.length > 0) {
+    throw new Error(
+      'Doppelte apiSportsPlayerId-Werte im Kader: ' +
+      duplicates.join(', ')
+    );
+  }
+
+  return { apiToApp, explicitMappings };
+}
+
+function toAppPlayerId(apiToAppPlayerId, rawPlayerId) {
+  if (rawPlayerId == null) return null;
+  const apiPlayerId = String(rawPlayerId);
+  return (apiToAppPlayerId && apiToAppPlayerId.get(apiPlayerId)) || apiPlayerId;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Firebase Admin Initialisierung
  * ───────────────────────────────────────────────────────────────────────────── */
@@ -545,12 +583,13 @@ function buildEmptyPlayerObject(player) {
   return pObj;
 }
 
-function collectLineupPlayerIds(lineup, key) {
+function collectLineupPlayerIds(lineup, key, apiToAppPlayerId = null) {
   const ids = new Set();
   const rows = lineup && Array.isArray(lineup[key]) ? lineup[key] : [];
   rows.forEach(row => {
     const id = row && row.player && row.player.id;
-    if (id != null) ids.add(String(id));
+    const appId = toAppPlayerId(apiToAppPlayerId, id);
+    if (appId != null) ids.add(appId);
   });
   return ids;
 }
@@ -615,6 +654,7 @@ function resolveMatchOutcome(game, matchHasStarted, matchIsFinished, homeGoals, 
 function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, opts = {}) {
   const events = fixtureData.events || [];
   const playersDataList = fixtureData.players || [];
+  const apiToAppPlayerId = opts.apiToAppPlayerId || null;
 
   const statusShort = getFixtureStatusShort(game);
   const matchHasStarted = SCORING_STATUSES.has(statusShort);
@@ -633,19 +673,19 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
     .filter(e => e.type && e.type.toLowerCase() === 'subst')
     .map(e => e.player && e.player.id)
     .filter(id => id != null)
-    .map(id => String(id));
+    .map(id => toAppPlayerId(apiToAppPlayerId, id));
 
   const subbedInPlayerIds = events
     .filter(e => e.type && e.type.toLowerCase() === 'subst')
     .map(e => e.assist && e.assist.id)
     .filter(id => id != null)
-    .map(id => String(id));
+    .map(id => toAppPlayerId(apiToAppPlayerId, id));
 
   const ownGoalsMap = {};
   events.forEach(e => {
     if (e.type && e.type.toLowerCase() === 'goal' && e.detail && e.detail.toLowerCase() === 'own goal') {
       if (e.player && e.player.id) {
-        const id = String(e.player.id);
+        const id = toAppPlayerId(apiToAppPlayerId, e.player.id);
         ownGoalsMap[id] = (ownGoalsMap[id] || 0) + 1;
       }
     }
@@ -665,13 +705,14 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
     ) || { team: teamRef.team, players: [] };
 
     const lineup = findLineupForTeam(fixtureData, teamId);
-    const starterIds = collectLineupPlayerIds(lineup, 'startXI');
-    const substituteIds = collectLineupPlayerIds(lineup, 'substitutes');
+    const starterIds = collectLineupPlayerIds(lineup, 'startXI', apiToAppPlayerId);
+    const substituteIds = collectLineupPlayerIds(lineup, 'substitutes', apiToAppPlayerId);
     const statsByPid = new Map();
 
     (teamStats.players || []).forEach(pStats => {
       const id = pStats && pStats.player && pStats.player.id;
-      if (id != null) statsByPid.set(String(id), pStats);
+      const appId = toAppPlayerId(apiToAppPlayerId, id);
+      if (appId != null) statsByPid.set(appId, pStats);
     });
 
     const participantIds = new Set();
@@ -1218,10 +1259,13 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   const playersData = loadPlayersData(tournament);
   const overrideStats = applyPositionOverrides(playersData, tournament.key);
+  const apiPlayerIdMapStats = buildApiToAppPlayerIdMap(playersData);
   const playerLookup = new Map(playersData.map(p => [String(p['player.id']), p]));
   opts.playerLookup = playerLookup;
+  opts.apiToAppPlayerId = apiPlayerIdMapStats.apiToApp;
   logInfo(`Kader geladen: ${playersData.length} Spieler aus ${tournament.dataFile}` +
-    ` (Positions-Overrides angewendet: ${overrideStats.applied}/${overrideStats.total}).`);
+    ` (Positions-Overrides angewendet: ${overrideStats.applied}/${overrideStats.total}, ` +
+    `API-ID-Mappings: ${apiPlayerIdMapStats.explicitMappings}).`);
 
   const allPlayerPoints = {};
 
@@ -1359,7 +1403,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
       scoringById.get(fixId),
       allPlayerPoints,
       playersData,
-      { changedPlayerIds }
+      { changedPlayerIds, apiToAppPlayerId: opts.apiToAppPlayerId }
     );
   });
 
