@@ -4912,7 +4912,7 @@ const playersData = [
         "Nationalteam.name": "Ecuador",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/2382.png",
         "Club.name": "CF Pachuca",
-        "Club.logo": "",
+        "Club.logo": "https://upload.wikimedia.org/wikipedia/de/thumb/c/cb/CF_Pachuca.svg/960px-CF_Pachuca.svg.png",
         "Geburtsdatum": "1989-11-04",
         "Groesse": "177",
         "Gewicht": "74"
