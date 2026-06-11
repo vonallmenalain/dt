@@ -16,7 +16,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-11-live-status-publish';
+const CACHE_VERSION = 'v2026-06-11-sync-monitor-events';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [

@@ -116,6 +116,7 @@ const DEFAULT_LIVE_TICK_INTERVAL_SEC = 25;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
 const MAX_CHANGED_PLAYER_LOG_DOCS = 1200;
+const MAX_AUDIT_FIXTURE_EVENTS = 300;
 
 let activeAuditLog = null;
 
@@ -215,6 +216,9 @@ function createTickAudit(tournament, opts, tickIndex, totalTicks) {
     fixtureWriteResult: { updated: 0, skipped: 0 },
     earlyFixtureWriteResult: { updated: 0, skipped: 0 },
     detailFixtureWriteResult: { updated: 0, skipped: 0 },
+    fixtureEvents: [],
+    fixtureEventsCount: 0,
+    fixtureEventsTruncated: false,
     pointsVersionIncreased: false,
     fixturesVersionIncreased: false,
     changedPlayers: new Map(),
@@ -265,6 +269,9 @@ function serializeAuditLog(audit) {
     fixtureWriteResult: audit.fixtureWriteResult || { updated: 0, skipped: 0 },
     earlyFixtureWriteResult: audit.earlyFixtureWriteResult || { updated: 0, skipped: 0 },
     detailFixtureWriteResult: audit.detailFixtureWriteResult || { updated: 0, skipped: 0 },
+    fixtureEvents: Array.isArray(audit.fixtureEvents) ? audit.fixtureEvents : [],
+    fixtureEventsCount: audit.fixtureEventsCount || 0,
+    fixtureEventsTruncated: !!audit.fixtureEventsTruncated,
     pointsVersionIncreased: !!audit.pointsVersionIncreased,
     fixturesVersionIncreased: !!audit.fixturesVersionIncreased,
     changedPlayersCount: audit.changedPlayersCount || 0,
@@ -872,6 +879,50 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
   return processedPlayers;
 }
 
+function normalizeFixtureEventForAudit(event, fixtureId, game) {
+  const time = event && event.time ? event.time : {};
+  const team = event && event.team ? event.team : {};
+  const player = event && event.player ? event.player : {};
+  const assist = event && event.assist ? event.assist : {};
+  const homeName = game && game.teams && game.teams.home && game.teams.home.name;
+  const awayName = game && game.teams && game.teams.away && game.teams.away.name;
+
+  return {
+    fixtureId: String(fixtureId || ''),
+    matchLabel: homeName && awayName ? `${homeName} - ${awayName}` : '',
+    elapsed: (typeof time.elapsed === 'number') ? time.elapsed : null,
+    extra: (typeof time.extra === 'number') ? time.extra : null,
+    teamId: team.id != null ? String(team.id) : '',
+    teamName: team.name || '',
+    playerId: player.id != null ? String(player.id) : '',
+    playerName: player.name || '',
+    assistId: assist.id != null ? String(assist.id) : '',
+    assistName: assist.name || '',
+    type: event && event.type ? String(event.type) : '',
+    detail: event && event.detail ? String(event.detail) : '',
+    comments: event && event.comments ? String(event.comments) : ''
+  };
+}
+
+function rememberFixtureEventsForAudit(opts, fixtureData, game) {
+  const audit = opts && opts.audit;
+  if (!audit || !fixtureData || !Array.isArray(fixtureData.events)) return;
+
+  const fixtureId = fixtureData.fixture && fixtureData.fixture.id != null
+    ? fixtureData.fixture.id
+    : game && game.fixture && game.fixture.id;
+
+  fixtureData.events.forEach(event => {
+    audit.fixtureEventsCount = (audit.fixtureEventsCount || 0) + 1;
+    if (!Array.isArray(audit.fixtureEvents)) audit.fixtureEvents = [];
+    if (audit.fixtureEvents.length >= MAX_AUDIT_FIXTURE_EVENTS) {
+      audit.fixtureEventsTruncated = true;
+      return;
+    }
+    audit.fixtureEvents.push(normalizeFixtureEventForAudit(event, fixtureId, game));
+  });
+}
+
 function cloneExistingPointObject(source, player) {
   const target = buildEmptyPlayerObject(player);
   if (!source || typeof source !== 'object') return target;
@@ -933,6 +984,39 @@ function getPointTotal(pointObject) {
   return pointObject && typeof pointObject.totalPoints === 'number' ? pointObject.totalPoints : 0;
 }
 
+function getFixtureTotal(fixturePoint) {
+  return fixturePoint && typeof fixturePoint.TotalPunkte === 'number' ? fixturePoint.TotalPunkte : 0;
+}
+
+function getFixtureLineupValue(fixturePoint, ruleKey) {
+  const lineup = fixturePoint && fixturePoint.Aufstellung;
+  return lineup && typeof lineup[ruleKey] === 'number' ? lineup[ruleKey] : 0;
+}
+
+function buildChangedFixtureAudit(fixtureKey, beforeFixture, afterFixture) {
+  const before = beforeFixture && typeof beforeFixture === 'object' ? beforeFixture : null;
+  const after = afterFixture && typeof afterFixture === 'object' ? afterFixture : null;
+  const source = after || before || {};
+
+  const ruleDeltas = {};
+  Object.keys(RULES).forEach(ruleKey => {
+    const delta = getFixtureLineupValue(after, ruleKey) - getFixtureLineupValue(before, ruleKey);
+    if (delta !== 0) ruleDeltas[ruleKey] = delta;
+  });
+
+  return {
+    fixtureKey,
+    matchId: source.MatchID != null ? String(source.MatchID) : fixtureKey.replace(/^Spiel_/, ''),
+    title: source.Titel || '',
+    opponent: source.Gegner || '',
+    result: source.Resultat || '',
+    totalBefore: getFixtureTotal(before),
+    totalAfter: getFixtureTotal(after),
+    delta: getFixtureTotal(after) - getFixtureTotal(before),
+    ruleDeltas
+  };
+}
+
 function buildChangedPlayerAudit(playerId, player, before, after) {
   const beforeObj = before && typeof before === 'object' ? before : {};
   const afterObj = after && typeof after === 'object' ? after : {};
@@ -947,6 +1031,9 @@ function buildChangedPlayerAudit(playerId, player, before, after) {
   const changedRuleKeys = Object.keys(RULES)
     .filter(key => ((typeof beforeObj[key] === 'number') ? beforeObj[key] : 0) !== ((typeof afterObj[key] === 'number') ? afterObj[key] : 0))
     .sort();
+  const changedFixtureDetails = changedFixtureKeys.map(key =>
+    buildChangedFixtureAudit(key, beforeObj[key], afterObj[key])
+  );
 
   const totalBefore = getPointTotal(beforeObj);
   const totalAfter = getPointTotal(afterObj);
@@ -960,6 +1047,7 @@ function buildChangedPlayerAudit(playerId, player, before, after) {
     totalAfter,
     delta: totalAfter - totalBefore,
     changedFixtureKeys,
+    changedFixtureDetails,
     changedRuleKeys
   };
 }
@@ -1517,6 +1605,12 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   const fixtureIds = scoringGames.map(g => String(g.fixture.id));
   const detailsById = await fetchFixtureDetailsByIds(headers, fixtureIds, opts);
+  const scoringById = new Map(scoringGames.map(g => [String(g.fixture.id), g]));
+
+  fixtureIds.forEach(fixId => {
+    const detail = detailsById.get(fixId);
+    if (detail) rememberFixtureEventsForAudit(opts, detail, scoringById.get(fixId));
+  });
 
   const detailedStatusGames = preferDetailedFixtureGames(scoringGames, detailsById);
   try {
@@ -1548,7 +1642,6 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   }
 
   let processedPlayers = 0;
-  const scoringById = new Map(scoringGames.map(g => [String(g.fixture.id), g]));
   fixtureIds.forEach(fixId => {
     processedPlayers += processFixtureDetail(
       detailsById.get(fixId),

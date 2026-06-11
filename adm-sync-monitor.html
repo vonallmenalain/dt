@@ -63,9 +63,9 @@
         }
 
         .page {
-            width: min(1680px, 100%);
+            width: min(1880px, calc(100% - 32px));
             margin: 0 auto;
-            padding: 92px 24px 34px;
+            padding: 82px 0 34px;
         }
 
         .hero {
@@ -199,7 +199,7 @@
         }
 
         .panel {
-            overflow: hidden;
+            overflow: visible;
             box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
         }
 
@@ -224,24 +224,106 @@
             font-size: 0.86rem;
         }
 
-        .table-wrap {
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: minmax(320px, 0.72fr) minmax(520px, 1.28fr);
+            gap: 14px;
+            margin: 0 0 18px;
+        }
+
+        .info-panel,
+        .event-panel {
+            min-height: 0;
+        }
+
+        .info-body,
+        .event-feed {
+            padding: 14px 16px;
+        }
+
+        .legend-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .legend-item {
+            display: grid;
+            grid-template-columns: 88px minmax(0, 1fr);
+            gap: 10px;
+            align-items: start;
+            color: var(--monitor-muted);
+            line-height: 1.45;
+            font-size: 0.86rem;
+        }
+
+        .event-feed {
+            display: grid;
+            gap: 8px;
+            max-height: 260px;
             overflow: auto;
-            max-height: 72vh;
+        }
+
+        .event-item {
+            display: grid;
+            grid-template-columns: 96px minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: start;
+            padding: 9px 10px;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(8, 13, 22, 0.45);
+            border-radius: 8px;
+        }
+
+        .event-time {
+            color: var(--monitor-muted);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            font-size: 0.82rem;
+        }
+
+        .event-title {
+            font-weight: 850;
+            line-height: 1.35;
+        }
+
+        .event-sub {
+            color: var(--monitor-muted);
+            font-size: 0.8rem;
+            line-height: 1.35;
+            margin-top: 2px;
+        }
+
+        .event-delta {
+            color: var(--monitor-green);
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .event-delta.neg {
+            color: var(--monitor-red);
+        }
+
+        .table-wrap {
+            overflow: visible;
+            max-height: none;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1580px;
+            min-width: 0;
+            table-layout: fixed;
         }
 
         th,
         td {
-            padding: 11px 12px;
+            padding: 10px 10px;
             border-bottom: 1px solid rgba(148, 163, 184, 0.15);
             text-align: left;
             vertical-align: top;
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             line-height: 1.35;
         }
 
@@ -254,7 +336,6 @@
             font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0;
-            white-space: nowrap;
         }
 
         tbody tr:hover td {
@@ -263,6 +344,61 @@
 
         .num {
             font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .metric-stack {
+            display: grid;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .metric-line {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .metric-name {
+            color: var(--monitor-muted);
+            font-size: 0.74rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .metric-value {
+            font-weight: 850;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .version-stack {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .event-chips {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .event-chip {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            color: #bae6fd;
+            font-size: 0.74rem;
+            font-weight: 800;
             white-space: nowrap;
         }
 
@@ -312,19 +448,72 @@
             white-space: nowrap;
         }
 
+        details {
+            position: relative;
+        }
+
         .detail-box {
             margin-top: 10px;
             padding: 12px;
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: rgba(8, 13, 22, 0.72);
+            backdrop-filter: blur(12px);
             border-radius: 8px;
-            min-width: 430px;
+            min-width: 0;
+            width: min(980px, calc(100vw - 64px));
+            max-height: 72vh;
+            overflow: auto;
+            position: absolute;
+            right: 0;
+            z-index: 20;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
         }
 
         .detail-grid {
             display: grid;
-            grid-template-columns: 150px minmax(0, 1fr);
+            grid-template-columns: 142px minmax(0, 1fr);
             gap: 8px 12px;
+        }
+
+        .detail-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .detail-section-title {
+            margin: 0 0 8px;
+            color: var(--monitor-muted);
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .point-change-list,
+        .fixture-event-list {
+            display: grid;
+            gap: 7px;
+        }
+
+        .point-change {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+            padding: 8px 9px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .point-change-title {
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .point-change-meta {
+            color: var(--monitor-muted);
+            font-size: 0.78rem;
+            line-height: 1.35;
+            margin-top: 2px;
         }
 
         .detail-label {
@@ -356,7 +545,10 @@
 
         @media (max-width: 820px) {
             body { padding-bottom: 80px; }
-            .page { padding: 82px 14px 24px; }
+            .page {
+                width: calc(100% - 24px);
+                padding: 82px 0 24px;
+            }
             .hero {
                 display: block;
                 padding: 18px;
@@ -378,6 +570,24 @@
             .panel-header {
                 align-items: flex-start;
                 flex-direction: column;
+            }
+            .monitor-grid {
+                grid-template-columns: 1fr;
+            }
+            .table-wrap {
+                overflow: auto;
+            }
+            table {
+                min-width: 860px;
+            }
+            .event-item {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+            .detail-box {
+                position: static;
+                width: 100%;
+                max-height: none;
             }
         }
     </style>
@@ -407,6 +617,36 @@
     <section class="hidden" id="monitorContent">
         <div class="status-grid" id="statusGrid"></div>
 
+        <div class="monitor-grid">
+            <section class="panel info-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Status</h2>
+                        <div class="panel-meta">Warnungen sind Hinweise aus dem Sync-Lauf, nicht automatisch Fehler.</div>
+                    </div>
+                </div>
+                <div class="info-body">
+                    <div class="legend-list">
+                        <div class="legend-item"><span class="pill ok">OK</span><span>Lauf ohne Fehler oder Warnhinweise.</span></div>
+                        <div class="legend-item"><span class="pill warn">Warnung</span><span>Der Lauf hat funktioniert, aber etwas Auffälliges protokolliert, z. B. keine Punktänderung, fehlende Detaildaten oder ignorierte ältere API-Statuswerte.</span></div>
+                        <div class="legend-item"><span class="pill err">Fehler</span><span>Der Lauf ist abgebrochen oder konnte wichtige Daten nicht schreiben.</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel event-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Letzte Upload-Ereignisse</h2>
+                        <div class="panel-meta" id="eventMeta">-</div>
+                    </div>
+                </div>
+                <div class="event-feed" id="eventFeed">
+                    <div class="empty">Noch keine Ereignisdaten geladen.</div>
+                </div>
+            </section>
+        </div>
+
         <section class="panel">
             <div class="panel-header">
                 <div>
@@ -416,28 +656,32 @@
             </div>
             <div class="table-wrap">
                 <table>
+                    <colgroup>
+                        <col style="width: 9%">
+                        <col style="width: 10%">
+                        <col style="width: 8%">
+                        <col style="width: 11%">
+                        <col style="width: 11%">
+                        <col style="width: 11%">
+                        <col style="width: 24%">
+                        <col style="width: 8%">
+                        <col style="width: 8%">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>Zeit</th>
-                            <th>Trigger</th>
-                            <th>Tick</th>
-                            <th>API total</th>
-                            <th>Kandidaten</th>
-                            <th>Scoring</th>
-                            <th>Live</th>
-                            <th>finishedGames</th>
-                            <th>newlyFinished / candidatesNowFinished</th>
-                            <th>Spieler geschrieben</th>
-                            <th>Spieler gelöscht</th>
-                            <th>Spieler übersprungen</th>
-                            <th>pointsVersion</th>
-                            <th>fixturesVersion</th>
+                            <th>Lauf</th>
+                            <th>API</th>
+                            <th>Spiele</th>
+                            <th>Punkte</th>
+                            <th>Versionen</th>
+                            <th>Ereignisse</th>
                             <th>Status</th>
                             <th>Details</th>
                         </tr>
                     </thead>
                     <tbody id="logsBody">
-                        <tr><td colspan="16" class="empty">Noch keine Daten geladen.</td></tr>
+                        <tr><td colspan="9" class="empty">Noch keine Daten geladen.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -460,12 +704,43 @@
     const LOG_COLLECTION = "Admin Auto Points Logs WM 2026";
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
     const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
+    const LOG_LIMIT = 30;
+    const CHANGED_PLAYERS_PER_LOG = 160;
+    const EVENT_FEED_LIMIT = 80;
+
+    const RULE_LABELS = {
+        START: "Startelf",
+        SUBBED_IN: "Einwechslung",
+        SUBBED_OUT: "Auswechslung",
+        GOAL_GK: "Tor",
+        GOAL_DEF: "Tor",
+        GOAL_MID: "Tor",
+        GOAL_ATT: "Tor",
+        OWN_GOAL: "Eigentor",
+        ASSIST_GK_DEF: "Assist",
+        ASSIST_MID: "Assist",
+        ASSIST_ATT: "Assist",
+        TEAM_GOAL: "Team-Tor",
+        DEF_BASE_PTS: "Abwehr-Bonus",
+        GEGENTOR_GK_DEF: "Gegentor",
+        YELLOW_CARD: "Gelbe Karte",
+        RED_CARD: "Rote Karte",
+        PEN_SAVED: "Elfmeter gehalten",
+        PEN_MISSED: "Elfmeter verschossen",
+        PEN_COMMITED: "Elfmeter verursacht",
+        PEN_WON: "Elfmeter herausgeholt",
+        WIN: "Sieg",
+        DRAW: "Remis",
+        LOSS: "Niederlage"
+    };
 
     const els = {
         loading: document.getElementById("loadingPanel"),
         locked: document.getElementById("lockedPanel"),
         content: document.getElementById("monitorContent"),
         statusGrid: document.getElementById("statusGrid"),
+        eventFeed: document.getElementById("eventFeed"),
+        eventMeta: document.getElementById("eventMeta"),
         logsBody: document.getElementById("logsBody"),
         logsMeta: document.getElementById("logsMeta"),
         errorBox: document.getElementById("errorBox"),
@@ -617,6 +892,211 @@
         return list.map(item => `<div>${escapeHtml(item)}</div>`).join("");
     }
 
+    function signedNumber(value) {
+        const n = numberValue(value, 0);
+        return n > 0 ? `+${n}` : String(n);
+    }
+
+    function deltaClass(value) {
+        return numberValue(value, 0) < 0 ? "neg" : "";
+    }
+
+    function renderMetricStack(items) {
+        return `<div class="metric-stack">${items.map(item => `
+            <div class="metric-line">
+                <span class="metric-name">${escapeHtml(item.label)}</span>
+                <span class="metric-value">${escapeHtml(item.value)}</span>
+            </div>
+        `).join("")}</div>`;
+    }
+
+    function formatMinute(event) {
+        const elapsed = typeof event.elapsed === "number" ? event.elapsed : null;
+        const extra = typeof event.extra === "number" ? event.extra : null;
+        if (elapsed == null) return "-";
+        return `${elapsed}${extra ? `+${extra}` : ""}'`;
+    }
+
+    function normalizeEventType(event) {
+        const type = String(event.type || "").toLowerCase();
+        const detail = String(event.detail || "").toLowerCase();
+        if (type.includes("goal") && detail.includes("own")) return "Eigentor";
+        if (type.includes("goal") && detail.includes("penalty")) return "Penalty-Tor";
+        if (type.includes("goal")) return "Tor";
+        if (type.includes("card") && detail.includes("yellow")) return "Gelbe Karte";
+        if (type.includes("card") && detail.includes("red")) return "Rote Karte";
+        if (type.includes("subst")) return "Wechsel";
+        if (type.includes("var")) return "VAR";
+        return event.detail || event.type || "Ereignis";
+    }
+
+    function formatFixtureEvent(event, log) {
+        const label = normalizeEventType(event);
+        const team = event.teamName ? `${event.teamName}: ` : "";
+        let person = event.playerName || "";
+        if (label === "Wechsel" && event.assistName) {
+            person = `${event.assistName} rein, ${event.playerName || "Spieler"} raus`;
+        } else if (event.assistName && label.includes("Tor")) {
+            person = `${person} (Assist: ${event.assistName})`;
+        }
+
+        return {
+            time: formatShortDateTime(log.createdAtMs || log.createdAt),
+            minute: formatMinute(event),
+            title: `${label} ${team}${person}`.trim(),
+            sub: [event.matchLabel, event.detail && event.detail !== label ? event.detail : "", `Sync ${formatShortDateTime(log.createdAtMs || log.createdAt)}`]
+                .filter(Boolean)
+                .join(" · "),
+            delta: ""
+        };
+    }
+
+    function getChangedFixtureDetails(player) {
+        if (Array.isArray(player.changedFixtureDetails)) return player.changedFixtureDetails;
+        const keys = Array.isArray(player.changedFixtureKeys) ? player.changedFixtureKeys : [];
+        return keys.map(key => ({
+            fixtureKey: key,
+            matchId: String(key).replace(/^Spiel_/, ""),
+            title: key,
+            opponent: "",
+            result: "",
+            totalBefore: 0,
+            totalAfter: 0,
+            delta: player.delta || 0,
+            ruleDeltas: {}
+        }));
+    }
+
+    function buildPointChangeItems(log, limit = 24) {
+        const players = Array.isArray(log.changedPlayers) ? log.changedPlayers : [];
+        const items = [];
+
+        players.forEach(player => {
+            getChangedFixtureDetails(player).forEach(fixture => {
+                const ruleDeltas = fixture.ruleDeltas || {};
+                const ruleEntries = Object.entries(ruleDeltas)
+                    .filter(([, delta]) => typeof delta === "number" && delta !== 0);
+
+                if (!ruleEntries.length) {
+                    items.push({
+                        player,
+                        fixture,
+                        ruleKey: "",
+                        label: "Punkte geändert",
+                        delta: numberValue(fixture.delta, player.delta || 0)
+                    });
+                    return;
+                }
+
+                ruleEntries.forEach(([ruleKey, delta]) => {
+                    items.push({
+                        player,
+                        fixture,
+                        ruleKey,
+                        label: RULE_LABELS[ruleKey] || ruleKey,
+                        delta
+                    });
+                });
+            });
+        });
+
+        return items
+            .filter(item => item.delta !== 0)
+            .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+            .slice(0, limit);
+    }
+
+    function renderPointChangeList(log, limit = 18) {
+        const items = buildPointChangeItems(log, limit);
+        if (!items.length) {
+            const count = numberValue(log.changedPlayersCount, 0);
+            return count
+                ? `<div class="muted">${count} Spieler geändert. Detaildaten sind erst für neue Läufe verfügbar.</div>`
+                : '<div class="muted">Keine Punkteänderungen in diesem Lauf.</div>';
+        }
+
+        return `<div class="point-change-list">${items.map(item => {
+            const team = item.player.nation ? `${item.player.nation}: ` : "";
+            const fixtureText = [item.fixture.result, item.fixture.opponent ? `vs ${item.fixture.opponent}` : ""]
+                .filter(Boolean)
+                .join(" · ");
+            return `
+                <div class="point-change">
+                    <div>
+                        <div class="point-change-title">${escapeHtml(item.label)} ${escapeHtml(team)}${escapeHtml(item.player.playerName || item.player.playerId || "-")}</div>
+                        <div class="point-change-meta">${escapeHtml(fixtureText || item.fixture.matchId || item.fixture.fixtureKey || "-")}</div>
+                    </div>
+                    <div class="event-delta ${deltaClass(item.delta)}">${escapeHtml(signedNumber(item.delta))}</div>
+                </div>
+            `;
+        }).join("")}</div>`;
+    }
+
+    function renderFixtureEventList(log, limit = 18) {
+        const events = Array.isArray(log.fixtureEvents) ? log.fixtureEvents.slice(0, limit) : [];
+        if (!events.length) return '<div class="muted">Keine API-Ereignisse in diesem Log gespeichert.</div>';
+        return `<div class="fixture-event-list">${events.map(event => {
+            const item = formatFixtureEvent(event, log);
+            return `
+                <div class="event-item">
+                    <div class="event-time">${escapeHtml(item.minute)}</div>
+                    <div>
+                        <div class="event-title">${escapeHtml(item.title)}</div>
+                        <div class="event-sub">${escapeHtml(item.sub)}</div>
+                    </div>
+                    <div class="event-delta">${escapeHtml(item.delta)}</div>
+                </div>
+            `;
+        }).join("")}</div>`;
+    }
+
+    function renderEventSummary(log) {
+        const events = Array.isArray(log.fixtureEvents) ? log.fixtureEvents : [];
+        if (events.length) {
+            const chips = events.slice(0, 3).map(event => {
+                const label = normalizeEventType(event);
+                const team = event.teamName ? ` ${event.teamName}` : "";
+                return `<span class="event-chip">${escapeHtml(`${formatMinute(event)} ${label}${team}`)}</span>`;
+            }).join("");
+            const more = events.length > 3 ? `<span class="muted">+${events.length - 3}</span>` : "";
+            return `<div class="event-chips">${chips}${more}</div>`;
+        }
+
+        const changes = buildPointChangeItems(log, 3);
+        if (changes.length) {
+            const chips = changes.map(item => `<span class="event-chip">${escapeHtml(`${item.label} ${item.player.nation || ""} ${signedNumber(item.delta)}`.trim())}</span>`).join("");
+            return `<div class="event-chips">${chips}</div>`;
+        }
+
+        const changed = numberValue(log.changedPlayersCount, 0);
+        return changed
+            ? `<span class="muted">${changed} Spieler geändert</span>`
+            : '<span class="muted">-</span>';
+    }
+
+    function collectFeedItems(logs) {
+        const items = [];
+        logs.forEach(log => {
+            (Array.isArray(log.fixtureEvents) ? log.fixtureEvents : []).forEach(event => {
+                items.push({ ...formatFixtureEvent(event, log), sortMs: timestampToMs(log.createdAtMs || log.createdAt) || 0 });
+            });
+            buildPointChangeItems(log, 10).forEach(change => {
+                const team = change.player.nation ? `${change.player.nation}: ` : "";
+                items.push({
+                    time: formatShortDateTime(log.createdAtMs || log.createdAt),
+                    minute: "",
+                    title: `${change.label} ${team}${change.player.playerName || change.player.playerId || "-"}`,
+                    sub: [change.fixture.result, `Sync ${formatShortDateTime(log.createdAtMs || log.createdAt)}`].filter(Boolean).join(" · "),
+                    delta: signedNumber(change.delta),
+                    sortMs: timestampToMs(log.createdAtMs || log.createdAt) || 0
+                });
+            });
+        });
+        return items
+            .sort((a, b) => b.sortMs - a.sortMs)
+            .slice(0, EVENT_FEED_LIMIT);
+    }
+
     function renderDetails(log) {
         return `
             <details>
@@ -648,14 +1128,45 @@
                         <div class="detail-label">Fehler</div>
                         <div>${log.error ? escapeHtml(log.error) : '<span class="muted">-</span>'}</div>
                     </div>
+                    <div class="detail-section">
+                        <h3 class="detail-section-title">API-Ereignisse</h3>
+                        ${renderFixtureEventList(log)}
+                    </div>
+                    <div class="detail-section">
+                        <h3 class="detail-section-title">Punkteänderungen</h3>
+                        ${renderPointChangeList(log)}
+                    </div>
                 </div>
             </details>
         `;
     }
 
+    function renderEventFeed(logs) {
+        const items = collectFeedItems(logs);
+        els.eventMeta.textContent = items.length
+            ? `${items.length} Ereignisse aus den letzten ${logs.length} Läufen`
+            : "Noch keine Ereignisdaten";
+
+        if (!items.length) {
+            els.eventFeed.innerHTML = '<div class="empty">Noch keine Ereignisdaten in den geladenen Sync-Logs.</div>';
+            return;
+        }
+
+        els.eventFeed.innerHTML = items.map(item => `
+            <div class="event-item">
+                <div class="event-time">${escapeHtml(item.minute || item.time)}</div>
+                <div>
+                    <div class="event-title">${escapeHtml(item.title)}</div>
+                    <div class="event-sub">${escapeHtml(item.sub || item.time)}</div>
+                </div>
+                <div class="event-delta ${deltaClass(Number(String(item.delta || '').replace('+', '')))}">${escapeHtml(item.delta || '')}</div>
+            </div>
+        `).join("");
+    }
+
     function renderLogs(logs) {
         if (!logs.length) {
-            els.logsBody.innerHTML = '<tr><td colspan="16" class="empty">Noch keine Sync-Logs vorhanden.</td></tr>';
+            els.logsBody.innerHTML = '<tr><td colspan="9" class="empty">Noch keine Sync-Logs vorhanden.</td></tr>';
             els.logsMeta.textContent = "0 Läufe";
             return;
         }
@@ -670,23 +1181,36 @@
             const tick = `${numberValue(log.tickIndex, 0) || "-"} / ${numberValue(log.totalTicks, 0) || "-"}`;
             const newlyFinished = numberValue(log.newlyFinished, listLength(log.newlyFinishedFixtureIds));
             const candidatesNowFinished = numberValue(log.candidatesNowFinished, 0);
+            const changedPlayers = numberValue(log.changedPlayersCount, 0);
 
             return `
                 <tr>
-                    <td class="num">${escapeHtml(formatDateTime(log.createdAtMs || log.createdAt))}</td>
-                    <td>${escapeHtml(trigger)}</td>
-                    <td class="num">${escapeHtml(tick)}</td>
-                    <td class="num">${numberValue(apiCalls.total, 0)}</td>
-                    <td class="num">${listLength(log.candidateFixtureIds)}</td>
-                    <td class="num">${listLength(log.scoringFixtureIds)}</td>
-                    <td class="num">${listLength(log.liveFixtureIds)}</td>
-                    <td class="num">${numberValue(log.finishedGamesTotal, 0)}</td>
-                    <td class="num">${newlyFinished} / ${candidatesNowFinished}</td>
-                    <td class="num">${numberValue(writeResult.written, 0)}</td>
-                    <td class="num">${numberValue(writeResult.deleted, 0)}</td>
-                    <td class="num">${numberValue(writeResult.skipped, 0)}</td>
-                    <td>${yesNo(!!log.pointsVersionIncreased)}</td>
-                    <td>${yesNo(!!log.fixturesVersionIncreased)} <span class="muted">(${numberValue(fixtureWriteResult.updated, 0)} upd)</span></td>
+                    <td class="num">${escapeHtml(formatShortDateTime(log.createdAtMs || log.createdAt))}</td>
+                    <td>${renderMetricStack([
+                        { label: "Trigger", value: trigger },
+                        { label: "Tick", value: tick }
+                    ])}</td>
+                    <td>${renderMetricStack([
+                        { label: "Total", value: numberValue(apiCalls.total, 0) },
+                        { label: "Liste/Details", value: `${numberValue(apiCalls.fixtureList, 0)} / ${numberValue(apiCalls.detailBatches, 0)}` }
+                    ])}</td>
+                    <td>${renderMetricStack([
+                        { label: "Kandidaten", value: listLength(log.candidateFixtureIds) },
+                        { label: "Scoring/Live", value: `${listLength(log.scoringFixtureIds)} / ${listLength(log.liveFixtureIds)}` },
+                        { label: "Final neu/jetzt", value: `${newlyFinished} / ${candidatesNowFinished}` }
+                    ])}</td>
+                    <td>${renderMetricStack([
+                        { label: "Spieler", value: changedPlayers },
+                        { label: "Geschr./gel.", value: `${numberValue(writeResult.written, 0)} / ${numberValue(writeResult.deleted, 0)}` },
+                        { label: "Überspr.", value: numberValue(writeResult.skipped, 0) }
+                    ])}</td>
+                    <td>
+                        <div class="version-stack">
+                            <span>P ${yesNo(!!log.pointsVersionIncreased)}</span>
+                            <span>F ${yesNo(!!log.fixturesVersionIncreased)} <span class="muted">(${numberValue(fixtureWriteResult.updated, 0)})</span></span>
+                        </div>
+                    </td>
+                    <td>${renderEventSummary(log)}</td>
                     <td><span class="pill ${status.cls}">${status.label}</span></td>
                     <td>${renderDetails(log)}</td>
                 </tr>
@@ -720,14 +1244,33 @@
             db.collection(metaCollection).doc(metaDocId).get(),
             db.collection(fixturesCollection).get(),
             db.collection(pointsCollection).get(),
-            db.collection(LOG_COLLECTION).orderBy("createdAtMs", "desc").limit(30).get()
+            db.collection(LOG_COLLECTION).orderBy("createdAtMs", "desc").limit(LOG_LIMIT).get()
         ]);
 
         const meta = metaSnap.exists ? (metaSnap.data() || {}) : {};
         const fixtures = [];
         fixturesSnap.forEach(doc => fixtures.push({ id: doc.id, ...(doc.data() || {}) }));
-        const logs = [];
-        logsSnap.forEach(doc => logs.push({ id: doc.id, ...(doc.data() || {}) }));
+        const logDocs = [];
+        logsSnap.forEach(doc => logDocs.push(doc));
+        const logs = await Promise.all(logDocs.map(async (doc) => {
+            const log = { id: doc.id, ...(doc.data() || {}) };
+            if (numberValue(log.changedPlayersCount, 0) > 0) {
+                try {
+                    const changedSnap = await doc.ref.collection("changedPlayers").limit(CHANGED_PLAYERS_PER_LOG).get();
+                    const changedPlayers = [];
+                    changedSnap.forEach(playerDoc => changedPlayers.push({ id: playerDoc.id, ...(playerDoc.data() || {}) }));
+                    log.changedPlayers = changedPlayers;
+                    log.changedPlayersLoaded = changedPlayers.length;
+                } catch (err) {
+                    log.changedPlayers = [];
+                    log.changedPlayersLoadError = err && err.message ? err.message : String(err);
+                }
+            } else {
+                log.changedPlayers = [];
+                log.changedPlayersLoaded = 0;
+            }
+            return log;
+        }));
 
         return { meta, fixtures, pointsCount: pointsSnap.size, logs };
     }
@@ -741,6 +1284,7 @@
         try {
             const data = await readDocs();
             renderStatusCards(data.meta, data.fixtures, data.pointsCount, data.logs);
+            renderEventFeed(data.logs);
             renderLogs(data.logs);
         } catch (err) {
             console.error("[sync-monitor] Laden fehlgeschlagen:", err);
