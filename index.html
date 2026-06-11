@@ -3276,6 +3276,55 @@
             gap: 8px;
         }
 
+        .nm-match-toggle-btn {
+            position: relative;
+            display: block;
+            width: 100%;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: inherit;
+            font: inherit;
+            text-align: inherit;
+            cursor: pointer;
+        }
+
+        .nm-match-toggle-btn .nm-match-main {
+            padding-right: 24px;
+        }
+
+        .nm-match-toggle-btn:focus-visible {
+            outline: 2px solid rgba(74,222,128,0.55);
+            outline-offset: 4px;
+            border-radius: 10px;
+        }
+
+        .nm-detail-toggle {
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.10);
+            font-size: 0.68rem;
+            line-height: 1;
+            transition: transform 0.16s ease, color 0.16s ease, background 0.16s ease;
+        }
+
+        .nm-match-row.is-expanded .nm-detail-toggle {
+            transform: translateY(-50%) rotate(180deg);
+            color: var(--green-light);
+            background: rgba(74,222,128,0.12);
+            border-color: rgba(74,222,128,0.28);
+        }
+
         .nm-team-side {
             flex: 1;
             min-width: 0;
@@ -3508,6 +3557,254 @@
             text-align: center;
             letter-spacing: 0;
             white-space: nowrap;
+        }
+
+        .nm-match-details {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .nm-match-details[hidden] {
+            display: none;
+        }
+
+        .nm-detail-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .nm-detail-team {
+            min-width: 0;
+        }
+
+        .nm-detail-team-head {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 8px;
+            min-width: 0;
+        }
+
+        .nm-detail-team.right .nm-detail-team-head {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        .nm-detail-team-flag {
+            width: 24px;
+            height: 17px;
+            border-radius: 3px;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+        }
+
+        .nm-detail-team-name {
+            font-size: 0.76rem;
+            font-weight: 900;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nm-detail-player-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .nm-detail-empty {
+            display: flex;
+            align-items: center;
+            min-height: 52px;
+            padding: 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.025);
+            border: 1px dashed rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .nm-detail-player-card {
+            min-width: 0;
+            padding: 8px;
+            border-radius: 10px;
+            background: rgba(9,14,22,0.42);
+            border: 1px solid rgba(74,222,128,0.16);
+        }
+
+        .nm-detail-player-main {
+            display: grid;
+            grid-template-columns: 38px minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+            color: inherit;
+            text-decoration: none;
+            min-width: 0;
+        }
+
+        .nm-detail-player-main:hover .nm-detail-player-name {
+            color: var(--green-light);
+        }
+
+        .nm-detail-player-photo {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #2a3040;
+            flex-shrink: 0;
+        }
+
+        .nm-detail-player-copy {
+            min-width: 0;
+        }
+
+        .nm-detail-player-name {
+            font-size: 0.76rem;
+            font-weight: 900;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.15s ease;
+        }
+
+        .nm-detail-player-meta {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.64rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nm-detail-player-points {
+            justify-self: end;
+            min-width: 34px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.10);
+            font-size: 0.66rem;
+            font-weight: 900;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .nm-detail-player-points.pos { color: #4ade80; }
+        .nm-detail-player-points.neg { color: #f87171; }
+        .nm-detail-player-points.zero { color: var(--text-muted); }
+
+        .nm-detail-managers {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 7px;
+            padding-top: 7px;
+            border-top: 1px dashed rgba(255,255,255,0.08);
+        }
+
+        .nm-detail-manager-head {
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nm-detail-manager-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .nm-manager-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            max-width: 100%;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.055);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 0.64rem;
+            font-weight: 800;
+            line-height: 1.35;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        }
+
+        .nm-manager-chip:hover {
+            background: rgba(74,222,128,0.14);
+            border-color: rgba(74,222,128,0.38);
+            color: var(--green-light);
+            transform: translateY(-1px);
+        }
+
+        .nm-manager-chip.is-captain {
+            background: rgba(250,204,21,0.10);
+            border-color: rgba(250,204,21,0.42);
+        }
+
+        .nm-manager-cap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: rgba(250,204,21,0.86);
+            color: #1a1a1a;
+            font-size: 0.55rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .nm-manager-name {
+            max-width: 116px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 640px) {
+            .nm-match-toggle-btn .nm-match-main {
+                padding-right: 20px;
+            }
+
+            .nm-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nm-detail-team.right .nm-detail-team-head {
+                justify-content: flex-start;
+                text-align: left;
+            }
+
+            .nm-detail-player-main {
+                grid-template-columns: 36px minmax(0, 1fr);
+            }
+
+            .nm-detail-player-photo {
+                width: 36px;
+                height: 36px;
+            }
+
+            .nm-detail-player-points {
+                grid-column: 2;
+                justify-self: start;
+            }
         }
 
 
@@ -8426,6 +8723,57 @@
         return 'zero';
     }
 
+    const SWISS_TIME_ZONE = 'Europe/Zurich';
+    const swissDatePartsFormatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: SWISS_TIME_ZONE,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+
+    function getSwissDateParts(date) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+        const parts = {};
+        swissDatePartsFormatter.formatToParts(date).forEach((part) => {
+            if (part.type !== 'literal') parts[part.type] = part.value;
+        });
+        const year = Number(parts.year);
+        const month = Number(parts.month);
+        const day = Number(parts.day);
+        if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+        return { year, month, day };
+    }
+
+    function getSwissDayNumber(date) {
+        const parts = getSwissDateParts(date);
+        if (!parts) return null;
+        return Math.floor(Date.UTC(parts.year, parts.month - 1, parts.day) / 86400000);
+    }
+
+    function getSwissCalendarDayDiff(matchDate, referenceMs) {
+        const matchDay = getSwissDayNumber(matchDate);
+        const referenceDay = getSwissDayNumber(new Date(referenceMs));
+        if (matchDay === null || referenceDay === null) return null;
+        return matchDay - referenceDay;
+    }
+
+    function formatSwissMatchTime(date) {
+        return date.toLocaleTimeString('de-CH', {
+            timeZone: SWISS_TIME_ZONE,
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function formatSwissMatchDate(date) {
+        return date.toLocaleDateString('de-CH', {
+            timeZone: SWISS_TIME_ZONE,
+            weekday: 'short',
+            day: '2-digit',
+            month: '2-digit'
+        });
+    }
+
     function getDraftedPointsSummary(players, data, matchId) {
         return (players || []).reduce((acc, item) => {
             const player = item?.player || item;
@@ -8483,6 +8831,42 @@
         return null;
     }
 
+    const expandedNextMatchKeys = new Set();
+
+    function getNextMatchKey(match, index = 0) {
+        return getMatchIdentityKeys(match)[0] || `index:${index}`;
+    }
+
+    function getManagerDisplayName(name) {
+        const trimmed = String(name || '').trim();
+        return trimmed || 'Manager';
+    }
+
+    window.toggleNextMatchDetails = function(btn) {
+        if (!btn) return;
+        const row = btn.closest('.nm-match-row');
+        if (!row) return;
+        const key = row.dataset.matchKey || '';
+        const label = row.dataset.matchLabel || '';
+        const details = row.querySelector('.nm-match-details');
+        const expanded = !row.classList.contains('is-expanded');
+
+        row.classList.toggle('is-expanded', expanded);
+        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        if (label) {
+            btn.setAttribute('aria-label', `${label} - ${expanded ? 'Details ausblenden' : 'Details anzeigen'}`);
+        }
+        if (details) {
+            if (expanded) details.removeAttribute('hidden');
+            else details.setAttribute('hidden', '');
+        }
+
+        if (key) {
+            if (expanded) expandedNextMatchKeys.add(key);
+            else expandedNextMatchKeys.delete(key);
+        }
+    };
+
     function renderNextMatchesTile(data, teams) {
         const container = $('tile-post-next-matches');
         if (!container) return;
@@ -8490,12 +8874,21 @@
         // Build drafted player lookup: playerId → { player, managers[] }
         const draftedPlayerManagers = {};
         (teams || []).forEach((t) => {
+            const managerName = t.manager || 'Unbekannt';
             (t.players || []).forEach((tp) => {
                 const full = resolvePlayer(tp);
                 if (!full) return;
                 const id = String(full['player.id']);
                 if (!draftedPlayerManagers[id]) draftedPlayerManagers[id] = { player: full, managers: [] };
-                draftedPlayerManagers[id].managers.push(t.manager);
+                if (!draftedPlayerManagers[id].managers.some((m) => m.manager === managerName)) {
+                    draftedPlayerManagers[id].managers.push({ manager: managerName, isCaptain: !!tp.isCaptain });
+                }
+            });
+        });
+        Object.values(draftedPlayerManagers).forEach(({ managers }) => {
+            managers.sort((a, b) => {
+                if (a.isCaptain !== b.isCaptain) return a.isCaptain ? -1 : 1;
+                return String(a.manager).localeCompare(String(b.manager), 'de');
             });
         });
 
@@ -8530,7 +8923,7 @@
         }
 
         const scheduleContext = matchInfos.length ? matchInfos : upcoming;
-        const html = upcoming.map((match) => {
+        const html = upcoming.map((match, index) => {
             const matchId = match.gameNumber || match.matchId || match.id;
             let teamA = match.teamA || match.home || match.homeTeam || '';
             let teamB = match.teamB || match.away || match.awayTeam || '';
@@ -8562,21 +8955,27 @@
                 if (match.statusElapsed) timeSubText = `${match.statusElapsed}'`;
             } else if (dateStr) {
                 const matchDate = new Date(dateStr);
-                const diffMin = (matchDate.getTime() - now) / 60000;
-                if (diffMin < 0 && diffMin > -90) {
-                    isLive = true;
-                    timeBadgeText = 'LIVE';
-                    timeBadgeCls = 'live';
-                } else if (diffMin < 60 * 24 && diffMin >= 0) {
-                    timeBadgeText = 'Heute';
-                    timeBadgeCls = 'today';
-                    timeSubText = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
-                } else if (diffMin < 60 * 48 && diffMin >= 0) {
-                    timeBadgeText = 'Morgen';
-                    timeSubText = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                const matchMs = matchDate.getTime();
+                if (!Number.isFinite(matchMs)) {
+                    timeBadgeText = '-';
                 } else {
-                    timeBadgeText = matchDate.toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit' });
-                    timeSubText = matchDate.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+                    const diffMin = (matchMs - now) / 60000;
+                    const swissDayDiff = getSwissCalendarDayDiff(matchDate, now);
+                    if (diffMin < 0 && diffMin > -90) {
+                        isLive = true;
+                        timeBadgeText = 'LIVE';
+                        timeBadgeCls = 'live';
+                    } else if (diffMin >= 0 && swissDayDiff === 0) {
+                        timeBadgeText = 'Heute';
+                        timeBadgeCls = 'today';
+                        timeSubText = formatSwissMatchTime(matchDate);
+                    } else if (diffMin >= 0 && swissDayDiff === 1) {
+                        timeBadgeText = 'Morgen';
+                        timeSubText = formatSwissMatchTime(matchDate);
+                    } else {
+                        timeBadgeText = formatSwissMatchDate(matchDate);
+                        timeSubText = formatSwissMatchTime(matchDate);
+                    }
                 }
             } else {
                 timeBadgeText = '–';
@@ -8605,14 +9004,61 @@
                 .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'));
 
             function buildChips(players) {
-                return players.map(({ player }) => {
+                return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
                     const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
                     const ptsHtml = pts !== null
                         ? `<span class="nm-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
                         : '';
                     const ptsLabel = pts !== null ? `, ${formatSignedPoints(pts)} Punkte in diesem Spiel` : '';
-                    return `<a class="nm-player-chip${pts !== null ? ' has-points' : ''}" href="${url}" draggable="false" aria-label="${escapeHtml(player.Spielername)} analysieren${escapeHtml(ptsLabel)}"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">${ptsHtml}</a>`;
+                    const managerLabel = managers.length
+                        ? ` - ${managers.map((m) => `${getManagerDisplayName(m.manager)}${m.isCaptain ? ' (C)' : ''}`).join(', ')}`
+                        : '';
+                    return `<a class="nm-player-chip${pts !== null ? ' has-points' : ''}" href="${url}" draggable="false" title="${escapeHtml(player.Spielername + managerLabel)}" aria-label="${escapeHtml(player.Spielername)} analysieren${escapeHtml(ptsLabel)}"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">${ptsHtml}</a>`;
+                }).join('');
+            }
+
+            function buildManagerChips(managers) {
+                return (managers || []).map((m) => {
+                    const manager = getManagerDisplayName(m.manager);
+                    const href = `teams.html?manager=${encodeURIComponent(manager)}`;
+                    const captainHtml = m.isCaptain ? '<span class="nm-manager-cap" title="Captain">C</span>' : '';
+                    const label = m.isCaptain
+                        ? `${manager} (Captain) - Team oeffnen`
+                        : `${manager} - Team oeffnen`;
+                    return `<a class="nm-manager-chip${m.isCaptain ? ' is-captain' : ''}" href="${href}" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">${captainHtml}<span class="nm-manager-name">${escapeHtml(manager)}</span></a>`;
+                }).join('');
+            }
+
+            function buildDetailPlayerCards(players) {
+                if (!players.length) {
+                    return `<div class="nm-detail-empty">Keine gew&auml;hlten Spieler</div>`;
+                }
+
+                return players.map(({ player, managers = [] }) => {
+                    const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
+                    const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
+                    const ptsHtml = pts !== null
+                        ? `<span class="nm-detail-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
+                        : '';
+                    const position = player.Position || player.position || '';
+                    const managerCount = managers.length === 1
+                        ? 'Gew&auml;hlt von 1 Manager'
+                        : `Gew&auml;hlt von ${managers.length} Managern`;
+                    return `<div class="nm-detail-player-card">
+                        <a class="nm-detail-player-main" href="${url}" title="${escapeHtml(player.Spielername)} analysieren" aria-label="${escapeHtml(player.Spielername)} analysieren">
+                            <img class="nm-detail-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">
+                            <span class="nm-detail-player-copy">
+                                <span class="nm-detail-player-name">${escapeHtml(player.Spielername)}</span>
+                                ${position ? `<span class="nm-detail-player-meta">${escapeHtml(position)}</span>` : ''}
+                            </span>
+                            ${ptsHtml}
+                        </a>
+                        <div class="nm-detail-managers">
+                            <div class="nm-detail-manager-head">${managerCount}</div>
+                            <div class="nm-detail-manager-list">${buildManagerChips(managers)}</div>
+                        </div>
+                    </div>`;
                 }).join('');
             }
 
@@ -8628,6 +9074,29 @@
             const stageLabel = APP && typeof APP.groupStageLabelForMatch === 'function'
                 ? APP.groupStageLabelForMatch(stageMatch, { matches: scheduleContext })
                 : '';
+            const matchKey = getNextMatchKey(stageMatch, index);
+            const detailId = `nm-detail-${index}-${String(matchKey).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+            const isExpanded = expandedNextMatchKeys.has(matchKey);
+            const matchLabel = `${teamA} gegen ${teamB}`;
+            const detailAriaLabel = `${matchLabel} - ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
+
+            function buildDetailTeam(players, teamName, flagUrl, fallbackFlagUrl, alignRight = false) {
+                const teamCls = alignRight ? 'nm-detail-team right' : 'nm-detail-team';
+                return `<div class="${teamCls}">
+                    <div class="nm-detail-team-head">
+                        ${renderFlagImageHtml('nm-detail-team-flag', flagUrl, fallbackFlagUrl, teamName)}
+                        <span class="nm-detail-team-name">${escapeHtml(teamName)}</span>
+                    </div>
+                    <div class="nm-detail-player-list">${buildDetailPlayerCards(players)}</div>
+                </div>`;
+            }
+
+            const detailsHtml = `<div class="nm-match-details" id="${escapeHtml(detailId)}"${isExpanded ? '' : ' hidden'}>
+                <div class="nm-detail-grid">
+                    ${buildDetailTeam(draftedHome, teamA, flagA, flagAFallback, false)}
+                    ${buildDetailTeam(draftedAway, teamB, flagB, flagBFallback, true)}
+                </div>
+            </div>`;
 
             const homePoints = isLive ? getDraftedPointsSummary(draftedHome, data, matchId) : { total: 0, count: 0 };
             const awayPoints = isLive ? getDraftedPointsSummary(draftedAway, data, matchId) : { total: 0, count: 0 };
@@ -8644,26 +9113,30 @@
             ` : '';
 
             return `
-                <div class="nm-match-row${isLive ? ' live' : ''}">
-                    <div class="nm-match-main">
-                        <div class="nm-team-side">
-                            ${renderFlagImageHtml('nm-team-flag', flagA, flagAFallback, teamA)}
-                            <span class="nm-team-name">${escapeHtml(teamA)}</span>
+                <div class="nm-match-row${isLive ? ' live' : ''}${isExpanded ? ' is-expanded' : ''}" data-match-key="${escapeHtml(matchKey)}" data-match-label="${escapeHtml(matchLabel)}">
+                    <button type="button" class="nm-match-toggle-btn" onclick="toggleNextMatchDetails(this)" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="${escapeHtml(detailId)}" aria-label="${escapeHtml(detailAriaLabel)}">
+                        <div class="nm-match-main">
+                            <div class="nm-team-side">
+                                ${renderFlagImageHtml('nm-team-flag', flagA, flagAFallback, teamA)}
+                                <span class="nm-team-name">${escapeHtml(teamA)}</span>
+                            </div>
+                            <div class="nm-center-col">
+                                <div class="nm-time-badge ${timeBadgeCls}">${escapeHtml(timeBadgeText)}</div>
+                                ${liveScoreHtml}
+                                ${livePointsHtml}
+                                ${stageLabel ? `<div class="nm-stage-label">${escapeHtml(stageLabel)}</div>` : ''}
+                                ${timeSubText ? `<div class="nm-time-sub">${escapeHtml(timeSubText)}</div>` : ''}
+                                ${venueText ? `<div class="nm-time-sub nm-venue-inline">${escapeHtml(venueText)}</div>` : ''}
+                            </div>
+                            <div class="nm-team-side right">
+                                ${renderFlagImageHtml('nm-team-flag', flagB, flagBFallback, teamB)}
+                                <span class="nm-team-name">${escapeHtml(teamB)}</span>
+                            </div>
                         </div>
-                        <div class="nm-center-col">
-                            <div class="nm-time-badge ${timeBadgeCls}">${escapeHtml(timeBadgeText)}</div>
-                            ${liveScoreHtml}
-                            ${livePointsHtml}
-                            ${stageLabel ? `<div class="nm-stage-label">${escapeHtml(stageLabel)}</div>` : ''}
-                            ${timeSubText ? `<div class="nm-time-sub">${escapeHtml(timeSubText)}</div>` : ''}
-                            ${venueText ? `<div class="nm-time-sub nm-venue-inline">${escapeHtml(venueText)}</div>` : ''}
-                        </div>
-                        <div class="nm-team-side right">
-                            ${renderFlagImageHtml('nm-team-flag', flagB, flagBFallback, teamB)}
-                            <span class="nm-team-name">${escapeHtml(teamB)}</span>
-                        </div>
-                    </div>
+                        <span class="nm-detail-toggle" aria-hidden="true">&#9662;</span>
+                    </button>
                     ${playersRowHtml}
+                    ${detailsHtml}
                 </div>
             `;
         }).join('');
