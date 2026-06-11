@@ -2160,9 +2160,14 @@
         return 0;
     }
 
-    function compareTeamsBySubmissionDesc(a, b) {
-        const diff = getTeamSubmissionMillis(b) - getTeamSubmissionMillis(a);
-        if (diff !== 0) return diff;
+    function compareTeamsBySubmissionAsc(a, b) {
+        const aMs = getTeamSubmissionMillis(a);
+        const bMs = getTeamSubmissionMillis(b);
+        if (aMs !== bMs) {
+            if (aMs <= 0) return 1;
+            if (bMs <= 0) return -1;
+            return aMs - bMs;
+        }
         return String(a && a.manager || '').localeCompare(String(b && b.manager || ''), 'de');
     }
 
@@ -2238,16 +2243,18 @@
                 perfectHits: 0,
                 currentRank: null
             };
-        }).sort(compareTeamsBySubmissionDesc);
+        }).sort(compareTeamsBySubmissionAsc);
+    }
+
+    function compareTeamsByScoreThenSubmission(a, b) {
+        if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+        return compareTeamsBySubmissionAsc(a, b);
     }
 
     function assignTeamRanks(teams) {
-        const ranking = [...teams].sort((a, b) => {
-            if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-            return compareTeamsBySubmissionDesc(a, b);
-        });
+        const ranking = [...teams].sort(compareTeamsByScoreThenSubmission);
         ranking.forEach((team, index) => { team.currentRank = index + 1; });
-        return teams;
+        return ranking;
     }
 
     function buildGlobalPickCounts(teams) {

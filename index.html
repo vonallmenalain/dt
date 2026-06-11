@@ -6822,9 +6822,14 @@
         return 0;
     }
 
-    function compareTeamsBySubmissionDesc(a, b) {
-        const diff = getTeamSubmissionMillis(b) - getTeamSubmissionMillis(a);
-        if (diff !== 0) return diff;
+    function compareTeamsBySubmissionAsc(a, b) {
+        const aMs = getTeamSubmissionMillis(a);
+        const bMs = getTeamSubmissionMillis(b);
+        if (aMs !== bMs) {
+            if (aMs <= 0) return 1;
+            if (bMs <= 0) return -1;
+            return aMs - bMs;
+        }
         return String(a && a.manager || '').localeCompare(String(b && b.manager || ''), 'de');
     }
 
@@ -6832,7 +6837,7 @@
         const prop = totalProp || 'total';
         const diff = (Number(b && b[prop]) || 0) - (Number(a && a[prop]) || 0);
         if (diff !== 0) return diff;
-        return compareTeamsBySubmissionDesc(a, b);
+        return compareTeamsBySubmissionAsc(a, b);
     }
 
     /*
@@ -7298,7 +7303,7 @@
             const sorted = [...teams].sort((a, b) => {
                 const diff = getTeamTotal(b, ptMap) - getTeamTotal(a, ptMap);
                 if (diff !== 0) return diff;
-                return compareTeamsBySubmissionDesc(a, b);
+                return compareTeamsBySubmissionAsc(a, b);
             });
             const topManager = sorted.length > 0 ? sorted[0].manager : null;
             leaderEl.textContent = topManager ? escapeHtml(topManager) : '–';
@@ -8659,7 +8664,12 @@
         return Array.isArray(list) ? list : [];
     }
 
-    const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P'];
+    const FINISHED_MATCH_STATUSES = ['FT', 'AET', 'PEN'];
+    const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
+
+    function isMatchFinishedStatus(statusShort) {
+        return FINISHED_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
+    }
 
     function isMatchLiveStatus(statusShort) {
         return LIVE_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
@@ -8667,8 +8677,8 @@
 
     function getMatchScoreParts(match) {
         const goals = match?.goals || match?.score || {};
-        const home = goals.home ?? goals.homeGoals ?? goals.homeTeam ?? match?.homeGoals ?? match?.scoreHome ?? match?.homeScore ?? null;
-        const away = goals.away ?? goals.awayGoals ?? goals.awayTeam ?? match?.awayGoals ?? match?.scoreAway ?? match?.awayScore ?? null;
+        const home = goals.home ?? goals.homeGoals ?? goals.homeTeam ?? match?.goalsHome ?? match?.homeGoals ?? match?.scoreHome ?? match?.homeScore ?? null;
+        const away = goals.away ?? goals.awayGoals ?? goals.awayTeam ?? match?.goalsAway ?? match?.awayGoals ?? match?.scoreAway ?? match?.awayScore ?? null;
         if (home === null && away === null) return null;
         return { home: home ?? 0, away: away ?? 0 };
     }
@@ -8895,12 +8905,11 @@
         const matchInfos = extractMatchInfo(data);
 
         const now = Date.now();
-        const FINISHED_STATUSES = ['FT', 'AET', 'PEN'];
-
-        // Only show genuinely upcoming or live matches (no finished results)
+        // Keep live/open matches visible until the fixture itself reports a final status.
         let upcoming = matchInfos.filter((m) => {
             const statusShort = m.statusShort || '';
-            if (statusShort && FINISHED_STATUSES.includes(statusShort)) return false;
+            if (isMatchFinishedStatus(statusShort)) return false;
+            if (isMatchLiveStatus(statusShort)) return true;
             const dateStr = m.date || m.datetime || m.kickoff || '';
             if (!dateStr) return true;
             const ms = new Date(dateStr).getTime();
@@ -8944,7 +8953,7 @@
             let isLive = isMatchLiveStatus(statusShort);
             const scoreParts = getMatchScoreParts(match);
 
-            // Time display (upcoming only – no finished score)
+            // Time display (upcoming/live)
             let timeBadgeText = '';
             let timeBadgeCls = '';
             let timeSubText = '';
@@ -9594,7 +9603,7 @@
         return [...teams].sort((a, b) => {
             const diff = b.totalScore - a.totalScore;
             if (diff !== 0) return diff;
-            return compareTeamsBySubmissionDesc(a, b);
+            return compareTeamsBySubmissionAsc(a, b);
         });
     }
 
