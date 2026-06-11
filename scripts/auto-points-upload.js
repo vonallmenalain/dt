@@ -58,11 +58,15 @@
  *                              bleiben bis so viele Minuten nach Anpfiff
  *                              Kandidaten, damit nachtraegliche API-
  *                              Korrekturen automatisch nachgezogen werden.
- *    LIVE_TICKS_PER_RUN        Optional, Default 10. Anzahl Ticks innerhalb
+ *    LIVE_TICKS_PER_RUN        Optional, Default 30. Anzahl Ticks innerhalb
  *                              eines GitHub-Runs, wenn Kandidaten aktiv
  *                              sind. FORCE_RUN macht immer nur einen Tick.
- *    LIVE_TICK_INTERVAL_SEC    Optional, Default 25. Abstand zwischen den
+ *    LIVE_TICK_INTERVAL_SEC    Optional, Default 10. Abstand zwischen den
  *                              Live-Ticks innerhalb desselben Runs.
+ *    API_RETRY_ATTEMPTS        Optional, Default 3. API-Requests werden bei
+ *                              transienten Fehlern so oft versucht.
+ *    API_RETRY_BASE_DELAY_MS   Optional, Default 1000. Basis-Wartezeit fuer
+ *                              API-Retry-Backoff.
  *    FORCE_RUN                 Falls `1`/`true`: Phasen-Guard UND
  *                              Pre-Check überspringen (manuelle Tests).
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
@@ -112,8 +116,11 @@ const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
 const DEFAULT_FINAL_RECHECK_MIN = 360;
-const DEFAULT_LIVE_TICKS_PER_RUN = 10;
-const DEFAULT_LIVE_TICK_INTERVAL_SEC = 25;
+const DEFAULT_LIVE_TICKS_PER_RUN = 30;
+const DEFAULT_LIVE_TICK_INTERVAL_SEC = 10;
+const MAX_LIVE_TICKS_PER_RUN = 45;
+const DEFAULT_API_RETRY_ATTEMPTS = 3;
+const DEFAULT_API_RETRY_BASE_DELAY_MS = 1000;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
 const MAX_CHANGED_PLAYER_LOG_DOCS = 1200;
@@ -188,6 +195,81 @@ function incrementApiCallCounter(opts, key) {
   audit.apiCalls.total = audit.apiCalls.fixtureList + audit.apiCalls.detailBatches;
 }
 
+function getApiRetryAttempts(opts) {
+  const n = opts && typeof opts.apiRetryAttempts === 'number' ? opts.apiRetryAttempts : DEFAULT_API_RETRY_ATTEMPTS;
+  return Math.max(1, Math.floor(n));
+}
+
+function getApiRetryBaseDelayMs(opts) {
+  const n = opts && typeof opts.apiRetryBaseDelayMs === 'number' ? opts.apiRetryBaseDelayMs : DEFAULT_API_RETRY_BASE_DELAY_MS;
+  return Math.max(0, Math.floor(n));
+}
+
+function isRetriableHttpStatus(status) {
+  return status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
+function retryAfterHeaderMs(response) {
+  if (!response || !response.headers || typeof response.headers.get !== 'function') return null;
+  const raw = response.headers.get('retry-after');
+  if (!raw) return null;
+
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+
+  const dateMs = Date.parse(raw);
+  if (Number.isFinite(dateMs)) return Math.max(0, dateMs - Date.now());
+  return null;
+}
+
+function getApiRetryDelayMs(opts, attempt, response) {
+  const retryAfterMs = retryAfterHeaderMs(response);
+  if (retryAfterMs != null) return Math.min(retryAfterMs, 15_000);
+
+  const base = getApiRetryBaseDelayMs(opts);
+  if (base <= 0) return 0;
+  return Math.min(base * Math.pow(2, Math.max(0, attempt - 1)), 8_000);
+}
+
+async function fetchApiJson(url, requestOptions, label, opts = {}, counterKey = null) {
+  const attempts = getApiRetryAttempts(opts);
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    let response = null;
+
+    try {
+      if (counterKey) incrementApiCallCounter(opts, counterKey);
+      response = await fetchFn(url, requestOptions);
+    } catch (err) {
+      lastError = new Error(`${label}: Netzwerkfehler: ${err.message}`);
+    }
+
+    if (response) {
+      if (response.ok) {
+        try {
+          return await response.json();
+        } catch (err) {
+          lastError = new Error(`${label}: Antwort liess sich nicht als JSON parsen: ${err.message}`);
+        }
+      } else {
+        const suffix = response.statusText ? ` ${response.statusText}` : '';
+        lastError = new Error(`${label}: HTTP ${response.status}${suffix}`);
+        if (!isRetriableHttpStatus(response.status)) throw lastError;
+      }
+    }
+
+    if (attempt < attempts) {
+      const delayMs = getApiRetryDelayMs(opts, attempt, response);
+      logWarn(`${label}: Versuch ${attempt}/${attempts} fehlgeschlagen (${lastError.message}). ` +
+        `Neuer Versuch in ${(delayMs / 1000).toFixed(1)}s.`);
+      if (delayMs > 0) await delay(delayMs);
+    }
+  }
+
+  throw lastError || new Error(`${label}: API-Request fehlgeschlagen.`);
+}
+
 function createTickAudit(tournament, opts, tickIndex, totalTicks) {
   return {
     createdAtMs: Date.now(),
@@ -204,6 +286,8 @@ function createTickAudit(tournament, opts, tickIndex, totalTicks) {
     windowStartMin: opts.windowStartMin,
     windowEndMin: opts.windowEndMin,
     finalRecheckMin: opts.finalRecheckMin,
+    apiRetryAttempts: opts.apiRetryAttempts,
+    apiRetryBaseDelayMs: opts.apiRetryBaseDelayMs,
     candidateFixtureIds: [],
     scoringFixtureIds: [],
     liveFixtureIds: [],
@@ -257,6 +341,8 @@ function serializeAuditLog(audit) {
     windowStartMin: audit.windowStartMin,
     windowEndMin: audit.windowEndMin,
     finalRecheckMin: audit.finalRecheckMin,
+    apiRetryAttempts: audit.apiRetryAttempts || null,
+    apiRetryBaseDelayMs: audit.apiRetryBaseDelayMs || null,
     candidateFixtureIds: Array.isArray(audit.candidateFixtureIds) ? audit.candidateFixtureIds : [],
     scoringFixtureIds: Array.isArray(audit.scoringFixtureIds) ? audit.scoringFixtureIds : [],
     liveFixtureIds: Array.isArray(audit.liveFixtureIds) ? audit.liveFixtureIds : [],
@@ -1482,23 +1568,14 @@ async function fetchFixtureDetailsByIds(headers, fixtureIds, opts = {}) {
     const ids = batches[b];
     const detailUrl = `https://v3.football.api-sports.io/fixtures?ids=${ids.join('-')}`;
 
-    let detailRes;
-    try {
-      incrementApiCallCounter(opts, 'detailBatches');
-      detailRes = await fetchFn(detailUrl, { headers });
-    } catch (err) {
-      throw new Error(`Detail-Batch ${b + 1}/${batches.length} fehlgeschlagen (Netzwerkfehler): ${err.message}`);
-    }
-    if (!detailRes.ok) {
-      throw new Error(`Detail-Batch ${b + 1}/${batches.length} lieferte HTTP ${detailRes.status}.`);
-    }
+    const detailData = await fetchApiJson(
+      detailUrl,
+      { headers },
+      `Detail-Batch ${b + 1}/${batches.length}`,
+      opts,
+      'detailBatches'
+    );
 
-    let detailData;
-    try {
-      detailData = await detailRes.json();
-    } catch (err) {
-      throw new Error(`Detail-Batch ${b + 1}/${batches.length}: Antwort liess sich nicht als JSON parsen: ${err.message}`);
-    }
     if (!detailData || !Array.isArray(detailData.response)) {
       throw new Error(`Detail-Batch ${b + 1}/${batches.length}: ungueltige API-Antwort (kein response-Array).`);
     }
@@ -1549,10 +1626,13 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   const fixturesUrl = `https://v3.football.api-sports.io/fixtures?${baseQuery}`;
 
   logInfo(`Lade Fixtures von API: ${fixturesUrl}`);
-  incrementApiCallCounter(opts, 'fixtureList');
-  const fixRes = await fetchFn(fixturesUrl, { headers });
-  if (!fixRes.ok) throw new Error(`API-Fixtures lieferte HTTP ${fixRes.status}`);
-  const fixData = await fixRes.json();
+  const fixData = await fetchApiJson(
+    fixturesUrl,
+    { headers },
+    'API-Fixtures',
+    opts,
+    'fixtureList'
+  );
   if (!fixData || !Array.isArray(fixData.response)) {
     throw new Error('API hat keine gültigen Fixture-Daten geliefert.');
   }
@@ -1877,8 +1957,10 @@ async function main() {
     windowStartMin: envInt('WINDOW_START_MIN', DEFAULT_WINDOW_START_MIN),
     windowEndMin: envInt('WINDOW_END_MIN', DEFAULT_WINDOW_END_MIN),
     finalRecheckMin: Math.max(0, envInt('FINAL_RECHECK_MIN', DEFAULT_FINAL_RECHECK_MIN)),
-    liveTicksPerRun: Math.min(10, Math.max(1, envInt('LIVE_TICKS_PER_RUN', DEFAULT_LIVE_TICKS_PER_RUN))),
+    liveTicksPerRun: Math.min(MAX_LIVE_TICKS_PER_RUN, Math.max(1, envInt('LIVE_TICKS_PER_RUN', DEFAULT_LIVE_TICKS_PER_RUN))),
     liveTickIntervalSec: Math.max(0, envInt('LIVE_TICK_INTERVAL_SEC', DEFAULT_LIVE_TICK_INTERVAL_SEC)),
+    apiRetryAttempts: Math.max(1, envInt('API_RETRY_ATTEMPTS', DEFAULT_API_RETRY_ATTEMPTS)),
+    apiRetryBaseDelayMs: Math.max(0, envInt('API_RETRY_BASE_DELAY_MS', DEFAULT_API_RETRY_BASE_DELAY_MS)),
     forceRun: envBool('FORCE_RUN', false),
     dryRun: envBool('DRY_RUN', false)
   };
@@ -1887,6 +1969,7 @@ async function main() {
     ` Trigger-Fenster: ${opts.windowStartMin} bis ${opts.windowEndMin} min relativ zum Anpfiff` +
     ` (Live + Catch-up), Final-Recheck bis ${opts.finalRecheckMin} min nach Anpfiff.` +
     ` Live-Ticks pro Run: ${opts.forceRun ? 1 : opts.liveTicksPerRun}, Abstand: ${opts.liveTickIntervalSec}s.` +
+    ` API-Retry: ${opts.apiRetryAttempts} Versuch(e), Basis ${opts.apiRetryBaseDelayMs}ms.` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
     (opts.dryRun ? ' [DRY_RUN]' : ''));
 

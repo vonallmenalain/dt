@@ -8,8 +8,8 @@ name: Auto Punkte-Upload
 # Fenster liegt (Default: 10 Minuten VOR bis 150 Minuten NACH Anpfiff)
 # oder ob ein beendetes Spiel noch im Final-Recheck liegt (Default:
 # 360 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
-# eines aktiven Fensters macht das Skript standardmäßig zehn Ticks mit
-# 25 Sekunden Abstand; so gibt es dichte Live-Updates, ohne jede
+# eines aktiven Fensters macht das Skript standardmäßig 30 Ticks mit
+# 10 Sekunden Abstand; so gibt es dichte Live-Updates, ohne jede
 # Minute einen neuen Runner zu starten.
 #
 # WICHTIG: Der Cron unten ist bewusst auf den WM-Zeitraum
@@ -40,10 +40,14 @@ name: Auto Punkte-Upload
 #                            viele Minuten nach Anpfiff Recheck-Kandidaten,
 #                            damit spaete API-Korrekturen nachgezogen werden.
 #   POINTS_LIVE_TICKS_PER_RUN
-#                            Default 10 – Anzahl Live-Ticks innerhalb
+#                            Default 30 – Anzahl Live-Ticks innerhalb
 #                            eines GitHub-Runs (bei schedule).
 #   POINTS_LIVE_TICK_INTERVAL_SEC
-#                            Default 25 – Abstand zwischen Live-Ticks.
+#                            Default 10 – Abstand zwischen Live-Ticks.
+#   POINTS_API_RETRY_ATTEMPTS
+#                            Default 3 – Retry-Versuche pro API-Request.
+#   POINTS_API_RETRY_BASE_DELAY_MS
+#                            Default 1000 – Basis-Backoff für API-Retries.
 on:
   schedule:
     # Alle 5 Minuten vom 11.–30. Juni 2026 (WM-Gruppenphase + KO-Start).
@@ -101,7 +105,7 @@ concurrency:
 jobs:
   upload:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -129,6 +133,8 @@ jobs:
           FINAL_RECHECK_MIN: ${{ inputs.final_recheck_min != '' && inputs.final_recheck_min || vars.POINTS_FINAL_RECHECK_MIN }}
           LIVE_TICKS_PER_RUN: ${{ inputs.live_ticks_per_run != '' && inputs.live_ticks_per_run || vars.POINTS_LIVE_TICKS_PER_RUN }}
           LIVE_TICK_INTERVAL_SEC: ${{ inputs.live_tick_interval_sec != '' && inputs.live_tick_interval_sec || vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
+          API_RETRY_ATTEMPTS: ${{ vars.POINTS_API_RETRY_ATTEMPTS }}
+          API_RETRY_BASE_DELAY_MS: ${{ vars.POINTS_API_RETRY_BASE_DELAY_MS }}
           FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
         run: node auto-points-upload.js

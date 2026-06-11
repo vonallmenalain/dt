@@ -84,8 +84,8 @@ ist, oder ob ein beendetes Spiel noch im Final-Recheck-Fenster liegt
 der Job sofort. Damit kostet ein Tick ausserhalb der Spieltage praktisch
 nichts (1 Firestore-Read, 0 API-Calls).
 
-Während eines aktiven Fensters macht das Script standardmässig fünf
-Ticks mit 60 Sekunden Abstand innerhalb desselben GitHub-Runs. Laufende
+Während eines aktiven Fensters macht das Script standardmässig 30
+Ticks mit 10 Sekunden Abstand innerhalb desselben GitHub-Runs. Laufende
 und Final-Recheck-Kandidaten werden als Delta auf bestehende
 Punktedokumente geschrieben; sobald ein Kandidat neu final wird oder
 `FORCE_RUN=1` genutzt wird, erfolgt eine vollständige Neuberechnung.
@@ -94,6 +94,10 @@ nachträgliche API-Korrekturen an Scorern, Assists, Karten oder Resultat
 automatisch im nächsten Tick nachgezogen werden. Unveränderte
 Punkte-/Fixture-Dokumente werden übersprungen, damit `pointsVersion` und
 `fixturesVersion` nur bei echten Änderungen steigen.
+
+API-Football-Requests werden bei transienten Netzwerk-/HTTP-Fehlern
+standardmässig bis zu dreimal versucht. Damit bricht ein Live-Lauf nicht
+wegen eines einzelnen 429/5xx oder kurzen Netzwerkfehlers komplett ab.
 
 `pointsUpdatedAt` und `pointsVersion` im Meta-Dokument werden nur
 nach einem erfolgreichen Schreibvorgang erhöht. Die "Zuletzt
@@ -131,8 +135,10 @@ Default aus `tournament-config.js` überschreiben will:
 | `POINTS_WINDOW_START_MIN`  | `-10`                              | Auto-Punkte: Start des Live-Fensters relativ zum Anpfiff.       |
 | `POINTS_WINDOW_END_MIN`    | `150`                              | Auto-Punkte: normales Ende des Live-Fensters; danach Catch-up für offene Spiele. |
 | `POINTS_FINAL_RECHECK_MIN` | `360`                              | Auto-Punkte: beendete Spiele bis so viele Minuten nach Anpfiff weiter prüfen. |
-| `POINTS_LIVE_TICKS_PER_RUN` | `5`                               | Auto-Punkte: Anzahl Live-Ticks innerhalb eines GitHub-Runs.     |
-| `POINTS_LIVE_TICK_INTERVAL_SEC` | `60`                          | Auto-Punkte: Abstand zwischen Live-Ticks in Sekunden.           |
+| `POINTS_LIVE_TICKS_PER_RUN` | `30`                              | Auto-Punkte: Anzahl Live-Ticks innerhalb eines GitHub-Runs.     |
+| `POINTS_LIVE_TICK_INTERVAL_SEC` | `10`                          | Auto-Punkte: Abstand zwischen Live-Ticks in Sekunden.           |
+| `POINTS_API_RETRY_ATTEMPTS` | `3`                                | Auto-Punkte: Retry-Versuche pro API-Request.                    |
+| `POINTS_API_RETRY_BASE_DELAY_MS` | `1000`                       | Auto-Punkte: Basis-Backoff fuer API-Retries in Millisekunden.   |
 
 Wer dieselbe Variable früher pro Workflow doppelt (z.B.
 `AUTO_UPLOAD_TOURNAMENT_KEY` + `FIXTURES_SYNC_TOURNAMENT_KEY`) gesetzt

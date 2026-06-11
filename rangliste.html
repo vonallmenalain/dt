@@ -3706,19 +3706,19 @@
         return `${home}:${away}`;
     }
 
-    function formatLiveMinute(status) {
+    function formatLiveUpdateMarker(status) {
         const short = status && status.short ? String(status.short) : "";
         const elapsed = status && status.elapsed !== undefined && status.elapsed !== null
             ? Number(status.elapsed)
             : null;
-        if (short === "HT") return "Halbzeit";
-        if (short === "BT") return "Pause";
-        if (short === "SUSP") return "Unterbrochen";
-        if (short === "INT") return "Unterbrochen";
-        if (Number.isFinite(elapsed) && elapsed > 0) return `${elapsed}. Min`;
-        if (short === "ET") return "Verlängerung";
-        if (short === "P") return "Elfmeterschiessen";
-        return "Live";
+        if (Number.isFinite(elapsed) && elapsed > 0) return `Aktualisiert bis Min ${elapsed}`;
+        if (short === "HT") return "Aktualisiert bis Halbzeit";
+        if (short === "BT") return "Aktualisiert bis Pause";
+        if (short === "SUSP") return "Stand bei Unterbruch";
+        if (short === "INT") return "Stand bei Unterbruch";
+        if (short === "ET") return "Stand in Verlängerung";
+        if (short === "P") return "Stand im Elfmeterschiessen";
+        return "Live-Datenstand";
     }
 
     function findLiveFixture(fixtures) {
@@ -3823,18 +3823,19 @@
             const fixture = liveFixtureInfo.fixture;
             const homeGoals = getFixtureGoal(fixture, "home");
             const awayGoals = getFixtureGoal(fixture, "away");
-            const minute = formatLiveMinute(fixture.status || {});
+            const updateMarker = formatLiveUpdateMarker(fixture.status || {});
             const freshestUpdate = Math.max(latestPointsUpdatedAt || 0, fixturesUpdatedAt || 0) || null;
 
             containerEl.style.display = "";
+            timeEl.setAttribute("aria-label", `${updateMarker}, Spielstand ${homeGoals}:${awayGoals}`);
             timeEl.innerHTML =
-                `<span class="rl-hero-update-live-minute">${escapeHtml(minute)}</span> ` +
+                `<span class="rl-hero-update-live-minute">${escapeHtml(updateMarker)}</span> ` +
                 `<span aria-hidden="true">·</span> ` +
                 `<span class="rl-hero-update-live-score">${homeGoals}:${awayGoals}</span>`;
             gameEl.innerHTML =
                 buildFixtureLinkHtml(liveFixtureInfo, fixtures) +
                 (freshestUpdate
-                    ? `<span class="rl-hero-update-meta">Aktualisiert ${escapeHtml(formatUpdatedAt(freshestUpdate))}</span>`
+                    ? `<span class="rl-hero-update-meta">Datenstand ${escapeHtml(formatUpdatedAt(freshestUpdate))}</span>`
                     : "");
             setLastUpdateCountdownActive(false);
             return;
