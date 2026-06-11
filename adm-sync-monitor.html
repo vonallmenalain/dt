@@ -635,6 +635,10 @@
                         <div>${renderArray(log.newlyFinishedFixtureIds)}</div>
                         <div class="detail-label">API-Calls</div>
                         <div class="code-list">fixtureList=${numberValue(log.apiCalls && log.apiCalls.fixtureList, 0)}, detailBatches=${numberValue(log.apiCalls && log.apiCalls.detailBatches, 0)}, total=${numberValue(log.apiCalls && log.apiCalls.total, 0)}</div>
+                        <div class="detail-label">Früher Fixture-Write</div>
+                        <div class="code-list">updated=${numberValue(log.earlyFixtureWriteResult && log.earlyFixtureWriteResult.updated, 0)}, skipped=${numberValue(log.earlyFixtureWriteResult && log.earlyFixtureWriteResult.skipped, 0)}</div>
+                        <div class="detail-label">Detail Fixture-Write</div>
+                        <div class="code-list">updated=${numberValue(log.detailFixtureWriteResult && log.detailFixtureWriteResult.updated, 0)}, skipped=${numberValue(log.detailFixtureWriteResult && log.detailFixtureWriteResult.skipped, 0)}</div>
                         <div class="detail-label">GitHub</div>
                         <div class="code-list">${escapeHtml([log.githubWorkflow, log.githubRunId, log.githubRunAttempt, log.githubSha].filter(Boolean).join(" / ") || "-")}</div>
                         <div class="detail-label">Changed Players</div>

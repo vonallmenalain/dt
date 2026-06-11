@@ -58,10 +58,10 @@
  *                              bleiben bis so viele Minuten nach Anpfiff
  *                              Kandidaten, damit nachtraegliche API-
  *                              Korrekturen automatisch nachgezogen werden.
- *    LIVE_TICKS_PER_RUN        Optional, Default 5. Anzahl Ticks innerhalb
+ *    LIVE_TICKS_PER_RUN        Optional, Default 10. Anzahl Ticks innerhalb
  *                              eines GitHub-Runs, wenn Kandidaten aktiv
  *                              sind. FORCE_RUN macht immer nur einen Tick.
- *    LIVE_TICK_INTERVAL_SEC    Optional, Default 60. Abstand zwischen den
+ *    LIVE_TICK_INTERVAL_SEC    Optional, Default 25. Abstand zwischen den
  *                              Live-Ticks innerhalb desselben Runs.
  *    FORCE_RUN                 Falls `1`/`true`: Phasen-Guard UND
  *                              Pre-Check überspringen (manuelle Tests).
@@ -111,8 +111,8 @@ const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
 const DEFAULT_FINAL_RECHECK_MIN = 360;
-const DEFAULT_LIVE_TICKS_PER_RUN = 5;
-const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
+const DEFAULT_LIVE_TICKS_PER_RUN = 10;
+const DEFAULT_LIVE_TICK_INTERVAL_SEC = 25;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
 const MAX_CHANGED_PLAYER_LOG_DOCS = 1200;
@@ -213,6 +213,8 @@ function createTickAudit(tournament, opts, tickIndex, totalTicks) {
     apiCalls: createApiCallCounter(),
     writeResult: { written: 0, deleted: 0, skipped: 0, touched: 0 },
     fixtureWriteResult: { updated: 0, skipped: 0 },
+    earlyFixtureWriteResult: { updated: 0, skipped: 0 },
+    detailFixtureWriteResult: { updated: 0, skipped: 0 },
     pointsVersionIncreased: false,
     fixturesVersionIncreased: false,
     changedPlayers: new Map(),
@@ -261,6 +263,8 @@ function serializeAuditLog(audit) {
     apiCalls: audit.apiCalls || createApiCallCounter(),
     writeResult: audit.writeResult || { written: 0, deleted: 0, skipped: 0, touched: 0 },
     fixtureWriteResult: audit.fixtureWriteResult || { updated: 0, skipped: 0 },
+    earlyFixtureWriteResult: audit.earlyFixtureWriteResult || { updated: 0, skipped: 0 },
+    detailFixtureWriteResult: audit.detailFixtureWriteResult || { updated: 0, skipped: 0 },
     pointsVersionIncreased: !!audit.pointsVersionIncreased,
     fixturesVersionIncreased: !!audit.fixturesVersionIncreased,
     changedPlayersCount: audit.changedPlayersCount || 0,
@@ -1162,6 +1166,40 @@ function fixtureStatusMatchesSnapshot(update, snapshot) {
     JSON.stringify(stableNormalize(snapshot.score || {})) === JSON.stringify(stableNormalize(update.score || {}));
 }
 
+function statusValue(value) {
+  return String(value || '').toUpperCase();
+}
+
+function numberOrNull(value) {
+  return (typeof value === 'number' && Number.isFinite(value)) ? value : null;
+}
+
+function isFixtureStatusRegression(update, snapshot) {
+  if (!snapshot) return false;
+
+  const currentStatus = statusValue(snapshot.statusShort);
+  const nextStatus = statusValue(update && update.status && update.status.short);
+
+  if (FINISHED_STATUSES.has(currentStatus) && !FINISHED_STATUSES.has(nextStatus)) {
+    return true;
+  }
+
+  const currentElapsed = numberOrNull(snapshot.statusElapsed);
+  const nextElapsed = numberOrNull(update && update.status && update.status.elapsed);
+  if (
+    currentStatus &&
+    currentStatus === nextStatus &&
+    LIVE_STATUSES.has(currentStatus) &&
+    currentElapsed != null &&
+    nextElapsed != null &&
+    nextElapsed < currentElapsed
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtureSnapshotsById = null) {
   const collection = tournament.firestore.fixturesCollection;
   if (!collection || !games || games.length === 0) return { updated: 0, skipped: 0 };
@@ -1178,6 +1216,16 @@ async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtu
     const docRef = db.collection(collection).doc(fixtureId);
     const update = buildFixtureStatusUpdate(game);
     const snapshot = fixtureSnapshotsById ? fixtureSnapshotsById.get(fixtureId) : null;
+
+    if (isFixtureStatusRegression(update, snapshot)) {
+      logWarn(
+        `Fixture ${fixtureId}: aelteren Status ignoriert ` +
+        `(Firestore ${snapshot.statusShort || '-'} ${snapshot.statusElapsed != null ? snapshot.statusElapsed + "'" : ''}, ` +
+        `API ${update.status.short || '-'} ${update.status.elapsed != null ? update.status.elapsed + "'" : ''}).`
+      );
+      skipped++;
+      continue;
+    }
 
     if (fixtureStatusMatchesSnapshot(update, snapshot)) {
       skipped++;
@@ -1197,6 +1245,79 @@ async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtu
 
   if (batchCount > 0) await batch.commit();
   return { updated: totalUpdated, skipped };
+}
+
+function addFixtureWriteResultToAudit(audit, result, key = 'fixtureWriteResult') {
+  if (!audit || !result) return;
+  const current = audit[key] || { updated: 0, skipped: 0 };
+  audit[key] = {
+    updated: (current.updated || 0) + (result.updated || 0),
+    skipped: (current.skipped || 0) + (result.skipped || 0)
+  };
+  if (key !== 'fixtureWriteResult') {
+    addFixtureWriteResultToAudit(audit, result, 'fixtureWriteResult');
+  }
+}
+
+function updateFixtureSnapshotsFromGames(fixtureSnapshotsById, games) {
+  if (!fixtureSnapshotsById) return;
+
+  (games || []).forEach(game => {
+    if (!game || !game.fixture || game.fixture.id == null) return;
+    const fixtureId = String(game.fixture.id);
+    const update = buildFixtureStatusUpdate(game);
+    const previous = fixtureSnapshotsById.get(fixtureId) || { id: fixtureId };
+    fixtureSnapshotsById.set(fixtureId, {
+      ...previous,
+      statusLong: update.status.long,
+      statusShort: update.status.short,
+      statusElapsed: update.status.elapsed,
+      goalsHome: update.goals.home,
+      goalsAway: update.goals.away,
+      score: update.score || {},
+      homeWinner: update['homeTeam.winner'],
+      awayWinner: update['awayTeam.winner']
+    });
+  });
+}
+
+function getApiFixtureId(game) {
+  const id = game && game.fixture && game.fixture.id;
+  return id == null ? '' : String(id);
+}
+
+function preferDetailedFixtureGames(games, detailsById) {
+  return uniqueGamesByFixtureId(games).map(game => {
+    const id = getApiFixtureId(game);
+    return (id && detailsById && detailsById.get(id)) || game;
+  });
+}
+
+async function publishFixtureStatusUpdates(db, tournament, games, opts, fixtureSnapshotsById, label, auditKey = 'fixtureWriteResult') {
+  const uniqueGames = uniqueGamesByFixtureId(games);
+  if (uniqueGames.length === 0) return { updated: 0, skipped: 0 };
+
+  const fixtureWriteResult = await updateFixtureStatusInFirestore(
+    db,
+    tournament,
+    uniqueGames,
+    opts,
+    fixtureSnapshotsById
+  );
+
+  addFixtureWriteResultToAudit(opts.audit, fixtureWriteResult, auditKey);
+  logInfo(`Fixture-Status (${label}) fuer ${fixtureWriteResult.updated} Spiele ` +
+    `${opts.dryRun ? '(DRY-RUN) berechnet' : 'aktualisiert'}, ` +
+    `${fixtureWriteResult.skipped} unveraendert uebersprungen.`);
+
+  if (fixtureWriteResult.updated > 0) {
+    await bumpFixturesMetaVersion(db, tournament, opts);
+    updateFixtureSnapshotsFromGames(fixtureSnapshotsById, uniqueGames);
+    if (opts.audit) opts.audit.fixturesVersionIncreased = !opts.dryRun;
+    logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhoeht - Clients laden frische Spielstaende sofort nach.`);
+  }
+
+  return fixtureWriteResult;
 }
 
 async function fetchFixtureDetailsByIds(headers, fixtureIds, opts = {}) {
@@ -1340,6 +1461,22 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     `${scoringGames.length} Spiel(e) fuer diesen Punkte-Tick.`
   );
 
+  if (candidateFixtureIds && candidateGames.length > 0) {
+    try {
+      await publishFixtureStatusUpdates(
+        db,
+        tournament,
+        candidateGames,
+        opts,
+        fixtureSnapshotsById,
+        'frueh aus Fixture-Liste',
+        'earlyFixtureWriteResult'
+      );
+    } catch (err) {
+      logWarn(`Fruehes Fixture-Status-Update fehlgeschlagen; Punkte-Workflow laeuft weiter: ${err.message}`);
+    }
+  }
+
   if (candidateFixtureIds && finishedCandidateIds && finishedCandidateIds.size > 0) {
     logInfo(`${finishedCandidateIds.size} der ${candidateFixtureIds.size} Kandidaten sind laut API beendet.`);
     if (newlyFinishedCandidateIds && newlyFinishedCandidateIds.size > 0) {
@@ -1380,6 +1517,21 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   const fixtureIds = scoringGames.map(g => String(g.fixture.id));
   const detailsById = await fetchFixtureDetailsByIds(headers, fixtureIds, opts);
+
+  const detailedStatusGames = preferDetailedFixtureGames(scoringGames, detailsById);
+  try {
+    await publishFixtureStatusUpdates(
+      db,
+      tournament,
+      detailedStatusGames,
+      opts,
+      fixtureSnapshotsById,
+      'aus Detail-Antworten',
+      'detailFixtureWriteResult'
+    );
+  } catch (err) {
+    logWarn(`Fixture-Status-Update aus Detail-Antworten fehlgeschlagen; Punkte-Guard laeuft weiter: ${err.message}`);
+  }
 
   // Veröffentlichungs-Guard: Punkte werden nur dann nach Firestore
   // geschrieben, wenn ALLE erwarteten Fixtures verarbeitet wurden.
@@ -1447,24 +1599,15 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     const statusGames = shouldFullRecompute
       ? uniqueGamesByFixtureId([...(opts.forceRun ? scoringGames : finishedGames), ...liveCandidateGames])
       : scoringCandidateGames;
-    const fixtureWriteResult = await updateFixtureStatusInFirestore(db, tournament, statusGames, opts, fixtureSnapshotsById);
-    if (opts.audit) {
-      opts.audit.fixtureWriteResult = {
-        updated: fixtureWriteResult.updated,
-        skipped: fixtureWriteResult.skipped
-      };
-    }
-    logInfo(`Fixture-Status für ${fixtureWriteResult.updated} Spiele ${opts.dryRun ? '(DRY-RUN) berechnet' : 'aktualisiert'}, ` +
-      `${fixtureWriteResult.skipped} unveraendert uebersprungen.`);
-
-    // Im Live-Modus soll neben den Punkten auch der Spielstand/Status sofort
-    // in den Clients ankommen. Darum erhoehen wir fixturesVersion bei jedem
-    // Tick, der API-Statusdaten fuer ein Live-/Finalspiel geschrieben hat.
-    if (fixtureWriteResult.updated > 0) {
-      await bumpFixturesMetaVersion(db, tournament, opts);
-      if (opts.audit) opts.audit.fixturesVersionIncreased = !opts.dryRun;
-      logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhoeht – Clients laden frische Spielstaende sofort nach.`);
-    }
+    const preferredStatusGames = preferDetailedFixtureGames(statusGames, detailsById);
+    await publishFixtureStatusUpdates(
+      db,
+      tournament,
+      preferredStatusGames,
+      opts,
+      fixtureSnapshotsById,
+      'nach Punkte-Write'
+    );
   } catch (err) {
     logWarn(`Fixture-Status-Update fehlgeschlagen (Punkte sind trotzdem geschrieben): ${err.message}`);
   }
