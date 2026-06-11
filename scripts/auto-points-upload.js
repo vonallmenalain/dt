@@ -107,6 +107,7 @@ const RULES = APP_CONFIG.rules;
 
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
 const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
+const PRE_MATCH_LINEUP_STATUSES = new Set(['NS']);
 const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
@@ -349,6 +350,10 @@ function isFinishedFixture(game) {
 
 function isScoringFixture(game) {
   return SCORING_STATUSES.has(getFixtureStatusShort(game));
+}
+
+function isPreMatchLineupCandidate(game) {
+  return PRE_MATCH_LINEUP_STATUSES.has(getFixtureStatusShort(game));
 }
 
 function formatAgeMin(ageMin) {
@@ -611,6 +616,20 @@ function findLineupForTeam(fixtureData, teamId) {
   return lineups.find(entry => entry && entry.team && String(entry.team.id) === target) || null;
 }
 
+function hasStartLineup(lineup) {
+  return !!(lineup && Array.isArray(lineup.startXI) && lineup.startXI.length > 0);
+}
+
+function hasAnyPublishedStartLineup(fixtureData) {
+  const lineups = fixtureData && Array.isArray(fixtureData.lineups) ? fixtureData.lineups : [];
+  return lineups.some(hasStartLineup);
+}
+
+function isScoringFixtureWithDetails(game, fixtureData) {
+  if (isScoringFixture(game)) return true;
+  return isPreMatchLineupCandidate(game) && hasAnyPublishedStartLineup(fixtureData);
+}
+
 function getPrimaryStats(pStats) {
   return (pStats && Array.isArray(pStats.statistics) && pStats.statistics[0]) || {};
 }
@@ -670,12 +689,13 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
   const statusShort = getFixtureStatusShort(game);
   const matchHasStarted = SCORING_STATUSES.has(statusShort);
   const matchIsFinished = FINISHED_STATUSES.has(statusShort);
+  const anyStartLineupPublished = hasAnyPublishedStartLineup(fixtureData);
 
   const homeName = (game.teams && game.teams.home && game.teams.home.name) || '';
   const awayName = (game.teams && game.teams.away && game.teams.away.name) || '';
   const homeGoals = getGoalValue(game.goals && game.goals.home);
   const awayGoals = getGoalValue(game.goals && game.goals.away);
-  const matchOutcome = resolveMatchOutcome(game, matchHasStarted, matchIsFinished, homeGoals, awayGoals);
+  const matchOutcome = resolveMatchOutcome(game, matchHasStarted || anyStartLineupPublished, matchIsFinished, homeGoals, awayGoals);
   const fixId = game.fixture.id;
   const resultString = `${homeName} ${homeGoals} : ${awayGoals} ${awayName}`;
   let processedPlayers = 0;
@@ -718,6 +738,8 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
     const lineup = findLineupForTeam(fixtureData, teamId);
     const starterIds = collectLineupPlayerIds(lineup, 'startXI', apiToAppPlayerId);
     const substituteIds = collectLineupPlayerIds(lineup, 'substitutes', apiToAppPlayerId);
+    const teamLineupPublished = hasStartLineup(lineup);
+    const canAwardTeamLineupPoints = matchHasStarted || teamLineupPublished;
     const statsByPid = new Map();
 
     (teamStats.players || []).forEach(pStats => {
@@ -736,8 +758,10 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
       }
     });
 
-    if (matchHasStarted) {
+    if (canAwardTeamLineupPoints) {
       starterIds.forEach(pid => participantIds.add(pid));
+    }
+    if (matchHasStarted) {
       subbedInPlayerIds.forEach(pid => {
         if (substituteIds.has(pid) || statsByPid.has(pid)) participantIds.add(pid);
       });
@@ -758,11 +782,11 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
       const pStats = statsByPid.get(pid) || { player: { id: pid }, statistics: [{}] };
       const stats = getPrimaryStats(pStats);
       const minutes = getMinutes(stats);
-      const started = matchHasStarted && (
+      const started = canAwardTeamLineupPoints && (
         starterIds.has(pid) ||
-        (stats.games && stats.games.substitute === false)
+        (matchHasStarted && stats.games && stats.games.substitute === false)
       );
-      const subbedIn = !started && (
+      const subbedIn = matchHasStarted && !started && (
         minutes > 0 ||
         subbedInPlayerIds.includes(pid) ||
         (stats.games && stats.games.substitute === true)
@@ -853,7 +877,7 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
       if (pSaved > 0)    { detailPts.PEN_SAVED = pSaved * RULES.PEN_SAVED;     pObj.PEN_SAVED += detailPts.PEN_SAVED; }
       if (pWon > 0)      { detailPts.PEN_WON = pWon * RULES.PEN_WON;           pObj.PEN_WON += detailPts.PEN_WON; }
 
-      if (matchHasStarted) {
+      if (canAwardTeamLineupPoints) {
         if (isWin)        { detailPts.WIN = RULES.WIN;   pObj.WIN += RULES.WIN; }
         else if (isDraw)  { detailPts.DRAW = RULES.DRAW; pObj.DRAW += RULES.DRAW; }
         else if (isLoss)  { detailPts.LOSS = RULES.LOSS; pObj.LOSS += RULES.LOSS; }
@@ -928,21 +952,59 @@ function cloneExistingPointObject(source, player) {
   if (!source || typeof source !== 'object') return target;
 
   target.playerName = source.playerName || player.Spielername;
-  Object.keys(RULES).forEach(k => {
-    target[k] = (typeof source[k] === 'number') ? source[k] : 0;
-  });
 
   Object.entries(source).forEach(([key, value]) => {
     if (key.startsWith('Spiel_') && value && typeof value === 'object') {
-      target[key] = value;
+      target[key] = { ...value };
     }
   });
 
-  target.totalPoints = (typeof source.totalPoints === 'number') ? source.totalPoints : 0;
+  const hasFixtureDetails = Object.keys(target).some(key => key.startsWith('Spiel_'));
+  if (!hasFixtureDetails) {
+    Object.keys(RULES).forEach(k => {
+      target[k] = (typeof source[k] === 'number') ? source[k] : 0;
+    });
+    target.totalPoints = (typeof source.totalPoints === 'number') ? source.totalPoints : 0;
+  }
+  recalculateTotalPoints(target);
   return target;
 }
 
 function recalculateTotalPoints(pointObject) {
+  if (!pointObject || typeof pointObject !== 'object') return 0;
+
+  const fixtureEntries = Object.entries(pointObject)
+    .filter(([key, value]) => key.startsWith('Spiel_') && value && typeof value === 'object');
+
+  if (fixtureEntries.length > 0) {
+    const aggregate = {};
+    Object.keys(RULES).forEach(ruleKey => { aggregate[ruleKey] = 0; });
+
+    let total = 0;
+    fixtureEntries.forEach(([, fixturePoint]) => {
+      const lineup = fixturePoint.Aufstellung && typeof fixturePoint.Aufstellung === 'object'
+        ? fixturePoint.Aufstellung
+        : null;
+
+      if (lineup) {
+        let fixtureTotal = 0;
+        Object.keys(RULES).forEach(ruleKey => {
+          const value = (typeof lineup[ruleKey] === 'number') ? lineup[ruleKey] : 0;
+          aggregate[ruleKey] += value;
+          fixtureTotal += value;
+        });
+        fixturePoint.TotalPunkte = fixtureTotal;
+        total += fixtureTotal;
+      } else {
+        total += (typeof fixturePoint.TotalPunkte === 'number') ? fixturePoint.TotalPunkte : 0;
+      }
+    });
+
+    Object.keys(RULES).forEach(ruleKey => { pointObject[ruleKey] = aggregate[ruleKey]; });
+    pointObject.totalPoints = total;
+    return pointObject.totalPoints;
+  }
+
   pointObject.totalPoints = Object.keys(RULES)
     .reduce((sum, key) => sum + ((typeof pointObject[key] === 'number') ? pointObject[key] : 0), 0);
   return pointObject.totalPoints;
@@ -1513,6 +1575,9 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   const scoringCandidateGames = candidateFixtureIds
     ? candidateGames.filter(isScoringFixture)
     : [];
+  const preMatchLineupCandidateGames = candidateFixtureIds
+    ? candidateGames.filter(isPreMatchLineupCandidate)
+    : [];
   const liveCandidateGames = scoringCandidateGames.filter(g => !isFinishedFixture(g));
   const finishedCandidateIds = candidateFixtureIds
     ? new Set(finishedGames.map(g => String(g.fixture.id)).filter(id => candidateFixtureIds.has(id)))
@@ -1525,13 +1590,17 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     : null;
   const shouldFullRecompute = opts.forceRun || (newlyFinishedCandidateIds && newlyFinishedCandidateIds.size > 0);
 
-  const scoringGames = shouldFullRecompute
+  const detailCandidateGames = shouldFullRecompute
     ? uniqueGamesByFixtureId([
         ...(opts.forceRun ? allApiGames.filter(isScoringFixture) : finishedGames),
-        ...liveCandidateGames
+        ...liveCandidateGames,
+        ...preMatchLineupCandidateGames
       ])
-    : uniqueGamesByFixtureId(scoringCandidateGames);
-  const liveGamesForTick = scoringGames.filter(g => !isFinishedFixture(g));
+    : uniqueGamesByFixtureId([
+        ...scoringCandidateGames,
+        ...preMatchLineupCandidateGames
+      ]);
+  const liveGamesForTick = detailCandidateGames.filter(g => LIVE_STATUSES.has(getFixtureStatusShort(g)));
 
   if (opts.audit) {
     opts.audit.finishedGamesTotal = finishedGames.length;
@@ -1539,14 +1608,15 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     opts.audit.newlyFinished = newlyFinishedCandidateIds ? newlyFinishedCandidateIds.size : 0;
     opts.audit.newlyFinishedFixtureIds = newlyFinishedCandidateIds ? Array.from(newlyFinishedCandidateIds).sort() : [];
     opts.audit.shouldFullRecompute = !!shouldFullRecompute;
-    opts.audit.scoringFixtureIds = scoringGames.map(g => String(g.fixture.id));
+    opts.audit.scoringFixtureIds = detailCandidateGames.map(g => String(g.fixture.id));
     opts.audit.liveFixtureIds = liveGamesForTick.map(g => String(g.fixture.id));
   }
 
   logInfo(
     `API meldet ${finishedGames.length} beendete Spiele insgesamt, ` +
     `${liveGamesForTick.length} laufende Spiele in diesem Tick, ` +
-    `${scoringGames.length} Spiel(e) fuer diesen Punkte-Tick.`
+    `${detailCandidateGames.length} Detail-Kandidat(en) fuer diesen Punkte-Tick ` +
+    `(${preMatchLineupCandidateGames.length} vor Anpfiff moeglich).`
   );
 
   if (candidateFixtureIds && candidateGames.length > 0) {
@@ -1572,7 +1642,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     }
   }
 
-  if (scoringGames.length === 0) {
+  if (detailCandidateGames.length === 0) {
     logInfo('Noch kein Kandidat mit Live-/Finalstatus – keine Detail-Calls und kein Punkte-Write.');
     return {
       ok: true,
@@ -1584,6 +1654,8 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
       candidatesNowFinished: 0
     };
   }
+
+  const scoringGames = detailCandidateGames;
 
   let changedPlayerIds = null;
   let existingPoints = null;
@@ -1606,6 +1678,18 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   const fixtureIds = scoringGames.map(g => String(g.fixture.id));
   const detailsById = await fetchFixtureDetailsByIds(headers, fixtureIds, opts);
   const scoringById = new Map(scoringGames.map(g => [String(g.fixture.id), g]));
+
+  if (preMatchLineupCandidateGames.length > 0) {
+    const readyPreMatchCount = preMatchLineupCandidateGames.filter(game =>
+      isScoringFixtureWithDetails(game, detailsById.get(String(game.fixture.id)))
+    ).length;
+    logInfo(`${readyPreMatchCount}/${preMatchLineupCandidateGames.length} Pre-Match-Kandidat(en) haben veroeffentlichte Startelfen.`);
+    if (opts.audit) {
+      opts.audit.preMatchLineupFixtureIds = preMatchLineupCandidateGames
+        .filter(game => isScoringFixtureWithDetails(game, detailsById.get(String(game.fixture.id))))
+        .map(game => String(game.fixture.id));
+    }
+  }
 
   fixtureIds.forEach(fixId => {
     const detail = detailsById.get(fixId);

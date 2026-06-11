@@ -16,7 +16,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-11-sync-monitor-events';
+const CACHE_VERSION = 'v2026-06-12-points-sync';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -40,6 +40,7 @@ const APP_SHELL = [
   './data.js',
   './data-wm2026.js',
   './position-overrides.js',
+  './points-utils.js',
   './cache.js',
   './Icons/site.webmanifest',
   './Icons/favicon.ico',

@@ -259,6 +259,14 @@
         return allowEmptyPoints ? count >= 0 : count > 0;
     }
 
+    function normalizePointsData(points) {
+        const helper = window.DreamTeamPoints;
+        if (helper && typeof helper.normalizePointsMap === 'function') {
+            return helper.normalizePointsMap(points);
+        }
+        return points;
+    }
+
     function isValidFixturesData(fixtures, allowEmptyFixtures) {
         if (!fixtures || typeof fixtures !== 'object' || Array.isArray(fixtures)) return false;
         const count = Object.keys(fixtures).length;
@@ -330,12 +338,17 @@
         const currentValid = current ? validator(current.data) : false;
         const backupValid = backup ? validator(backup.data) : false;
 
+        let data = currentValid ? current.data : backupValid ? backup.data : null;
+        if (kind === 'points' && data) {
+            data = normalizePointsData(data);
+        }
+
         return {
             current,
             backup,
             valid: currentValid || backupValid,
             usedBackup: !currentValid && backupValid,
-            data: currentValid ? current.data : backupValid ? backup.data : null,
+            data,
             savedAt: currentValid
                 ? current.savedAt
                 : backupValid
@@ -382,8 +395,9 @@
     }
 
     function savePoints(points, cfg) {
-        if (!isValidPointsData(points, cfg.allowEmptyPoints)) return false;
-        const payload = createEnvelope(points);
+        const normalizedPoints = normalizePointsData(points);
+        if (!isValidPointsData(normalizedPoints, cfg.allowEmptyPoints)) return false;
+        const payload = createEnvelope(normalizedPoints);
         writeStorage(cfg.keys.points, payload);
         writeStorage(cfg.keys.lastGoodPoints, payload);
         return true;
@@ -503,7 +517,7 @@
         snap.forEach((doc) => {
             points[doc.id] = doc.data();
         });
-        return points;
+        return normalizePointsData(points);
     }
 
     async function fetchFixtures(cfg) {
