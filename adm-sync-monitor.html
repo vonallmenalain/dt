@@ -396,6 +396,33 @@
             line-height: 1.35;
         }
 
+        .event-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .event-team-logo {
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            padding: 2px;
+        }
+
+        .event-team-logo-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--monitor-muted);
+            font-size: 0.58rem;
+            font-weight: 900;
+        }
+
         .event-sub {
             color: var(--monitor-muted);
             font-size: 0.8rem;
@@ -1669,6 +1696,11 @@
         }).format(new Date(ms));
     }
 
+    function getFixtureSortMs(fixture, fallback = 0) {
+        if (fixture && typeof fixture.kickoffTimestamp === "number") return fixture.kickoffTimestamp * 1000;
+        return timestampToMs(fixture && (fixture.kickoffMs || fixture.kickoffIso || fixture.date)) || fallback || 0;
+    }
+
     function formatFixtureStatus(fixture) {
         const status = fixture && fixture.status ? fixture.status : {};
         const short = status.short ? String(status.short).toUpperCase() : "";
@@ -1683,6 +1715,15 @@
 
     function getEventFixtureId(event) {
         return normalizeFixtureId(event && event.fixtureId);
+    }
+
+    function normalizeTeamNameKey(value) {
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "");
     }
 
     function getEventRuleGroup(event) {
@@ -1704,7 +1745,80 @@
     function changeMatchesEvent(change, event) {
         const group = getEventRuleGroup(event);
         if (!group || !change || !change.ruleKey) return false;
-        return group.has(change.ruleKey);
+        if (!group.has(change.ruleKey)) return false;
+
+        const rule = change.ruleKey;
+        const playerName = change && change.player && change.player.playerName ? String(change.player.playerName) : "";
+        const nation = change && change.player && change.player.nation ? String(change.player.nation) : "";
+        const eventPlayer = event && event.playerName ? String(event.playerName) : "";
+        const eventAssist = event && event.assistName ? String(event.assistName) : "";
+        const eventTeam = event && event.teamName ? String(event.teamName) : "";
+        const samePlayer = eventPlayer && normalizeTeamNameKey(playerName) === normalizeTeamNameKey(eventPlayer);
+        const sameAssist = eventAssist && normalizeTeamNameKey(playerName) === normalizeTeamNameKey(eventAssist);
+        const sameTeam = eventTeam && normalizeTeamNameKey(nation) === normalizeTeamNameKey(eventTeam);
+
+        if (group === EVENT_RULE_GROUPS.SUBSTITUTION) {
+            if (rule === "SUBBED_IN") return sameAssist || sameTeam;
+            if (rule === "SUBBED_OUT") return samePlayer || sameTeam;
+        }
+
+        if (group === EVENT_RULE_GROUPS.CARD_YELLOW || group === EVENT_RULE_GROUPS.CARD_RED) {
+            return samePlayer || sameTeam;
+        }
+
+        if (group === EVENT_RULE_GROUPS.GOAL) {
+            if (rule.startsWith("GOAL_") || rule === "OWN_GOAL") return samePlayer || sameTeam;
+            if (rule.startsWith("ASSIST_")) return sameAssist || sameTeam;
+            if (rule === "TEAM_GOAL" || rule === "PEN_WON" || rule === "PEN_COMMITED") return sameTeam;
+            if (rule === "GEGENTOR_GK_DEF") return !!(eventTeam && nation && !sameTeam);
+        }
+
+        if (group === EVENT_RULE_GROUPS.PENALTY) {
+            return samePlayer || sameAssist || sameTeam;
+        }
+
+        return true;
+    }
+
+    function getDominantChangeNation(changes) {
+        const counts = new Map();
+        (changes || []).forEach(change => {
+            const nation = change && change.player && change.player.nation ? String(change.player.nation).trim() : "";
+            if (!nation) return;
+            counts.set(nation, (counts.get(nation) || 0) + 1);
+        });
+        return Array.from(counts.entries())
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"))[0]?.[0] || "";
+    }
+
+    function getRecordTeamName(record) {
+        if (record && record.teamName) return String(record.teamName).trim();
+        if (record && record.event && record.event.teamName) return String(record.event.teamName).trim();
+        return getDominantChangeNation(record && record.changes);
+    }
+
+    function getEventActionLabel(event) {
+        const label = normalizeEventType(event);
+        if (label === "Wechsel") return "Spielerwechsel";
+        if (label === "Penalty-Tor") return "Tor";
+        return label || "Ereignis";
+    }
+
+    function getPointActionLabel(changes) {
+        const rules = new Set((changes || []).map(change => change.ruleKey).filter(Boolean));
+        if (rules.size === 1 && rules.has("START")) return "Startaufstellung";
+        if (Array.from(rules).some(rule => EVENT_RULE_GROUPS.CARD_RED.has(rule))) return "Rote Karte";
+        if (Array.from(rules).some(rule => EVENT_RULE_GROUPS.CARD_YELLOW.has(rule))) return "Gelbe Karte";
+        if (Array.from(rules).some(rule => EVENT_RULE_GROUPS.SUBSTITUTION.has(rule))) return "Spielerwechsel";
+        if (Array.from(rules).some(rule => EVENT_RULE_GROUPS.GOAL.has(rule))) return "Tor";
+        if (Array.from(rules).some(rule => EVENT_RULE_GROUPS.PENALTY.has(rule))) return "Elfmeter";
+        if (rules.has("WIN") || rules.has("DRAW") || rules.has("LOSS")) return "Resultat";
+        return summarizeChangeLabels(changes);
+    }
+
+    function formatEventTitle(action, teamName) {
+        if (action === "Startaufstellung") return action;
+        return [action, teamName].filter(Boolean).join(" ");
     }
 
     function summarizeChangeLabels(changes, limit = 3) {
@@ -1715,20 +1829,19 @@
     }
 
     function buildApiEventTitle(event) {
+        return formatEventTitle(getEventActionLabel(event), event && event.teamName);
+    }
+
+    function buildApiEventSubline(event, log) {
         const label = normalizeEventType(event);
-        const team = event && event.teamName ? `${event.teamName}: ` : "";
         let person = event && event.playerName ? event.playerName : "";
         if (label === "Wechsel" && event && event.assistName) {
             person = `${event.assistName} rein, ${event.playerName || "Spieler"} raus`;
         } else if (event && event.assistName && label.includes("Tor")) {
             person = `${person} (Assist: ${event.assistName})`;
         }
-        return `${label}${team || person ? ` · ${team}${person}` : ""}`;
-    }
-
-    function buildApiEventSubline(event, log) {
-        const label = normalizeEventType(event);
         return [
+            person,
             event && event.detail && event.detail !== label ? event.detail : "",
             event && event.comments ? event.comments : "",
             `Upload ${formatShortDateTime(log.createdAtMs || log.createdAt)}`
@@ -1737,6 +1850,52 @@
 
     function getRecordDelta(record) {
         return (record.changes || []).reduce((sum, change) => sum + numberValue(change.delta, 0), 0);
+    }
+
+    function getPointRecordMinuteInfo(action) {
+        if (action === "Startaufstellung") return { minute: "Start", minuteSort: -2 };
+        if (action === "Resultat") return { minute: "FT", minuteSort: 10000 };
+        return { minute: "?", minuteSort: -1 };
+    }
+
+    function getApiEventMinuteInfo(event) {
+        const elapsed = typeof (event && event.elapsed) === "number" ? event.elapsed : null;
+        const extra = typeof (event && event.extra) === "number" ? event.extra : 0;
+        return {
+            minute: elapsed == null ? "?" : formatMinute(event),
+            minuteSort: elapsed == null ? -1 : elapsed * 100 + extra
+        };
+    }
+
+
+    function addPointRecords(records, log, fixtureId, fixtureChanges, sortMs) {
+        const groups = new Map();
+        fixtureChanges.forEach(change => {
+            const action = getPointActionLabel([change]);
+            const teamName = action === "Startaufstellung" ? "" : getDominantChangeNation([change]);
+            const key = `${action}|${teamName}`;
+            if (!groups.has(key)) {
+                groups.set(key, { action, teamName, changes: [] });
+            }
+            groups.get(key).changes.push(change);
+        });
+
+        groups.forEach(group => {
+            const minute = getPointRecordMinuteInfo(group.action);
+            records.push({
+                type: group.action === "Startaufstellung" ? "lineup" : "points",
+                log,
+                event: null,
+                fixtureId,
+                changes: group.changes,
+                teamName: group.teamName,
+                minute: minute.minute,
+                minuteSort: minute.minuteSort,
+                title: formatEventTitle(group.action, group.teamName),
+                sub: `Upload ${formatShortDateTime(log.createdAtMs || log.createdAt)}`,
+                sortMs
+            });
+        });
     }
 
     function buildScoringRecordsForLog(log) {
@@ -1768,6 +1927,7 @@
                     !assignedChanges.has(change) && changeMatchesEvent(change, event)
                 );
                 if (!matching.length) return;
+                const minute = getApiEventMinuteInfo(event);
                 matching.forEach(change => assignedChanges.add(change));
                 records.push({
                     type: "api",
@@ -1775,8 +1935,9 @@
                     event,
                     fixtureId,
                     changes: matching,
-                    minute: formatMinute(event),
-                    minuteSort: numberValue(event.elapsed, -1) * 100 + numberValue(event.extra, 0),
+                    teamName: event && event.teamName ? String(event.teamName).trim() : "",
+                    minute: minute.minute,
+                    minuteSort: minute.minuteSort,
                     title: buildApiEventTitle(event),
                     sub: buildApiEventSubline(event, log),
                     sortMs
@@ -1789,6 +1950,7 @@
                     record.log === log && record.fixtureId === fixtureId && record.event === events[0]
                 );
                 if (remaining.length && !alreadyHasRecord) {
+                    const minute = getApiEventMinuteInfo(events[0]);
                     remaining.forEach(change => assignedChanges.add(change));
                     records.push({
                         type: "api",
@@ -1796,8 +1958,9 @@
                         event: events[0],
                         fixtureId,
                         changes: remaining,
-                        minute: formatMinute(events[0]),
-                        minuteSort: numberValue(events[0].elapsed, -1) * 100 + numberValue(events[0].extra, 0),
+                        teamName: events[0] && events[0].teamName ? String(events[0].teamName).trim() : "",
+                        minute: minute.minute,
+                        minuteSort: minute.minuteSort,
                         title: buildApiEventTitle(events[0]),
                         sub: buildApiEventSubline(events[0], log),
                         sortMs
@@ -1809,18 +1972,7 @@
         changesByFixture.forEach((fixtureChanges, fixtureId) => {
             const remaining = fixtureChanges.filter(change => !assignedChanges.has(change));
             if (!remaining.length) return;
-            records.push({
-                type: "points",
-                log,
-                event: null,
-                fixtureId,
-                changes: remaining,
-                minute: "-",
-                minuteSort: -1,
-                title: summarizeChangeLabels(remaining),
-                sub: `Upload ${formatShortDateTime(log.createdAtMs || log.createdAt)}`,
-                sortMs
-            });
+            addPointRecords(records, log, fixtureId, remaining, sortMs);
         });
 
         if (!records.length && hasPointChanges(log)) {
@@ -1836,8 +1988,9 @@
                     event: null,
                     fixtureId,
                     changes: [],
+                    teamName: "",
                     fallbackCount: numberValue(log.changedPlayersCount, 0),
-                    minute: "-",
+                    minute: "?",
                     minuteSort: -1,
                     title: "Punkte geändert",
                     sub: `Upload ${formatShortDateTime(log.createdAtMs || log.createdAt)}`,
@@ -1865,11 +2018,13 @@
         limitedRecords.forEach(record => {
             const fixtureId = record.fixtureId || "unknown";
             if (!groups.has(fixtureId)) {
+                const fixture = fixtureLookup.get(fixtureId) || null;
                 groups.set(fixtureId, {
                     fixtureId,
-                    fixture: fixtureLookup.get(fixtureId) || null,
+                    fixture,
                     records: [],
-                    latestMs: 0
+                    latestMs: 0,
+                    matchSortMs: getFixtureSortMs(fixture, record.sortMs)
                 });
             }
             const group = groups.get(fixtureId);
@@ -1878,7 +2033,19 @@
         });
 
         return Array.from(groups.values())
-            .sort((a, b) => b.latestMs - a.latestMs || a.fixtureId.localeCompare(b.fixtureId, "de"));
+            .map(group => {
+                group.records.sort((a, b) =>
+                    b.minuteSort - a.minuteSort ||
+                    b.sortMs - a.sortMs ||
+                    String(a.title || "").localeCompare(String(b.title || ""), "de")
+                );
+                return group;
+            })
+            .sort((a, b) =>
+                b.matchSortMs - a.matchSortMs ||
+                b.latestMs - a.latestMs ||
+                a.fixtureId.localeCompare(b.fixtureId, "de")
+            );
     }
 
     function formatBeforeAfter(before, after) {
@@ -1931,7 +2098,30 @@
         `;
     }
 
-    function renderScoringEvent(record) {
+    function getTeamByName(fixture, teamName) {
+        const key = normalizeTeamNameKey(teamName);
+        if (!key) return {};
+        const home = getTeam(fixture, "home");
+        const away = getTeam(fixture, "away");
+        if (normalizeTeamNameKey(home.name) === key) return home;
+        if (normalizeTeamNameKey(away.name) === key) return away;
+        return {};
+    }
+
+    function renderEventTeamLogo(record, fixture) {
+        if (record && record.type === "lineup") return "";
+        const teamName = getRecordTeamName(record);
+        if (!teamName) return "";
+        const team = getTeamByName(fixture, teamName);
+        const logo = team && team.logo ? String(team.logo) : "";
+        if (logo) {
+            return `<img class="event-team-logo" src="${escapeHtml(logo)}" alt="${escapeHtml(teamName)}" loading="lazy" onerror="this.style.display='none'">`;
+        }
+        const initials = teamName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "?";
+        return `<span class="event-team-logo event-team-logo-placeholder" aria-hidden="true">${escapeHtml(initials)}</span>`;
+    }
+
+    function renderScoringEvent(record, fixture) {
         const delta = getRecordDelta(record);
         const count = (record.changes && record.changes.length) || record.fallbackCount || 0;
         return `
@@ -1939,7 +2129,10 @@
                 <summary class="event-summary">
                     <div class="event-time">${escapeHtml(record.minute || "-")}</div>
                     <div>
-                        <div class="event-title">${escapeHtml(record.title || "Punkte geändert")}</div>
+                        <div class="event-title-row">
+                            ${renderEventTeamLogo(record, fixture)}
+                            <div class="event-title">${escapeHtml(record.title || "Punkte geändert")}</div>
+                        </div>
                         <div class="event-sub">${escapeHtml([record.sub, `${count} Detail${count === 1 ? "" : "s"}`].filter(Boolean).join(" · "))}</div>
                     </div>
                     <div class="event-delta ${deltaClass(delta)}">${escapeHtml(delta ? `${signedNumber(delta)} Pkt.` : "")}</div>
@@ -1988,7 +2181,7 @@
                     <div class="match-meta-line">${escapeHtml(meta)}</div>
                 </summary>
                 <div class="match-events">
-                    ${group.records.map(renderScoringEvent).join("")}
+                    ${group.records.map(record => renderScoringEvent(record, fixture)).join("")}
                 </div>
             </details>
         `;
