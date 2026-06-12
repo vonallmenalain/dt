@@ -305,6 +305,142 @@
             color: var(--monitor-red);
         }
 
+        .change-log-list {
+            display: grid;
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .change-log-card {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 13, 22, 0.48);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .change-log-card[open] {
+            border-color: rgba(56, 189, 248, 0.34);
+            background: rgba(8, 13, 22, 0.66);
+        }
+
+        .change-summary {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 14px;
+            cursor: pointer;
+            color: var(--monitor-text);
+            list-style: none;
+        }
+
+        .change-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .change-summary::marker {
+            content: "";
+        }
+
+        .change-main {
+            display: grid;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .change-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .summary-chips {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.24);
+            background: rgba(56, 189, 248, 0.11);
+            color: #d6f3ff;
+            font-size: 0.8rem;
+            font-weight: 850;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .summary-chip.more {
+            color: var(--monitor-muted);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(148, 163, 184, 0.16);
+        }
+
+        .change-meta {
+            color: var(--monitor-muted);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+        }
+
+        .change-stats {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+            min-width: 220px;
+        }
+
+        .stat-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 26px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(255, 255, 255, 0.045);
+            color: var(--monitor-text);
+            font-size: 0.76rem;
+            font-weight: 850;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .stat-pill.delta {
+            color: var(--monitor-green);
+            border-color: rgba(52, 211, 153, 0.28);
+            background: rgba(52, 211, 153, 0.08);
+        }
+
+        .stat-pill.delta.neg {
+            color: var(--monitor-red);
+            border-color: rgba(248, 113, 113, 0.28);
+            background: rgba(248, 113, 113, 0.08);
+        }
+
+        .summary-toggle {
+            color: var(--monitor-cyan);
+        }
+
+        .summary-toggle::after {
+            content: "öffnen";
+        }
+
+        .change-log-card[open] .summary-toggle::after {
+            content: "schliessen";
+        }
+
         .table-wrap {
             overflow: visible;
             max-height: none;
@@ -443,9 +579,6 @@
 
         details summary {
             cursor: pointer;
-            color: var(--monitor-cyan);
-            font-weight: 850;
-            white-space: nowrap;
         }
 
         details {
@@ -453,20 +586,21 @@
         }
 
         .detail-box {
-            margin-top: 10px;
+            margin-top: 0;
             padding: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+            border-right: 0;
+            border-bottom: 0;
+            border-left: 0;
             background: rgba(8, 13, 22, 0.72);
             backdrop-filter: blur(12px);
-            border-radius: 8px;
+            border-radius: 0;
             min-width: 0;
-            width: min(980px, calc(100vw - 64px));
-            max-height: 72vh;
-            overflow: auto;
-            position: absolute;
-            right: 0;
-            z-index: 20;
-            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
+            width: 100%;
+            max-height: none;
+            overflow: visible;
+            position: static;
+            box-shadow: none;
         }
 
         .detail-grid {
@@ -481,12 +615,29 @@
             border-top: 1px solid rgba(148, 163, 184, 0.16);
         }
 
+        .detail-box .detail-section:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: 0;
+        }
+
         .detail-section-title {
             margin: 0 0 8px;
             color: var(--monitor-muted);
             font-size: 0.76rem;
             text-transform: uppercase;
             font-weight: 900;
+        }
+
+        .detail-note {
+            margin: 0 0 8px;
+            padding: 8px 9px;
+            border-radius: 8px;
+            border: 1px solid rgba(246, 196, 83, 0.28);
+            background: rgba(246, 196, 83, 0.08);
+            color: #fde68a;
+            font-size: 0.8rem;
+            line-height: 1.4;
         }
 
         .point-change-list,
@@ -584,10 +735,12 @@
                 grid-template-columns: 1fr;
                 gap: 4px;
             }
-            .detail-box {
-                position: static;
-                width: 100%;
-                max-height: none;
+            .change-summary {
+                grid-template-columns: 1fr;
+            }
+            .change-stats {
+                justify-content: flex-start;
+                min-width: 0;
             }
         }
     </style>
@@ -654,36 +807,8 @@
                     <div class="panel-meta" id="logsMeta">-</div>
                 </div>
             </div>
-            <div class="table-wrap">
-                <table>
-                    <colgroup>
-                        <col style="width: 9%">
-                        <col style="width: 10%">
-                        <col style="width: 8%">
-                        <col style="width: 11%">
-                        <col style="width: 11%">
-                        <col style="width: 11%">
-                        <col style="width: 24%">
-                        <col style="width: 8%">
-                        <col style="width: 8%">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th>Zeit</th>
-                            <th>Lauf</th>
-                            <th>API</th>
-                            <th>Spiele</th>
-                            <th>Punkte</th>
-                            <th>Versionen</th>
-                            <th>Ereignisse</th>
-                            <th>Status</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logsBody">
-                        <tr><td colspan="9" class="empty">Noch keine Daten geladen.</td></tr>
-                    </tbody>
-                </table>
+            <div class="change-log-list" id="logsBody">
+                <div class="empty">Noch keine Daten geladen.</div>
             </div>
         </section>
     </section>
@@ -705,7 +830,7 @@
     const FINISHED_STATUSES = new Set(["FT", "AET", "PEN"]);
     const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
     const LOG_LIMIT = 30;
-    const CHANGED_PLAYERS_PER_LOG = 160;
+    const CHANGED_PLAYERS_PER_LOG = 1200;
     const EVENT_FEED_LIMIT = 80;
 
     const RULE_LABELS = {
@@ -1021,7 +1146,7 @@
         }));
     }
 
-    function buildPointChangeItems(log, limit = 24) {
+    function buildPointChangeItems(log, limit = Number.POSITIVE_INFINITY) {
         const players = Array.isArray(log.changedPlayers) ? log.changedPlayers : [];
         const items = [];
 
@@ -1054,22 +1179,46 @@
             });
         });
 
-        return items
+        const sortedItems = items
             .filter(item => item.delta !== 0)
-            .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-            .slice(0, limit);
+            .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+
+        return Number.isFinite(limit) ? sortedItems.slice(0, limit) : sortedItems;
     }
 
-    function renderPointChangeList(log, limit = 18) {
+    function renderPointChangeLoadNote(log) {
+        const notes = [];
+        const count = numberValue(log.changedPlayersCount, 0);
+        const loaded = numberValue(
+            log.changedPlayersLoaded,
+            Array.isArray(log.changedPlayers) ? log.changedPlayers.length : 0
+        );
+
+        if (log.changedPlayersLoadError) {
+            notes.push(`Detaildaten konnten nicht geladen werden: ${log.changedPlayersLoadError}`);
+        }
+        if (count > loaded) {
+            notes.push(`Geladen: ${loaded} von ${count} geänderten Spielern.`);
+        }
+        if (log.changedPlayersTruncated) {
+            notes.push("Der Audit-Log wurde beim Upload-Lauf gekürzt.");
+        }
+
+        return notes.length
+            ? `<div class="detail-note">${escapeHtml(notes.join(" "))}</div>`
+            : "";
+    }
+
+    function renderPointChangeList(log, limit = Number.POSITIVE_INFINITY) {
         const items = buildPointChangeItems(log, limit);
         if (!items.length) {
             const count = numberValue(log.changedPlayersCount, 0);
             return count
-                ? `<div class="muted">${count} Spieler geändert. Detaildaten sind erst für neue Läufe verfügbar.</div>`
+                ? `${renderPointChangeLoadNote(log)}<div class="muted">${count} Spieler geändert. Detaildaten sind für diesen Lauf nicht verfügbar.</div>`
                 : '<div class="muted">Keine Punkteänderungen in diesem Lauf.</div>';
         }
 
-        return `<div class="point-change-list">${items.map(item => {
+        return `${renderPointChangeLoadNote(log)}<div class="point-change-list">${items.map(item => {
             const team = item.player.nation ? `${item.player.nation}: ` : "";
             const fixtureText = [item.fixture.result, item.fixture.opponent ? `vs ${item.fixture.opponent}` : ""]
                 .filter(Boolean)
@@ -1102,6 +1251,125 @@
                 </div>
             `;
         }).join("")}</div>`;
+    }
+
+    function uniqueCleanValues(values) {
+        const seen = new Set();
+        const result = [];
+        (values || []).forEach(value => {
+            const text = String(value || "").trim();
+            const key = text.toLowerCase();
+            if (!text || seen.has(key)) return;
+            seen.add(key);
+            result.push(text);
+        });
+        return result;
+    }
+
+    function formatTeamSuffix(values, limit = 2) {
+        const teams = uniqueCleanValues(values);
+        if (!teams.length) return "";
+        if (teams.length <= limit) return ` ${teams.join(", ")}`;
+        return ` ${teams.slice(0, limit).join(", ")} +${teams.length - limit}`;
+    }
+
+    function summaryRuleInfo(ruleKey) {
+        if (ruleKey === "START") return { label: "Startaufstellung angepasst", priority: 10, includeTeams: true };
+        if (ruleKey === "SUBBED_IN" || ruleKey === "SUBBED_OUT") return { label: "Wechsel", priority: 20, includeTeams: true };
+        if (["GOAL_GK", "GOAL_DEF", "GOAL_MID", "GOAL_ATT", "TEAM_GOAL"].includes(ruleKey)) return { label: "Tor", priority: 30, includeTeams: true };
+        if (ruleKey === "OWN_GOAL") return { label: "Eigentor", priority: 31, includeTeams: true };
+        if (["ASSIST_GK_DEF", "ASSIST_MID", "ASSIST_ATT"].includes(ruleKey)) return { label: "Assist", priority: 32, includeTeams: true };
+        if (ruleKey === "YELLOW_CARD") return { label: "Gelbe Karte", priority: 40, includeTeams: true };
+        if (ruleKey === "RED_CARD") return { label: "Rote Karte", priority: 41, includeTeams: true };
+        if (ruleKey === "PEN_SAVED") return { label: "Elfmeter gehalten", priority: 50, includeTeams: true };
+        if (ruleKey === "PEN_MISSED") return { label: "Elfmeter verschossen", priority: 51, includeTeams: true };
+        if (ruleKey === "PEN_COMMITED") return { label: "Elfmeter verursacht", priority: 52, includeTeams: true };
+        if (ruleKey === "PEN_WON") return { label: "Elfmeter herausgeholt", priority: 53, includeTeams: true };
+        if (ruleKey === "DEF_BASE_PTS") return { label: "Abwehr-Bonus", priority: 60, includeTeams: true };
+        if (ruleKey === "GEGENTOR_GK_DEF") return { label: "Gegentor", priority: 61, includeTeams: true };
+        if (ruleKey === "WIN" || ruleKey === "DRAW" || ruleKey === "LOSS") return { label: "Resultat angepasst", priority: 70, includeTeams: true };
+        return { label: RULE_LABELS[ruleKey] || "Punkte geändert", priority: 90, includeTeams: true };
+    }
+
+    function collectPointSummaryPhrases(log, limit = 8) {
+        const groups = new Map();
+        buildPointChangeItems(log).forEach(item => {
+            const info = summaryRuleInfo(item.ruleKey);
+            const key = info.label;
+            if (!groups.has(key)) {
+                groups.set(key, {
+                    label: info.label,
+                    priority: info.priority,
+                    includeTeams: info.includeTeams,
+                    teams: new Set(),
+                    count: 0
+                });
+            }
+            const group = groups.get(key);
+            group.count += 1;
+            if (group.includeTeams && item.player && item.player.nation) {
+                group.teams.add(item.player.nation);
+            }
+        });
+
+        return Array.from(groups.values())
+            .sort((a, b) => a.priority - b.priority || b.count - a.count || a.label.localeCompare(b.label, "de"))
+            .map(group => `${group.label}${formatTeamSuffix(Array.from(group.teams))}`)
+            .slice(0, limit);
+    }
+
+    function collectEventSummaryPhrases(log, limit = 8) {
+        return getNewFixtureEvents(log)
+            .map(event => {
+                const label = normalizeEventType(event);
+                const team = event.teamName ? ` ${event.teamName}` : "";
+                return `${label}${team}`.trim();
+            })
+            .filter(Boolean)
+            .slice(0, limit);
+    }
+
+    function uniquePhrases(phrases) {
+        return uniqueCleanValues(phrases);
+    }
+
+    function getChangeSummaryPhrases(log, limit = 8) {
+        const phrases = uniquePhrases([
+            ...collectEventSummaryPhrases(log, limit),
+            ...collectPointSummaryPhrases(log, limit)
+        ]);
+        return phrases.slice(0, limit);
+    }
+
+    function renderChangeSummaryChips(log) {
+        const phrases = getChangeSummaryPhrases(log, 8);
+        const fallbackCount = numberValue(log.changedPlayersCount, 0);
+        const visible = (phrases.length ? phrases : [`${fallbackCount || "?"} Spieler geändert`]).slice(0, 4);
+        const more = phrases.length > visible.length
+            ? `<span class="summary-chip more">+${phrases.length - visible.length}</span>`
+            : "";
+        return `<div class="summary-chips">${visible.map(text => `<span class="summary-chip">${escapeHtml(text)}</span>`).join("")}${more}</div>`;
+    }
+
+    function getPointDeltaTotal(log) {
+        const players = Array.isArray(log.changedPlayers) ? log.changedPlayers : [];
+        if (players.length) {
+            return players.reduce((sum, player) => sum + numberValue(player.delta, 0), 0);
+        }
+        return buildPointChangeItems(log)
+            .reduce((sum, item) => sum + numberValue(item.delta, 0), 0);
+    }
+
+    function getPointChangeDetailCount(log) {
+        return buildPointChangeItems(log).length || numberValue(log.changedPlayersCount, 0);
+    }
+
+    function hasPointChanges(log) {
+        return numberValue(log && log.changedPlayersCount, 0) > 0 ||
+            (Array.isArray(log && log.changedPlayers) && log.changedPlayers.length > 0) ||
+            buildPointChangeItems(log || {}, 1).length > 0 ||
+            !!(log && log.pointsVersionIncreased) ||
+            numberValue(log && log.writeResult && log.writeResult.touched, 0) > 0;
     }
 
     function renderEventSummary(log) {
@@ -1153,9 +1421,17 @@
 
     function renderDetails(log) {
         return `
-            <details>
-                <summary>Öffnen</summary>
-                <div class="detail-box">
+            <div class="detail-box">
+                <div class="detail-section">
+                    <h3 class="detail-section-title">Punkteänderungen</h3>
+                    ${renderPointChangeList(log)}
+                </div>
+                <div class="detail-section">
+                    <h3 class="detail-section-title">Neue API-Ereignisse</h3>
+                    ${renderFixtureEventList(log)}
+                </div>
+                <div class="detail-section">
+                    <h3 class="detail-section-title">Run-Details</h3>
                     <div class="detail-grid">
                         <div class="detail-label">Log-ID</div>
                         <div class="code-list">${escapeHtml(log.id)}</div>
@@ -1188,16 +1464,8 @@
                         <div class="detail-label">Fehler</div>
                         <div>${log.error ? escapeHtml(log.error) : '<span class="muted">-</span>'}</div>
                     </div>
-                    <div class="detail-section">
-                        <h3 class="detail-section-title">Neue API-Ereignisse</h3>
-                        ${renderFixtureEventList(log)}
-                    </div>
-                    <div class="detail-section">
-                        <h3 class="detail-section-title">Punkteänderungen</h3>
-                        ${renderPointChangeList(log)}
-                    </div>
                 </div>
-            </details>
+            </div>
         `;
     }
 
@@ -1226,54 +1494,56 @@
 
     function renderLogs(logs) {
         if (!logs.length) {
-            els.logsBody.innerHTML = '<tr><td colspan="9" class="empty">Noch keine Sync-Logs vorhanden.</td></tr>';
+            els.logsBody.innerHTML = '<div class="empty">Noch keine Sync-Logs vorhanden.</div>';
             els.logsMeta.textContent = "0 Läufe";
             return;
         }
 
-        els.logsMeta.textContent = `${logs.length} Läufe geladen`;
-        els.logsBody.innerHTML = logs.map((log) => {
+        const changeLogs = logs.filter(hasPointChanges);
+        if (!changeLogs.length) {
+            els.logsBody.innerHTML = '<div class="empty">Keine Punkteänderungen in den geladenen Sync-Logs.</div>';
+            els.logsMeta.textContent = `0 Läufe mit Punkteänderungen (${logs.length} Logs geprüft)`;
+            return;
+        }
+
+        els.logsMeta.textContent = `${changeLogs.length} Läufe mit Punkteänderungen (${logs.length} Logs geprüft)`;
+        els.logsBody.innerHTML = changeLogs.map((log) => {
             const status = statusInfo(log);
             const writeResult = log.writeResult || {};
-            const fixtureWriteResult = log.fixtureWriteResult || {};
             const apiCalls = log.apiCalls || {};
             const trigger = log.trigger || "unknown";
             const tick = `${numberValue(log.tickIndex, 0) || "-"} / ${numberValue(log.totalTicks, 0) || "-"}`;
-            const newlyFinished = numberValue(log.newlyFinished, listLength(log.newlyFinishedFixtureIds));
-            const candidatesNowFinished = numberValue(log.candidatesNowFinished, 0);
             const changedPlayers = numberValue(log.changedPlayersCount, 0);
+            const pointDelta = getPointDeltaTotal(log);
+            const detailCount = getPointChangeDetailCount(log);
+            const metaParts = [
+                formatShortDateTime(log.createdAtMs || log.createdAt),
+                `Tick ${tick}`,
+                trigger,
+                `${numberValue(apiCalls.total, 0)} API-Calls`,
+                `${numberValue(writeResult.written, 0)} geschrieben`,
+                `${numberValue(writeResult.deleted, 0)} gelöscht`
+            ].filter(Boolean);
 
             return `
-                <tr>
-                    <td class="num">${escapeHtml(formatShortDateTime(log.createdAtMs || log.createdAt))}</td>
-                    <td>${renderMetricStack([
-                        { label: "Trigger", value: trigger },
-                        { label: "Tick", value: tick }
-                    ])}</td>
-                    <td>${renderMetricStack([
-                        { label: "Total", value: numberValue(apiCalls.total, 0) },
-                        { label: "Liste/Details", value: `${numberValue(apiCalls.fixtureList, 0)} / ${numberValue(apiCalls.detailBatches, 0)}` }
-                    ])}</td>
-                    <td>${renderMetricStack([
-                        { label: "Kandidaten", value: listLength(log.candidateFixtureIds) },
-                        { label: "Scoring/Live", value: `${listLength(log.scoringFixtureIds)} / ${listLength(log.liveFixtureIds)}` },
-                        { label: "Final neu/jetzt", value: `${newlyFinished} / ${candidatesNowFinished}` }
-                    ])}</td>
-                    <td>${renderMetricStack([
-                        { label: "Spieler", value: changedPlayers },
-                        { label: "Geschr./gel.", value: `${numberValue(writeResult.written, 0)} / ${numberValue(writeResult.deleted, 0)}` },
-                        { label: "Überspr.", value: numberValue(writeResult.skipped, 0) }
-                    ])}</td>
-                    <td>
-                        <div class="version-stack">
-                            <span>P ${yesNo(!!log.pointsVersionIncreased)}</span>
-                            <span>F ${yesNo(!!log.fixturesVersionIncreased)} <span class="muted">(${numberValue(fixtureWriteResult.updated, 0)})</span></span>
+                <details class="change-log-card">
+                    <summary class="change-summary">
+                        <div class="change-main">
+                            <div class="change-title-row">
+                                ${renderChangeSummaryChips(log)}
+                                <span class="pill ${status.cls}">${status.label}</span>
+                            </div>
+                            <div class="change-meta">${escapeHtml(metaParts.join(" · "))}</div>
                         </div>
-                    </td>
-                    <td>${renderEventSummary(log)}</td>
-                    <td><span class="pill ${status.cls}">${status.label}</span></td>
-                    <td>${renderDetails(log)}</td>
-                </tr>
+                        <div class="change-stats">
+                            <span class="stat-pill">${escapeHtml(changedPlayers)} Spieler</span>
+                            <span class="stat-pill">${escapeHtml(detailCount)} Details</span>
+                            <span class="stat-pill delta ${deltaClass(pointDelta)}">${escapeHtml(signedNumber(pointDelta))} Pkt.</span>
+                            <span class="stat-pill summary-toggle"></span>
+                        </div>
+                    </summary>
+                    ${renderDetails(log)}
+                </details>
             `;
         }).join("");
     }
