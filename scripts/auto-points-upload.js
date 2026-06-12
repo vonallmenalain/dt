@@ -24,8 +24,10 @@
  *       Spiel als "ueberfaellig" (Catch-up) markiert/geloggt wird – es
  *       gibt bewusst KEINE harte obere Zeitgrenze mehr fuer offene Spiele,
  *       damit verlaengerte oder verpasste Spiele automatisch nachgezogen
- *       werden. Wenn keine Kandidaten existieren, beendet sich der Lauf
- *       ohne API-Call (Quota-Schutz).
+ *       werden. Wenn keine Kandidaten existieren, aber das naechste
+ *       Live-Fenster bald beginnt, wartet der Run ohne API-Call darauf.
+ *       So bleibt Live-Scoring robust, selbst wenn GitHub scheduled
+ *       workflows nur unregelmaessig startet.
  *    3. Punkte-Workflow: API-Fixtures laden, Detail-Stats fuer Live- und
  *       Finalspiele auswerten, Punkte summieren, in Firestore schreiben
  *       und Meta-Dokument (`pointsUpdatedAt`, `pointsVersion`) hochzählen.
@@ -58,11 +60,16 @@
  *                              bleiben bis so viele Minuten nach Anpfiff
  *                              Kandidaten, damit nachtraegliche API-
  *                              Korrekturen automatisch nachgezogen werden.
- *    LIVE_TICKS_PER_RUN        Optional, Default 30. Anzahl Ticks innerhalb
+ *    LIVE_TICKS_PER_RUN        Optional, Default 240. Anzahl Ticks innerhalb
  *                              eines GitHub-Runs, wenn Kandidaten aktiv
  *                              sind. FORCE_RUN macht immer nur einen Tick.
- *    LIVE_TICK_INTERVAL_SEC    Optional, Default 10. Abstand zwischen den
+ *    LIVE_TICK_INTERVAL_SEC    Optional, Default 60. Abstand zwischen den
  *                              Live-Ticks innerhalb desselben Runs.
+ *    IDLE_WAIT_MAX_MIN         Optional, Default 240. So lange darf ein Run
+ *                              ohne Kandidaten auf das naechste Live-Fenster
+ *                              warten, bevor er beendet.
+ *    SESSION_MAX_MIN           Optional, Default 330. Harte Obergrenze fuer
+ *                              die gesamte Monitor-Session eines Runs.
  *    API_RETRY_ATTEMPTS        Optional, Default 3. API-Requests werden bei
  *                              transienten Fehlern so oft versucht.
  *    API_RETRY_BASE_DELAY_MS   Optional, Default 1000. Basis-Wartezeit fuer
@@ -116,9 +123,12 @@ const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
 const DEFAULT_FINAL_RECHECK_MIN = 360;
-const DEFAULT_LIVE_TICKS_PER_RUN = 30;
-const DEFAULT_LIVE_TICK_INTERVAL_SEC = 10;
-const MAX_LIVE_TICKS_PER_RUN = 45;
+const DEFAULT_LIVE_TICKS_PER_RUN = 240;
+const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
+const MAX_LIVE_TICKS_PER_RUN = 360;
+const DEFAULT_IDLE_WAIT_MAX_MIN = 240;
+const DEFAULT_SESSION_MAX_MIN = 330;
+const MAX_SESSION_MAX_MIN = 350;
 const DEFAULT_API_RETRY_ATTEMPTS = 3;
 const DEFAULT_API_RETRY_BASE_DELAY_MS = 1000;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
@@ -449,6 +459,18 @@ function formatAgeMin(ageMin) {
   return `${ageMin} min NACH ANPFIFF`;
 }
 
+function formatDurationMs(ms) {
+  const totalSec = Math.max(0, Math.round((Number(ms) || 0) / 1000));
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+  const parts = [];
+  if (hours) parts.push(`${hours}h`);
+  if (minutes || hours) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+  return parts.join(' ');
+}
+
 function uniqueGamesByFixtureId(games) {
   const byId = new Map();
   (games || []).forEach(game => {
@@ -612,6 +634,7 @@ async function findCandidateFixtures(db, tournament, opts) {
 
   const all = [];
   const candidates = [];
+  let nextWakeAtMs = null;
 
   snap.forEach(doc => {
     const data = doc.data() || {};
@@ -641,6 +664,11 @@ async function findCandidateFixtures(db, tournament, opts) {
     const isFinished = FINISHED_STATUSES.has(fxInfo.statusShort);
     const notFinished = !isFinished;
     const inFinalRecheck = isFinished && opts.finalRecheckMin > 0 && ageMs >= 0 && ageMs <= finalRecheckMs;
+    const windowOpenMs = fxInfo.kickoffMs + windowStartMs;
+
+    if (notFinished && windowOpenMs > now && (nextWakeAtMs == null || windowOpenMs < nextWakeAtMs)) {
+      nextWakeAtMs = windowOpenMs;
+    }
 
     // Ein Spiel ist Kandidat, sobald sein Anpfiff mindestens
     // `windowStartMin` Minuten entfernt/zurueckliegt UND es entweder in
@@ -672,7 +700,7 @@ async function findCandidateFixtures(db, tournament, opts) {
     }
   });
 
-  return { all, candidates };
+  return { all, candidates, nextWakeAtMs };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1899,14 +1927,26 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
   try {
     let candidateIds = null;
     let fixtureSnapshotsById = null;
+    let nextWakeAtMs = null;
+    let openCandidateCount = 0;
+    let finalRecheckCandidateCount = 0;
     if (opts.forceRun) {
       logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
     } else {
-      const { all, candidates } = await findCandidateFixtures(db, tournament, tickOpts);
+      const { all, candidates, nextWakeAtMs: nextWake } = await findCandidateFixtures(db, tournament, tickOpts);
+      nextWakeAtMs = nextWake;
+      openCandidateCount = candidates.filter(c => !FINISHED_STATUSES.has(c.statusShort)).length;
+      finalRecheckCandidateCount = candidates.length - openCandidateCount;
       logInfo(`Spielplan: ${all.length} Spiele in Firestore. Kandidaten in diesem Tick: ${candidates.length}.`);
       if (candidates.length === 0) {
         logInfo('Nichts zu tun – kein Spiel im Live-/Catch-up-Fenster mit offenem Status. Beende ohne API-Call.');
-        return { hadCandidates: false, result: null };
+        return {
+          hadCandidates: false,
+          result: null,
+          nextWakeAtMs,
+          openCandidateCount,
+          finalRecheckCandidateCount
+        };
       }
       candidates.forEach(c => {
         const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
@@ -1924,7 +1964,13 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
       `Spieler-Dokumente geschrieben: ${result.writeSuccess}, geloescht: ${result.deleteSuccess}, ` +
       `Kandidaten jetzt beendet: ${result.candidatesNowFinished}.`);
 
-    return { hadCandidates: true, result };
+    return {
+      hadCandidates: true,
+      result,
+      nextWakeAtMs,
+      openCandidateCount,
+      finalRecheckCandidateCount
+    };
   } catch (err) {
     audit.error = err && err.message ? err.message : String(err);
     throw err;
@@ -1932,6 +1978,38 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
     activeAuditLog = null;
     await maybeWriteTickAudit(db, audit);
   }
+}
+
+function sessionRemainingMs(opts) {
+  if (!opts || !Number.isFinite(opts.sessionDeadlineMs)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, opts.sessionDeadlineMs - nowMs());
+}
+
+function getIdleWaitMs(nextWakeAtMs, opts) {
+  if (!Number.isFinite(nextWakeAtMs)) return null;
+
+  const now = nowMs();
+  const waitMs = Math.max(0, nextWakeAtMs - now);
+  const maxIdleMs = Math.max(0, opts.idleWaitMaxMin || 0) * 60_000;
+  if (maxIdleMs <= 0 || waitMs > maxIdleMs) return null;
+
+  const remainingMs = sessionRemainingMs(opts);
+  const minWorkAfterWakeMs = Math.max(60_000, (opts.liveTickIntervalSec || DEFAULT_LIVE_TICK_INTERVAL_SEC) * 1000);
+  if (remainingMs <= waitMs + minWorkAfterWakeMs) return null;
+
+  return Math.max(1000, waitMs);
+}
+
+async function maybeWaitForNextLiveWindow(tickResult, opts, reason) {
+  const waitMs = getIdleWaitMs(tickResult && tickResult.nextWakeAtMs, opts);
+  if (waitMs == null) return false;
+
+  logInfo(
+    `${reason} Naechstes Live-Fenster beginnt um ` +
+    `${new Date(tickResult.nextWakeAtMs).toISOString()}; warte ${formatDurationMs(waitMs)}.`
+  );
+  await delay(waitMs);
+  return true;
 }
 
 async function main() {
@@ -1959,16 +2037,21 @@ async function main() {
     finalRecheckMin: Math.max(0, envInt('FINAL_RECHECK_MIN', DEFAULT_FINAL_RECHECK_MIN)),
     liveTicksPerRun: Math.min(MAX_LIVE_TICKS_PER_RUN, Math.max(1, envInt('LIVE_TICKS_PER_RUN', DEFAULT_LIVE_TICKS_PER_RUN))),
     liveTickIntervalSec: Math.max(0, envInt('LIVE_TICK_INTERVAL_SEC', DEFAULT_LIVE_TICK_INTERVAL_SEC)),
+    idleWaitMaxMin: Math.max(0, envInt('IDLE_WAIT_MAX_MIN', DEFAULT_IDLE_WAIT_MAX_MIN)),
+    sessionMaxMin: Math.min(MAX_SESSION_MAX_MIN, Math.max(1, envInt('SESSION_MAX_MIN', DEFAULT_SESSION_MAX_MIN))),
     apiRetryAttempts: Math.max(1, envInt('API_RETRY_ATTEMPTS', DEFAULT_API_RETRY_ATTEMPTS)),
     apiRetryBaseDelayMs: Math.max(0, envInt('API_RETRY_BASE_DELAY_MS', DEFAULT_API_RETRY_BASE_DELAY_MS)),
     forceRun: envBool('FORCE_RUN', false),
     dryRun: envBool('DRY_RUN', false)
   };
+  opts.sessionStartedAtMs = nowMs();
+  opts.sessionDeadlineMs = opts.sessionStartedAtMs + opts.sessionMaxMin * 60_000;
 
   logInfo(`Starte Auto-Upload für ${tournament.shortLabel} (${tournament.key}).` +
     ` Trigger-Fenster: ${opts.windowStartMin} bis ${opts.windowEndMin} min relativ zum Anpfiff` +
     ` (Live + Catch-up), Final-Recheck bis ${opts.finalRecheckMin} min nach Anpfiff.` +
     ` Live-Ticks pro Run: ${opts.forceRun ? 1 : opts.liveTicksPerRun}, Abstand: ${opts.liveTickIntervalSec}s.` +
+    ` Idle-Wait bis ${opts.idleWaitMaxMin} min, Session-Max ${opts.forceRun ? '1 Tick' : opts.sessionMaxMin + ' min'}.` +
     ` API-Retry: ${opts.apiRetryAttempts} Versuch(e), Basis ${opts.apiRetryBaseDelayMs}ms.` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
     (opts.dryRun ? ' [DRY_RUN]' : ''));
@@ -2014,13 +2097,55 @@ async function main() {
 
   try {
     const totalTicks = opts.forceRun ? 1 : opts.liveTicksPerRun;
-    for (let tick = 1; tick <= totalTicks; tick++) {
-      const tickResult = await runUploadTick(db, tournament, opts, tick, totalTicks);
-      if (!tickResult.hadCandidates || opts.forceRun) break;
-      if (tick < totalTicks) {
-        logInfo(`Warte ${opts.liveTickIntervalSec}s bis zum naechsten Live-Tick.`);
-        await delay(opts.liveTickIntervalSec * 1000);
+    let tick = 1;
+    while (tick <= totalTicks) {
+      if (!opts.forceRun && sessionRemainingMs(opts) <= 0) {
+        logInfo(`Monitor-Session nach ${opts.sessionMaxMin} min beendet.`);
+        break;
       }
+
+      const tickResult = await runUploadTick(db, tournament, opts, tick, totalTicks);
+      if (opts.forceRun) break;
+
+      if (!tickResult.hadCandidates) {
+        const waited = await maybeWaitForNextLiveWindow(
+          tickResult,
+          opts,
+          'Kein Kandidat in diesem Tick.'
+        );
+        if (!waited) break;
+        continue;
+      }
+
+      const onlyFinalRecheck =
+        tickResult.openCandidateCount === 0 &&
+        tickResult.finalRecheckCandidateCount > 0 &&
+        (!tickResult.result || tickResult.result.liveGames === 0);
+
+      if (onlyFinalRecheck) {
+        const waited = await maybeWaitForNextLiveWindow(
+          tickResult,
+          opts,
+          'Nur Final-Recheck-Kandidaten uebrig.'
+        );
+        if (!waited) {
+          logInfo('Nur Final-Recheck-Kandidaten uebrig und kein weiteres Live-Fenster in Reichweite – beende Session.');
+          break;
+        }
+        continue;
+      }
+
+      if (tick >= totalTicks) break;
+
+      const intervalMs = opts.liveTickIntervalSec * 1000;
+      const waitMs = Math.min(intervalMs, sessionRemainingMs(opts));
+      if (waitMs <= 0) {
+        logInfo(`Monitor-Session nach ${opts.sessionMaxMin} min beendet.`);
+        break;
+      }
+      logInfo(`Warte ${formatDurationMs(waitMs)} bis zum naechsten Live-Tick.`);
+      await delay(waitMs);
+      tick++;
     }
     logInfo('Auto-Punkte-Run abgeschlossen.');
   } catch (err) {
