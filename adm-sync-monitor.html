@@ -224,55 +224,163 @@
             font-size: 0.86rem;
         }
 
-        .monitor-grid {
-            display: grid;
-            grid-template-columns: minmax(320px, 0.72fr) minmax(520px, 1.28fr);
-            gap: 14px;
-            margin: 0 0 18px;
-        }
-
-        .info-panel,
         .event-panel {
-            min-height: 0;
+            max-width: 1280px;
+            margin: 0 auto 18px;
         }
 
-        .info-body,
         .event-feed {
             padding: 14px 16px;
         }
 
-        .legend-list {
-            display: grid;
-            gap: 10px;
-            margin: 0;
-        }
-
-        .legend-item {
-            display: grid;
-            grid-template-columns: 88px minmax(0, 1fr);
-            gap: 10px;
-            align-items: start;
-            color: var(--monitor-muted);
-            line-height: 1.45;
-            font-size: 0.86rem;
-        }
-
         .event-feed {
             display: grid;
-            gap: 8px;
-            max-height: 260px;
-            overflow: auto;
+            gap: 12px;
         }
 
-        .event-item {
-            display: grid;
-            grid-template-columns: 96px minmax(0, 1fr) auto;
-            gap: 12px;
-            align-items: start;
-            padding: 9px 10px;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            background: rgba(8, 13, 22, 0.45);
+        .match-card {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 13, 22, 0.5);
             border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .match-card[open] {
+            border-color: rgba(56, 189, 248, 0.32);
+            background: rgba(8, 13, 22, 0.68);
+        }
+
+        .match-summary {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            padding: 13px 15px;
+            color: var(--monitor-text);
+            list-style: none;
+        }
+
+        .match-summary::-webkit-details-marker,
+        .event-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .match-summary::marker,
+        .event-summary::marker {
+            content: "";
+        }
+
+        .match-team {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 0;
+        }
+
+        .match-team.away {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        .match-logo {
+            width: 28px;
+            height: 28px;
+            flex: 0 0 28px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            padding: 2px;
+        }
+
+        .match-logo-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--monitor-muted);
+            font-size: 0.68rem;
+            font-weight: 900;
+        }
+
+        .match-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 900;
+        }
+
+        .match-score {
+            min-width: 84px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(52, 211, 153, 0.28);
+            background: rgba(52, 211, 153, 0.08);
+            color: #d1fae5;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 950;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .match-info {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .match-meta-line {
+            grid-column: 1 / -1;
+            color: var(--monitor-muted);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+        }
+
+        .match-toggle,
+        .event-toggle {
+            color: var(--monitor-cyan);
+        }
+
+        .match-toggle::after,
+        .event-toggle::after {
+            content: "öffnen";
+        }
+
+        .match-card[open] .match-toggle::after,
+        .scoring-event[open] .event-toggle::after {
+            content: "schliessen";
+        }
+
+        .match-events {
+            display: grid;
+            gap: 8px;
+            padding: 0 12px 12px;
+        }
+
+        .scoring-event {
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.035);
+            overflow: hidden;
+        }
+
+        .scoring-event[open] {
+            border-color: rgba(52, 211, 153, 0.28);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .event-summary {
+            display: grid;
+            grid-template-columns: 76px minmax(0, 1fr) auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 12px;
+            color: var(--monitor-text);
+            list-style: none;
         }
 
         .event-time {
@@ -280,6 +388,7 @@
             font-variant-numeric: tabular-nums;
             white-space: nowrap;
             font-size: 0.82rem;
+            font-weight: 850;
         }
 
         .event-title {
@@ -303,6 +412,55 @@
 
         .event-delta.neg {
             color: var(--monitor-red);
+        }
+
+        .event-detail {
+            padding: 10px 12px 12px;
+            border-top: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(8, 13, 22, 0.48);
+        }
+
+        .point-detail-list {
+            display: grid;
+            gap: 7px;
+        }
+
+        .point-detail-row {
+            display: grid;
+            grid-template-columns: minmax(170px, 1.1fr) minmax(130px, 0.8fr) minmax(150px, 0.9fr) minmax(150px, 0.9fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 9px 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .point-detail-main {
+            min-width: 0;
+        }
+
+        .point-detail-player {
+            font-weight: 850;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+
+        .point-detail-meta,
+        .point-detail-rule-key,
+        .point-detail-total {
+            color: var(--monitor-muted);
+            font-size: 0.78rem;
+            line-height: 1.35;
+        }
+
+        .point-detail-rule {
+            font-weight: 850;
+            line-height: 1.3;
+        }
+
+        .point-detail-total strong {
+            color: var(--monitor-text);
+            font-weight: 850;
         }
 
         .change-log-list {
@@ -722,18 +880,30 @@
                 align-items: flex-start;
                 flex-direction: column;
             }
-            .monitor-grid {
-                grid-template-columns: 1fr;
-            }
             .table-wrap {
                 overflow: auto;
             }
             table {
                 min-width: 860px;
             }
-            .event-item {
+            .match-summary {
                 grid-template-columns: 1fr;
-                gap: 4px;
+                gap: 10px;
+            }
+            .match-team.away {
+                justify-content: flex-start;
+                text-align: left;
+            }
+            .match-score {
+                width: fit-content;
+            }
+            .match-info {
+                justify-content: flex-start;
+            }
+            .event-summary,
+            .point-detail-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
             }
             .change-summary {
                 grid-template-columns: 1fr;
@@ -770,45 +940,15 @@
     <section class="hidden" id="monitorContent">
         <div class="status-grid" id="statusGrid"></div>
 
-        <div class="monitor-grid">
-            <section class="panel info-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2 class="panel-title">Status</h2>
-                        <div class="panel-meta">Warnungen sind Hinweise aus dem Sync-Lauf, nicht automatisch Fehler.</div>
-                    </div>
-                </div>
-                <div class="info-body">
-                    <div class="legend-list">
-                        <div class="legend-item"><span class="pill ok">OK</span><span>Lauf ohne Fehler oder Warnhinweise.</span></div>
-                        <div class="legend-item"><span class="pill warn">Warnung</span><span>Der Lauf hat funktioniert, aber etwas Auffälliges protokolliert, z. B. fehlende Detaildaten, API-Retries oder ignorierte ältere API-Statuswerte.</span></div>
-                        <div class="legend-item"><span class="pill err">Fehler</span><span>Der Lauf ist abgebrochen oder konnte wichtige Daten nicht schreiben.</span></div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="panel event-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2 class="panel-title">Letzte Upload-Ereignisse</h2>
-                        <div class="panel-meta" id="eventMeta">-</div>
-                    </div>
-                </div>
-                <div class="event-feed" id="eventFeed">
-                    <div class="empty">Noch keine Ereignisdaten geladen.</div>
-                </div>
-            </section>
-        </div>
-
-        <section class="panel">
+        <section class="panel event-panel">
             <div class="panel-header">
                 <div>
-                    <h2 class="panel-title">Letzte Sync-Läufe</h2>
-                    <div class="panel-meta" id="logsMeta">-</div>
+                    <h2 class="panel-title">Letzte Upload-Ereignisse</h2>
+                    <div class="panel-meta" id="eventMeta">-</div>
                 </div>
             </div>
-            <div class="change-log-list" id="logsBody">
-                <div class="empty">Noch keine Daten geladen.</div>
+            <div class="event-feed" id="eventFeed">
+                <div class="empty">Noch keine Ereignisdaten geladen.</div>
             </div>
         </section>
     </section>
@@ -859,6 +999,18 @@
         LOSS: "Niederlage"
     };
 
+    const EVENT_RULE_GROUPS = {
+        GOAL: new Set([
+            "GOAL_GK", "GOAL_DEF", "GOAL_MID", "GOAL_ATT",
+            "OWN_GOAL", "ASSIST_GK_DEF", "ASSIST_MID", "ASSIST_ATT",
+            "TEAM_GOAL", "GEGENTOR_GK_DEF", "PEN_WON", "PEN_COMMITED"
+        ]),
+        CARD_YELLOW: new Set(["YELLOW_CARD"]),
+        CARD_RED: new Set(["RED_CARD"]),
+        SUBSTITUTION: new Set(["SUBBED_IN", "SUBBED_OUT"]),
+        PENALTY: new Set(["PEN_SAVED", "PEN_MISSED", "PEN_WON", "PEN_COMMITED"])
+    };
+
     const els = {
         loading: document.getElementById("loadingPanel"),
         locked: document.getElementById("lockedPanel"),
@@ -866,8 +1018,6 @@
         statusGrid: document.getElementById("statusGrid"),
         eventFeed: document.getElementById("eventFeed"),
         eventMeta: document.getElementById("eventMeta"),
-        logsBody: document.getElementById("logsBody"),
-        logsMeta: document.getElementById("logsMeta"),
         errorBox: document.getElementById("errorBox"),
         refreshBtn: document.getElementById("refreshBtn")
     };
@@ -1396,29 +1546,6 @@
             : '<span class="muted">-</span>';
     }
 
-    function collectFeedItems(logs) {
-        const items = [];
-        logs.forEach(log => {
-            getNewFixtureEvents(log).forEach(event => {
-                items.push({ ...formatFixtureEvent(event, log), sortMs: timestampToMs(log.createdAtMs || log.createdAt) || 0 });
-            });
-            buildPointChangeItems(log, 10).forEach(change => {
-                const team = change.player.nation ? `${change.player.nation}: ` : "";
-                items.push({
-                    time: formatShortDateTime(log.createdAtMs || log.createdAt),
-                    minute: "",
-                    title: `${change.label} ${team}${change.player.playerName || change.player.playerId || "-"}`,
-                    sub: [change.fixture.result, `Sync ${formatShortDateTime(log.createdAtMs || log.createdAt)}`].filter(Boolean).join(" · "),
-                    delta: signedNumber(change.delta),
-                    sortMs: timestampToMs(log.createdAtMs || log.createdAt) || 0
-                });
-            });
-        });
-        return items
-            .sort((a, b) => b.sortMs - a.sortMs)
-            .slice(0, EVENT_FEED_LIMIT);
-    }
-
     function renderDetails(log) {
         return `
             <div class="detail-box">
@@ -1469,83 +1596,417 @@
         `;
     }
 
-    function renderEventFeed(logs) {
-        const items = collectFeedItems(logs);
-        els.eventMeta.textContent = items.length
-            ? `${items.length} neue Ereignisse aus den letzten ${logs.length} Läufen`
-            : "Noch keine Ereignisdaten";
-
-        if (!items.length) {
-            els.eventFeed.innerHTML = '<div class="empty">Noch keine Ereignisdaten in den geladenen Sync-Logs.</div>';
-            return;
-        }
-
-        els.eventFeed.innerHTML = items.map(item => `
-            <div class="event-item">
-                <div class="event-time">${escapeHtml(item.minute || item.time)}</div>
-                <div>
-                    <div class="event-title">${escapeHtml(item.title)}</div>
-                    <div class="event-sub">${escapeHtml(item.sub || item.time)}</div>
-                </div>
-                <div class="event-delta ${deltaClass(Number(String(item.delta || '').replace('+', '')))}">${escapeHtml(item.delta || '')}</div>
-            </div>
-        `).join("");
+    function normalizeFixtureId(value) {
+        const text = String(value ?? "").trim();
+        return text.replace(/^Spiel_/, "");
     }
 
-    function renderLogs(logs) {
-        if (!logs.length) {
-            els.logsBody.innerHTML = '<div class="empty">Noch keine Sync-Logs vorhanden.</div>';
-            els.logsMeta.textContent = "0 Läufe";
-            return;
+    function buildFixtureLookup(fixtures) {
+        const lookup = new Map();
+        (Array.isArray(fixtures) ? fixtures : []).forEach(fixture => {
+            const ids = [
+                fixture && fixture.id,
+                fixture && fixture.fixtureId,
+                fixture && fixture.matchId
+            ].map(normalizeFixtureId).filter(Boolean);
+            ids.forEach(id => {
+                if (!lookup.has(id)) lookup.set(id, fixture);
+            });
+        });
+        return lookup;
+    }
+
+    function getTeam(fixture, side) {
+        return fixture && fixture[side === "away" ? "awayTeam" : "homeTeam"]
+            ? fixture[side === "away" ? "awayTeam" : "homeTeam"]
+            : {};
+    }
+
+    function splitMatchLabel(label) {
+        const parts = String(label || "").split(/\s+-\s+/);
+        return parts.length >= 2 ? { home: parts[0], away: parts.slice(1).join(" - ") } : { home: "", away: "" };
+    }
+
+    function getFallbackMatchNames(records) {
+        for (const record of records || []) {
+            if (record.event && record.event.matchLabel) {
+                const names = splitMatchLabel(record.event.matchLabel);
+                if (names.home || names.away) return names;
+            }
+        }
+        return { home: "Team A", away: "Team B" };
+    }
+
+    function renderMatchLogo(team, name) {
+        const logo = team && team.logo ? String(team.logo) : "";
+        const label = String(name || "").trim();
+        if (logo) {
+            return `<img class="match-logo" src="${escapeHtml(logo)}" alt="${escapeHtml(label)}" loading="lazy" onerror="this.style.display='none'">`;
+        }
+        const initials = label.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "?";
+        return `<span class="match-logo match-logo-placeholder" aria-hidden="true">${escapeHtml(initials)}</span>`;
+    }
+
+    function formatMatchScore(fixture) {
+        const goals = fixture && fixture.goals ? fixture.goals : {};
+        const home = goals.home;
+        const away = goals.away;
+        const hasHome = typeof home === "number" && Number.isFinite(home);
+        const hasAway = typeof away === "number" && Number.isFinite(away);
+        return `${hasHome ? home : "-"} : ${hasAway ? away : "-"}`;
+    }
+
+    function formatFixtureKickoff(fixture) {
+        const ms = fixture && typeof fixture.kickoffTimestamp === "number"
+            ? fixture.kickoffTimestamp * 1000
+            : timestampToMs(fixture && (fixture.kickoffMs || fixture.kickoffIso || fixture.date));
+        if (!ms) return "";
+        return new Intl.DateTimeFormat("de-CH", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        }).format(new Date(ms));
+    }
+
+    function formatFixtureStatus(fixture) {
+        const status = fixture && fixture.status ? fixture.status : {};
+        const short = status.short ? String(status.short).toUpperCase() : "";
+        const elapsed = typeof status.elapsed === "number" ? `${status.elapsed}'` : "";
+        return [short, elapsed].filter(Boolean).join(" ");
+    }
+
+    function getChangeFixtureId(change) {
+        const fixture = change && change.fixture ? change.fixture : {};
+        return normalizeFixtureId(fixture.matchId || fixture.fixtureKey || fixture.title || "");
+    }
+
+    function getEventFixtureId(event) {
+        return normalizeFixtureId(event && event.fixtureId);
+    }
+
+    function getEventRuleGroup(event) {
+        const type = String(event && event.type || "").toLowerCase();
+        const detail = String(event && event.detail || "").toLowerCase();
+        if (type.includes("card") && detail.includes("second")) return EVENT_RULE_GROUPS.CARD_RED;
+        if (type.includes("card") && detail.includes("yellow")) return EVENT_RULE_GROUPS.CARD_YELLOW;
+        if (type.includes("card") && detail.includes("red")) return EVENT_RULE_GROUPS.CARD_RED;
+        if (type.includes("subst")) return EVENT_RULE_GROUPS.SUBSTITUTION;
+        if ((type.includes("penalty") || detail.includes("penalty")) &&
+            (type.includes("miss") || detail.includes("miss") || type.includes("save") || detail.includes("save"))) {
+            return EVENT_RULE_GROUPS.PENALTY;
+        }
+        if (type.includes("goal")) return EVENT_RULE_GROUPS.GOAL;
+        if (detail.includes("penalty")) return EVENT_RULE_GROUPS.PENALTY;
+        return null;
+    }
+
+    function changeMatchesEvent(change, event) {
+        const group = getEventRuleGroup(event);
+        if (!group || !change || !change.ruleKey) return false;
+        return group.has(change.ruleKey);
+    }
+
+    function summarizeChangeLabels(changes, limit = 3) {
+        const labels = uniqueCleanValues((changes || []).map(change => change.label));
+        if (!labels.length) return "Punkte geändert";
+        const visible = labels.slice(0, limit).join(", ");
+        return labels.length > limit ? `${visible} +${labels.length - limit}` : visible;
+    }
+
+    function buildApiEventTitle(event) {
+        const label = normalizeEventType(event);
+        const team = event && event.teamName ? `${event.teamName}: ` : "";
+        let person = event && event.playerName ? event.playerName : "";
+        if (label === "Wechsel" && event && event.assistName) {
+            person = `${event.assistName} rein, ${event.playerName || "Spieler"} raus`;
+        } else if (event && event.assistName && label.includes("Tor")) {
+            person = `${person} (Assist: ${event.assistName})`;
+        }
+        return `${label}${team || person ? ` · ${team}${person}` : ""}`;
+    }
+
+    function buildApiEventSubline(event, log) {
+        const label = normalizeEventType(event);
+        return [
+            event && event.detail && event.detail !== label ? event.detail : "",
+            event && event.comments ? event.comments : "",
+            `Upload ${formatShortDateTime(log.createdAtMs || log.createdAt)}`
+        ].filter(Boolean).join(" · ");
+    }
+
+    function getRecordDelta(record) {
+        return (record.changes || []).reduce((sum, change) => sum + numberValue(change.delta, 0), 0);
+    }
+
+    function buildScoringRecordsForLog(log) {
+        const changes = buildPointChangeItems(log);
+        const changesByFixture = new Map();
+        changes.forEach(change => {
+            const fixtureId = getChangeFixtureId(change);
+            if (!fixtureId) return;
+            if (!changesByFixture.has(fixtureId)) changesByFixture.set(fixtureId, []);
+            changesByFixture.get(fixtureId).push(change);
+        });
+
+        const eventsByFixture = new Map();
+        getNewFixtureEvents(log).forEach(event => {
+            const fixtureId = getEventFixtureId(event);
+            if (!fixtureId) return;
+            if (!eventsByFixture.has(fixtureId)) eventsByFixture.set(fixtureId, []);
+            eventsByFixture.get(fixtureId).push(event);
+        });
+
+        const records = [];
+        const assignedChanges = new Set();
+        const sortMs = timestampToMs(log.createdAtMs || log.createdAt) || 0;
+
+        eventsByFixture.forEach((events, fixtureId) => {
+            const fixtureChanges = changesByFixture.get(fixtureId) || [];
+            events.forEach(event => {
+                const matching = fixtureChanges.filter(change =>
+                    !assignedChanges.has(change) && changeMatchesEvent(change, event)
+                );
+                if (!matching.length) return;
+                matching.forEach(change => assignedChanges.add(change));
+                records.push({
+                    type: "api",
+                    log,
+                    event,
+                    fixtureId,
+                    changes: matching,
+                    minute: formatMinute(event),
+                    minuteSort: numberValue(event.elapsed, -1) * 100 + numberValue(event.extra, 0),
+                    title: buildApiEventTitle(event),
+                    sub: buildApiEventSubline(event, log),
+                    sortMs
+                });
+            });
+
+            if (events.length === 1) {
+                const remaining = fixtureChanges.filter(change => !assignedChanges.has(change));
+                const alreadyHasRecord = records.some(record =>
+                    record.log === log && record.fixtureId === fixtureId && record.event === events[0]
+                );
+                if (remaining.length && !alreadyHasRecord) {
+                    remaining.forEach(change => assignedChanges.add(change));
+                    records.push({
+                        type: "api",
+                        log,
+                        event: events[0],
+                        fixtureId,
+                        changes: remaining,
+                        minute: formatMinute(events[0]),
+                        minuteSort: numberValue(events[0].elapsed, -1) * 100 + numberValue(events[0].extra, 0),
+                        title: buildApiEventTitle(events[0]),
+                        sub: buildApiEventSubline(events[0], log),
+                        sortMs
+                    });
+                }
+            }
+        });
+
+        changesByFixture.forEach((fixtureChanges, fixtureId) => {
+            const remaining = fixtureChanges.filter(change => !assignedChanges.has(change));
+            if (!remaining.length) return;
+            records.push({
+                type: "points",
+                log,
+                event: null,
+                fixtureId,
+                changes: remaining,
+                minute: "-",
+                minuteSort: -1,
+                title: summarizeChangeLabels(remaining),
+                sub: `Upload ${formatShortDateTime(log.createdAtMs || log.createdAt)}`,
+                sortMs
+            });
+        });
+
+        if (!records.length && hasPointChanges(log)) {
+            const fallbackIds = []
+                .concat(Array.isArray(log.scoringFixtureIds) ? log.scoringFixtureIds : [])
+                .concat(Array.isArray(log.candidateFixtureIds) ? log.candidateFixtureIds : [])
+                .map(normalizeFixtureId)
+                .filter(Boolean);
+            uniqueCleanValues(fallbackIds).slice(0, 1).forEach(fixtureId => {
+                records.push({
+                    type: "points",
+                    log,
+                    event: null,
+                    fixtureId,
+                    changes: [],
+                    fallbackCount: numberValue(log.changedPlayersCount, 0),
+                    minute: "-",
+                    minuteSort: -1,
+                    title: "Punkte geändert",
+                    sub: `Upload ${formatShortDateTime(log.createdAtMs || log.createdAt)}`,
+                    sortMs
+                });
+            });
         }
 
-        const changeLogs = logs.filter(hasPointChanges);
-        if (!changeLogs.length) {
-            els.logsBody.innerHTML = '<div class="empty">Keine Punkteänderungen in den geladenen Sync-Logs.</div>';
-            els.logsMeta.textContent = `0 Läufe mit Punkteänderungen (${logs.length} Logs geprüft)`;
-            return;
-        }
+        return records;
+    }
 
-        els.logsMeta.textContent = `${changeLogs.length} Läufe mit Punkteänderungen (${logs.length} Logs geprüft)`;
-        els.logsBody.innerHTML = changeLogs.map((log) => {
-            const status = statusInfo(log);
-            const writeResult = log.writeResult || {};
-            const apiCalls = log.apiCalls || {};
-            const trigger = log.trigger || "unknown";
-            const tick = `${numberValue(log.tickIndex, 0) || "-"} / ${numberValue(log.totalTicks, 0) || "-"}`;
-            const changedPlayers = numberValue(log.changedPlayersCount, 0);
-            const pointDelta = getPointDeltaTotal(log);
-            const detailCount = getPointChangeDetailCount(log);
-            const metaParts = [
-                formatShortDateTime(log.createdAtMs || log.createdAt),
-                `Tick ${tick}`,
-                trigger,
-                `${numberValue(apiCalls.total, 0)} API-Calls`,
-                `${numberValue(writeResult.written, 0)} geschrieben`,
-                `${numberValue(writeResult.deleted, 0)} gelöscht`
-            ].filter(Boolean);
+    function collectMatchEventGroups(logs, fixtures) {
+        const fixtureLookup = buildFixtureLookup(fixtures);
+        const records = [];
+        (Array.isArray(logs) ? logs : []).forEach(log => {
+            buildScoringRecordsForLog(log).forEach(record => records.push(record));
+        });
 
+        const limitedRecords = records
+            .filter(record => (record.changes && record.changes.length) || record.fallbackCount)
+            .sort((a, b) => b.sortMs - a.sortMs || b.minuteSort - a.minuteSort)
+            .slice(0, EVENT_FEED_LIMIT);
+
+        const groups = new Map();
+        limitedRecords.forEach(record => {
+            const fixtureId = record.fixtureId || "unknown";
+            if (!groups.has(fixtureId)) {
+                groups.set(fixtureId, {
+                    fixtureId,
+                    fixture: fixtureLookup.get(fixtureId) || null,
+                    records: [],
+                    latestMs: 0
+                });
+            }
+            const group = groups.get(fixtureId);
+            group.records.push(record);
+            group.latestMs = Math.max(group.latestMs, record.sortMs || 0);
+        });
+
+        return Array.from(groups.values())
+            .sort((a, b) => b.latestMs - a.latestMs || a.fixtureId.localeCompare(b.fixtureId, "de"));
+    }
+
+    function formatBeforeAfter(before, after) {
+        return `${numberValue(before, 0)} -> ${numberValue(after, 0)}`;
+    }
+
+    function renderPointDetailRow(change) {
+        const player = change.player || {};
+        const fixture = change.fixture || {};
+        const playerMeta = [player.nation, player.position, player.playerId ? `ID ${player.playerId}` : ""]
+            .filter(Boolean)
+            .join(" · ");
+        return `
+            <div class="point-detail-row">
+                <div class="point-detail-main">
+                    <div class="point-detail-player">${escapeHtml(player.playerName || player.playerId || "-")}</div>
+                    <div class="point-detail-meta">${escapeHtml(playerMeta || "-")}</div>
+                </div>
+                <div>
+                    <div class="point-detail-rule">${escapeHtml(change.label || "Punkte geändert")}</div>
+                    <div class="point-detail-rule-key">${escapeHtml(change.ruleKey || "Fixture-Delta")}</div>
+                </div>
+                <div class="point-detail-total"><strong>Spiel</strong> ${escapeHtml(formatBeforeAfter(fixture.totalBefore, fixture.totalAfter))}</div>
+                <div class="point-detail-total"><strong>Gesamt</strong> ${escapeHtml(formatBeforeAfter(player.totalBefore, player.totalAfter))}</div>
+                <div class="event-delta ${deltaClass(change.delta)}">${escapeHtml(signedNumber(change.delta))}</div>
+            </div>
+        `;
+    }
+
+    function renderScoringEventDetails(record) {
+        const note = renderPointChangeLoadNote(record.log);
+        const changes = record.changes || [];
+        if (!changes.length) {
+            const count = numberValue(record.fallbackCount, 0);
             return `
-                <details class="change-log-card">
-                    <summary class="change-summary">
-                        <div class="change-main">
-                            <div class="change-title-row">
-                                ${renderChangeSummaryChips(log)}
-                                <span class="pill ${status.cls}">${status.label}</span>
-                            </div>
-                            <div class="change-meta">${escapeHtml(metaParts.join(" · "))}</div>
-                        </div>
-                        <div class="change-stats">
-                            <span class="stat-pill">${escapeHtml(changedPlayers)} Spieler</span>
-                            <span class="stat-pill">${escapeHtml(detailCount)} Details</span>
-                            <span class="stat-pill delta ${deltaClass(pointDelta)}">${escapeHtml(signedNumber(pointDelta))} Pkt.</span>
-                            <span class="stat-pill summary-toggle"></span>
-                        </div>
-                    </summary>
-                    ${renderDetails(log)}
-                </details>
+                <div class="event-detail">
+                    ${note}
+                    <div class="muted">${count ? `${count} Spieler geändert. Detaildaten sind für diesen Lauf nicht verfügbar.` : "Keine Punktedetails verfügbar."}</div>
+                </div>
             `;
-        }).join("");
+        }
+
+        return `
+            <div class="event-detail">
+                ${note}
+                <div class="point-detail-list">
+                    ${changes.map(renderPointDetailRow).join("")}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderScoringEvent(record) {
+        const delta = getRecordDelta(record);
+        const count = (record.changes && record.changes.length) || record.fallbackCount || 0;
+        return `
+            <details class="scoring-event">
+                <summary class="event-summary">
+                    <div class="event-time">${escapeHtml(record.minute || "-")}</div>
+                    <div>
+                        <div class="event-title">${escapeHtml(record.title || "Punkte geändert")}</div>
+                        <div class="event-sub">${escapeHtml([record.sub, `${count} Detail${count === 1 ? "" : "s"}`].filter(Boolean).join(" · "))}</div>
+                    </div>
+                    <div class="event-delta ${deltaClass(delta)}">${escapeHtml(delta ? `${signedNumber(delta)} Pkt.` : "")}</div>
+                    <span class="stat-pill event-toggle"></span>
+                </summary>
+                ${renderScoringEventDetails(record)}
+            </details>
+        `;
+    }
+
+    function renderMatchGroup(group, index) {
+        const fixture = group.fixture || {};
+        const fallbackNames = getFallbackMatchNames(group.records);
+        const homeTeam = getTeam(fixture, "home");
+        const awayTeam = getTeam(fixture, "away");
+        const homeName = homeTeam.name || fallbackNames.home;
+        const awayName = awayTeam.name || fallbackNames.away;
+        const status = formatFixtureStatus(fixture);
+        const kickoff = formatFixtureKickoff(fixture);
+        const round = fixture.league && fixture.league.round ? fixture.league.round : "";
+        const meta = [
+            round,
+            kickoff,
+            status,
+            `${group.records.length} Ereignis${group.records.length === 1 ? "" : "se"}`,
+            `letzter Upload ${formatShortDateTime(group.latestMs)}`
+        ].filter(Boolean).join(" · ");
+        const open = index < 4 ? " open" : "";
+
+        return `
+            <details class="match-card"${open}>
+                <summary class="match-summary">
+                    <div class="match-team">
+                        ${renderMatchLogo(homeTeam, homeName)}
+                        <div class="match-name">${escapeHtml(homeName)}</div>
+                    </div>
+                    <div class="match-score">${escapeHtml(formatMatchScore(fixture))}</div>
+                    <div class="match-team away">
+                        <div class="match-name">${escapeHtml(awayName)}</div>
+                        ${renderMatchLogo(awayTeam, awayName)}
+                    </div>
+                    <div class="match-info">
+                        <span class="stat-pill">${escapeHtml(group.fixtureId)}</span>
+                        <span class="stat-pill match-toggle"></span>
+                    </div>
+                    <div class="match-meta-line">${escapeHtml(meta)}</div>
+                </summary>
+                <div class="match-events">
+                    ${group.records.map(renderScoringEvent).join("")}
+                </div>
+            </details>
+        `;
+    }
+
+    function renderEventFeed(logs, fixtures) {
+        const groups = collectMatchEventGroups(logs, fixtures);
+        const eventCount = groups.reduce((sum, group) => sum + group.records.length, 0);
+        els.eventMeta.textContent = eventCount
+            ? `${eventCount} punkterelevante Ereignisse in ${groups.length} Spielen aus den letzten ${logs.length} Läufen`
+            : "Noch keine punkterelevanten Ereignisdaten";
+
+        if (!eventCount) {
+            els.eventFeed.innerHTML = '<div class="empty">Noch keine punkterelevanten Ereignisse in den geladenen Upload-Daten.</div>';
+            return;
+        }
+
+        els.eventFeed.innerHTML = groups.map(renderMatchGroup).join("");
     }
 
     function showError(message) {
@@ -1615,8 +2076,7 @@
         try {
             const data = await readDocs();
             renderStatusCards(data.meta, data.fixtures, data.pointsCount, data.logs);
-            renderEventFeed(data.logs);
-            renderLogs(data.logs);
+            renderEventFeed(data.logs, data.fixtures);
         } catch (err) {
             console.error("[sync-monitor] Laden fehlgeschlagen:", err);
             showError(err && err.message ? err.message : "Die Monitor-Daten konnten nicht geladen werden.");
