@@ -3377,7 +3377,7 @@
             align-items: center;
             gap: 2px;
             flex-shrink: 0;
-            min-width: 120px;
+            min-width: 136px;
             text-align: center;
         }
 
@@ -3441,15 +3441,16 @@
         }
 
         .nm-score-display {
-            font-size: 1.05rem;
+            font-size: 1.65rem;
             font-weight: 900;
-            letter-spacing: 2px;
+            letter-spacing: 0;
             line-height: 1;
+            font-variant-numeric: tabular-nums;
         }
 
         .nm-score-display.live {
-            color: #f87171;
-            text-shadow: 0 0 16px rgba(248,113,113,0.3);
+            color: var(--text-main);
+            text-shadow: 0 0 18px rgba(248,113,113,0.28);
         }
 
         .nm-score-sep {
@@ -3797,6 +3798,14 @@
         @media (max-width: 640px) {
             .nm-match-toggle-btn .nm-match-main {
                 padding-right: 20px;
+            }
+
+            .nm-center-col {
+                min-width: 92px;
+            }
+
+            .nm-score-display {
+                font-size: 1.38rem;
             }
 
             .nm-detail-grid {
@@ -8773,6 +8782,19 @@
         };
     }
 
+    function formatMatchLiveMinute(match) {
+        const statusShort = String(match?.statusShort || match?.status?.short || '').toUpperCase();
+        const elapsedRaw = match?.statusElapsed ?? match?.status?.elapsed;
+        const elapsed = elapsedRaw !== undefined && elapsedRaw !== null ? Number(elapsedRaw) : null;
+        if (Number.isFinite(elapsed) && elapsed > 0) return `Live ${elapsed}. Min`;
+        if (statusShort === 'HT') return 'Halbzeit';
+        if (statusShort === 'BT') return 'Pause';
+        if (statusShort === 'SUSP' || statusShort === 'INT') return 'Unterbrochen';
+        if (statusShort === 'ET') return 'Verlaengerung';
+        if (statusShort === 'P') return 'Elfmeterschiessen';
+        return 'Live';
+    }
+
     function getMatchScoreParts(match) {
         const goals = match?.goals || match?.score || {};
         const home = goals.home ?? goals.homeGoals ?? goals.homeTeam ?? match?.goalsHome ?? match?.homeGoals ?? match?.scoreHome ?? match?.homeScore ?? null;
@@ -9048,9 +9070,8 @@
             let timeSubText = '';
 
             if (isLive) {
-                timeBadgeText = 'LIVE';
+                timeBadgeText = formatMatchLiveMinute(match);
                 timeBadgeCls = 'live';
-                if (match.statusElapsed) timeSubText = `${match.statusElapsed}'`;
             } else if (isUpdateOpen) {
                 timeBadgeText = 'Update offen';
                 timeBadgeCls = 'pending';
@@ -9065,7 +9086,7 @@
                     const swissDayDiff = getSwissCalendarDayDiff(matchDate, now);
                     if (diffMin < 0 && diffMin >= -OPTIMISTIC_LIVE_WINDOW_MIN) {
                         isLive = true;
-                        timeBadgeText = 'LIVE';
+                        timeBadgeText = formatMatchLiveMinute(match);
                         timeBadgeCls = 'live';
                     } else if (diffMin >= 0 && swissDayDiff === 0) {
                         timeBadgeText = 'Heute';
@@ -9108,15 +9129,10 @@
             function buildChips(players) {
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
-                    const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
-                    const ptsHtml = pts !== null
-                        ? `<span class="nm-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
-                        : '';
-                    const ptsLabel = pts !== null ? `, ${formatSignedPoints(pts)} Punkte in diesem Spiel` : '';
                     const managerLabel = managers.length
                         ? ` - ${managers.map((m) => `${getManagerDisplayName(m.manager)}${m.isCaptain ? ' (C)' : ''}`).join(', ')}`
                         : '';
-                    return `<a class="nm-player-chip${pts !== null ? ' has-points' : ''}" href="${url}" draggable="false" title="${escapeHtml(player.Spielername + managerLabel)}" aria-label="${escapeHtml(player.Spielername)} analysieren${escapeHtml(ptsLabel)}"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">${ptsHtml}</a>`;
+                    return `<a class="nm-player-chip" href="${url}" draggable="false" title="${escapeHtml(player.Spielername + managerLabel)}" aria-label="${escapeHtml(player.Spielername)} analysieren"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'"></a>`;
                 }).join('');
             }
 
@@ -9139,10 +9155,6 @@
 
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
-                    const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
-                    const ptsHtml = pts !== null
-                        ? `<span class="nm-detail-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
-                        : '';
                     const position = player.Position || player.position || '';
                     const managerCount = managers.length === 1
                         ? 'Gew&auml;hlt von 1 Manager'
@@ -9154,7 +9166,6 @@
                                 <span class="nm-detail-player-name">${escapeHtml(player.Spielername)}</span>
                                 ${position ? `<span class="nm-detail-player-meta">${escapeHtml(position)}</span>` : ''}
                             </span>
-                            ${ptsHtml}
                         </a>
                         <div class="nm-detail-managers">
                             <div class="nm-detail-manager-head">${managerCount}</div>
@@ -9200,16 +9211,6 @@
                 </div>
             </div>`;
 
-            const homePoints = isLive ? getDraftedPointsSummary(draftedHome, data, matchId) : { total: 0, count: 0 };
-            const awayPoints = isLive ? getDraftedPointsSummary(draftedAway, data, matchId) : { total: 0, count: 0 };
-            const livePointsHtml = isLive && (homePoints.count || awayPoints.count) ? `
-                <div class="nm-live-points" title="Punkte der gewaehlten Spieler in diesem Spiel">
-                    <span class="nm-live-points-label">Managerwahl</span>
-                    <span class="${getPointsClass(homePoints.total)}">${escapeHtml(formatSignedPoints(homePoints.total))}</span>
-                    <span class="nm-score-sep">:</span>
-                    <span class="${getPointsClass(awayPoints.total)}">${escapeHtml(formatSignedPoints(awayPoints.total))}</span>
-                </div>` : '';
-
             const liveScoreHtml = isLive && scoreParts ? `
                 <div class="nm-score-display live">${escapeHtml(String(scoreParts.home))}<span class="nm-score-sep">:</span>${escapeHtml(String(scoreParts.away))}</div>
             ` : '';
@@ -9225,7 +9226,6 @@
                             <div class="nm-center-col">
                                 <div class="nm-time-badge ${timeBadgeCls}">${escapeHtml(timeBadgeText)}</div>
                                 ${liveScoreHtml}
-                                ${livePointsHtml}
                                 ${stageLabel ? `<div class="nm-stage-label">${escapeHtml(stageLabel)}</div>` : ''}
                                 ${timeSubText ? `<div class="nm-time-sub">${escapeHtml(timeSubText)}</div>` : ''}
                                 ${venueText ? `<div class="nm-time-sub nm-venue-inline">${escapeHtml(venueText)}</div>` : ''}

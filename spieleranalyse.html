@@ -1386,6 +1386,42 @@
             margin-left: auto;
         }
 
+        .match-card.is-live {
+            border-color: rgba(248,113,113,0.36);
+            background: linear-gradient(90deg, rgba(248,113,113,0.045), rgba(34,197,94,0.025));
+        }
+
+        .match-live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: rgba(248,113,113,0.14);
+            border: 1px solid rgba(248,113,113,0.30);
+            color: #f87171;
+            font-size: 0.68rem;
+            font-weight: 900;
+            line-height: 1;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .match-live-indicator::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f87171;
+            box-shadow: 0 0 0 0 rgba(248,113,113,0.45);
+            animation: matchLiveDotPulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes matchLiveDotPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(248,113,113,0.42); }
+            50% { transform: scale(1.25); box-shadow: 0 0 0 5px rgba(248,113,113,0); }
+        }
+
         .match-total {
             font-weight: 800;
             font-size: 0.95rem;
@@ -5054,6 +5090,7 @@
             .match-summary-right {
                 justify-content: space-between;
                 margin-left: 0;
+                flex-wrap: wrap;
             }
 
             .games-match-header {
@@ -6761,6 +6798,10 @@
                 gamesArray.forEach(val => {
                     const matchVisual  = getMatchVisualData(val, player['Nationalteam.name']);
                     const matchNumber  = getMatchNumberByRawId(val.MatchID);
+                    const liveInfo = getLiveInfoForMatchId(val.MatchID);
+                    const liveIndicatorHtml = liveInfo
+                        ? `<div class="match-live-indicator" title="Dieses Spiel laeuft noch">${escapeHtml(liveInfo.label)}</div>`
+                        : '';
 
                     let detailsHTML = '';
                     if (val.Aufstellung) {
@@ -6793,7 +6834,7 @@
                     const rightNationEncoded = encodeURIComponent(matchVisual.rightName);
 
                     const card = document.createElement('div');
-                    card.className = 'match-card';
+                    card.className = `match-card${liveInfo ? ' is-live' : ''}`;
                     card.innerHTML = `
                         <div class="match-header" onclick="toggleDetails(this)">
                             <div class="match-duel">
@@ -6818,6 +6859,7 @@
                                 </div>
                             </div>
                             <div class="match-summary-right">
+                                ${liveIndicatorHtml}
                                 <div class="match-total ${val.TotalPunkte < 0 ? 'neg' : ''}">${val.TotalPunkte > 0 ? '+' : ''}${val.TotalPunkte} Pkt.</div>
                                 <span class="toggle-icon" aria-hidden="true">▼</span>
                             </div>
@@ -7010,6 +7052,36 @@
             isFinished,
             isLive: explicitLive || optimisticLive,
             isUpdateOpen: updateOpen
+        };
+    }
+
+    function formatScheduleLiveMinute(match) {
+        const statusShort = String(match?.status?.short || match?.statusShort || '').toUpperCase();
+        const elapsedRaw = match?.status?.elapsed ?? match?.statusElapsed;
+        const elapsed = elapsedRaw !== undefined && elapsedRaw !== null ? Number(elapsedRaw) : null;
+        if (Number.isFinite(elapsed) && elapsed > 0) return `Live ${elapsed}. Min`;
+        if (statusShort === 'HT') return 'Halbzeit';
+        if (statusShort === 'BT') return 'Pause';
+        if (statusShort === 'SUSP' || statusShort === 'INT') return 'Unterbrochen';
+        if (statusShort === 'ET') return 'Verlaengerung';
+        if (statusShort === 'P') return 'Elfmeterschiessen';
+        return 'Live';
+    }
+
+    function getLiveInfoForMatchId(matchId) {
+        if (matchId === undefined || matchId === null || !scheduleCatalog.length) return null;
+        const target = String(matchId);
+        const match = scheduleCatalog.find(m => {
+            if (!m) return false;
+            return [m.id, m.fixtureId, m.gameNumber, m.matchId]
+                .some(value => value !== undefined && value !== null && String(value) === target);
+        });
+        if (!match) return null;
+        const timingState = getScheduleTimingState(match);
+        if (!timingState.isLive) return null;
+        return {
+            match,
+            label: formatScheduleLiveMinute(match)
         };
     }
 
@@ -7541,16 +7613,6 @@
                 const showLivePlayerPoints = isLive && !!mc;
                 const homeAvatars = renderScheduleAvatars(homeDrafted, false, showLivePlayerPoints);
                 const awayAvatars = renderScheduleAvatars(awayDrafted, true, showLivePlayerPoints);
-                const homeLivePoints = getScheduleDraftedPointsSummary(homeDrafted, showLivePlayerPoints);
-                const awayLivePoints = getScheduleDraftedPointsSummary(awayDrafted, showLivePlayerPoints);
-                if (isLive && (homeLivePoints.count || awayLivePoints.count)) {
-                    centerHtml += `<div class="sc-live-points" title="Punkte der gewaehlten Spieler in diesem Spiel">
-                        <span class="sc-live-points-label">Managerwahl</span>
-                        <span class="${getSchedulePointsClass(homeLivePoints.total)}">${escapeHtml(formatScheduleSignedPoints(homeLivePoints.total))}</span>
-                        <span class="sc-colon">:</span>
-                        <span class="${getSchedulePointsClass(awayLivePoints.total)}">${escapeHtml(formatScheduleSignedPoints(awayLivePoints.total))}</span>
-                    </div>`;
-                }
 
                 const ariaLabelPrefix = groupStageLabel || spielNrLabel;
                 const ariaLabel = `${ariaLabelPrefix ? ariaLabelPrefix + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
