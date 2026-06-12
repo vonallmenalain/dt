@@ -6635,7 +6635,7 @@
         } else {
             mgrBox.innerHTML = pickedBy.length > 0
                 ? pickedBy.map(m => `<a href="teams.html?manager=${encodeURIComponent(m)}" class="manager-badge" aria-label="Team von ${escapeHtml(m)} ansehen">👤 ${escapeHtml(m)}</a>`).join('')
-                : '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">Noch nicht gedraftet.</div>';
+                : '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">Nicht gedraftet</div>';
         }
 
         // Awards + points breakdown

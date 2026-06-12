@@ -951,6 +951,60 @@
         };
     }
 
+    function getFixtureEvents(log) {
+        return Array.isArray(log && log.fixtureEvents) ? log.fixtureEvents : [];
+    }
+
+    function fixtureEventKey(event) {
+        return [
+            event && event.fixtureId,
+            event && event.elapsed,
+            event && event.extra,
+            event && event.teamId,
+            event && event.teamName,
+            event && event.playerId,
+            event && event.playerName,
+            event && event.assistId,
+            event && event.assistName,
+            event && event.type,
+            event && event.detail,
+            event && event.comments
+        ].map(value => String(value ?? "")).join("|");
+    }
+
+    function annotateNewFixtureEvents(logs) {
+        if (!Array.isArray(logs) || !logs.length) return logs;
+
+        const seenInOlderLogs = new Set();
+        for (let i = logs.length - 1; i >= 0; i -= 1) {
+            const log = logs[i];
+            const events = getFixtureEvents(log);
+            const newEvents = [];
+            const seenInThisLog = new Set();
+            const hasOlderBaseline = i < logs.length - 1;
+
+            events.forEach(event => {
+                const key = fixtureEventKey(event);
+                if (hasOlderBaseline && !seenInOlderLogs.has(key) && !seenInThisLog.has(key)) {
+                    newEvents.push(event);
+                }
+                seenInThisLog.add(key);
+            });
+
+            log.newFixtureEvents = newEvents;
+            log.newFixtureEventsCount = newEvents.length;
+            events.forEach(event => seenInOlderLogs.add(fixtureEventKey(event)));
+        }
+
+        return logs;
+    }
+
+    function getNewFixtureEvents(log) {
+        return Array.isArray(log && log.newFixtureEvents)
+            ? log.newFixtureEvents
+            : getFixtureEvents(log);
+    }
+
     function getChangedFixtureDetails(player) {
         if (Array.isArray(player.changedFixtureDetails)) return player.changedFixtureDetails;
         const keys = Array.isArray(player.changedFixtureKeys) ? player.changedFixtureKeys : [];
@@ -1033,8 +1087,8 @@
     }
 
     function renderFixtureEventList(log, limit = 18) {
-        const events = Array.isArray(log.fixtureEvents) ? log.fixtureEvents.slice(0, limit) : [];
-        if (!events.length) return '<div class="muted">Keine API-Ereignisse in diesem Log gespeichert.</div>';
+        const events = getNewFixtureEvents(log).slice(0, limit);
+        if (!events.length) return '<div class="muted">Keine neuen API-Ereignisse in diesem Lauf.</div>';
         return `<div class="fixture-event-list">${events.map(event => {
             const item = formatFixtureEvent(event, log);
             return `
@@ -1051,7 +1105,7 @@
     }
 
     function renderEventSummary(log) {
-        const events = Array.isArray(log.fixtureEvents) ? log.fixtureEvents : [];
+        const events = getNewFixtureEvents(log);
         if (events.length) {
             const chips = events.slice(0, 3).map(event => {
                 const label = normalizeEventType(event);
@@ -1077,7 +1131,7 @@
     function collectFeedItems(logs) {
         const items = [];
         logs.forEach(log => {
-            (Array.isArray(log.fixtureEvents) ? log.fixtureEvents : []).forEach(event => {
+            getNewFixtureEvents(log).forEach(event => {
                 items.push({ ...formatFixtureEvent(event, log), sortMs: timestampToMs(log.createdAtMs || log.createdAt) || 0 });
             });
             buildPointChangeItems(log, 10).forEach(change => {
@@ -1135,7 +1189,7 @@
                         <div>${log.error ? escapeHtml(log.error) : '<span class="muted">-</span>'}</div>
                     </div>
                     <div class="detail-section">
-                        <h3 class="detail-section-title">API-Ereignisse</h3>
+                        <h3 class="detail-section-title">Neue API-Ereignisse</h3>
                         ${renderFixtureEventList(log)}
                     </div>
                     <div class="detail-section">
@@ -1150,7 +1204,7 @@
     function renderEventFeed(logs) {
         const items = collectFeedItems(logs);
         els.eventMeta.textContent = items.length
-            ? `${items.length} Ereignisse aus den letzten ${logs.length} Läufen`
+            ? `${items.length} neue Ereignisse aus den letzten ${logs.length} Läufen`
             : "Noch keine Ereignisdaten";
 
         if (!items.length) {
@@ -1277,6 +1331,7 @@
             }
             return log;
         }));
+        annotateNewFixtureEvents(logs);
 
         return { meta, fixtures, pointsCount: pointsSnap.size, logs };
     }
