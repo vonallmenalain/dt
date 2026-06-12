@@ -2160,7 +2160,7 @@
             `${group.records.length} Ereignis${group.records.length === 1 ? "" : "se"}`,
             `letzter Upload ${formatShortDateTime(group.latestMs)}`
         ].filter(Boolean).join(" · ");
-        const open = index < 4 ? " open" : "";
+        const open = "";
 
         return `
             <details class="match-card"${open}>
