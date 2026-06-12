@@ -9,7 +9,7 @@ name: Auto Punkte-Upload
 # oder ob ein beendetes Spiel noch im Final-Recheck liegt (Default:
 # 360 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
 # eines aktiven Fensters macht das Skript standardmäßig eine längere
-# Monitor-Session mit Ticks im Minutenabstand. Wenn ein Schedule-Run zu
+# Monitor-Session mit 30 Ticks im Abstand von 10 Sekunden. Wenn ein Schedule-Run zu
 # früh kommt, darf er ohne API-Calls auf das nächste Live-Fenster warten.
 # Das ist bewusst robuster als sich darauf zu verlassen, dass GitHub den
 # Cron wirklich alle 5 Minuten startet.

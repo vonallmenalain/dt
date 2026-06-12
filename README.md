@@ -68,11 +68,15 @@ Schreibzugriffe finden ausschliesslich hier statt, nicht im Browser.
 
 | Script                  | Zweck                                                                     | Cron                          |
 | ----------------------- | ------------------------------------------------------------------------- | ----------------------------- |
-| `auto-points-upload.js` | Punkte berechnen + nach Firestore schreiben, Meta-Version hochzählen.     | alle 5 Minuten                |
+| `auto-points-upload.js` | Punkte berechnen + nach Firestore schreiben, Meta-Version hochzählen.     | alle 5 Minuten im WM-Fenster  |
 | `sync-fixtures.js`      | Fixtures + Venues von api-football laden + nach Firestore schreiben.      | täglich 04:00 UTC (≈ 06:00 CH)|
 
 Beide Scripts lesen die Turnier-Konfiguration **direkt aus
 `tournament-config.js`** – keine lokale Kopie pflegen.
+
+Der detaillierte Live-Update-Ablauf inkl. GitHub-Actions-Check,
+Tick-Zeitpunkt, Firestore-Signalen und Betriebs-Checkliste steht in
+[`docs/live-update-prozess.md`](docs/live-update-prozess.md).
 
 ### Pre-Check / Live-Load (auto-points-upload)
 
@@ -85,7 +89,7 @@ der Job sofort. Damit kostet ein Tick ausserhalb der Spieltage praktisch
 nichts (1 Firestore-Read, 0 API-Calls).
 
 Während eines aktiven Fensters macht das Script standardmässig eine
-längere Monitor-Session mit Live-Ticks im Minutenabstand innerhalb
+längere Monitor-Session mit 30 Live-Ticks im Abstand von 10 Sekunden innerhalb
 desselben GitHub-Runs. Wenn GitHub den Schedule zu früh startet, aber
 das nächste Live-Fenster bald beginnt, wartet der Run ohne API-Calls
 darauf. Dadurch hängt das Live-Scoring nicht mehr davon ab, dass GitHub
@@ -139,8 +143,8 @@ Default aus `tournament-config.js` überschreiben will:
 | `POINTS_WINDOW_START_MIN`  | `-10`                              | Auto-Punkte: Start des Live-Fensters relativ zum Anpfiff.       |
 | `POINTS_WINDOW_END_MIN`    | `150`                              | Auto-Punkte: normales Ende des Live-Fensters; danach Catch-up für offene Spiele. |
 | `POINTS_FINAL_RECHECK_MIN` | `360`                              | Auto-Punkte: beendete Spiele bis so viele Minuten nach Anpfiff weiter prüfen. |
-| `POINTS_LIVE_TICKS_PER_RUN` | `240`                             | Auto-Punkte: Anzahl Live-Ticks innerhalb eines GitHub-Runs.     |
-| `POINTS_LIVE_TICK_INTERVAL_SEC` | `60`                         | Auto-Punkte: Abstand zwischen Live-Ticks in Sekunden.           |
+| `POINTS_LIVE_TICKS_PER_RUN` | `30`                              | Auto-Punkte: Anzahl Live-Ticks innerhalb eines GitHub-Runs.     |
+| `POINTS_LIVE_TICK_INTERVAL_SEC` | `10`                         | Auto-Punkte: Abstand zwischen Live-Ticks in Sekunden.           |
 | `POINTS_IDLE_WAIT_MAX_MIN`  | `240`                             | Auto-Punkte: max. Wartezeit ohne Kandidat bis zum nächsten Live-Fenster. |
 | `POINTS_SESSION_MAX_MIN`    | `330`                             | Auto-Punkte: max. Dauer einer Monitor-Session; GitHub-Timeout liegt bei 360 Minuten. |
 | `POINTS_API_RETRY_ATTEMPTS` | `3`                                | Auto-Punkte: Retry-Versuche pro API-Request.                    |
