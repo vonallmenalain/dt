@@ -9129,10 +9129,15 @@
             function buildChips(players) {
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
+                    const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
+                    const ptsHtml = pts !== null
+                        ? `<span class="nm-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
+                        : '';
+                    const ptsLabel = pts !== null ? `, ${formatSignedPoints(pts)} Punkte in diesem Spiel` : '';
                     const managerLabel = managers.length
                         ? ` - ${managers.map((m) => `${getManagerDisplayName(m.manager)}${m.isCaptain ? ' (C)' : ''}`).join(', ')}`
                         : '';
-                    return `<a class="nm-player-chip" href="${url}" draggable="false" title="${escapeHtml(player.Spielername + managerLabel)}" aria-label="${escapeHtml(player.Spielername)} analysieren"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'"></a>`;
+                    return `<a class="nm-player-chip${pts !== null ? ' has-points' : ''}" href="${url}" draggable="false" title="${escapeHtml(player.Spielername + managerLabel)}" aria-label="${escapeHtml(player.Spielername)} analysieren${escapeHtml(ptsLabel)}"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">${ptsHtml}</a>`;
                 }).join('');
             }
 
@@ -9155,6 +9160,10 @@
 
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
+                    const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
+                    const ptsHtml = pts !== null
+                        ? `<span class="nm-detail-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
+                        : '';
                     const position = player.Position || player.position || '';
                     const managerCount = managers.length === 1
                         ? 'Gew&auml;hlt von 1 Manager'
@@ -9166,6 +9175,7 @@
                                 <span class="nm-detail-player-name">${escapeHtml(player.Spielername)}</span>
                                 ${position ? `<span class="nm-detail-player-meta">${escapeHtml(position)}</span>` : ''}
                             </span>
+                            ${ptsHtml}
                         </a>
                         <div class="nm-detail-managers">
                             <div class="nm-detail-manager-head">${managerCount}</div>
