@@ -42,10 +42,10 @@ name: Auto Punkte-Upload
 #                            viele Minuten nach Anpfiff Recheck-Kandidaten,
 #                            damit spaete API-Korrekturen nachgezogen werden.
 #   POINTS_LIVE_TICKS_PER_RUN
-#                            Default 240 – Anzahl Live-Ticks innerhalb
+#                            Default 30 – Anzahl Live-Ticks innerhalb
 #                            eines GitHub-Runs (bei schedule).
 #   POINTS_LIVE_TICK_INTERVAL_SEC
-#                            Default 60 – Abstand zwischen Live-Ticks.
+#                            Default 10 – Abstand zwischen Live-Ticks.
 #   POINTS_IDLE_WAIT_MAX_MIN
 #                            Default 240 – max. Wartezeit ohne Kandidat
 #                            bis zum nächsten Live-Fenster.
@@ -145,15 +145,25 @@ jobs:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
-          WINDOW_START_MIN: ${{ inputs.window_start_min != '' && inputs.window_start_min || vars.POINTS_WINDOW_START_MIN }}
-          WINDOW_END_MIN: ${{ inputs.window_end_min != '' && inputs.window_end_min || vars.POINTS_WINDOW_END_MIN }}
-          FINAL_RECHECK_MIN: ${{ inputs.final_recheck_min != '' && inputs.final_recheck_min || vars.POINTS_FINAL_RECHECK_MIN }}
-          LIVE_TICKS_PER_RUN: ${{ inputs.live_ticks_per_run != '' && inputs.live_ticks_per_run || vars.POINTS_LIVE_TICKS_PER_RUN }}
-          LIVE_TICK_INTERVAL_SEC: ${{ inputs.live_tick_interval_sec != '' && inputs.live_tick_interval_sec || vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
-          IDLE_WAIT_MAX_MIN: ${{ inputs.idle_wait_max_min != '' && inputs.idle_wait_max_min || vars.POINTS_IDLE_WAIT_MAX_MIN }}
-          SESSION_MAX_MIN: ${{ inputs.session_max_min != '' && inputs.session_max_min || vars.POINTS_SESSION_MAX_MIN }}
-          API_RETRY_ATTEMPTS: ${{ vars.POINTS_API_RETRY_ATTEMPTS }}
-          API_RETRY_BASE_DELAY_MS: ${{ vars.POINTS_API_RETRY_BASE_DELAY_MS }}
+          POINTS_WINDOW_START_MIN: ${{ inputs.window_start_min != '' && inputs.window_start_min || vars.POINTS_WINDOW_START_MIN }}
+          POINTS_WINDOW_END_MIN: ${{ inputs.window_end_min != '' && inputs.window_end_min || vars.POINTS_WINDOW_END_MIN }}
+          POINTS_FINAL_RECHECK_MIN: ${{ inputs.final_recheck_min != '' && inputs.final_recheck_min || vars.POINTS_FINAL_RECHECK_MIN }}
+          POINTS_LIVE_TICKS_PER_RUN: ${{ inputs.live_ticks_per_run != '' && inputs.live_ticks_per_run || vars.POINTS_LIVE_TICKS_PER_RUN }}
+          POINTS_LIVE_TICK_INTERVAL_SEC: ${{ inputs.live_tick_interval_sec != '' && inputs.live_tick_interval_sec || vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
+          POINTS_IDLE_WAIT_MAX_MIN: ${{ inputs.idle_wait_max_min != '' && inputs.idle_wait_max_min || vars.POINTS_IDLE_WAIT_MAX_MIN }}
+          POINTS_SESSION_MAX_MIN: ${{ inputs.session_max_min != '' && inputs.session_max_min || vars.POINTS_SESSION_MAX_MIN }}
+          POINTS_API_RETRY_ATTEMPTS: ${{ vars.POINTS_API_RETRY_ATTEMPTS }}
+          POINTS_API_RETRY_BASE_DELAY_MS: ${{ vars.POINTS_API_RETRY_BASE_DELAY_MS }}
           FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
-        run: node auto-points-upload.js
+        run: |
+          echo "[auto-points] Effective workflow config:"
+          echo "tournamentKey=${TOURNAMENT_KEY:-'(default)'}"
+          echo "windowStartMin=${POINTS_WINDOW_START_MIN:-'(default)'}"
+          echo "windowEndMin=${POINTS_WINDOW_END_MIN:-'(default)'}"
+          echo "finalRecheckMin=${POINTS_FINAL_RECHECK_MIN:-'(default)'}"
+          echo "liveTicksPerRun=${POINTS_LIVE_TICKS_PER_RUN:-'(default)'}"
+          echo "liveTickIntervalSec=${POINTS_LIVE_TICK_INTERVAL_SEC:-'(default)'}"
+          echo "forceRun=${FORCE_RUN}"
+          echo "dryRun=${DRY_RUN}"
+          node auto-points-upload.js

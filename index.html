@@ -3256,6 +3256,16 @@
             animation: nmLiveTilePulse 2.2s ease-in-out infinite;
         }
 
+        .nm-match-row.pending {
+            padding-left: 10px;
+            padding-right: 10px;
+            margin-left: -10px;
+            margin-right: -10px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, rgba(251,191,36,0.08), rgba(255,255,255,0.03));
+            border-bottom-color: rgba(251,191,36,0.18);
+        }
+
         @keyframes nmLiveTilePulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); }
             50% { box-shadow: 0 0 0 4px rgba(248,113,113,0.1); }
@@ -3393,6 +3403,12 @@
             border-color: rgba(248,113,113,0.35);
             color: #f87171;
             animation: livePulse 1.2s infinite;
+        }
+
+        .nm-time-badge.pending {
+            background: rgba(251,191,36,0.14);
+            border-color: rgba(251,191,36,0.34);
+            color: #fbbf24;
         }
 
         .nm-time-sub {
@@ -7216,31 +7232,37 @@
         const fixturesObj = data.fixtures;
         if (fixturesObj && typeof fixturesObj === 'object' && !Array.isArray(fixturesObj) && Object.keys(fixturesObj).length > 0) {
             return Object.values(fixturesObj)
-                .sort((a, b) => (a.kickoffTimestamp || 0) - (b.kickoffTimestamp || 0))
-                .map(f => ({
-                    id: f.fixtureId || f.id,
-                    gameNumber: f.fixtureId || f.id,
-                    matchId: f.fixtureId || f.id,
-                    teamA: f.homeTeam?.name || '',
-                    teamB: f.awayTeam?.name || '',
-                    homeTeam: f.homeTeam?.name || '',
-                    awayTeam: f.awayTeam?.name || '',
-                    homeLogo: f.homeTeam?.logo || '',
-                    awayLogo: f.awayTeam?.logo || '',
-                    date: f.kickoffIso || '',
-                    kickoff: f.kickoffIso || '',
-                    kickoffTimestamp: f.kickoffTimestamp || null,
-                    venue: f.venue?.name || '',
-                    venueCity: f.venue?.city || '',
-                    venueImage: f.venue?.image || '',
-                    statusShort: f.status?.short || '',
-                    statusLong: f.status?.long || '',
-                    statusElapsed: f.status?.elapsed ?? null,
-                    goals: f.goals || null,
-                    homeWinner: f.homeTeam?.winner ?? null,
-                    awayWinner: f.awayTeam?.winner ?? null,
-                    round: f.league?.round || ''
-                }));
+                .sort((a, b) => (getMatchKickoffMs(a) || 0) - (getMatchKickoffMs(b) || 0))
+                .map(f => {
+                    const fixtureId = f.fixtureId ?? f.apiFixtureId ?? f.id ?? f.fixture?.id;
+                    const kickoffMs = getMatchKickoffMs(f);
+                    return {
+                        id: fixtureId,
+                        fixtureId,
+                        gameNumber: fixtureId,
+                        matchId: fixtureId,
+                        teamA: f.homeTeam?.name || '',
+                        teamB: f.awayTeam?.name || '',
+                        homeTeam: f.homeTeam?.name || '',
+                        awayTeam: f.awayTeam?.name || '',
+                        homeLogo: f.homeTeam?.logo || '',
+                        awayLogo: f.awayTeam?.logo || '',
+                        date: f.kickoffIso || f.fixture?.date || '',
+                        kickoff: f.kickoffIso || f.fixture?.date || '',
+                        kickoffMs,
+                        kickoffTimestamp: f.kickoffTimestamp || null,
+                        venue: f.venue?.name || '',
+                        venueCity: f.venue?.city || '',
+                        venueImage: f.venue?.image || '',
+                        statusShort: f.status?.short || f.statusShort || '',
+                        statusLong: f.status?.long || f.statusLong || '',
+                        statusElapsed: f.status?.elapsed ?? f.statusElapsed ?? null,
+                        goals: f.goals || null,
+                        homeWinner: f.homeTeam?.winner ?? null,
+                        awayWinner: f.awayTeam?.winner ?? null,
+                        round: f.league?.round || ''
+                    };
+                });
         }
 
         // Fallback: legacy explicit match arrays
@@ -8667,6 +8689,7 @@
 
     const FINISHED_MATCH_STATUSES = ['FT', 'AET', 'PEN'];
     const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
+    const OPTIMISTIC_LIVE_WINDOW_MIN = 150;
 
     function isMatchFinishedStatus(statusShort) {
         return FINISHED_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
@@ -8674,6 +8697,80 @@
 
     function isMatchLiveStatus(statusShort) {
         return LIVE_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
+    }
+
+    function normalizeFixtureEpochMs(value) {
+        if (value === undefined || value === null || value === '') return null;
+        if (typeof value.toMillis === 'function') {
+            const ms = Number(value.toMillis());
+            return Number.isFinite(ms) && ms > 0 ? ms : null;
+        }
+        if (typeof value.toDate === 'function') {
+            const date = value.toDate();
+            const ms = date instanceof Date ? date.getTime() : NaN;
+            return Number.isFinite(ms) && ms > 0 ? ms : null;
+        }
+        if (value instanceof Date) {
+            const ms = value.getTime();
+            return Number.isFinite(ms) && ms > 0 ? ms : null;
+        }
+        if (typeof value === 'number') {
+            if (!Number.isFinite(value) || value <= 0) return null;
+            return value >= 100000000000 ? value : value * 1000;
+        }
+        if (typeof value === 'string') {
+            const raw = value.trim();
+            if (!raw) return null;
+            const numeric = Number(raw);
+            if (Number.isFinite(numeric)) return normalizeFixtureEpochMs(numeric);
+            const parsed = Date.parse(raw);
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+        }
+        if (typeof value === 'object') {
+            const seconds = Number(value.seconds ?? value._seconds);
+            if (Number.isFinite(seconds) && seconds > 0) {
+                const nanos = Number(value.nanoseconds ?? value._nanoseconds ?? 0);
+                return seconds * 1000 + (Number.isFinite(nanos) ? Math.floor(nanos / 1000000) : 0);
+            }
+        }
+        return null;
+    }
+
+    function firstFixtureEpochMs(values) {
+        for (const value of values) {
+            const ms = normalizeFixtureEpochMs(value);
+            if (ms) return ms;
+        }
+        return null;
+    }
+
+    function getMatchKickoffMs(match) {
+        return firstFixtureEpochMs([
+            match?.kickoffMs,
+            match?.kickoffTimestamp,
+            match?.kickoffIso,
+            match?.fixture?.timestamp,
+            match?.fixture?.date,
+            match?.date,
+            match?.datetime,
+            match?.kickoff
+        ]);
+    }
+
+    function getMatchTimingState(match, referenceMs = Date.now()) {
+        const statusShort = match?.statusShort || match?.status?.short || '';
+        const kickoffMs = getMatchKickoffMs(match);
+        const isFinished = isMatchFinishedStatus(statusShort);
+        const explicitLive = isMatchLiveStatus(statusShort);
+        const elapsedMs = kickoffMs ? referenceMs - kickoffMs : null;
+        const optimisticLive = !isFinished && !explicitLive && elapsedMs !== null && elapsedMs >= 0 && elapsedMs <= OPTIMISTIC_LIVE_WINDOW_MIN * 60000;
+        const updateOpen = !isFinished && !explicitLive && elapsedMs !== null && elapsedMs > OPTIMISTIC_LIVE_WINDOW_MIN * 60000;
+        return {
+            kickoffMs,
+            isFinished,
+            isLive: explicitLive || optimisticLive,
+            isUpdateOpen: updateOpen
+        };
     }
 
     function getMatchScoreParts(match) {
@@ -8798,11 +8895,7 @@
     }
 
     function getMatchOrderingMs(match) {
-        const ts = Number(match?.kickoffTimestamp);
-        if (Number.isFinite(ts) && ts > 0) return ts * 1000;
-        const raw = match?.date || match?.datetime || match?.kickoff || '';
-        const ms = raw ? new Date(raw).getTime() : NaN;
-        return Number.isFinite(ms) ? ms : Number.MAX_SAFE_INTEGER;
+        return getMatchKickoffMs(match) || Number.MAX_SAFE_INTEGER;
     }
 
     function getMatchIdentityKeys(match) {
@@ -8906,19 +8999,12 @@
         const matchInfos = extractMatchInfo(data);
 
         const now = Date.now();
-        // Keep live/open matches visible until the fixture itself reports a final status.
+        // Keep open matches visible until the fixture itself reports a final status.
         let upcoming = matchInfos.filter((m) => {
-            const statusShort = m.statusShort || '';
-            if (isMatchFinishedStatus(statusShort)) return false;
-            if (isMatchLiveStatus(statusShort)) return true;
-            const dateStr = m.date || m.datetime || m.kickoff || '';
-            if (!dateStr) return true;
-            const ms = new Date(dateStr).getTime();
-            if (!Number.isFinite(ms)) return true;
-            return ms >= now - 90 * 60 * 1000;
+            return !getMatchTimingState(m, now).isFinished;
         }).sort((a, b) => {
-            const da = (a.kickoffTimestamp ? a.kickoffTimestamp * 1000 : null) || new Date(a.date || a.datetime || 0).getTime() || 0;
-            const db2 = (b.kickoffTimestamp ? b.kickoffTimestamp * 1000 : null) || new Date(b.date || b.datetime || 0).getTime() || 0;
+            const da = getMatchOrderingMs(a);
+            const db2 = getMatchOrderingMs(b);
             return da - db2;
         }).slice(0, 3);
 
@@ -8951,7 +9037,9 @@
             const flagAFallback = getNationFlag(teamA);
             const flagBFallback = getNationFlag(teamB);
 
-            let isLive = isMatchLiveStatus(statusShort);
+            const timingState = getMatchTimingState(match, now);
+            let isLive = timingState.isLive;
+            const isUpdateOpen = timingState.isUpdateOpen;
             const scoreParts = getMatchScoreParts(match);
 
             // Time display (upcoming/live)
@@ -8963,15 +9051,19 @@
                 timeBadgeText = 'LIVE';
                 timeBadgeCls = 'live';
                 if (match.statusElapsed) timeSubText = `${match.statusElapsed}'`;
-            } else if (dateStr) {
-                const matchDate = new Date(dateStr);
-                const matchMs = matchDate.getTime();
+            } else if (isUpdateOpen) {
+                timeBadgeText = 'Update offen';
+                timeBadgeCls = 'pending';
+                if (timingState.kickoffMs) timeSubText = formatSwissMatchTime(new Date(timingState.kickoffMs));
+            } else if (dateStr || timingState.kickoffMs) {
+                const matchMs = timingState.kickoffMs || new Date(dateStr).getTime();
+                const matchDate = new Date(matchMs);
                 if (!Number.isFinite(matchMs)) {
                     timeBadgeText = '-';
                 } else {
                     const diffMin = (matchMs - now) / 60000;
                     const swissDayDiff = getSwissCalendarDayDiff(matchDate, now);
-                    if (diffMin < 0 && diffMin > -90) {
+                    if (diffMin < 0 && diffMin >= -OPTIMISTIC_LIVE_WINDOW_MIN) {
                         isLive = true;
                         timeBadgeText = 'LIVE';
                         timeBadgeCls = 'live';
@@ -9123,7 +9215,7 @@
             ` : '';
 
             return `
-                <div class="nm-match-row${isLive ? ' live' : ''}${isExpanded ? ' is-expanded' : ''}" data-match-key="${escapeHtml(matchKey)}" data-match-label="${escapeHtml(matchLabel)}">
+                <div class="nm-match-row${isLive ? ' live' : ''}${isUpdateOpen ? ' pending' : ''}${isExpanded ? ' is-expanded' : ''}" data-match-key="${escapeHtml(matchKey)}" data-match-label="${escapeHtml(matchLabel)}">
                     <button type="button" class="nm-match-toggle-btn" onclick="toggleNextMatchDetails(this)" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="${escapeHtml(detailId)}" aria-label="${escapeHtml(detailAriaLabel)}">
                         <div class="nm-match-main">
                             <div class="nm-team-side">

@@ -3977,6 +3977,11 @@
             animation: liveCardPulse 2s ease-in-out infinite;
         }
 
+        .sc-card--pending {
+            border-color: rgba(251,191,36,0.32);
+            background: rgba(251,191,36,0.045);
+        }
+
         @keyframes liveCardPulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); }
             50% { box-shadow: 0 0 0 4px rgba(248,113,113,0.1); }
@@ -4160,6 +4165,10 @@
             color: #f87171;
         }
 
+        .sc-score.sc-pending {
+            color: #fbbf24;
+        }
+
         .sc-live-pill {
             display: inline-flex;
             align-items: center;
@@ -4174,6 +4183,22 @@
             line-height: 1;
             letter-spacing: 0.6px;
             text-transform: uppercase;
+        }
+
+        .sc-pending-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(251,191,36,0.14);
+            border: 1px solid rgba(251,191,36,0.34);
+            color: #fbbf24;
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .sc-live-dot {
@@ -6912,30 +6937,111 @@
     }
     window.selectScheduleNation = selectScheduleNation;
 
+    const OPTIMISTIC_SCHEDULE_LIVE_WINDOW_MIN = 150;
+
+    function normalizeScheduleEpochMs(value) {
+        if (value === undefined || value === null || value === '') return null;
+        if (typeof value.toMillis === 'function') {
+            const ms = Number(value.toMillis());
+            return Number.isFinite(ms) && ms > 0 ? ms : null;
+        }
+        if (typeof value.toDate === 'function') {
+            const date = value.toDate();
+            const ms = date instanceof Date ? date.getTime() : NaN;
+            return Number.isFinite(ms) && ms > 0 ? ms : null;
+        }
+        if (value instanceof Date) {
+            const ms = value.getTime();
+            return Number.isFinite(ms) && ms > 0 ? ms : null;
+        }
+        if (typeof value === 'number') {
+            if (!Number.isFinite(value) || value <= 0) return null;
+            return value >= 100000000000 ? value : value * 1000;
+        }
+        if (typeof value === 'string') {
+            const raw = value.trim();
+            if (!raw) return null;
+            const numeric = Number(raw);
+            if (Number.isFinite(numeric)) return normalizeScheduleEpochMs(numeric);
+            const parsed = Date.parse(raw);
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+        }
+        if (typeof value === 'object') {
+            const seconds = Number(value.seconds ?? value._seconds);
+            if (Number.isFinite(seconds) && seconds > 0) {
+                const nanos = Number(value.nanoseconds ?? value._nanoseconds ?? 0);
+                return seconds * 1000 + (Number.isFinite(nanos) ? Math.floor(nanos / 1000000) : 0);
+            }
+        }
+        return null;
+    }
+
+    function firstScheduleEpochMs(values) {
+        for (const value of values) {
+            const ms = normalizeScheduleEpochMs(value);
+            if (ms) return ms;
+        }
+        return null;
+    }
+
+    function getScheduleKickoffMs(match) {
+        return firstScheduleEpochMs([
+            match?.kickoffMs,
+            match?.kickoffTimestamp,
+            match?.kickoffIso,
+            match?.fixture?.timestamp,
+            match?.fixture?.date,
+            match?.date,
+            match?.datetime,
+            match?.kickoff
+        ]);
+    }
+
+    function getScheduleTimingState(match, referenceMs = Date.now()) {
+        const statusShort = String(match?.status?.short || match?.statusShort || '').toUpperCase();
+        const kickoffMs = getScheduleKickoffMs(match);
+        const isFinished = ['FT', 'AET', 'PEN'].includes(statusShort);
+        const explicitLive = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'].includes(statusShort);
+        const elapsedMs = kickoffMs ? referenceMs - kickoffMs : null;
+        const optimisticLive = !isFinished && !explicitLive && elapsedMs !== null && elapsedMs >= 0 && elapsedMs <= OPTIMISTIC_SCHEDULE_LIVE_WINDOW_MIN * 60000;
+        const updateOpen = !isFinished && !explicitLive && elapsedMs !== null && elapsedMs > OPTIMISTIC_SCHEDULE_LIVE_WINDOW_MIN * 60000;
+        return {
+            kickoffMs,
+            isFinished,
+            isLive: explicitLive || optimisticLive,
+            isUpdateOpen: updateOpen
+        };
+    }
+
     function buildScheduleCatalog(data) {
         // Prefer structured fixtures from Firestore (data.fixtures is an object keyed by fixtureId)
         const fixturesObj = data?.fixtures;
         if (fixturesObj && typeof fixturesObj === 'object' && !Array.isArray(fixturesObj) && Object.keys(fixturesObj).length > 0) {
             const fixturesArray = Object.values(fixturesObj)
-                .sort((a, b) => (a.kickoffTimestamp || 0) - (b.kickoffTimestamp || 0));
+                .sort((a, b) => (getScheduleKickoffMs(a) || 0) - (getScheduleKickoffMs(b) || 0));
 
-            scheduleCatalog = fixturesArray.map(f => ({
-                id: f.fixtureId || f.id,
-                teamA: f.homeTeam?.name || '-',
-                teamALogo: f.homeTeam?.logo || '',
-                teamB: f.awayTeam?.name || '-',
-                teamBLogo: f.awayTeam?.logo || '',
-                date: f.kickoffIso || '',
-                kickoffTimestamp: f.kickoffTimestamp || null,
-                venue: f.venue?.name || 'Spielort folgt',
-                venueCity: f.venue?.city || '',
-                venueImage: f.venue?.image || '',
-                status: f.status || null,
-                goals: f.goals || null,
-                round: f.league?.round || '',
-                homeWinner: f.homeTeam?.winner ?? null,
-                awayWinner: f.awayTeam?.winner ?? null
-            }));
+            scheduleCatalog = fixturesArray.map(f => {
+                const fixtureId = f.fixtureId ?? f.apiFixtureId ?? f.id ?? f.fixture?.id;
+                const kickoffMs = getScheduleKickoffMs(f);
+                return {
+                    id: fixtureId,
+                    teamA: f.homeTeam?.name || '-',
+                    teamALogo: f.homeTeam?.logo || '',
+                    teamB: f.awayTeam?.name || '-',
+                    teamBLogo: f.awayTeam?.logo || '',
+                    date: f.kickoffIso || f.fixture?.date || '',
+                    kickoffMs,
+                    kickoffTimestamp: f.kickoffTimestamp || null,
+                    venue: f.venue?.name || 'Spielort folgt',
+                    venueCity: f.venue?.city || '',
+                    venueImage: f.venue?.image || '',
+                    status: f.status || (f.statusShort ? { short: f.statusShort, long: f.statusLong || '', elapsed: f.statusElapsed ?? null } : null),
+                    goals: f.goals || null,
+                    round: f.league?.round || '',
+                    homeWinner: f.homeTeam?.winner ?? null,
+                    awayWinner: f.awayTeam?.winner ?? null
+                };
+            });
             return;
         }
 
@@ -7328,7 +7434,8 @@
 
         // Group by date for section headers
         function getDateKey(m) {
-            const dt = m.date ? new Date(m.date) : null;
+            const kickoffMs = getScheduleKickoffMs(m);
+            const dt = kickoffMs ? new Date(kickoffMs) : (m.date ? new Date(m.date) : null);
             if (!dt || Number.isNaN(dt.getTime())) return '_nodate';
             return dt.toISOString().slice(0, 10);
         }
@@ -7341,7 +7448,7 @@
         });
 
         const FINISHED = ['FT', 'AET', 'PEN'];
-        const LIVE_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P'];
+        const LIVE_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
 
         let html = '';
 
@@ -7363,13 +7470,16 @@
                 <div class="schedule-matches-group">`;
 
             matches.forEach(m => {
-                const dt = m.date ? new Date(m.date) : null;
+                const kickoffMs = getScheduleKickoffMs(m);
+                const dt = kickoffMs ? new Date(kickoffMs) : (m.date ? new Date(m.date) : null);
                 const validDt = dt && !Number.isNaN(dt.getTime());
                 const timeLabel = validDt ? dt.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
                 const statusShort = String(m.status?.short || '').toUpperCase();
-                const isFinished = FINISHED.includes(statusShort);
-                const isLive = LIVE_STATUSES.includes(statusShort);
+                const timingState = getScheduleTimingState(m);
+                const isFinished = timingState.isFinished || FINISHED.includes(statusShort);
+                const isLive = timingState.isLive || LIVE_STATUSES.includes(statusShort);
+                const isUpdateOpen = timingState.isUpdateOpen;
                 const mc = findMatchCatalogForScheduleEntry(m);
                 const scoreParts = getScheduleScoreParts(m, mc);
 
@@ -7383,6 +7493,12 @@
                         ? `<div class="sc-score sc-live">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`
                         : `<div class="sc-time">${escapeHtml(timeLabel)}</div><div class="sc-vs">VS</div>`;
                     matchStatusCls = 'sc-card--live';
+                } else if (isUpdateOpen) {
+                    centerHtml = `<div class="sc-pending-pill">Update offen</div>`;
+                    centerHtml += scoreParts
+                        ? `<div class="sc-score sc-pending">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`
+                        : `<div class="sc-time">${escapeHtml(timeLabel)}</div>`;
+                    matchStatusCls = 'sc-card--pending';
                 } else if (isFinished && scoreParts) {
                     centerHtml = `<div class="sc-score sc-finished">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`;
                     matchStatusCls = 'sc-card--finished';

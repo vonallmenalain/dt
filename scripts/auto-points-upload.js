@@ -16,11 +16,11 @@
  *       läuft. `FORCE_RUN=1` übersteuert diesen Guard (manuelle Tests).
  *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
  *    2. Bestimmt Kandidaten-Spiele: Anpfiff liegt mindestens
- *       `WINDOW_START_MIN` Minuten entfernt/zurueck UND der Status ist
+ *       `POINTS_WINDOW_START_MIN` Minuten entfernt/zurueck UND der Status ist
  *       entweder noch nicht FT/AET/PEN oder liegt als finaler Status noch
- *       im Reconciliation-Fenster (`FINAL_RECHECK_MIN`). Mit den Defaults
+ *       im Reconciliation-Fenster (`POINTS_FINAL_RECHECK_MIN`). Mit den Defaults
  *       -10/150 startet der Live-Load 10 Minuten vor Anpfiff.
- *       `WINDOW_END_MIN` dient danach als Schwelle, ab der ein offenes
+ *       `POINTS_WINDOW_END_MIN` dient danach als Schwelle, ab der ein offenes
  *       Spiel als "ueberfaellig" (Catch-up) markiert/geloggt wird – es
  *       gibt bewusst KEINE harte obere Zeitgrenze mehr fuer offene Spiele,
  *       damit verlaengerte oder verpasste Spiele automatisch nachgezogen
@@ -50,29 +50,31 @@
  *                              tournament-config.js. Aktuell ist nur
  *                              `wm2026` produktiv konfiguriert; andere
  *                              Keys führen zu einem expliziten Abbruch.
- *    WINDOW_START_MIN          Optional, Default -10. Start des Live-
+ *    POINTS_WINDOW_START_MIN   Optional, Default -10. Start des Live-
  *                              Fensters relativ zum Anpfiff.
- *    WINDOW_END_MIN            Optional, Default 150. Normales Ende des
+ *    POINTS_WINDOW_END_MIN     Optional, Default 150. Normales Ende des
  *                              Live-Fensters relativ zum Anpfiff. Danach
  *                              bleibt ein offenes Spiel als Catch-up-
  *                              Kandidat aktiv (siehe Ablauf-Schritt 2).
- *    FINAL_RECHECK_MIN         Optional, Default 360. Beendete Spiele
+ *    POINTS_FINAL_RECHECK_MIN  Optional, Default 360. Beendete Spiele
  *                              bleiben bis so viele Minuten nach Anpfiff
  *                              Kandidaten, damit nachtraegliche API-
  *                              Korrekturen automatisch nachgezogen werden.
- *    LIVE_TICKS_PER_RUN        Optional, Default 240. Anzahl Ticks innerhalb
+ *    POINTS_LIVE_TICKS_PER_RUN Optional, Default 30. Anzahl Ticks innerhalb
  *                              eines GitHub-Runs, wenn Kandidaten aktiv
  *                              sind. FORCE_RUN macht immer nur einen Tick.
- *    LIVE_TICK_INTERVAL_SEC    Optional, Default 60. Abstand zwischen den
+ *    POINTS_LIVE_TICK_INTERVAL_SEC
+ *                              Optional, Default 10. Abstand zwischen den
  *                              Live-Ticks innerhalb desselben Runs.
- *    IDLE_WAIT_MAX_MIN         Optional, Default 240. So lange darf ein Run
+ *    POINTS_IDLE_WAIT_MAX_MIN  Optional, Default 240. So lange darf ein Run
  *                              ohne Kandidaten auf das naechste Live-Fenster
  *                              warten, bevor er beendet.
- *    SESSION_MAX_MIN           Optional, Default 330. Harte Obergrenze fuer
+ *    POINTS_SESSION_MAX_MIN    Optional, Default 330. Harte Obergrenze fuer
  *                              die gesamte Monitor-Session eines Runs.
- *    API_RETRY_ATTEMPTS        Optional, Default 3. API-Requests werden bei
+ *    POINTS_API_RETRY_ATTEMPTS Optional, Default 3. API-Requests werden bei
  *                              transienten Fehlern so oft versucht.
- *    API_RETRY_BASE_DELAY_MS   Optional, Default 1000. Basis-Wartezeit fuer
+ *    POINTS_API_RETRY_BASE_DELAY_MS
+ *                              Optional, Default 1000. Basis-Wartezeit fuer
  *                              API-Retry-Backoff.
  *    FORCE_RUN                 Falls `1`/`true`: Phasen-Guard UND
  *                              Pre-Check überspringen (manuelle Tests).
@@ -123,9 +125,10 @@ const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
 const DEFAULT_FINAL_RECHECK_MIN = 360;
-const DEFAULT_LIVE_TICKS_PER_RUN = 240;
-const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
+const DEFAULT_LIVE_TICKS_PER_RUN = 30;
+const DEFAULT_LIVE_TICK_INTERVAL_SEC = 10;
 const MAX_LIVE_TICKS_PER_RUN = 360;
+const MIN_SCHEDULED_LIVE_TICKS_PER_RUN = 30;
 const DEFAULT_IDLE_WAIT_MAX_MIN = 240;
 const DEFAULT_SESSION_MAX_MIN = 330;
 const MAX_SESSION_MAX_MIN = 350;
@@ -150,6 +153,30 @@ function envInt(name, fallback) {
   return Number.isFinite(v) ? v : fallback;
 }
 
+function envRaw(names) {
+  const list = Array.isArray(names) ? names : [names];
+  for (const name of list) {
+    const raw = process.env[name];
+    if (raw == null) continue;
+    const value = String(raw).trim();
+    if (value !== '') return value;
+  }
+  return '';
+}
+
+function envIntAny(names, fallback) {
+  const raw = envRaw(names);
+  if (!raw) return fallback;
+  const value = parseInt(raw, 10);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function envPositiveIntAny(names, fallback, max = null) {
+  const value = envIntAny(names, null);
+  const effective = Number.isInteger(value) && value > 0 ? value : fallback;
+  return Number.isFinite(max) ? Math.min(max, effective) : effective;
+}
+
 function nowMs() {
   return Date.now();
 }
@@ -164,6 +191,58 @@ function parseIsoToMs(value) {
   if (!value) return null;
   const ms = Date.parse(String(value));
   return Number.isFinite(ms) ? ms : null;
+}
+
+function normalizeEpochMs(value) {
+  if (value == null || value === '') return null;
+
+  if (typeof value.toMillis === 'function') {
+    const ms = Number(value.toMillis());
+    return Number.isFinite(ms) && ms > 0 ? ms : null;
+  }
+
+  if (typeof value.toDate === 'function') {
+    const date = value.toDate();
+    const ms = date instanceof Date ? date.getTime() : NaN;
+    return Number.isFinite(ms) && ms > 0 ? ms : null;
+  }
+
+  if (value instanceof Date) {
+    const ms = value.getTime();
+    return Number.isFinite(ms) && ms > 0 ? ms : null;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value <= 0) return null;
+    return value >= 100_000_000_000 ? value : value * 1000;
+  }
+
+  if (typeof value === 'string') {
+    const raw = value.trim();
+    if (!raw) return null;
+    const numeric = Number(raw);
+    if (Number.isFinite(numeric)) return normalizeEpochMs(numeric);
+    const parsed = Date.parse(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  if (typeof value === 'object') {
+    const seconds = Number(value.seconds ?? value._seconds);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      const nanos = Number(value.nanoseconds ?? value._nanoseconds ?? 0);
+      return seconds * 1000 + (Number.isFinite(nanos) ? Math.floor(nanos / 1_000_000) : 0);
+    }
+  }
+
+  return null;
+}
+
+function firstPositiveEpochMs(values) {
+  for (const value of values) {
+    const ms = normalizeEpochMs(value);
+    if (ms) return ms;
+  }
+  return null;
 }
 
 function logInfo(msg) {
@@ -296,6 +375,8 @@ function createTickAudit(tournament, opts, tickIndex, totalTicks) {
     windowStartMin: opts.windowStartMin,
     windowEndMin: opts.windowEndMin,
     finalRecheckMin: opts.finalRecheckMin,
+    liveTicksPerRun: opts.forceRun ? 1 : opts.liveTicksPerRun,
+    liveTickIntervalSec: opts.liveTickIntervalSec,
     apiRetryAttempts: opts.apiRetryAttempts,
     apiRetryBaseDelayMs: opts.apiRetryBaseDelayMs,
     candidateFixtureIds: [],
@@ -351,6 +432,8 @@ function serializeAuditLog(audit) {
     windowStartMin: audit.windowStartMin,
     windowEndMin: audit.windowEndMin,
     finalRecheckMin: audit.finalRecheckMin,
+    liveTicksPerRun: audit.liveTicksPerRun,
+    liveTickIntervalSec: audit.liveTickIntervalSec,
     apiRetryAttempts: audit.apiRetryAttempts || null,
     apiRetryBaseDelayMs: audit.apiRetryBaseDelayMs || null,
     candidateFixtureIds: Array.isArray(audit.candidateFixtureIds) ? audit.candidateFixtureIds : [],
@@ -450,6 +533,61 @@ function isScoringFixture(game) {
 
 function isPreMatchLineupCandidate(game) {
   return PRE_MATCH_LINEUP_STATUSES.has(getFixtureStatusShort(game));
+}
+
+function getFirestoreStatusShort(data) {
+  if (!data || typeof data !== 'object') return '';
+  const value =
+    (data.status && typeof data.status === 'object' && data.status.short) ||
+    data.statusShort ||
+    (data.fixture && data.fixture.status && data.fixture.status.short) ||
+    '';
+  return String(value || '').toUpperCase();
+}
+
+function getFirestoreStatusLong(data) {
+  if (!data || typeof data !== 'object') return '';
+  return String(
+    (data.status && typeof data.status === 'object' && data.status.long) ||
+    data.statusLong ||
+    (data.fixture && data.fixture.status && data.fixture.status.long) ||
+    ''
+  );
+}
+
+function getFirestoreStatusElapsed(data) {
+  if (!data || typeof data !== 'object') return null;
+  const value =
+    (data.status && typeof data.status === 'object' ? data.status.elapsed : null) ??
+    data.statusElapsed ??
+    (data.fixture && data.fixture.status ? data.fixture.status.elapsed : null);
+  return value != null ? value : null;
+}
+
+function getFirestoreFixtureApiId(data, doc) {
+  const candidates = [
+    data && data.fixtureId,
+    data && data.apiFixtureId,
+    data && data.id,
+    data && data.fixture && data.fixture.id,
+    doc && doc.id
+  ];
+  for (const value of candidates) {
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      return String(value).trim();
+    }
+  }
+  return doc && doc.id ? String(doc.id) : '';
+}
+
+function getFirestoreFixtureKickoffMs(data) {
+  if (!data || typeof data !== 'object') return null;
+  return firstPositiveEpochMs([
+    data.kickoffTimestamp,
+    data.kickoffIso,
+    data.fixture && data.fixture.timestamp,
+    data.fixture && data.fixture.date
+  ]);
 }
 
 function formatAgeMin(ageMin) {
@@ -638,23 +776,25 @@ async function findCandidateFixtures(db, tournament, opts) {
 
   snap.forEach(doc => {
     const data = doc.data() || {};
-    const kickoffSec = data.kickoffTimestamp;
-    const statusShort = (data.status && data.status.short) || '';
+    const kickoffMs = getFirestoreFixtureKickoffMs(data);
+    const apiFixtureId = getFirestoreFixtureApiId(data, doc);
+    const statusShort = getFirestoreStatusShort(data);
     const homeName = (data.homeTeam && data.homeTeam.name) || '';
     const awayName = (data.awayTeam && data.awayTeam.name) || '';
 
     const fxInfo = {
-      id: doc.id,
-      kickoffMs: (typeof kickoffSec === 'number') ? kickoffSec * 1000 : null,
+      id: apiFixtureId,
+      docId: doc.id,
+      kickoffMs,
       statusShort,
-      statusLong: (data.status && data.status.long) || '',
-      statusElapsed: (data.status && data.status.elapsed) != null ? data.status.elapsed : null,
+      statusLong: getFirestoreStatusLong(data),
+      statusElapsed: getFirestoreStatusElapsed(data),
       goalsHome: (data.goals && data.goals.home) != null ? data.goals.home : null,
       goalsAway: (data.goals && data.goals.away) != null ? data.goals.away : null,
       score: data.score || {},
       homeWinner: (data.homeTeam && data.homeTeam.winner != null) ? data.homeTeam.winner : null,
       awayWinner: (data.awayTeam && data.awayTeam.winner != null) ? data.awayTeam.winner : null,
-      label: (homeName && awayName) ? `${homeName} vs ${awayName}` : `Spiel ${doc.id}`
+      label: (homeName && awayName) ? `${homeName} vs ${awayName}` : `Spiel ${apiFixtureId || doc.id}`
     };
     all.push(fxInfo);
 
@@ -683,7 +823,7 @@ async function findCandidateFixtures(db, tournament, opts) {
     //   auf beendet gesetzt wurde (was nach erfolgreicher Verarbeitung
     //   in updateFixtureStatusInFirestore passiert).
     //
-    // Beendete Spiele werden danach noch fuer `FINAL_RECHECK_MIN` Minuten
+    // Beendete Spiele werden danach noch fuer `POINTS_FINAL_RECHECK_MIN` Minuten
     // nach Anpfiff erneut geprueft. Damit zieht der naechste Cron-Tick
     // spaete API-Korrekturen an Scorern, Assists, Karten usw. automatisch
     // nach.
@@ -1867,7 +2007,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     pointsVersionIncreased = !opts.dryRun;
     logInfo(`Meta-Dokument ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} ${opts.dryRun ? '(DRY-RUN) ' : ''}aktualisiert.`);
   } else {
-    logWarn('Keine Spieler-Punktedokumente veraendert – pointsVersion nicht hochgezaehlt.');
+    logInfo('Keine Spieler-Punktedokumente veraendert - pointsVersion bleibt unveraendert.');
   }
   if (opts.audit) {
     opts.audit.pointsVersionIncreased = pointsVersionIncreased;
@@ -2016,6 +2156,10 @@ async function main() {
   const envKey = (process.env.TOURNAMENT_KEY || '').trim().toLowerCase();
   const tournamentKey = envKey || APP_CONFIG.activeTournamentKey;
   const tournament = TOURNAMENTS[tournamentKey];
+  const forceRun = envBool('FORCE_RUN', false);
+  const dryRun = envBool('DRY_RUN', false);
+  const triggerName = String(process.env.GITHUB_EVENT_NAME || '').toLowerCase();
+  const isScheduledRun = triggerName === 'schedule';
 
   if (!tournament || !APP_CONFIG.isTournamentAvailable(tournamentKey)) {
     logError(
@@ -2031,18 +2175,34 @@ async function main() {
     process.exit(1);
   }
 
+  let windowStartMin = envIntAny(['POINTS_WINDOW_START_MIN', 'WINDOW_START_MIN'], DEFAULT_WINDOW_START_MIN);
+  if (isScheduledRun && !forceRun && windowStartMin > 0) {
+    logInfo(`Scheduled Run: positiver windowStartMin=${windowStartMin} defensiv auf ${DEFAULT_WINDOW_START_MIN} korrigiert.`);
+    windowStartMin = DEFAULT_WINDOW_START_MIN;
+  }
+
+  let liveTicksPerRun = envPositiveIntAny(
+    ['POINTS_LIVE_TICKS_PER_RUN', 'LIVE_TICKS_PER_RUN'],
+    DEFAULT_LIVE_TICKS_PER_RUN,
+    MAX_LIVE_TICKS_PER_RUN
+  );
+  if (isScheduledRun && !forceRun && liveTicksPerRun < MIN_SCHEDULED_LIVE_TICKS_PER_RUN) {
+    logInfo(`Scheduled Run: liveTicksPerRun=${liveTicksPerRun} defensiv auf ${MIN_SCHEDULED_LIVE_TICKS_PER_RUN} erhoeht.`);
+    liveTicksPerRun = MIN_SCHEDULED_LIVE_TICKS_PER_RUN;
+  }
+
   const opts = {
-    windowStartMin: envInt('WINDOW_START_MIN', DEFAULT_WINDOW_START_MIN),
-    windowEndMin: envInt('WINDOW_END_MIN', DEFAULT_WINDOW_END_MIN),
-    finalRecheckMin: Math.max(0, envInt('FINAL_RECHECK_MIN', DEFAULT_FINAL_RECHECK_MIN)),
-    liveTicksPerRun: Math.min(MAX_LIVE_TICKS_PER_RUN, Math.max(1, envInt('LIVE_TICKS_PER_RUN', DEFAULT_LIVE_TICKS_PER_RUN))),
-    liveTickIntervalSec: Math.max(0, envInt('LIVE_TICK_INTERVAL_SEC', DEFAULT_LIVE_TICK_INTERVAL_SEC)),
-    idleWaitMaxMin: Math.max(0, envInt('IDLE_WAIT_MAX_MIN', DEFAULT_IDLE_WAIT_MAX_MIN)),
-    sessionMaxMin: Math.min(MAX_SESSION_MAX_MIN, Math.max(1, envInt('SESSION_MAX_MIN', DEFAULT_SESSION_MAX_MIN))),
-    apiRetryAttempts: Math.max(1, envInt('API_RETRY_ATTEMPTS', DEFAULT_API_RETRY_ATTEMPTS)),
-    apiRetryBaseDelayMs: Math.max(0, envInt('API_RETRY_BASE_DELAY_MS', DEFAULT_API_RETRY_BASE_DELAY_MS)),
-    forceRun: envBool('FORCE_RUN', false),
-    dryRun: envBool('DRY_RUN', false)
+    windowStartMin,
+    windowEndMin: envIntAny(['POINTS_WINDOW_END_MIN', 'WINDOW_END_MIN'], DEFAULT_WINDOW_END_MIN),
+    finalRecheckMin: Math.max(0, envIntAny(['POINTS_FINAL_RECHECK_MIN', 'FINAL_RECHECK_MIN'], DEFAULT_FINAL_RECHECK_MIN)),
+    liveTicksPerRun,
+    liveTickIntervalSec: envPositiveIntAny(['POINTS_LIVE_TICK_INTERVAL_SEC', 'LIVE_TICK_INTERVAL_SEC'], DEFAULT_LIVE_TICK_INTERVAL_SEC),
+    idleWaitMaxMin: Math.max(0, envIntAny(['POINTS_IDLE_WAIT_MAX_MIN', 'IDLE_WAIT_MAX_MIN'], DEFAULT_IDLE_WAIT_MAX_MIN)),
+    sessionMaxMin: Math.min(MAX_SESSION_MAX_MIN, Math.max(1, envIntAny(['POINTS_SESSION_MAX_MIN', 'SESSION_MAX_MIN'], DEFAULT_SESSION_MAX_MIN))),
+    apiRetryAttempts: Math.max(1, envIntAny(['POINTS_API_RETRY_ATTEMPTS', 'API_RETRY_ATTEMPTS'], DEFAULT_API_RETRY_ATTEMPTS)),
+    apiRetryBaseDelayMs: Math.max(0, envIntAny(['POINTS_API_RETRY_BASE_DELAY_MS', 'API_RETRY_BASE_DELAY_MS'], DEFAULT_API_RETRY_BASE_DELAY_MS)),
+    forceRun,
+    dryRun
   };
   opts.sessionStartedAtMs = nowMs();
   opts.sessionDeadlineMs = opts.sessionStartedAtMs + opts.sessionMaxMin * 60_000;
@@ -2055,6 +2215,12 @@ async function main() {
     ` API-Retry: ${opts.apiRetryAttempts} Versuch(e), Basis ${opts.apiRetryBaseDelayMs}ms.` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
     (opts.dryRun ? ' [DRY_RUN]' : ''));
+  logInfo(
+    `Effektive Konfiguration: tournamentKey=${tournament.key}, ` +
+    `windowStartMin=${opts.windowStartMin}, windowEndMin=${opts.windowEndMin}, ` +
+    `finalRecheckMin=${opts.finalRecheckMin}, liveTicksPerRun=${opts.forceRun ? 1 : opts.liveTicksPerRun}, ` +
+    `liveTickIntervalSec=${opts.liveTickIntervalSec}, forceRun=${opts.forceRun}, dryRun=${opts.dryRun}.`
+  );
 
   // ─────────────────────────────────────────────────────────────────────
   // Phasen-Guard: nur innerhalb des konfigurierten Turnierfensters wird

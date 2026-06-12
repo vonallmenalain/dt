@@ -628,7 +628,7 @@
                 <div class="info-body">
                     <div class="legend-list">
                         <div class="legend-item"><span class="pill ok">OK</span><span>Lauf ohne Fehler oder Warnhinweise.</span></div>
-                        <div class="legend-item"><span class="pill warn">Warnung</span><span>Der Lauf hat funktioniert, aber etwas Auffälliges protokolliert, z. B. keine Punktänderung, fehlende Detaildaten oder ignorierte ältere API-Statuswerte.</span></div>
+                        <div class="legend-item"><span class="pill warn">Warnung</span><span>Der Lauf hat funktioniert, aber etwas Auffälliges protokolliert, z. B. fehlende Detaildaten, API-Retries oder ignorierte ältere API-Statuswerte.</span></div>
                         <div class="legend-item"><span class="pill err">Fehler</span><span>Der Lauf ist abgebrochen oder konnte wichtige Daten nicht schreiben.</span></div>
                     </div>
                 </div>
@@ -1105,6 +1105,8 @@
                     <div class="detail-grid">
                         <div class="detail-label">Log-ID</div>
                         <div class="code-list">${escapeHtml(log.id)}</div>
+                        <div class="detail-label">Fenster/Ticks</div>
+                        <div class="code-list">start=${numberValue(log.windowStartMin, 0)}, end=${numberValue(log.windowEndMin, 0)}, final=${numberValue(log.finalRecheckMin, 0)}, ticks=${numberValue(log.liveTicksPerRun, 0)}, intervall=${numberValue(log.liveTickIntervalSec, 0)}s</div>
                         <div class="detail-label">Fixture-IDs</div>
                         <div>${renderArray(log.candidateFixtureIds)}</div>
                         <div class="detail-label">Scoring-IDs</div>
@@ -1119,6 +1121,10 @@
                         <div class="code-list">updated=${numberValue(log.earlyFixtureWriteResult && log.earlyFixtureWriteResult.updated, 0)}, skipped=${numberValue(log.earlyFixtureWriteResult && log.earlyFixtureWriteResult.skipped, 0)}</div>
                         <div class="detail-label">Detail Fixture-Write</div>
                         <div class="code-list">updated=${numberValue(log.detailFixtureWriteResult && log.detailFixtureWriteResult.updated, 0)}, skipped=${numberValue(log.detailFixtureWriteResult && log.detailFixtureWriteResult.skipped, 0)}</div>
+                        <div class="detail-label">Punkte-Write</div>
+                        <div class="code-list">written=${numberValue(log.writeResult && log.writeResult.written, 0)}, deleted=${numberValue(log.writeResult && log.writeResult.deleted, 0)}, skipped=${numberValue(log.writeResult && log.writeResult.skipped, 0)}, touched=${numberValue(log.writeResult && log.writeResult.touched, 0)}</div>
+                        <div class="detail-label">Versionen erhöht</div>
+                        <div class="code-list">points=${log.pointsVersionIncreased ? "ja" : "nein"}, fixtures=${log.fixturesVersionIncreased ? "ja" : "nein"}</div>
                         <div class="detail-label">GitHub</div>
                         <div class="code-list">${escapeHtml([log.githubWorkflow, log.githubRunId, log.githubRunAttempt, log.githubSha].filter(Boolean).join(" / ") || "-")}</div>
                         <div class="detail-label">Changed Players</div>
