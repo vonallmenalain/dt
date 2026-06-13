@@ -3987,6 +3987,55 @@
             width: 100%;
         }
 
+        .schedule-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .schedule-status-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 5px;
+            border-radius: 12px;
+            background: var(--dark-card);
+            border: 1px solid var(--glass-border);
+        }
+
+        .schedule-status-btn {
+            min-height: 34px;
+            padding: 7px 12px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .schedule-status-btn:hover {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .schedule-status-btn:focus-visible {
+            outline: 2px solid rgba(74,222,128,0.75);
+            outline-offset: 2px;
+        }
+
+        .schedule-status-btn.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(34,197,94,0.28);
+        }
+
         /* Schedule card */
         .sc-card {
             background: rgba(255,255,255,0.04);
@@ -4237,6 +4286,22 @@
             white-space: nowrap;
         }
 
+        .sc-finished-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(34,197,94,0.13);
+            border: 1px solid rgba(74,222,128,0.30);
+            color: #4ade80;
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
         .sc-live-dot {
             width: 6px;
             height: 6px;
@@ -4278,6 +4343,16 @@
             font-weight: 800;
             color: var(--text-main);
             letter-spacing: 1px;
+        }
+
+        .sc-kickoff-meta {
+            margin-top: 3px;
+            font-size: 0.64rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            white-space: nowrap;
         }
 
         .sc-vs {
@@ -5439,6 +5514,14 @@
 
             <!-- ─── GAMES SCHEDULE VIEW ───────────────────────── -->
             <div id="view-games" class="main-view">
+                <div class="schedule-toolbar" aria-label="Spielstatus filtern">
+                    <div class="schedule-status-tabs" role="tablist" aria-label="Spielstatus">
+                        <button type="button" class="schedule-status-btn active" data-schedule-status-filter="current" role="tab" aria-selected="true">Aktuell</button>
+                        <button type="button" class="schedule-status-btn" data-schedule-status-filter="upcoming" role="tab" aria-selected="false">Kommend</button>
+                        <button type="button" class="schedule-status-btn" data-schedule-status-filter="finished" role="tab" aria-selected="false">Abgeschlossen</button>
+                        <button type="button" class="schedule-status-btn" data-schedule-status-filter="all" role="tab" aria-selected="false">Alle</button>
+                    </div>
+                </div>
                 <div id="schedule-list" class="games-list">
                     <div class="games-empty">Lade Spielplan... ⏳</div>
                 </div>
@@ -5548,6 +5631,7 @@
     let currentPlayerName = null;
     let currentPlayerId = null;
     let currentScheduleNationFilter = 'ALL';
+    let currentScheduleStatusFilter = 'current';
     let scheduleNationList = [];
     let currentTournamentTab = 'groups';
     let tournamentBracketZoom = 1;
@@ -5847,6 +5931,7 @@
             playerId: currentPlayerId,
             club: document.getElementById('club-filter')?.value || 'ALL',
             scheduleNation: currentScheduleNationFilter,
+            scheduleStatus: currentScheduleStatusFilter,
             tournamentTab: currentTournamentTab,
             cmpTab: currentCmpTab,
             cmpMgrA, cmpMgrB, cmpPlayerA, cmpPlayerB, cmpWhatIfMgr,
@@ -5930,12 +6015,15 @@
         // ?player=<name> parameter is still honoured for backward
         // compatibility (e.g. bookmarks, shared links).
         const rawPlayerId = params.get('playerId') || params.get('pid') || null;
+        const scheduleStatus = params.get('scheduleStatus') || 'current';
         return {
             view: ['players','comparisons','games','tournament'].includes(viewParam) ? viewParam : 'players',
             playerId: rawPlayerId,
             player: params.get('player') || null,
             club: params.get('club') || 'ALL',
             scheduleNation: params.get('scheduleNation') || 'ALL',
+            scheduleStatus: ['current','upcoming','finished','all'].includes(scheduleStatus) ? scheduleStatus : 'current',
+            hasScheduleStatus: params.has('scheduleStatus'),
             tournamentTab: ['groups','knockout'].includes(params.get('tourTab')) ? params.get('tourTab') : 'groups',
             matchId: params.get('matchId') || params.get('match') || null,
             matchNr: params.get('matchNr') || null,
@@ -5963,6 +6051,9 @@
             params.set('view', 'games');
             if (currentScheduleNationFilter && currentScheduleNationFilter !== 'ALL') {
                 params.set('scheduleNation', currentScheduleNationFilter);
+            }
+            if (currentScheduleStatusFilter && currentScheduleStatusFilter !== 'current') {
+                params.set('scheduleStatus', currentScheduleStatusFilter);
             }
         } else if (currentView === 'tournament') {
             params.set('view', 'tournament');
@@ -6980,6 +7071,8 @@
     window.selectScheduleNation = selectScheduleNation;
 
     const OPTIMISTIC_SCHEDULE_LIVE_WINDOW_MIN = 150;
+    const RECENT_SCHEDULE_FINISHED_WINDOW_MS = 24 * 60 * 60 * 1000;
+    const SCHEDULE_STATUS_FILTERS = ['current', 'upcoming', 'finished', 'all'];
 
     function normalizeScheduleEpochMs(value) {
         if (value === undefined || value === null || value === '') return null;
@@ -7052,6 +7145,47 @@
             isFinished,
             isLive: explicitLive || optimisticLive,
             isUpdateOpen: updateOpen
+        };
+    }
+
+    function getScheduleFinishedReferenceMs(match, timingState) {
+        return firstScheduleEpochMs([
+            match?.finishedAtMs,
+            match?.finishedAt,
+            match?.fulltimeAt,
+            match?.endedAt,
+            match?.updatedAt,
+            match?.lastUpdated,
+            match?.fixture?.updated,
+            timingState?.kickoffMs
+        ]);
+    }
+
+    function isRecentScheduleFinished(match, timingState, referenceMs = Date.now()) {
+        if (!timingState?.isFinished) return false;
+        const finishedRefMs = getScheduleFinishedReferenceMs(match, timingState);
+        if (!finishedRefMs) return false;
+        const ageMs = referenceMs - finishedRefMs;
+        return ageMs >= 0 && ageMs <= RECENT_SCHEDULE_FINISHED_WINDOW_MS;
+    }
+
+    function getScheduleStatusInfo(match, referenceMs = Date.now()) {
+        const statusShort = String(match?.status?.short || match?.statusShort || '').toUpperCase();
+        const timingState = getScheduleTimingState(match, referenceMs);
+        const isLive = timingState.isLive || ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'].includes(statusShort);
+        const isUpdateOpen = timingState.isUpdateOpen;
+        const catalogMatch = typeof findMatchCatalogForScheduleEntry === 'function'
+            ? findMatchCatalogForScheduleEntry(match)
+            : null;
+        const hasRecordedResult = !!(catalogMatch && getScheduleScoreParts(match, catalogMatch));
+        const isFinished = timingState.isFinished || ['FT', 'AET', 'PEN'].includes(statusShort) || (!isLive && !isUpdateOpen && hasRecordedResult);
+        return {
+            timingState,
+            isFinished,
+            isLive,
+            isUpdateOpen,
+            isUpcoming: !isFinished && !isLive && !isUpdateOpen,
+            isRecentFinished: isRecentScheduleFinished(match, { ...timingState, isFinished }, referenceMs)
         };
     }
 
@@ -7199,8 +7333,11 @@
 
     function getScheduleScoreParts(m, mc) {
         const goals = m?.goals || {};
-        const home = goals.home ?? goals.homeGoals ?? m?.homeGoals ?? m?.scoreHome ?? m?.homeScore ?? null;
-        const away = goals.away ?? goals.awayGoals ?? m?.awayGoals ?? m?.scoreAway ?? m?.awayScore ?? null;
+        const score = m?.score || {};
+        const fulltime = score.fulltime || score.fullTime || score.ft || {};
+        const regular = score.regular || score.regularTime || {};
+        const home = goals.home ?? goals.homeGoals ?? score.home ?? score.homeGoals ?? fulltime.home ?? fulltime.homeGoals ?? regular.home ?? m?.homeGoals ?? m?.scoreHome ?? m?.homeScore ?? null;
+        const away = goals.away ?? goals.awayGoals ?? score.away ?? score.awayGoals ?? fulltime.away ?? fulltime.awayGoals ?? regular.away ?? m?.awayGoals ?? m?.scoreAway ?? m?.awayScore ?? null;
         if (home !== null || away !== null) return { home: home ?? 0, away: away ?? 0 };
 
         const parsed = mc ? parseResultString(mc.resultText || '') : null;
@@ -7458,9 +7595,100 @@
         </div>`;
     }
 
+    function compareScheduleKickoffAsc(a, b) {
+        const da = getScheduleKickoffMs(a) || Number.MAX_SAFE_INTEGER;
+        const db = getScheduleKickoffMs(b) || Number.MAX_SAFE_INTEGER;
+        if (da !== db) return da - db;
+        return String(a.id || '').localeCompare(String(b.id || ''), 'de');
+    }
+
+    function compareScheduleKickoffDesc(a, b) {
+        const da = getScheduleKickoffMs(a) || 0;
+        const db = getScheduleKickoffMs(b) || 0;
+        if (da !== db) return db - da;
+        return String(a.id || '').localeCompare(String(b.id || ''), 'de');
+    }
+
+    function applyScheduleStatusFilter(matches) {
+        const filter = SCHEDULE_STATUS_FILTERS.includes(currentScheduleStatusFilter)
+            ? currentScheduleStatusFilter
+            : 'current';
+        const now = Date.now();
+        const enriched = (matches || []).map((match) => ({
+            match,
+            info: getScheduleStatusInfo(match, now)
+        }));
+
+        if (filter === 'upcoming') {
+            return enriched
+                .filter(({ info }) => info.isUpcoming)
+                .map(({ match }) => match)
+                .sort(compareScheduleKickoffAsc);
+        }
+
+        if (filter === 'finished') {
+            return enriched
+                .filter(({ info }) => info.isFinished)
+                .map(({ match }) => match)
+                .sort(compareScheduleKickoffDesc);
+        }
+
+        if (filter === 'all') {
+            return enriched
+                .map(({ match }) => match)
+                .sort(compareScheduleKickoffAsc);
+        }
+
+        const nextUpcoming = enriched
+            .filter(({ info }) => info.isUpcoming)
+            .map(({ match }) => match)
+            .sort(compareScheduleKickoffAsc)
+            .slice(0, 8);
+        const nextUpcomingSet = new Set(nextUpcoming);
+
+        return enriched
+            .filter(({ match, info }) => {
+                return info.isLive || info.isUpdateOpen || info.isRecentFinished || nextUpcomingSet.has(match);
+            })
+            .map(({ match, info }) => ({ match, info }))
+            .sort((a, b) => {
+                const rank = (info) => {
+                    if (info.isLive) return 0;
+                    if (info.isUpdateOpen) return 1;
+                    if (info.isUpcoming) return 2;
+                    if (info.isRecentFinished) return 3;
+                    return 4;
+                };
+                const rankDiff = rank(a.info) - rank(b.info);
+                if (rankDiff) return rankDiff;
+                if (a.info.isRecentFinished && b.info.isRecentFinished) {
+                    return compareScheduleKickoffDesc(a.match, b.match);
+                }
+                return compareScheduleKickoffAsc(a.match, b.match);
+            })
+            .map(({ match }) => match);
+    }
+
+    function updateScheduleStatusFilterButtons() {
+        document.querySelectorAll('[data-schedule-status-filter]').forEach((btn) => {
+            const isActive = btn.getAttribute('data-schedule-status-filter') === currentScheduleStatusFilter;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', String(isActive));
+        });
+    }
+
+    function setScheduleStatusFilter(filter, push = false) {
+        currentScheduleStatusFilter = SCHEDULE_STATUS_FILTERS.includes(filter) ? filter : 'current';
+        updateScheduleStatusFilterButtons();
+        renderScheduleView();
+        updateUrl(push);
+        syncSidebarHeight();
+    }
+
     function renderScheduleView() {
         const el = document.getElementById('schedule-list');
         if (!el) return;
+        updateScheduleStatusFilterButtons();
 
         if (!scheduleCatalog.length) {
             el.innerHTML = `<div class="schedule-empty-state">
@@ -7495,11 +7723,22 @@
                 m.teamA === currentScheduleNationFilter || m.teamB === currentScheduleNationFilter
             );
         }
+        filteredSchedule = applyScheduleStatusFilter(filteredSchedule);
 
         if (!filteredSchedule.length) {
+            const filterLabels = {
+                current: 'aktuelle',
+                upcoming: 'kommende',
+                finished: 'abgeschlossene',
+                all: ''
+            };
+            const statusText = filterLabels[currentScheduleStatusFilter] || '';
+            const emptyLabel = currentScheduleNationFilter !== 'ALL'
+                ? `Keine ${statusText ? statusText + ' ' : ''}Spiele fuer dieses Land gefunden.`
+                : `Keine ${statusText ? statusText + ' ' : ''}Spiele gefunden.`;
             el.innerHTML = `<div class="schedule-empty-state">
                 <div style="font-size:2rem;margin-bottom:10px;">🔍</div>
-                <div style="font-size:0.9rem;font-weight:700;color:var(--text-muted,#8b949e);">Keine Spiele für dieses Land gefunden.</div>
+                <div style="font-size:0.9rem;font-weight:700;color:var(--text-muted,#8b949e);">${escapeHtml(emptyLabel)}</div>
             </div>`;
             return;
         }
@@ -7518,9 +7757,6 @@
             if (!grouped.has(key)) grouped.set(key, []);
             grouped.get(key).push(m);
         });
-
-        const FINISHED = ['FT', 'AET', 'PEN'];
-        const LIVE_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
 
         let html = '';
 
@@ -7547,13 +7783,15 @@
                 const validDt = dt && !Number.isNaN(dt.getTime());
                 const timeLabel = validDt ? dt.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
-                const statusShort = String(m.status?.short || '').toUpperCase();
-                const timingState = getScheduleTimingState(m);
-                const isFinished = timingState.isFinished || FINISHED.includes(statusShort);
-                const isLive = timingState.isLive || LIVE_STATUSES.includes(statusShort);
-                const isUpdateOpen = timingState.isUpdateOpen;
                 const mc = findMatchCatalogForScheduleEntry(m);
                 const scoreParts = getScheduleScoreParts(m, mc);
+                const statusInfo = getScheduleStatusInfo(m);
+                const isFinished = statusInfo.isFinished || (!!mc && !!scoreParts);
+                const isLive = statusInfo.isLive;
+                const isUpdateOpen = statusInfo.isUpdateOpen;
+                const kickoffMetaHtml = isFinished && validDt
+                    ? `<div class="sc-kickoff-meta">Anpfiff ${escapeHtml(timeLabel)}</div>`
+                    : '';
 
                 // Score / time center display
                 let centerHtml = '';
@@ -7572,7 +7810,12 @@
                         : `<div class="sc-time">${escapeHtml(timeLabel)}</div>`;
                     matchStatusCls = 'sc-card--pending';
                 } else if (isFinished && scoreParts) {
-                    centerHtml = `<div class="sc-score sc-finished">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`;
+                    centerHtml = `<div class="sc-finished-pill">Final</div>`;
+                    centerHtml += `<div class="sc-score sc-finished">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`;
+                    centerHtml += kickoffMetaHtml;
+                    matchStatusCls = 'sc-card--finished';
+                } else if (isFinished) {
+                    centerHtml = `<div class="sc-finished-pill">Final</div><div class="sc-time">${escapeHtml(timeLabel)}</div>${kickoffMetaHtml}`;
                     matchStatusCls = 'sc-card--finished';
                 } else {
                     centerHtml = `<div class="sc-time">${escapeHtml(timeLabel)}</div><div class="sc-vs">VS</div>`;
@@ -7610,9 +7853,9 @@
                 // re-renders the same players in larger cards.
                 const homeDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamA);
                 const awayDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamB);
-                const showLivePlayerPoints = isLive && !!mc;
-                const homeAvatars = renderScheduleAvatars(homeDrafted, false, showLivePlayerPoints);
-                const awayAvatars = renderScheduleAvatars(awayDrafted, true, showLivePlayerPoints);
+                const showMatchPlayerPoints = (isLive || isFinished) && !!mc;
+                const homeAvatars = renderScheduleAvatars(homeDrafted, false, showMatchPlayerPoints);
+                const awayAvatars = renderScheduleAvatars(awayDrafted, true, showMatchPlayerPoints);
 
                 const ariaLabelPrefix = groupStageLabel || spielNrLabel;
                 const ariaLabel = `${ariaLabelPrefix ? ariaLabelPrefix + ': ' : ''}${m.teamA} gegen ${m.teamB} – ${isExpanded ? 'Details ausblenden' : 'Details anzeigen'}`;
@@ -11351,6 +11594,11 @@
     // since the dedicated Länder view has been replaced by Vergleiche.
     function openGamesViewWithNation(nation, matchNumber = null) {
         currentScheduleNationFilter = nation || 'ALL';
+        currentScheduleStatusFilter = 'all';
+        const matchNr = Number(matchNumber);
+        if (Number.isFinite(matchNr) && matchNr > 0) {
+            pendingScheduleFocus = { matchId: null, matchNr };
+        }
         setView('games', true);
         renderScheduleView();
         renderScheduleCountryList();
@@ -11401,6 +11649,10 @@
 
         currentView = state.view;
         currentScheduleNationFilter = state.scheduleNation || 'ALL';
+        currentScheduleStatusFilter = state.scheduleStatus || 'current';
+        if (currentView === 'games' && (state.matchId || state.matchNr) && !state.hasScheduleStatus) {
+            currentScheduleStatusFilter = 'all';
+        }
 
         // Capture an incoming Spiele focus request (matchId / matchNr) so
         // setView('games') below can auto-expand and scroll to the right
@@ -11593,6 +11845,12 @@
         renderScheduleCountryList();
         updateUrl(false);
         updateMobileFilterButtonLabel();
+    });
+
+    document.querySelectorAll('[data-schedule-status-filter]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            setScheduleStatusFilter(btn.getAttribute('data-schedule-status-filter'), true);
+        });
     });
 
     document.getElementById('schedule-sort-name').addEventListener('click', () => {

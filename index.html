@@ -3266,6 +3266,16 @@
             border-bottom-color: rgba(251,191,36,0.18);
         }
 
+        .nm-match-row.finished {
+            padding-left: 10px;
+            padding-right: 10px;
+            margin-left: -10px;
+            margin-right: -10px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, rgba(34,197,94,0.08), rgba(255,255,255,0.025));
+            border-bottom-color: rgba(34,197,94,0.18);
+        }
+
         @keyframes nmLiveTilePulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); }
             50% { box-shadow: 0 0 0 4px rgba(248,113,113,0.1); }
@@ -3411,6 +3421,12 @@
             color: #fbbf24;
         }
 
+        .nm-time-badge.finished {
+            background: rgba(34,197,94,0.14);
+            border-color: rgba(74,222,128,0.32);
+            color: #4ade80;
+        }
+
         .nm-time-sub {
             font-size: 0.7rem;
             color: var(--text-muted);
@@ -3451,6 +3467,11 @@
         .nm-score-display.live {
             color: var(--text-main);
             text-shadow: 0 0 18px rgba(248,113,113,0.28);
+        }
+
+        .nm-score-display.finished {
+            color: var(--green-light);
+            text-shadow: 0 0 14px rgba(34,197,94,0.20);
         }
 
         .nm-score-sep {
@@ -6106,17 +6127,17 @@
         <!-- ───────── Above-the-fold ───────── -->
         <section class="post-fold">
 
-            <!-- 1. Nächste Spiele -->
+            <!-- 1. Aktuelle Spiele -->
             <div class="glass post-fold-matches" id="post-matches-panel">
                 <div class="glass-deco" style="left:-60px;right:auto;background:radial-gradient(circle, rgba(255,215,0,0.15), transparent 65%);" aria-hidden="true"></div>
                 <div class="post-h">
                     <div class="post-h-title">
                         <span class="post-h-icon cyan">📅</span>
-                        Nächste Spiele
+                        Aktuelle Spiele
                     </div>
                     <a class="post-h-link" href="spieleranalyse.html?view=games">Alle →</a>
                 </div>
-                <div id="tile-post-next-matches" class="match-ticker" aria-label="Kommende Spiele">
+                <div id="tile-post-next-matches" class="match-ticker" aria-label="Aktuelle Spiele">
                     <div class="skel" style="height:64px;margin-bottom:8px;border-radius:12px;"></div>
                     <div class="skel" style="height:64px;margin-bottom:8px;border-radius:12px;"></div>
                     <div class="skel" style="height:64px;border-radius:12px;"></div>
@@ -8699,6 +8720,7 @@
     const FINISHED_MATCH_STATUSES = ['FT', 'AET', 'PEN'];
     const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
     const OPTIMISTIC_LIVE_WINDOW_MIN = 150;
+    const RECENT_FINISHED_MATCH_WINDOW_MS = 24 * 60 * 60 * 1000;
 
     function isMatchFinishedStatus(statusShort) {
         return FINISHED_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
@@ -8782,6 +8804,27 @@
         };
     }
 
+    function getFinishedMatchReferenceMs(match, timingState) {
+        return firstFixtureEpochMs([
+            match?.finishedAtMs,
+            match?.finishedAt,
+            match?.fulltimeAt,
+            match?.endedAt,
+            match?.updatedAt,
+            match?.lastUpdated,
+            match?.fixture?.updated,
+            timingState?.kickoffMs
+        ]);
+    }
+
+    function isRecentFinishedMatch(match, timingState, referenceMs = Date.now()) {
+        if (!timingState?.isFinished) return false;
+        const finishedRefMs = getFinishedMatchReferenceMs(match, timingState);
+        if (!finishedRefMs) return false;
+        const ageMs = referenceMs - finishedRefMs;
+        return ageMs >= 0 && ageMs <= RECENT_FINISHED_MATCH_WINDOW_MS;
+    }
+
     function formatMatchLiveMinute(match) {
         const statusShort = String(match?.statusShort || match?.status?.short || '').toUpperCase();
         const elapsedRaw = match?.statusElapsed ?? match?.status?.elapsed;
@@ -8796,9 +8839,12 @@
     }
 
     function getMatchScoreParts(match) {
-        const goals = match?.goals || match?.score || {};
-        const home = goals.home ?? goals.homeGoals ?? goals.homeTeam ?? match?.goalsHome ?? match?.homeGoals ?? match?.scoreHome ?? match?.homeScore ?? null;
-        const away = goals.away ?? goals.awayGoals ?? goals.awayTeam ?? match?.goalsAway ?? match?.awayGoals ?? match?.scoreAway ?? match?.awayScore ?? null;
+        const goals = match?.goals || {};
+        const score = match?.score || {};
+        const fulltime = score.fulltime || score.fullTime || score.ft || {};
+        const regular = score.regular || score.regularTime || {};
+        const home = goals.home ?? goals.homeGoals ?? goals.homeTeam ?? score.home ?? score.homeGoals ?? fulltime.home ?? fulltime.homeGoals ?? regular.home ?? match?.goalsHome ?? match?.homeGoals ?? match?.scoreHome ?? match?.homeScore ?? null;
+        const away = goals.away ?? goals.awayGoals ?? goals.awayTeam ?? score.away ?? score.awayGoals ?? fulltime.away ?? fulltime.awayGoals ?? regular.away ?? match?.goalsAway ?? match?.awayGoals ?? match?.scoreAway ?? match?.awayScore ?? null;
         if (home === null && away === null) return null;
         return { home: home ?? 0, away: away ?? 0 };
     }
@@ -9021,14 +9067,33 @@
         const matchInfos = extractMatchInfo(data);
 
         const now = Date.now();
-        // Keep open matches visible until the fixture itself reports a final status.
-        let upcoming = matchInfos.filter((m) => {
-            return !getMatchTimingState(m, now).isFinished;
-        }).sort((a, b) => {
+        const enrichedMatches = matchInfos.map((match) => {
+            const timingState = getMatchTimingState(match, now);
+            return {
+                match,
+                timingState,
+                isRecentFinished: isRecentFinishedMatch(match, timingState, now)
+            };
+        });
+
+        const activeAndRecent = enrichedMatches.filter(({ timingState, isRecentFinished }) => {
+            return !timingState.isFinished || isRecentFinished;
+        });
+        const upcomingFuture = enrichedMatches
+            .filter(({ timingState }) => {
+                return !timingState.isFinished && !timingState.isLive && !timingState.isUpdateOpen;
+            })
+            .sort((a, b) => getMatchOrderingMs(a.match) - getMatchOrderingMs(b.match))
+            .slice(0, 3);
+        const selectedFutureMatches = new Set(upcomingFuture.map(({ match }) => match));
+
+        let upcoming = activeAndRecent.filter(({ match, timingState, isRecentFinished }) => {
+            return isRecentFinished || timingState.isLive || timingState.isUpdateOpen || selectedFutureMatches.has(match);
+        }).map(({ match }) => match).sort((a, b) => {
             const da = getMatchOrderingMs(a);
             const db2 = getMatchOrderingMs(b);
             return da - db2;
-        }).slice(0, 3);
+        });
 
         // If no real upcoming data available, use turnier-spezifische Fallbacks
         if (!upcoming.length) {
@@ -9036,7 +9101,7 @@
         }
 
         if (!upcoming.length) {
-            container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div>Keine bevorstehenden Spiele gefunden.</div>`;
+            container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div>Keine aktuellen Spiele gefunden.</div>`;
             return;
         }
 
@@ -9048,7 +9113,7 @@
             let flagA = match.homeLogo || match.teamAFlag || '';
             let flagB = match.awayLogo || match.teamBFlag || '';
             const dateStr = match.date || match.datetime || match.kickoff || '';
-            const statusShort = match.statusShort || '';
+            const statusShort = match.statusShort || match.status?.short || '';
 
             if (!teamA || !teamB) {
                 const nations = getNationFromMatchGame(matchId, data);
@@ -9061,6 +9126,8 @@
 
             const timingState = getMatchTimingState(match, now);
             let isLive = timingState.isLive;
+            const isFinished = timingState.isFinished;
+            const isRecentFinished = isRecentFinishedMatch(match, timingState, now);
             const isUpdateOpen = timingState.isUpdateOpen;
             const scoreParts = getMatchScoreParts(match);
 
@@ -9069,7 +9136,16 @@
             let timeBadgeCls = '';
             let timeSubText = '';
 
-            if (isLive) {
+            if (isFinished) {
+                timeBadgeText = 'Final';
+                timeBadgeCls = 'finished';
+                if (timingState.kickoffMs) {
+                    const kickoffDate = new Date(timingState.kickoffMs);
+                    const swissDayDiff = getSwissCalendarDayDiff(kickoffDate, now);
+                    const datePrefix = swissDayDiff === 0 ? '' : `${formatSwissMatchDate(kickoffDate)} `;
+                    timeSubText = `Anpfiff ${datePrefix}${formatSwissMatchTime(kickoffDate)}`;
+                }
+            } else if (isLive) {
                 timeBadgeText = formatMatchLiveMinute(match);
                 timeBadgeCls = 'live';
             } else if (isUpdateOpen) {
@@ -9104,6 +9180,8 @@
                 timeBadgeText = '–';
             }
 
+            const showPlayerPoints = isLive || isRecentFinished;
+
             // Venue line
             const venueText = match.venue && match.venue !== 'Spielort folgt'
                 ? `${match.venue}${match.venueCity ? ' · ' + match.venueCity : ''}`
@@ -9129,7 +9207,7 @@
             function buildChips(players) {
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
-                    const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
+                    const pts = showPlayerPoints ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
                     const ptsHtml = pts !== null
                         ? `<span class="nm-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
                         : '';
@@ -9160,7 +9238,7 @@
 
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
-                    const pts = isLive ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
+                    const pts = showPlayerPoints ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
                     const ptsHtml = pts !== null
                         ? `<span class="nm-detail-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
                         : '';
@@ -9221,12 +9299,12 @@
                 </div>
             </div>`;
 
-            const liveScoreHtml = isLive && scoreParts ? `
-                <div class="nm-score-display live">${escapeHtml(String(scoreParts.home))}<span class="nm-score-sep">:</span>${escapeHtml(String(scoreParts.away))}</div>
+            const scoreHtml = (isLive || isFinished) && scoreParts ? `
+                <div class="nm-score-display ${isLive ? 'live' : 'finished'}">${escapeHtml(String(scoreParts.home))}<span class="nm-score-sep">:</span>${escapeHtml(String(scoreParts.away))}</div>
             ` : '';
 
             return `
-                <div class="nm-match-row${isLive ? ' live' : ''}${isUpdateOpen ? ' pending' : ''}${isExpanded ? ' is-expanded' : ''}" data-match-key="${escapeHtml(matchKey)}" data-match-label="${escapeHtml(matchLabel)}">
+                <div class="nm-match-row${isLive ? ' live' : ''}${isRecentFinished ? ' finished' : ''}${isUpdateOpen ? ' pending' : ''}${isExpanded ? ' is-expanded' : ''}" data-match-key="${escapeHtml(matchKey)}" data-match-label="${escapeHtml(matchLabel)}">
                     <button type="button" class="nm-match-toggle-btn" onclick="toggleNextMatchDetails(this)" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="${escapeHtml(detailId)}" aria-label="${escapeHtml(detailAriaLabel)}">
                         <div class="nm-match-main">
                             <div class="nm-team-side">
@@ -9235,7 +9313,7 @@
                             </div>
                             <div class="nm-center-col">
                                 <div class="nm-time-badge ${timeBadgeCls}">${escapeHtml(timeBadgeText)}</div>
-                                ${liveScoreHtml}
+                                ${scoreHtml}
                                 ${stageLabel ? `<div class="nm-stage-label">${escapeHtml(stageLabel)}</div>` : ''}
                                 ${timeSubText ? `<div class="nm-time-sub">${escapeHtml(timeSubText)}</div>` : ''}
                                 ${venueText ? `<div class="nm-time-sub nm-venue-inline">${escapeHtml(venueText)}</div>` : ''}
