@@ -282,8 +282,9 @@ gh run list --repo vonallmenalain/dt --limit 12
 Workflow manuell testen:
 
 1. GitHub -> Actions -> `Auto Punkte-Upload` -> `Run workflow`.
-2. Fuer Diagnose zuerst `dry_run=true`.
-3. Fuer kompletten Catch-up/Recompute `force_run=true`.
+2. `force_run` aus lassen, um den normalen Live-Monitor/Scheduled Run
+   manuell neu zu starten.
+3. `force_run=true` setzen, um kompletten Catch-up/Recompute zu erzwingen.
 4. Logs pruefen:
    - effektive Konfiguration,
    - Kandidatenzahl,

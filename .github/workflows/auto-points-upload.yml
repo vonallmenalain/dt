@@ -41,56 +41,11 @@ on:
     - cron: "*/5 * 1-21 7 *"
   workflow_dispatch:
     inputs:
-      tournament_key:
-        description: "Turnier-Key (leer = Default aus tournament-config.js)."
-        required: false
-        type: string
-        default: ""
       force_run:
-        description: "Pre-Check überspringen und Workflow erzwingen (Catch-Up)."
+        description: "Aus = normalen Live-Monitor/Scheduled Run starten. An = Force/Catch-up mit Pre-Check überspringen."
         required: false
         type: boolean
         default: false
-      dry_run:
-        description: "Nichts in Firestore schreiben – nur Logs."
-        required: false
-        type: boolean
-        default: false
-      window_start_min:
-        description: "Optionaler Test-Override: Start des Live-Fensters in Minuten relativ zum Anpfiff."
-        required: false
-        type: string
-        default: ""
-      window_end_min:
-        description: "Optionaler Test-Override: Ende des Live-Fensters in Minuten relativ zum Anpfiff."
-        required: false
-        type: string
-        default: ""
-      final_recheck_min:
-        description: "Optionaler Test-Override: Final-Recheck in Minuten nach Anpfiff."
-        required: false
-        type: string
-        default: ""
-      live_ticks_per_run:
-        description: "Optionaler Test-Override: Anzahl Live-Ticks in diesem Run."
-        required: false
-        type: string
-        default: ""
-      live_tick_interval_sec:
-        description: "Optionaler Test-Override: Sekunden zwischen Live-Ticks."
-        required: false
-        type: string
-        default: ""
-      idle_wait_max_min:
-        description: "Optionaler Test-Override: Minuten, die ein Run ohne Kandidaten auf das nächste Live-Fenster wartet."
-        required: false
-        type: string
-        default: ""
-      session_max_min:
-        description: "Optionaler Test-Override: maximale Dauer der Monitor-Session in Minuten."
-        required: false
-        type: string
-        default: ""
 
 concurrency:
   group: auto-points-upload-${{ github.ref }}
@@ -121,24 +76,14 @@ jobs:
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          TOURNAMENT_KEY: ${{ github.event_name == 'workflow_dispatch' && inputs.tournament_key || '' }}
-          POINTS_WINDOW_START_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.window_start_min || '' }}
-          POINTS_WINDOW_END_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.window_end_min || '' }}
-          POINTS_FINAL_RECHECK_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.final_recheck_min || '' }}
-          POINTS_LIVE_TICKS_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.live_ticks_per_run || '' }}
-          POINTS_LIVE_TICK_INTERVAL_SEC: ${{ github.event_name == 'workflow_dispatch' && inputs.live_tick_interval_sec || '' }}
-          POINTS_IDLE_WAIT_MAX_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.idle_wait_max_min || '' }}
-          POINTS_SESSION_MAX_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.session_max_min || '' }}
-          FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
-          DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
+          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.force_run == true && '1' || '0' }}
         run: |
           echo "[auto-points] Effective workflow config:"
-          echo "tournamentKey=${TOURNAMENT_KEY:-'(default)'}"
-          echo "windowStartMin=${POINTS_WINDOW_START_MIN:-'(default)'}"
-          echo "windowEndMin=${POINTS_WINDOW_END_MIN:-'(default)'}"
-          echo "finalRecheckMin=${POINTS_FINAL_RECHECK_MIN:-'(default)'}"
-          echo "liveTicksPerRun=${POINTS_LIVE_TICKS_PER_RUN:-'(default)'}"
-          echo "liveTickIntervalSec=${POINTS_LIVE_TICK_INTERVAL_SEC:-'(default)'}"
+          if [ "$FORCE_RUN" = "1" ]; then
+            echo "mode=force/catch-up"
+          else
+            echo "mode=live-monitor"
+          fi
+          echo "defaults=code"
           echo "forceRun=${FORCE_RUN}"
-          echo "dryRun=${DRY_RUN}"
           node auto-points-upload.js

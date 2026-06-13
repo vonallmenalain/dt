@@ -152,23 +152,25 @@ auseinanderlaufen:
 | API-Retry-Basis-Backoff    | `1000` ms                          | `scripts/auto-points-upload.js`                                 |
 
 In `Settings → Secrets and variables → Actions → Variables` sollten deshalb
-keine `POINTS_*`-Variables und kein `TOURNAMENT_KEY` gesetzt sein. Fuer
-einmalige Tests nutzt man die Inputs bei **Run workflow**.
+keine `POINTS_*`-Variables und kein `TOURNAMENT_KEY` gesetzt sein.
 
 ### Manuelles Auslösen
 
-Tab **Actions** → Workflow auswählen → **Run workflow**. Inputs:
+Tab **Actions** → Workflow auswählen → **Run workflow**.
+
+Beim Workflow `Auto Punkte-Upload` gibt es nur noch einen Input:
+
+- `force_run` aus: normalen Live-Monitor/Scheduled Run manuell starten,
+  zum Beispiel wenn ein laufender Schedule abgebrochen ist.
+- `force_run` an: Pre-Check überspringen und kompletten Catch-up/Recompute
+  erzwingen.
+
+Beim Workflow `Auto Spielplan-Sync` gibt es weiterhin Test-Inputs:
 
 - `tournament_key` – überschreibt das Default-Turnier.
-- `force_run` *(nur Auto-Punkte-Upload)* – Pre-Check überspringen
-  (kompletter Recompute).
 - `dry_run` – Skript loggt nur, schreibt nichts in Firestore.
-- `window_start_min`, `window_end_min`, `final_recheck_min`,
-  `live_ticks_per_run`, `live_tick_interval_sec`, `idle_wait_max_min`,
-  `session_max_min` *(nur Auto-Punkte-Upload)* – optionale
-  Test-Overrides für einen einzelnen manuellen Lauf.
-- `skip_venues` *(nur Spielplan-Sync)* – Venue-Detail-Calls auslassen
-  (spart API-Quota, wenn sich an den Stadien nichts ändert).
+- `skip_venues` – Venue-Detail-Calls auslassen (spart API-Quota, wenn sich
+  an den Stadien nichts ändert).
 
 ### Lokal testen
 
