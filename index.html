@@ -9840,11 +9840,51 @@
     }
 
     let champReadyTimer = null;
+    let champStageSignature = null;
+    let champStageRendered = false;
+
+    function getChampStageSignature(rankedManagers) {
+        const managers = Array.isArray(rankedManagers) ? rankedManagers : [];
+        const duplicateFirstNames = Array.from(champDuplicateFirstNameKeys(managers)).sort();
+
+        return JSON.stringify({
+            duplicateFirstNames,
+            stage: managers.slice(0, 7).map((m, idx) => {
+                const rank = idx + 1;
+                const layout = CHAMP_LAYOUTS[rank] || CHAMP_LAYOUTS[2];
+                const playerLimit = rank <= 3 ? Math.min(layout.length, 8) : 0;
+                const displayedPlayers = playerLimit
+                    ? (m.mergedPlayers || [])
+                        .filter((p) => Number.isFinite(p.pts))
+                        .slice(0, playerLimit)
+                        .map((p) => ({
+                            id: String(p.id ?? ''),
+                            name: p.name || '',
+                            pts: Number(p.pts) || 0,
+                            isCaptain: !!p.isCaptain,
+                            photo: p.photo || ''
+                        }))
+                    : [];
+
+                return {
+                    rank,
+                    manager: m.manager || 'Unbekannt',
+                    totalScore: Number(m.totalScore) || 0,
+                    displayedPlayers
+                };
+            })
+        });
+    }
 
     function renderChampStage(rankedManagers) {
         const podium  = document.getElementById('champPodium');
         const chasers = document.getElementById('champChasers');
         if (!podium || !chasers) return;
+
+        const signature = getChampStageSignature(rankedManagers);
+        if (champStageRendered && signature === champStageSignature) return;
+        champStageSignature = signature;
+        champStageRendered = true;
 
         if (champReadyTimer !== null) {
             clearTimeout(champReadyTimer);
