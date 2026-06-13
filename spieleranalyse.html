@@ -7072,7 +7072,6 @@
 
     const OPTIMISTIC_SCHEDULE_LIVE_WINDOW_MIN = 150;
     const RECENT_SCHEDULE_FINISHED_WINDOW_MS = 48 * 60 * 60 * 1000;
-    const CURRENT_SCHEDULE_RECENT_FINISHED_LIMIT = 2;
     const SCHEDULE_STATUS_FILTERS = ['current', 'upcoming', 'finished', 'all'];
 
     function normalizeScheduleEpochMs(value) {
@@ -7149,24 +7148,11 @@
         };
     }
 
-    function getScheduleFinishedReferenceMs(match, timingState) {
-        return firstScheduleEpochMs([
-            match?.finishedAtMs,
-            match?.finishedAt,
-            match?.fulltimeAt,
-            match?.endedAt,
-            match?.updatedAt,
-            match?.lastUpdated,
-            match?.fixture?.updated,
-            timingState?.kickoffMs
-        ]);
-    }
-
     function isRecentScheduleFinished(match, timingState, referenceMs = Date.now()) {
         if (!timingState?.isFinished) return false;
-        const finishedRefMs = getScheduleFinishedReferenceMs(match, timingState);
-        if (!finishedRefMs) return false;
-        const ageMs = referenceMs - finishedRefMs;
+        const kickoffMs = timingState.kickoffMs || getScheduleKickoffMs(match);
+        if (!kickoffMs) return false;
+        const ageMs = referenceMs - kickoffMs;
         return ageMs >= 0 && ageMs <= RECENT_SCHEDULE_FINISHED_WINDOW_MS;
     }
 
@@ -7646,16 +7632,9 @@
             .sort(compareScheduleKickoffAsc)
             .slice(0, 8);
         const nextUpcomingSet = new Set(nextUpcoming);
-        const recentFinished = enriched
-            .filter(({ info }) => info.isRecentFinished)
-            .map(({ match }) => match)
-            .sort(compareScheduleKickoffDesc)
-            .slice(0, CURRENT_SCHEDULE_RECENT_FINISHED_LIMIT);
-        const recentFinishedSet = new Set(recentFinished);
-
         return enriched
             .filter(({ match, info }) => {
-                return info.isLive || info.isUpdateOpen || recentFinishedSet.has(match) || nextUpcomingSet.has(match);
+                return info.isLive || info.isUpdateOpen || info.isRecentFinished || nextUpcomingSet.has(match);
             })
             .map(({ match }) => match)
             .sort(compareScheduleKickoffAsc);
