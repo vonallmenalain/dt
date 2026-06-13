@@ -28,38 +28,10 @@ name: Auto Punkte-Upload
 #   RAPIDAPI_KEY               RapidAPI / API-Football Key.
 #   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON als String.
 #
-# Optionale Repo-Variables (Settings → Secrets and variables → Actions
-# → Tab Variables) – alle Defaults sind in tournament-config.js bzw.
-# im Skript hinterlegt, hier nur Overrides ohne Code-Edit:
-#   TOURNAMENT_KEY        Überschreibt das Default-Turnier aus
-#                         tournament-config.js. Aktuell unterstützt:
-#                         wm2026.
-#   POINTS_WINDOW_START_MIN  Default -10 – Start des Live-Fensters
-#                            relativ zum Anpfiff.
-#   POINTS_WINDOW_END_MIN    Default 150 – Ende des normalen Live-
-#                            Fensters relativ zum Anpfiff. Danach bleibt
-#                            ein offenes Spiel als Catch-up-Kandidat aktiv.
-#   POINTS_FINAL_RECHECK_MIN Default 240 – beendete Spiele bleiben bis so
-#                            viele Minuten nach Anpfiff Recheck-Kandidaten,
-#                            damit spaete API-Korrekturen nachgezogen werden.
-#   POINTS_LIVE_TICKS_PER_RUN
-#                            Default 520 – Anzahl Live-Ticks innerhalb
-#                            eines GitHub-Runs. Scheduled Runs werden
-#                            defensiv mindestens auf 520 gehoben, selbst
-#                            wenn eine alte Repo-Variable kleiner ist.
-#   POINTS_LIVE_TICK_INTERVAL_SEC
-#                            Default 30 – Abstand zwischen Live-Ticks.
-#                            Scheduled Runs werden defensiv mindestens
-#                            auf 30 Sekunden gehoben.
-#   POINTS_IDLE_WAIT_MAX_MIN
-#                            Default 240 – max. Wartezeit ohne Kandidat
-#                            bis zum nächsten Live-Fenster.
-#   POINTS_SESSION_MAX_MIN
-#                            Default 330 – max. Dauer einer Monitor-Session.
-#   POINTS_API_RETRY_ATTEMPTS
-#                            Default 3 – Retry-Versuche pro API-Request.
-#   POINTS_API_RETRY_BASE_DELAY_MS
-#                            Default 1000 – Basis-Backoff für API-Retries.
+# Repo-Variables werden fuer diesen Workflow bewusst nicht gelesen.
+# Produktive Defaults liegen in tournament-config.js und
+# scripts/auto-points-upload.js. Fuer Tests koennen die workflow_dispatch
+# Inputs unten einen einzelnen manuellen Run ueberschreiben.
 on:
   schedule:
     # Alle 5 Minuten vom 11.–30. Juni 2026 (WM-Gruppenphase + KO-Start).
@@ -149,16 +121,14 @@ jobs:
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
-          POINTS_WINDOW_START_MIN: ${{ inputs.window_start_min != '' && inputs.window_start_min || vars.POINTS_WINDOW_START_MIN }}
-          POINTS_WINDOW_END_MIN: ${{ inputs.window_end_min != '' && inputs.window_end_min || vars.POINTS_WINDOW_END_MIN }}
-          POINTS_FINAL_RECHECK_MIN: ${{ inputs.final_recheck_min != '' && inputs.final_recheck_min || vars.POINTS_FINAL_RECHECK_MIN }}
-          POINTS_LIVE_TICKS_PER_RUN: ${{ inputs.live_ticks_per_run != '' && inputs.live_ticks_per_run || vars.POINTS_LIVE_TICKS_PER_RUN }}
-          POINTS_LIVE_TICK_INTERVAL_SEC: ${{ inputs.live_tick_interval_sec != '' && inputs.live_tick_interval_sec || vars.POINTS_LIVE_TICK_INTERVAL_SEC }}
-          POINTS_IDLE_WAIT_MAX_MIN: ${{ inputs.idle_wait_max_min != '' && inputs.idle_wait_max_min || vars.POINTS_IDLE_WAIT_MAX_MIN }}
-          POINTS_SESSION_MAX_MIN: ${{ inputs.session_max_min != '' && inputs.session_max_min || vars.POINTS_SESSION_MAX_MIN }}
-          POINTS_API_RETRY_ATTEMPTS: ${{ vars.POINTS_API_RETRY_ATTEMPTS }}
-          POINTS_API_RETRY_BASE_DELAY_MS: ${{ vars.POINTS_API_RETRY_BASE_DELAY_MS }}
+          TOURNAMENT_KEY: ${{ github.event_name == 'workflow_dispatch' && inputs.tournament_key || '' }}
+          POINTS_WINDOW_START_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.window_start_min || '' }}
+          POINTS_WINDOW_END_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.window_end_min || '' }}
+          POINTS_FINAL_RECHECK_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.final_recheck_min || '' }}
+          POINTS_LIVE_TICKS_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.live_ticks_per_run || '' }}
+          POINTS_LIVE_TICK_INTERVAL_SEC: ${{ github.event_name == 'workflow_dispatch' && inputs.live_tick_interval_sec || '' }}
+          POINTS_IDLE_WAIT_MAX_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.idle_wait_max_min || '' }}
+          POINTS_SESSION_MAX_MIN: ${{ github.event_name == 'workflow_dispatch' && inputs.session_max_min || '' }}
           FORCE_RUN: ${{ inputs.force_run == true && '1' || '0' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
         run: |

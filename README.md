@@ -132,28 +132,28 @@ Service-Account-JSON erzeugen:
 2. Den **kompletten** JSON-Inhalt (inkl. `\n` im `private_key`) in das
    Secret einfügen, 1:1.
 
-#### Optionale Repo-Variables
+#### Repo-Variables
 
-`Settings → Secrets and variables → Actions → Tab Variables` – alle
-Variables sind optional und werden nur gebraucht, wenn man den
-Default aus `tournament-config.js` überschreiben will:
+Die Workflows lesen bewusst keine Repository Variables mehr. Produktive
+Defaults liegen nur im Code, damit GitHub Actions und lokale Skripte nicht
+auseinanderlaufen:
 
-| Name                       | Default                            | Bedeutung                                                       |
+| Wert                       | Default                            | Quelle                                                          |
 | -------------------------- | ---------------------------------- | --------------------------------------------------------------- |
-| `TOURNAMENT_KEY`           | Fallback aus `tournament-config.js`| Turnier für beide Workflows.                                    |
-| `POINTS_WINDOW_START_MIN`  | `-10`                              | Auto-Punkte: Start des Live-Fensters relativ zum Anpfiff.       |
-| `POINTS_WINDOW_END_MIN`    | `150`                              | Auto-Punkte: normales Ende des Live-Fensters; danach Catch-up für offene Spiele. |
-| `POINTS_FINAL_RECHECK_MIN` | `240`                              | Auto-Punkte: beendete Spiele bis so viele Minuten nach Anpfiff weiter prüfen. |
-| `POINTS_LIVE_TICKS_PER_RUN` | `520`                             | Auto-Punkte: Anzahl Live-Ticks innerhalb eines GitHub-Runs.     |
-| `POINTS_LIVE_TICK_INTERVAL_SEC` | `30`                         | Auto-Punkte: Abstand zwischen Live-Ticks in Sekunden.           |
-| `POINTS_IDLE_WAIT_MAX_MIN`  | `240`                             | Auto-Punkte: max. Wartezeit ohne Kandidat bis zum nächsten Live-Fenster. |
-| `POINTS_SESSION_MAX_MIN`    | `330`                             | Auto-Punkte: max. Dauer einer Monitor-Session; GitHub-Timeout liegt bei 360 Minuten. |
-| `POINTS_API_RETRY_ATTEMPTS` | `3`                                | Auto-Punkte: Retry-Versuche pro API-Request.                    |
-| `POINTS_API_RETRY_BASE_DELAY_MS` | `1000`                       | Auto-Punkte: Basis-Backoff fuer API-Retries in Millisekunden.   |
+| Turnier                    | `wm2026`                           | `tournament-config.js`                                          |
+| Auto-Punkte Startfenster   | `-10` Minuten                      | `scripts/auto-points-upload.js`                                 |
+| Auto-Punkte normales Ende  | `150` Minuten                      | `scripts/auto-points-upload.js`                                 |
+| Final-Recheck              | `240` Minuten                      | `scripts/auto-points-upload.js`                                 |
+| Live-Ticks pro Run         | `520`                              | `scripts/auto-points-upload.js`                                 |
+| Live-Tick-Intervall        | `30` Sekunden                      | `scripts/auto-points-upload.js`                                 |
+| Idle-Wait                  | `240` Minuten                      | `scripts/auto-points-upload.js`                                 |
+| Session-Max                | `330` Minuten                      | `scripts/auto-points-upload.js`                                 |
+| API-Retry-Versuche         | `3`                                | `scripts/auto-points-upload.js`                                 |
+| API-Retry-Basis-Backoff    | `1000` ms                          | `scripts/auto-points-upload.js`                                 |
 
-Wer dieselbe Variable früher pro Workflow doppelt (z.B.
-`AUTO_UPLOAD_TOURNAMENT_KEY` + `FIXTURES_SYNC_TOURNAMENT_KEY`) gesetzt
-hatte: nur noch `TOURNAMENT_KEY` setzen, beide Workflows lesen sie.
+In `Settings → Secrets and variables → Actions → Variables` sollten deshalb
+keine `POINTS_*`-Variables und kein `TOURNAMENT_KEY` gesetzt sein. Fuer
+einmalige Tests nutzt man die Inputs bei **Run workflow**.
 
 ### Manuelles Auslösen
 

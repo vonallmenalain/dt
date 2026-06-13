@@ -17,7 +17,8 @@
  *       Meta-Dokument – das Signal, mit dem der Client den Cache
  *       invalidiert.
  *
- *  Env-Variablen (aus GitHub Actions Secrets / Variables):
+ *  Env-Variablen (aus GitHub Actions Secrets, manuellen Workflow-Inputs
+ *  oder lokalen Tests; Scheduled Runs nutzen bei leeren Werten die Defaults):
  *    RAPIDAPI_KEY              RapidAPI / API-Football Key (zwingend)
  *    FIREBASE_SERVICE_ACCOUNT  Service-Account-JSON als String (zwingend)
  *    TOURNAMENT_KEY            Optional. Default = Fallback aus

@@ -10,9 +10,10 @@ name: Auto Spielplan-Sync
 #   RAPIDAPI_KEY               RapidAPI / API-Football Key.
 #   FIREBASE_SERVICE_ACCOUNT   Service-Account-JSON als String.
 #
-# Optionale Repo-Variable:
-#   TOURNAMENT_KEY   Überschreibt das Default-Turnier aus
-#                    tournament-config.js. Aktuell unterstützt: wm2026.
+# Repo-Variables werden fuer diesen Workflow bewusst nicht gelesen.
+# Produktiver Default ist tournament-config.js; fuer Tests kann der
+# workflow_dispatch Input `tournament_key` einen einzelnen manuellen Run
+# ueberschreiben.
 on:
   schedule:
     - cron: "0 4 * * *"
@@ -63,7 +64,7 @@ jobs:
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          TOURNAMENT_KEY: ${{ inputs.tournament_key != '' && inputs.tournament_key || vars.TOURNAMENT_KEY }}
+          TOURNAMENT_KEY: ${{ github.event_name == 'workflow_dispatch' && inputs.tournament_key || '' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
           SKIP_VENUES: ${{ inputs.skip_venues == true && '1' || '0' }}
         run: node sync-fixtures.js

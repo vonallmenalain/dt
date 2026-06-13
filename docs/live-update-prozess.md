@@ -15,16 +15,12 @@ der naechste Scheduled Run startet.
 - Workflows `Auto Punkte-Upload` und `Auto Spielplan-Sync` sind aktiv.
 - Actions-Permissions: `enabled=true`, `allowed_actions=all`.
 - Secrets vorhanden: `RAPIDAPI_KEY`, `FIREBASE_SERVICE_ACCOUNT`.
-- Repo-Variables vorhanden: `TOURNAMENT_KEY=wm2026`,
-  `POINTS_WINDOW_START_MIN=-10`, `POINTS_WINDOW_END_MIN=150`,
-  `POINTS_FINAL_RECHECK_MIN=240`. Alte kleinere Live-Overrides wie
-  `POINTS_LIVE_TICKS_PER_RUN=30` oder
-  `POINTS_LIVE_TICK_INTERVAL_SEC=10` werden bei Scheduled Runs defensiv
-  auf mindestens 520 Ticks und 30 Sekunden Abstand gehoben.
-- Nicht gesetzte optionale Variables sind kein Problem; das Script nutzt
-  Defaults: `POINTS_IDLE_WAIT_MAX_MIN=240`, `POINTS_SESSION_MAX_MIN=330`,
-  `POINTS_API_RETRY_ATTEMPTS=3`,
-  `POINTS_API_RETRY_BASE_DELAY_MS=1000`.
+- Repo-Variables werden fuer Scheduled Runs bewusst nicht gelesen. Alte
+  `POINTS_*`-Variables oder `TOURNAMENT_KEY` in GitHub Actions koennen
+  geloescht werden; produktive Defaults liegen in `tournament-config.js`
+  und `scripts/auto-points-upload.js`.
+- Manuelle `workflow_dispatch`-Inputs bleiben als Einmal-Overrides fuer
+  Tests moeglich.
 
 Incident-Check `USA vs Paraguay`, Anpfiff 2026-06-13 03:00 CH-Zeit:
 
@@ -177,7 +173,8 @@ auf einen weiteren GitHub-Schedule-Takt angewiesen zu sein.
 ## Ablauf Auto Punkte-Upload
 
 1. GitHub startet den Workflow per Cron oder `workflow_dispatch`.
-2. Workflow setzt Env aus Secrets, Variables und manuellen Inputs.
+2. Workflow setzt Env aus Secrets und, nur bei manuellen Runs,
+   `workflow_dispatch`-Inputs.
 3. Script prueft Turnier, API-Konfiguration und Auto-Punkte-Phase.
 4. Pre-Check liest nur `Spiele WM 2026` aus Firestore.
 5. Ohne Kandidat: kein API-Call, keine Writes, Exit 0.
@@ -241,8 +238,9 @@ GitHub:
 - Workflows sind nicht deaktiviert.
 - Secrets `RAPIDAPI_KEY` und `FIREBASE_SERVICE_ACCOUNT` existieren und
   sind gueltig.
-- `TOURNAMENT_KEY` ist leer oder `wm2026`.
-- Optional gesetzte Variables muessen numerisch gueltig sein.
+- Actions-Variables sind fuer die produktiven Runs leer bzw. geloescht.
+- Einmalige Abweichungen werden nur ueber `workflow_dispatch`-Inputs
+  gesetzt.
 
 API-Football:
 
