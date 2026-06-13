@@ -17,10 +17,10 @@ der naechste Scheduled Run startet.
 - Secrets vorhanden: `RAPIDAPI_KEY`, `FIREBASE_SERVICE_ACCOUNT`.
 - Repo-Variables vorhanden: `TOURNAMENT_KEY=wm2026`,
   `POINTS_WINDOW_START_MIN=-10`, `POINTS_WINDOW_END_MIN=150`,
-  `POINTS_FINAL_RECHECK_MIN=360`. Alte kleinere Live-Overrides wie
+  `POINTS_FINAL_RECHECK_MIN=240`. Alte kleinere Live-Overrides wie
   `POINTS_LIVE_TICKS_PER_RUN=30` oder
   `POINTS_LIVE_TICK_INTERVAL_SEC=10` werden bei Scheduled Runs defensiv
-  auf mindestens 240 Ticks und 60 Sekunden Abstand gehoben.
+  auf mindestens 520 Ticks und 30 Sekunden Abstand gehoben.
 - Nicht gesetzte optionale Variables sind kein Problem; das Script nutzt
   Defaults: `POINTS_IDLE_WAIT_MAX_MIN=240`, `POINTS_SESSION_MAX_MIN=330`,
   `POINTS_API_RETRY_ATTEMPTS=3`,
@@ -129,8 +129,8 @@ Es gibt zwei verschiedene "Ticks":
    WM-Cron-Fenster starten. Das ist ein Trigger-Versuch, keine harte
    Verfuegbarkeitsgarantie.
 2. Live-Tick im Script: innerhalb eines `Auto Punkte-Upload`-Runs fuehrt
-   `scripts/auto-points-upload.js` bei Scheduled Runs mindestens 240
-   interne Ticks aus, mit mindestens 60 Sekunden Abstand.
+   `scripts/auto-points-upload.js` bei Scheduled Runs mindestens 520
+   interne Ticks aus, mit mindestens 30 Sekunden Abstand.
 
 Der interne Tick 1 startet nach Checkout, Node-Setup, `npm install` und
 Script-Start. Danach passiert im Script:
@@ -140,7 +140,7 @@ Script-Start. Danach passiert im Script:
    `AUTO_POINTS_FROM=2026-06-11T20:50:00+02:00` und
    `AUTO_POINTS_UNTIL=2026-07-21T08:00:00+02:00`.
 3. Firebase Admin initialisieren.
-4. `Live-Tick 1/240` loggen (oder mehr, falls hoeher konfiguriert).
+4. `Live-Tick 1/520` loggen (oder mehr, falls hoeher konfiguriert).
 5. Spielplan aus `Spiele WM 2026` lesen und Kandidaten bestimmen.
 
 Mit den aktuellen Einstellungen oeffnet das Live-Fenster pro Spiel 10
@@ -149,7 +149,7 @@ Minuten vor Anpfiff:
 ```text
 candidate_start = kickoff - 10 Minuten
 normal_window_end = kickoff + 150 Minuten
-final_recheck_end = kickoff + 360 Minuten
+final_recheck_end = kickoff + 240 Minuten
 ```
 
 Ein Spiel ist Kandidat, wenn:
@@ -166,11 +166,13 @@ Finalstatus erfolgreich nach Firestore geschrieben wurde.
 
 Wenn ein Tick keine Kandidaten findet, aber das naechste Live-Fenster
 innerhalb von `POINTS_IDLE_WAIT_MAX_MIN=240` Minuten liegt und die
-Session noch genug Zeit hat, wartet der Run ohne API-Call bis zum
-Fensterstart. Sobald ein offenes Spiel Kandidat ist, bleibt der Scheduled
-Run lange genug aktiv, um den finalen Status in normalen Faellen selbst
-zu sehen, statt nach 5 Minuten auf einen weiteren GitHub-Schedule-Takt
-angewiesen zu sein.
+Session danach noch genug Restzeit fuer die geplante `520 * 30s`-
+Monitorstrecke hat, wartet der Run ohne API-Call bis zum Fensterstart.
+Ist das Live-Fenster noch zu weit weg, beendet sich der Run und laesst
+einen spaeteren Cron-Takt naeher am Spiel starten. Sobald ein offenes
+Spiel Kandidat ist, bleibt der Scheduled Run lange genug aktiv, um den
+finalen Status in normalen Faellen selbst zu sehen, statt nach 5 Minuten
+auf einen weiteren GitHub-Schedule-Takt angewiesen zu sein.
 
 ## Ablauf Auto Punkte-Upload
 
@@ -295,7 +297,7 @@ Typische Log-Bedeutung:
 
 - `Kandidaten in diesem Tick: 0` und `Beende ohne API-Call`:
   normal ausserhalb eines Live-/Catch-up-Fensters.
-- `Live-Tick 1/240` bis `Live-Tick 240/240`:
+- `Live-Tick 1/520` bis `Live-Tick 520/520`:
   lange Scheduled-Monitor-Session laeuft. Manuelle `FORCE_RUN`-Runs haben
   weiterhin nur einen Tick.
 - `Tick-Budget ... ausgeschoepft`:

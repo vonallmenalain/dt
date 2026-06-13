@@ -7,10 +7,10 @@ name: Auto Punkte-Upload
 # der prüft, ob im aktuellen Tick überhaupt ein Spiel im Live-/Catch-up-
 # Fenster liegt (Default: 10 Minuten VOR bis 150 Minuten NACH Anpfiff)
 # oder ob ein beendetes Spiel noch im Final-Recheck liegt (Default:
-# 360 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
+# 240 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
 # eines aktiven Fensters macht das Skript standardmäßig eine lange,
-# final-first Monitor-Session mit mindestens 240 Ticks im Abstand von
-# mindestens 60 Sekunden. Wenn ein Schedule-Run zu früh kommt, darf er
+# final-first Monitor-Session mit mindestens 520 Ticks im Abstand von
+# mindestens 30 Sekunden. Wenn ein Schedule-Run zu früh kommt, darf er
 # ohne API-Calls auf das nächste Live-Fenster warten.
 # Das ist bewusst robuster als sich darauf zu verlassen, dass GitHub den
 # Cron wirklich alle 5 Minuten startet.
@@ -39,18 +39,18 @@ name: Auto Punkte-Upload
 #   POINTS_WINDOW_END_MIN    Default 150 – Ende des normalen Live-
 #                            Fensters relativ zum Anpfiff. Danach bleibt
 #                            ein offenes Spiel als Catch-up-Kandidat aktiv.
-#   POINTS_FINAL_RECHECK_MIN Default 360 – beendete Spiele bleiben bis so
+#   POINTS_FINAL_RECHECK_MIN Default 240 – beendete Spiele bleiben bis so
 #                            viele Minuten nach Anpfiff Recheck-Kandidaten,
 #                            damit spaete API-Korrekturen nachgezogen werden.
 #   POINTS_LIVE_TICKS_PER_RUN
-#                            Default 240 – Anzahl Live-Ticks innerhalb
+#                            Default 520 – Anzahl Live-Ticks innerhalb
 #                            eines GitHub-Runs. Scheduled Runs werden
-#                            defensiv mindestens auf 240 gehoben, selbst
+#                            defensiv mindestens auf 520 gehoben, selbst
 #                            wenn eine alte Repo-Variable kleiner ist.
 #   POINTS_LIVE_TICK_INTERVAL_SEC
-#                            Default 60 – Abstand zwischen Live-Ticks.
+#                            Default 30 – Abstand zwischen Live-Ticks.
 #                            Scheduled Runs werden defensiv mindestens
-#                            auf 60 Sekunden gehoben.
+#                            auf 30 Sekunden gehoben.
 #   POINTS_IDLE_WAIT_MAX_MIN
 #                            Default 240 – max. Wartezeit ohne Kandidat
 #                            bis zum nächsten Live-Fenster.

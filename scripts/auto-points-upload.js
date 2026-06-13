@@ -56,19 +56,19 @@
  *                              Live-Fensters relativ zum Anpfiff. Danach
  *                              bleibt ein offenes Spiel als Catch-up-
  *                              Kandidat aktiv (siehe Ablauf-Schritt 2).
- *    POINTS_FINAL_RECHECK_MIN  Optional, Default 360. Beendete Spiele
+ *    POINTS_FINAL_RECHECK_MIN  Optional, Default 240. Beendete Spiele
  *                              bleiben bis so viele Minuten nach Anpfiff
  *                              Kandidaten, damit nachtraegliche API-
  *                              Korrekturen automatisch nachgezogen werden.
- *    POINTS_LIVE_TICKS_PER_RUN Optional, Default 240. Anzahl Ticks innerhalb
+ *    POINTS_LIVE_TICKS_PER_RUN Optional, Default 520. Anzahl Ticks innerhalb
  *                              eines GitHub-Runs, wenn Kandidaten aktiv
  *                              sind. Scheduled Runs werden mindestens auf
- *                              240 Ticks gehoben; FORCE_RUN macht immer nur
+ *                              520 Ticks gehoben; FORCE_RUN macht immer nur
  *                              einen Tick.
  *    POINTS_LIVE_TICK_INTERVAL_SEC
- *                              Optional, Default 60. Abstand zwischen den
+ *                              Optional, Default 30. Abstand zwischen den
  *                              Live-Ticks innerhalb desselben Runs.
- *                              Scheduled Runs werden mindestens auf 60s
+ *                              Scheduled Runs werden mindestens auf 30s
  *                              gehoben, damit ein Lauf ein ganzes Spiel
  *                              zuverlaessig bis nach Abpfiff tragen kann.
  *    POINTS_IDLE_WAIT_MAX_MIN  Optional, Default 240. So lange darf ein Run
@@ -129,12 +129,12 @@ const PRE_MATCH_LINEUP_STATUSES = new Set(['NS']);
 const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
-const DEFAULT_FINAL_RECHECK_MIN = 360;
-const DEFAULT_LIVE_TICKS_PER_RUN = 240;
-const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
-const MAX_LIVE_TICKS_PER_RUN = 360;
-const MIN_SCHEDULED_LIVE_TICKS_PER_RUN = 240;
-const MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC = 60;
+const DEFAULT_FINAL_RECHECK_MIN = 240;
+const DEFAULT_LIVE_TICKS_PER_RUN = 520;
+const DEFAULT_LIVE_TICK_INTERVAL_SEC = 30;
+const MAX_LIVE_TICKS_PER_RUN = 720;
+const MIN_SCHEDULED_LIVE_TICKS_PER_RUN = 520;
+const MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC = 30;
 const DEFAULT_IDLE_WAIT_MAX_MIN = 240;
 const DEFAULT_SESSION_MAX_MIN = 330;
 const MIN_SCHEDULED_SESSION_MAX_MIN = 300;
@@ -2132,6 +2132,12 @@ function sessionRemainingMs(opts) {
   return Math.max(0, opts.sessionDeadlineMs - nowMs());
 }
 
+function plannedMonitorDurationMs(opts) {
+  const ticks = Math.max(1, opts.liveTicksPerRun || DEFAULT_LIVE_TICKS_PER_RUN);
+  const intervalSec = Math.max(1, opts.liveTickIntervalSec || DEFAULT_LIVE_TICK_INTERVAL_SEC);
+  return ticks * intervalSec * 1000;
+}
+
 function getIdleWaitMs(nextWakeAtMs, opts) {
   if (!Number.isFinite(nextWakeAtMs)) return null;
 
@@ -2141,7 +2147,7 @@ function getIdleWaitMs(nextWakeAtMs, opts) {
   if (maxIdleMs <= 0 || waitMs > maxIdleMs) return null;
 
   const remainingMs = sessionRemainingMs(opts);
-  const minWorkAfterWakeMs = Math.max(60_000, (opts.liveTickIntervalSec || DEFAULT_LIVE_TICK_INTERVAL_SEC) * 1000);
+  const minWorkAfterWakeMs = Math.max(60_000, plannedMonitorDurationMs(opts));
   if (remainingMs <= waitMs + minWorkAfterWakeMs) return null;
 
   return Math.max(1000, waitMs);
