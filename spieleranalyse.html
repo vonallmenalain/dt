@@ -7071,7 +7071,8 @@
     window.selectScheduleNation = selectScheduleNation;
 
     const OPTIMISTIC_SCHEDULE_LIVE_WINDOW_MIN = 150;
-    const RECENT_SCHEDULE_FINISHED_WINDOW_MS = 24 * 60 * 60 * 1000;
+    const RECENT_SCHEDULE_FINISHED_WINDOW_MS = 48 * 60 * 60 * 1000;
+    const CURRENT_SCHEDULE_RECENT_FINISHED_LIMIT = 2;
     const SCHEDULE_STATUS_FILTERS = ['current', 'upcoming', 'finished', 'all'];
 
     function normalizeScheduleEpochMs(value) {
@@ -7645,28 +7646,19 @@
             .sort(compareScheduleKickoffAsc)
             .slice(0, 8);
         const nextUpcomingSet = new Set(nextUpcoming);
+        const recentFinished = enriched
+            .filter(({ info }) => info.isRecentFinished)
+            .map(({ match }) => match)
+            .sort(compareScheduleKickoffDesc)
+            .slice(0, CURRENT_SCHEDULE_RECENT_FINISHED_LIMIT);
+        const recentFinishedSet = new Set(recentFinished);
 
         return enriched
             .filter(({ match, info }) => {
-                return info.isLive || info.isUpdateOpen || info.isRecentFinished || nextUpcomingSet.has(match);
+                return info.isLive || info.isUpdateOpen || recentFinishedSet.has(match) || nextUpcomingSet.has(match);
             })
-            .map(({ match, info }) => ({ match, info }))
-            .sort((a, b) => {
-                const rank = (info) => {
-                    if (info.isRecentFinished) return 0;
-                    if (info.isLive) return 1;
-                    if (info.isUpdateOpen) return 2;
-                    if (info.isUpcoming) return 3;
-                    return 4;
-                };
-                const rankDiff = rank(a.info) - rank(b.info);
-                if (rankDiff) return rankDiff;
-                if (a.info.isRecentFinished && b.info.isRecentFinished) {
-                    return compareScheduleKickoffDesc(a.match, b.match);
-                }
-                return compareScheduleKickoffAsc(a.match, b.match);
-            })
-            .map(({ match }) => match);
+            .map(({ match }) => match)
+            .sort(compareScheduleKickoffAsc);
     }
 
     function updateScheduleStatusFilterButtons() {
