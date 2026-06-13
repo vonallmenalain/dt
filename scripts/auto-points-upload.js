@@ -60,12 +60,17 @@
  *                              bleiben bis so viele Minuten nach Anpfiff
  *                              Kandidaten, damit nachtraegliche API-
  *                              Korrekturen automatisch nachgezogen werden.
- *    POINTS_LIVE_TICKS_PER_RUN Optional, Default 30. Anzahl Ticks innerhalb
+ *    POINTS_LIVE_TICKS_PER_RUN Optional, Default 240. Anzahl Ticks innerhalb
  *                              eines GitHub-Runs, wenn Kandidaten aktiv
- *                              sind. FORCE_RUN macht immer nur einen Tick.
+ *                              sind. Scheduled Runs werden mindestens auf
+ *                              240 Ticks gehoben; FORCE_RUN macht immer nur
+ *                              einen Tick.
  *    POINTS_LIVE_TICK_INTERVAL_SEC
- *                              Optional, Default 10. Abstand zwischen den
+ *                              Optional, Default 60. Abstand zwischen den
  *                              Live-Ticks innerhalb desselben Runs.
+ *                              Scheduled Runs werden mindestens auf 60s
+ *                              gehoben, damit ein Lauf ein ganzes Spiel
+ *                              zuverlaessig bis nach Abpfiff tragen kann.
  *    POINTS_IDLE_WAIT_MAX_MIN  Optional, Default 240. So lange darf ein Run
  *                              ohne Kandidaten auf das naechste Live-Fenster
  *                              warten, bevor er beendet.
@@ -125,12 +130,14 @@ const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
 const DEFAULT_WINDOW_START_MIN = -10;
 const DEFAULT_WINDOW_END_MIN = 150;
 const DEFAULT_FINAL_RECHECK_MIN = 360;
-const DEFAULT_LIVE_TICKS_PER_RUN = 30;
-const DEFAULT_LIVE_TICK_INTERVAL_SEC = 10;
+const DEFAULT_LIVE_TICKS_PER_RUN = 240;
+const DEFAULT_LIVE_TICK_INTERVAL_SEC = 60;
 const MAX_LIVE_TICKS_PER_RUN = 360;
-const MIN_SCHEDULED_LIVE_TICKS_PER_RUN = 30;
+const MIN_SCHEDULED_LIVE_TICKS_PER_RUN = 240;
+const MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC = 60;
 const DEFAULT_IDLE_WAIT_MAX_MIN = 240;
 const DEFAULT_SESSION_MAX_MIN = 330;
+const MIN_SCHEDULED_SESSION_MAX_MIN = 300;
 const MAX_SESSION_MAX_MIN = 350;
 const DEFAULT_API_RETRY_ATTEMPTS = 3;
 const DEFAULT_API_RETRY_BASE_DELAY_MS = 1000;
@@ -2191,14 +2198,32 @@ async function main() {
     liveTicksPerRun = MIN_SCHEDULED_LIVE_TICKS_PER_RUN;
   }
 
+  let liveTickIntervalSec = envPositiveIntAny(
+    ['POINTS_LIVE_TICK_INTERVAL_SEC', 'LIVE_TICK_INTERVAL_SEC'],
+    DEFAULT_LIVE_TICK_INTERVAL_SEC
+  );
+  if (isScheduledRun && !forceRun && liveTickIntervalSec < MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC) {
+    logInfo(`Scheduled Run: liveTickIntervalSec=${liveTickIntervalSec} defensiv auf ${MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC} erhoeht.`);
+    liveTickIntervalSec = MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC;
+  }
+
+  let sessionMaxMin = Math.min(
+    MAX_SESSION_MAX_MIN,
+    Math.max(1, envIntAny(['POINTS_SESSION_MAX_MIN', 'SESSION_MAX_MIN'], DEFAULT_SESSION_MAX_MIN))
+  );
+  if (isScheduledRun && !forceRun && sessionMaxMin < MIN_SCHEDULED_SESSION_MAX_MIN) {
+    logInfo(`Scheduled Run: sessionMaxMin=${sessionMaxMin} defensiv auf ${MIN_SCHEDULED_SESSION_MAX_MIN} erhoeht.`);
+    sessionMaxMin = MIN_SCHEDULED_SESSION_MAX_MIN;
+  }
+
   const opts = {
     windowStartMin,
     windowEndMin: envIntAny(['POINTS_WINDOW_END_MIN', 'WINDOW_END_MIN'], DEFAULT_WINDOW_END_MIN),
     finalRecheckMin: Math.max(0, envIntAny(['POINTS_FINAL_RECHECK_MIN', 'FINAL_RECHECK_MIN'], DEFAULT_FINAL_RECHECK_MIN)),
     liveTicksPerRun,
-    liveTickIntervalSec: envPositiveIntAny(['POINTS_LIVE_TICK_INTERVAL_SEC', 'LIVE_TICK_INTERVAL_SEC'], DEFAULT_LIVE_TICK_INTERVAL_SEC),
+    liveTickIntervalSec,
     idleWaitMaxMin: Math.max(0, envIntAny(['POINTS_IDLE_WAIT_MAX_MIN', 'IDLE_WAIT_MAX_MIN'], DEFAULT_IDLE_WAIT_MAX_MIN)),
-    sessionMaxMin: Math.min(MAX_SESSION_MAX_MIN, Math.max(1, envIntAny(['POINTS_SESSION_MAX_MIN', 'SESSION_MAX_MIN'], DEFAULT_SESSION_MAX_MIN))),
+    sessionMaxMin,
     apiRetryAttempts: Math.max(1, envIntAny(['POINTS_API_RETRY_ATTEMPTS', 'API_RETRY_ATTEMPTS'], DEFAULT_API_RETRY_ATTEMPTS)),
     apiRetryBaseDelayMs: Math.max(0, envIntAny(['POINTS_API_RETRY_BASE_DELAY_MS', 'API_RETRY_BASE_DELAY_MS'], DEFAULT_API_RETRY_BASE_DELAY_MS)),
     forceRun,
@@ -2301,9 +2326,21 @@ async function main() {
         continue;
       }
 
-      if (tick >= totalTicks) break;
-
       const intervalMs = opts.liveTickIntervalSec * 1000;
+      if (tick >= totalTicks) {
+        const openMatchStillActive =
+          tickResult.openCandidateCount > 0 ||
+          !!(tickResult.result && tickResult.result.liveGames > 0);
+        if (openMatchStillActive) {
+          logWarn(
+            `Tick-Budget (${totalTicks}) ausgeschoepft, obwohl noch ein offenes/live Spiel im Kandidatenfenster ist. ` +
+            `Scheduled Runs sollten mindestens ${MIN_SCHEDULED_LIVE_TICKS_PER_RUN} Ticks mit ` +
+            `${MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC}s Abstand haben.`
+          );
+        }
+        break;
+      }
+
       const waitMs = Math.min(intervalMs, sessionRemainingMs(opts));
       if (waitMs <= 0) {
         logInfo(`Monitor-Session nach ${opts.sessionMaxMin} min beendet.`);

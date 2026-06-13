@@ -1,11 +1,15 @@
 # Live-Update-Prozess und Betriebscheck
 
-Stand des Checks: 2026-06-12. Zeiten in GitHub Actions sind UTC; App- und
+Stand des Checks: 2026-06-13. Zeiten in GitHub Actions sind UTC; App- und
 Turnierzeiten sind fuer die WM 2026 auf `Europe/Zurich` ausgelegt.
 
 ## Kurzfazit
 
-Der Live-Update-Prozess ist korrekt verdrahtet:
+Der Live-Update-Prozess ist korrekt verdrahtet, aber der Check vom
+2026-06-13 hat gezeigt: GitHub Scheduled Runs kamen in der Nacht nicht
+zuverlaessig alle 5 Minuten durch. Der Punkte-Upload darf deshalb nicht
+darauf angewiesen sein, dass nach einem kurzen 5-Minuten-Live-Run sofort
+der naechste Scheduled Run startet.
 
 - Repo `vonallmenalain/dt`, Default-Branch `main`, GitHub Actions aktiviert.
 - Workflows `Auto Punkte-Upload` und `Auto Spielplan-Sync` sind aktiv.
@@ -13,20 +17,38 @@ Der Live-Update-Prozess ist korrekt verdrahtet:
 - Secrets vorhanden: `RAPIDAPI_KEY`, `FIREBASE_SERVICE_ACCOUNT`.
 - Repo-Variables vorhanden: `TOURNAMENT_KEY=wm2026`,
   `POINTS_WINDOW_START_MIN=-10`, `POINTS_WINDOW_END_MIN=150`,
-  `POINTS_FINAL_RECHECK_MIN=360`, `POINTS_LIVE_TICKS_PER_RUN=30`,
-  `POINTS_LIVE_TICK_INTERVAL_SEC=10`.
+  `POINTS_FINAL_RECHECK_MIN=360`. Alte kleinere Live-Overrides wie
+  `POINTS_LIVE_TICKS_PER_RUN=30` oder
+  `POINTS_LIVE_TICK_INTERVAL_SEC=10` werden bei Scheduled Runs defensiv
+  auf mindestens 240 Ticks und 60 Sekunden Abstand gehoben.
 - Nicht gesetzte optionale Variables sind kein Problem; das Script nutzt
   Defaults: `POINTS_IDLE_WAIT_MAX_MIN=240`, `POINTS_SESSION_MAX_MIN=330`,
   `POINTS_API_RETRY_ATTEMPTS=3`,
   `POINTS_API_RETRY_BASE_DELAY_MS=1000`.
 
-Gepruefte Runs:
+Incident-Check `USA vs Paraguay`, Anpfiff 2026-06-13 03:00 CH-Zeit:
 
-- `Auto Punkte-Upload`, Run `27419866394`, 2026-06-12 13:49 UTC:
-  erfolgreich, 30/10-Konfiguration aktiv, keine Kandidaten, kein API-Call.
+- Run `27441377588` wartete bis 2026-06-13 00:50 UTC und lief nur bis
+  00:55 UTC, also nur bis 5 Minuten vor Anpfiff.
+- Run `27449508200` lief von 00:55 bis 01:01 UTC und sah das Spiel noch
+  als `NS`.
+- Run `27453089793` lief von 01:53 bis 01:58 UTC, schrieb `HT`/45.
+  Minute und den Zwischenstand, beendete sich dann nach 30 Ticks.
+- Danach kam bis zum manuellen `FORCE_RUN` `27456733186` um 04:37 UTC
+  kein weiterer Scheduled Run durch. Der manuelle Run sah 4 beendete
+  Spiele und schrieb den finalen Stand sofort.
+
+Ursache: Der Browser-Live-Listener war nicht der Engpass. Das serverseitige
+Monitoring war zu kurz fuer unzuverlaessige Scheduled-Run-Takte. Fix:
+Scheduled Runs laufen jetzt mit einer langen, final-first Session, damit
+ein einzelner durchkommender GitHub-Lauf ein laufendes Spiel bis nach
+Abpfiff tragen kann.
+
+Weitere gepruefte Runs:
+
 - `Auto Punkte-Upload`, Run `27383142943`, 2026-06-11 23:07 UTC:
-  erfolgreich, Tick 1 bis 30 im 10-Sekunden-Abstand, ein Final-Recheck-
-  Kandidat (`Mexico vs South Africa`).
+  erfolgreich, damalige 30/10-Konfiguration, ein Final-Recheck-Kandidat
+  (`Mexico vs South Africa`).
 - `Auto Spielplan-Sync`, Run `27404668725`, 2026-06-12 08:37 UTC:
   erfolgreich, 72 Fixtures geladen und nach Firestore geschrieben,
   `fixturesVersion` erhoeht.
@@ -68,8 +90,9 @@ Cron:
 
 Das bedeutet: alle 5 Minuten auf GitHub-Actions-Zeitbasis UTC, aber nur
 vom 11. bis 30. Juni 2026 und vom 1. bis 21. Juli 2026. GitHub kann
-scheduled workflows verzoegern; der Code ist deshalb so gebaut, dass ein
-Run auf das naechste Live-Fenster warten und verpasste offene Spiele per
+scheduled workflows verzoegern oder einzelne Takte auslassen; der Code ist
+deshalb so gebaut, dass ein Run auf das naechste Live-Fenster warten,
+ein laufendes Spiel lange monitoren und verpasste offene Spiele per
 Catch-up nachziehen kann.
 
 Job-Eckdaten:
@@ -81,7 +104,8 @@ Job-Eckdaten:
 
 `cancel-in-progress: false` ist bewusst: ein wartender oder laufender
 Live-Run wird nicht automatisch abgebrochen, wenn GitHub einen weiteren
-Schedule-Run startet.
+Schedule-Run startet. Damit kann ein einzelner aktiver Run ein Spiel bis
+nach Abpfiff begleiten.
 
 ### Auto Spielplan-Sync
 
@@ -101,10 +125,12 @@ bei erfolgreichen Writes `fixturesVersion`.
 
 Es gibt zwei verschiedene "Ticks":
 
-1. GitHub-Cron-Tick: GitHub startet den Workflow etwa alle 5 Minuten im
-   WM-Cron-Fenster.
+1. GitHub-Cron-Tick: GitHub soll den Workflow etwa alle 5 Minuten im
+   WM-Cron-Fenster starten. Das ist ein Trigger-Versuch, keine harte
+   Verfuegbarkeitsgarantie.
 2. Live-Tick im Script: innerhalb eines `Auto Punkte-Upload`-Runs fuehrt
-   `scripts/auto-points-upload.js` bis zu 30 interne Ticks aus.
+   `scripts/auto-points-upload.js` bei Scheduled Runs mindestens 240
+   interne Ticks aus, mit mindestens 60 Sekunden Abstand.
 
 Der interne Tick 1 startet nach Checkout, Node-Setup, `npm install` und
 Script-Start. Danach passiert im Script:
@@ -114,7 +140,7 @@ Script-Start. Danach passiert im Script:
    `AUTO_POINTS_FROM=2026-06-11T20:50:00+02:00` und
    `AUTO_POINTS_UNTIL=2026-07-21T08:00:00+02:00`.
 3. Firebase Admin initialisieren.
-4. `Live-Tick 1/30` loggen.
+4. `Live-Tick 1/240` loggen (oder mehr, falls hoeher konfiguriert).
 5. Spielplan aus `Spiele WM 2026` lesen und Kandidaten bestimmen.
 
 Mit den aktuellen Einstellungen oeffnet das Live-Fenster pro Spiel 10
@@ -141,7 +167,10 @@ Finalstatus erfolgreich nach Firestore geschrieben wurde.
 Wenn ein Tick keine Kandidaten findet, aber das naechste Live-Fenster
 innerhalb von `POINTS_IDLE_WAIT_MAX_MIN=240` Minuten liegt und die
 Session noch genug Zeit hat, wartet der Run ohne API-Call bis zum
-Fensterstart. Sonst beendet er sich sofort mit Exit 0.
+Fensterstart. Sobald ein offenes Spiel Kandidat ist, bleibt der Scheduled
+Run lange genug aktiv, um den finalen Status in normalen Faellen selbst
+zu sehen, statt nach 5 Minuten auf einen weiteren GitHub-Schedule-Takt
+angewiesen zu sein.
 
 ## Ablauf Auto Punkte-Upload
 
@@ -266,8 +295,12 @@ Typische Log-Bedeutung:
 
 - `Kandidaten in diesem Tick: 0` und `Beende ohne API-Call`:
   normal ausserhalb eines Live-/Catch-up-Fensters.
-- `Live-Tick 1/30` bis `Live-Tick 30/30`:
-  interne Monitor-Session laeuft.
+- `Live-Tick 1/240` bis `Live-Tick 240/240`:
+  lange Scheduled-Monitor-Session laeuft. Manuelle `FORCE_RUN`-Runs haben
+  weiterhin nur einen Tick.
+- `Tick-Budget ... ausgeschoepft`:
+  ein Run endete trotz offenem/live Spiel; dann muessen Tick-Anzahl,
+  Tick-Abstand oder Session-Max erhoeht werden.
 - `0 Spieler-Dokumente geschrieben ... unveraendert uebersprungen`:
   Daten waren identisch; dann steigt `pointsVersion` nicht.
 - `Meta-Dokument ... aktualisiert`:

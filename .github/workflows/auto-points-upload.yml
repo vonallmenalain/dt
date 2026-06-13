@@ -8,9 +8,10 @@ name: Auto Punkte-Upload
 # Fenster liegt (Default: 10 Minuten VOR bis 150 Minuten NACH Anpfiff)
 # oder ob ein beendetes Spiel noch im Final-Recheck liegt (Default:
 # 360 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
-# eines aktiven Fensters macht das Skript standardmäßig eine längere
-# Monitor-Session mit 30 Ticks im Abstand von 10 Sekunden. Wenn ein Schedule-Run zu
-# früh kommt, darf er ohne API-Calls auf das nächste Live-Fenster warten.
+# eines aktiven Fensters macht das Skript standardmäßig eine lange,
+# final-first Monitor-Session mit mindestens 240 Ticks im Abstand von
+# mindestens 60 Sekunden. Wenn ein Schedule-Run zu früh kommt, darf er
+# ohne API-Calls auf das nächste Live-Fenster warten.
 # Das ist bewusst robuster als sich darauf zu verlassen, dass GitHub den
 # Cron wirklich alle 5 Minuten startet.
 #
@@ -42,10 +43,14 @@ name: Auto Punkte-Upload
 #                            viele Minuten nach Anpfiff Recheck-Kandidaten,
 #                            damit spaete API-Korrekturen nachgezogen werden.
 #   POINTS_LIVE_TICKS_PER_RUN
-#                            Default 30 – Anzahl Live-Ticks innerhalb
-#                            eines GitHub-Runs (bei schedule).
+#                            Default 240 – Anzahl Live-Ticks innerhalb
+#                            eines GitHub-Runs. Scheduled Runs werden
+#                            defensiv mindestens auf 240 gehoben, selbst
+#                            wenn eine alte Repo-Variable kleiner ist.
 #   POINTS_LIVE_TICK_INTERVAL_SEC
-#                            Default 10 – Abstand zwischen Live-Ticks.
+#                            Default 60 – Abstand zwischen Live-Ticks.
+#                            Scheduled Runs werden defensiv mindestens
+#                            auf 60 Sekunden gehoben.
 #   POINTS_IDLE_WAIT_MAX_MIN
 #                            Default 240 – max. Wartezeit ohne Kandidat
 #                            bis zum nächsten Live-Fenster.
