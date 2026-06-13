@@ -7653,10 +7653,10 @@
             .map(({ match, info }) => ({ match, info }))
             .sort((a, b) => {
                 const rank = (info) => {
-                    if (info.isLive) return 0;
-                    if (info.isUpdateOpen) return 1;
-                    if (info.isUpcoming) return 2;
-                    if (info.isRecentFinished) return 3;
+                    if (info.isRecentFinished) return 0;
+                    if (info.isLive) return 1;
+                    if (info.isUpdateOpen) return 2;
+                    if (info.isUpcoming) return 3;
                     return 4;
                 };
                 const rankDiff = rank(a.info) - rank(b.info);
@@ -7810,12 +7810,12 @@
                         : `<div class="sc-time">${escapeHtml(timeLabel)}</div>`;
                     matchStatusCls = 'sc-card--pending';
                 } else if (isFinished && scoreParts) {
-                    centerHtml = `<div class="sc-finished-pill">Final</div>`;
+                    centerHtml = `<div class="sc-finished-pill">Abgeschlossen</div>`;
                     centerHtml += `<div class="sc-score sc-finished">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`;
                     centerHtml += kickoffMetaHtml;
                     matchStatusCls = 'sc-card--finished';
                 } else if (isFinished) {
-                    centerHtml = `<div class="sc-finished-pill">Final</div><div class="sc-time">${escapeHtml(timeLabel)}</div>${kickoffMetaHtml}`;
+                    centerHtml = `<div class="sc-finished-pill">Abgeschlossen</div><div class="sc-time">${escapeHtml(timeLabel)}</div>${kickoffMetaHtml}`;
                     matchStatusCls = 'sc-card--finished';
                 } else {
                     centerHtml = `<div class="sc-time">${escapeHtml(timeLabel)}</div><div class="sc-vs">VS</div>`;
