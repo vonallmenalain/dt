@@ -8720,7 +8720,6 @@
     const FINISHED_MATCH_STATUSES = ['FT', 'AET', 'PEN'];
     const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
     const OPTIMISTIC_LIVE_WINDOW_MIN = 150;
-    const RECENT_FINISHED_MATCH_WINDOW_MS = 24 * 60 * 60 * 1000;
 
     function isMatchFinishedStatus(statusShort) {
         return FINISHED_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
@@ -8810,19 +8809,24 @@
             match?.finishedAt,
             match?.fulltimeAt,
             match?.endedAt,
-            match?.updatedAt,
-            match?.lastUpdated,
-            match?.fixture?.updated,
             timingState?.kickoffMs
         ]);
     }
 
-    function isRecentFinishedMatch(match, timingState, referenceMs = Date.now()) {
-        if (!timingState?.isFinished) return false;
-        const finishedRefMs = getFinishedMatchReferenceMs(match, timingState);
-        if (!finishedRefMs) return false;
-        const ageMs = referenceMs - finishedRefMs;
-        return ageMs >= 0 && ageMs <= RECENT_FINISHED_MATCH_WINDOW_MS;
+    function compareMatchEntriesByKickoff(a, b) {
+        const da = getMatchOrderingMs(a.match);
+        const db = getMatchOrderingMs(b.match);
+        if (da !== db) return da - db;
+        return String(a.match?.id || a.match?.gameNumber || a.match?.matchId || '')
+            .localeCompare(String(b.match?.id || b.match?.gameNumber || b.match?.matchId || ''), 'de');
+    }
+
+    function compareFinishedMatchEntriesByRecency(a, b) {
+        const da = getFinishedMatchReferenceMs(a.match, a.timingState) || 0;
+        const db = getFinishedMatchReferenceMs(b.match, b.timingState) || 0;
+        if (da !== db) return db - da;
+        return String(b.match?.id || b.match?.gameNumber || b.match?.matchId || '')
+            .localeCompare(String(a.match?.id || a.match?.gameNumber || a.match?.matchId || ''), 'de');
     }
 
     function formatMatchLiveMinute(match) {
@@ -9071,29 +9075,37 @@
             const timingState = getMatchTimingState(match, now);
             return {
                 match,
-                timingState,
-                isRecentFinished: isRecentFinishedMatch(match, timingState, now)
+                timingState
             };
         });
 
-        const activeAndRecent = enrichedMatches.filter(({ timingState, isRecentFinished }) => {
-            return !timingState.isFinished || isRecentFinished;
-        });
+        const liveMatches = enrichedMatches
+            .filter(({ timingState }) => timingState.isLive)
+            .sort(compareMatchEntriesByKickoff);
+        const updateOpenMatches = enrichedMatches
+            .filter(({ timingState }) => timingState.isUpdateOpen)
+            .sort(compareMatchEntriesByKickoff);
         const upcomingFuture = enrichedMatches
             .filter(({ timingState }) => {
                 return !timingState.isFinished && !timingState.isLive && !timingState.isUpdateOpen;
             })
-            .sort((a, b) => getMatchOrderingMs(a.match) - getMatchOrderingMs(b.match))
+            .sort(compareMatchEntriesByKickoff)
             .slice(0, 3);
-        const selectedFutureMatches = new Set(upcomingFuture.map(({ match }) => match));
+        const hasRunningMatch = liveMatches.length > 0 || updateOpenMatches.length > 0;
+        const latestFinishedMatches = hasRunningMatch
+            ? []
+            : enrichedMatches
+                .filter(({ timingState }) => timingState.isFinished)
+                .sort(compareFinishedMatchEntriesByRecency)
+                .slice(0, 1);
+        const displayedFinishedMatches = new Set(latestFinishedMatches.map(({ match }) => match));
 
-        let upcoming = activeAndRecent.filter(({ match, timingState, isRecentFinished }) => {
-            return isRecentFinished || timingState.isLive || timingState.isUpdateOpen || selectedFutureMatches.has(match);
-        }).map(({ match }) => match).sort((a, b) => {
-            const da = getMatchOrderingMs(a);
-            const db2 = getMatchOrderingMs(b);
-            return da - db2;
-        });
+        let upcoming = [
+            ...liveMatches,
+            ...updateOpenMatches,
+            ...latestFinishedMatches,
+            ...upcomingFuture
+        ].map(({ match }) => match);
 
         // If no real upcoming data available, use turnier-spezifische Fallbacks
         if (!upcoming.length) {
@@ -9127,7 +9139,7 @@
             const timingState = getMatchTimingState(match, now);
             let isLive = timingState.isLive;
             const isFinished = timingState.isFinished;
-            const isRecentFinished = isRecentFinishedMatch(match, timingState, now);
+            const isDisplayedFinished = isFinished && displayedFinishedMatches.has(match);
             const isUpdateOpen = timingState.isUpdateOpen;
             const scoreParts = getMatchScoreParts(match);
 
@@ -9180,7 +9192,7 @@
                 timeBadgeText = '–';
             }
 
-            const showPlayerPoints = isLive || isRecentFinished;
+            const showPlayerPoints = isLive || isDisplayedFinished;
 
             // Venue line
             const venueText = match.venue && match.venue !== 'Spielort folgt'
@@ -9304,7 +9316,7 @@
             ` : '';
 
             return `
-                <div class="nm-match-row${isLive ? ' live' : ''}${isRecentFinished ? ' finished' : ''}${isUpdateOpen ? ' pending' : ''}${isExpanded ? ' is-expanded' : ''}" data-match-key="${escapeHtml(matchKey)}" data-match-label="${escapeHtml(matchLabel)}">
+                <div class="nm-match-row${isLive ? ' live' : ''}${isDisplayedFinished ? ' finished' : ''}${isUpdateOpen ? ' pending' : ''}${isExpanded ? ' is-expanded' : ''}" data-match-key="${escapeHtml(matchKey)}" data-match-label="${escapeHtml(matchLabel)}">
                     <button type="button" class="nm-match-toggle-btn" onclick="toggleNextMatchDetails(this)" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="${escapeHtml(detailId)}" aria-label="${escapeHtml(detailAriaLabel)}">
                         <div class="nm-match-main">
                             <div class="nm-team-side">
