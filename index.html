@@ -6887,6 +6887,30 @@
         return compareTeamsBySubmissionAsc(a, b);
     }
 
+    function getRankScore(value) {
+        const score = Number(value);
+        return Number.isFinite(score) ? score : 0;
+    }
+
+    function assignSharedRanks(sortedItems, getScore, setRank) {
+        let currentRank = null;
+        let previousScore = null;
+
+        sortedItems.forEach((item, index) => {
+            const score = getRankScore(getScore(item));
+            if (index === 0 || score !== previousScore) {
+                currentRank = index + 1;
+            }
+            setRank(item, currentRank);
+            previousScore = score;
+        });
+    }
+
+    function getDisplayedManagerRank(item, fallbackRank) {
+        const rank = Number(item && (item.currentRank ?? item.rank));
+        return Number.isFinite(rank) && rank > 0 ? rank : fallbackRank;
+    }
+
     /*
      * Compute ranking history from match-level points.
      * Returns { teams: [...], matchIds: [...] }
@@ -6944,13 +6968,13 @@
             });
 
             const sorted = [...enriched].sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
-            sorted.forEach((team, idx) => {
-                team.history[i] = { rank: idx + 1, score: team.total };
+            assignSharedRanks(sorted, team => team.total, (team, rank) => {
+                team.history[i] = { rank, score: team.total };
             });
         }
 
         const finalSorted = [...enriched].sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
-        finalSorted.forEach((team, idx) => { team.currentRank = idx + 1; });
+        assignSharedRanks(finalSorted, team => team.total, (team, rank) => { team.currentRank = rank; });
 
         return { teams: finalSorted, matchIds: orderedMatchIds };
     }
@@ -7176,7 +7200,8 @@
 
         container.innerHTML = teamTotals.slice(0, 5).map((t, i) => {
             const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
-            const rankCls = i === 0 ? 'mir-rank-1' : (i === 1 ? 'mir-rank-2' : (i === 2 ? 'mir-rank-3' : ''));
+            const rank = getDisplayedManagerRank(t, i + 1);
+            const rankCls = rank === 1 ? 'mir-rank-1' : (rank === 2 ? 'mir-rank-2' : (rank === 3 ? 'mir-rank-3' : ''));
             const sign = t.total > 0 ? '+' : '';
 
             // Build top 3 player avatars for this manager
@@ -7202,8 +7227,8 @@
             }
 
             return `
-                <a class="manager-item-row" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${i+1}, ${sign}${t.total} Punkte">
-                    <div class="mir-rank ${rankCls}">${i + 1}</div>
+                <a class="manager-item-row" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${rank}, ${sign}${t.total} Punkte">
+                    <div class="mir-rank ${rankCls}">${rank}</div>
                     <div class="mir-name">${escapeHtml(t.manager)}</div>
                     ${avatarHtml}
                     <div class="mir-pts">${sign}${t.total}</div>
@@ -7978,12 +8003,12 @@
 
         // Podium (top 3)
         const crownIcons = ['👑', '🥈', '🥉'];
-        const rankLabels = ['#1', '#2', '#3'];
         const slotClasses = ['podium-slot-1', 'podium-slot-2', 'podium-slot-3'];
 
         const podiumHtml = `
             <div class="podium-stage">
                 ${top3.map((t, i) => {
+                    const rank = getDisplayedManagerRank(t, i + 1);
                     const sign = t.total > 0 ? '+' : '';
                     const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
                     const avatars = getAvatars(t.manager);
@@ -7993,7 +8018,7 @@
                           `</div>`
                         : '';
                     return `
-                        <a class="podium-slot ${slotClasses[i]}" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${i+1}, ${sign}${t.total} Punkte">
+                        <a class="podium-slot ${slotClasses[i]}" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${rank}, ${sign}${t.total} Punkte">
                             <div class="podium-crown">${crownIcons[i]}</div>
                             <div class="podium-avatar-ring">
                                 <div class="podium-initials">${escapeHtml(managerInitials(t.manager))}</div>
@@ -8002,10 +8027,10 @@
                                 ${avatarHtml}
                                 <div class="podium-name">${escapeHtml(t.manager)}</div>
                                 <div class="podium-pts">${sign}${t.total}</div>
-                                <div class="podium-rank-tag">${rankLabels[i]}</div>
+                                <div class="podium-rank-tag">#${rank}</div>
                             </div>
                             <div class="podium-pedestal">
-                                <span class="podium-pedestal-num">${i + 1}</span>
+                                <span class="podium-pedestal-num">${rank}</span>
                             </div>
                         </a>
                     `;
@@ -8017,7 +8042,7 @@
         const restHtml = rest.length ? `
             <div class="podium-rest">
                 ${rest.map((t, i) => {
-                    const rank = i + 4;
+                    const rank = getDisplayedManagerRank(t, i + 4);
                     const sign = t.total > 0 ? '+' : '';
                     const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
                     return `
@@ -8554,7 +8579,7 @@
         }
 
         const cards = teamTotals.map((t, i) => {
-            const rank = i + 1;
+            const rank = getDisplayedManagerRank(t, i + 1);
             return buildManagerCarouselCard(t.manager, rank, t.total, getMgrAvatars(t.manager), t.history, teamTotals.length);
         });
 
@@ -9397,7 +9422,8 @@
 
         container.innerHTML = teamTotals.slice(0, 5).map((t, i) => {
             const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
-            const rankCls = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+            const rank = getDisplayedManagerRank(t, i + 1);
+            const rankCls = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
             const sign = t.total > 0 ? '+' : '';
 
             const teamObj = teams.find((t2) => t2.manager === t.manager);
@@ -9446,8 +9472,8 @@
             ` : `<div class="tm-best"><span class="tm-best-label">Noch keine Punkte</span></div>`;
 
             return `
-                <a class="tm-row ${rankCls}" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${i+1}, ${sign}${t.total} Punkte">
-                    <div class="tm-rank">${i + 1}</div>
+                <a class="tm-row ${rankCls}" href="${url}" aria-label="${escapeHtml(t.manager)}, Rang ${rank}, ${sign}${t.total} Punkte">
+                    <div class="tm-rank">${rank}</div>
                     ${avatarHtml}
                     <div class="tm-name">${escapeHtml(t.manager)}</div>
                     <div class="tm-pts">${sign}${t.total}</div>
@@ -9805,7 +9831,12 @@
         const playerPointsMap = champBuildPlayerPointsMap(rawPoints);
         const { playerMatchPoints } = champExtractMatchData(rawPoints);
         const enriched = champEnrichTeams(data.teams || [], playerPointsMap, playerMatchPoints);
-        return champComputeRanking(enriched);
+        const ranked = champComputeRanking(enriched);
+        assignSharedRanks(ranked, team => team.totalScore, (team, rank) => {
+            team.rank = rank;
+            team.currentRank = rank;
+        });
+        return ranked;
     }
 
     const CHAMP_CROWN_SVG = `<svg class="champ-crown" viewBox="0 0 64 48" aria-hidden="true">
@@ -9850,9 +9881,10 @@
         return JSON.stringify({
             duplicateFirstNames,
             stage: managers.slice(0, 7).map((m, idx) => {
-                const rank = idx + 1;
-                const layout = CHAMP_LAYOUTS[rank] || CHAMP_LAYOUTS[2];
-                const playerLimit = rank <= 3 ? Math.min(layout.length, 8) : 0;
+                const visualRank = idx + 1;
+                const rank = getDisplayedManagerRank(m, visualRank);
+                const layout = CHAMP_LAYOUTS[visualRank] || CHAMP_LAYOUTS[2];
+                const playerLimit = visualRank <= 3 ? Math.min(layout.length, 8) : 0;
                 const displayedPlayers = playerLimit
                     ? (m.mergedPlayers || [])
                         .filter((p) => Number.isFinite(p.pts))
@@ -9899,14 +9931,15 @@
         const duplicateFirstNames = champDuplicateFirstNameKeys(rankedManagers);
 
         top3.forEach((m, i) => {
-            const rank = i + 1;
+            const visualRank = i + 1;
+            const rank = getDisplayedManagerRank(m, visualRank);
             const card = document.createElement('div');
             card.className = 'champ-card manager-hero-card is-running';
-            card.dataset.rank = String(rank);
+            card.dataset.rank = String(visualRank);
             card.dataset.points = String(m.totalScore);
             card.setAttribute('aria-label', `Platz ${rank}: ${m.manager}, ${m.totalScore} Punkte.`);
 
-            const baseDelay = rank === 1 ? 1.6 : rank === 2 ? 0.85 : 0.25;
+            const baseDelay = visualRank === 1 ? 1.6 : visualRank === 2 ? 0.85 : 0.25;
             const firstnameDelay = (baseDelay + 0.4).toFixed(2) + 's';
             const pointsDelay    = (baseDelay + 1.6).toFixed(2) + 's';
             card.style.setProperty('--firstname-delay', firstnameDelay);
@@ -9914,12 +9947,12 @@
 
             const firstName = champEscapeHtml(champShortManagerName(m.manager, duplicateFirstNames));
             card.innerHTML = `
-                ${rank === 1 ? CHAMP_CROWN_SVG : ''}
+                ${visualRank === 1 ? CHAMP_CROWN_SVG : ''}
                 <span class="champ-rank-badge">#${rank}</span>
                 <button type="button" class="manager-firstname"
                         data-action="manager"
                         aria-label="Team von ${champEscapeHtml(m.manager)} anzeigen">${firstName}</button>
-                ${champBuildConstellation(m, rank, baseDelay)}
+                ${champBuildConstellation(m, visualRank, baseDelay)}
                 <button type="button" class="manager-points-link"
                         data-action="points"
                         aria-label="Gesamte Rangliste anzeigen">
@@ -9957,12 +9990,13 @@
         });
 
         rest.forEach((m, i) => {
-            const rank = i + 4;
+            const visualRank = i + 4;
+            const rank = getDisplayedManagerRank(m, visualRank);
             const row = document.createElement('div');
             row.className = 'champ-chaser';
-            row.dataset.rank = String(rank);
+            row.dataset.rank = String(visualRank);
             row.style.setProperty('--chaser-delay', (3.7 + i * 0.18).toFixed(2) + 's');
-            const chaserDisplayName = rank <= 7 ? champShortManagerName(m.manager, duplicateFirstNames) : m.manager;
+            const chaserDisplayName = visualRank <= 7 ? champShortManagerName(m.manager, duplicateFirstNames) : m.manager;
             row.innerHTML = `
                 <button type="button" class="champ-chaser-team"
                         aria-label="Platz ${rank}: ${champEscapeHtml(m.manager)}. Zum Team.">
@@ -10042,6 +10076,7 @@
             total: getTeamTotal(t, ptMap),
             history: historyByManager.get(t.manager || 'Unbekannt') || []
         })).sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
+        assignSharedRanks(teamTotals, team => team.total, (team, rank) => { team.currentRank = rank; });
 
         renderChampStage(buildChampRanking(data));
 
