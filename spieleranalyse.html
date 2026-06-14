@@ -1304,18 +1304,30 @@
             gap: 12px;
             min-width: 0;
             flex: 1;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .match-side {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 7px;
             min-width: 0;
         }
 
         .match-side.right .match-side-name { order: 1; }
         .match-side.right .match-flag { order: 2; }
+        .match-side.right { text-align: right; }
+
+        .match-side-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .match-side.right .match-side-copy {
+            align-items: flex-end;
+        }
 
         .match-side-name {
             font-weight: 700;
@@ -1339,6 +1351,42 @@
         }
 
         .match-country-btn:hover { color: var(--green-light); }
+
+        .match-goals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            max-width: 180px;
+            font-size: 0.7rem;
+            line-height: 1.2;
+            color: rgba(230,237,243,0.84);
+        }
+
+        .match-side.right .match-goals-list {
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .match-goal-row {
+            display: block;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .match-goal-minute {
+            color: #fbbf24;
+            font-weight: 900;
+            margin-right: 4px;
+        }
+
+        .match-goal-assist {
+            color: var(--text-muted);
+        }
+
+        .match-goal-own {
+            color: var(--red-soft);
+            font-weight: 800;
+        }
 
         .match-flag {
             width: 22px;
@@ -5205,6 +5253,14 @@
                 gap: 10px;
             }
 
+            .match-side {
+                flex: 1 1 0;
+            }
+
+            .match-goals-list {
+                max-width: 100%;
+            }
+
             .match-summary-right {
                 justify-content: space-between;
                 margin-left: 0;
@@ -6936,6 +6992,7 @@
                     const liveIndicatorHtml = liveInfo
                         ? `<div class="match-live-indicator" title="Dieses Spiel laeuft noch">${escapeHtml(liveInfo.label)}</div>`
                         : '';
+                    const scheduleMatch = findScheduleEntryForRawMatchId(val.MatchID);
 
                     let detailsHTML = '';
                     if (val.Aufstellung) {
@@ -6966,6 +7023,8 @@
 
                     const leftNationEncoded  = encodeURIComponent(matchVisual.leftName);
                     const rightNationEncoded = encodeURIComponent(matchVisual.rightName);
+                    const leftGoalsHtml = scheduleMatch ? renderScheduleGoalEventList(scheduleMatch, matchVisual.leftName, 'match') : '';
+                    const rightGoalsHtml = scheduleMatch ? renderScheduleGoalEventList(scheduleMatch, matchVisual.rightName, 'match') : '';
 
                     const card = document.createElement('div');
                     card.className = `match-card${liveInfo ? ' is-live' : ''}`;
@@ -6974,21 +7033,27 @@
                             <div class="match-duel">
                                 <div class="match-side">
                                     ${leftFlagHtml}
+                                    <div class="match-side-copy">
                                     <button class="match-country-btn match-side-name" type="button"
                                             onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${leftNationEncoded}'), '${matchNumber || ''}')"
                                             aria-label="${escapeHtml(matchVisual.leftName)} in Spiele-Ansicht öffnen">
                                         ${escapeHtml(matchVisual.leftName)}
                                     </button>
+                                    ${leftGoalsHtml}
+                                    </div>
                                 </div>
                                 <div class="match-score ${matchVisual.resultClass}">
                                     ${matchVisual.leftGoals} : ${matchVisual.rightGoals}
                                 </div>
                                 <div class="match-side right">
+                                    <div class="match-side-copy">
                                     <button class="match-country-btn match-side-name" type="button"
                                             onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${rightNationEncoded}'), '${matchNumber || ''}')"
                                             aria-label="${escapeHtml(matchVisual.rightName)} in Spiele-Ansicht öffnen">
                                         ${escapeHtml(matchVisual.rightName)}
                                     </button>
+                                    ${rightGoalsHtml}
+                                    </div>
                                     ${rightFlagHtml}
                                 </div>
                             </div>
@@ -7262,9 +7327,13 @@
                 return {
                     id: fixtureId,
                     teamA: f.homeTeam?.name || '-',
+                    teamAId: f.homeTeam?.id ?? null,
                     teamALogo: f.homeTeam?.logo || '',
                     teamB: f.awayTeam?.name || '-',
+                    teamBId: f.awayTeam?.id ?? null,
                     teamBLogo: f.awayTeam?.logo || '',
+                    homeTeamId: f.homeTeam?.id ?? null,
+                    awayTeamId: f.awayTeam?.id ?? null,
                     date: f.kickoffIso || f.fixture?.date || '',
                     kickoffMs,
                     kickoffTimestamp: f.kickoffTimestamp || null,
@@ -7289,9 +7358,13 @@
             scheduleCatalog = explicit.map((m, i) => ({
                 id: m.id || m.gameNumber || m.matchId || i + 1,
                 teamA: m.teamA || m.home || m.homeTeam || '-',
+                teamAId: m.teamAId ?? m.homeTeamId ?? m.homeId ?? null,
                 teamALogo: '',
                 teamB: m.teamB || m.away || m.awayTeam || '-',
+                teamBId: m.teamBId ?? m.awayTeamId ?? m.awayId ?? null,
                 teamBLogo: '',
+                homeTeamId: m.homeTeamId ?? m.teamAId ?? m.homeId ?? null,
+                awayTeamId: m.awayTeamId ?? m.teamBId ?? m.awayId ?? null,
                 date: m.date || m.datetime || '',
                 kickoffTimestamp: null,
                 venue: m.venue || m.stadium || m.location || 'Spielort folgt',
@@ -7355,6 +7428,12 @@
         ) || null;
     }
 
+    function findScheduleEntryForRawMatchId(rawMatchId) {
+        const id = Number(rawMatchId);
+        if (!Number.isFinite(id)) return null;
+        return scheduleCatalog.find(match => Number(match?.id) === id) || null;
+    }
+
     function formatScheduleSignedPoints(points) {
         const value = Number(points) || 0;
         return `${value > 0 ? '+' : ''}${value}`;
@@ -7394,6 +7473,11 @@
         return parts[parts.length - 1];
     }
 
+    function normalizeScheduleTeamKey(value) {
+        if (typeof getCanonicalCountryKey === 'function') return getCanonicalCountryKey(value);
+        return normalizeNationFlagKey(value);
+    }
+
     function normalizeScheduleGoalEvent(raw) {
         const time = raw?.time || {};
         const team = raw?.team || {};
@@ -7402,6 +7486,7 @@
         return {
             elapsed: Number.isFinite(Number(raw?.elapsed)) ? Number(raw.elapsed) : (Number.isFinite(Number(time.elapsed)) ? Number(time.elapsed) : null),
             extra: Number.isFinite(Number(raw?.extra)) ? Number(raw.extra) : (Number.isFinite(Number(time.extra)) ? Number(time.extra) : null),
+            teamId: getScheduleGoalEventName(raw?.teamId || team.id),
             teamName: getScheduleGoalEventName(raw?.teamName || team.name),
             playerName: getScheduleGoalEventName(raw?.playerName || player.name),
             assistName: getScheduleGoalEventName(raw?.assistName || assist.name),
@@ -7441,10 +7526,24 @@
         return String(event?.detail || '').toLowerCase().includes('own goal');
     }
 
-    function renderScheduleGoalEventList(match, teamName) {
-        const teamKey = normalizeNationFlagKey(teamName);
+    function getScheduleTeamIdsForName(match, teamName) {
+        const teamKey = normalizeScheduleTeamKey(teamName);
+        const ids = [];
+        if (teamKey && normalizeScheduleTeamKey(match?.teamA) === teamKey) {
+            ids.push(match?.teamAId, match?.homeTeamId, match?.homeId);
+        }
+        if (teamKey && normalizeScheduleTeamKey(match?.teamB) === teamKey) {
+            ids.push(match?.teamBId, match?.awayTeamId, match?.awayId);
+        }
+        return new Set(ids.filter(value => value !== undefined && value !== null && value !== '').map(value => String(value)));
+    }
+
+    function renderScheduleGoalEventList(match, teamName, classPrefix = 'sc') {
+        const teamKey = normalizeScheduleTeamKey(teamName);
+        const teamIds = getScheduleTeamIdsForName(match, teamName);
         const events = getScheduleGoalEvents(match).filter((event) => {
-            const eventTeamKey = normalizeNationFlagKey(event.teamName);
+            if (event.teamId && teamIds.has(String(event.teamId))) return true;
+            const eventTeamKey = normalizeScheduleTeamKey(event.teamName);
             return eventTeamKey && eventTeamKey === teamKey;
         });
         if (!events.length) return '';
@@ -7454,12 +7553,12 @@
             const scorer = getScheduleGoalEventLastName(event.playerName) || event.playerName;
             const assist = getScheduleGoalEventLastName(event.assistName);
             const assistHtml = assist
-                ? ` <span class="sc-goal-assist">(${escapeHtml(assist)})</span>`
-                : (isScheduleOwnGoalEvent(event) ? ` <span class="sc-goal-own">(Eigentor)</span>` : '');
-            return `<div class="sc-goal-row">${minute ? `<span class="sc-goal-minute">${escapeHtml(minute)}</span>` : ''}${escapeHtml(scorer)}${assistHtml}</div>`;
+                ? ` <span class="${classPrefix}-goal-assist">(${escapeHtml(assist)})</span>`
+                : (isScheduleOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}${escapeHtml(scorer)}${assistHtml}</div>`;
         }).join('');
 
-        return `<div class="sc-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
+        return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
     }
 
     function getScheduleDisplayMatchNumber(m, mc) {

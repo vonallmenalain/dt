@@ -7346,8 +7346,12 @@
                         matchId: fixtureId,
                         teamA: f.homeTeam?.name || '',
                         teamB: f.awayTeam?.name || '',
+                        teamAId: f.homeTeam?.id ?? null,
+                        teamBId: f.awayTeam?.id ?? null,
                         homeTeam: f.homeTeam?.name || '',
                         awayTeam: f.awayTeam?.name || '',
+                        homeTeamId: f.homeTeam?.id ?? null,
+                        awayTeamId: f.awayTeam?.id ?? null,
                         homeLogo: f.homeTeam?.logo || '',
                         awayLogo: f.awayTeam?.logo || '',
                         date: f.kickoffIso || f.fixture?.date || '',
@@ -8948,6 +8952,7 @@
         return {
             elapsed: Number.isFinite(Number(raw?.elapsed)) ? Number(raw.elapsed) : (Number.isFinite(Number(time.elapsed)) ? Number(time.elapsed) : null),
             extra: Number.isFinite(Number(raw?.extra)) ? Number(raw.extra) : (Number.isFinite(Number(time.extra)) ? Number(time.extra) : null),
+            teamId: getGoalEventName(raw?.teamId || team.id),
             teamName: getGoalEventName(raw?.teamName || team.name),
             playerName: getGoalEventName(raw?.playerName || player.name),
             assistName: getGoalEventName(raw?.assistName || assist.name),
@@ -8987,9 +8992,25 @@
         return String(event?.detail || '').toLowerCase().includes('own goal');
     }
 
+    function getMatchTeamIdsForName(match, teamName) {
+        const teamKey = normalizeCountry(teamName);
+        const ids = [];
+        const homeName = match?.teamA || match?.homeTeam || match?.home || '';
+        const awayName = match?.teamB || match?.awayTeam || match?.away || '';
+        if (teamKey && normalizeCountry(homeName) === teamKey) {
+            ids.push(match?.teamAId, match?.homeTeamId, match?.homeId);
+        }
+        if (teamKey && normalizeCountry(awayName) === teamKey) {
+            ids.push(match?.teamBId, match?.awayTeamId, match?.awayId);
+        }
+        return new Set(ids.filter(value => value !== undefined && value !== null && value !== '').map(value => String(value)));
+    }
+
     function renderGoalEventList(match, teamName, classPrefix = 'nm') {
         const teamKey = normalizeCountry(teamName);
+        const teamIds = getMatchTeamIdsForName(match, teamName);
         const events = getMatchGoalEvents(match).filter((event) => {
+            if (event.teamId && teamIds.has(String(event.teamId))) return true;
             const eventTeamKey = normalizeCountry(event.teamName);
             return eventTeamKey && eventTeamKey === teamKey;
         });

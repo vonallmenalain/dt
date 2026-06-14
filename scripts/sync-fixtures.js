@@ -28,6 +28,8 @@
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
  *    SKIP_VENUES               Falls `1`/`true`: Venue-Detail-Calls
  *                              auslassen (spart API-Quota).
+ *    SKIP_EVENTS               Falls `1`/`true`: Tor-Event-Calls
+ *                              auslassen (spart API-Quota).
  *
  *  Exit-Codes:
  *    0  – Lauf abgeschlossen (Spielplan synchronisiert oder Dry-Run ok).
@@ -67,6 +69,9 @@ const {
 
 const API_HOST = 'v3.football.api-sports.io';
 const VENUE_DELAY_MS = 300;
+const EVENT_DELAY_MS = 120;
+const LIVE_STATUS_SHORTS = new Set(['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
+const FINISHED_STATUS_SHORTS = new Set(['FT', 'AET', 'PEN']);
 
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Helpers
@@ -149,6 +154,35 @@ function buildVenueUrl(venueId) {
   return `https://${API_HOST}/venues?id=${venueId}`;
 }
 
+function buildFixtureEventsUrl(fixtureId) {
+  return `https://${API_HOST}/fixtures/events?fixture=${fixtureId}`;
+}
+
+function getFixtureStatusShort(fixture) {
+  return String(
+    fixture &&
+    fixture.fixture &&
+    fixture.fixture.status &&
+    fixture.fixture.status.short
+      ? fixture.fixture.status.short
+      : ''
+  ).toUpperCase();
+}
+
+function getFixtureGoalTotal(fixture) {
+  const goals = fixture && fixture.goals ? fixture.goals : {};
+  const home = Number(goals.home);
+  const away = Number(goals.away);
+  return (Number.isFinite(home) ? home : 0) + (Number.isFinite(away) ? away : 0);
+}
+
+function shouldFetchFixtureEvents(fixture) {
+  const statusShort = getFixtureStatusShort(fixture);
+  return LIVE_STATUS_SHORTS.has(statusShort) ||
+    FINISHED_STATUS_SHORTS.has(statusShort) ||
+    getFixtureGoalTotal(fixture) > 0;
+}
+
 async function fetchVenueDetails(venueId, apiKey, venueCache) {
   if (!venueId) return null;
   const idStr = String(venueId);
@@ -181,11 +215,31 @@ async function fetchVenueDetails(venueId, apiKey, venueCache) {
   }
 }
 
+async function fetchFixtureEvents(fixtureId, apiKey, eventCache) {
+  if (!fixtureId) return [];
+  const idStr = String(fixtureId);
+  if (eventCache.has(idStr)) {
+    return eventCache.get(idStr);
+  }
+
+  try {
+    await delay(EVENT_DELAY_MS);
+    const data = await fetchJson(buildFixtureEventsUrl(fixtureId), apiKey);
+    const events = Array.isArray(data && data.response) ? data.response : [];
+    eventCache.set(idStr, events);
+    return events;
+  } catch (err) {
+    logWarn(`Events fuer Fixture ${fixtureId} konnten nicht geladen werden: ${err.message}`);
+    eventCache.set(idStr, null);
+    return null;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Firestore-Dokument bauen – Spielplan-Schema (siehe rangliste.html für
  *  Konsumenten).
  * ───────────────────────────────────────────────────────────────────────────── */
-function buildFixtureDocument(fixture, venueDetails, tournament) {
+function buildFixtureDocument(fixture, venueDetails, tournament, fixtureEvents) {
   const f = fixture.fixture || {};
   const league = fixture.league || {};
   const teams = fixture.teams || {};
@@ -252,7 +306,7 @@ function buildFixtureDocument(fixture, venueDetails, tournament) {
     },
 
     score: fixture.score || {},
-    goalEvents: normalizeFixtureGoalEvents(fixture),
+    goalEvents: normalizeFixtureGoalEvents(fixture, fixtureEvents),
 
     updatedAt: FieldValue.serverTimestamp()
   };
@@ -261,9 +315,12 @@ function buildFixtureDocument(fixture, venueDetails, tournament) {
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Firestore-Schreib-Workflow
  * ───────────────────────────────────────────────────────────────────────────── */
-function normalizeFixtureGoalEvents(fixture) {
+function normalizeFixtureGoalEvents(fixture, fixtureEvents) {
   const f = fixture && fixture.fixture ? fixture.fixture : {};
-  return (Array.isArray(fixture && fixture.events) ? fixture.events : [])
+  const source = Array.isArray(fixtureEvents)
+    ? fixtureEvents
+    : (Array.isArray(fixture && fixture.events) ? fixture.events : []);
+  return source
     .filter(event => {
       const type = String(event && event.type ? event.type : '').toLowerCase();
       const detail = String(event && event.detail ? event.detail : '').toLowerCase();
@@ -396,6 +453,24 @@ async function runSync(db, tournament, opts) {
     }
   }
 
+  const eventCache = new Map();
+  if (opts.skipEvents) {
+    logInfo('SKIP_EVENTS aktiv - Tor-Events werden nicht separat abgefragt.');
+  } else {
+    const fixturesNeedingEvents = allFixtures.filter(shouldFetchFixtureEvents);
+    logInfo(`${fixturesNeedingEvents.length} gestartete/abgeschlossene Fixtures fuer Event-Details vorgemerkt.`);
+    for (let i = 0; i < fixturesNeedingEvents.length; i++) {
+      const fixture = fixturesNeedingEvents[i];
+      const fixtureId = fixture && fixture.fixture && fixture.fixture.id;
+      if (fixtureId) {
+        await fetchFixtureEvents(fixtureId, apiKey, eventCache);
+      }
+      if ((i + 1) % 10 === 0 || i === fixturesNeedingEvents.length - 1) {
+        logInfo(`Event-Calls: ${i + 1}/${fixturesNeedingEvents.length}`);
+      }
+    }
+  }
+
   // Fixture-Dokumente bauen.
   const fixtureDocuments = [];
   for (const fixture of allFixtures) {
@@ -406,9 +481,10 @@ async function runSync(db, tournament, opts) {
     }
     const venueId = fixture.fixture.venue && fixture.fixture.venue.id;
     const venueDetails = venueId ? (venueCache.get(String(venueId)) || null) : null;
+    const fixtureEvents = eventCache.get(String(fixtureId));
     fixtureDocuments.push({
       id: String(fixtureId),
-      data: buildFixtureDocument(fixture, venueDetails, tournament)
+      data: buildFixtureDocument(fixture, venueDetails, tournament, fixtureEvents)
     });
   }
 
@@ -466,12 +542,14 @@ async function main() {
 
   const opts = {
     dryRun: envBool('DRY_RUN', false),
-    skipVenues: envBool('SKIP_VENUES', false)
+    skipVenues: envBool('SKIP_VENUES', false),
+    skipEvents: envBool('SKIP_EVENTS', false)
   };
 
   logInfo(`Starte Spielplan-Sync für ${tournament.shortLabel} (${tournament.key}).` +
     (opts.dryRun ? ' [DRY_RUN]' : '') +
-    (opts.skipVenues ? ' [SKIP_VENUES]' : ''));
+    (opts.skipVenues ? ' [SKIP_VENUES]' : '') +
+    (opts.skipEvents ? ' [SKIP_EVENTS]' : ''));
 
   let db;
   try {

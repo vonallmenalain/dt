@@ -1757,6 +1757,23 @@ function fixtureStatusMatchesSnapshot(update, snapshot) {
   return JSON.stringify(stableNormalize(snapshot.goalEvents || [])) === JSON.stringify(stableNormalize(update.goalEvents || []));
 }
 
+function shouldPreserveExistingGoalEvents(update, snapshot) {
+  if (!update || !snapshot) return false;
+  if (!Array.isArray(update.goalEvents) || update.goalEvents.length > 0) return false;
+  if (!Array.isArray(snapshot.goalEvents) || snapshot.goalEvents.length === 0) return false;
+  const home = Number(update.goals && update.goals.home);
+  const away = Number(update.goals && update.goals.away);
+  const totalGoals = (Number.isFinite(home) ? home : 0) + (Number.isFinite(away) ? away : 0);
+  return totalGoals > 0;
+}
+
+function preserveExistingGoalEventsIfNeeded(update, snapshot) {
+  if (!shouldPreserveExistingGoalEvents(update, snapshot)) return update;
+  const next = { ...update };
+  delete next.goalEvents;
+  return next;
+}
+
 function statusValue(value) {
   return String(value || '').toUpperCase();
 }
@@ -1806,8 +1823,8 @@ async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtu
   for (const game of games) {
     const fixtureId = String(game.fixture.id);
     const docRef = db.collection(collection).doc(fixtureId);
-    const update = buildFixtureStatusUpdate(game);
     const snapshot = fixtureSnapshotsById ? fixtureSnapshotsById.get(fixtureId) : null;
+    const update = preserveExistingGoalEventsIfNeeded(buildFixtureStatusUpdate(game), snapshot);
 
     if (isFixtureStatusRegression(update, snapshot)) {
       logWarn(
@@ -1858,8 +1875,8 @@ function updateFixtureSnapshotsFromGames(fixtureSnapshotsById, games) {
   (games || []).forEach(game => {
     if (!game || !game.fixture || game.fixture.id == null) return;
     const fixtureId = String(game.fixture.id);
-    const update = buildFixtureStatusUpdate(game);
     const previous = fixtureSnapshotsById.get(fixtureId) || { id: fixtureId };
+    const update = preserveExistingGoalEventsIfNeeded(buildFixtureStatusUpdate(game), previous);
     fixtureSnapshotsById.set(fixtureId, {
       ...previous,
       statusLong: update.status.long,
@@ -1911,7 +1928,6 @@ function updateFixturePlanCacheFromGames(fixturePlanCache, games, cacheGeneratio
   uniqueGamesByFixtureId(games).forEach(game => {
     if (!game || !game.fixture || game.fixture.id == null) return;
     const fixtureId = String(game.fixture.id);
-    const update = buildFixtureStatusUpdate(game);
     let record = cache.byId.get(fixtureId);
     if (!record) {
       record = {
@@ -1921,6 +1937,7 @@ function updateFixturePlanCacheFromGames(fixturePlanCache, games, cacheGeneratio
       };
       cache.all.push(record);
     }
+    const update = preserveExistingGoalEventsIfNeeded(buildFixtureStatusUpdate(game), record.data);
     record.data = applyFixtureStatusUpdateToData(record.data, update, cacheGenerationMs);
     record.id = getFirestoreFixtureApiId(record.data, { id: record.docId }) || fixtureId;
     cache.byId.set(fixtureId, record);
@@ -1966,6 +1983,37 @@ function preferDetailedFixtureGames(games, detailsById) {
     const id = getApiFixtureId(game);
     return (id && detailsById && detailsById.get(id)) || game;
   });
+}
+
+function getFixtureGoalTotal(game) {
+  const goals = game && game.goals ? game.goals : {};
+  const home = Number(goals.home);
+  const away = Number(goals.away);
+  return (Number.isFinite(home) ? home : 0) + (Number.isFinite(away) ? away : 0);
+}
+
+function shouldFetchFixtureGoalEvents(game) {
+  return isScoringFixture(game) || getFixtureGoalTotal(game) > 0;
+}
+
+async function fetchFixtureGoalEvents(headers, fixtureId, opts = {}) {
+  const id = String(fixtureId || '').trim();
+  if (!id) return null;
+  const eventsUrl = `https://v3.football.api-sports.io/fixtures/events?fixture=${id}`;
+
+  try {
+    const data = await fetchApiJson(
+      eventsUrl,
+      { headers },
+      `Event-Details Fixture ${id}`,
+      opts,
+      'detailBatches'
+    );
+    return Array.isArray(data && data.response) ? data.response : [];
+  } catch (err) {
+    logWarn(`Event-Details fuer Fixture ${id} konnten nicht geladen werden: ${err.message}`);
+    return null;
+  }
 }
 
 async function publishFixtureStatusUpdates(db, tournament, games, opts, fixtureSnapshotsById, label, auditKey = 'fixtureWriteResult') {
@@ -2053,6 +2101,24 @@ async function fetchFixtureDetailsByIds(headers, fixtureIds, opts = {}) {
     logInfo(`Detail-Batch ${b + 1}/${batches.length} geladen (${detailData.response.length} Fixtures).`);
 
     if (b < batches.length - 1) await delay(350);
+  }
+
+  const eventCandidates = Array.from(detailsById.values()).filter(shouldFetchFixtureGoalEvents);
+  if (eventCandidates.length > 0) {
+    logInfo(`Event-Detail-Calls fuer ${eventCandidates.length} Fixture(s) vorgemerkt.`);
+  }
+
+  for (let i = 0; i < eventCandidates.length; i++) {
+    const fixtureDetail = eventCandidates[i];
+    const fixtureId = fixtureDetail && fixtureDetail.fixture && fixtureDetail.fixture.id;
+    const events = await fetchFixtureGoalEvents(headers, fixtureId, opts);
+    if (Array.isArray(events)) {
+      fixtureDetail.events = events;
+    }
+    if ((i + 1) % 10 === 0 || i === eventCandidates.length - 1) {
+      logInfo(`Event-Detail-Calls: ${i + 1}/${eventCandidates.length}`);
+    }
+    if (i < eventCandidates.length - 1) await delay(120);
   }
 
   return detailsById;
