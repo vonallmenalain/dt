@@ -8469,27 +8469,70 @@
         return { groupOrders, thirdOrder };
     }
 
+    function buildTournamentManualAutoOrders(context) {
+        const groupOrders = {};
+
+        (context?.groups || []).forEach(group => {
+            const groupKey = String(group.group || '').toUpperCase();
+            const sourceRows = (group.rankedRows && group.rankedRows.length)
+                ? group.rankedRows
+                : (group.rows || []);
+            groupOrders[groupKey] = sourceRows.map(row => row.key).filter(Boolean);
+        });
+
+        const thirdOrder = (context?.thirdRows || [])
+            .map(row => String(row.group || '').toUpperCase())
+            .filter(Boolean);
+
+        return { groupOrders, thirdOrder };
+    }
+
+    function buildTournamentManualDefaultOrders(context) {
+        const prediction = buildTournamentManualPrediction(context);
+        const autoOrders = buildTournamentManualAutoOrders(context);
+        const groupOrders = {};
+
+        (context?.groups || []).forEach(group => {
+            const groupKey = String(group.group || '').toUpperCase();
+            const validOrder = (group.rows || []).map(row => row.key);
+            const hasPlayedMatches = Number(group.playedMatches || 0) > 0;
+            const sourceOrder = hasPlayedMatches
+                ? autoOrders.groupOrders[groupKey]
+                : prediction.groupOrders[groupKey];
+            groupOrders[groupKey] = sanitizeTournamentOrder(sourceOrder || [], validOrder);
+        });
+
+        const validThirdGroups = (context?.groups || [])
+            .map(group => String(group.group || '').toUpperCase())
+            .filter(Boolean);
+        const thirdSource = Number(context?.totalPlayed || 0) > 0
+            ? autoOrders.thirdOrder
+            : prediction.thirdOrder;
+        const thirdOrder = sanitizeTournamentOrder(thirdSource || [], validThirdGroups);
+
+        return { groupOrders, thirdOrder };
+    }
+
     function ensureTournamentManualPredictionDefaults(context) {
-        const config = getTournamentManualPredictionConfig();
-        if (!config || !context?.groups?.length) return false;
+        if (!context?.groups?.length) return false;
 
         tournamentManualState = normalizeTournamentManualState(tournamentManualState);
-        const prediction = buildTournamentManualPrediction(context);
+        const defaultOrders = buildTournamentManualDefaultOrders(context);
         const canReplaceExistingDefaults = !tournamentManualState.manualPredictionInitialized
             && isTournamentManualStateUntouched(context);
         const hasAnySavedGroupOrder = Object.values(tournamentManualState.groupOrders || {})
             .some(order => hasTournamentManualOrder(order));
         const cleanSavedGroupOrders = sanitizeTournamentManualGroupOrders(tournamentManualState.groupOrders, context);
-        const predictedGroupOrders = sanitizeTournamentManualGroupOrders(prediction.groupOrders || {}, context);
+        const defaultGroupOrders = sanitizeTournamentManualGroupOrders(defaultOrders.groupOrders || {}, context);
         let changed = false;
 
         context.groups.forEach(group => {
             const groupKey = String(group.group || '').toUpperCase();
             const savedOrder = tournamentManualState.groupOrders[groupKey];
             const cleanSavedOrder = cleanSavedGroupOrders[groupKey] || [];
-            const predictedOrder = predictedGroupOrders[groupKey] || [];
+            const defaultOrder = defaultGroupOrders[groupKey] || [];
             const nextOrder = (canReplaceExistingDefaults || !hasAnySavedGroupOrder)
-                ? predictedOrder
+                ? defaultOrder
                 : cleanSavedOrder;
 
             if (!areTournamentOrdersEqual(savedOrder, nextOrder)) {
@@ -8502,9 +8545,9 @@
         const cleanSavedThirdOrder = hasTournamentManualOrder(tournamentManualState.thirdOrder)
             ? sanitizeTournamentOrder(tournamentManualState.thirdOrder, validThirdGroups)
             : [];
-        const predictedThirdOrder = sanitizeTournamentOrder(prediction.thirdOrder || [], validThirdGroups);
+        const defaultThirdOrder = sanitizeTournamentOrder(defaultOrders.thirdOrder || [], validThirdGroups);
         const nextThirdOrder = (canReplaceExistingDefaults || !cleanSavedThirdOrder.length)
-            ? predictedThirdOrder
+            ? defaultThirdOrder
             : cleanSavedThirdOrder;
 
         if (!areTournamentOrdersEqual(tournamentManualState.thirdOrder, nextThirdOrder)) {
@@ -8524,13 +8567,13 @@
         if (!isTournamentManualMode()) return;
         const autoContext = attachTournamentBestThirdAssignments(buildTournamentStandings());
         if (!autoContext?.groups?.length) return;
-        const prediction = buildTournamentManualPrediction(autoContext);
+        const defaultOrders = buildTournamentManualDefaultOrders(autoContext);
         const groupOrders = {};
 
         autoContext.groups.forEach(group => {
             const groupKey = String(group.group || '').toUpperCase();
             const validOrder = (group.rows || []).map(row => row.key);
-            groupOrders[groupKey] = sanitizeTournamentOrder(prediction.groupOrders[groupKey] || [], validOrder);
+            groupOrders[groupKey] = sanitizeTournamentOrder(defaultOrders.groupOrders[groupKey] || [], validOrder);
         });
 
         const validThirdGroups = autoContext.groups.map(group => String(group.group || '').toUpperCase()).filter(Boolean);
@@ -8539,7 +8582,7 @@
             mode: TOURNAMENT_MODE_MANUAL,
             manualPredictionInitialized: true,
             groupOrders,
-            thirdOrder: sanitizeTournamentOrder(prediction.thirdOrder || [], validThirdGroups),
+            thirdOrder: sanitizeTournamentOrder(defaultOrders.thirdOrder || [], validThirdGroups),
             winners: {}
         });
         saveTournamentManualState();
