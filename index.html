@@ -3525,15 +3525,57 @@
             flex: 1;
             min-width: 0;
             display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 7px;
         }
 
         .nm-players-side.left {
-            justify-content: flex-start;
+            align-items: flex-start;
         }
 
         .nm-players-side.right {
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .nm-goals-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 0.68rem;
+            line-height: 1.22;
+            color: rgba(230,237,243,0.82);
+        }
+
+        .nm-goal-row {
+            display: block;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .nm-goal-minute {
+            color: #fbbf24;
+            font-weight: 900;
+            margin-right: 4px;
+        }
+
+        .nm-goal-assist {
+            color: var(--text-muted);
+        }
+
+        .nm-goal-own {
+            color: #f87171;
+            font-weight: 800;
+        }
+
+        .nm-player-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .nm-players-side.right .nm-player-chips {
             justify-content: flex-end;
         }
 
@@ -3653,6 +3695,12 @@
         .nm-detail-player-list {
             display: grid;
             gap: 8px;
+        }
+
+        .nm-detail-team .nm-goals-list {
+            margin: -2px 0 10px;
+            padding-bottom: 9px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
         }
 
         .nm-detail-empty {
@@ -7288,6 +7336,7 @@
                         statusLong: f.status?.long || f.statusLong || '',
                         statusElapsed: f.status?.elapsed ?? f.statusElapsed ?? null,
                         goals: f.goals || null,
+                        goalEvents: Array.isArray(f.goalEvents) ? f.goalEvents : (Array.isArray(f.events) ? f.events : []),
                         homeWinner: f.homeTeam?.winner ?? null,
                         awayWinner: f.awayTeam?.winner ?? null,
                         round: f.league?.round || ''
@@ -8853,6 +8902,87 @@
         return { home: home ?? 0, away: away ?? 0 };
     }
 
+    function getGoalEventName(value) {
+        return String(value || '').trim();
+    }
+
+    function getGoalEventLastName(name) {
+        const clean = getGoalEventName(name).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!clean) return '';
+        const parts = clean.split(/\s+/).filter(Boolean);
+        if (parts.length <= 1) return clean;
+        if (/^[A-Z]\.$/i.test(parts[0])) return parts.slice(1).join(' ');
+        return parts[parts.length - 1];
+    }
+
+    function normalizeGoalEvent(raw) {
+        const time = raw?.time || {};
+        const team = raw?.team || {};
+        const player = raw?.player || {};
+        const assist = raw?.assist || {};
+        return {
+            elapsed: Number.isFinite(Number(raw?.elapsed)) ? Number(raw.elapsed) : (Number.isFinite(Number(time.elapsed)) ? Number(time.elapsed) : null),
+            extra: Number.isFinite(Number(raw?.extra)) ? Number(raw.extra) : (Number.isFinite(Number(time.extra)) ? Number(time.extra) : null),
+            teamName: getGoalEventName(raw?.teamName || team.name),
+            playerName: getGoalEventName(raw?.playerName || player.name),
+            assistName: getGoalEventName(raw?.assistName || assist.name),
+            detail: getGoalEventName(raw?.detail)
+        };
+    }
+
+    function getMatchGoalEvents(match) {
+        const source = Array.isArray(match?.goalEvents)
+            ? match.goalEvents
+            : (Array.isArray(match?.events) ? match.events.filter((event) => {
+                const type = String(event?.type || '').toLowerCase();
+                const detail = String(event?.detail || '').toLowerCase();
+                return type === 'goal' && !detail.includes('missed');
+            }) : []);
+
+        return source
+            .map(normalizeGoalEvent)
+            .filter((event) => event.playerName)
+            .sort((a, b) => {
+                const elapsedA = a.elapsed ?? 999;
+                const elapsedB = b.elapsed ?? 999;
+                if (elapsedA !== elapsedB) return elapsedA - elapsedB;
+                const extraA = a.extra ?? 0;
+                const extraB = b.extra ?? 0;
+                if (extraA !== extraB) return extraA - extraB;
+                return a.playerName.localeCompare(b.playerName, 'de');
+            });
+    }
+
+    function formatGoalMinute(event) {
+        if (!Number.isFinite(event.elapsed)) return '';
+        return `${event.elapsed}${Number.isFinite(event.extra) && event.extra > 0 ? '+' + event.extra : ''}'`;
+    }
+
+    function isOwnGoalEvent(event) {
+        return String(event?.detail || '').toLowerCase().includes('own goal');
+    }
+
+    function renderGoalEventList(match, teamName, classPrefix = 'nm') {
+        const teamKey = normalizeCountry(teamName);
+        const events = getMatchGoalEvents(match).filter((event) => {
+            const eventTeamKey = normalizeCountry(event.teamName);
+            return eventTeamKey && eventTeamKey === teamKey;
+        });
+        if (!events.length) return '';
+
+        const rows = events.map((event) => {
+            const minute = formatGoalMinute(event);
+            const scorer = getGoalEventLastName(event.playerName) || event.playerName;
+            const assist = getGoalEventLastName(event.assistName);
+            const assistHtml = assist
+                ? ` <span class="${classPrefix}-goal-assist">(${escapeHtml(assist)})</span>`
+                : (isOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}${escapeHtml(scorer)}${assistHtml}</div>`;
+        }).join('');
+
+        return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
+    }
+
     function sumPointBucket(value) {
         if (typeof value === 'number' && Number.isFinite(value)) return value;
         if (!value || typeof value !== 'object') return 0;
@@ -9275,12 +9405,22 @@
                 }).join('');
             }
 
-            const hasPlayers = draftedHome.length > 0 || draftedAway.length > 0;
-            const playersRowHtml = hasPlayers ? `
+            const homeGoalsHtml = renderGoalEventList(match, teamA, 'nm');
+            const awayGoalsHtml = renderGoalEventList(match, teamB, 'nm');
+            const homeChipsHtml = buildChips(draftedHome);
+            const awayChipsHtml = buildChips(draftedAway);
+            const hasPlayersOrGoals = !!(homeGoalsHtml || awayGoalsHtml || homeChipsHtml || awayChipsHtml);
+            const playersRowHtml = hasPlayersOrGoals ? `
                 <div class="nm-players-row">
-                    <div class="nm-players-side left">${buildChips(draftedHome)}</div>
+                    <div class="nm-players-side left">
+                        ${homeGoalsHtml}
+                        ${homeChipsHtml ? `<div class="nm-player-chips">${homeChipsHtml}</div>` : ''}
+                    </div>
                     <div class="nm-players-divider"></div>
-                    <div class="nm-players-side right">${buildChips(draftedAway)}</div>
+                    <div class="nm-players-side right">
+                        ${awayGoalsHtml}
+                        ${awayChipsHtml ? `<div class="nm-player-chips">${awayChipsHtml}</div>` : ''}
+                    </div>
                 </div>` : '';
 
             const stageMatch = { ...match, teamA, teamB, round: match.round || '' };
@@ -9300,6 +9440,7 @@
                         ${renderFlagImageHtml('nm-detail-team-flag', flagUrl, fallbackFlagUrl, teamName)}
                         <span class="nm-detail-team-name">${escapeHtml(teamName)}</span>
                     </div>
+                    ${renderGoalEventList(match, teamName, 'nm')}
                     <div class="nm-detail-player-list">${buildDetailPlayerCards(players)}</div>
                 </div>`;
             }

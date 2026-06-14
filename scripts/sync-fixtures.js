@@ -247,6 +247,7 @@ function buildFixtureDocument(fixture, venueDetails, tournament) {
     },
 
     score: fixture.score || {},
+    goalEvents: normalizeFixtureGoalEvents(fixture),
 
     updatedAt: FieldValue.serverTimestamp()
   };
@@ -255,6 +256,43 @@ function buildFixtureDocument(fixture, venueDetails, tournament) {
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Firestore-Schreib-Workflow
  * ───────────────────────────────────────────────────────────────────────────── */
+function normalizeFixtureGoalEvents(fixture) {
+  const f = fixture && fixture.fixture ? fixture.fixture : {};
+  return (Array.isArray(fixture && fixture.events) ? fixture.events : [])
+    .filter(event => {
+      const type = String(event && event.type ? event.type : '').toLowerCase();
+      const detail = String(event && event.detail ? event.detail : '').toLowerCase();
+      return type === 'goal' && !detail.includes('missed');
+    })
+    .map(event => {
+      const time = event && event.time ? event.time : {};
+      const team = event && event.team ? event.team : {};
+      const player = event && event.player ? event.player : {};
+      const assist = event && event.assist ? event.assist : {};
+      return {
+        fixtureId: f.id != null ? String(f.id) : '',
+        elapsed: (typeof time.elapsed === 'number') ? time.elapsed : null,
+        extra: (typeof time.extra === 'number') ? time.extra : null,
+        teamId: team.id != null ? String(team.id) : '',
+        teamName: team.name || '',
+        playerId: player.id != null ? String(player.id) : '',
+        playerName: player.name || '',
+        assistId: assist.id != null ? String(assist.id) : '',
+        assistName: assist.name || '',
+        detail: event && event.detail ? String(event.detail) : ''
+      };
+    })
+    .sort((a, b) => {
+      const elapsedA = (typeof a.elapsed === 'number') ? a.elapsed : 999;
+      const elapsedB = (typeof b.elapsed === 'number') ? b.elapsed : 999;
+      if (elapsedA !== elapsedB) return elapsedA - elapsedB;
+      const extraA = (typeof a.extra === 'number') ? a.extra : 0;
+      const extraB = (typeof b.extra === 'number') ? b.extra : 0;
+      if (extraA !== extraB) return extraA - extraB;
+      return String(a.playerName || '').localeCompare(String(b.playerName || ''), 'de');
+    });
+}
+
 async function writeFixturesToFirestore(db, tournament, fixtureDocuments, opts) {
   const collection = tournament.firestore.fixturesCollection;
 

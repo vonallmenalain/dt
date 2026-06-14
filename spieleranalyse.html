@@ -4105,6 +4105,43 @@
             align-items: flex-end;
         }
 
+        .sc-goals-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 0.72rem;
+            line-height: 1.22;
+            color: rgba(230,237,243,0.84);
+        }
+
+        .sc-team-away .sc-goals-list,
+        .sc-expanded-team.right .sc-goals-list {
+            text-align: right;
+            align-items: flex-end;
+        }
+
+        .sc-goal-row {
+            display: block;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .sc-goal-minute {
+            color: #fbbf24;
+            font-weight: 900;
+            margin-right: 4px;
+        }
+
+        .sc-goal-assist {
+            color: var(--text-muted);
+        }
+
+        .sc-goal-own {
+            color: var(--red-soft);
+            font-weight: 800;
+        }
+
         .sc-player-avatars {
             display: flex;
             flex-wrap: wrap;
@@ -4524,6 +4561,12 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             flex: 1;
+        }
+
+        .sc-expanded-team .sc-goals-list {
+            margin: -4px 0 12px;
+            padding-bottom: 11px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .sc-expanded-players {
@@ -7230,6 +7273,8 @@
                     venueImage: f.venue?.image || '',
                     status: f.status || (f.statusShort ? { short: f.statusShort, long: f.statusLong || '', elapsed: f.statusElapsed ?? null } : null),
                     goals: f.goals || null,
+                    score: f.score || {},
+                    goalEvents: Array.isArray(f.goalEvents) ? f.goalEvents : (Array.isArray(f.events) ? f.events : []),
                     round: f.league?.round || '',
                     homeWinner: f.homeTeam?.winner ?? null,
                     awayWinner: f.awayTeam?.winner ?? null
@@ -7254,6 +7299,8 @@
                 venueImage: '',
                 status: null,
                 goals: null,
+                score: m.score || {},
+                goalEvents: Array.isArray(m.goalEvents) ? m.goalEvents : (Array.isArray(m.events) ? m.events : []),
                 round: '',
                 homeWinner: null,
                 awayWinner: null
@@ -7274,6 +7321,8 @@
             venueImage: '',
             status: null,
             goals: null,
+            score: {},
+            goalEvents: [],
             round: '',
             homeWinner: null,
             awayWinner: null
@@ -7330,6 +7379,87 @@
         const parsed = mc ? parseResultString(mc.resultText || '') : null;
         if (!parsed) return null;
         return { home: parsed.homeGoals, away: parsed.awayGoals };
+    }
+
+    function getScheduleGoalEventName(value) {
+        return String(value || '').trim();
+    }
+
+    function getScheduleGoalEventLastName(name) {
+        const clean = getScheduleGoalEventName(name).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!clean) return '';
+        const parts = clean.split(/\s+/).filter(Boolean);
+        if (parts.length <= 1) return clean;
+        if (/^[A-Z]\.$/i.test(parts[0])) return parts.slice(1).join(' ');
+        return parts[parts.length - 1];
+    }
+
+    function normalizeScheduleGoalEvent(raw) {
+        const time = raw?.time || {};
+        const team = raw?.team || {};
+        const player = raw?.player || {};
+        const assist = raw?.assist || {};
+        return {
+            elapsed: Number.isFinite(Number(raw?.elapsed)) ? Number(raw.elapsed) : (Number.isFinite(Number(time.elapsed)) ? Number(time.elapsed) : null),
+            extra: Number.isFinite(Number(raw?.extra)) ? Number(raw.extra) : (Number.isFinite(Number(time.extra)) ? Number(time.extra) : null),
+            teamName: getScheduleGoalEventName(raw?.teamName || team.name),
+            playerName: getScheduleGoalEventName(raw?.playerName || player.name),
+            assistName: getScheduleGoalEventName(raw?.assistName || assist.name),
+            detail: getScheduleGoalEventName(raw?.detail)
+        };
+    }
+
+    function getScheduleGoalEvents(match) {
+        const source = Array.isArray(match?.goalEvents)
+            ? match.goalEvents
+            : (Array.isArray(match?.events) ? match.events.filter((event) => {
+                const type = String(event?.type || '').toLowerCase();
+                const detail = String(event?.detail || '').toLowerCase();
+                return type === 'goal' && !detail.includes('missed');
+            }) : []);
+
+        return source
+            .map(normalizeScheduleGoalEvent)
+            .filter((event) => event.playerName)
+            .sort((a, b) => {
+                const elapsedA = a.elapsed ?? 999;
+                const elapsedB = b.elapsed ?? 999;
+                if (elapsedA !== elapsedB) return elapsedA - elapsedB;
+                const extraA = a.extra ?? 0;
+                const extraB = b.extra ?? 0;
+                if (extraA !== extraB) return extraA - extraB;
+                return a.playerName.localeCompare(b.playerName, 'de');
+            });
+    }
+
+    function formatScheduleGoalMinute(event) {
+        if (!Number.isFinite(event.elapsed)) return '';
+        return `${event.elapsed}${Number.isFinite(event.extra) && event.extra > 0 ? '+' + event.extra : ''}'`;
+    }
+
+    function isScheduleOwnGoalEvent(event) {
+        return String(event?.detail || '').toLowerCase().includes('own goal');
+    }
+
+    function renderScheduleGoalEventList(match, teamName) {
+        const teamKey = normalizeNationFlagKey(teamName);
+        const events = getScheduleGoalEvents(match).filter((event) => {
+            const eventTeamKey = normalizeNationFlagKey(event.teamName);
+            return eventTeamKey && eventTeamKey === teamKey;
+        });
+        if (!events.length) return '';
+
+        const rows = events.map((event) => {
+            const minute = formatScheduleGoalMinute(event);
+            const scorer = getScheduleGoalEventLastName(event.playerName) || event.playerName;
+            const assist = getScheduleGoalEventLastName(event.assistName);
+            const assistHtml = assist
+                ? ` <span class="sc-goal-assist">(${escapeHtml(assist)})</span>`
+                : (isScheduleOwnGoalEvent(event) ? ` <span class="sc-goal-own">(Eigentor)</span>` : '');
+            return `<div class="sc-goal-row">${minute ? `<span class="sc-goal-minute">${escapeHtml(minute)}</span>` : ''}${escapeHtml(scorer)}${assistHtml}</div>`;
+        }).join('');
+
+        return `<div class="sc-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
     }
 
     function getScheduleDisplayMatchNumber(m, mc) {
@@ -7550,6 +7680,8 @@
         const awayLogo = renderFlagImageHtml('sc-expanded-team-logo', m.teamBLogo, awayFlagUrl, m.teamB, 'sc-team-logo-placeholder');
 
         const emptyMsg = `<div class="sc-expanded-empty">Keine Spieler erfasst.</div>`;
+        const homeGoalsHtml = renderScheduleGoalEventList(m, m.teamA);
+        const awayGoalsHtml = renderScheduleGoalEventList(m, m.teamB);
         const homeBody = homePlayers.length
             ? homePlayers.map(p => renderSchedulePlayerCard(p, hasMatchData)).join('')
             : emptyMsg;
@@ -7568,13 +7700,15 @@
                         ${homeLogo}
                         <span class="sc-expanded-team-name">${escapeHtml(m.teamA)}</span>
                     </div>
+                    ${homeGoalsHtml}
                     <div class="sc-expanded-players">${homeBody}</div>
                 </div>
-                <div class="sc-expanded-team">
+                <div class="sc-expanded-team right">
                     <div class="sc-expanded-team-header">
                         ${awayLogo}
                         <span class="sc-expanded-team-name">${escapeHtml(m.teamB)}</span>
                     </div>
+                    ${awayGoalsHtml}
                     <div class="sc-expanded-players">${awayBody}</div>
                 </div>
             </div>
@@ -7825,6 +7959,8 @@
                 const homeDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamA);
                 const awayDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamB);
                 const showMatchPlayerPoints = (isLive || isFinished) && !!mc;
+                const homeGoalsHtml = renderScheduleGoalEventList(m, m.teamA);
+                const awayGoalsHtml = renderScheduleGoalEventList(m, m.teamB);
                 const homeAvatars = renderScheduleAvatars(homeDrafted, false, showMatchPlayerPoints);
                 const awayAvatars = renderScheduleAvatars(awayDrafted, true, showMatchPlayerPoints);
 
@@ -7848,6 +7984,7 @@
                                 ${homeLogo}
                                 <span class="sc-team-name">${escapeHtml(m.teamA)}</span>
                             </div>
+                            ${homeGoalsHtml}
                             ${homeAvatars}
                         </div>
                         <div class="sc-center">
@@ -7861,6 +7998,7 @@
                                 <span class="sc-team-name">${escapeHtml(m.teamB)}</span>
                                 ${awayLogo}
                             </div>
+                            ${awayGoalsHtml}
                             ${awayAvatars}
                         </div>
                         <span class="sc-card-toggle" aria-hidden="true">▾</span>

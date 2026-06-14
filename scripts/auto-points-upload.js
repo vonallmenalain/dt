@@ -800,6 +800,7 @@ async function findCandidateFixtures(db, tournament, opts) {
       goalsHome: (data.goals && data.goals.home) != null ? data.goals.home : null,
       goalsAway: (data.goals && data.goals.away) != null ? data.goals.away : null,
       score: data.score || {},
+      goalEvents: Array.isArray(data.goalEvents) ? data.goalEvents : [],
       homeWinner: (data.homeTeam && data.homeTeam.winner != null) ? data.homeTeam.winner : null,
       awayWinner: (data.awayTeam && data.awayTeam.winner != null) ? data.awayTeam.winner : null,
       label: (homeName && awayName) ? `${homeName} vs ${awayName}` : `Spiel ${apiFixtureId || doc.id}`
@@ -1550,7 +1551,7 @@ async function bumpFixturesMetaVersion(db, tournament, opts) {
 }
 
 function buildFixtureStatusUpdate(game) {
-  return {
+  const update = {
     status: {
       long: (game.fixture.status && game.fixture.status.long) || '',
       short: (game.fixture.status && game.fixture.status.short) || '',
@@ -1564,11 +1565,54 @@ function buildFixtureStatusUpdate(game) {
     'homeTeam.winner': (game.teams && game.teams.home && game.teams.home.winner != null) ? game.teams.home.winner : null,
     'awayTeam.winner': (game.teams && game.teams.away && game.teams.away.winner != null) ? game.teams.away.winner : null
   };
+
+  if (Array.isArray(game.events)) {
+    update.goalEvents = normalizeFixtureGoalEvents(game);
+  }
+
+  return update;
+}
+
+function normalizeFixtureGoalEvents(game) {
+  const fixtureId = game && game.fixture && game.fixture.id != null ? String(game.fixture.id) : '';
+  return (Array.isArray(game && game.events) ? game.events : [])
+    .filter(event => {
+      const type = String(event && event.type ? event.type : '').toLowerCase();
+      const detail = String(event && event.detail ? event.detail : '').toLowerCase();
+      return type === 'goal' && !detail.includes('missed');
+    })
+    .map(event => {
+      const time = event && event.time ? event.time : {};
+      const team = event && event.team ? event.team : {};
+      const player = event && event.player ? event.player : {};
+      const assist = event && event.assist ? event.assist : {};
+      return {
+        fixtureId,
+        elapsed: (typeof time.elapsed === 'number') ? time.elapsed : null,
+        extra: (typeof time.extra === 'number') ? time.extra : null,
+        teamId: team.id != null ? String(team.id) : '',
+        teamName: team.name || '',
+        playerId: player.id != null ? String(player.id) : '',
+        playerName: player.name || '',
+        assistId: assist.id != null ? String(assist.id) : '',
+        assistName: assist.name || '',
+        detail: event && event.detail ? String(event.detail) : ''
+      };
+    })
+    .sort((a, b) => {
+      const elapsedA = (typeof a.elapsed === 'number') ? a.elapsed : 999;
+      const elapsedB = (typeof b.elapsed === 'number') ? b.elapsed : 999;
+      if (elapsedA !== elapsedB) return elapsedA - elapsedB;
+      const extraA = (typeof a.extra === 'number') ? a.extra : 0;
+      const extraB = (typeof b.extra === 'number') ? b.extra : 0;
+      if (extraA !== extraB) return extraA - extraB;
+      return String(a.playerName || '').localeCompare(String(b.playerName || ''), 'de');
+    });
 }
 
 function fixtureStatusMatchesSnapshot(update, snapshot) {
   if (!snapshot) return false;
-  return snapshot.statusLong === update.status.long &&
+  const statusMatches = snapshot.statusLong === update.status.long &&
     snapshot.statusShort === update.status.short &&
     snapshot.statusElapsed === update.status.elapsed &&
     snapshot.goalsHome === update.goals.home &&
@@ -1576,6 +1620,10 @@ function fixtureStatusMatchesSnapshot(update, snapshot) {
     snapshot.homeWinner === update['homeTeam.winner'] &&
     snapshot.awayWinner === update['awayTeam.winner'] &&
     JSON.stringify(stableNormalize(snapshot.score || {})) === JSON.stringify(stableNormalize(update.score || {}));
+
+  if (!statusMatches) return false;
+  if (update.goalEvents === undefined) return true;
+  return JSON.stringify(stableNormalize(snapshot.goalEvents || [])) === JSON.stringify(stableNormalize(update.goalEvents || []));
 }
 
 function statusValue(value) {
@@ -1687,6 +1735,7 @@ function updateFixtureSnapshotsFromGames(fixtureSnapshotsById, games) {
       goalsHome: update.goals.home,
       goalsAway: update.goals.away,
       score: update.score || {},
+      goalEvents: update.goalEvents !== undefined ? update.goalEvents : (previous.goalEvents || []),
       homeWinner: update['homeTeam.winner'],
       awayWinner: update['awayTeam.winner']
     });
