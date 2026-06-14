@@ -907,6 +907,7 @@ function buildFixtureInfoFromPlanRecord(record) {
     goalsHome: (data.goals && data.goals.home) != null ? data.goals.home : null,
     goalsAway: (data.goals && data.goals.away) != null ? data.goals.away : null,
     score: data.score || {},
+    goalEvents: Array.isArray(data.goalEvents) ? data.goalEvents : [],
     homeWinner: (data.homeTeam && data.homeTeam.winner != null) ? data.homeTeam.winner : null,
     awayWinner: (data.awayTeam && data.awayTeam.winner != null) ? data.awayTeam.winner : null,
     label: (homeName && awayName) ? `${homeName} vs ${awayName}` : `Spiel ${apiFixtureId || doc.id}`
@@ -1888,6 +1889,9 @@ function applyFixtureStatusUpdateToData(data, update, cacheGenerationMs) {
     away: update.goals.away
   };
   next.score = update.score || {};
+  if (update.goalEvents !== undefined) {
+    next.goalEvents = update.goalEvents;
+  }
   next.homeTeam = {
     ...(next.homeTeam && typeof next.homeTeam === 'object' ? next.homeTeam : {}),
     winner: update['homeTeam.winner']
