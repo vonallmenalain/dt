@@ -2254,7 +2254,17 @@
 
     function assignTeamRanks(teams) {
         const ranking = [...teams].sort(compareTeamsByScoreThenSubmission);
-        ranking.forEach((team, index) => { team.currentRank = index + 1; });
+        let currentRank = null;
+        let previousScore = null;
+
+        ranking.forEach((team, index) => {
+            const score = Number(team.totalScore) || 0;
+            if (index === 0 || score !== previousScore) {
+                currentRank = index + 1;
+            }
+            team.currentRank = currentRank;
+            previousScore = score;
+        });
         return ranking;
     }
 

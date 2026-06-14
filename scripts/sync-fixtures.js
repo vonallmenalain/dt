@@ -13,9 +13,10 @@
  *    2. Sammelt eindeutige Venue-IDs und holt jede Venue genau einmal.
  *    3. Baut pro Spiel ein Firestore-Dokument im etablierten Schema.
  *    4. Schreibt die Dokumente in Batches à 400 nach `fixturesCollection`.
- *    5. Erhöht `fixturesVersion` und setzt `fixturesUpdatedAt` im
- *       Meta-Dokument – das Signal, mit dem der Client den Cache
- *       invalidiert.
+ *    5. Schreibt `public_cache/wm2026_fixtures` als öffentliches Bundle.
+ *    6. Erhöht `fixturesVersion` und setzt `fixturesUpdatedAt` sowie
+ *       `fixturesCacheGeneratedAt` im Meta-Dokument – das Signal, mit dem
+ *       der Client den Cache invalidiert.
  *
  *  Env-Variablen (aus GitHub Actions Secrets, manuellen Workflow-Inputs
  *  oder lokalen Tests; Scheduled Runs nutzen bei leeren Werten die Defaults):
@@ -59,6 +60,10 @@ if (!fetchFn) {
 // Konfiguration auseinander.
 const APP_CONFIG = require('../tournament-config.js');
 const TOURNAMENTS = APP_CONFIG.tournaments;
+const {
+  buildFixturesMapFromDocuments,
+  writePublicFixtureBundle
+} = require('./fixture-public-cache.js');
 
 const API_HOST = 'v3.football.api-sports.io';
 const VENUE_DELAY_MS = 300;
@@ -328,7 +333,7 @@ async function writeFixturesToFirestore(db, tournament, fixtureDocuments, opts) 
   return totalWritten;
 }
 
-async function bumpFixturesMetaVersion(db, tournament, opts) {
+async function bumpFixturesMetaVersion(db, tournament, opts, fixturesCacheGeneratedAt = null) {
   if (opts.dryRun) {
     logInfo(`[DRY-RUN] Würde Meta ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} hochzählen.`);
     return;
@@ -337,7 +342,7 @@ async function bumpFixturesMetaVersion(db, tournament, opts) {
   const ref = db
     .collection(tournament.firestore.metaCollection)
     .doc(tournament.firestore.metaDocId);
-  await ref.set({
+  const payload = {
     tournamentKey: tournament.key,
     tournamentType: tournament.type,
     tournamentYear: tournament.year,
@@ -345,7 +350,11 @@ async function bumpFixturesMetaVersion(db, tournament, opts) {
     year: tournament.year,
     fixturesVersion: FieldValue.increment(1),
     fixturesUpdatedAt: Date.now()
-  }, { merge: true });
+  };
+  if (typeof fixturesCacheGeneratedAt === 'number' && Number.isFinite(fixturesCacheGeneratedAt)) {
+    payload.fixturesCacheGeneratedAt = fixturesCacheGeneratedAt;
+  }
+  await ref.set(payload, { merge: true });
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -407,7 +416,20 @@ async function runSync(db, tournament, opts) {
   logInfo(`${totalWritten} Fixture-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}.`);
 
   if (totalWritten > 0) {
-    await bumpFixturesMetaVersion(db, tournament, opts);
+    const cacheGenerationMs = Date.now();
+    const fixturesBundle = buildFixturesMapFromDocuments(fixtureDocuments, cacheGenerationMs);
+    const bundleResult = await writePublicFixtureBundle(
+      db,
+      tournament,
+      fixturesBundle,
+      'sync-fixtures',
+      opts,
+      cacheGenerationMs
+    );
+    logInfo(`Public Fixture-Bundle ${opts.dryRun ? '(DRY-RUN) berechnet' : 'geschrieben'} ` +
+      `(${bundleResult.fixturesCount} Fixtures, cacheGenerationMs=${bundleResult.cacheGenerationMs}).`);
+
+    await bumpFixturesMetaVersion(db, tournament, opts, bundleResult.cacheGenerationMs);
     logInfo(`Meta ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} ${opts.dryRun ? '(DRY-RUN) ' : ''}aktualisiert (fixturesVersion erhöht).`);
   } else {
     logWarn('Keine Fixtures geschrieben – Meta-Version nicht hochgezählt.');

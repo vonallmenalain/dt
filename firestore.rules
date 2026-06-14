@@ -9,7 +9,8 @@ rules_version = '2';
 // mehrzeiligen Ausdruecken oder dekorativen Kommentarbloecken stoesst.
 //
 // Wichtige Eigenschaften:
-//   1) Public-Reads nur fuer die WM-2026-Collections + das app_meta-Dokument.
+//   1) Public-Reads nur fuer die WM-2026-Collections, das app_meta-Dokument
+//      und das oeffentliche Fixture-Bundle.
 //   2) Team-Writes verlangen verifizierte E-Mail und eigenes Doc
 //      (matched per userId ODER userEmailLower).
 //   3) Team-Writes sind nach Anpfiff (2026-06-11 19:00 UTC) gesperrt;
@@ -151,6 +152,7 @@ service cloud.firestore {
         || collection == 'Spiele WM 2026'
         || collection == 'Punkte Spieler WM 2026'
         || (collection == 'app_meta' && docId == 'turnier_wm2026')
+        || (collection == 'public_cache' && docId == 'wm2026_fixtures')
         || (collection == 'Admin Auto Points Logs WM 2026' && isAdmin());
 
       allow create:

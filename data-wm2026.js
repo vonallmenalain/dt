@@ -14136,7 +14136,7 @@ const playersData = [
         "Nationalteam.name": "Switzerland",
         "Nationalteam.logo": "https://media.api-sports.io/football/teams/15.png",
         "Club.name": "Pisa SC",
-        "Club.logo": "",
+        "Club.logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSl9n9CYC6wME5rFohsUaO4hQWxiIPqXtcMDQ&s",
         "Geburtsdatum": "1997-01-06",
         "Groesse": "183",
         "Gewicht": "78"

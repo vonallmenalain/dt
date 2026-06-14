@@ -2662,6 +2662,7 @@
                 totalPlayedMatches,
                 activePlayers,
                 history: [],
+                displayRank: null,
                 currentRank: null,
                 bestRank: null,
                 lowestRank: null,
@@ -2731,6 +2732,25 @@
         return compareTeamsBySubmissionAsc(a, b);
     }
 
+    function getRankScore(value) {
+        const score = Number(value);
+        return Number.isFinite(score) ? score : 0;
+    }
+
+    function assignSharedRanks(sortedTeams, getScore, setRank) {
+        let currentRank = null;
+        let previousScore = null;
+
+        sortedTeams.forEach((team, index) => {
+            const score = getRankScore(getScore(team));
+            if (index === 0 || score !== previousScore) {
+                currentRank = index + 1;
+            }
+            setRank(team, currentRank);
+            previousScore = score;
+        });
+    }
+
     function computeRankingsWithHistory(teams, matchIds) {
         // Vor dem ersten Spiel werden bewusst keine Verlaufseintraege erzeugt.
         // Sonst wuerde der Graph bereits bei "0 Spielen" einen Wert zeigen,
@@ -2769,8 +2789,8 @@
                 return compareTeamsBySubmissionAsc(a, b);
             });
 
-            snapshotSorted.forEach((team, idx) => {
-                team.history[i].rank = idx + 1;
+            assignSharedRanks(snapshotSorted, team => team.history[i]?.score, (team, rank) => {
+                team.history[i].rank = rank;
             });
         }
 
@@ -2778,9 +2798,9 @@
             const lastIndex = snapshotCount - 1;
             const currentSorted = [...teams].sort(compareTeamsByScoreThenSubmission);
 
-            currentSorted.forEach((team, idx) => {
+            assignSharedRanks(currentSorted, team => team.totalScore, (team, rank) => {
                 team.history[lastIndex].score = team.totalScore;
-                team.history[lastIndex].rank = idx + 1;
+                team.history[lastIndex].rank = rank;
             });
         }
 
@@ -2803,6 +2823,9 @@
         });
 
         const sortedCurrent = [...teams].sort(compareTeamsByScoreThenSubmission);
+        assignSharedRanks(sortedCurrent, team => team.totalScore, (team, rank) => {
+            team.displayRank = rank;
+        });
 
         return {
             teams: sortedCurrent,
@@ -2987,11 +3010,12 @@
             const avatarsHTML = generateAvatarsHTML(pos.data.mergedPlayers.slice(0, 3), false);
             const managerLink = `<a href="teams.html?manager=${encodeURIComponent(pos.data.manager)}" class="manager-link">${escapeHtml(pos.data.manager)}</a>`;
             const sparklineHTML = buildSparklineButton(pos.data.manager, pos.data.history, true);
+            const displayRank = pos.data.currentRank || pos.data.displayRank || pos.rank;
 
             podiumHTML += `
                 <div class="podium-box ${pos.css}" data-manager="${escapeHtml(pos.data.manager)}">
                     <div class="medal">${pos.medal}</div>
-                    <div class="pod-rank-number">Rang ${pos.rank}</div>
+                    <div class="pod-rank-number">Rang ${displayRank}</div>
                     <div class="pod-name">${managerLink}</div>
                     <div class="pod-sparkline-wrap">${sparklineHTML}</div>
                     <div class="pod-pts">${pos.data.totalScore}</div>
@@ -3012,11 +3036,12 @@
                 const listAvatarsHTML = generateAvatarsHTML(t.mergedPlayers.slice(0, 3), true);
                 const managerLink = `<a href="teams.html?manager=${encodeURIComponent(t.manager)}" class="manager-link">${escapeHtml(t.manager)}</a>`;
                 const sparklineHTML = buildSparklineButton(t.manager, t.history, false);
+                const displayRank = t.currentRank || t.displayRank || (i + 1);
 
                 listHTML += `
                     <div class="rank-row" data-manager="${escapeHtml(t.manager)}">
                         <div class="rank-left">
-                            <div class="rank-number">${i + 1}.</div>
+                            <div class="rank-number">${displayRank}.</div>
                             <div class="rank-name-wrap">
                                 <div class="rank-name">${managerLink}</div>
                             </div>

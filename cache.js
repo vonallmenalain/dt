@@ -26,7 +26,10 @@
  *      neue Punkteversionen sofort.
  *
  *    • Fixtures werden nur dann nachgeladen, wenn `fixturesVersion`
- *      hochzählt oder kein gültiger Cache vorliegt.
+ *      hochzählt oder kein gültiger Cache vorliegt. Beim Nachladen
+ *      wird zuerst ein öffentliches Bundle-Dokument gelesen; nur wenn
+ *      es fehlt, ungültig oder veraltet ist, wird die ganze Fixture-
+ *      Collection gelesen.
  *
  *  Das Meta-Dokument (`app_meta/turnier_<key>`) ist die einzige Quelle
  *  der Wahrheit für "müssen wir neu lesen?". Pro Seitenaufruf wird es
@@ -64,6 +67,8 @@
         teamsCollection: null,
         pointsCollection: null,
         fixturesCollection: null,
+        fixturesBundleCollection: 'public_cache',
+        fixturesBundleDocId: 'wm2026_fixtures',
         fallbackMaxAgeMs: 10 * 60 * 1000,
         // Wie lange das zuletzt gelesene Meta-Dokument für andere Seiten
         // derselben Browser-Session als "frisch genug" gilt. In dieser
@@ -233,6 +238,7 @@
             teamsUpdatedAt: toNumberOrNull(source.teamsUpdatedAt),
             pointsUpdatedAt: toNumberOrNull(source.pointsUpdatedAt),
             fixturesUpdatedAt: toNumberOrNull(source.fixturesUpdatedAt),
+            fixturesCacheGeneratedAt: toNumberOrNull(source.fixturesCacheGeneratedAt),
             fetchedAt: now()
         };
     }
@@ -304,6 +310,9 @@
         cfg.fixturesCollection = cfg.fixturesCollection
             || (app && app.firestore && typeof app.firestore.fixturesCollection === 'function' ? app.firestore.fixturesCollection() : null)
             || null;
+
+        cfg.fixturesBundleCollection = cfg.fixturesBundleCollection || DEFAULTS.fixturesBundleCollection;
+        cfg.fixturesBundleDocId = cfg.fixturesBundleDocId || DEFAULTS.fixturesBundleDocId;
 
         cfg.keys = buildKeys(cfg);
 
@@ -520,8 +529,48 @@
         return normalizePointsData(points);
     }
 
-    async function fetchFixtures(cfg) {
+    async function fetchFixtureBundle(cfg, remoteMeta) {
+        if (!cfg.fixturesBundleCollection || !cfg.fixturesBundleDocId) return null;
+
+        try {
+            const snap = await cfg.db.collection(cfg.fixturesBundleCollection).doc(cfg.fixturesBundleDocId).get();
+            if (!snap.exists) {
+                log(cfg, 'Fixture-Bundle fehlt, nutze Collection-Fallback.');
+                return null;
+            }
+
+            const bundle = snap.data() || {};
+            const fixtures = bundle.fixtures;
+            if (!fixtures || typeof fixtures !== 'object' || Array.isArray(fixtures)) {
+                log(cfg, 'Fixture-Bundle ungueltig, nutze Collection-Fallback.');
+                return null;
+            }
+
+            const requiredGeneration = remoteMeta && typeof remoteMeta.fixturesCacheGeneratedAt === 'number'
+                ? remoteMeta.fixturesCacheGeneratedAt
+                : null;
+            if (
+                requiredGeneration !== null &&
+                bundle.cacheGenerationMs !== requiredGeneration
+            ) {
+                log(cfg, 'Fixture-Bundle veraltet, nutze Collection-Fallback.');
+                return null;
+            }
+
+            return fixtures;
+        } catch (err) {
+            log(cfg, 'Fixture-Bundle-Fetch fehlgeschlagen:', err);
+            return null;
+        }
+    }
+
+    async function fetchFixtures(cfg, remoteMeta) {
         if (!cfg.fixturesCollection) return {};
+        const bundledFixtures = await fetchFixtureBundle(cfg, remoteMeta);
+        if (isValidFixturesData(bundledFixtures, cfg.allowEmptyFixtures)) {
+            return bundledFixtures;
+        }
+
         try {
             const snap = await cfg.db.collection(cfg.fixturesCollection).get();
             const fixtures = {};
@@ -675,7 +724,7 @@
 
         if (needFixtures && cfg.fixturesCollection) {
             try {
-                const freshFixtures = await fetchFixtures(cfg);
+                const freshFixtures = await fetchFixtures(cfg, remoteMeta);
 
                 if (isValidFixturesData(freshFixtures, cfg.allowEmptyFixtures)) {
                     fixtures = freshFixtures;
