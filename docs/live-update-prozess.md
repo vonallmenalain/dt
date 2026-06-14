@@ -137,7 +137,9 @@ Script-Start. Danach passiert im Script:
    `AUTO_POINTS_UNTIL=2026-07-21T08:00:00+02:00`.
 3. Firebase Admin initialisieren.
 4. `Live-Tick 1/520` loggen (oder mehr, falls hoeher konfiguriert).
-5. Spielplan aus `Spiele WM 2026` lesen und Kandidaten bestimmen.
+5. Spielplan beim ersten Tick aus `Spiele WM 2026` lesen, im
+   run-weiten In-Memory-Fixture-Plan-Cache halten und daraus Kandidaten
+   bestimmen.
 
 Mit den aktuellen Einstellungen oeffnet das Live-Fenster pro Spiel 10
 Minuten vor Anpfiff:
@@ -192,6 +194,15 @@ auf einen weiteren GitHub-Schedule-Takt angewiesen zu sein.
 11. Relevante Ticks werden in `Admin Auto Points Logs WM 2026`
     protokolliert.
 
+Der In-Memory-Fixture-Plan-Cache lebt nur innerhalb eines laufenden
+GitHub-Action-Prozesses. Tick 1 liest den kompletten Spielplan; danach
+verwenden weitere 30-Sekunden-Live-Ticks denselben Cache. Wenn das Script
+Fixture-Status oder Resultate schreibt, wird dieser Cache sofort mit
+denselben Werten aktualisiert. `POINTS_FIXTURE_PLAN_REFRESH_EVERY_TICKS`
+steuert einen Sicherheitsrefresh (Default 20 Ticks, `0` = nur initial),
+falls waehrend einer langen Session extern am Spielplan gearbeitet wurde.
+UI, Punkteberechnung, Ranking und Live-Takt bleiben dadurch unveraendert.
+
 ## Ablauf Spielplan-Sync
 
 1. GitHub startet den Workflow taeglich um 04:00 UTC oder manuell.
@@ -201,8 +212,11 @@ auf einen weiteren GitHub-Schedule-Takt angewiesen zu sein.
    `SKIP_VENUES=1`.
 4. Pro Spiel wird ein Firestore-Dokument fuer `Spiele WM 2026` gebaut.
 5. Writes erfolgen in Batches nach Firestore.
-6. Bei erfolgreichen Writes wird `fixturesVersion` im Meta-Dokument
-   erhoeht. Dadurch laden offene Browser die Fixtures neu.
+6. Nach erfolgreichen Writes wird `public_cache/wm2026_fixtures` als
+   oeffentliches Fixture-Bundle geschrieben.
+7. Danach wird `fixturesVersion` im Meta-Dokument erhoeht und
+   `fixturesCacheGeneratedAt` auf dieselbe `cacheGenerationMs` wie im
+   Bundle gesetzt. Dadurch laden offene Browser die Fixtures neu.
 
 ## Browser-Live-Update
 
@@ -219,11 +233,19 @@ entscheidet der Cache anhand der Meta-Felder, was neu geladen werden muss:
 
 - `teamsVersion` -> `Teams WM 2026`
 - `pointsVersion` -> `Punkte Spieler WM 2026`
-- `fixturesVersion` -> `Spiele WM 2026`
+- `fixturesVersion` -> zuerst `public_cache/wm2026_fixtures`, nur bei
+  fehlendem, ungueltigem oder veraltetem Bundle weiter `Spiele WM 2026`
 
 `rangliste.html` rendert danach mit den frischen Daten neu und aktualisiert
 auch die Anzeige "Spielpunkte aktualisiert", "Live Punkte-Update",
 "Anpfiff erreicht" oder "Naechstes Spiel".
+
+Das Fixture-Bundle enthaelt die vollstaendigen Fixture-Daten fuer WM 2026
+unter einem einzigen Dokument. Wenn `fixturesCacheGeneratedAt` im Meta-
+Dokument zur `cacheGenerationMs` im Bundle passt, kostet der Fixture-
+Refresh im Browser nur einen Dokument-Read. Passt es nicht, fehlt das
+Bundle oder ist es ungueltig, bleibt der bisherige Fallback auf die ganze
+Collection aktiv.
 
 Damit Live-Update funktioniert, muss also nicht ein Browser oder eine
 Admin-Seite offen sein. Entscheidend ist, dass der GitHub-Workflow schreibt
@@ -257,8 +279,9 @@ Firestore:
   werden.
 - `app_meta/turnier_wm2026` ist fuer Clients lesbar.
 - Public Reads fuer `Teams WM 2026`, `Punkte Spieler WM 2026`,
-  `Spiele WM 2026` und das Meta-Dokument sind in `firestore.rules`
-  erlaubt.
+  `Spiele WM 2026`, `public_cache/wm2026_fixtures` und das Meta-Dokument
+  sind in `firestore.rules` erlaubt. Client-Writes auf das Bundle bleiben
+  verboten; Schreibzugriffe laufen ueber das Admin-SDK.
 
 App/Deployment:
 

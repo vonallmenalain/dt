@@ -14,7 +14,8 @@
  *       und ohne API-Call. So entstehen ausserhalb der Turnierphase
  *       keine Quota-Kosten, selbst wenn der Workflow versehentlich
  *       läuft. `FORCE_RUN=1` übersteuert diesen Guard (manuelle Tests).
- *    1. Lädt Spielplan (`fixturesCollection`) aus Firestore – keine API-Kosten.
+ *    1. Lädt Spielplan (`fixturesCollection`) initial aus Firestore und nutzt
+ *       ihn danach run-weit aus dem In-Memory-Cache – keine API-Kosten.
  *    2. Bestimmt Kandidaten-Spiele: Anpfiff liegt mindestens
  *       `POINTS_WINDOW_START_MIN` Minuten entfernt/zurueck UND der Status ist
  *       entweder noch nicht FT/AET/PEN oder liegt als finaler Status noch
@@ -82,6 +83,11 @@
  *    POINTS_API_RETRY_BASE_DELAY_MS
  *                              Optional, Default 1000. Basis-Wartezeit fuer
  *                              API-Retry-Backoff.
+ *    POINTS_FIXTURE_PLAN_REFRESH_EVERY_TICKS
+ *                              Optional, Default 20. Nach so vielen Live-
+ *                              Ticks wird der run-weite Fixture-Plan-Cache
+ *                              sicherheitshalber neu aus Firestore geladen.
+ *                              Bei 0 nur initial laden.
  *    FORCE_RUN                 Falls `1`/`true`: Phasen-Guard UND
  *                              Pre-Check überspringen (manuelle Tests).
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
@@ -123,6 +129,10 @@ if (!fetchFn) {
 const APP_CONFIG = require('../tournament-config.js');
 const TOURNAMENTS = APP_CONFIG.tournaments;
 const RULES = APP_CONFIG.rules;
+const {
+  buildFixturesMapFromPlanCache,
+  writePublicFixtureBundle
+} = require('./fixture-public-cache.js');
 
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
 const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
@@ -142,6 +152,7 @@ const MIN_SCHEDULED_SESSION_MAX_MIN = 300;
 const MAX_SESSION_MAX_MIN = 350;
 const DEFAULT_API_RETRY_ATTEMPTS = 3;
 const DEFAULT_API_RETRY_BASE_DELAY_MS = 1000;
+const DEFAULT_FIXTURE_PLAN_REFRESH_EVERY_TICKS = 20;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
 const MAX_CHANGED_PLAYER_LOG_DOCS = 1200;
@@ -387,6 +398,9 @@ function createTickAudit(tournament, opts, tickIndex, totalTicks) {
     liveTickIntervalSec: opts.liveTickIntervalSec,
     apiRetryAttempts: opts.apiRetryAttempts,
     apiRetryBaseDelayMs: opts.apiRetryBaseDelayMs,
+    fixturePlanCacheHit: false,
+    fixturePlanRefreshed: false,
+    firestoreReadEstimate: { fixturePlanDocs: 0 },
     candidateFixtureIds: [],
     scoringFixtureIds: [],
     liveFixtureIds: [],
@@ -444,6 +458,9 @@ function serializeAuditLog(audit) {
     liveTickIntervalSec: audit.liveTickIntervalSec,
     apiRetryAttempts: audit.apiRetryAttempts || null,
     apiRetryBaseDelayMs: audit.apiRetryBaseDelayMs || null,
+    fixturePlanCacheHit: !!audit.fixturePlanCacheHit,
+    fixturePlanRefreshed: !!audit.fixturePlanRefreshed,
+    firestoreReadEstimate: audit.firestoreReadEstimate || { fixturePlanDocs: 0 },
     candidateFixtureIds: Array.isArray(audit.candidateFixtureIds) ? audit.candidateFixtureIds : [],
     scoringFixtureIds: Array.isArray(audit.scoringFixtureIds) ? audit.scoringFixtureIds : [],
     liveFixtureIds: Array.isArray(audit.liveFixtureIds) ? audit.liveFixtureIds : [],
@@ -757,7 +774,7 @@ function initFirebase() {
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Pre-Check (nur Firestore – keine API-Quota)
  *
- *  Lädt einmalig den kompletten Spielplan und entscheidet, ob der teure
+ *  Lädt den kompletten Spielplan run-weit gecacht und entscheidet, ob der teure
  *  Upload-Workflow überhaupt anlaufen muss. Ein Spiel zählt als Kandidat,
  *  wenn sein Anpfiff (kickoffTimestamp) mindestens `windowStartMin`
  *  Minuten entfernt ist und das Spiel in Firestore noch nicht als beendet
@@ -769,10 +786,134 @@ function initFirebase() {
  *  Anpfiff weiter geprüft, damit nachtraegliche API-Korrekturen nicht
  *  manuell nachgezogen werden muessen.
  * ───────────────────────────────────────────────────────────────────────────── */
-async function findCandidateFixtures(db, tournament, opts) {
+function normalizeFixturePlanCache(cache) {
+  const target = cache && typeof cache === 'object' ? cache : {};
+  if (!Array.isArray(target.all)) target.all = [];
+  if (!(target.byId instanceof Map)) {
+    const map = new Map();
+    if (target.byId && typeof target.byId === 'object') {
+      Object.keys(target.byId).forEach(key => map.set(String(key), target.byId[key]));
+    }
+    target.byId = map;
+  }
+  if (typeof target.loadedAtMs !== 'number') target.loadedAtMs = 0;
+  if (typeof target.lastRefreshTick !== 'number') target.lastRefreshTick = 0;
+  if (typeof target.cacheGenerationMs !== 'number') target.cacheGenerationMs = 0;
+  return target;
+}
+
+function getCurrentTickIndex(opts) {
+  const tickIndex = opts && opts.audit && Number.isFinite(opts.audit.tickIndex)
+    ? opts.audit.tickIndex
+    : opts && Number.isFinite(opts.tickIndex)
+      ? opts.tickIndex
+      : 0;
+  return Math.max(0, Math.floor(tickIndex));
+}
+
+function getFixturePlanRefreshEveryTicks(opts) {
+  const raw = opts && Number.isFinite(opts.fixturePlanRefreshEveryTicks)
+    ? opts.fixturePlanRefreshEveryTicks
+    : DEFAULT_FIXTURE_PLAN_REFRESH_EVERY_TICKS;
+  return Math.max(0, Math.floor(raw));
+}
+
+function shouldRefreshFixturePlanCache(cache, opts) {
+  if (!cache.loadedAtMs || !Array.isArray(cache.all) || cache.all.length === 0) return true;
+
+  const refreshEveryTicks = getFixturePlanRefreshEveryTicks(opts);
+  if (refreshEveryTicks <= 0) return false;
+
+  const tickIndex = getCurrentTickIndex(opts);
+  if (tickIndex <= 0 || !cache.lastRefreshTick) return false;
+  return tickIndex - cache.lastRefreshTick >= refreshEveryTicks;
+}
+
+function rememberFixturePlanReadForAudit(opts, docsRead, refreshed, cacheHit) {
+  const audit = opts && opts.audit;
+  if (!audit) return;
+  audit.fixturePlanCacheHit = !!cacheHit;
+  audit.fixturePlanRefreshed = !!refreshed;
+  if (!audit.firestoreReadEstimate || typeof audit.firestoreReadEstimate !== 'object') {
+    audit.firestoreReadEstimate = { fixturePlanDocs: 0 };
+  }
+  audit.firestoreReadEstimate.fixturePlanDocs =
+    (audit.firestoreReadEstimate.fixturePlanDocs || 0) + (docsRead || 0);
+}
+
+async function refreshFixturePlanCache(db, tournament, opts, cache) {
   const collectionName = tournament.firestore.fixturesCollection;
   const snap = await db.collection(collectionName).get();
+  const loadedAtMs = nowMs();
+  const tickIndex = getCurrentTickIndex(opts);
 
+  cache.all = [];
+  cache.byId = new Map();
+  cache.loadedAtMs = loadedAtMs;
+  cache.lastRefreshTick = tickIndex;
+
+  snap.forEach(doc => {
+    const data = doc.data() || {};
+    const apiFixtureId = getFirestoreFixtureApiId(data, doc);
+    const record = {
+      id: apiFixtureId || String(doc.id),
+      docId: String(doc.id),
+      data
+    };
+    cache.all.push(record);
+    if (record.id) cache.byId.set(String(record.id), record);
+    cache.byId.set(String(doc.id), record);
+  });
+
+  rememberFixturePlanReadForAudit(opts, snap.size, true, false);
+  logInfo(`Fixture-Plan-Cache aus Firestore geladen (${snap.size} Dokument-Reads geschaetzt).`);
+  return cache;
+}
+
+function getFixturePlanCache(opts) {
+  if (!opts.fixturePlanCache || typeof opts.fixturePlanCache !== 'object') {
+    opts.fixturePlanCache = {};
+  }
+  return normalizeFixturePlanCache(opts.fixturePlanCache);
+}
+
+async function ensureFixturePlanCacheLoaded(db, tournament, opts, forceRefresh = false) {
+  const cache = getFixturePlanCache(opts);
+  const needsRefresh = forceRefresh || shouldRefreshFixturePlanCache(cache, opts);
+  if (needsRefresh) {
+    await refreshFixturePlanCache(db, tournament, opts, cache);
+  } else {
+    rememberFixturePlanReadForAudit(opts, 0, false, true);
+  }
+  return cache;
+}
+
+function buildFixtureInfoFromPlanRecord(record) {
+  const data = (record && record.data) || {};
+  const doc = { id: record && record.docId != null ? String(record.docId) : '' };
+  const kickoffMs = getFirestoreFixtureKickoffMs(data);
+  const apiFixtureId = getFirestoreFixtureApiId(data, doc);
+  const statusShort = getFirestoreStatusShort(data);
+  const homeName = (data.homeTeam && data.homeTeam.name) || '';
+  const awayName = (data.awayTeam && data.awayTeam.name) || '';
+
+  return {
+    id: apiFixtureId,
+    docId: doc.id,
+    kickoffMs,
+    statusShort,
+    statusLong: getFirestoreStatusLong(data),
+    statusElapsed: getFirestoreStatusElapsed(data),
+    goalsHome: (data.goals && data.goals.home) != null ? data.goals.home : null,
+    goalsAway: (data.goals && data.goals.away) != null ? data.goals.away : null,
+    score: data.score || {},
+    homeWinner: (data.homeTeam && data.homeTeam.winner != null) ? data.homeTeam.winner : null,
+    awayWinner: (data.awayTeam && data.awayTeam.winner != null) ? data.awayTeam.winner : null,
+    label: (homeName && awayName) ? `${homeName} vs ${awayName}` : `Spiel ${apiFixtureId || doc.id}`
+  };
+}
+
+function selectCandidateFixturesFromCache(cache, opts) {
   const now = nowMs();
   const windowStartMs = opts.windowStartMin * 60_000;
   const windowEndMs = opts.windowEndMin * 60_000;
@@ -782,28 +923,8 @@ async function findCandidateFixtures(db, tournament, opts) {
   const candidates = [];
   let nextWakeAtMs = null;
 
-  snap.forEach(doc => {
-    const data = doc.data() || {};
-    const kickoffMs = getFirestoreFixtureKickoffMs(data);
-    const apiFixtureId = getFirestoreFixtureApiId(data, doc);
-    const statusShort = getFirestoreStatusShort(data);
-    const homeName = (data.homeTeam && data.homeTeam.name) || '';
-    const awayName = (data.awayTeam && data.awayTeam.name) || '';
-
-    const fxInfo = {
-      id: apiFixtureId,
-      docId: doc.id,
-      kickoffMs,
-      statusShort,
-      statusLong: getFirestoreStatusLong(data),
-      statusElapsed: getFirestoreStatusElapsed(data),
-      goalsHome: (data.goals && data.goals.home) != null ? data.goals.home : null,
-      goalsAway: (data.goals && data.goals.away) != null ? data.goals.away : null,
-      score: data.score || {},
-      homeWinner: (data.homeTeam && data.homeTeam.winner != null) ? data.homeTeam.winner : null,
-      awayWinner: (data.awayTeam && data.awayTeam.winner != null) ? data.awayTeam.winner : null,
-      label: (homeName && awayName) ? `${homeName} vs ${awayName}` : `Spiel ${apiFixtureId || doc.id}`
-    };
+  cache.all.forEach(record => {
+    const fxInfo = buildFixtureInfoFromPlanRecord(record);
     all.push(fxInfo);
 
     if (!fxInfo.kickoffMs) return;
@@ -836,8 +957,9 @@ async function findCandidateFixtures(db, tournament, opts) {
     // spaete API-Korrekturen an Scorern, Assists, Karten usw. automatisch
     // nach.
     //
-    // Quota-Schutz bleibt erhalten: pro Tick faellt zuerst nur EIN
-    // Firestore-Read (Spielplan) an. Das Phasen-Fenster
+    // Quota-Schutz bleibt erhalten: der Spielplan kommt aus dem
+    // run-weiten Cache und wird nur initial bzw. per Sicherheitsrefresh
+    // vollstaendig aus Firestore gelesen. Das Phasen-Fenster
     // (AUTO_POINTS_UNTIL) begrenzt Catch-up und Reconciliation zeitlich
     // nach oben.
     if (ageMs >= windowStartMs && (notFinished || inFinalRecheck)) {
@@ -849,6 +971,11 @@ async function findCandidateFixtures(db, tournament, opts) {
   });
 
   return { all, candidates, nextWakeAtMs };
+}
+
+async function findCandidateFixtures(db, tournament, opts) {
+  const cache = await ensureFixturePlanCacheLoaded(db, tournament, opts);
+  return selectCandidateFixturesFromCache(cache, opts);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1534,11 +1661,11 @@ async function bumpPointsMetaVersion(db, tournament, opts) {
   }, { merge: true });
 }
 
-async function bumpFixturesMetaVersion(db, tournament, opts) {
+async function bumpFixturesMetaVersion(db, tournament, opts, fixturesCacheGeneratedAt = null) {
   if (opts.dryRun) return;
   const FieldValue = admin.firestore.FieldValue;
   const ref = db.collection(tournament.firestore.metaCollection).doc(tournament.firestore.metaDocId);
-  await ref.set({
+  const payload = {
     tournamentKey: tournament.key,
     tournamentType: tournament.type,
     tournamentYear: tournament.year,
@@ -1546,7 +1673,11 @@ async function bumpFixturesMetaVersion(db, tournament, opts) {
     year: tournament.year,
     fixturesVersion: FieldValue.increment(1),
     fixturesUpdatedAt: Date.now()
-  }, { merge: true });
+  };
+  if (typeof fixturesCacheGeneratedAt === 'number' && Number.isFinite(fixturesCacheGeneratedAt)) {
+    payload.fixturesCacheGeneratedAt = fixturesCacheGeneratedAt;
+  }
+  await ref.set(payload, { merge: true });
 }
 
 function buildFixtureStatusUpdate(game) {
@@ -1615,13 +1746,14 @@ function isFixtureStatusRegression(update, snapshot) {
 async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtureSnapshotsById = null) {
   const collection = tournament.firestore.fixturesCollection;
   if (!collection || !games || games.length === 0) return { updated: 0, skipped: 0 };
-  if (opts.dryRun) return { updated: games.length, skipped: 0 };
+  if (opts.dryRun) return { updated: games.length, skipped: 0, updatedGames: uniqueGamesByFixtureId(games) };
 
   const FieldValue = admin.firestore.FieldValue;
   let batch = db.batch();
   let batchCount = 0;
   let totalUpdated = 0;
   let skipped = 0;
+  const updatedGames = [];
 
   for (const game of games) {
     const fixtureId = String(game.fixture.id);
@@ -1647,6 +1779,7 @@ async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtu
     batch.set(docRef, { ...update, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     batchCount++;
     totalUpdated++;
+    updatedGames.push(game);
 
     if (batchCount === 400) {
       await batch.commit();
@@ -1656,7 +1789,7 @@ async function updateFixtureStatusInFirestore(db, tournament, games, opts, fixtu
   }
 
   if (batchCount > 0) await batch.commit();
-  return { updated: totalUpdated, skipped };
+  return { updated: totalUpdated, skipped, updatedGames };
 }
 
 function addFixtureWriteResultToAudit(audit, result, key = 'fixtureWriteResult') {
@@ -1693,6 +1826,84 @@ function updateFixtureSnapshotsFromGames(fixtureSnapshotsById, games) {
   });
 }
 
+function applyFixtureStatusUpdateToData(data, update, cacheGenerationMs) {
+  const next = { ...(data || {}) };
+  next.status = {
+    ...(next.status && typeof next.status === 'object' ? next.status : {}),
+    long: update.status.long,
+    short: update.status.short,
+    elapsed: update.status.elapsed
+  };
+  next.goals = {
+    ...(next.goals && typeof next.goals === 'object' ? next.goals : {}),
+    home: update.goals.home,
+    away: update.goals.away
+  };
+  next.score = update.score || {};
+  next.homeTeam = {
+    ...(next.homeTeam && typeof next.homeTeam === 'object' ? next.homeTeam : {}),
+    winner: update['homeTeam.winner']
+  };
+  next.awayTeam = {
+    ...(next.awayTeam && typeof next.awayTeam === 'object' ? next.awayTeam : {}),
+    winner: update['awayTeam.winner']
+  };
+  next.updatedAt = new Date(cacheGenerationMs);
+  return next;
+}
+
+function updateFixturePlanCacheFromGames(fixturePlanCache, games, cacheGenerationMs) {
+  if (!fixturePlanCache) return;
+  const cache = normalizeFixturePlanCache(fixturePlanCache);
+
+  uniqueGamesByFixtureId(games).forEach(game => {
+    if (!game || !game.fixture || game.fixture.id == null) return;
+    const fixtureId = String(game.fixture.id);
+    const update = buildFixtureStatusUpdate(game);
+    let record = cache.byId.get(fixtureId);
+    if (!record) {
+      record = {
+        id: fixtureId,
+        docId: fixtureId,
+        data: { fixtureId }
+      };
+      cache.all.push(record);
+    }
+    record.data = applyFixtureStatusUpdateToData(record.data, update, cacheGenerationMs);
+    record.id = getFirestoreFixtureApiId(record.data, { id: record.docId }) || fixtureId;
+    cache.byId.set(fixtureId, record);
+    if (record.id) cache.byId.set(String(record.id), record);
+    if (record.docId) cache.byId.set(String(record.docId), record);
+  });
+
+  cache.cacheGenerationMs = cacheGenerationMs;
+}
+
+async function ensureFixturePlanCacheForBundle(db, tournament, opts) {
+  const cache = getFixturePlanCache(opts);
+  if (!cache.loadedAtMs || !Array.isArray(cache.all) || cache.all.length === 0) {
+    await refreshFixturePlanCache(db, tournament, opts, cache);
+  }
+  return cache;
+}
+
+async function writeFixturePlanPublicBundle(db, tournament, opts, cacheGenerationMs, source) {
+  const cache = await ensureFixturePlanCacheForBundle(db, tournament, opts);
+  const fixturesBundle = buildFixturesMapFromPlanCache(cache, cacheGenerationMs);
+  const bundleResult = await writePublicFixtureBundle(
+    db,
+    tournament,
+    fixturesBundle,
+    source,
+    opts,
+    cacheGenerationMs
+  );
+  cache.cacheGenerationMs = bundleResult.cacheGenerationMs;
+  logInfo(`Public Fixture-Bundle ${opts.dryRun ? '(DRY-RUN) berechnet' : 'geschrieben'} ` +
+    `(${bundleResult.fixturesCount} Fixtures, cacheGenerationMs=${bundleResult.cacheGenerationMs}).`);
+  return bundleResult;
+}
+
 function getApiFixtureId(game) {
   const id = game && game.fixture && game.fixture.id;
   return id == null ? '' : String(id);
@@ -1723,8 +1934,29 @@ async function publishFixtureStatusUpdates(db, tournament, games, opts, fixtureS
     `${fixtureWriteResult.skipped} unveraendert uebersprungen.`);
 
   if (fixtureWriteResult.updated > 0) {
-    await bumpFixturesMetaVersion(db, tournament, opts);
-    updateFixtureSnapshotsFromGames(fixtureSnapshotsById, uniqueGames);
+    const updatedGames = Array.isArray(fixtureWriteResult.updatedGames)
+      ? fixtureWriteResult.updatedGames
+      : uniqueGames;
+    const cacheGenerationMs = Date.now();
+    updateFixtureSnapshotsFromGames(fixtureSnapshotsById, updatedGames);
+    updateFixturePlanCacheFromGames(opts.fixturePlanCache, updatedGames, cacheGenerationMs);
+    let fixturesCacheGeneratedAt = cacheGenerationMs;
+    try {
+      const bundleResult = await writeFixturePlanPublicBundle(
+        db,
+        tournament,
+        opts,
+        cacheGenerationMs,
+        'auto-points-upload'
+      );
+      fixturesCacheGeneratedAt = bundleResult.cacheGenerationMs;
+    } catch (err) {
+      logWarn(
+        `Public Fixture-Bundle konnte nicht geschrieben werden (${err.message}). ` +
+        `fixturesVersion wird mit Fallback-Signal erhoeht; Clients lesen dann die Fixture-Collection.`
+      );
+    }
+    await bumpFixturesMetaVersion(db, tournament, opts, fixturesCacheGeneratedAt);
     if (opts.audit) opts.audit.fixturesVersionIncreased = !opts.dryRun;
     logInfo(`fixturesVersion ${opts.dryRun ? '(DRY-RUN) ' : ''}erhoeht - Clients laden frische Spielstaende sofort nach.`);
   }
@@ -2085,7 +2317,7 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
       nextWakeAtMs = nextWake;
       openCandidateCount = candidates.filter(c => !FINISHED_STATUSES.has(c.statusShort)).length;
       finalRecheckCandidateCount = candidates.length - openCandidateCount;
-      logInfo(`Spielplan: ${all.length} Spiele in Firestore. Kandidaten in diesem Tick: ${candidates.length}.`);
+      logInfo(`Spielplan: ${all.length} Spiele im Fixture-Plan-Cache. Kandidaten in diesem Tick: ${candidates.length}.`);
       if (candidates.length === 0) {
         logInfo('Nichts zu tun – kein Spiel im Live-/Catch-up-Fenster mit offenem Status. Beende ohne API-Call.');
         return {
@@ -2233,6 +2465,8 @@ async function main() {
     sessionMaxMin,
     apiRetryAttempts: Math.max(1, envIntAny(['POINTS_API_RETRY_ATTEMPTS', 'API_RETRY_ATTEMPTS'], DEFAULT_API_RETRY_ATTEMPTS)),
     apiRetryBaseDelayMs: Math.max(0, envIntAny(['POINTS_API_RETRY_BASE_DELAY_MS', 'API_RETRY_BASE_DELAY_MS'], DEFAULT_API_RETRY_BASE_DELAY_MS)),
+    fixturePlanRefreshEveryTicks: Math.max(0, envIntAny('POINTS_FIXTURE_PLAN_REFRESH_EVERY_TICKS', DEFAULT_FIXTURE_PLAN_REFRESH_EVERY_TICKS)),
+    fixturePlanCache: {},
     forceRun,
     dryRun
   };
@@ -2245,13 +2479,15 @@ async function main() {
     ` Live-Ticks pro Run: ${opts.forceRun ? 1 : opts.liveTicksPerRun}, Abstand: ${opts.liveTickIntervalSec}s.` +
     ` Idle-Wait bis ${opts.idleWaitMaxMin} min, Session-Max ${opts.forceRun ? '1 Tick' : opts.sessionMaxMin + ' min'}.` +
     ` API-Retry: ${opts.apiRetryAttempts} Versuch(e), Basis ${opts.apiRetryBaseDelayMs}ms.` +
+    ` Fixture-Plan-Refresh: ${opts.fixturePlanRefreshEveryTicks === 0 ? 'nur initial' : 'alle ' + opts.fixturePlanRefreshEveryTicks + ' Ticks'}.` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
     (opts.dryRun ? ' [DRY_RUN]' : ''));
   logInfo(
     `Effektive Konfiguration: tournamentKey=${tournament.key}, ` +
     `windowStartMin=${opts.windowStartMin}, windowEndMin=${opts.windowEndMin}, ` +
     `finalRecheckMin=${opts.finalRecheckMin}, liveTicksPerRun=${opts.forceRun ? 1 : opts.liveTicksPerRun}, ` +
-    `liveTickIntervalSec=${opts.liveTickIntervalSec}, forceRun=${opts.forceRun}, dryRun=${opts.dryRun}.`
+    `liveTickIntervalSec=${opts.liveTickIntervalSec}, fixturePlanRefreshEveryTicks=${opts.fixturePlanRefreshEveryTicks}, ` +
+    `forceRun=${opts.forceRun}, dryRun=${opts.dryRun}.`
   );
 
   // ─────────────────────────────────────────────────────────────────────
