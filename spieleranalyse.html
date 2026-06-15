@@ -1391,7 +1391,18 @@
 
         .match-goal-text {
             min-width: 0;
-            overflow-wrap: anywhere;
+            max-width: 100%;
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            vertical-align: bottom;
+        }
+
+        .match-goal-line {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 3px;
+            white-space: nowrap;
         }
 
         .match-goal-player,
@@ -1405,9 +1416,8 @@
             font-weight: 850;
             cursor: pointer;
             text-align: inherit;
-            text-decoration: underline;
-            text-decoration-color: rgba(74,222,128,0.45);
-            text-underline-offset: 2px;
+            text-decoration: none;
+            border-radius: 3px;
         }
 
         .match-goal-player:hover,
@@ -1416,7 +1426,7 @@
         .match-goal-assist-player:focus-visible {
             color: var(--green-light);
             outline: none;
-            text-decoration-color: currentColor;
+            box-shadow: 0 0 0 2px rgba(74,222,128,0.22);
         }
 
         .match-goal-assist {
@@ -1431,6 +1441,23 @@
         .match-goal-own {
             color: var(--red-soft);
             font-weight: 800;
+        }
+
+        .match-goal-text.has-scroll .match-goal-line,
+        .sc-goal-text.has-scroll .sc-goal-line {
+            animation: goalLineScroll 8s ease-in-out 1.2s infinite alternate;
+        }
+
+        @keyframes goalLineScroll {
+            0%, 16% { transform: translateX(0); }
+            84%, 100% { transform: translateX(-28%); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .match-goal-text.has-scroll .match-goal-line,
+            .sc-goal-text.has-scroll .sc-goal-line {
+                animation: none;
+            }
         }
 
         .match-flag {
@@ -4235,7 +4262,18 @@
 
         .sc-goal-text {
             min-width: 0;
-            overflow-wrap: anywhere;
+            max-width: 100%;
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            vertical-align: bottom;
+        }
+
+        .sc-goal-line {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 3px;
+            white-space: nowrap;
         }
 
         .sc-goal-player,
@@ -4249,9 +4287,8 @@
             font-weight: 850;
             cursor: pointer;
             text-align: inherit;
-            text-decoration: underline;
-            text-decoration-color: rgba(74,222,128,0.45);
-            text-underline-offset: 2px;
+            text-decoration: none;
+            border-radius: 3px;
         }
 
         .sc-goal-player:hover,
@@ -4260,7 +4297,7 @@
         .sc-goal-assist-player:focus-visible {
             color: var(--green-light);
             outline: none;
-            text-decoration-color: currentColor;
+            box-shadow: 0 0 0 2px rgba(74,222,128,0.22);
         }
 
         .sc-goal-assist {
@@ -5107,11 +5144,6 @@
 
             .sc-goals-strip .sc-goal-row {
                 gap: 4px;
-            }
-
-            .sc-goal-player,
-            .sc-goal-assist-player {
-                text-decoration-thickness: 1px;
             }
 
             .sc-team-logo {
@@ -7220,7 +7252,6 @@
                     const liveIndicatorHtml = liveInfo
                         ? `<div class="match-live-indicator" title="Dieses Spiel laeuft noch">${escapeHtml(liveInfo.label)}</div>`
                         : '';
-                    const scheduleMatch = findScheduleEntryForRawMatchId(val.MatchID);
 
                     let detailsHTML = '';
                     if (val.Aufstellung) {
@@ -7251,14 +7282,6 @@
 
                     const leftNationEncoded  = encodeURIComponent(matchVisual.leftName);
                     const rightNationEncoded = encodeURIComponent(matchVisual.rightName);
-                    const leftGoalsHtml = scheduleMatch ? renderScheduleGoalEventList(scheduleMatch, matchVisual.leftName, 'match') : '';
-                    const rightGoalsHtml = scheduleMatch ? renderScheduleGoalEventList(scheduleMatch, matchVisual.rightName, 'match') : '';
-                    const matchGoalsStripHtml = (leftGoalsHtml || rightGoalsHtml)
-                        ? `<div class="match-goals-strip">
-                            <div class="match-goals-strip-side">${leftGoalsHtml}</div>
-                            <div class="match-goals-strip-side right">${rightGoalsHtml}</div>
-                        </div>`
-                        : '';
 
                     const card = document.createElement('div');
                     card.className = `match-card${liveInfo ? ' is-live' : ''}`;
@@ -7273,7 +7296,6 @@
                                             aria-label="${escapeHtml(matchVisual.leftName)} in Spiele-Ansicht öffnen">
                                         ${escapeHtml(matchVisual.leftName)}
                                     </button>
-                                    ${leftGoalsHtml}
                                     </div>
                                 </div>
                                 <div class="match-score ${matchVisual.resultClass}">
@@ -7286,11 +7308,9 @@
                                             aria-label="${escapeHtml(matchVisual.rightName)} in Spiele-Ansicht öffnen">
                                         ${escapeHtml(matchVisual.rightName)}
                                     </button>
-                                    ${rightGoalsHtml}
                                     </div>
                                     ${rightFlagHtml}
                                 </div>
-                                ${matchGoalsStripHtml}
                             </div>
                             <div class="match-summary-right">
                                 ${liveIndicatorHtml}
@@ -7891,9 +7911,11 @@
                 ? renderScheduleGoalPerson(assist, event.assistId, event.teamName || teamName, `${classPrefix}-goal-assist-player`)
                 : '';
             const assistHtml = assist
-                ? ` <span class="${classPrefix}-goal-assist">(Assist: ${assistPlayerHtml || escapeHtml(assist)})</span>`
+                ? ` <span class="${classPrefix}-goal-assist">(${assistPlayerHtml || escapeHtml(assist)})</span>`
                 : (isScheduleOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${scorerHtml || escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></div>`;
+            const lineLength = `${scorer || ''} ${isSchedulePenaltyGoalEvent(event) ? '(P)' : ''} ${assist ? `(${assist})` : (isScheduleOwnGoalEvent(event) ? '(Eigentor)' : '')}`.trim().length;
+            const scrollClass = lineLength > 24 ? ' has-scroll' : '';
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text${scrollClass}"><span class="${classPrefix}-goal-line">${scorerHtml || escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
