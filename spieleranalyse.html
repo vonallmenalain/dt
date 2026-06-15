@@ -7201,7 +7201,7 @@
                     const label = isCaptain
                         ? `Team von ${manager} ansehen, Captain`
                         : `Team von ${manager} ansehen`;
-                    return `<a href="teams.html?manager=${encodeURIComponent(manager)}" class="manager-badge${isCaptain ? ' is-captain' : ''}" aria-label="${escapeHtml(label)}">👤 ${capHtml}<span>${escapeHtml(manager)}</span></a>`;
+                    return `<a href="teams.html?manager=${encodeURIComponent(manager)}" class="manager-badge${isCaptain ? ' is-captain' : ''}" aria-label="${escapeHtml(label)}">${capHtml}<span>${escapeHtml(manager)}</span></a>`;
                 }).join('')
                 : '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">Nicht gedraftet</div>';
         }
