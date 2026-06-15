@@ -7121,6 +7121,59 @@
         return Number.isFinite(rank) && rank > 0 ? rank : fallbackRank;
     }
 
+    function getRankingHistoryFixtureId(fixture, fallbackId) {
+        if (fixture && fixture.fixtureId !== undefined && fixture.fixtureId !== null) return String(fixture.fixtureId);
+        if (fixture && fixture.apiFixtureId !== undefined && fixture.apiFixtureId !== null) return String(fixture.apiFixtureId);
+        if (fixture && fixture.id !== undefined && fixture.id !== null) return String(fixture.id);
+        if (fixture && fixture.fixture && fixture.fixture.id !== undefined && fixture.fixture.id !== null) {
+            return String(fixture.fixture.id);
+        }
+        return String(fallbackId);
+    }
+
+    function findRankingHistoryFixtureByMatchId(fixtures, matchId) {
+        const target = String(matchId);
+        const map = fixtures || {};
+
+        for (const [id, fixture] of Object.entries(map)) {
+            if (String(id) === target) return fixture;
+            if (getRankingHistoryFixtureId(fixture, id) === target) return fixture;
+        }
+
+        return null;
+    }
+
+    function getRankingHistoryMatchChronology(matchId, fixtures) {
+        const fixture = findRankingHistoryFixtureByMatchId(fixtures, matchId);
+        const kickoffMs = getMatchKickoffMs(fixture);
+        if (kickoffMs) {
+            return {
+                hasFixtureTime: true,
+                value: kickoffMs
+            };
+        }
+
+        const numericId = Number(matchId);
+        return {
+            hasFixtureTime: false,
+            value: Number.isFinite(numericId) ? numericId : Number.MAX_SAFE_INTEGER
+        };
+    }
+
+    function sortRankingHistoryMatchIds(matchIds, fixtures) {
+        return Array.from(matchIds || []).sort((a, b) => {
+            const aInfo = getRankingHistoryMatchChronology(a, fixtures);
+            const bInfo = getRankingHistoryMatchChronology(b, fixtures);
+
+            if (aInfo.hasFixtureTime !== bInfo.hasFixtureTime) {
+                return aInfo.hasFixtureTime ? -1 : 1;
+            }
+            if (aInfo.value !== bInfo.value) return aInfo.value - bInfo.value;
+
+            return String(a).localeCompare(String(b), 'de', { numeric: true });
+        });
+    }
+
     /*
      * Compute ranking history from match-level points.
      * Returns { teams: [...], matchIds: [...] }
@@ -7147,7 +7200,7 @@
             playerMatchPoints[String(playerId)] = perMatch;
         });
 
-        const orderedMatchIds = Array.from(matchIds).sort((a, b) => a - b);
+        const orderedMatchIds = sortRankingHistoryMatchIds(matchIds, data.fixtures || {});
 
         const enriched = teams.map((team) => {
             const mergedPlayers = (team.players || []).map((tp) => {
@@ -7179,7 +7232,7 @@
 
             const sorted = [...enriched].sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
             assignSharedRanks(sorted, team => team.total, (team, rank) => {
-                team.history[i] = { rank, score: team.total };
+                team.history[i] = { rank, score: team.total, matchId };
             });
         }
 

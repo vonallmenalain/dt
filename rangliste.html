@@ -2520,7 +2520,40 @@
         return map;
     }
 
-    function extractMatchData(rawPoints) {
+    function getMatchChronologyValue(matchId, fixtures) {
+        const fixture = findFixtureByMatchId(fixtures, matchId);
+        const kickoffMs = getFixtureKickoffMs(fixture);
+        if (kickoffMs !== null) {
+            return {
+                hasFixtureTime: true,
+                value: kickoffMs
+            };
+        }
+
+        const numericId = Number(matchId);
+        return {
+            hasFixtureTime: false,
+            value: Number.isFinite(numericId) ? numericId : Number.MAX_SAFE_INTEGER
+        };
+    }
+
+    function compareMatchIdsByChronology(a, b, fixtures) {
+        const aInfo = getMatchChronologyValue(a, fixtures);
+        const bInfo = getMatchChronologyValue(b, fixtures);
+
+        if (aInfo.hasFixtureTime !== bInfo.hasFixtureTime) {
+            return aInfo.hasFixtureTime ? -1 : 1;
+        }
+        if (aInfo.value !== bInfo.value) return aInfo.value - bInfo.value;
+
+        return String(a).localeCompare(String(b), "de", { numeric: true });
+    }
+
+    function sortMatchIdsByChronology(matchIds, fixtures) {
+        return Array.from(matchIds || []).sort((a, b) => compareMatchIdsByChronology(a, b, fixtures));
+    }
+
+    function extractMatchData(rawPoints, fixtures = {}) {
         const playerMatchPoints = {};
         const nationStatus = {};
         let maxNationGames = 0;
@@ -2551,7 +2584,20 @@
 
                     nationStatus[nation].matchIds.add(matchId);
 
-                    if (matchId >= nationStatus[nation].latestMatchId) {
+                    const chronology = getMatchChronologyValue(matchId, fixtures);
+                    const currentLatest = nationStatus[nation].latestChronology || {
+                        hasFixtureTime: false,
+                        value: -Infinity,
+                        matchId: -Infinity
+                    };
+                    const isLaterMatch =
+                        chronology.value > currentLatest.value ||
+                        (
+                            chronology.value === currentLatest.value &&
+                            Number(matchId) > Number(currentLatest.matchId)
+                        );
+
+                    if (isLaterMatch) {
                         let outcome = "draw";
                         const lineup = val.Aufstellung || {};
 
@@ -2560,6 +2606,10 @@
                         else if (typeof lineup.DRAW === "number" && lineup.DRAW !== 0) outcome = "draw";
 
                         nationStatus[nation].latestMatchId = matchId;
+                        nationStatus[nation].latestChronology = {
+                            ...chronology,
+                            matchId
+                        };
                         nationStatus[nation].outcome = outcome;
                     }
                 }
@@ -2577,7 +2627,7 @@
             playerMatchPoints,
             nationStatus,
             maxNationGames,
-            matchIds: Array.from(matchIdsSet).sort((a, b) => a - b)
+            matchIds: sortMatchIdsByChronology(matchIdsSet, fixtures)
         };
     }
 
@@ -2776,6 +2826,7 @@
 
                 team.history.push({
                     step: i + 1,
+                    matchId,
                     score: runningScore,
                     rank: null
                 });
@@ -2834,7 +2885,10 @@
     }
 
     function buildRankingData(data, selectedMatchIds) {
-        const { playerMatchPoints, nationStatus, maxNationGames, matchIds: rawMatchIds } = extractMatchData(data.points || {});
+        const { playerMatchPoints, nationStatus, maxNationGames, matchIds: rawMatchIds } = extractMatchData(
+            data.points || {},
+            data.fixtures || {}
+        );
 
         const useFilter = Array.isArray(selectedMatchIds);
         const useSet = useFilter ? new Set(selectedMatchIds.map(String)) : null;
@@ -3534,7 +3588,19 @@
                         callbacks: {
                             title: (items) => {
                                 if (!items.length) return "";
-                                return `Spiel ${items[0].label}`;
+                                const item = items[0];
+                                const manager = item.dataset && item.dataset.label;
+                                const team = manager ? teamsByManager.get(manager) : null;
+                                const point = team && team.history[item.dataIndex] ? team.history[item.dataIndex] : null;
+                                const fixture = point ? findFixtureByMatchId(lastRawData && lastRawData.fixtures, point.matchId) : null;
+                                const homeName = getFixtureTeamName(fixture, "home");
+                                const awayName = getFixtureTeamName(fixture, "away");
+
+                                if (homeName && awayName) {
+                                    return `Spiel ${item.label}: ${homeName} - ${awayName}`;
+                                }
+
+                                return `Spiel ${item.label}`;
                             },
                             label: (ctx) => {
                                 const manager = ctx.dataset.label;
@@ -3724,18 +3790,11 @@
         updateUrlState(true);
     }
 
-    function getLatestMatchIdFromPoints(points) {
-        let latest = null;
-        Object.values(points || {}).forEach(doc => {
-            if (!doc || typeof doc !== "object") return;
-            Object.entries(doc).forEach(([key, val]) => {
-                if (!key.startsWith("Spiel_") || !val || typeof val !== "object") return;
-                const mid = Number(val.MatchID);
-                if (!Number.isFinite(mid)) return;
-                if (latest === null || mid > latest) latest = mid;
-            });
-        });
-        return latest;
+    function getLatestMatchIdFromPoints(points, fixtures = {}) {
+        const knownMatchIds = allMatchIdsRaw.length
+            ? allMatchIdsRaw
+            : extractMatchData(points || {}, fixtures).matchIds;
+        return knownMatchIds.length ? knownMatchIds[knownMatchIds.length - 1] : null;
     }
 
     function findFixtureByMatchId(fixtures, matchId) {
@@ -4010,9 +4069,8 @@
         const linkParams = new URLSearchParams();
         linkParams.set("view", "games");
         linkParams.set("matchId", String(matchId));
-        const sortedAllMatchIds = Array.from(new Set(allMatchIdsRaw)).sort((a, b) => a - b);
-        const numericMatchId = Number(matchId);
-        let spielNr = Number.isFinite(numericMatchId) ? sortedAllMatchIds.indexOf(numericMatchId) + 1 : 0;
+        const orderedAllMatchIds = Array.from(new Set(allMatchIdsRaw));
+        let spielNr = orderedAllMatchIds.findIndex(mid => String(mid) === String(matchId)) + 1;
         if (spielNr <= 0) {
             spielNr = getFixtureSequenceNumber(fixtures, matchId);
         }
@@ -4100,7 +4158,7 @@
         const pointsUpdatedAt = meta && typeof meta.pointsUpdatedAt === "number" ? meta.pointsUpdatedAt : null;
         const fixturesUpdatedAt = meta && typeof meta.fixturesUpdatedAt === "number" ? meta.fixturesUpdatedAt : null;
 
-        const latestMatchId = getLatestMatchIdFromPoints(points);
+        const latestMatchId = getLatestMatchIdFromPoints(points, fixtures);
         const hasRealPointMatches = latestMatchId !== null;
         const latestPointsUpdatedAt = hasRealPointMatches ? pointsUpdatedAt : null;
         const liveFixtureInfo = findLiveFixture(fixtures);
@@ -4233,7 +4291,7 @@
         lastRawData = data;
         matchIdRoundMap = buildMatchIdRoundMap(data.fixtures || {});
 
-        const { matchIds: extractedMatchIds } = extractMatchData(data.points || {});
+        const { matchIds: extractedMatchIds } = extractMatchData(data.points || {}, data.fixtures || {});
         allMatchIdsRaw = extractedMatchIds;
 
         renderLastUpdateInfo(data);
