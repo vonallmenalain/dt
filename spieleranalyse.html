@@ -1362,6 +1362,10 @@
             color: rgba(230,237,243,0.84);
         }
 
+        .match-goals-strip {
+            display: none;
+        }
+
         .match-side.right .match-goals-list {
             align-items: flex-end;
             text-align: right;
@@ -1388,6 +1392,31 @@
         .match-goal-text {
             min-width: 0;
             overflow-wrap: anywhere;
+        }
+
+        .match-goal-player,
+        .match-goal-assist-player {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font: inherit;
+            font-weight: 850;
+            cursor: pointer;
+            text-align: inherit;
+            text-decoration: underline;
+            text-decoration-color: rgba(74,222,128,0.45);
+            text-underline-offset: 2px;
+        }
+
+        .match-goal-player:hover,
+        .match-goal-assist-player:hover,
+        .match-goal-player:focus-visible,
+        .match-goal-assist-player:focus-visible {
+            color: var(--green-light);
+            outline: none;
+            text-decoration-color: currentColor;
         }
 
         .match-goal-assist {
@@ -4209,6 +4238,31 @@
             overflow-wrap: anywhere;
         }
 
+        .sc-goal-player,
+        .sc-goal-assist-player {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font: inherit;
+            font-weight: 850;
+            cursor: pointer;
+            text-align: inherit;
+            text-decoration: underline;
+            text-decoration-color: rgba(74,222,128,0.45);
+            text-underline-offset: 2px;
+        }
+
+        .sc-goal-player:hover,
+        .sc-goal-assist-player:hover,
+        .sc-goal-player:focus-visible,
+        .sc-goal-assist-player:focus-visible {
+            color: var(--green-light);
+            outline: none;
+            text-decoration-color: currentColor;
+        }
+
         .sc-goal-assist {
             color: var(--text-muted);
         }
@@ -4232,6 +4286,10 @@
 
         .sc-player-avatars-away {
             justify-content: flex-end;
+        }
+
+        .sc-goals-strip {
+            display: none;
         }
 
         .sc-player-avatar-btn {
@@ -4301,6 +4359,7 @@
            are listed below, so hide the compact preview elements to
            avoid visual duplication. */
         .sc-card.is-expanded .sc-team > .sc-goals-list,
+        .sc-card.is-expanded .sc-goals-strip,
         .sc-card.is-expanded .sc-player-avatars {
             display: none;
         }
@@ -4969,10 +5028,10 @@
         @media (max-width: 600px) {
             .sc-card-inner {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) 24px;
-                align-items: start;
-                column-gap: 8px;
-                row-gap: 8px;
+                grid-template-columns: minmax(0, 1fr) minmax(50px, 68px) minmax(0, 1fr) 22px;
+                align-items: center;
+                column-gap: 7px;
+                row-gap: 7px;
                 padding: 12px 14px;
             }
 
@@ -4982,15 +5041,21 @@
             }
 
             .sc-center {
-                grid-column: 1;
-                grid-row: 2;
-                justify-self: stretch;
-                padding: 2px 0;
+                grid-column: 2;
+                grid-row: 1;
+                justify-self: center;
+                align-self: center;
+                min-width: 0;
+                max-width: 68px;
+                width: 100%;
+                padding: 0;
+                gap: 1px;
+                overflow-wrap: normal;
             }
 
             .sc-team-away {
-                grid-column: 1;
-                grid-row: 3;
+                grid-column: 3;
+                grid-row: 1;
             }
 
             .sc-team,
@@ -5002,19 +5067,51 @@
             .sc-team-info {
                 align-items: center;
                 overflow: hidden;
+                gap: 6px;
             }
 
             .sc-team-info-away {
                 justify-content: flex-end;
             }
 
+            .sc-card-inner > .sc-team > .sc-goals-list,
             .sc-player-avatars {
-                width: 100%;
+                display: none;
+            }
+
+            .sc-goals-strip {
+                grid-column: 1 / 4;
+                grid-row: 2;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 10px;
+                align-items: start;
+                padding-top: 1px;
+            }
+
+            .sc-goals-strip-side {
                 min-width: 0;
             }
 
-            .sc-goals-list {
+            .sc-goals-strip-side.right .sc-goals-list {
+                text-align: right;
+                align-items: flex-end;
+            }
+
+            .sc-goals-strip .sc-goals-list {
                 max-width: 100%;
+                font-size: 0.68rem;
+                line-height: 1.18;
+                gap: 2px;
+            }
+
+            .sc-goals-strip .sc-goal-row {
+                gap: 4px;
+            }
+
+            .sc-goal-player,
+            .sc-goal-assist-player {
+                text-decoration-thickness: 1px;
             }
 
             .sc-team-logo {
@@ -5043,42 +5140,50 @@
 
             .sc-score {
                 font-size: 1rem;
+                letter-spacing: 1px;
+                order: 1;
             }
 
-            .sc-center {
-                min-width: 0;
-                max-width: none;
-                width: 100%;
-                overflow-wrap: anywhere;
+            .sc-live-pill,
+            .sc-pending-pill,
+            .sc-finished-pill {
+                display: none;
             }
 
             .sc-venue-center {
-                font-size: 0.6rem;
-                line-height: 1.18;
-                margin-top: 2px;
+                display: none;
+            }
+
+            .sc-card-spielnr,
+            .sc-round,
+            .sc-kickoff-meta {
+                display: none;
             }
 
             .sc-time {
-                font-size: 0.95rem;
-                letter-spacing: 0.5px;
+                font-size: 0.82rem;
+                letter-spacing: 0.2px;
+                line-height: 1;
             }
 
             .sc-vs {
-                letter-spacing: 1.4px;
+                font-size: 0.58rem;
+                letter-spacing: 1px;
             }
 
             .sc-card-toggle {
-                grid-column: 2;
+                grid-column: 4;
                 grid-row: 1;
                 justify-self: end;
+                align-self: center;
                 margin-top: 1px;
             }
         }
 
         @media (max-width: 380px) {
             .sc-card-inner {
-                grid-template-columns: minmax(0, 1fr) 22px;
-                column-gap: 6px;
+                grid-template-columns: minmax(0, 1fr) minmax(44px, 58px) minmax(0, 1fr) 20px;
+                column-gap: 5px;
                 padding-inline: 10px;
             }
 
@@ -5089,11 +5194,6 @@
             }
 
             .sc-team-info {
-                gap: 5px;
-            }
-
-            .sc-player-avatars {
-                min-width: 0;
                 gap: 4px;
             }
 
@@ -5110,12 +5210,20 @@
             }
 
             .sc-time {
-                font-size: 0.9rem;
+                font-size: 0.76rem;
+            }
+
+            .sc-goals-strip {
+                gap: 7px;
+            }
+
+            .sc-goals-strip .sc-goals-list {
+                font-size: 0.64rem;
             }
 
             .sc-card-toggle {
-                width: 22px;
-                height: 22px;
+                width: 20px;
+                height: 20px;
             }
         }
 
@@ -5328,8 +5436,57 @@
                 flex: 1 1 0;
             }
 
-            .match-goals-list {
+            .match-duel {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(64px, auto) minmax(0, 1fr);
+                align-items: center;
+                column-gap: 8px;
+                row-gap: 6px;
+                width: 100%;
+            }
+
+            .match-side {
+                min-width: 0;
+                align-items: center;
+            }
+
+            .match-side.right {
+                justify-content: flex-end;
+            }
+
+            .match-side-copy > .match-goals-list {
+                display: none;
+            }
+
+            .match-goals-strip {
+                grid-column: 1 / 4;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 10px;
+                align-items: start;
+            }
+
+            .match-goals-strip-side {
+                min-width: 0;
+            }
+
+            .match-goals-strip-side.right .match-goals-list {
+                align-items: flex-end;
+                text-align: right;
+            }
+
+            .match-goals-strip .match-goals-list {
                 max-width: 100%;
+                font-size: 0.66rem;
+                line-height: 1.18;
+                gap: 2px;
+            }
+
+            .match-score {
+                justify-self: center;
+                min-width: 62px;
+                padding: 4px 8px;
+                font-size: 0.86rem;
             }
 
             .match-summary-right {
@@ -7096,6 +7253,12 @@
                     const rightNationEncoded = encodeURIComponent(matchVisual.rightName);
                     const leftGoalsHtml = scheduleMatch ? renderScheduleGoalEventList(scheduleMatch, matchVisual.leftName, 'match') : '';
                     const rightGoalsHtml = scheduleMatch ? renderScheduleGoalEventList(scheduleMatch, matchVisual.rightName, 'match') : '';
+                    const matchGoalsStripHtml = (leftGoalsHtml || rightGoalsHtml)
+                        ? `<div class="match-goals-strip">
+                            <div class="match-goals-strip-side">${leftGoalsHtml}</div>
+                            <div class="match-goals-strip-side right">${rightGoalsHtml}</div>
+                        </div>`
+                        : '';
 
                     const card = document.createElement('div');
                     card.className = `match-card${liveInfo ? ' is-live' : ''}`;
@@ -7127,6 +7290,7 @@
                                     </div>
                                     ${rightFlagHtml}
                                 </div>
+                                ${matchGoalsStripHtml}
                             </div>
                             <div class="match-summary-right">
                                 ${liveIndicatorHtml}
@@ -7582,6 +7746,54 @@
         return getScheduleGoalEventName(value).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
+    function normalizeSchedulePersonLookupName(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\./g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+    }
+
+    function getSchedulePlayerShortName(player) {
+        const fullName = player && player.Spielername ? String(player.Spielername).trim() : '';
+        const parts = fullName.split(/\s+/).filter(Boolean);
+        if (parts.length < 2) return fullName;
+        return `${parts[0].charAt(0)} ${parts.slice(1).join(' ')}`;
+    }
+
+    function findScheduleGoalEventPlayer(playerId, displayName, teamName) {
+        const cleanName = formatScheduleGoalEventPersonName(displayName);
+        const byIdentity = resolvePlayerIdentity(playerId, cleanName);
+        if (byIdentity) return byIdentity;
+        if (!cleanName) return null;
+
+        const targetName = normalizeSchedulePersonLookupName(cleanName);
+        const teamKey = normalizeScheduleTeamKey(teamName);
+        const candidates = playersData.filter(player => {
+            if (!player) return false;
+            if (teamKey && normalizeScheduleTeamKey(player['Nationalteam.name']) !== teamKey) return false;
+            const full = normalizeSchedulePersonLookupName(player.Spielername);
+            const short = normalizeSchedulePersonLookupName(getSchedulePlayerShortName(player));
+            const last = normalizeSchedulePersonLookupName(String(player.Spielername || '').split(/\s+/).filter(Boolean).slice(-1)[0] || '');
+            return targetName === full || targetName === short || (!!last && targetName === last);
+        });
+        return candidates.length === 1 ? candidates[0] : null;
+    }
+
+    function renderScheduleGoalPerson(name, playerId, teamName, className) {
+        const displayName = formatScheduleGoalEventPersonName(name) || getScheduleGoalEventName(name);
+        if (!displayName) return '';
+        const player = findScheduleGoalEventPlayer(playerId, displayName, teamName);
+        if (!player) return escapeHtml(displayName);
+
+        const idEncoded = encodeURIComponent(String(player['player.id']));
+        const nameEncoded = encodeURIComponent(player.Spielername);
+        const title = `${player.Spielername} in der Spieler-Analyse öffnen`;
+        return `<button type="button" class="${className}" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" onkeydown="event.stopPropagation()" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">${escapeHtml(displayName)}</button>`;
+    }
+
     function normalizeScheduleTeamKey(value) {
         if (typeof getCanonicalCountryKey === 'function') return getCanonicalCountryKey(value);
         return normalizeNationFlagKey(value);
@@ -7597,7 +7809,9 @@
             extra: getScheduleGoalEventNumber(raw?.extra, time.extra),
             teamId: getScheduleGoalEventName(raw?.teamId, team.id),
             teamName: getScheduleGoalEventName(raw?.teamName, team.name, team),
+            playerId: getScheduleGoalEventName(raw?.playerId, player.id),
             playerName: getScheduleGoalEventName(raw?.playerName, player.name, player),
+            assistId: getScheduleGoalEventName(raw?.assistId, assist.id),
             assistName: getScheduleGoalEventName(raw?.assistName, assist.name, assist),
             detail: getScheduleGoalEventName(raw?.detail),
             type: getScheduleGoalEventName(raw?.type)
@@ -7669,13 +7883,17 @@
             const minute = formatScheduleGoalMinute(event);
             const scorer = formatScheduleGoalEventPersonName(event.playerName) || event.playerName;
             const assist = formatScheduleGoalEventPersonName(event.assistName);
+            const scorerHtml = renderScheduleGoalPerson(scorer, event.playerId, event.teamName || teamName, `${classPrefix}-goal-player`);
             const penaltyHtml = isSchedulePenaltyGoalEvent(event)
                 ? ` <span class="${classPrefix}-goal-penalty">(P)</span>`
                 : '';
+            const assistPlayerHtml = assist
+                ? renderScheduleGoalPerson(assist, event.assistId, event.teamName || teamName, `${classPrefix}-goal-assist-player`)
+                : '';
             const assistHtml = assist
-                ? ` <span class="${classPrefix}-goal-assist">(Assist: ${escapeHtml(assist)})</span>`
+                ? ` <span class="${classPrefix}-goal-assist">(Assist: ${assistPlayerHtml || escapeHtml(assist)})</span>`
                 : (isScheduleOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${scorerHtml || escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
@@ -8180,6 +8398,12 @@
                 const showMatchPlayerPoints = (isLive || isFinished) && !!mc;
                 const homeGoalsHtml = renderScheduleGoalEventList(m, m.teamA);
                 const awayGoalsHtml = renderScheduleGoalEventList(m, m.teamB);
+                const goalsStripHtml = (homeGoalsHtml || awayGoalsHtml)
+                    ? `<div class="sc-goals-strip">
+                        <div class="sc-goals-strip-side">${homeGoalsHtml}</div>
+                        <div class="sc-goals-strip-side right">${awayGoalsHtml}</div>
+                    </div>`
+                    : '';
                 const homeAvatars = renderScheduleAvatars(homeDrafted, false, showMatchPlayerPoints);
                 const awayAvatars = renderScheduleAvatars(awayDrafted, true, showMatchPlayerPoints);
 
@@ -8220,6 +8444,7 @@
                             ${awayGoalsHtml}
                             ${awayAvatars}
                         </div>
+                        ${goalsStripHtml}
                         <span class="sc-card-toggle" aria-hidden="true">▾</span>
                     </div>
                     ${renderExpandedScheduleBody(m, mc)}
