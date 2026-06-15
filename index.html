@@ -3236,6 +3236,7 @@
         }
 
         .nm-match-row {
+            --nm-center-width: 136px;
             display: flex;
             flex-direction: column;
             gap: 0;
@@ -3291,7 +3292,8 @@
         }
 
         .nm-match-main {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) var(--nm-center-width) minmax(0, 1fr);
             align-items: center;
             gap: 8px;
         }
@@ -3387,7 +3389,8 @@
             align-items: center;
             gap: 2px;
             flex-shrink: 0;
-            min-width: 136px;
+            width: 100%;
+            min-width: 0;
             text-align: center;
         }
 
@@ -3515,9 +3518,12 @@
         }
 
         .nm-players-row {
-            display: flex;
-            gap: 4px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) var(--nm-center-width) minmax(0, 1fr);
+            gap: 8px;
             margin-top: 10px;
+            padding-right: 24px;
+            box-sizing: border-box;
             align-items: flex-start;
         }
 
@@ -3587,6 +3593,22 @@
             color: var(--text-muted);
         }
 
+        .nm-goal-player,
+        .nm-goal-assist-player {
+            color: inherit;
+            font: inherit;
+            font-weight: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .nm-goal-player:focus-visible,
+        .nm-goal-assist-player:focus-visible {
+            outline: 2px solid rgba(74,222,128,0.45);
+            outline-offset: 2px;
+            border-radius: 3px;
+        }
+
         .nm-goal-penalty {
             color: var(--text-muted);
             font-weight: 800;
@@ -3595,10 +3617,6 @@
         .nm-goal-own {
             color: #f87171;
             font-weight: 800;
-        }
-
-        .nm-goal-text.has-scroll .nm-goal-line {
-            animation: nmGoalLineScroll 8s ease-in-out 1.2s infinite alternate;
         }
 
         @keyframes nmGoalLineScroll {
@@ -3626,7 +3644,8 @@
             width: 1px;
             background: rgba(255,255,255,0.08);
             align-self: stretch;
-            margin: 0 4px;
+            justify-self: center;
+            margin: 0;
             flex-shrink: 0;
         }
 
@@ -3908,12 +3927,12 @@
         }
 
         @media (max-width: 640px) {
-            .nm-match-toggle-btn .nm-match-main {
-                padding-right: 20px;
+            .nm-match-row {
+                --nm-center-width: 92px;
             }
 
-            .nm-center-col {
-                min-width: 92px;
+            .nm-match-toggle-btn .nm-match-main {
+                padding-right: 20px;
             }
 
             .nm-score-display {
@@ -3931,8 +3950,9 @@
 
             .nm-players-row {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+                grid-template-columns: minmax(0, 1fr) var(--nm-center-width) minmax(0, 1fr);
                 gap: 7px;
+                padding-right: 20px;
                 align-items: stretch;
             }
 
@@ -3942,6 +3962,7 @@
                 min-height: 34px;
                 margin: 0;
                 grid-column: 2;
+                justify-self: center;
             }
 
             .nm-players-side {
@@ -3953,6 +3974,12 @@
                 max-width: 100%;
                 font-size: 0.62rem;
                 line-height: 1.16;
+            }
+
+            @media (prefers-reduced-motion: no-preference) {
+                .nm-goal-text.has-scroll .nm-goal-line {
+                    animation: nmGoalLineScroll 8s ease-in-out 1.2s infinite alternate;
+                }
             }
 
             .nm-player-chips {
@@ -9077,6 +9104,64 @@
         return getGoalEventName(value).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
+    function normalizeGoalPersonLookupName(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\./g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+    }
+
+    function getPlayerShortName(player) {
+        const fullName = player && player.Spielername ? String(player.Spielername).trim() : '';
+        const parts = fullName.split(/\s+/).filter(Boolean);
+        if (parts.length < 2) return fullName;
+        return `${parts[0].charAt(0)} ${parts.slice(1).join(' ')}`;
+    }
+
+    function findGoalEventPlayer(playerId, displayName, teamName) {
+        if (playerId !== undefined && playerId !== null && playerId !== '') {
+            const byId = getPlayerById(playerId);
+            if (byId) return byId;
+        }
+
+        const cleanName = formatGoalEventPersonName(displayName);
+        if (!cleanName) return null;
+
+        const targetName = normalizeGoalPersonLookupName(cleanName);
+        const teamKey = normalizeCountry(teamName);
+        const matchesName = (player) => {
+            if (!player) return false;
+            const full = normalizeGoalPersonLookupName(player.Spielername);
+            const short = normalizeGoalPersonLookupName(getPlayerShortName(player));
+            const last = normalizeGoalPersonLookupName(String(player.Spielername || '').split(/\s+/).filter(Boolean).slice(-1)[0] || '');
+            return targetName === full || targetName === short || (!!last && targetName === last);
+        };
+        const candidates = playersData.filter((player) => {
+            if (!player) return false;
+            if (teamKey && normalizeCountry(player['Nationalteam.name']) !== teamKey) return false;
+            return matchesName(player);
+        });
+        if (candidates.length === 1) return candidates[0];
+        if (teamKey) {
+            const globalCandidates = playersData.filter(matchesName);
+            if (globalCandidates.length === 1) return globalCandidates[0];
+        }
+        return null;
+    }
+
+    function renderGoalEventPerson(name, playerId, teamName, className) {
+        const displayName = formatGoalEventPersonName(name) || getGoalEventName(name);
+        if (!displayName) return '';
+        const player = findGoalEventPlayer(playerId, displayName, teamName);
+        const href = player
+            ? `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`
+            : `spieleranalyse.html?player=${encodeURIComponent(displayName)}`;
+        return `<a class="${className}" href="${escapeHtml(href)}" title="${escapeHtml(displayName)} analysieren" aria-label="${escapeHtml(displayName)} analysieren">${escapeHtml(displayName)}</a>`;
+    }
+
     function normalizeGoalEvent(raw) {
         const time = raw?.time || {};
         const team = raw?.team || {};
@@ -9087,7 +9172,9 @@
             extra: getGoalEventNumber(raw?.extra, time.extra),
             teamId: getGoalEventName(raw?.teamId, team.id),
             teamName: getGoalEventName(raw?.teamName, team.name, team),
+            playerId: getGoalEventName(raw?.playerId, player.id),
             playerName: getGoalEventName(raw?.playerName, player.name, player),
+            assistId: getGoalEventName(raw?.assistId, assist.id),
             assistName: getGoalEventName(raw?.assistName, assist.name, assist),
             detail: getGoalEventName(raw?.detail),
             type: getGoalEventName(raw?.type)
@@ -9161,18 +9248,34 @@
             const minute = formatGoalMinute(event);
             const scorer = formatGoalEventPersonName(event.playerName) || event.playerName;
             const assist = formatGoalEventPersonName(event.assistName);
+            const scorerHtml = renderGoalEventPerson(scorer, event.playerId, event.teamName || teamName, `${classPrefix}-goal-player`);
             const penaltyHtml = isPenaltyGoalEvent(event)
                 ? ` <span class="${classPrefix}-goal-penalty">(P)</span>`
                 : '';
+            const assistPlayerHtml = assist
+                ? renderGoalEventPerson(assist, event.assistId, event.teamName || teamName, `${classPrefix}-goal-assist-player`)
+                : '';
             const assistHtml = assist
-                ? ` <span class="${classPrefix}-goal-assist">(${escapeHtml(assist)})</span>`
+                ? ` <span class="${classPrefix}-goal-assist">(${assistPlayerHtml || escapeHtml(assist)})</span>`
                 : (isOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            const lineLength = `${scorer || ''} ${isPenaltyGoalEvent(event) ? '(P)' : ''} ${assist ? `(${assist})` : (isOwnGoalEvent(event) ? '(Eigentor)' : '')}`.trim().length;
-            const scrollClass = lineLength > 24 ? ' has-scroll' : '';
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text${scrollClass}"><span class="${classPrefix}-goal-line">${escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></span></div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text"><span class="${classPrefix}-goal-line">${scorerHtml || escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
+    }
+
+    function refreshGoalLineOverflow(root = document) {
+        const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+        const apply = () => {
+            scope.querySelectorAll('.nm-goal-text').forEach((textEl) => {
+                const lineEl = textEl.querySelector('.nm-goal-line');
+                const isVisible = textEl.getClientRects().length > 0 && textEl.clientWidth > 0;
+                const isOverflowing = isVisible && lineEl && lineEl.scrollWidth > textEl.clientWidth + 1;
+                textEl.classList.toggle('has-scroll', !!isOverflowing);
+            });
+        };
+        apply();
+        requestAnimationFrame(apply);
     }
 
     function sumPointBucket(value) {
@@ -9359,6 +9462,8 @@
             else details.setAttribute('hidden', '');
         }
 
+        if (expanded) refreshGoalLineOverflow(row);
+
         if (key) {
             if (expanded) expandedNextMatchKeys.add(key);
             else expandedNextMatchKeys.delete(key);
@@ -9477,7 +9582,7 @@
                     const kickoffDate = new Date(timingState.kickoffMs);
                     const swissDayDiff = getSwissCalendarDayDiff(kickoffDate, now);
                     const datePrefix = swissDayDiff === 0 ? '' : `${formatSwissMatchDate(kickoffDate)} `;
-                    timeSubText = `Anpfiff ${datePrefix}${formatSwissMatchTime(kickoffDate)}`;
+                    timeSubText = `${datePrefix}${formatSwissMatchTime(kickoffDate)}`;
                 }
             } else if (isLive) {
                 timeBadgeText = formatMatchLiveMinute(match);
@@ -9677,6 +9782,7 @@
         }).join('');
 
         container.innerHTML = html;
+        refreshGoalLineOverflow(container);
     }
 
     /* =========================================================

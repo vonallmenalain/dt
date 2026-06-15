@@ -1443,11 +1443,6 @@
             font-weight: 800;
         }
 
-        .match-goal-text.has-scroll .match-goal-line,
-        .sc-goal-text.has-scroll .sc-goal-line {
-            animation: goalLineScroll 8s ease-in-out 1.2s infinite alternate;
-        }
-
         @keyframes goalLineScroll {
             0%, 16% { transform: translateX(0); }
             84%, 100% { transform: translateX(-28%); }
@@ -5146,6 +5141,13 @@
                 gap: 4px;
             }
 
+            @media (prefers-reduced-motion: no-preference) {
+                .match-goal-text.has-scroll .match-goal-line,
+                .sc-goal-text.has-scroll .sc-goal-line {
+                    animation: goalLineScroll 8s ease-in-out 1.2s infinite alternate;
+                }
+            }
+
             .sc-team-logo {
                 width: 24px;
                 height: 24px;
@@ -7913,12 +7915,24 @@
             const assistHtml = assist
                 ? ` <span class="${classPrefix}-goal-assist">(${assistPlayerHtml || escapeHtml(assist)})</span>`
                 : (isScheduleOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            const lineLength = `${scorer || ''} ${isSchedulePenaltyGoalEvent(event) ? '(P)' : ''} ${assist ? `(${assist})` : (isScheduleOwnGoalEvent(event) ? '(Eigentor)' : '')}`.trim().length;
-            const scrollClass = lineLength > 24 ? ' has-scroll' : '';
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text${scrollClass}"><span class="${classPrefix}-goal-line">${scorerHtml || escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></span></div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text"><span class="${classPrefix}-goal-line">${scorerHtml || escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
+    }
+
+    function refreshScheduleGoalLineOverflow(root = document) {
+        const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+        const apply = () => {
+            scope.querySelectorAll('.sc-goal-text, .match-goal-text').forEach((textEl) => {
+                const lineEl = textEl.querySelector('.sc-goal-line, .match-goal-line');
+                const isVisible = textEl.getClientRects().length > 0 && textEl.clientWidth > 0;
+                const isOverflowing = isVisible && lineEl && lineEl.scrollWidth > textEl.clientWidth + 1;
+                textEl.classList.toggle('has-scroll', !!isOverflowing);
+            });
+        };
+        apply();
+        requestAnimationFrame(apply);
     }
 
     function getScheduleDisplayMatchNumber(m, mc) {
@@ -8477,6 +8491,7 @@
         }
 
         el.innerHTML = html;
+        refreshScheduleGoalLineOverflow(el);
         syncSidebarHeight();
         applyPendingScheduleFocus();
     }
@@ -10643,6 +10658,7 @@
             cardEl.classList.remove('is-expanded', 'is-focus-flash');
         }
         cardEl.setAttribute('aria-expanded', String(willExpand));
+        if (willExpand) refreshScheduleGoalLineOverflow(cardEl);
         syncSidebarHeight();
     };
 
