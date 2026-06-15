@@ -2773,6 +2773,10 @@
             if (bMs <= 0) return -1;
             return aMs - bMs;
         }
+        return compareTeamsByManagerName(a, b);
+    }
+
+    function compareTeamsByManagerName(a, b) {
         return String(a && a.manager || "").localeCompare(String(b && b.manager || ""), "de");
     }
 
@@ -3146,7 +3150,8 @@
     function getPreferredMainManager() {
         const saved = getStoredSessionValue(HISTORY_MAIN_KEY);
         if (saved && teamsByManager.has(saved)) return saved;
-        if (rankingTeams.length) return rankingTeams[0].manager;
+        const managerOptions = [...rankingTeams].sort(compareTeamsByManagerName);
+        if (managerOptions.length) return managerOptions[0].manager;
         return null;
     }
 
@@ -3291,8 +3296,9 @@
     function renderHistoryControls() {
         const mainSelect = document.getElementById("history-main-manager");
         const compareMenu = document.getElementById("compare-menu");
+        const managerOptions = [...rankingTeams].sort(compareTeamsByManagerName);
 
-        mainSelect.innerHTML = rankingTeams.map(team => `
+        mainSelect.innerHTML = managerOptions.map(team => `
             <option value="${escapeHtml(team.manager)}">${escapeHtml(team.manager)}</option>
         `).join("");
 
@@ -3304,7 +3310,7 @@
         if (!Array.isArray(selectedCompareManagers)) selectedCompareManagers = [];
         selectedCompareManagers = selectedCompareManagers.filter(name => teamsByManager.has(name) && name !== selectedMainManager);
 
-        compareMenu.innerHTML = rankingTeams.map(team => {
+        compareMenu.innerHTML = managerOptions.map(team => {
             const checked = selectedCompareManagers.includes(team.manager) ? "checked" : "";
             const disabled = team.manager === selectedMainManager ? "disabled" : "";
 

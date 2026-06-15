@@ -2169,6 +2169,10 @@
             if (bMs <= 0) return -1;
             return aMs - bMs;
         }
+        return compareTeamsByManagerName(a, b);
+    }
+
+    function compareTeamsByManagerName(a, b) {
         return String(a && a.manager || '').localeCompare(String(b && b.manager || ''), 'de');
     }
 
@@ -2500,7 +2504,9 @@
         listEl.innerHTML = '';
         const currentManager = getCurrentManager();
 
-        teamsToRender.forEach(team => {
+        const sortedTeams = [...(teamsToRender || [])].sort(compareTeamsByManagerName);
+
+        sortedTeams.forEach(team => {
             const div = document.createElement('div');
             div.className = 'manager-item';
             div.setAttribute('role', 'option');
@@ -2548,7 +2554,9 @@
         listEl.innerHTML = '';
         const currentManager = getCurrentManager();
 
-        teamsToRender.forEach(team => {
+        const sortedTeams = [...(teamsToRender || [])].sort(compareTeamsByManagerName);
+
+        sortedTeams.forEach(team => {
             const item = document.createElement('div');
             item.className = 'team-picker-item';
             item.setAttribute('role', 'option');
@@ -3270,6 +3278,7 @@
         buildPlayerPointsMap(data.points || {});
         allTeams = enrichTeamsWithScores(data.teams || []);
         allTeams = assignTeamRanks(allTeams);
+        allTeams.sort(compareTeamsByManagerName);
         globalPickCounts = buildGlobalPickCounts(allTeams);
         perfectTeamIds = buildPerfectTeamIds();
         allTeams = augmentTeamsWithDerivedAwards(allTeams);

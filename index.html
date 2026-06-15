@@ -7087,6 +7087,10 @@
             if (bMs <= 0) return -1;
             return aMs - bMs;
         }
+        return compareTeamsByManagerName(a, b);
+    }
+
+    function compareTeamsByManagerName(a, b) {
         return String(a && a.manager || '').localeCompare(String(b && b.manager || ''), 'de');
     }
 
@@ -7680,7 +7684,9 @@
             container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div>Noch keine Teams</div>';
             return;
         }
-        container.innerHTML = teams.slice(0, 10).map((t, i) => {
+        const sortedTeams = [...teams].sort(compareTeamsByManagerName);
+
+        container.innerHTML = sortedTeams.slice(0, 10).map((t, i) => {
             const url = `teams.html?manager=${encodeURIComponent(t.manager)}`;
             return `
                 <a class="mgr-chip" href="${url}" aria-label="${escapeHtml(t.manager)}">
