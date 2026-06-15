@@ -6283,6 +6283,10 @@
         }
 
         let captainBadge = frame.querySelector('.player-photo-captain-badge');
+        if (!captainOptions.isCaptain) {
+            if (captainBadge) captainBadge.remove();
+            return;
+        }
         if (!captainBadge) {
             captainBadge = document.createElement('span');
             captainBadge.className = 'player-photo-captain-badge';
@@ -6290,7 +6294,6 @@
             captainBadge.textContent = 'C';
             frame.appendChild(captainBadge);
         }
-        captainBadge.hidden = !captainOptions.isCaptain;
         captainBadge.title = captainOptions.captainTitle || 'Von einem Manager als Captain gewaehlt';
     }
 
