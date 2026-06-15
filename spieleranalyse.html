@@ -459,6 +459,37 @@
             pointer-events: none;
         }
 
+        .player-photo-captain-badge {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            z-index: 4;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(8,12,18,0.9);
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #111827;
+            box-shadow: 0 2px 7px rgba(0,0,0,0.35);
+            font-size: 0.55rem;
+            font-weight: 900;
+            line-height: 1;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        .player-photo-frame .player-photo-captain-badge {
+            right: 10px;
+            bottom: 10px;
+            width: 30px;
+            height: 30px;
+            border-width: 2px;
+            font-size: 0.95rem;
+        }
+
         .player-photo-placeholder::before,
         .player-photo-placeholder::after {
             content: "";
@@ -4384,6 +4415,15 @@
             display: block;
         }
 
+        .sc-player-avatar .player-photo-captain-badge {
+            right: -1px;
+            bottom: -1px;
+            width: 13px;
+            height: 13px;
+            border-width: 1px;
+            font-size: 0.48rem;
+        }
+
         .sc-player-avatar-points {
             position: absolute;
             left: 50%;
@@ -4977,6 +5017,14 @@
             object-fit: cover;
             border: 2px solid rgba(255,255,255,0.12);
             background: var(--dark-card);
+        }
+
+        .sc-player-card-photo .player-photo-captain-badge {
+            right: 2px;
+            bottom: 2px;
+            width: 20px;
+            height: 20px;
+            font-size: 0.68rem;
         }
 
         .sc-player-card.drafted .sc-player-card-photo {
@@ -6198,14 +6246,20 @@
             .filter(Boolean)
             .join(' ');
         const label = name ? `Foto von ${name}` : 'Spielerfoto';
+        const isCaptain = !!options.isCaptain;
+        const ariaLabel = isCaptain ? `${label}, als Captain gewaehlt` : label;
+        const captainTitle = options.captainTitle || 'Von einem Manager als Captain gewaehlt';
         const loading = options.loading || 'lazy';
         const width = options.width ? ` width="${escapeHtml(options.width)}"` : '';
         const height = options.height ? ` height="${escapeHtml(options.height)}"` : '';
         const img = url
             ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(label)}" loading="${escapeHtml(loading)}" decoding="async"${width}${height} onerror="this.parentElement.classList.remove('has-player-photo')">`
             : '';
+        const captainBadge = isCaptain
+            ? `<span class="player-photo-captain-badge" title="${escapeHtml(captainTitle)}" aria-hidden="true">C</span>`
+            : '';
 
-        return `<span class="${escapeHtml(classes)}" role="img" aria-label="${escapeHtml(label)}">${img}<span class="player-photo-placeholder" aria-hidden="true"></span></span>`;
+        return `<span class="${escapeHtml(classes)}" role="img" aria-label="${escapeHtml(ariaLabel)}">${img}<span class="player-photo-placeholder" aria-hidden="true"></span>${captainBadge}</span>`;
     }
 
     function updateDetailPlayerPhoto(player) {
@@ -6215,7 +6269,8 @@
 
         const label = `Foto von ${player.Spielername}`;
         const url = normalizePlayerPhotoUrl(player.Spielerfoto);
-        frame.setAttribute('aria-label', label);
+        const captainOptions = getPlayerCaptainPhotoOptions(player['player.id']);
+        frame.setAttribute('aria-label', captainOptions.isCaptain ? `${label}, als Captain gewaehlt` : label);
         photoEl.alt = label;
         photoEl.onerror = () => frame.classList.remove('has-player-photo');
 
@@ -6226,6 +6281,17 @@
             frame.classList.remove('has-player-photo');
             photoEl.removeAttribute('src');
         }
+
+        let captainBadge = frame.querySelector('.player-photo-captain-badge');
+        if (!captainBadge) {
+            captainBadge = document.createElement('span');
+            captainBadge.className = 'player-photo-captain-badge';
+            captainBadge.setAttribute('aria-hidden', 'true');
+            captainBadge.textContent = 'C';
+            frame.appendChild(captainBadge);
+        }
+        captainBadge.hidden = !captainOptions.isCaptain;
+        captainBadge.title = captainOptions.captainTitle || 'Von einem Manager als Captain gewaehlt';
     }
 
     /* Diacritic- und sonderzeichenunabhängige Suche:
@@ -6814,6 +6880,20 @@
         return (playerSelectedMap.get(String(playerId)) || 0) > 0;
     }
 
+    function getCaptainManagersForPlayer(playerId) {
+        return getManagersForPlayer(playerId).filter(m => m && m.isCaptain);
+    }
+
+    function getPlayerCaptainPhotoOptions(playerId) {
+        const captains = getCaptainManagersForPlayer(playerId);
+        if (!captains.length) return { isCaptain: false };
+        const names = captains.map(m => m.manager || 'Unbekannt').filter(Boolean);
+        const captainTitle = captains.length === 1
+            ? `Captain von ${names[0]}`
+            : `Captain von ${captains.length} Managern: ${names.join(', ')}`;
+        return { isCaptain: true, captainTitle };
+    }
+
     /* =========================================================
        STATIC FILTERS INIT
        ========================================================= */
@@ -7002,7 +7082,7 @@
             const isDrafted = isPlayerDrafted(player['player.id']);
 
             div.innerHTML = `
-                ${renderPlayerPhotoShell(player.Spielerfoto, player.Spielername, 'list-avatar', { width: 38, height: 38 })}
+                ${renderPlayerPhotoShell(player.Spielerfoto, player.Spielername, 'list-avatar', { width: 38, height: 38, ...getPlayerCaptainPhotoOptions(player['player.id']) })}
                 <div class="list-info">
                     <div class="list-name">${escapeHtml(player.Spielername)}</div>
                     <div class="list-pos">${escapeHtml(translatePosition(player.Position))} | ${escapeHtml(player['Nationalteam.name'])}</div>
@@ -8193,7 +8273,7 @@
             ? `${pts > 0 ? '+' : ''}${pts} Pkt.`
             : '— Pkt.';
         const draftedCls = p.drafted ? ' drafted' : '';
-        const photoHtml = renderPlayerPhotoShell(p.photo, p.name, 'sc-player-card-photo', { width: 72, height: 72 });
+        const photoHtml = renderPlayerPhotoShell(p.photo, p.name, 'sc-player-card-photo', { width: 72, height: 72, ...getPlayerCaptainPhotoOptions(p.playerId) });
         const managersHtml = renderSchedulePlayerManagers(p.playerId);
         return `<div class="sc-player-card${draftedCls}">
             <button type="button" class="sc-player-card-main"
@@ -8375,7 +8455,7 @@
                     ? `<span class="sc-player-avatar-points ${getSchedulePointsClass(pts)}">${escapeHtml(formatScheduleSignedPoints(pts))}</span>`
                     : '';
                 const ptsLabel = showPoints ? `, ${formatScheduleSignedPoints(pts)} Punkte in diesem Spiel` : '';
-                return `<button type="button" class="sc-player-avatar-btn${showPoints ? ' has-points' : ''}" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen${escapeHtml(ptsLabel)}">${renderPlayerPhotoShell(p.photo, p.name, 'sc-player-avatar', { width: 30, height: 30 })}${ptsHtml}</button>`;
+                return `<button type="button" class="sc-player-avatar-btn${showPoints ? ' has-points' : ''}" onclick="event.stopPropagation(); openPlayerFromGames(decodeURIComponent('${idEncoded}'), decodeURIComponent('${nameEncoded}'))" title="${escapeHtml(p.name)}" aria-label="${escapeHtml(p.name)} – Spieler öffnen${escapeHtml(ptsLabel)}">${renderPlayerPhotoShell(p.photo, p.name, 'sc-player-avatar', { width: 30, height: 30, ...getPlayerCaptainPhotoOptions(p.playerId) })}${ptsHtml}</button>`;
             }).filter(Boolean).join('');
             if (!avatarsHtml) return '';
             const cls = alignRight ? 'sc-player-avatars sc-player-avatars-away' : 'sc-player-avatars';

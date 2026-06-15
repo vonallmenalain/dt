@@ -3677,6 +3677,28 @@
             flex-shrink: 0;
         }
 
+        .nm-player-captain-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 1px solid rgba(8,12,18,0.9);
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #111827;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            font-size: 8px;
+            font-weight: 900;
+            line-height: 1;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
         .nm-player-chip.has-points {
             margin-bottom: 12px;
         }
@@ -3809,6 +3831,24 @@
             object-fit: cover;
             background: #2a3040;
             flex-shrink: 0;
+        }
+
+        .nm-detail-player-photo-wrap {
+            position: relative;
+            display: inline-flex;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+        }
+
+        .nm-detail-player-photo-wrap .nm-detail-player-photo {
+            width: 100%;
+            height: 100%;
+        }
+
+        .nm-detail-player-photo-wrap .nm-player-captain-badge {
+            top: -3px;
+            right: -3px;
         }
 
         .nm-detail-player-copy {
@@ -9652,6 +9692,16 @@
                 })
                 .sort((a, b) => a.player.Spielername.localeCompare(b.player.Spielername, 'de'));
 
+            function buildPlayerCaptainBadge(managers) {
+                const captains = (managers || []).filter((m) => m && m.isCaptain);
+                if (!captains.length) return '';
+                const names = captains.map((m) => getManagerDisplayName(m.manager)).filter(Boolean);
+                const label = captains.length === 1
+                    ? `Captain von ${names[0]}`
+                    : `Captain von ${captains.length} Managern: ${names.join(', ')}`;
+                return `<span class="nm-player-captain-badge" title="${escapeHtml(label)}" aria-hidden="true">C</span>`;
+            }
+
             function buildChips(players) {
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
@@ -9663,7 +9713,8 @@
                     const managerLabel = managers.length
                         ? ` - ${managers.map((m) => `${getManagerDisplayName(m.manager)}${m.isCaptain ? ' (C)' : ''}`).join(', ')}`
                         : '';
-                    return `<a class="nm-player-chip${pts !== null ? ' has-points' : ''}" href="${url}" draggable="false" title="${escapeHtml(player.Spielername + managerLabel)}" aria-label="${escapeHtml(player.Spielername)} analysieren${escapeHtml(ptsLabel)}"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">${ptsHtml}</a>`;
+                    const captainBadge = buildPlayerCaptainBadge(managers);
+                    return `<a class="nm-player-chip${pts !== null ? ' has-points' : ''}" href="${url}" draggable="false" title="${escapeHtml(player.Spielername + managerLabel)}" aria-label="${escapeHtml(player.Spielername)} analysieren${escapeHtml(ptsLabel)}"><img class="nm-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">${captainBadge}${ptsHtml}</a>`;
                 }).join('');
             }
 
@@ -9694,9 +9745,10 @@
                     const managerCount = managers.length === 1
                         ? 'Gew&auml;hlt von 1 Manager'
                         : `Gew&auml;hlt von ${managers.length} Managern`;
+                    const captainBadge = buildPlayerCaptainBadge(managers);
                     return `<div class="nm-detail-player-card">
                         <a class="nm-detail-player-main" href="${url}" title="${escapeHtml(player.Spielername)} analysieren" aria-label="${escapeHtml(player.Spielername)} analysieren">
-                            <img class="nm-detail-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">
+                            <span class="nm-detail-player-photo-wrap"><img class="nm-detail-player-photo" src="${escapeHtml(player.Spielerfoto)}" alt="${escapeHtml(player.Spielername)}" loading="lazy" onerror="this.style.display='none'">${captainBadge}</span>
                             <span class="nm-detail-player-copy">
                                 <span class="nm-detail-player-name">${escapeHtml(player.Spielername)}</span>
                                 ${position ? `<span class="nm-detail-player-meta">${escapeHtml(position)}</span>` : ''}
