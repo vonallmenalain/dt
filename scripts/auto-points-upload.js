@@ -745,6 +745,82 @@ function toAppPlayerId(apiToAppPlayerId, rawPlayerId) {
   return (apiToAppPlayerId && apiToAppPlayerId.get(apiPlayerId)) || apiPlayerId;
 }
 
+function normalizeScoringText(value) {
+  return String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+}
+
+function getScoringEventDetail(event) {
+  return normalizeScoringText(event && event.detail);
+}
+
+function getScoringEventType(event) {
+  return normalizeScoringText(event && event.type);
+}
+
+function getScoringEventPlayerId(event, apiToAppPlayerId) {
+  const rawId = event && event.player && event.player.id != null
+    ? event.player.id
+    : event && event.playerId != null
+      ? event.playerId
+      : null;
+  return toAppPlayerId(apiToAppPlayerId, rawId);
+}
+
+function getScoringEventTeamId(event) {
+  if (event && event.team && event.team.id != null) return String(event.team.id);
+  if (event && event.teamId != null) return String(event.teamId);
+  return '';
+}
+
+function getScoringEventMinute(event, key) {
+  const value = event && event.time && event.time[key] != null
+    ? event.time[key]
+    : event && event[key] != null
+      ? event[key]
+      : null;
+  return value == null ? '' : String(value);
+}
+
+function isOwnGoalScoringEvent(event) {
+  const detail = getScoringEventDetail(event).toLowerCase();
+  const type = getScoringEventType(event).toLowerCase();
+  return detail.includes('own goal') && (!type || type === 'goal');
+}
+
+function getFixtureGoalEventsForScoring(fixtureData, opts = {}) {
+  const combined = [];
+  const seen = new Set();
+  const add = (event) => {
+    if (!event || typeof event !== 'object') return;
+    const playerId = getScoringEventPlayerId(event, opts.apiToAppPlayerId || null) || '';
+    const detail = getScoringEventDetail(event).toLowerCase();
+    const type = getScoringEventType(event).toLowerCase();
+    const elapsed = getScoringEventMinute(event, 'elapsed');
+    const extra = getScoringEventMinute(event, 'extra');
+    const teamId = getScoringEventTeamId(event);
+    const key = detail.includes('own goal')
+      ? `own-goal|${playerId}|${teamId}|${elapsed}`
+      : `${type}|${detail}|${playerId}|${teamId}|${elapsed}|${extra}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    combined.push(event);
+  };
+
+  (Array.isArray(fixtureData && fixtureData.events) ? fixtureData.events : []).forEach(add);
+  (Array.isArray(opts.firestoreGoalEvents) ? opts.firestoreGoalEvents : []).forEach(add);
+  return combined;
+}
+
+function normalizeScoringTeamName(value) {
+  return normalizeScoringText(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function playerBelongsToFixtureTeam(player, team) {
+  const playerNation = normalizeScoringTeamName(player && player['Nationalteam.name']);
+  const teamName = normalizeScoringTeamName(team && team.name);
+  return !!playerNation && !!teamName && playerNation === teamName;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Firebase Admin Initialisierung
  * ───────────────────────────────────────────────────────────────────────────── */
@@ -1075,6 +1151,9 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
   const events = fixtureData.events || [];
   const playersDataList = fixtureData.players || [];
   const apiToAppPlayerId = opts.apiToAppPlayerId || null;
+  const playersById = new Map((playersData || [])
+    .filter(player => player && player['player.id'] != null)
+    .map(player => [String(player['player.id']), player]));
 
   const statusShort = getFixtureStatusShort(game);
   const matchHasStarted = SCORING_STATUSES.has(statusShort);
@@ -1103,10 +1182,13 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
     .map(id => toAppPlayerId(apiToAppPlayerId, id));
 
   const ownGoalsMap = {};
-  events.forEach(e => {
-    if (e.type && e.type.toLowerCase() === 'goal' && e.detail && e.detail.toLowerCase() === 'own goal') {
-      if (e.player && e.player.id) {
-        const id = toAppPlayerId(apiToAppPlayerId, e.player.id);
+  getFixtureGoalEventsForScoring(fixtureData, {
+    apiToAppPlayerId,
+    firestoreGoalEvents: opts.firestoreGoalEvents
+  }).forEach(e => {
+    if (isOwnGoalScoringEvent(e)) {
+      const id = getScoringEventPlayerId(e, apiToAppPlayerId);
+      if (id) {
         ownGoalsMap[id] = (ownGoalsMap[id] || 0) + 1;
       }
     }
@@ -1156,6 +1238,11 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
         if (substituteIds.has(pid) || statsByPid.has(pid)) participantIds.add(pid);
       });
     }
+    Object.keys(ownGoalsMap).forEach(pid => {
+      if (allPlayerPoints[pid] && playerBelongsToFixtureTeam(playersById.get(pid), teamRef.team)) {
+        participantIds.add(pid);
+      }
+    });
 
     const isHome = teamRef.isHome;
     const opponentName = isHome ? awayName : homeName;
@@ -1181,8 +1268,9 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
         subbedInPlayerIds.includes(pid) ||
         (stats.games && stats.games.substitute === true)
       );
+      const ownGoals = ownGoalsMap[pid] || 0;
 
-      if (!started && !subbedIn) return;
+      if (!started && !subbedIn && ownGoals <= 0) return;
 
       const detailPts = {};
       Object.keys(RULES).forEach(k => { detailPts[k] = 0; });
@@ -1193,7 +1281,7 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
       if (started) {
         detailPts.START = RULES.START;
         pObj.START += RULES.START;
-      } else {
+      } else if (subbedIn) {
         detailPts.SUBBED_IN = RULES.SUBBED_IN;
         pObj.SUBBED_IN += RULES.SUBBED_IN;
       }
@@ -1211,7 +1299,6 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
         else                           { detailPts.GOAL_ATT = goals * RULES.GOAL_ATT; pObj.GOAL_ATT += detailPts.GOAL_ATT; }
       }
 
-      const ownGoals = ownGoalsMap[pid] || 0;
       if (ownGoals > 0) {
         detailPts.OWN_GOAL = ownGoals * RULES.OWN_GOAL;
         pObj.OWN_GOAL += detailPts.OWN_GOAL;
@@ -2334,12 +2421,17 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   let processedPlayers = 0;
   fixtureIds.forEach(fixId => {
+    const fixtureSnapshot = fixtureSnapshotsById ? fixtureSnapshotsById.get(String(fixId)) : null;
     processedPlayers += processFixtureDetail(
       detailsById.get(fixId),
       scoringById.get(fixId),
       allPlayerPoints,
       playersData,
-      { changedPlayerIds, apiToAppPlayerId: opts.apiToAppPlayerId }
+      {
+        changedPlayerIds,
+        apiToAppPlayerId: opts.apiToAppPlayerId,
+        firestoreGoalEvents: fixtureSnapshot && fixtureSnapshot.goalEvents
+      }
     );
   });
 
@@ -2431,6 +2523,14 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
     let finalRecheckCandidateCount = 0;
     if (opts.forceRun) {
       logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
+      const cache = await ensureFixturePlanCacheLoaded(db, tournament, tickOpts);
+      fixtureSnapshotsById = new Map(
+        cache.all
+          .map(buildFixtureInfoFromPlanRecord)
+          .filter(c => c && c.id != null)
+          .map(c => [String(c.id), c])
+      );
+      logInfo(`Fixture-Snapshots fuer Event-Fallback geladen: ${fixtureSnapshotsById.size}.`);
     } else {
       const { all, candidates, nextWakeAtMs: nextWake } = await findCandidateFixtures(db, tournament, tickOpts);
       nextWakeAtMs = nextWake;
@@ -2454,7 +2554,11 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
       });
       candidateIds = new Set(candidates.map(c => String(c.id)));
       audit.candidateFixtureIds = Array.from(candidateIds).sort();
-      fixtureSnapshotsById = new Map(candidates.map(c => [String(c.id), c]));
+      fixtureSnapshotsById = new Map(
+        all
+          .filter(c => c && c.id != null)
+          .map(c => [String(c.id), c])
+      );
     }
 
     const result = await runFullPointsUpload(db, tournament, tickOpts, candidateIds, fixtureSnapshotsById);

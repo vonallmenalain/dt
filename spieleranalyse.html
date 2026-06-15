@@ -1394,6 +1394,11 @@
             color: var(--text-muted);
         }
 
+        .match-goal-penalty {
+            color: var(--text-muted);
+            font-weight: 800;
+        }
+
         .match-goal-own {
             color: var(--red-soft);
             font-weight: 800;
@@ -4208,6 +4213,11 @@
             color: var(--text-muted);
         }
 
+        .sc-goal-penalty {
+            color: var(--text-muted);
+            font-weight: 800;
+        }
+
         .sc-goal-own {
             color: var(--red-soft);
             font-weight: 800;
@@ -4287,9 +4297,10 @@
         .sc-player-avatar-points.neg,
         .sc-live-points .neg { color: var(--red-soft); }
 
-        /* When the card is expanded, the same drafted players are listed
-           below in larger cards, so hide the small preview avatars to
+        /* When the card is expanded, the same goals and drafted players
+           are listed below, so hide the compact preview elements to
            avoid visual duplication. */
+        .sc-card.is-expanded .sc-team > .sc-goals-list,
         .sc-card.is-expanded .sc-player-avatars {
             display: none;
         }
@@ -7626,6 +7637,12 @@
         return String(event?.detail || '').toLowerCase().includes('own goal');
     }
 
+    function isSchedulePenaltyGoalEvent(event) {
+        const detail = String(event?.detail || '').toLowerCase();
+        const type = String(event?.type || '').toLowerCase();
+        return detail.includes('penalty') || type.includes('penalty');
+    }
+
     function getScheduleTeamIdsForName(match, teamName) {
         const teamKey = normalizeScheduleTeamKey(teamName);
         const ids = [];
@@ -7652,10 +7669,13 @@
             const minute = formatScheduleGoalMinute(event);
             const scorer = formatScheduleGoalEventPersonName(event.playerName) || event.playerName;
             const assist = formatScheduleGoalEventPersonName(event.assistName);
+            const penaltyHtml = isSchedulePenaltyGoalEvent(event)
+                ? ` <span class="${classPrefix}-goal-penalty">(P)</span>`
+                : '';
             const assistHtml = assist
                 ? ` <span class="${classPrefix}-goal-assist">(Assist: ${escapeHtml(assist)})</span>`
                 : (isScheduleOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${escapeHtml(scorer)}${assistHtml}</span></div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;

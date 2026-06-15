@@ -3576,6 +3576,11 @@
             color: var(--text-muted);
         }
 
+        .nm-goal-penalty {
+            color: var(--text-muted);
+            font-weight: 800;
+        }
+
         .nm-goal-own {
             color: #f87171;
             font-weight: 800;
@@ -9062,6 +9067,12 @@
         return String(event?.detail || '').toLowerCase().includes('own goal');
     }
 
+    function isPenaltyGoalEvent(event) {
+        const detail = String(event?.detail || '').toLowerCase();
+        const type = String(event?.type || '').toLowerCase();
+        return detail.includes('penalty') || type.includes('penalty');
+    }
+
     function getMatchTeamIdsForName(match, teamName) {
         const teamKey = normalizeCountry(teamName);
         const ids = [];
@@ -9090,10 +9101,13 @@
             const minute = formatGoalMinute(event);
             const scorer = formatGoalEventPersonName(event.playerName) || event.playerName;
             const assist = formatGoalEventPersonName(event.assistName);
+            const penaltyHtml = isPenaltyGoalEvent(event)
+                ? ` <span class="${classPrefix}-goal-penalty">(P)</span>`
+                : '';
             const assistHtml = assist
                 ? ` <span class="${classPrefix}-goal-assist">(Assist: ${escapeHtml(assist)})</span>`
                 : (isOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${escapeHtml(scorer)}${assistHtml}</span></div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
