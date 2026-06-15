@@ -4613,6 +4613,10 @@
             margin-top: 1px;
         }
 
+        .sc-mobile-expanded-meta {
+            display: none;
+        }
+
         .sc-meta {
             padding: 0 18px 12px;
             display: flex;
@@ -5200,6 +5204,47 @@
             .sc-vs {
                 font-size: 0.58rem;
                 letter-spacing: 1px;
+            }
+
+            .sc-card.is-expanded .sc-mobile-expanded-meta {
+                grid-column: 1 / 4;
+                grid-row: 2;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                min-width: 0;
+                padding: 4px 6px 2px;
+                text-align: center;
+            }
+
+            .sc-mobile-expanded-meta-line {
+                max-width: 100%;
+                color: var(--text-muted);
+                font-size: 0.64rem;
+                font-weight: 800;
+                line-height: 1.25;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .sc-mobile-expanded-meta-main {
+                color: rgba(255,255,255,0.84);
+                letter-spacing: 0.3px;
+                text-transform: uppercase;
+            }
+
+            .sc-mobile-expanded-meta-group {
+                color: var(--green-light);
+                letter-spacing: 0.4px;
+            }
+
+            .sc-mobile-expanded-meta-venue {
+                font-weight: 700;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
             }
 
             .sc-card-toggle {
@@ -8429,6 +8474,15 @@
                     : '';
                 const roundText = groupStageLabel || (m.round ? m.round.replace(/Regular Season -\s*/i, '').replace(/Group Stage -\s*/i, 'Gruppe: ') : '');
                 const spielNrLabel = groupStageLabel ? '' : (displayMatchNumber ? `Spiel ${displayMatchNumber}` : '');
+                const mobileMetaMain = [displayMatchNumber ? `Spiel ${displayMatchNumber}` : '', timeLabel].filter(Boolean).join(' · ');
+                const mobileMetaVenue = [venueName, venueCity].filter(Boolean).join(' · ');
+                const mobileExpandedMetaHtml = (mobileMetaMain || roundText || mobileMetaVenue)
+                    ? `<div class="sc-mobile-expanded-meta">
+                        ${mobileMetaMain ? `<div class="sc-mobile-expanded-meta-line sc-mobile-expanded-meta-main">${escapeHtml(mobileMetaMain)}</div>` : ''}
+                        ${roundText ? `<div class="sc-mobile-expanded-meta-line sc-mobile-expanded-meta-group">${escapeHtml(roundText)}</div>` : ''}
+                        ${mobileMetaVenue ? `<div class="sc-mobile-expanded-meta-line sc-mobile-expanded-meta-venue">${escapeHtml(mobileMetaVenue)}</div>` : ''}
+                    </div>`
+                    : '';
 
                 // Small drafted-player avatars are shown in the collapsed
                 // card as a quick visual hint of "who from my managers'
@@ -8478,6 +8532,7 @@
                             ${roundText ? `<div class="sc-round${groupStageLabel ? ' sc-round-group' : ''}">${escapeHtml(roundText)}</div>` : ''}
                             ${venueHtml}
                         </div>
+                        ${mobileExpandedMetaHtml}
                         <div class="sc-team sc-team-away">
                             <div class="sc-team-info sc-team-info-away">
                                 <span class="sc-team-name">${escapeHtml(m.teamB)}</span>
