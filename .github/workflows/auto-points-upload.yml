@@ -33,6 +33,15 @@ name: Auto Punkte-Upload
 # scripts/auto-points-upload.js. Fuer Tests koennen die workflow_dispatch
 # Inputs unten einen einzelnen manuellen Run ueberschreiben.
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/auto-points-upload.yml"
+      - "scripts/auto-points-upload.js"
+      - "tournament-config.js"
+      - "data-wm2026.js"
+      - "position-overrides.js"
   schedule:
     # Alle 5 Minuten vom 11.–30. Juni 2026 (WM-Gruppenphase + KO-Start).
     - cron: "*/5 * 11-30 6 *"
