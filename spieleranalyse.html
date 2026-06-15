@@ -1368,15 +1368,26 @@
         }
 
         .match-goal-row {
-            display: block;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
             max-width: 100%;
-            overflow-wrap: anywhere;
+            min-width: 0;
+        }
+
+        .match-side.right .match-goal-row {
+            justify-content: flex-end;
         }
 
         .match-goal-minute {
             color: #fbbf24;
             font-weight: 900;
-            margin-right: 4px;
+            flex: 0 0 auto;
+        }
+
+        .match-goal-text {
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .match-goal-assist {
@@ -4170,15 +4181,27 @@
         }
 
         .sc-goal-row {
-            display: block;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
             max-width: 100%;
-            overflow-wrap: anywhere;
+            min-width: 0;
+        }
+
+        .sc-team-away .sc-goal-row,
+        .sc-expanded-team.right .sc-goal-row {
+            justify-content: flex-end;
         }
 
         .sc-goal-minute {
             color: #fbbf24;
             font-weight: 900;
-            margin-right: 4px;
+            flex: 0 0 auto;
+        }
+
+        .sc-goal-text {
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .sc-goal-assist {
@@ -4935,11 +4958,28 @@
         @media (max-width: 600px) {
             .sc-card-inner {
                 display: grid;
-                grid-template-columns: minmax(86px, 1fr) minmax(68px, 74px) minmax(86px, 1fr) 24px;
+                grid-template-columns: minmax(0, 1fr) 24px;
                 align-items: start;
-                column-gap: 6px;
+                column-gap: 8px;
                 row-gap: 8px;
                 padding: 12px 14px;
+            }
+
+            .sc-team-home {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .sc-center {
+                grid-column: 1;
+                grid-row: 2;
+                justify-self: stretch;
+                padding: 2px 0;
+            }
+
+            .sc-team-away {
+                grid-column: 1;
+                grid-row: 3;
             }
 
             .sc-team,
@@ -4959,7 +4999,11 @@
 
             .sc-player-avatars {
                 width: 100%;
-                min-width: 86px;
+                min-width: 0;
+            }
+
+            .sc-goals-list {
+                max-width: 100%;
             }
 
             .sc-team-logo {
@@ -5013,14 +5057,17 @@
             }
 
             .sc-card-toggle {
+                grid-column: 2;
+                grid-row: 1;
+                justify-self: end;
                 margin-top: 1px;
             }
         }
 
         @media (max-width: 380px) {
             .sc-card-inner {
-                grid-template-columns: minmax(80px, 1fr) 64px minmax(80px, 1fr) 22px;
-                column-gap: 3px;
+                grid-template-columns: minmax(0, 1fr) 22px;
+                column-gap: 6px;
                 padding-inline: 10px;
             }
 
@@ -5035,7 +5082,7 @@
             }
 
             .sc-player-avatars {
-                min-width: 80px;
+                min-width: 0;
                 gap: 4px;
             }
 
@@ -5233,6 +5280,19 @@
             .awards-container { justify-content: center; }
 
             .analysis-header { padding: 14px 14px 0; }
+
+            .view-toggle {
+                width: 100%;
+                box-sizing: border-box;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .view-btn {
+                flex: 1 0 auto;
+                padding-inline: 14px;
+                white-space: nowrap;
+            }
 
             /* Points breakdown: stack vertically */
             .taktik-grid { grid-template-columns: 1fr; }
@@ -7460,17 +7520,55 @@
         return { home: parsed.homeGoals, away: parsed.awayGoals };
     }
 
-    function getScheduleGoalEventName(value) {
-        return String(value || '').trim();
+    function getScheduleGoalEventName(...values) {
+        for (const value of values) {
+            if (value === undefined || value === null) continue;
+            if (typeof value === 'object') {
+                const nested = getScheduleGoalEventName(
+                    value.name,
+                    value.fullName,
+                    value.playerName,
+                    value.teamName,
+                    value.displayName,
+                    value.value,
+                    value.stringValue
+                );
+                if (nested) return nested;
+                continue;
+            }
+            const text = String(value).replace(/\s+/g, ' ').trim();
+            if (text) return text;
+        }
+        return '';
     }
 
-    function getScheduleGoalEventLastName(name) {
-        const clean = getScheduleGoalEventName(name).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
-        if (!clean) return '';
-        const parts = clean.split(/\s+/).filter(Boolean);
-        if (parts.length <= 1) return clean;
-        if (/^[A-Z]\.$/i.test(parts[0])) return parts.slice(1).join(' ');
-        return parts[parts.length - 1];
+    function getScheduleGoalEventNumber(...values) {
+        for (const value of values) {
+            if (value === undefined || value === null || value === '') continue;
+            if (typeof value === 'object') {
+                const nested = getScheduleGoalEventNumber(
+                    value.value,
+                    value.integerValue,
+                    value.doubleValue,
+                    value.seconds
+                );
+                if (nested !== null) return nested;
+                continue;
+            }
+            const n = Number(value);
+            if (Number.isFinite(n)) return n;
+        }
+        return null;
+    }
+
+    function getScheduleGoalEventArray(value) {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') return Object.values(value).filter(Boolean);
+        return [];
+    }
+
+    function formatScheduleGoalEventPersonName(value) {
+        return getScheduleGoalEventName(value).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
     function normalizeScheduleTeamKey(value) {
@@ -7484,28 +7582,30 @@
         const player = raw?.player || {};
         const assist = raw?.assist || {};
         return {
-            elapsed: Number.isFinite(Number(raw?.elapsed)) ? Number(raw.elapsed) : (Number.isFinite(Number(time.elapsed)) ? Number(time.elapsed) : null),
-            extra: Number.isFinite(Number(raw?.extra)) ? Number(raw.extra) : (Number.isFinite(Number(time.extra)) ? Number(time.extra) : null),
-            teamId: getScheduleGoalEventName(raw?.teamId || team.id),
-            teamName: getScheduleGoalEventName(raw?.teamName || team.name),
-            playerName: getScheduleGoalEventName(raw?.playerName || player.name),
-            assistName: getScheduleGoalEventName(raw?.assistName || assist.name),
-            detail: getScheduleGoalEventName(raw?.detail)
+            elapsed: getScheduleGoalEventNumber(raw?.elapsed, raw?.minute, time.elapsed, time.minute),
+            extra: getScheduleGoalEventNumber(raw?.extra, time.extra),
+            teamId: getScheduleGoalEventName(raw?.teamId, team.id),
+            teamName: getScheduleGoalEventName(raw?.teamName, team.name, team),
+            playerName: getScheduleGoalEventName(raw?.playerName, player.name, player),
+            assistName: getScheduleGoalEventName(raw?.assistName, assist.name, assist),
+            detail: getScheduleGoalEventName(raw?.detail),
+            type: getScheduleGoalEventName(raw?.type)
         };
     }
 
     function getScheduleGoalEvents(match) {
-        const source = Array.isArray(match?.goalEvents)
-            ? match.goalEvents
-            : (Array.isArray(match?.events) ? match.events.filter((event) => {
+        const storedGoalEvents = getScheduleGoalEventArray(match?.goalEvents);
+        const source = storedGoalEvents.length
+            ? storedGoalEvents
+            : getScheduleGoalEventArray(match?.events).filter((event) => {
                 const type = String(event?.type || '').toLowerCase();
                 const detail = String(event?.detail || '').toLowerCase();
                 return type === 'goal' && !detail.includes('missed');
-            }) : []);
+            });
 
         return source
             .map(normalizeScheduleGoalEvent)
-            .filter((event) => event.playerName)
+            .filter((event) => event.playerName && !String(event.detail || '').toLowerCase().includes('missed'))
             .sort((a, b) => {
                 const elapsedA = a.elapsed ?? 999;
                 const elapsedB = b.elapsed ?? 999;
@@ -7550,12 +7650,12 @@
 
         const rows = events.map((event) => {
             const minute = formatScheduleGoalMinute(event);
-            const scorer = getScheduleGoalEventLastName(event.playerName) || event.playerName;
-            const assist = getScheduleGoalEventLastName(event.assistName);
+            const scorer = formatScheduleGoalEventPersonName(event.playerName) || event.playerName;
+            const assist = formatScheduleGoalEventPersonName(event.assistName);
             const assistHtml = assist
-                ? ` <span class="${classPrefix}-goal-assist">(${escapeHtml(assist)})</span>`
+                ? ` <span class="${classPrefix}-goal-assist">(Assist: ${escapeHtml(assist)})</span>`
                 : (isScheduleOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}${escapeHtml(scorer)}${assistHtml}</div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${escapeHtml(scorer)}${assistHtml}</span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;

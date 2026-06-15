@@ -1957,7 +1957,8 @@ async function ensureFixturePlanCacheForBundle(db, tournament, opts) {
 }
 
 async function writeFixturePlanPublicBundle(db, tournament, opts, cacheGenerationMs, source) {
-  const cache = await ensureFixturePlanCacheForBundle(db, tournament, opts);
+  const cache = getFixturePlanCache(opts);
+  await refreshFixturePlanCache(db, tournament, opts, cache);
   const fixturesBundle = buildFixturesMapFromPlanCache(cache, cacheGenerationMs);
   const bundleResult = await writePublicFixtureBundle(
     db,

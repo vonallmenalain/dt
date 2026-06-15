@@ -3549,15 +3549,27 @@
         }
 
         .nm-goal-row {
-            display: block;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
             max-width: 100%;
-            overflow-wrap: anywhere;
+            min-width: 0;
+        }
+
+        .nm-players-side.right .nm-goal-row,
+        .nm-detail-team.right .nm-goal-row {
+            justify-content: flex-end;
         }
 
         .nm-goal-minute {
             color: #fbbf24;
             font-weight: 900;
-            margin-right: 4px;
+            flex: 0 0 auto;
+        }
+
+        .nm-goal-text {
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .nm-goal-assist {
@@ -3884,6 +3896,24 @@
             .nm-detail-team.right .nm-detail-team-head {
                 justify-content: flex-start;
                 text-align: left;
+            }
+
+            .nm-players-row {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .nm-players-divider {
+                display: none;
+            }
+
+            .nm-players-side {
+                width: 100%;
+            }
+
+            .nm-goals-list {
+                max-width: 100%;
             }
 
             .nm-detail-player-main {
@@ -8931,17 +8961,55 @@
         return { home: home ?? 0, away: away ?? 0 };
     }
 
-    function getGoalEventName(value) {
-        return String(value || '').trim();
+    function getGoalEventName(...values) {
+        for (const value of values) {
+            if (value === undefined || value === null) continue;
+            if (typeof value === 'object') {
+                const nested = getGoalEventName(
+                    value.name,
+                    value.fullName,
+                    value.playerName,
+                    value.teamName,
+                    value.displayName,
+                    value.value,
+                    value.stringValue
+                );
+                if (nested) return nested;
+                continue;
+            }
+            const text = String(value).replace(/\s+/g, ' ').trim();
+            if (text) return text;
+        }
+        return '';
     }
 
-    function getGoalEventLastName(name) {
-        const clean = getGoalEventName(name).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
-        if (!clean) return '';
-        const parts = clean.split(/\s+/).filter(Boolean);
-        if (parts.length <= 1) return clean;
-        if (/^[A-Z]\.$/i.test(parts[0])) return parts.slice(1).join(' ');
-        return parts[parts.length - 1];
+    function getGoalEventNumber(...values) {
+        for (const value of values) {
+            if (value === undefined || value === null || value === '') continue;
+            if (typeof value === 'object') {
+                const nested = getGoalEventNumber(
+                    value.value,
+                    value.integerValue,
+                    value.doubleValue,
+                    value.seconds
+                );
+                if (nested !== null) return nested;
+                continue;
+            }
+            const n = Number(value);
+            if (Number.isFinite(n)) return n;
+        }
+        return null;
+    }
+
+    function getGoalEventArray(value) {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') return Object.values(value).filter(Boolean);
+        return [];
+    }
+
+    function formatGoalEventPersonName(value) {
+        return getGoalEventName(value).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
     function normalizeGoalEvent(raw) {
@@ -8950,28 +9018,30 @@
         const player = raw?.player || {};
         const assist = raw?.assist || {};
         return {
-            elapsed: Number.isFinite(Number(raw?.elapsed)) ? Number(raw.elapsed) : (Number.isFinite(Number(time.elapsed)) ? Number(time.elapsed) : null),
-            extra: Number.isFinite(Number(raw?.extra)) ? Number(raw.extra) : (Number.isFinite(Number(time.extra)) ? Number(time.extra) : null),
-            teamId: getGoalEventName(raw?.teamId || team.id),
-            teamName: getGoalEventName(raw?.teamName || team.name),
-            playerName: getGoalEventName(raw?.playerName || player.name),
-            assistName: getGoalEventName(raw?.assistName || assist.name),
-            detail: getGoalEventName(raw?.detail)
+            elapsed: getGoalEventNumber(raw?.elapsed, raw?.minute, time.elapsed, time.minute),
+            extra: getGoalEventNumber(raw?.extra, time.extra),
+            teamId: getGoalEventName(raw?.teamId, team.id),
+            teamName: getGoalEventName(raw?.teamName, team.name, team),
+            playerName: getGoalEventName(raw?.playerName, player.name, player),
+            assistName: getGoalEventName(raw?.assistName, assist.name, assist),
+            detail: getGoalEventName(raw?.detail),
+            type: getGoalEventName(raw?.type)
         };
     }
 
     function getMatchGoalEvents(match) {
-        const source = Array.isArray(match?.goalEvents)
-            ? match.goalEvents
-            : (Array.isArray(match?.events) ? match.events.filter((event) => {
+        const storedGoalEvents = getGoalEventArray(match?.goalEvents);
+        const source = storedGoalEvents.length
+            ? storedGoalEvents
+            : getGoalEventArray(match?.events).filter((event) => {
                 const type = String(event?.type || '').toLowerCase();
                 const detail = String(event?.detail || '').toLowerCase();
                 return type === 'goal' && !detail.includes('missed');
-            }) : []);
+            });
 
         return source
             .map(normalizeGoalEvent)
-            .filter((event) => event.playerName)
+            .filter((event) => event.playerName && !String(event.detail || '').toLowerCase().includes('missed'))
             .sort((a, b) => {
                 const elapsedA = a.elapsed ?? 999;
                 const elapsedB = b.elapsed ?? 999;
@@ -9018,12 +9088,12 @@
 
         const rows = events.map((event) => {
             const minute = formatGoalMinute(event);
-            const scorer = getGoalEventLastName(event.playerName) || event.playerName;
-            const assist = getGoalEventLastName(event.assistName);
+            const scorer = formatGoalEventPersonName(event.playerName) || event.playerName;
+            const assist = formatGoalEventPersonName(event.assistName);
             const assistHtml = assist
-                ? ` <span class="${classPrefix}-goal-assist">(${escapeHtml(assist)})</span>`
+                ? ` <span class="${classPrefix}-goal-assist">(Assist: ${escapeHtml(assist)})</span>`
                 : (isOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}${escapeHtml(scorer)}${assistHtml}</div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text">${escapeHtml(scorer)}${assistHtml}</span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;

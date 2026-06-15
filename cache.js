@@ -96,6 +96,22 @@
         return typeof value === 'number' && Number.isFinite(value) ? value : null;
     }
 
+    const ACTIVE_FIXTURE_STATUSES = new Set(['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
+
+    function getFixtureStatusShort(fixture) {
+        return String(
+            fixture?.status?.short
+            || fixture?.statusShort
+            || fixture?.fixture?.status?.short
+            || ''
+        ).trim().toUpperCase();
+    }
+
+    function fixturesContainActiveStatus(fixtures) {
+        if (!fixtures || typeof fixtures !== 'object' || Array.isArray(fixtures)) return false;
+        return Object.values(fixtures).some((fixture) => ACTIVE_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture)));
+    }
+
     function safeParse(json) {
         try {
             return JSON.parse(json);
@@ -339,7 +355,7 @@
         if (kind === 'teams') {
             validator = (data) => isValidTeamsData(data, cfg.allowEmptyTeams);
         } else if (kind === 'fixtures') {
-            validator = (data) => isValidFixturesData(data, cfg.allowEmptyFixtures);
+            validator = (data) => isValidFixturesData(data, cfg.allowEmptyFixtures) && !fixturesContainActiveStatus(data);
         } else {
             validator = (data) => isValidPointsData(data, cfg.allowEmptyPoints);
         }
@@ -554,6 +570,11 @@
                 bundle.cacheGenerationMs !== requiredGeneration
             ) {
                 log(cfg, 'Fixture-Bundle veraltet, nutze Collection-Fallback.');
+                return null;
+            }
+
+            if (fixturesContainActiveStatus(fixtures)) {
+                log(cfg, 'Fixture-Bundle enthaelt Live-Daten, nutze Collection-Fallback fuer frische Spielereignisse.');
                 return null;
             }
 
