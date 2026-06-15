@@ -408,6 +408,8 @@ function createTickAudit(tournament, opts, tickIndex, totalTicks) {
     candidatesNowFinished: 0,
     newlyFinished: 0,
     newlyFinishedFixtureIds: [],
+    ownGoalRecheckFixtureIds: [],
+    ownGoalRecheckCount: 0,
     shouldFullRecompute: false,
     apiCalls: createApiCallCounter(),
     writeResult: { written: 0, deleted: 0, skipped: 0, touched: 0 },
@@ -468,6 +470,8 @@ function serializeAuditLog(audit) {
     candidatesNowFinished: audit.candidatesNowFinished || 0,
     newlyFinished: audit.newlyFinished || 0,
     newlyFinishedFixtureIds: Array.isArray(audit.newlyFinishedFixtureIds) ? audit.newlyFinishedFixtureIds : [],
+    ownGoalRecheckFixtureIds: Array.isArray(audit.ownGoalRecheckFixtureIds) ? audit.ownGoalRecheckFixtureIds : [],
+    ownGoalRecheckCount: audit.ownGoalRecheckCount || 0,
     shouldFullRecompute: !!audit.shouldFullRecompute,
     apiCalls: audit.apiCalls || createApiCallCounter(),
     writeResult: audit.writeResult || { written: 0, deleted: 0, skipped: 0, touched: 0 },
@@ -1048,6 +1052,117 @@ function selectCandidateFixturesFromCache(cache, opts) {
   });
 
   return { all, candidates, nextWakeAtMs };
+}
+
+function buildStoredOwnGoalExpectations(fixtureInfos, apiToAppPlayerId = null) {
+  const byFixture = new Map();
+
+  (fixtureInfos || []).forEach(fxInfo => {
+    const fixtureId = fxInfo && fxInfo.id != null ? String(fxInfo.id) : '';
+    if (!fixtureId || !Array.isArray(fxInfo.goalEvents)) return;
+
+    fxInfo.goalEvents.forEach(event => {
+      if (!isOwnGoalScoringEvent(event)) return;
+      const playerId = getScoringEventPlayerId(event, apiToAppPlayerId);
+      if (!playerId) return;
+
+      if (!byFixture.has(fixtureId)) byFixture.set(fixtureId, new Map());
+      const fixtureMap = byFixture.get(fixtureId);
+      const key = String(playerId);
+      const current = fixtureMap.get(key) || {
+        fixtureId,
+        fixtureLabel: fxInfo.label || `Spiel ${fixtureId}`,
+        playerId: key,
+        playerName: normalizeScoringText(
+          event.playerName ||
+          (event.player && event.player.name) ||
+          ''
+        ),
+        count: 0
+      };
+      current.count += 1;
+      if (!current.playerName) {
+        current.playerName = normalizeScoringText(
+          event.playerName ||
+          (event.player && event.player.name) ||
+          ''
+        );
+      }
+      fixtureMap.set(key, current);
+    });
+  });
+
+  const byPlayer = new Map();
+  byFixture.forEach(fixtureMap => {
+    fixtureMap.forEach(expectation => {
+      if (!byPlayer.has(expectation.playerId)) byPlayer.set(expectation.playerId, []);
+      byPlayer.get(expectation.playerId).push(expectation);
+    });
+  });
+
+  return { byFixture, byPlayer };
+}
+
+function rememberOwnGoalPointReadsForAudit(opts, docsRead) {
+  const audit = opts && opts.audit;
+  if (!audit) return;
+  if (!audit.firestoreReadEstimate || typeof audit.firestoreReadEstimate !== 'object') {
+    audit.firestoreReadEstimate = { fixturePlanDocs: 0 };
+  }
+  audit.firestoreReadEstimate.ownGoalPointDocs =
+    (audit.firestoreReadEstimate.ownGoalPointDocs || 0) + (docsRead || 0);
+}
+
+async function findUnreconciledOwnGoalFixtures(db, tournament, fixtureInfos, opts = {}) {
+  let expectations = buildStoredOwnGoalExpectations(fixtureInfos, null);
+  if (expectations.byPlayer.size === 0) return [];
+
+  try {
+    const playersData = loadPlayersData(tournament);
+    const apiPlayerIdMapStats = buildApiToAppPlayerIdMap(playersData);
+    expectations = buildStoredOwnGoalExpectations(fixtureInfos, apiPlayerIdMapStats.apiToApp);
+  } catch (err) {
+    logWarn(`Eigentor-Recheck nutzt gespeicherte Spieler-IDs ohne API-Mapping: ${err.message}`);
+  }
+
+  const collection = tournament.firestore.pointsCollection;
+  const playerIds = Array.from(expectations.byPlayer.keys());
+  rememberOwnGoalPointReadsForAudit(opts, playerIds.length);
+
+  const pointDocs = await Promise.all(playerIds.map(async pid => {
+    const snap = await db.collection(collection).doc(String(pid)).get();
+    return [String(pid), snap.exists ? (snap.data() || {}) : {}];
+  }));
+  const pointsByPlayer = new Map(pointDocs);
+  const rechecksByFixture = new Map();
+
+  expectations.byPlayer.forEach((playerExpectations, playerId) => {
+    const pointObject = pointsByPlayer.get(String(playerId)) || {};
+
+    playerExpectations.forEach(expectation => {
+      const fixturePoint = pointObject[`Spiel_${expectation.fixtureId}`];
+      const actualPoints = getFixtureLineupValue(fixturePoint, 'OWN_GOAL');
+      const expectedPoints = expectation.count * RULES.OWN_GOAL;
+      if (actualPoints === expectedPoints) return;
+
+      if (!rechecksByFixture.has(expectation.fixtureId)) {
+        rechecksByFixture.set(expectation.fixtureId, {
+          id: expectation.fixtureId,
+          label: expectation.fixtureLabel,
+          details: []
+        });
+      }
+      rechecksByFixture.get(expectation.fixtureId).details.push({
+        playerId: expectation.playerId,
+        playerName: expectation.playerName,
+        count: expectation.count,
+        actualPoints,
+        expectedPoints
+      });
+    });
+  });
+
+  return Array.from(rechecksByFixture.values());
 }
 
 async function findCandidateFixtures(db, tournament, opts) {
@@ -2521,6 +2636,7 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
     let nextWakeAtMs = null;
     let openCandidateCount = 0;
     let finalRecheckCandidateCount = 0;
+    let ownGoalRecheckCandidateCount = 0;
     if (opts.forceRun) {
       logInfo('FORCE_RUN aktiv – Pre-Check übersprungen, Workflow wird in jedem Fall ausgeführt.');
       const cache = await ensureFixturePlanCacheLoaded(db, tournament, tickOpts);
@@ -2532,10 +2648,35 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
       );
       logInfo(`Fixture-Snapshots fuer Event-Fallback geladen: ${fixtureSnapshotsById.size}.`);
     } else {
-      const { all, candidates, nextWakeAtMs: nextWake } = await findCandidateFixtures(db, tournament, tickOpts);
+      const { all, candidates: baseCandidates, nextWakeAtMs: nextWake } = await findCandidateFixtures(db, tournament, tickOpts);
+      const candidates = [...baseCandidates];
       nextWakeAtMs = nextWake;
+      const ownGoalRechecks = await findUnreconciledOwnGoalFixtures(db, tournament, all, tickOpts);
+      if (ownGoalRechecks.length > 0) {
+        ownGoalRechecks.forEach(recheck => {
+          const existing = candidates.find(c => String(c.id) === String(recheck.id));
+          if (existing) {
+            existing.ownGoalRecheck = true;
+            existing.ownGoalRecheckDetails = recheck.details;
+            return;
+          }
+          const fxInfo = all.find(c => String(c.id) === String(recheck.id)) || {
+            id: recheck.id,
+            label: recheck.label
+          };
+          candidates.push({
+            ...fxInfo,
+            ownGoalRecheck: true,
+            ownGoalRecheckDetails: recheck.details
+          });
+        });
+        audit.ownGoalRecheckFixtureIds = ownGoalRechecks.map(r => String(r.id)).sort();
+        audit.ownGoalRecheckCount = ownGoalRechecks.reduce((sum, r) => sum + ((r.details && r.details.length) || 0), 0);
+        logInfo(`${ownGoalRechecks.length} Fixture(s) wegen fehlender Eigentor-Punkte erneut vorgemerkt: ${audit.ownGoalRecheckFixtureIds.join(', ')}.`);
+      }
       openCandidateCount = candidates.filter(c => !FINISHED_STATUSES.has(c.statusShort)).length;
-      finalRecheckCandidateCount = candidates.length - openCandidateCount;
+      finalRecheckCandidateCount = candidates.filter(c => c.finalRecheck).length;
+      ownGoalRecheckCandidateCount = candidates.filter(c => c.ownGoalRecheck).length;
       logInfo(`Spielplan: ${all.length} Spiele im Fixture-Plan-Cache. Kandidaten in diesem Tick: ${candidates.length}.`);
       if (candidates.length === 0) {
         logInfo('Nichts zu tun – kein Spiel im Live-/Catch-up-Fenster mit offenem Status. Beende ohne API-Call.');
@@ -2544,12 +2685,13 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
           result: null,
           nextWakeAtMs,
           openCandidateCount,
-          finalRecheckCandidateCount
+          finalRecheckCandidateCount,
+          ownGoalRecheckCandidateCount
         };
       }
       candidates.forEach(c => {
         const ageMin = (typeof c.ageMin === 'number') ? c.ageMin : Math.round((nowMs() - c.kickoffMs) / 60_000);
-        const tag = c.finalRecheck ? ' [FINAL-RECHECK]' : (c.overdue ? ' [CATCH-UP / ueberfaellig]' : '');
+        const tag = c.ownGoalRecheck ? ' [OWN-GOAL-RECHECK]' : (c.finalRecheck ? ' [FINAL-RECHECK]' : (c.overdue ? ' [CATCH-UP / ueberfaellig]' : ''));
         logInfo(`  • Kandidat ${c.id} (${c.label}) – Status="${c.statusShort || 'unbekannt'}", ${formatAgeMin(ageMin)}.${tag}`);
       });
       candidateIds = new Set(candidates.map(c => String(c.id)));
@@ -2572,7 +2714,8 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
       result,
       nextWakeAtMs,
       openCandidateCount,
-      finalRecheckCandidateCount
+      finalRecheckCandidateCount,
+      ownGoalRecheckCandidateCount
     };
   } catch (err) {
     audit.error = err && err.message ? err.message : String(err);
@@ -2774,19 +2917,19 @@ async function main() {
         continue;
       }
 
-      const onlyFinalRecheck =
+      const onlyReconciliation =
         tickResult.openCandidateCount === 0 &&
-        tickResult.finalRecheckCandidateCount > 0 &&
+        (tickResult.finalRecheckCandidateCount > 0 || tickResult.ownGoalRecheckCandidateCount > 0) &&
         (!tickResult.result || tickResult.result.liveGames === 0);
 
-      if (onlyFinalRecheck) {
+      if (onlyReconciliation) {
         const waited = await maybeWaitForNextLiveWindow(
           tickResult,
           opts,
-          'Nur Final-Recheck-Kandidaten uebrig.'
+          'Nur Reconciliation-Kandidaten uebrig.'
         );
         if (!waited) {
-          logInfo('Nur Final-Recheck-Kandidaten uebrig und kein weiteres Live-Fenster in Reichweite – beende Session.');
+          logInfo('Nur Reconciliation-Kandidaten uebrig und kein weiteres Live-Fenster in Reichweite - beende Session.');
           break;
         }
         continue;
