@@ -1146,6 +1146,31 @@
             transform: translateY(-1px);
         }
 
+        .manager-badge.is-captain {
+            background: rgba(250,204,21,0.10);
+            border-color: rgba(250,204,21,0.42);
+        }
+
+        .manager-badge.is-captain:hover {
+            background: rgba(250,204,21,0.18);
+            border-color: rgba(250,204,21,0.65);
+            color: #fde68a;
+        }
+
+        .manager-badge-cap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(250,204,21,0.86);
+            color: #1a1a1a;
+            font-size: 0.56rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
         /* =====================================================
            POINTS BREAKDOWN CARD
            ===================================================== */
@@ -7150,13 +7175,19 @@
         const teamsLocked = isTeamsLocked();
         if (!teamsLocked) {
             allTeams.forEach(team => {
+                const manager = team.manager || 'Unbekannt';
                 const teamPlayer = (team.players || []).find(tp =>
                     String(tp.playerId) === String(player['player.id']) || tp.name === player.Spielername
                 );
                 if (teamPlayer) {
-                    pickedBy.push(team.manager);
-                    if (teamPlayer.isCaptain) captainedBy.push(team.manager);
+                    const isCaptain = !!teamPlayer.isCaptain;
+                    pickedBy.push({ manager, isCaptain });
+                    if (isCaptain) captainedBy.push(manager);
                 }
+            });
+            pickedBy.sort((a, b) => {
+                if (a.isCaptain !== b.isCaptain) return a.isCaptain ? -1 : 1;
+                return a.manager.localeCompare(b.manager, 'de');
             });
         }
 
@@ -7165,7 +7196,13 @@
             mgrBox.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">🔒 Wird mit Turnierstart enthüllt.</div>';
         } else {
             mgrBox.innerHTML = pickedBy.length > 0
-                ? pickedBy.map(m => `<a href="teams.html?manager=${encodeURIComponent(m)}" class="manager-badge" aria-label="Team von ${escapeHtml(m)} ansehen">👤 ${escapeHtml(m)}</a>`).join('')
+                ? pickedBy.map(({ manager, isCaptain }) => {
+                    const capHtml = isCaptain ? '<span class="manager-badge-cap" title="Captain" aria-hidden="true">C</span>' : '';
+                    const label = isCaptain
+                        ? `Team von ${manager} ansehen, Captain`
+                        : `Team von ${manager} ansehen`;
+                    return `<a href="teams.html?manager=${encodeURIComponent(manager)}" class="manager-badge${isCaptain ? ' is-captain' : ''}" aria-label="${escapeHtml(label)}">👤 ${capHtml}<span>${escapeHtml(manager)}</span></a>`;
+                }).join('')
                 : '<div style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">Nicht gedraftet</div>';
         }
 
