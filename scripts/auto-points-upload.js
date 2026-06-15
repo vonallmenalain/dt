@@ -2772,6 +2772,8 @@ async function main() {
   const dryRun = envBool('DRY_RUN', false);
   const triggerName = String(process.env.GITHUB_EVENT_NAME || '').toLowerCase();
   const isScheduledRun = triggerName === 'schedule';
+  const isPushRun = triggerName === 'push';
+  const isOneShotRun = forceRun || isPushRun;
 
   if (!tournament || !APP_CONFIG.isTournamentAvailable(tournamentKey)) {
     logError(
@@ -2798,6 +2800,9 @@ async function main() {
     DEFAULT_LIVE_TICKS_PER_RUN,
     MAX_LIVE_TICKS_PER_RUN
   );
+  if (isPushRun && !forceRun) {
+    liveTicksPerRun = 1;
+  }
   if (isScheduledRun && !forceRun && liveTicksPerRun < MIN_SCHEDULED_LIVE_TICKS_PER_RUN) {
     logInfo(`Scheduled Run: liveTicksPerRun=${liveTicksPerRun} defensiv auf ${MIN_SCHEDULED_LIVE_TICKS_PER_RUN} erhoeht.`);
     liveTicksPerRun = MIN_SCHEDULED_LIVE_TICKS_PER_RUN;
@@ -2816,6 +2821,9 @@ async function main() {
     MAX_SESSION_MAX_MIN,
     Math.max(1, envIntAny(['POINTS_SESSION_MAX_MIN', 'SESSION_MAX_MIN'], DEFAULT_SESSION_MAX_MIN))
   );
+  if (isPushRun && !forceRun) {
+    sessionMaxMin = 1;
+  }
   if (isScheduledRun && !forceRun && sessionMaxMin < MIN_SCHEDULED_SESSION_MAX_MIN) {
     logInfo(`Scheduled Run: sessionMaxMin=${sessionMaxMin} defensiv auf ${MIN_SCHEDULED_SESSION_MAX_MIN} erhoeht.`);
     sessionMaxMin = MIN_SCHEDULED_SESSION_MAX_MIN;
@@ -2827,7 +2835,9 @@ async function main() {
     finalRecheckMin: Math.max(0, envIntAny(['POINTS_FINAL_RECHECK_MIN', 'FINAL_RECHECK_MIN'], DEFAULT_FINAL_RECHECK_MIN)),
     liveTicksPerRun,
     liveTickIntervalSec,
-    idleWaitMaxMin: Math.max(0, envIntAny(['POINTS_IDLE_WAIT_MAX_MIN', 'IDLE_WAIT_MAX_MIN'], DEFAULT_IDLE_WAIT_MAX_MIN)),
+    idleWaitMaxMin: isPushRun && !forceRun
+      ? 0
+      : Math.max(0, envIntAny(['POINTS_IDLE_WAIT_MAX_MIN', 'IDLE_WAIT_MAX_MIN'], DEFAULT_IDLE_WAIT_MAX_MIN)),
     sessionMaxMin,
     apiRetryAttempts: Math.max(1, envIntAny(['POINTS_API_RETRY_ATTEMPTS', 'API_RETRY_ATTEMPTS'], DEFAULT_API_RETRY_ATTEMPTS)),
     apiRetryBaseDelayMs: Math.max(0, envIntAny(['POINTS_API_RETRY_BASE_DELAY_MS', 'API_RETRY_BASE_DELAY_MS'], DEFAULT_API_RETRY_BASE_DELAY_MS)),
@@ -2842,8 +2852,8 @@ async function main() {
   logInfo(`Starte Auto-Upload für ${tournament.shortLabel} (${tournament.key}).` +
     ` Trigger-Fenster: ${opts.windowStartMin} bis ${opts.windowEndMin} min relativ zum Anpfiff` +
     ` (Live + Catch-up), Final-Recheck bis ${opts.finalRecheckMin} min nach Anpfiff.` +
-    ` Live-Ticks pro Run: ${opts.forceRun ? 1 : opts.liveTicksPerRun}, Abstand: ${opts.liveTickIntervalSec}s.` +
-    ` Idle-Wait bis ${opts.idleWaitMaxMin} min, Session-Max ${opts.forceRun ? '1 Tick' : opts.sessionMaxMin + ' min'}.` +
+    ` Live-Ticks pro Run: ${isOneShotRun ? 1 : opts.liveTicksPerRun}, Abstand: ${opts.liveTickIntervalSec}s.` +
+    ` Idle-Wait bis ${opts.idleWaitMaxMin} min, Session-Max ${isOneShotRun ? '1 Tick' : opts.sessionMaxMin + ' min'}.` +
     ` API-Retry: ${opts.apiRetryAttempts} Versuch(e), Basis ${opts.apiRetryBaseDelayMs}ms.` +
     ` Fixture-Plan-Refresh: ${opts.fixturePlanRefreshEveryTicks === 0 ? 'nur initial' : 'alle ' + opts.fixturePlanRefreshEveryTicks + ' Ticks'}.` +
     (opts.forceRun ? ' [FORCE_RUN]' : '') +
@@ -2851,7 +2861,7 @@ async function main() {
   logInfo(
     `Effektive Konfiguration: tournamentKey=${tournament.key}, ` +
     `windowStartMin=${opts.windowStartMin}, windowEndMin=${opts.windowEndMin}, ` +
-    `finalRecheckMin=${opts.finalRecheckMin}, liveTicksPerRun=${opts.forceRun ? 1 : opts.liveTicksPerRun}, ` +
+    `finalRecheckMin=${opts.finalRecheckMin}, liveTicksPerRun=${isOneShotRun ? 1 : opts.liveTicksPerRun}, ` +
     `liveTickIntervalSec=${opts.liveTickIntervalSec}, fixturePlanRefreshEveryTicks=${opts.fixturePlanRefreshEveryTicks}, ` +
     `forceRun=${opts.forceRun}, dryRun=${opts.dryRun}.`
   );
@@ -2896,7 +2906,7 @@ async function main() {
   }
 
   try {
-    const totalTicks = opts.forceRun ? 1 : opts.liveTicksPerRun;
+    const totalTicks = isOneShotRun ? 1 : opts.liveTicksPerRun;
     let tick = 1;
     while (tick <= totalTicks) {
       if (!opts.forceRun && sessionRemainingMs(opts) <= 0) {
