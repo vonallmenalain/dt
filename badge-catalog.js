@@ -30,8 +30,8 @@
           id: `roundRank_${phase.key}_${medal.key}`,
           label: `${medal.label} - ${phase.label}`,
           emoji: medal.emoji,
-          description: `Du warst nach dem ${phase.label} auf Rang ${medal.rank}.`,
-          howToEarn: `Stehe nach Abschluss dieser Turnierphase auf Rang ${medal.rank}.`,
+          description: `Du hast in den Spielen der Runde "${phase.label}" Rang ${medal.rank} erreicht.`,
+          howToEarn: `Sammle in dieser isolierten Runde genug Punkte für Rang ${medal.rank}. Frühere oder spätere Spiele zählen hier nicht mit.`,
           category: 'Rundenranking',
           tone: 'positive',
           style: 'positive',
@@ -503,7 +503,8 @@
       goalsScored: 0,
       goalsConceded: 0,
       cards: 0,
-      noAppearanceCount: 0
+      noAppearanceCount: 0,
+      noAppearancePlayers: []
     };
 
     (team && team.mergedPlayers || []).forEach((player) => {
@@ -519,10 +520,95 @@
       const nationKey = normalizeTextKey(player && player.nation);
       if (nationKey && playedNations && playedNations.has(nationKey) && !hasAppearance(pointDoc, rules)) {
         stat.noAppearanceCount += 1;
+        stat.noAppearancePlayers.push({
+          id: getPlayerId(player),
+          name: getPlayerName(player)
+        });
       }
     });
 
     return stat;
+  }
+
+  function getPlayerId(player) {
+    if (!player) return '';
+    const value = player.id ?? player.playerId ?? player['player.id'];
+    return value === null || value === undefined ? '' : String(value);
+  }
+
+  function getPlayerName(player) {
+    const name = player && (player.name || player.Spielername || player.playerName);
+    return String(name || 'Unbekannt').trim();
+  }
+
+  function getTeamPlayers(team) {
+    return (team && Array.isArray(team.mergedPlayers)) ? team.mergedPlayers : [];
+  }
+
+  function buildPickCounts(teams) {
+    const counts = {};
+    (teams || []).forEach((team) => {
+      getTeamPlayers(team).forEach((player) => {
+        const id = getPlayerId(player);
+        if (!id) return;
+        counts[id] = (counts[id] || 0) + 1;
+      });
+    });
+    return counts;
+  }
+
+  function getPickCounts(teams, context) {
+    const source = context && context.pickCounts;
+    if (source && typeof source === 'object' && !Array.isArray(source)) return source;
+    return buildPickCounts(teams);
+  }
+
+  function getPerfectTeamIdSet(context) {
+    const source = context && context.perfectTeamIds;
+    if (source instanceof Set) return source;
+    if (source && typeof source.has === 'function' && typeof source.forEach === 'function') {
+      const ids = new Set();
+      source.forEach(value => ids.add(String(value)));
+      return ids;
+    }
+    if (Array.isArray(source)) return new Set(source.map(value => String(value)));
+    if (source && typeof source === 'object') {
+      return new Set(Object.keys(source).filter(key => source[key]).map(key => String(key)));
+    }
+    return new Set();
+  }
+
+  function getUniquePickPlayers(team, pickCounts) {
+    return getTeamPlayers(team).filter((player) => {
+      const id = getPlayerId(player);
+      return id && finiteNumber(pickCounts && pickCounts[id], 0) === 1;
+    });
+  }
+
+  function getPerfectHitPlayers(team, perfectTeamIds) {
+    if (!perfectTeamIds || perfectTeamIds.size === 0) return [];
+    return getTeamPlayers(team).filter((player) => perfectTeamIds.has(getPlayerId(player)));
+  }
+
+  function getScoutingCount(team, pickCounts) {
+    const explicit = finiteNumber(team && team.scoutingCount, NaN);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+    return getUniquePickPlayers(team, pickCounts).length;
+  }
+
+  function getPerfectHitsCount(team, perfectTeamIds) {
+    const explicit = finiteNumber(team && team.perfectHits, NaN);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+    return getPerfectHitPlayers(team, perfectTeamIds).length;
+  }
+
+  function playerNames(players) {
+    return (players || []).map(getPlayerName).filter(Boolean);
+  }
+
+  function makeDetail(label, value) {
+    const text = Array.isArray(value) ? value.filter(Boolean).join(', ') : String(value ?? '').trim();
+    return text ? { label, value: text } : null;
   }
 
   function getTeamStats(allTeams, pointsData, fixturesData, context) {
@@ -585,6 +671,9 @@
 
   function makeAward(id, title, overrides = {}) {
     const badge = resolveBadge(id);
+    const details = Array.isArray(overrides.details)
+      ? overrides.details.filter(item => item && item.label && item.value)
+      : [];
     return {
       type: id,
       id,
@@ -592,6 +681,9 @@
       title: title || overrides.title || badge.description,
       emoji: overrides.emoji || badge.emoji,
       logo: overrides.logo || '',
+      value: overrides.value,
+      details,
+      players: Array.isArray(overrides.players) ? overrides.players : [],
       badge
     };
   }
@@ -782,7 +874,10 @@
       const medal = ROUND_MEDALS.find(item => item.rank === rank);
       if (!medal) return;
       const id = `roundRank_${phase.key}_${medal.key}`;
-      addAward(awards, id, `${medal.label} nach ${phase.label}`);
+      addAward(awards, id, `${medal.label} in ${phase.label}`, {
+        value: rank,
+        details: [makeDetail('Rang', String(rank))]
+      });
     });
     return awards;
   }
@@ -790,29 +885,32 @@
   function getHistoricalAwardsFromPoints(team, allTeams, pointsData, fixturesData, rules) {
     const awards = [];
     const phaseFixtures = buildPhaseFixtures(fixturesData);
-    const cumulativeMatchIds = new Set();
 
     ROUND_PHASES.forEach((phase) => {
       const entries = phaseFixtures.get(phase.key) || [];
       if (!entries.length) return;
       if (!entries.every(entry => isFixtureFinished(entry.fixture))) return;
 
-      entries.forEach(entry => cumulativeMatchIds.add(String(entry.id)));
-      const rankedRows = rankTeamsByScore(allTeams || [], rankedTeam => getTeamScoreForMatches(rankedTeam, cumulativeMatchIds, pointsData, rules));
+      const phaseMatchIds = new Set(entries.map(entry => String(entry.id)));
+      const rankedRows = rankTeamsByScore(allTeams || [], rankedTeam => getTeamScoreForMatches(rankedTeam, phaseMatchIds, pointsData, rules));
       const row = rankedRows.find(item => teamMatches(team, item.team));
       const medal = ROUND_MEDALS.find(item => item.rank === finiteNumber(row && row.rank, 0));
       if (!medal) return;
       const id = `roundRank_${phase.key}_${medal.key}`;
-      addAward(awards, id, `${medal.label} nach ${phase.label}`);
+      const score = finiteNumber(row && row.score, 0);
+      addAward(awards, id, `${medal.label} in ${phase.label} (${score} Pkt.)`, {
+        value: score,
+        details: [makeDetail('Rundenpunkte', `${score} Pkt.`)]
+      });
     });
 
     return awards;
   }
 
   function getHistoricalRoundRankAwards(team, allTeams, pointsData, fixturesData, badgeSnapshots, rules) {
-    const snapshotAwards = getHistoricalAwardsFromSnapshots(team, badgeSnapshots);
-    if (snapshotAwards.length) return snapshotAwards;
-    return getHistoricalAwardsFromPoints(team, allTeams, pointsData, fixturesData, rules);
+    const pointAwards = getHistoricalAwardsFromPoints(team, allTeams, pointsData, fixturesData, rules);
+    if (pointAwards.length) return pointAwards;
+    return getHistoricalAwardsFromSnapshots(team, badgeSnapshots);
   }
 
   function getBadgesForTeam(team, allTeams, pointsData, fixturesData, badgeSnapshots, context = {}) {
@@ -822,6 +920,12 @@
     const awards = [];
     const { stats, rules } = getTeamStats(teams, pointsData || {}, fixturesData || {}, context);
     const currentStats = stats.get(team) || buildTeamStat(team, pointsData || {}, rules, new Set());
+    const pickCounts = getPickCounts(teams, context);
+    const perfectTeamIds = getPerfectTeamIdSet(context);
+    const uniquePickPlayers = getUniquePickPlayers(team, pickCounts);
+    const uniquePickNames = playerNames(uniquePickPlayers);
+    const perfectHitPlayers = getPerfectHitPlayers(team, perfectTeamIds);
+    const perfectHitNames = playerNames(perfectHitPlayers);
 
     const rankBadgeId = getCurrentRankBadgeId(team.currentRank);
     if (rankBadgeId) {
@@ -834,7 +938,14 @@
         awards,
         'noAppearance',
         `${currentStats.noAppearanceCount} Spieler ohne Einsatz, obwohl die Nation bereits gespielt hat`,
-        { label }
+        {
+          label,
+          value: currentStats.noAppearanceCount,
+          players: currentStats.noAppearancePlayers,
+          details: [
+            makeDetail('Spieler ohne Einsatz', currentStats.noAppearancePlayers.map(player => player.name))
+          ]
+        }
       );
     }
 
@@ -854,8 +965,8 @@
       mid: buildLeaderData(teams, t => (t.positionTotals || {}).MIDFIELDER),
       att: buildLeaderData(teams, t => (t.positionTotals || {}).ATTACKER),
       bench: buildLeaderData(teams, t => (t.positionTotals || {}).BENCH),
-      scouting: buildLeaderData(teams, t => t.scoutingCount),
-      perfect: buildLeaderData(teams, t => t.perfectHits),
+      scouting: buildLeaderData(teams, t => getScoutingCount(t, pickCounts)),
+      perfect: buildLeaderData(teams, t => getPerfectHitsCount(t, perfectTeamIds)),
       instinct: buildLeaderData(teams, t => t.captainShare),
       goalsConceded: buildLeaderData(teams, t => (stats.get(t) || {}).goalsConceded),
       goalsScoredMin: buildLeaderData(teams, t => (stats.get(t) || {}).goalsScored, 'min'),
@@ -867,8 +978,22 @@
     if (hasLeaderAward(leaders.mid, team, 1)) addAward(awards, 'mid', `Bestes Mittelfeld aller Teams (${positionTotals.MIDFIELDER || 0} Pkt.)`);
     if (hasLeaderAward(leaders.att, team, 1)) addAward(awards, 'att', `Bester Sturm aller Teams (${positionTotals.ATTACKER || 0} Pkt.)`);
     if (hasLeaderAward(leaders.bench, team, 1)) addAward(awards, 'bench', `Stärkste Ersatzbank aller Teams (${positionTotals.BENCH || 0} Pkt.)`);
-    if (hasLeaderAward(leaders.scouting, team, 1)) addAward(awards, 'scouting', `${team.scoutingCount || 0} Unique Picks im Team`);
-    if (hasLeaderAward(leaders.perfect, team, 1)) addAward(awards, 'perfect', `${team.perfectHits || 0} Spieler aus dem aktuellen PerfectTeam`);
+    if (hasLeaderAward(leaders.scouting, team, 1)) {
+      const scoutingCount = getScoutingCount(team, pickCounts);
+      addAward(awards, 'scouting', `${scoutingCount} Unique Picks im Team`, {
+        value: scoutingCount,
+        players: uniquePickPlayers,
+        details: [makeDetail('Unique Picks', uniquePickNames.length ? uniquePickNames : `${scoutingCount} Spieler`)]
+      });
+    }
+    if (hasLeaderAward(leaders.perfect, team, 1)) {
+      const perfectHits = getPerfectHitsCount(team, perfectTeamIds);
+      addAward(awards, 'perfect', `${perfectHits} Spieler aus dem aktuellen PerfectTeam`, {
+        value: perfectHits,
+        players: perfectHitPlayers,
+        details: [makeDetail('PerfectTeam-Treffer', perfectHitNames.length ? perfectHitNames : `${perfectHits} Spieler`)]
+      });
+    }
 
     const captainValues = teams
       .map(candidate => ({ team: candidate, value: finiteNumber(candidate && candidate.captainPoints, 0) }))
@@ -888,16 +1013,25 @@
     }
 
     if (hasLeaderAward(leaders.goalsConceded, team, 1)) {
-      addAward(awards, 'mostGoalsConceded', `${currentStats.goalsConceded} Gegentore über defensive Spieler`);
+      addAward(awards, 'mostGoalsConceded', `${currentStats.goalsConceded} Gegentore über defensive Spieler`, {
+        value: currentStats.goalsConceded,
+        details: [makeDetail('Gegentore', String(currentStats.goalsConceded))]
+      });
     }
 
     const maxGoalsScored = Math.max(...teams.map(t => finiteNumber((stats.get(t) || {}).goalsScored, 0)));
     if (maxGoalsScored > 0 && hasMinLeaderAward(leaders.goalsScoredMin, team, maxGoalsScored)) {
-      addAward(awards, 'fewestGoalsScored', `${currentStats.goalsScored} erzielte Spielertore`);
+      addAward(awards, 'fewestGoalsScored', `${currentStats.goalsScored} erzielte Spielertore`, {
+        value: currentStats.goalsScored,
+        details: [makeDetail('Erzielte Tore', String(currentStats.goalsScored))]
+      });
     }
 
     if (hasLeaderAward(leaders.cards, team, 1)) {
-      addAward(awards, 'cardCollector', `${currentStats.cards} Karten im Team`);
+      addAward(awards, 'cardCollector', `${currentStats.cards} Karten im Team`, {
+        value: currentStats.cards,
+        details: [makeDetail('Karten', String(currentStats.cards))]
+      });
     }
 
     getHistoricalRoundRankAwards(team, teams, pointsData || {}, fixturesData || {}, badgeSnapshots, rules)

@@ -806,11 +806,12 @@
             border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.10);
             background: rgba(255,255,255,0.045);
-            padding: 14px;
+            padding: 0;
             opacity: 0;
             transform: translateY(6px);
             transition: opacity 150ms var(--badge-modal-ease), transform 150ms var(--badge-modal-ease), border-color 160ms var(--badge-modal-ease), background-color 160ms var(--badge-modal-ease), box-shadow 160ms var(--badge-modal-ease);
             transition-delay: var(--badge-card-delay, 0ms);
+            overflow: hidden;
         }
 
         .badge-catalog-overlay.is-open .badge-catalog-card {
@@ -851,11 +852,40 @@
             box-shadow: 0 0 0 1px var(--badge-tone), 0 16px 44px rgba(0,0,0,0.28);
         }
 
+        .badge-catalog-toggle {
+            width: 100%;
+            display: block;
+            appearance: none;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 14px;
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+            transition: background-color 160ms var(--badge-modal-ease);
+        }
+
+        .badge-catalog-toggle:focus-visible {
+            outline: 2px solid rgba(255,255,255,0.78);
+            outline-offset: -3px;
+        }
+
+        .badge-catalog-toggle:active {
+            background: rgba(255,255,255,0.045);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .badge-catalog-toggle:hover {
+                background: rgba(255,255,255,0.035);
+            }
+        }
+
         .badge-catalog-card-top {
             display: grid;
-            grid-template-columns: 36px minmax(0, 1fr);
+            grid-template-columns: 36px minmax(0, 1fr) 18px;
             gap: 10px;
-            align-items: start;
+            align-items: center;
         }
 
         .badge-catalog-icon {
@@ -888,21 +918,6 @@
             overflow-wrap: anywhere;
         }
 
-        .badge-catalog-category {
-            display: inline-flex;
-            align-items: center;
-            width: fit-content;
-            margin-top: 5px;
-            padding: 3px 8px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.09);
-            color: var(--text-muted);
-            font-size: 0.68rem;
-            font-weight: 900;
-            line-height: 1;
-        }
-
         .badge-catalog-status {
             flex: 0 0 auto;
             border-radius: 999px;
@@ -916,28 +931,149 @@
             white-space: nowrap;
         }
 
+        .badge-catalog-owner-count {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            margin-top: 6px;
+            border-radius: 999px;
+            padding: 4px 7px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.09);
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .badge-catalog-chevron {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1;
+            transform: rotate(0deg);
+            transition: transform 160ms var(--badge-modal-ease), color 160ms var(--badge-modal-ease);
+        }
+
+        .badge-catalog-card.is-expanded .badge-catalog-chevron {
+            color: var(--text-main);
+            transform: rotate(180deg);
+        }
+
+        .badge-catalog-panel {
+            display: grid;
+            gap: 12px;
+            margin: 0 14px 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .badge-catalog-panel[hidden] {
+            display: none;
+        }
+
         .badge-catalog-description {
-            margin: 12px 0 0;
+            margin: 0;
             color: #d6dee8;
             font-size: 0.84rem;
             line-height: 1.42;
         }
 
-        .badge-catalog-how {
-            margin-top: 11px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.07);
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            line-height: 1.4;
+        .badge-catalog-section {
+            display: grid;
+            gap: 7px;
         }
 
-        .badge-catalog-how strong {
-            display: block;
-            margin-bottom: 3px;
-            color: #c8d3df;
-            font-size: 0.72rem;
+        .badge-catalog-section-title {
+            color: var(--text-muted);
+            font-size: 0.7rem;
             font-weight: 900;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-manager-list,
+        .badge-club-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            min-width: 0;
+        }
+
+        .badge-manager-link,
+        .badge-club-item {
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            max-width: 100%;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.055);
+            color: var(--text-main);
+            padding: 7px 9px;
+            text-decoration: none;
+            font-size: 0.76rem;
+            font-weight: 800;
+            line-height: 1.2;
+            transition: background-color 160ms var(--badge-modal-ease), border-color 160ms var(--badge-modal-ease), transform 140ms var(--badge-modal-ease);
+        }
+
+        .badge-manager-link {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .badge-manager-link:active {
+            transform: scale(0.98);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .badge-manager-link:hover {
+                background: rgba(74,222,128,0.10);
+                border-color: rgba(74,222,128,0.28);
+            }
+        }
+
+        .badge-manager-name,
+        .badge-club-name {
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .badge-manager-meta {
+            max-width: 100%;
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 800;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        .badge-club-logo {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
+            object-fit: contain;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            padding: 2px;
+        }
+
+        .badge-club-count {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            padding: 3px 6px;
+            background: rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 900;
+        }
+
+        .badge-catalog-empty {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 800;
         }
 
         @media (max-width: 640px) {
@@ -2521,6 +2657,179 @@
         return (badge && (badge.emoji || badge.icon)) || '🏷️';
     }
 
+    function getBadgeAwardContext() {
+        return {
+            rules: APP.rules,
+            playersData: typeof playersData !== 'undefined' ? playersData : [],
+            pickCounts: globalPickCounts,
+            perfectTeamIds
+        };
+    }
+
+    function getTeamBadgeAwards(team) {
+        const api = getBadgeCatalogApi();
+        if (!api || typeof api.getBadgesForTeam !== 'function' || !team) return [];
+
+        const awards = api.getBadgesForTeam(
+            team,
+            allTeams,
+            playerPointDocs,
+            fixturesData,
+            badgeSnapshotsData,
+            getBadgeAwardContext()
+        );
+
+        const resolvedAwards = awards.map(award => ({
+            ...award,
+            badge: resolveBadgeForAward(award)
+        }));
+        const uniqueResolvedAwards = [];
+        const seenAwardIds = new Set();
+
+        resolvedAwards.forEach((award) => {
+            const badgeId = award && award.badge && award.badge.id;
+            if (!badgeId || seenAwardIds.has(badgeId)) return;
+            seenAwardIds.add(badgeId);
+            uniqueResolvedAwards.push(award);
+        });
+
+        return uniqueResolvedAwards;
+    }
+
+    function buildBadgeCatalogOwnership() {
+        const ownership = new Map();
+
+        (allTeams || []).forEach((team) => {
+            getTeamBadgeAwards(team).forEach((award) => {
+                const badgeId = award && award.badge && award.badge.id;
+                if (!badgeId) return;
+                if (!ownership.has(badgeId)) ownership.set(badgeId, []);
+                ownership.get(badgeId).push({
+                    manager: team.manager,
+                    award
+                });
+            });
+        });
+
+        ownership.forEach((owners) => {
+            owners.sort((a, b) => String(a.manager || '').localeCompare(String(b.manager || ''), 'de'));
+        });
+
+        return ownership;
+    }
+
+    function buildFavoriteClubSummary() {
+        const clubs = new Map();
+
+        (allTeams || []).forEach((team) => {
+            const favorite = team && team.favoriteClub;
+            if (!favorite || !favorite.name || favorite.count < 2) return;
+
+            const key = String(favorite.name);
+            if (!clubs.has(key)) {
+                clubs.set(key, {
+                    name: key,
+                    logo: favorite.logo || '',
+                    managers: [],
+                    playerCount: 0
+                });
+            }
+
+            const entry = clubs.get(key);
+            entry.managers.push(team.manager);
+            entry.playerCount += Number(favorite.count) || 0;
+            if (!entry.logo && favorite.logo) entry.logo = favorite.logo;
+        });
+
+        return Array.from(clubs.values()).sort((a, b) => {
+            if (b.managers.length !== a.managers.length) return b.managers.length - a.managers.length;
+            return a.name.localeCompare(b.name, 'de');
+        });
+    }
+
+    function formatAwardDetailSummary(award) {
+        const details = Array.isArray(award && award.details) ? award.details : [];
+        const detailText = details
+            .filter(item => item && item.label && item.value)
+            .map(item => `${item.label}: ${item.value}`)
+            .join(' · ');
+        return detailText || (award && award.title) || '';
+    }
+
+    function getBadgeOwnerCountLabel(badge, ownerEntries, clubSummary) {
+        if (badge && badge.id === 'club') {
+            const clubCount = clubSummary.length;
+            if (clubCount === 1) return '1 Lieblingsclub';
+            return clubCount > 1 ? `${clubCount} Lieblingsclubs` : 'Noch offen';
+        }
+
+        const ownerCount = ownerEntries.length;
+        if (ownerCount === 1) return '1 Manager';
+        return ownerCount > 1 ? `${ownerCount} Manager` : 'Noch offen';
+    }
+
+    function buildBadgeManagerListHtml(ownerEntries) {
+        if (!ownerEntries.length) {
+            return '<span class="badge-catalog-empty">Noch nicht vergeben.</span>';
+        }
+
+        return ownerEntries.map(({ manager, award }) => {
+            const managerName = String(manager || 'Manager');
+            const href = `teams.html?manager=${encodeURIComponent(managerName)}`;
+            const meta = formatAwardDetailSummary(award);
+            const title = meta ? `${managerName} · ${meta}` : managerName;
+            return `
+                <a class="badge-manager-link" href="${escapeHtml(href)}" data-manager-name="${escapeHtml(managerName)}" title="${escapeHtml(title)}">
+                    <span class="badge-manager-name">${escapeHtml(managerName)}</span>
+                    ${meta ? `<span class="badge-manager-meta">${escapeHtml(meta)}</span>` : ''}
+                </a>
+            `;
+        }).join('');
+    }
+
+    function buildFavoriteClubListHtml(clubSummary) {
+        if (!clubSummary.length) {
+            return '<span class="badge-catalog-empty">Noch kein Lieblingsclub-Badge vergeben.</span>';
+        }
+
+        return clubSummary.map((club) => {
+            const managerCount = club.managers.length;
+            const managerLabel = managerCount === 1 ? '1 Manager' : `${managerCount} Manager`;
+            const playerLabel = club.playerCount === 1 ? '1 Spieler' : `${club.playerCount} Spieler`;
+            const countLabel = `${managerLabel} · ${playerLabel}`;
+            const title = `${club.name}: ${countLabel}`;
+            return `
+                <span class="badge-club-item" title="${escapeHtml(title)}">
+                    ${club.logo ? `<img class="badge-club-logo" src="${escapeHtml(club.logo)}" alt="" aria-hidden="true" loading="lazy">` : ''}
+                    <span class="badge-club-name">${escapeHtml(club.name)}</span>
+                    <span class="badge-club-count">${escapeHtml(countLabel)}</span>
+                </span>
+            `;
+        }).join('');
+    }
+
+    function buildBadgeDetailsHtml(badge, ownerEntries, clubSummary) {
+        const description = [badge.description, badge.howToEarn].filter(Boolean).join(' ');
+        const ownerSection = badge.id === 'club'
+            ? `
+                <div class="badge-catalog-section">
+                    <div class="badge-catalog-section-title">Lieblingsclubs</div>
+                    <div class="badge-club-list">${buildFavoriteClubListHtml(clubSummary)}</div>
+                </div>
+            `
+            : `
+                <div class="badge-catalog-section">
+                    <div class="badge-catalog-section-title">Manager</div>
+                    <div class="badge-manager-list">${buildBadgeManagerListHtml(ownerEntries)}</div>
+                </div>
+            `;
+
+        return `
+            ${description ? `<p class="badge-catalog-description">${escapeHtml(description)}</p>` : ''}
+            ${ownerSection}
+        `;
+    }
+
     function buildBadgeCatalogCards(activeBadge) {
         const catalog = getBadgeCatalogItems().map(item => getResolvedBadge(item));
         const items = [];
@@ -2568,37 +2877,57 @@
 
         const activeBadge = getResolvedBadge(activeBadgeInput);
         const items = buildBadgeCatalogCards(activeBadge);
+        const ownership = buildBadgeCatalogOwnership();
+        const clubSummary = buildFavoriteClubSummary();
         grid.innerHTML = items.map((badge, index) => {
             const isCurrent = currentTeamBadgeIds.has(badge.id);
             const isActive = badge.id === activeBadge.id;
+            const isExpanded = isActive;
             const tone = toSafeClassToken(badge.tone || badge.style || 'neutral');
             const delay = Math.min(index, 6) * 24;
+            const ownerEntries = ownership.get(badge.id) || [];
+            const panelId = `badge-catalog-panel-${toSafeClassToken(badge.id)}`;
+            const ownerCountLabel = getBadgeOwnerCountLabel(badge, ownerEntries, clubSummary);
             const classes = [
                 'badge-catalog-card',
                 isCurrent ? 'is-current' : '',
-                isActive ? 'is-active' : ''
+                isActive ? 'is-active' : '',
+                isExpanded ? 'is-expanded' : ''
             ].filter(Boolean).join(' ');
 
             return `
                 <article class="${classes}" data-badge-id="${escapeHtml(badge.id)}" data-tone="${escapeHtml(tone)}" style="--badge-card-delay:${delay}ms">
-                    <div class="badge-catalog-card-top">
-                        <span class="badge-catalog-icon" aria-hidden="true">${escapeHtml(getBadgeEmoji(badge))}</span>
-                        <div>
-                            <div class="badge-catalog-name-row">
-                                <div class="badge-catalog-name">${escapeHtml(badge.label)}</div>
-                                ${isCurrent ? '<span class="badge-catalog-status">Aktuell erhalten</span>' : ''}
+                    <button type="button" class="badge-catalog-toggle" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-controls="${escapeHtml(panelId)}">
+                        <div class="badge-catalog-card-top">
+                            <span class="badge-catalog-icon" aria-hidden="true">${escapeHtml(getBadgeEmoji(badge))}</span>
+                            <div>
+                                <div class="badge-catalog-name-row">
+                                    <div class="badge-catalog-name">${escapeHtml(badge.label)}</div>
+                                    ${isCurrent ? '<span class="badge-catalog-status">Aktuell erhalten</span>' : ''}
+                                </div>
+                                <span class="badge-catalog-owner-count">${escapeHtml(ownerCountLabel)}</span>
                             </div>
-                            <span class="badge-catalog-category">${escapeHtml(badge.category || 'Badge')}</span>
+                            <span class="badge-catalog-chevron" aria-hidden="true">⌄</span>
                         </div>
-                    </div>
-                    <p class="badge-catalog-description">${escapeHtml(badge.description)}</p>
-                    <div class="badge-catalog-how">
-                        <strong>So holst du ihn</strong>
-                        <span>${escapeHtml(badge.howToEarn)}</span>
+                    </button>
+                    <div class="badge-catalog-panel" id="${escapeHtml(panelId)}" ${isExpanded ? '' : 'hidden'}>
+                        ${buildBadgeDetailsHtml(badge, ownerEntries, clubSummary)}
                     </div>
                 </article>
             `;
         }).join('');
+    }
+
+    function toggleBadgeCatalogCard(toggle) {
+        const card = toggle && toggle.closest('.badge-catalog-card');
+        if (!card) return;
+        const panelId = toggle.getAttribute('aria-controls');
+        const panel = panelId ? document.getElementById(panelId) : null;
+        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+        toggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+        card.classList.toggle('is-expanded', !isExpanded);
+        if (panel) panel.hidden = isExpanded;
     }
 
     function getBadgeCatalogAnimationMs(closing) {
@@ -2712,6 +3041,25 @@
 
         if (overlay) {
             overlay.addEventListener('click', (event) => {
+                const managerLink = event.target.closest('.badge-manager-link');
+                if (managerLink) {
+                    const managerName = managerLink.dataset.managerName || '';
+                    const targetTeam = allTeams.find(team => team.manager === managerName);
+                    if (targetTeam) {
+                        event.preventDefault();
+                        closeBadgeCatalogModal();
+                        selectManager(targetTeam);
+                    }
+                    return;
+                }
+
+                const toggle = event.target.closest('.badge-catalog-toggle');
+                if (toggle) {
+                    event.preventDefault();
+                    toggleBadgeCatalogCard(toggle);
+                    return;
+                }
+
                 if (event.target === overlay) closeBadgeCatalogModal();
             });
         }
@@ -3006,25 +3354,7 @@
             return;
         }
 
-        const api = getBadgeCatalogApi();
-        const awards = api && typeof api.getBadgesForTeam === 'function'
-            ? api.getBadgesForTeam(team, allTeams, playerPointDocs, fixturesData, badgeSnapshotsData, {
-                rules: APP.rules,
-                playersData: typeof playersData !== 'undefined' ? playersData : []
-            })
-            : [];
-        const resolvedAwards = awards.map(award => ({
-            ...award,
-            badge: resolveBadgeForAward(award)
-        }));
-        const uniqueResolvedAwards = [];
-        const seenAwardIds = new Set();
-        resolvedAwards.forEach((award) => {
-            const badgeId = award && award.badge && award.badge.id;
-            if (!badgeId || seenAwardIds.has(badgeId)) return;
-            seenAwardIds.add(badgeId);
-            uniqueResolvedAwards.push(award);
-        });
+        const uniqueResolvedAwards = getTeamBadgeAwards(team);
 
         currentTeamBadgeIds = new Set(uniqueResolvedAwards.map(award => award.badge.id));
         currentTeamBadgeOrder = uniqueResolvedAwards.map(award => award.badge.id);
