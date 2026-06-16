@@ -216,15 +216,18 @@
         .btn-back {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             color: var(--text-muted);
             font-size: 0.82rem;
             font-weight: 600;
-            padding: 9px 16px;
+            min-height: 44px;
+            padding: 10px 16px;
             border-radius: 100px;
             text-decoration: none;
+            box-sizing: border-box;
             backdrop-filter: blur(8px);
             transition: background 0.2s, color 0.2s, border-color 0.2s;
         }
@@ -238,16 +241,25 @@
         .btn-clear {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             background: rgba(239,68,68,0.1);
             border: 1px solid rgba(239,68,68,0.25);
             color: #f87171;
             font-size: 0.82rem;
             font-weight: 600;
-            padding: 9px 16px;
+            min-height: 44px;
+            padding: 10px 16px;
             border-radius: 100px;
             cursor: pointer;
+            box-sizing: border-box;
             transition: background 0.2s, border-color 0.2s;
+        }
+
+        .btn-back:focus-visible,
+        .btn-clear:focus-visible {
+            outline: 2px solid rgba(74,222,128,0.85);
+            outline-offset: 3px;
         }
 
         .btn-clear:hover {
@@ -2001,13 +2013,13 @@
 
         .mobile-slot-actions {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             flex-shrink: 0;
         }
 
         .mobile-captain-btn {
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: 1.5px solid rgba(255,255,255,0.12);
             background: rgba(255,255,255,0.07);
@@ -2029,8 +2041,8 @@
         }
 
         .mobile-remove-btn {
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: none;
             background: rgba(239,68,68,0.15);
@@ -2049,8 +2061,8 @@
         }
 
         .mobile-add-btn {
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: 1.5px dashed rgba(74,222,128,0.35);
             background: rgba(74,222,128,0.07);

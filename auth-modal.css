@@ -44,8 +44,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.20);
     border-radius: 999px;
@@ -211,12 +211,12 @@
 
 @media (max-width: 600px) {
     .dt-auth-nav-icon {
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
     }
     .dt-auth-nav-icon-glyph {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
     }
     .dt-auth-nav-dropdown {
         right: 0;
