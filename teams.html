@@ -60,6 +60,7 @@
             --text-muted: #8b949e;
             --green-main: #22c55e;
             --green-light: #4ade80;
+            --badge-modal-ease: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         body {
@@ -600,7 +601,24 @@
             font-weight: 800;
             line-height: 1;
             white-space: nowrap;
+            appearance: none;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+            color: var(--text-main);
             backdrop-filter: blur(6px);
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 140ms var(--badge-modal-ease), box-shadow 160ms var(--badge-modal-ease), border-color 160ms var(--badge-modal-ease);
+            transform: translateZ(0);
+        }
+
+        .manager-award:active {
+            transform: scale(0.97);
+        }
+
+        .manager-award:focus-visible {
+            outline: 2px solid rgba(255,255,255,0.78);
+            outline-offset: 3px;
         }
 
         .manager-award img {
@@ -625,6 +643,340 @@
         .manager-award.perfect  { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; }
         .manager-award.instinct { background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.25); color: #d8b4fe; }
         .manager-award.roster   { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+
+        @media (hover: hover) and (pointer: fine) {
+            .manager-award:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+            }
+        }
+
+        .badge-catalog-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(14px, 3vw, 28px);
+            background: rgba(4, 7, 12, 0.70);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 220ms var(--badge-modal-ease), visibility 0ms linear 220ms;
+        }
+
+        .badge-catalog-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 220ms var(--badge-modal-ease), visibility 0ms linear 0ms;
+        }
+
+        .badge-catalog-overlay.is-closing {
+            transition: opacity 150ms var(--badge-modal-ease), visibility 0ms linear 150ms;
+        }
+
+        .badge-catalog-modal {
+            width: min(760px, 100%);
+            max-height: min(82vh, 760px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.13);
+            background:
+                linear-gradient(180deg, rgba(28,35,51,0.96), rgba(13,17,23,0.96)),
+                rgba(22,27,34,0.96);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.58), 0 0 0 1px rgba(74,222,128,0.05);
+            opacity: 0;
+            transform: translateY(8px) scale(0.96);
+            transition: opacity 220ms var(--badge-modal-ease), transform 220ms var(--badge-modal-ease);
+        }
+
+        .badge-catalog-overlay.is-open .badge-catalog-modal {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .badge-catalog-overlay.is-closing .badge-catalog-modal {
+            transition-duration: 150ms;
+        }
+
+        .badge-catalog-modal:focus {
+            outline: none;
+        }
+
+        .badge-catalog-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 22px 22px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.025);
+        }
+
+        .badge-catalog-kicker {
+            margin: 0 0 5px;
+            color: var(--green-light);
+            font-size: 0.75rem;
+            font-weight: 900;
+        }
+
+        .badge-catalog-title {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 1.45rem;
+            font-weight: 900;
+            line-height: 1.12;
+        }
+
+        .badge-catalog-subtitle {
+            margin: 8px 0 0;
+            max-width: 560px;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.45;
+        }
+
+        .badge-catalog-close {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            background: rgba(255,255,255,0.06);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 140ms var(--badge-modal-ease), background-color 160ms var(--badge-modal-ease), border-color 160ms var(--badge-modal-ease);
+        }
+
+        .badge-catalog-close:active {
+            transform: scale(0.94);
+        }
+
+        .badge-catalog-close:focus-visible {
+            outline: 2px solid rgba(255,255,255,0.78);
+            outline-offset: 3px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .badge-catalog-close:hover {
+                background: rgba(255,255,255,0.11);
+                border-color: rgba(255,255,255,0.22);
+            }
+        }
+
+        .badge-catalog-body {
+            overflow-y: auto;
+            padding: 18px 22px 22px;
+        }
+
+        .badge-catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .badge-catalog-card {
+            --badge-tone: rgba(255,255,255,0.32);
+            --badge-tone-soft: rgba(255,255,255,0.055);
+            min-width: 0;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.045);
+            padding: 14px;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 150ms var(--badge-modal-ease), transform 150ms var(--badge-modal-ease), border-color 160ms var(--badge-modal-ease), background-color 160ms var(--badge-modal-ease), box-shadow 160ms var(--badge-modal-ease);
+            transition-delay: var(--badge-card-delay, 0ms);
+        }
+
+        .badge-catalog-overlay.is-open .badge-catalog-card {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .badge-catalog-overlay.is-closing .badge-catalog-card {
+            transition-delay: 0ms;
+        }
+
+        .badge-catalog-card[data-tone="positive"] {
+            --badge-tone: rgba(74,222,128,0.62);
+            --badge-tone-soft: rgba(34,197,94,0.10);
+        }
+
+        .badge-catalog-card[data-tone="negative"] {
+            --badge-tone: rgba(248,113,113,0.64);
+            --badge-tone-soft: rgba(248,113,113,0.11);
+        }
+
+        .badge-catalog-card[data-tone="funny"] {
+            --badge-tone: rgba(251,191,36,0.62);
+            --badge-tone-soft: rgba(251,191,36,0.10);
+        }
+
+        .badge-catalog-card.is-current {
+            border-color: var(--badge-tone);
+            background: linear-gradient(180deg, var(--badge-tone-soft), rgba(255,255,255,0.04));
+        }
+
+        .badge-catalog-card.is-active {
+            box-shadow: 0 0 0 1px var(--badge-tone), 0 16px 44px rgba(0,0,0,0.28);
+        }
+
+        .badge-catalog-card-top {
+            display: grid;
+            grid-template-columns: 36px minmax(0, 1fr);
+            gap: 10px;
+            align-items: start;
+        }
+
+        .badge-catalog-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.24);
+            border: 1px solid rgba(255,255,255,0.09);
+            font-size: 1.18rem;
+            line-height: 1;
+        }
+
+        .badge-catalog-name-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .badge-catalog-name {
+            color: var(--text-main);
+            font-size: 0.96rem;
+            font-weight: 900;
+            line-height: 1.22;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .badge-catalog-category {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            margin-top: 5px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.09);
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .badge-catalog-status {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            padding: 4px 7px;
+            background: rgba(74,222,128,0.12);
+            border: 1px solid rgba(74,222,128,0.26);
+            color: #bbf7d0;
+            font-size: 0.66rem;
+            font-weight: 900;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .badge-catalog-description {
+            margin: 12px 0 0;
+            color: #d6dee8;
+            font-size: 0.84rem;
+            line-height: 1.42;
+        }
+
+        .badge-catalog-how {
+            margin-top: 11px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+
+        .badge-catalog-how strong {
+            display: block;
+            margin-bottom: 3px;
+            color: #c8d3df;
+            font-size: 0.72rem;
+            font-weight: 900;
+        }
+
+        @media (max-width: 640px) {
+            .badge-catalog-overlay {
+                align-items: center;
+                padding: 12px;
+            }
+
+            .badge-catalog-modal {
+                width: 100%;
+                max-height: 86vh;
+                border-radius: 18px;
+            }
+
+            .badge-catalog-header {
+                padding: 18px 16px 14px;
+            }
+
+            .badge-catalog-title {
+                font-size: 1.25rem;
+            }
+
+            .badge-catalog-subtitle {
+                font-size: 0.86rem;
+            }
+
+            .badge-catalog-body {
+                padding: 14px 14px 18px;
+            }
+
+            .badge-catalog-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .manager-award,
+            .badge-catalog-overlay,
+            .badge-catalog-modal,
+            .badge-catalog-card,
+            .badge-catalog-close {
+                transition-duration: 1ms;
+                transition-delay: 0ms;
+            }
+
+            .badge-catalog-modal,
+            .badge-catalog-card {
+                transform: none;
+            }
+
+            .manager-award:active,
+            .badge-catalog-close:active {
+                transform: none;
+            }
+        }
 
         .team-roster-warning {
             display: none;
@@ -1958,11 +2310,29 @@
     </div>
 </div>
 
+<!-- Badge Catalog Modal -->
+<div class="badge-catalog-overlay" id="badge-catalog-overlay" aria-hidden="true">
+    <section class="badge-catalog-modal" id="badge-catalog-modal" role="dialog" aria-modal="true" aria-labelledby="badge-catalog-title" aria-describedby="badge-catalog-subtitle" tabindex="-1">
+        <header class="badge-catalog-header">
+            <div>
+                <p class="badge-catalog-kicker">Auszeichnungen</p>
+                <h2 class="badge-catalog-title" id="badge-catalog-title">Alle Badges</h2>
+                <p class="badge-catalog-subtitle" id="badge-catalog-subtitle">Diese Auszeichnungen können während dem Turnier wandern oder neu vergeben werden.</p>
+            </div>
+            <button type="button" class="badge-catalog-close" id="badge-catalog-close" aria-label="Badge-Katalog schliessen">&times;</button>
+        </header>
+        <div class="badge-catalog-body">
+            <div class="badge-catalog-grid" id="badge-catalog-grid"></div>
+        </div>
+    </section>
+</div>
+
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
 
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+<script src="badge-catalog.js"></script>
 <script src="data.js"></script>
 <script src="points-utils.js"></script>
 <script src="cache.js"></script>
@@ -2006,6 +2376,11 @@
     let hasRenderedOnce = false;
     let isMetaRefreshRunning = false;
     let modalPickerInitialized = false;
+    let badgeCatalogInitialized = false;
+    let badgeCatalogLastTrigger = null;
+    let badgeCatalogCloseTimer = null;
+    let currentTeamBadgeIds = new Set();
+    let currentTeamFallbackBadges = [];
 
     const CACHE_OPTIONS = {
         db,
@@ -2069,6 +2444,251 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function toSafeClassToken(value) {
+        return String(value || 'badge')
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]+/g, '-')
+            .replace(/^-+|-+$/g, '') || 'badge';
+    }
+
+    function getBadgeCatalogApi() {
+        return window.DreamTeamBadges || null;
+    }
+
+    function getBadgeCatalogItems() {
+        const api = getBadgeCatalogApi();
+        if (api && typeof api.getCatalog === 'function') return api.getCatalog();
+        return Array.isArray(window.BADGE_CATALOG) ? window.BADGE_CATALOG.slice() : [];
+    }
+
+    function getResolvedBadge(input) {
+        const api = getBadgeCatalogApi();
+        if (api && typeof api.resolveBadge === 'function') return api.resolveBadge(input);
+        const label = typeof input === 'object' && input
+            ? (input.label || input.id || 'Badge')
+            : (String(input || '').trim() || 'Badge');
+        const id = toSafeClassToken(label);
+        return {
+            id: `unknown-${id}`,
+            label,
+            emoji: '🏷️',
+            description: 'Eine besondere Auszeichnung für dieses Team.',
+            howToEarn: 'Bleib im Turnier aktiv; die genaue Bedingung ergibt sich aus der laufenden Wertung.',
+            category: 'Weitere',
+            tone: 'neutral',
+            style: 'neutral',
+            isFallback: true
+        };
+    }
+
+    function resolveBadgeForAward(award) {
+        const resolved = getResolvedBadge({
+            id: award && (award.id || award.type),
+            type: award && award.type,
+            label: award && award.label
+        });
+        if (!resolved.isFallback) return resolved;
+        return {
+            ...resolved,
+            label: (award && award.label) || resolved.label,
+            emoji: (award && award.emoji) || resolved.emoji
+        };
+    }
+
+    function getBadgeEmoji(badge) {
+        return (badge && (badge.emoji || badge.icon)) || '🏷️';
+    }
+
+    function buildBadgeCatalogCards(activeBadge) {
+        const catalog = getBadgeCatalogItems().map(item => getResolvedBadge(item));
+        const items = [];
+        const seen = new Set();
+
+        catalog.forEach((badge) => {
+            if (!badge || seen.has(badge.id)) return;
+            items.push(badge);
+            seen.add(badge.id);
+        });
+
+        currentTeamFallbackBadges.forEach((badge) => {
+            if (!badge || seen.has(badge.id)) return;
+            items.push(badge);
+            seen.add(badge.id);
+        });
+
+        if (activeBadge && !seen.has(activeBadge.id)) {
+            items.push(activeBadge);
+            seen.add(activeBadge.id);
+        }
+
+        return items;
+    }
+
+    function renderBadgeCatalogGrid(activeBadgeInput) {
+        const grid = document.getElementById('badge-catalog-grid');
+        if (!grid) return;
+
+        const activeBadge = getResolvedBadge(activeBadgeInput);
+        const items = buildBadgeCatalogCards(activeBadge);
+        grid.innerHTML = items.map((badge, index) => {
+            const isCurrent = currentTeamBadgeIds.has(badge.id);
+            const isActive = badge.id === activeBadge.id;
+            const tone = toSafeClassToken(badge.tone || badge.style || 'neutral');
+            const delay = Math.min(index, 6) * 24;
+            const classes = [
+                'badge-catalog-card',
+                isCurrent ? 'is-current' : '',
+                isActive ? 'is-active' : ''
+            ].filter(Boolean).join(' ');
+
+            return `
+                <article class="${classes}" data-badge-id="${escapeHtml(badge.id)}" data-tone="${escapeHtml(tone)}" style="--badge-card-delay:${delay}ms">
+                    <div class="badge-catalog-card-top">
+                        <span class="badge-catalog-icon" aria-hidden="true">${escapeHtml(getBadgeEmoji(badge))}</span>
+                        <div>
+                            <div class="badge-catalog-name-row">
+                                <div class="badge-catalog-name">${escapeHtml(badge.label)}</div>
+                                ${isCurrent ? '<span class="badge-catalog-status">Aktuell erhalten</span>' : ''}
+                            </div>
+                            <span class="badge-catalog-category">${escapeHtml(badge.category || 'Badge')}</span>
+                        </div>
+                    </div>
+                    <p class="badge-catalog-description">${escapeHtml(badge.description)}</p>
+                    <div class="badge-catalog-how">
+                        <strong>So holst du ihn</strong>
+                        <span>${escapeHtml(badge.howToEarn)}</span>
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    function getBadgeCatalogAnimationMs(closing) {
+        const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced) return 1;
+        return closing ? 150 : 220;
+    }
+
+    function isBadgeCatalogOpen() {
+        const overlay = document.getElementById('badge-catalog-overlay');
+        return !!overlay && overlay.classList.contains('is-open');
+    }
+
+    function openBadgeCatalogModal(badgeInput, trigger) {
+        const overlay = document.getElementById('badge-catalog-overlay');
+        const modal = document.getElementById('badge-catalog-modal');
+        if (!overlay || !modal) return;
+
+        const activeBadge = getResolvedBadge(badgeInput);
+        renderBadgeCatalogGrid(activeBadge);
+        badgeCatalogLastTrigger = trigger || document.activeElement;
+
+        if (badgeCatalogCloseTimer) {
+            clearTimeout(badgeCatalogCloseTimer);
+            badgeCatalogCloseTimer = null;
+        }
+
+        overlay.classList.remove('is-closing');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+
+        requestAnimationFrame(() => {
+            overlay.classList.add('is-open');
+            try { modal.focus({ preventScroll: true }); } catch (err) { modal.focus(); }
+
+            const grid = document.getElementById('badge-catalog-grid');
+            const activeCard = grid
+                ? Array.from(grid.querySelectorAll('.badge-catalog-card')).find(card => card.dataset.badgeId === activeBadge.id)
+                : null;
+            if (activeCard) {
+                setTimeout(() => activeCard.scrollIntoView({ block: 'nearest' }), getBadgeCatalogAnimationMs(false));
+            }
+        });
+    }
+
+    function closeBadgeCatalogModal() {
+        const overlay = document.getElementById('badge-catalog-overlay');
+        if (!overlay || !overlay.classList.contains('is-open')) return;
+
+        overlay.classList.add('is-closing');
+        overlay.classList.remove('is-open');
+        if (!isTeamPickerOpen()) document.body.classList.remove('modal-open');
+
+        const returnFocusTo = badgeCatalogLastTrigger;
+        badgeCatalogCloseTimer = setTimeout(() => {
+            overlay.classList.remove('is-closing');
+            overlay.setAttribute('aria-hidden', 'true');
+            badgeCatalogCloseTimer = null;
+            if (returnFocusTo && typeof returnFocusTo.focus === 'function' && document.contains(returnFocusTo)) {
+                try { returnFocusTo.focus({ preventScroll: true }); } catch (err) { returnFocusTo.focus(); }
+            }
+            badgeCatalogLastTrigger = null;
+        }, getBadgeCatalogAnimationMs(true));
+    }
+
+    function trapBadgeCatalogFocus(event) {
+        const modal = document.getElementById('badge-catalog-modal');
+        if (!modal) return;
+
+        const focusable = Array.from(modal.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'))
+            .filter(el => !el.hasAttribute('disabled') && el.offsetParent !== null);
+        if (!focusable.length) {
+            event.preventDefault();
+            modal.focus();
+            return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    function initBadgeCatalogModalEvents() {
+        if (badgeCatalogInitialized) return;
+        badgeCatalogInitialized = true;
+
+        const awardsEl = document.getElementById('manager-awards');
+        const overlay = document.getElementById('badge-catalog-overlay');
+        const closeBtn = document.getElementById('badge-catalog-close');
+
+        if (awardsEl) {
+            awardsEl.addEventListener('click', (event) => {
+                const badgeButton = event.target.closest('.manager-award');
+                if (!badgeButton) return;
+                openBadgeCatalogModal({
+                    id: badgeButton.dataset.badgeId,
+                    label: badgeButton.dataset.badgeLabel
+                }, badgeButton);
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeBadgeCatalogModal);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) closeBadgeCatalogModal();
+            });
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (!isBadgeCatalogOpen()) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeBadgeCatalogModal();
+            } else if (event.key === 'Tab') {
+                trapBadgeCatalogFocus(event);
+            }
+        });
     }
 
     function buildPlayerPointsMap(rawPoints) {
@@ -2377,7 +2997,12 @@
     function renderManagerAwards(team) {
         const awardsEl = document.getElementById('manager-awards');
         if (!awardsEl) return;
-        if (!team) { awardsEl.innerHTML = ''; return; }
+        if (!team) {
+            currentTeamBadgeIds = new Set();
+            currentTeamFallbackBadges = [];
+            awardsEl.innerHTML = '';
+            return;
+        }
 
         const awards = [];
         if (team.orphanCount > 0) {
@@ -2415,20 +3040,30 @@
             awards.push({ type: 'instinct', label: 'Captain-Gespür', title: `Captain liefert ${Math.round(team.captainShare * 100)}% der Team-Punkte (${team.captainPoints} Pkt.)`, emoji: '🧠' });
         }
 
-        awardsEl.innerHTML = awards.map(award => {
-            const safeType  = escapeHtml(award.type);
+        const resolvedAwards = awards.map(award => ({
+            ...award,
+            badge: resolveBadgeForAward(award)
+        }));
+        currentTeamBadgeIds = new Set(resolvedAwards.map(award => award.badge.id));
+        currentTeamFallbackBadges = resolvedAwards
+            .filter(award => award.badge && award.badge.isFallback)
+            .map(award => award.badge);
+
+        awardsEl.innerHTML = resolvedAwards.map(award => {
+            const safeType  = escapeHtml(toSafeClassToken(award.type || award.badge.id));
+            const safeBadgeId = escapeHtml(award.badge.id);
             const safeTitle = escapeHtml(award.title);
             const safeLabel = escapeHtml(award.label);
             const safeLogo  = escapeHtml(award.logo);
-            const safeEmoji = escapeHtml(award.emoji);
+            const safeEmoji = escapeHtml(award.emoji || getBadgeEmoji(award.badge));
             return `
-            <div class="manager-award ${safeType}" title="${safeTitle}">
+            <button type="button" class="manager-award ${safeType}" title="${safeTitle}" data-badge-id="${safeBadgeId}" data-badge-label="${safeLabel}" aria-label="${safeLabel} öffnen">
                 ${award.logo
-                    ? `<img src="${safeLogo}" alt="${safeLabel}">`
+                    ? `<img src="${safeLogo}" alt="" aria-hidden="true">`
                     : `<span class="award-emoji">${safeEmoji}</span>`
                 }
                 <span>${safeLabel}</span>
-            </div>
+            </button>
         `;
         }).join('');
     }
@@ -2682,7 +3317,7 @@
         if (!overlay) return;
 
         overlay.classList.remove('visible');
-        document.body.classList.remove('modal-open');
+        if (!isBadgeCatalogOpen()) document.body.classList.remove('modal-open');
         if (btn) {
             btn.setAttribute('aria-expanded', 'false');
             btn.focus();
@@ -3147,6 +3782,8 @@
             clearBoard();
             const awardsEl = document.getElementById('manager-awards');
             if (awardsEl) awardsEl.innerHTML = '';
+            currentTeamBadgeIds = new Set();
+            currentTeamFallbackBadges = [];
             updateTeamRosterWarning(null);
             updateMobilePickerBtn(team);
             return;
@@ -3354,6 +3991,7 @@
 
         initSearchListeners();
         initModalEvents();
+        initBadgeCatalogModalEvents();
         initTiltObserver();
 
         try {

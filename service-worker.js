@@ -16,7 +16,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-16-cache-guards-live-matches';
+const CACHE_VERSION = 'v2026-06-16-badge-catalog-modal';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -30,6 +30,7 @@ const APP_SHELL = [
   './rangliste.html',
   './styles.css',
   './nav.js',
+  './badge-catalog.js',
   './admin.js',
   './auth.js',
   './auth-modal.js',
