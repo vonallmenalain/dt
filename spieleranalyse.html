@@ -7351,10 +7351,7 @@
 
             if (gegenPts < 0) {
                 const gegentorLabel = Math.abs(countGegen) === 1 ? 'Gegentor' : 'Gegentore';
-                const countText = Math.abs(countGegen) > 1
-                    ? `${Math.abs(countGegen)} &times; ${RULES.GEGENTOR_GK_DEF}`
-                    : `${Math.abs(countGegen)}x`;
-                minusEvents.push({ name: gegentorLabel, count: Math.abs(countGegen), points: gegenPts, countText });
+                minusEvents.push({ name: gegentorLabel, count: Math.abs(countGegen), points: gegenPts });
             }
 
             Object.entries(ptsDoc).forEach(([key, val]) => {
@@ -7393,7 +7390,7 @@
                 ? headerRow('var(--green-light)') + plusEvents.map(e => `
                     <div class="stat-row">
                         <span class="stat-name">${escapeHtml(e.name)}</span>
-                        <span class="stat-count">${e.countText || `${e.count}x`}</span>
+                        <span class="stat-count">${e.count}x</span>
                         <span class="stat-total pos">+${e.points}</span>
                     </div>`).join('')
                 : '<div class="empty-cat">Noch keine Pluspunkte gesammelt.</div>';
@@ -7402,7 +7399,7 @@
                 ? headerRow('var(--red-soft)') + minusEvents.map(e => `
                     <div class="stat-row">
                         <span class="stat-name">${escapeHtml(e.name)}</span>
-                        <span class="stat-count">${e.countText || `${e.count}x`}</span>
+                        <span class="stat-count">${e.count}x</span>
                         <span class="stat-total neg">${e.points}</span>
                     </div>`).join('')
                 : '<div class="empty-cat">Keine Minuspunkte! Vorbildlich.</div>';
@@ -7464,7 +7461,7 @@
                             } else if (k === 'GEGENTOR_GK_DEF') {
                                 if (v !== 0) {
                                     const count = RULES.GEGENTOR_GK_DEF !== 0 ? Math.abs(Math.round(v / RULES.GEGENTOR_GK_DEF)) : 0;
-                                    const label = count === 1 ? 'Gegentor' : `Gegentore ${count} &times; ${RULES.GEGENTOR_GK_DEF}`;
+                                    const label = count === 1 ? 'Gegentor' : `Gegentore ${count}x`;
                                     detailsHTML += `<div class="game-detail-row"><span>${label}:</span><strong>${v > 0 ? '+' : ''}${v}</strong></div>`;
                                 }
                             } else if (v !== 0) {
