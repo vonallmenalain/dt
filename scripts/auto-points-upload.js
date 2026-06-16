@@ -20,7 +20,7 @@
  *       `POINTS_WINDOW_START_MIN` Minuten entfernt/zurueck UND der Status ist
  *       entweder noch nicht FT/AET/PEN oder liegt als finaler Status noch
  *       im Reconciliation-Fenster (`POINTS_FINAL_RECHECK_MIN`). Mit den Defaults
- *       -10/150 startet der Live-Load 10 Minuten vor Anpfiff.
+ *       -30/150 startet der Live-Load 30 Minuten vor Anpfiff.
  *       `POINTS_WINDOW_END_MIN` dient danach als Schwelle, ab der ein offenes
  *       Spiel als "ueberfaellig" (Catch-up) markiert/geloggt wird – es
  *       gibt bewusst KEINE harte obere Zeitgrenze mehr fuer offene Spiele,
@@ -52,7 +52,7 @@
  *                              tournament-config.js. Aktuell ist nur
  *                              `wm2026` produktiv konfiguriert; andere
  *                              Keys führen zu einem expliziten Abbruch.
- *    POINTS_WINDOW_START_MIN   Optional, Default -10. Start des Live-
+ *    POINTS_WINDOW_START_MIN   Optional, Default -30. Start des Live-
  *                              Fensters relativ zum Anpfiff.
  *    POINTS_WINDOW_END_MIN     Optional, Default 150. Normales Ende des
  *                              Live-Fensters relativ zum Anpfiff. Danach
@@ -76,7 +76,7 @@
  *    POINTS_IDLE_WAIT_MAX_MIN  Optional, Default 240. So lange darf ein Run
  *                              ohne Kandidaten auf das naechste Live-Fenster
  *                              warten, bevor er beendet.
- *    POINTS_SESSION_MAX_MIN    Optional, Default 330. Harte Obergrenze fuer
+ *    POINTS_SESSION_MAX_MIN    Optional, Default 350. Harte Obergrenze fuer
  *                              die gesamte Monitor-Session eines Runs.
  *    POINTS_API_RETRY_ATTEMPTS Optional, Default 3. API-Requests werden bei
  *                              transienten Fehlern so oft versucht.
@@ -143,7 +143,7 @@ const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
 const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
 const PRE_MATCH_LINEUP_STATUSES = new Set(['NS']);
 const SCORING_STATUSES = new Set([...FINISHED_STATUSES, ...LIVE_STATUSES]);
-const DEFAULT_WINDOW_START_MIN = -10;
+const DEFAULT_WINDOW_START_MIN = -30;
 const DEFAULT_WINDOW_END_MIN = 150;
 const DEFAULT_FINAL_RECHECK_MIN = 240;
 const DEFAULT_LIVE_TICKS_PER_RUN = 520;
@@ -152,9 +152,10 @@ const MAX_LIVE_TICKS_PER_RUN = 720;
 const MIN_SCHEDULED_LIVE_TICKS_PER_RUN = 520;
 const MIN_SCHEDULED_LIVE_TICK_INTERVAL_SEC = 30;
 const DEFAULT_IDLE_WAIT_MAX_MIN = 240;
-const DEFAULT_SESSION_MAX_MIN = 330;
-const MIN_SCHEDULED_SESSION_MAX_MIN = 300;
+const DEFAULT_SESSION_MAX_MIN = 350;
+const MIN_SCHEDULED_SESSION_MAX_MIN = 330;
 const MAX_SESSION_MAX_MIN = 350;
+const MIN_MONITOR_AFTER_WAKE_BUFFER_MIN = 10;
 const DEFAULT_API_RETRY_ATTEMPTS = 3;
 const DEFAULT_API_RETRY_BASE_DELAY_MS = 1000;
 const DEFAULT_FIXTURE_PLAN_REFRESH_EVERY_TICKS = 20;
@@ -922,7 +923,7 @@ function initFirebase() {
  *  wenn sein Anpfiff (kickoffTimestamp) mindestens `windowStartMin`
  *  Minuten entfernt ist und das Spiel in Firestore noch nicht als beendet
  *  markiert ist oder noch im finalen Reconciliation-Fenster liegt. Mit den
- *  Live-Defaults -10/150 startet der teure API-Teil kurz vor dem Kickoff
+ *  Live-Defaults -30/150 startet der teure API-Teil vor dem Kickoff
  *  und läuft während des Spiels. Nach `windowEndMin` bleibt ein offenes
  *  Spiel als Catch-up-Kandidat aktiv, bis Firestore den Finalstatus kennt.
  *  Danach wird ein finaler Status noch `finalRecheckMin` Minuten nach
@@ -2987,10 +2988,22 @@ function sessionRemainingMs(opts) {
   return Math.max(0, opts.sessionDeadlineMs - nowMs());
 }
 
-function plannedMonitorDurationMs(opts) {
+function plannedMonitorDurationMs(opts = {}) {
   const ticks = Math.max(1, opts.liveTicksPerRun || DEFAULT_LIVE_TICKS_PER_RUN);
   const intervalSec = Math.max(1, opts.liveTickIntervalSec || DEFAULT_LIVE_TICK_INTERVAL_SEC);
   return ticks * intervalSec * 1000;
+}
+
+function requiredMonitorAfterWakeMs(opts) {
+  const windowStartMin = Number.isFinite(opts && opts.windowStartMin)
+    ? opts.windowStartMin
+    : DEFAULT_WINDOW_START_MIN;
+  const windowEndMin = Number.isFinite(opts && opts.windowEndMin)
+    ? opts.windowEndMin
+    : DEFAULT_WINDOW_END_MIN;
+  const liveWindowMin = Math.max(60, windowEndMin - windowStartMin);
+  const requiredMin = liveWindowMin + MIN_MONITOR_AFTER_WAKE_BUFFER_MIN;
+  return Math.min(plannedMonitorDurationMs(opts), requiredMin * 60_000);
 }
 
 function getIdleWaitMs(nextWakeAtMs, opts) {
@@ -2998,12 +3011,18 @@ function getIdleWaitMs(nextWakeAtMs, opts) {
 
   const now = nowMs();
   const waitMs = Math.max(0, nextWakeAtMs - now);
-  const maxIdleMs = Math.max(0, opts.idleWaitMaxMin || 0) * 60_000;
+  const maxIdleMs = Math.max(0, (opts && opts.idleWaitMaxMin) || 0) * 60_000;
   if (maxIdleMs <= 0 || waitMs > maxIdleMs) return null;
 
   const remainingMs = sessionRemainingMs(opts);
-  const minWorkAfterWakeMs = Math.max(60_000, plannedMonitorDurationMs(opts));
-  if (remainingMs <= waitMs + minWorkAfterWakeMs) return null;
+  const minWorkAfterWakeMs = Math.max(60_000, requiredMonitorAfterWakeMs(opts));
+  if (remainingMs < waitMs + minWorkAfterWakeMs) {
+    logInfo(
+      `Naechstes Live-Fenster liegt in ${formatDurationMs(waitMs)}, ` +
+      `aber die Restlaufzeit reicht nicht fuer ${formatDurationMs(minWorkAfterWakeMs)} Monitoring danach.`
+    );
+    return null;
+  }
 
   return Math.max(1000, waitMs);
 }

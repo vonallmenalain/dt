@@ -80,8 +80,8 @@ Workflow: `.github/workflows/auto-points-upload.yml`
 Cron:
 
 ```yaml
-- cron: "*/5 * 11-30 6 *"
-- cron: "*/5 * 1-21 7 *"
+- cron: "2-59/5 * 11-30 6 *"
+- cron: "2-59/5 * 1-21 7 *"
 ```
 
 Das bedeutet: alle 5 Minuten auf GitHub-Actions-Zeitbasis UTC, aber nur
@@ -90,6 +90,7 @@ scheduled workflows verzoegern oder einzelne Takte auslassen; der Code ist
 deshalb so gebaut, dass ein Run auf das naechste Live-Fenster warten,
 ein laufendes Spiel lange monitoren und verpasste offene Spiele per
 Catch-up nachziehen kann.
+Die Minute 2/7/12/... vermeidet den besonders anfaelligen Stundenwechsel.
 
 Job-Eckdaten:
 
@@ -141,18 +142,18 @@ Script-Start. Danach passiert im Script:
    run-weiten In-Memory-Fixture-Plan-Cache halten und daraus Kandidaten
    bestimmen.
 
-Mit den aktuellen Einstellungen oeffnet das Live-Fenster pro Spiel 10
+Mit den aktuellen Einstellungen oeffnet das Live-Fenster pro Spiel 30
 Minuten vor Anpfiff:
 
 ```text
-candidate_start = kickoff - 10 Minuten
+candidate_start = kickoff - 30 Minuten
 normal_window_end = kickoff + 150 Minuten
 final_recheck_end = kickoff + 240 Minuten
 ```
 
 Ein Spiel ist Kandidat, wenn:
 
-- es mindestens im Startfenster liegt, also `now >= kickoff - 10min`, und
+- es mindestens im Startfenster liegt, also `now >= kickoff - 30min`, und
 - es in Firestore noch nicht `FT`, `AET` oder `PEN` ist, oder
 - es bereits final ist, aber noch innerhalb des Final-Recheck-Fensters
   liegt.
@@ -164,8 +165,8 @@ Finalstatus erfolgreich nach Firestore geschrieben wurde.
 
 Wenn ein Tick keine Kandidaten findet, aber das naechste Live-Fenster
 innerhalb von `POINTS_IDLE_WAIT_MAX_MIN=240` Minuten liegt und die
-Session danach noch genug Restzeit fuer die geplante `520 * 30s`-
-Monitorstrecke hat, wartet der Run ohne API-Call bis zum Fensterstart.
+Session danach noch genug Restzeit fuer das Live-Fenster plus Puffer hat,
+wartet der Run ohne API-Call bis zum Fensterstart.
 Ist das Live-Fenster noch zu weit weg, beendet sich der Run und laesst
 einen spaeteren Cron-Takt naeher am Spiel starten. Sobald ein offenes
 Spiel Kandidat ist, bleibt der Scheduled Run lange genug aktiv, um den

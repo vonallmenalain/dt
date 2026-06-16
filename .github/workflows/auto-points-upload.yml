@@ -5,7 +5,7 @@ name: Auto Punkte-Upload
 # Minuten als GitHub-Cron-Job (zusätzlich jederzeit manuell auslösbar
 # via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check,
 # der prüft, ob im aktuellen Tick überhaupt ein Spiel im Live-/Catch-up-
-# Fenster liegt (Default: 10 Minuten VOR bis 150 Minuten NACH Anpfiff)
+# Fenster liegt (Default: 30 Minuten VOR bis 150 Minuten NACH Anpfiff)
 # oder ob ein beendetes Spiel noch im Final-Recheck liegt (Default:
 # 240 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
 # eines aktiven Fensters macht das Skript standardmäßig eine lange,
@@ -45,10 +45,12 @@ on:
       - "position-overrides.js"
   schedule:
     # Alle 5 Minuten vom 11.–30. Juni 2026 (WM-Gruppenphase + KO-Start).
-    - cron: "*/5 * 11-30 6 *"
+    # Bewusst bei Minute 2 statt 0 gestartet, weil GitHub Cron-Jobs am
+    # Stundenwechsel haeufiger verzoegert oder auslaesst.
+    - cron: "2-59/5 * 11-30 6 *"
     # Alle 5 Minuten vom 01.–21. Juli 2026 (KO-Runden + Sicherheitsbuffer
     # nach dem Finale am 19.07.2026).
-    - cron: "*/5 * 1-21 7 *"
+    - cron: "2-59/5 * 1-21 7 *"
   workflow_dispatch:
     inputs:
       force_run:

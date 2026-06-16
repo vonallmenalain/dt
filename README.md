@@ -81,7 +81,7 @@ Tick-Zeitpunkt, Firestore-Signalen und Betriebs-Checkliste steht in
 ### Pre-Check / Live-Load (auto-points-upload)
 
 Ein Cron-Tick lädt zunächst nur den Spielplan aus Firestore und prüft,
-ob ein Spiel im Live-/Catch-up-Fenster (Default: 10 Minuten vor bis
+ob ein Spiel im Live-/Catch-up-Fenster (Default: 30 Minuten vor bis
 150 Minuten nach Anstoss) liegt, dessen Status noch nicht `FT`/`AET`/`PEN`
 ist, oder ob ein beendetes Spiel noch im Final-Recheck-Fenster liegt
 (Default: 240 Minuten nach Anpfiff). Ist das nicht der Fall, beendet sich
@@ -92,7 +92,7 @@ Während eines aktiven Fensters macht das Script standardmässig eine
 längere Monitor-Session mit 520 Live-Ticks im Abstand von 30 Sekunden innerhalb
 desselben GitHub-Runs. Wenn GitHub den Schedule zu früh startet, aber
 das nächste Live-Fenster bald beginnt und danach noch genug Restzeit fuer
-die geplante Monitor-Session bleibt, wartet der Run ohne API-Calls
+das eigentliche Live-Fenster plus Puffer bleibt, wartet der Run ohne API-Calls
 darauf. Dadurch hängt das Live-Scoring nicht mehr davon ab, dass GitHub
 den Cron wirklich alle 5 Minuten ausführt. Laufende und
 Final-Recheck-Kandidaten werden als Delta auf bestehende Punktedokumente
@@ -141,13 +141,13 @@ auseinanderlaufen:
 | Wert                       | Default                            | Quelle                                                          |
 | -------------------------- | ---------------------------------- | --------------------------------------------------------------- |
 | Turnier                    | `wm2026`                           | `tournament-config.js`                                          |
-| Auto-Punkte Startfenster   | `-10` Minuten                      | `scripts/auto-points-upload.js`                                 |
+| Auto-Punkte Startfenster   | `-30` Minuten                      | `scripts/auto-points-upload.js`                                 |
 | Auto-Punkte normales Ende  | `150` Minuten                      | `scripts/auto-points-upload.js`                                 |
 | Final-Recheck              | `240` Minuten                      | `scripts/auto-points-upload.js`                                 |
 | Live-Ticks pro Run         | `520`                              | `scripts/auto-points-upload.js`                                 |
 | Live-Tick-Intervall        | `30` Sekunden                      | `scripts/auto-points-upload.js`                                 |
 | Idle-Wait                  | `240` Minuten                      | `scripts/auto-points-upload.js`                                 |
-| Session-Max                | `330` Minuten                      | `scripts/auto-points-upload.js`                                 |
+| Session-Max                | `350` Minuten                      | `scripts/auto-points-upload.js`                                 |
 | API-Retry-Versuche         | `3`                                | `scripts/auto-points-upload.js`                                 |
 | API-Retry-Basis-Backoff    | `1000` ms                          | `scripts/auto-points-upload.js`                                 |
 
