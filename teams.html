@@ -643,6 +643,18 @@
         .manager-award.perfect  { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; }
         .manager-award.instinct { background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.25); color: #d8b4fe; }
         .manager-award.roster   { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+        .manager-award.noappearance,
+        .manager-award.flopcaptain,
+        .manager-award.mostgoalsconceded,
+        .manager-award.fewestgoalsscored,
+        .manager-award.cardcollector { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+        .manager-award.topcaptain,
+        .manager-award.currentrankgold,
+        .manager-award.currentranksilver,
+        .manager-award.currentrankbronze,
+        .manager-award.currenttop5,
+        .manager-award.currenttop10,
+        .manager-award[class*="roundrank_"] { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3); color: var(--gold); }
 
         @media (hover: hover) and (pointer: fine) {
             .manager-award:hover {
@@ -783,7 +795,7 @@
 
         .badge-catalog-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: 1fr;
             gap: 12px;
         }
 
@@ -818,6 +830,11 @@
         .badge-catalog-card[data-tone="negative"] {
             --badge-tone: rgba(248,113,113,0.64);
             --badge-tone-soft: rgba(248,113,113,0.11);
+        }
+
+        .badge-catalog-card[data-tone="negative-funny"] {
+            --badge-tone: rgba(251,146,60,0.68);
+            --badge-tone-soft: rgba(248,113,113,0.10);
         }
 
         .badge-catalog-card[data-tone="funny"] {
@@ -2369,7 +2386,9 @@
 
     let allTeams = [];
     let playerPointsData = {};
-    let teamAwardLeaders = {};
+    let playerPointDocs = {};
+    let fixturesData = {};
+    let badgeSnapshotsData = null;
     let globalPickCounts = {};
     let perfectTeamIds = new Set();
     let metaUnsubscribe = null;
@@ -2380,12 +2399,13 @@
     let badgeCatalogLastTrigger = null;
     let badgeCatalogCloseTimer = null;
     let currentTeamBadgeIds = new Set();
+    let currentTeamBadgeOrder = [];
     let currentTeamFallbackBadges = [];
 
     const CACHE_OPTIONS = {
         db,
         year: TOURNAMENT_YEAR,
-        includeFixtures: false,
+        includeFixtures: true,
         allowEmptyPoints: true,
         log: false
     };
@@ -2523,7 +2543,23 @@
             seen.add(activeBadge.id);
         }
 
-        return items;
+        const orderIndex = (badge) => {
+            const index = currentTeamBadgeOrder.indexOf(badge && badge.id);
+            return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+        };
+
+        return items.sort((a, b) => {
+            const aCurrent = currentTeamBadgeIds.has(a.id);
+            const bCurrent = currentTeamBadgeIds.has(b.id);
+            const aActive = activeBadge && a.id === activeBadge.id;
+            const bActive = activeBadge && b.id === activeBadge.id;
+
+            if (aCurrent !== bCurrent) return aCurrent ? -1 : 1;
+            if (aCurrent && bCurrent && aActive !== bActive) return aActive ? -1 : 1;
+            if (aCurrent && bCurrent) return orderIndex(a) - orderIndex(b);
+            if (aActive !== bActive) return aActive ? -1 : 1;
+            return 0;
+        });
     }
 
     function renderBadgeCatalogGrid(activeBadgeInput) {
@@ -2693,6 +2729,7 @@
 
     function buildPlayerPointsMap(rawPoints) {
         playerPointsData = {};
+        playerPointDocs = rawPoints && typeof rawPoints === 'object' && !Array.isArray(rawPoints) ? rawPoints : {};
         Object.entries(rawPoints || {}).forEach(([id, docData]) => {
             playerPointsData[id] = docData && typeof docData.totalPoints === 'number' ? docData.totalPoints : 0;
         });
@@ -2955,42 +2992,6 @@
         });
     }
 
-    function buildLeaderData(teams, valueGetter) {
-        let bestValue = -Infinity;
-        let winners = [];
-        (teams || []).forEach(team => {
-            const value = valueGetter(team);
-            if (typeof value !== 'number' || Number.isNaN(value)) return;
-            if (value > bestValue) { bestValue = value; winners = [team.manager]; }
-            else if (value === bestValue) { winners.push(team.manager); }
-        });
-        return winners.length ? { value: bestValue, winners } : { value: null, winners: [] };
-    }
-
-    function buildTeamAwardLeaders(teams) {
-        return {
-            gk:       buildLeaderData(teams, t => t.positionTotals.GOALKEEPER),
-            def:      buildLeaderData(teams, t => t.positionTotals.DEFENDER),
-            mid:      buildLeaderData(teams, t => t.positionTotals.MIDFIELDER),
-            att:      buildLeaderData(teams, t => t.positionTotals.ATTACKER),
-            captain:  buildLeaderData(teams, t => t.captainPoints),
-            bench:    buildLeaderData(teams, t => t.positionTotals.BENCH),
-            scouting: buildLeaderData(teams, t => t.scoutingCount),
-            perfect:  buildLeaderData(teams, t => t.perfectHits),
-            instinct: buildLeaderData(teams, t => t.captainShare)
-        };
-    }
-
-    function hasLeaderAward(leader, managerName, minValue) {
-        return !!(
-            leader &&
-            typeof leader.value === 'number' &&
-            leader.value >= minValue &&
-            Array.isArray(leader.winners) &&
-            leader.winners.includes(managerName)
-        );
-    }
-
     /* =====================================================
        RENDER MANAGER AWARDS
        ===================================================== */
@@ -2999,61 +3000,43 @@
         if (!awardsEl) return;
         if (!team) {
             currentTeamBadgeIds = new Set();
+            currentTeamBadgeOrder = [];
             currentTeamFallbackBadges = [];
             awardsEl.innerHTML = '';
             return;
         }
 
-        const awards = [];
-        if (team.orphanCount > 0) {
-            awards.push({ type: 'roster', label: `${team.orphanCount} nicht aufgeboten`, title: `${team.orphanCount} Spieler aus diesem Team stehen nicht im aktuellen WM-Kader`, emoji: '⚠️' });
-        }
-
-        if (team.favoriteClub && team.favoriteClub.count >= 2) {
-            awards.push({ type: 'club', label: 'Lieblingsclub', title: `${team.favoriteClub.name} (${team.favoriteClub.count} Spieler, ${team.favoriteClub.points} Pkt.)`, logo: team.favoriteClub.logo || '', emoji: '🏢' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.gk, team.manager, 1)) {
-            awards.push({ type: 'gk', label: 'Top-Torwart', title: `Bestes Torwart-Paket aller Teams (${team.positionTotals.GOALKEEPER} Pkt.)`, emoji: '🧤' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.def, team.manager, 1)) {
-            awards.push({ type: 'def', label: 'Top-Abwehr', title: `Beste Verteidigung aller Teams (${team.positionTotals.DEFENDER} Pkt.)`, emoji: '🛡️' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.mid, team.manager, 1)) {
-            awards.push({ type: 'mid', label: 'Top-Mittelfeld', title: `Bestes Mittelfeld aller Teams (${team.positionTotals.MIDFIELDER} Pkt.)`, emoji: '🎯' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.att, team.manager, 1)) {
-            awards.push({ type: 'att', label: 'Top-Sturm', title: `Bester Sturm aller Teams (${team.positionTotals.ATTACKER} Pkt.)`, emoji: '⚡' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.captain, team.manager, 1)) {
-            awards.push({ type: 'captain', label: 'Top-Captain', title: `Captain mit den meisten Punkten (${team.captainPoints} Pkt.)`, emoji: '👑' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.bench, team.manager, 1)) {
-            awards.push({ type: 'bench', label: 'Beste Bank', title: `Stärkste Ersatzbank aller Teams (${team.positionTotals.BENCH} Pkt.)`, emoji: '🪑' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.scouting, team.manager, 1)) {
-            awards.push({ type: 'scouting', label: 'Scouting-Meister', title: `${team.scoutingCount} Unique Picks im Team`, emoji: '🔎' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.perfect, team.manager, 1)) {
-            awards.push({ type: 'perfect', label: 'PerfectTeam-Treffer', title: `${team.perfectHits} Spieler aus dem aktuellen PerfectTeam`, emoji: '🏆' });
-        }
-        if (hasLeaderAward(teamAwardLeaders.instinct, team.manager, 0.18) && team.captainPoints > 0 && team.totalScore > 0) {
-            awards.push({ type: 'instinct', label: 'Captain-Gespür', title: `Captain liefert ${Math.round(team.captainShare * 100)}% der Team-Punkte (${team.captainPoints} Pkt.)`, emoji: '🧠' });
-        }
-
+        const api = getBadgeCatalogApi();
+        const awards = api && typeof api.getBadgesForTeam === 'function'
+            ? api.getBadgesForTeam(team, allTeams, playerPointDocs, fixturesData, badgeSnapshotsData, {
+                rules: APP.rules,
+                playersData: typeof playersData !== 'undefined' ? playersData : []
+            })
+            : [];
         const resolvedAwards = awards.map(award => ({
             ...award,
             badge: resolveBadgeForAward(award)
         }));
-        currentTeamBadgeIds = new Set(resolvedAwards.map(award => award.badge.id));
-        currentTeamFallbackBadges = resolvedAwards
+        const uniqueResolvedAwards = [];
+        const seenAwardIds = new Set();
+        resolvedAwards.forEach((award) => {
+            const badgeId = award && award.badge && award.badge.id;
+            if (!badgeId || seenAwardIds.has(badgeId)) return;
+            seenAwardIds.add(badgeId);
+            uniqueResolvedAwards.push(award);
+        });
+
+        currentTeamBadgeIds = new Set(uniqueResolvedAwards.map(award => award.badge.id));
+        currentTeamBadgeOrder = uniqueResolvedAwards.map(award => award.badge.id);
+        currentTeamFallbackBadges = uniqueResolvedAwards
             .filter(award => award.badge && award.badge.isFallback)
             .map(award => award.badge);
 
-        awardsEl.innerHTML = resolvedAwards.map(award => {
+        awardsEl.innerHTML = uniqueResolvedAwards.map(award => {
             const safeType  = escapeHtml(toSafeClassToken(award.type || award.badge.id));
             const safeBadgeId = escapeHtml(award.badge.id);
-            const safeTitle = escapeHtml(award.title);
-            const safeLabel = escapeHtml(award.label);
+            const safeTitle = escapeHtml(award.title || award.badge.description || award.badge.label);
+            const safeLabel = escapeHtml(award.label || award.badge.label);
             const safeLogo  = escapeHtml(award.logo);
             const safeEmoji = escapeHtml(award.emoji || getBadgeEmoji(award.badge));
             return `
@@ -3115,7 +3098,7 @@
                     metaEl.textContent = '🔒 Kader noch versteckt';
                 } else {
                     const rankStr = team.currentRank ? ` · Rang ${team.currentRank}` : '';
-                    const rosterStr = team.orphanCount > 0 ? ` · ⚠ ${team.orphanCount} nicht aufgeboten` : '';
+                    const rosterStr = team.orphanCount > 0 ? ` · ⚠ ${team.orphanCount} Spielerdaten fehlen` : '';
                     metaEl.textContent = `${team.totalScore} Pkt.${rankStr}${rosterStr}`;
                 }
             }
@@ -3150,7 +3133,7 @@
             if (team.manager === currentManager) div.classList.add('active');
             if (!isTeamsLocked() && team.orphanCount > 0) {
                 div.classList.add('has-roster-warning');
-                div.title = `${team.orphanCount} Spieler nicht im aktuellen WM-Kader`;
+                div.title = `${team.orphanCount} Spielerdaten konnten nicht mehr zugeordnet werden`;
             }
 
             const nameSpan = document.createElement('span');
@@ -3545,7 +3528,7 @@
         const names = formatOrphanPlayerNames(orphanPlayers);
         warningEl.innerHTML = `
             <span class="team-roster-warning-icon" aria-hidden="true">⚠️</span>
-            <span>${count} Spieler in diesem Team ${count === 1 ? 'steht' : 'stehen'} nicht im aktuellen WM-Kader${names ? `: ${escapeHtml(names)}` : ''}.</span>
+            <span>${count} Spieler in diesem Team ${count === 1 ? 'konnte' : 'konnten'} nicht mehr eindeutig zugeordnet werden${names ? `: ${escapeHtml(names)}` : ''}.</span>
         `;
         warningEl.classList.add('visible');
     }
@@ -3560,7 +3543,7 @@
         const capClass  = mergedP.isCaptain ? 'is-captain' : '';
         const orphanClass = mergedP.isOrphan ? 'is-orphan' : '';
         const capBadge  = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';
-        const orphanBadge = mergedP.isOrphan ? '<div class="orphan-card-badge" title="Nicht im aktuellen WM-Kader">Nicht aufgeboten</div>' : '';
+        const orphanBadge = mergedP.isOrphan ? '<div class="orphan-card-badge" title="Spielerdaten konnten nicht mehr zugeordnet werden">Spielerdaten fehlen</div>' : '';
         const ptsId     = `pts-${mergedP.id}-${mergedP.slotNum}`;
 
         // Defense-in-Depth: Sämtliche dynamischen Werte werden HTML-
@@ -3783,6 +3766,7 @@
             const awardsEl = document.getElementById('manager-awards');
             if (awardsEl) awardsEl.innerHTML = '';
             currentTeamBadgeIds = new Set();
+            currentTeamBadgeOrder = [];
             currentTeamFallbackBadges = [];
             updateTeamRosterWarning(null);
             updateMobilePickerBtn(team);
@@ -3914,13 +3898,14 @@
         const preferCurrentDisplayed = !!(options && options.preferCurrentDisplayed);
 
         buildPlayerPointsMap(data.points || {});
+        fixturesData = data.fixtures && typeof data.fixtures === 'object' && !Array.isArray(data.fixtures) ? data.fixtures : {};
+        badgeSnapshotsData = data.badgeSnapshots && typeof data.badgeSnapshots === 'object' ? data.badgeSnapshots : null;
         allTeams = enrichTeamsWithScores(data.teams || []);
         allTeams = assignTeamRanks(allTeams);
         allTeams.sort(compareTeamsByManagerName);
         globalPickCounts = buildGlobalPickCounts(allTeams);
         perfectTeamIds = buildPerfectTeamIds();
         allTeams = augmentTeamsWithDerivedAwards(allTeams);
-        teamAwardLeaders = buildTeamAwardLeaders(allTeams);
 
         if (!allTeams.length) {
             const teamView   = document.getElementById('team-view');
