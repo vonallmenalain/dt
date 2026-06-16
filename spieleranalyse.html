@@ -6226,7 +6226,7 @@
         YELLOW_CARD: "Gelbe Karten", RED_CARD: "Rote Karten",
         PEN_SAVED: "Elfmeter gehalten", PEN_MISSED: "Elfmeter verschossen",
         PEN_COMMITED: "Elfmeter verursacht", PEN_WON: "Elfmeter herausgeholt",
-        WIN: "Siege", DRAW: "Unentschieden", LOSS: "Niederlagen", DEF_BASE_PTS: "Abwehr-Bonus"
+        WIN: "Siege", DRAW: "Unentschieden", LOSS: "Niederlagen", DEF_BASE_PTS: "Defensiv-Basis"
     };
 
     const RULE_NAMES_MATCH = {
@@ -7340,12 +7340,21 @@
 
             let defBasePts = ptsDoc.DEF_BASE_PTS || 0;
             let gegenPts = ptsDoc.GEGENTOR_GK_DEF || 0;
-            let netGegenPts = defBasePts + gegenPts;
-            let countGegen = gegenPts !== 0 ? Math.round(gegenPts / RULES.GEGENTOR_GK_DEF) : 0;
+            let countDefBase = RULES.DEF_BASE_PTS !== 0 ? Math.round(defBasePts / RULES.DEF_BASE_PTS) : 0;
+            let countGegen = RULES.GEGENTOR_GK_DEF !== 0 && gegenPts !== 0 ? Math.round(gegenPts / RULES.GEGENTOR_GK_DEF) : 0;
 
-            if (defBasePts !== 0 || gegenPts !== 0) {
-                if (netGegenPts > 0) plusEvents.push({ name: 'Gegentore', count: countGegen, points: netGegenPts });
-                else if (netGegenPts < 0) minusEvents.push({ name: 'Gegentore', count: countGegen, points: netGegenPts });
+            if (defBasePts > 0) {
+                plusEvents.push({ name: 'Defensiv-Basis', count: countDefBase, points: defBasePts });
+            } else if (defBasePts < 0) {
+                minusEvents.push({ name: 'Defensiv-Basis', count: countDefBase, points: defBasePts });
+            }
+
+            if (gegenPts < 0) {
+                const gegentorLabel = Math.abs(countGegen) === 1 ? 'Gegentor' : 'Gegentore';
+                const countText = Math.abs(countGegen) > 1
+                    ? `${Math.abs(countGegen)} &times; ${RULES.GEGENTOR_GK_DEF}`
+                    : `${Math.abs(countGegen)}x`;
+                minusEvents.push({ name: gegentorLabel, count: Math.abs(countGegen), points: gegenPts, countText });
             }
 
             Object.entries(ptsDoc).forEach(([key, val]) => {
@@ -7384,7 +7393,7 @@
                 ? headerRow('var(--green-light)') + plusEvents.map(e => `
                     <div class="stat-row">
                         <span class="stat-name">${escapeHtml(e.name)}</span>
-                        <span class="stat-count">${e.count}x</span>
+                        <span class="stat-count">${e.countText || `${e.count}x`}</span>
                         <span class="stat-total pos">+${e.points}</span>
                     </div>`).join('')
                 : '<div class="empty-cat">Noch keine Pluspunkte gesammelt.</div>';
@@ -7393,7 +7402,7 @@
                 ? headerRow('var(--red-soft)') + minusEvents.map(e => `
                     <div class="stat-row">
                         <span class="stat-name">${escapeHtml(e.name)}</span>
-                        <span class="stat-count">${e.count}x</span>
+                        <span class="stat-count">${e.countText || `${e.count}x`}</span>
                         <span class="stat-total neg">${e.points}</span>
                     </div>`).join('')
                 : '<div class="empty-cat">Keine Minuspunkte! Vorbildlich.</div>';
@@ -7447,19 +7456,22 @@
 
                     let detailsHTML = '';
                     if (val.Aufstellung) {
-                        let combinedGameDefPts = 0, hasGameDefStats = false;
                         Object.entries(val.Aufstellung).forEach(([k, v]) => {
-                            if (k === 'DEF_BASE_PTS' || k === 'GEGENTOR_GK_DEF') {
-                                combinedGameDefPts += v;
-                                if (k === 'DEF_BASE_PTS' && v > 0) hasGameDefStats = true;
+                            if (k === 'DEF_BASE_PTS') {
+                                if (v !== 0) {
+                                    detailsHTML += `<div class="game-detail-row"><span>Defensiv-Basis:</span><strong>${v > 0 ? '+' : ''}${v}</strong></div>`;
+                                }
+                            } else if (k === 'GEGENTOR_GK_DEF') {
+                                if (v !== 0) {
+                                    const count = RULES.GEGENTOR_GK_DEF !== 0 ? Math.abs(Math.round(v / RULES.GEGENTOR_GK_DEF)) : 0;
+                                    const label = count === 1 ? 'Gegentor' : `Gegentore ${count} &times; ${RULES.GEGENTOR_GK_DEF}`;
+                                    detailsHTML += `<div class="game-detail-row"><span>${label}:</span><strong>${v > 0 ? '+' : ''}${v}</strong></div>`;
+                                }
                             } else if (v !== 0) {
                                 const displayName = RULE_NAMES_MATCH[k] || k;
                                 detailsHTML += `<div class="game-detail-row"><span>${escapeHtml(displayName)}:</span><strong>${v > 0 ? '+' : ''}${v}</strong></div>`;
                             }
                         });
-                        if (hasGameDefStats && combinedGameDefPts !== 0) {
-                            detailsHTML += `<div class="game-detail-row"><span>Gegentore:</span><strong>${combinedGameDefPts > 0 ? '+' : ''}${combinedGameDefPts}</strong></div>`;
-                        }
                     }
                     if (detailsHTML === '') {
                         detailsHTML = '<div style="color:var(--text-muted);font-size:0.82rem;">Keine Punkte-Ereignisse in diesem Spiel.</div>';

@@ -740,7 +740,7 @@ const APP_CONFIG = (() => {
     WIN: "Siege",
     DRAW: "Unentschieden",
     LOSS: "Niederlagen",
-    DEF_BASE_PTS: "Abwehr-Bonus"
+    DEF_BASE_PTS: "Defensiv-Basis"
   };
 
   function getActiveTournament() {
