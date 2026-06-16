@@ -2809,7 +2809,7 @@
     }
 
     function buildBadgeDetailsHtml(badge, ownerEntries, clubSummary) {
-        const description = [badge.description, badge.howToEarn].filter(Boolean).join(' ');
+        const description = String(badge.description || '').trim();
         const ownerSection = badge.id === 'club'
             ? `
                 <div class="badge-catalog-section">
