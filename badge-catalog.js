@@ -5,15 +5,14 @@
   const LIVE_FIXTURE_STATUSES = new Set(['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
 
   const ROUND_PHASES = Object.freeze([
-    Object.freeze({ key: 'groupMatchday1', roundKey: 'GROUP_1', label: '1. Gruppenspiel', pointsPhrase: 'am 1. Gruppenspieltag' }),
-    Object.freeze({ key: 'groupMatchday2', roundKey: 'GROUP_2', label: '2. Gruppenspiel', pointsPhrase: 'am 2. Gruppenspieltag' }),
-    Object.freeze({ key: 'groupMatchday3', roundKey: 'GROUP_3', label: '3. Gruppenspiel', pointsPhrase: 'am 3. Gruppenspieltag' }),
-    Object.freeze({ key: 'roundOf32', roundKey: 'ROUND_32', label: 'Sechzehntelfinale', pointsPhrase: 'in den Sechzehntelfinals' }),
-    Object.freeze({ key: 'roundOf16', roundKey: 'ROUND_16', label: 'Achtelfinale', pointsPhrase: 'in den Achtelfinals' }),
-    Object.freeze({ key: 'quarterFinal', roundKey: 'QF', label: 'Viertelfinale', pointsPhrase: 'in den Viertelfinals' }),
-    Object.freeze({ key: 'semiFinal', roundKey: 'SF', label: 'Halbfinale', pointsPhrase: 'in den Halbfinals' }),
-    Object.freeze({ key: 'thirdPlace', roundKey: 'THIRD_PLACE', label: 'Spiel um Platz 3', pointsPhrase: 'im Spiel um Platz 3' }),
-    Object.freeze({ key: 'final', roundKey: 'FINAL', label: 'Finale', pointsPhrase: 'im Finale' })
+    Object.freeze({ key: 'groupMatchday1', roundKeys: ['GROUP_1'], label: '1. Gruppenspiele', scopePhrase: 'der 1. Gruppenspiele', pointsPhrase: 'in den 1. Gruppenspielen' }),
+    Object.freeze({ key: 'groupMatchday2', roundKeys: ['GROUP_2'], label: '2. Gruppenspiele', scopePhrase: 'der 2. Gruppenspiele', pointsPhrase: 'in den 2. Gruppenspielen' }),
+    Object.freeze({ key: 'groupMatchday3', roundKeys: ['GROUP_3'], label: '3. Gruppenspiele', scopePhrase: 'der 3. Gruppenspiele', pointsPhrase: 'in den 3. Gruppenspielen' }),
+    Object.freeze({ key: 'roundOf32', roundKeys: ['ROUND_32'], label: 'Sechzehntelfinale', scopePhrase: 'der Sechzehntelfinals', pointsPhrase: 'in den Sechzehntelfinals' }),
+    Object.freeze({ key: 'roundOf16', roundKeys: ['ROUND_16'], label: 'Achtelfinale', scopePhrase: 'der Achtelfinals', pointsPhrase: 'in den Achtelfinals' }),
+    Object.freeze({ key: 'quarterFinal', roundKeys: ['QF'], label: 'Viertelfinale', scopePhrase: 'der Viertelfinals', pointsPhrase: 'in den Viertelfinals' }),
+    Object.freeze({ key: 'semiFinal', roundKeys: ['SF'], label: 'Halbfinale', scopePhrase: 'der Halbfinals', pointsPhrase: 'in den Halbfinals' }),
+    Object.freeze({ key: 'finals', roundKeys: ['THIRD_PLACE', 'FINAL'], label: 'Finalspiele', scopePhrase: 'der Finalspiele', pointsPhrase: 'in den Finalspielen' })
   ]);
 
   const ROUND_MEDALS = Object.freeze([
@@ -28,9 +27,9 @@
       ROUND_MEDALS.forEach((medal) => {
         badges.push(Object.freeze({
           id: `roundRank_${phase.key}_${medal.key}`,
-          label: `${medal.label} - ${phase.label}`,
+          label: `${medal.label} ${phase.label}`,
           emoji: medal.emoji,
-          description: `${medal.teamText} ${phase.pointsPhrase}: dein Team hat ${phase.pointsPhrase} ${medal.pointsText} Punkte geholt.`,
+          description: `${medal.teamText} ${phase.scopePhrase}: dein Team hat ${phase.pointsPhrase} ${medal.pointsText} Punkte geholt.`,
           howToEarn: `Hole ${phase.pointsPhrase} ${medal.pointsText} Punkte aller Manager.`,
           category: 'Rundenranking',
           tone: 'positive',
@@ -791,7 +790,7 @@
     getFixtureEntries(fixtures).forEach((entry) => {
       const roundText = (entry.fixture.league && entry.fixture.league.round) || entry.fixture.round || '';
       const roundKey = classifyRoundText(roundText);
-      const phase = ROUND_PHASES.find(item => item.roundKey === roundKey);
+      const phase = ROUND_PHASES.find(item => Array.isArray(item.roundKeys) && item.roundKeys.includes(roundKey));
       if (!phase) return;
       map.get(phase.key).push(entry);
     });
@@ -852,7 +851,14 @@
 
   function getSnapshotPhase(snapshotData, phaseKey) {
     if (!snapshotData || typeof snapshotData !== 'object') return null;
-    return snapshotData[phaseKey] || null;
+    if (snapshotData[phaseKey]) return snapshotData[phaseKey];
+    if (phaseKey !== 'finals') return null;
+
+    const finalSnapshot = snapshotData.final;
+    const thirdPlaceSnapshot = snapshotData.thirdPlace;
+    if (finalSnapshot && finalSnapshot.completed === true) return finalSnapshot;
+    if (thirdPlaceSnapshot && thirdPlaceSnapshot.completed === true) return thirdPlaceSnapshot;
+    return null;
   }
 
   function rowMatchesTeam(row, team) {
