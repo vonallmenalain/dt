@@ -5,21 +5,21 @@
   const LIVE_FIXTURE_STATUSES = new Set(['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
 
   const ROUND_PHASES = Object.freeze([
-    Object.freeze({ key: 'groupMatchday1', roundKey: 'GROUP_1', label: '1. Gruppenspiel' }),
-    Object.freeze({ key: 'groupMatchday2', roundKey: 'GROUP_2', label: '2. Gruppenspiel' }),
-    Object.freeze({ key: 'groupMatchday3', roundKey: 'GROUP_3', label: '3. Gruppenspiel' }),
-    Object.freeze({ key: 'roundOf32', roundKey: 'ROUND_32', label: 'Sechzehntelfinale' }),
-    Object.freeze({ key: 'roundOf16', roundKey: 'ROUND_16', label: 'Achtelfinale' }),
-    Object.freeze({ key: 'quarterFinal', roundKey: 'QF', label: 'Viertelfinale' }),
-    Object.freeze({ key: 'semiFinal', roundKey: 'SF', label: 'Halbfinale' }),
-    Object.freeze({ key: 'thirdPlace', roundKey: 'THIRD_PLACE', label: 'Spiel um Platz 3' }),
-    Object.freeze({ key: 'final', roundKey: 'FINAL', label: 'Finale' })
+    Object.freeze({ key: 'groupMatchday1', roundKey: 'GROUP_1', label: '1. Gruppenspiel', pointsPhrase: 'am 1. Gruppenspieltag' }),
+    Object.freeze({ key: 'groupMatchday2', roundKey: 'GROUP_2', label: '2. Gruppenspiel', pointsPhrase: 'am 2. Gruppenspieltag' }),
+    Object.freeze({ key: 'groupMatchday3', roundKey: 'GROUP_3', label: '3. Gruppenspiel', pointsPhrase: 'am 3. Gruppenspieltag' }),
+    Object.freeze({ key: 'roundOf32', roundKey: 'ROUND_32', label: 'Sechzehntelfinale', pointsPhrase: 'in den Sechzehntelfinals' }),
+    Object.freeze({ key: 'roundOf16', roundKey: 'ROUND_16', label: 'Achtelfinale', pointsPhrase: 'in den Achtelfinals' }),
+    Object.freeze({ key: 'quarterFinal', roundKey: 'QF', label: 'Viertelfinale', pointsPhrase: 'in den Viertelfinals' }),
+    Object.freeze({ key: 'semiFinal', roundKey: 'SF', label: 'Halbfinale', pointsPhrase: 'in den Halbfinals' }),
+    Object.freeze({ key: 'thirdPlace', roundKey: 'THIRD_PLACE', label: 'Spiel um Platz 3', pointsPhrase: 'im Spiel um Platz 3' }),
+    Object.freeze({ key: 'final', roundKey: 'FINAL', label: 'Finale', pointsPhrase: 'im Finale' })
   ]);
 
   const ROUND_MEDALS = Object.freeze([
-    Object.freeze({ key: 'gold', rank: 1, label: 'Gold', emoji: '🥇' }),
-    Object.freeze({ key: 'silver', rank: 2, label: 'Silber', emoji: '🥈' }),
-    Object.freeze({ key: 'bronze', rank: 3, label: 'Bronze', emoji: '🥉' })
+    Object.freeze({ key: 'gold', rank: 1, label: 'Gold', emoji: '🥇', teamText: 'Bestes Team', pointsText: 'am meisten' }),
+    Object.freeze({ key: 'silver', rank: 2, label: 'Silber', emoji: '🥈', teamText: 'Zweitbestes Team', pointsText: 'die zweitmeisten' }),
+    Object.freeze({ key: 'bronze', rank: 3, label: 'Bronze', emoji: '🥉', teamText: 'Drittbestes Team', pointsText: 'die drittmeisten' })
   ]);
 
   function createRoundRankBadges() {
@@ -30,8 +30,8 @@
           id: `roundRank_${phase.key}_${medal.key}`,
           label: `${medal.label} - ${phase.label}`,
           emoji: medal.emoji,
-          description: `Du hast nach ${phase.label} Rang ${medal.rank} erreicht.`,
-          howToEarn: `Sammle in dieser isolierten Runde genug Punkte für Rang ${medal.rank}. Frühere oder spätere Spiele zählen hier nicht mit.`,
+          description: `${medal.teamText} ${phase.pointsPhrase}: dein Team hat ${phase.pointsPhrase} ${medal.pointsText} Punkte geholt.`,
+          howToEarn: `Hole ${phase.pointsPhrase} ${medal.pointsText} Punkte aller Manager.`,
           category: 'Rundenranking',
           tone: 'positive',
           style: 'positive',
