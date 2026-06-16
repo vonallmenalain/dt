@@ -3537,7 +3537,8 @@
         .nm-players-row {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
-            gap: 6px;
+            column-gap: 6px;
+            row-gap: 6px;
             margin-top: 10px;
             padding-right: 24px;
             box-sizing: border-box;
@@ -3549,16 +3550,30 @@
             min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 7px;
+            gap: 0;
         }
 
         .nm-players-side.left {
+            grid-column: 1;
             align-items: flex-start;
         }
 
         .nm-players-side.right {
+            grid-column: 3;
             align-items: flex-end;
             text-align: right;
+        }
+
+        .nm-goals-side {
+            grid-row: 1;
+        }
+
+        .nm-chips-side {
+            grid-row: 1;
+        }
+
+        .nm-players-row.has-goals .nm-chips-side {
+            grid-row: 2;
         }
 
         .nm-goals-list {
@@ -3613,16 +3628,15 @@
         .nm-goal-player,
         .nm-goal-assist-player {
             display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 44px;
-            min-height: 44px;
-            padding: 0 4px;
+            align-items: baseline;
+            position: relative;
+            padding: 0;
             color: inherit;
             font: inherit;
             font-weight: inherit;
             text-decoration: none;
             cursor: pointer;
+            line-height: inherit;
         }
 
         .nm-goal-player:focus-visible,
@@ -3666,10 +3680,16 @@
         .nm-players-divider {
             width: 1px;
             background: rgba(255,255,255,0.08);
+            grid-column: 2;
+            grid-row: 1;
             align-self: stretch;
             justify-self: center;
             margin: 0;
             flex-shrink: 0;
+        }
+
+        .nm-players-row.has-goals.has-chips .nm-players-divider {
+            grid-row: 1 / 3;
         }
 
         .nm-player-chip {
@@ -9893,17 +9913,30 @@
             const homeChipsHtml = buildChips(draftedHome);
             const awayChipsHtml = buildChips(draftedAway);
             const hasPlayersOrGoals = !!(homeGoalsHtml || awayGoalsHtml || homeChipsHtml || awayChipsHtml);
-            const playersRowHtml = hasPlayersOrGoals ? `
-                <div class="nm-players-row">
-                    <div class="nm-players-side left">
+            const playersRowClasses = [
+                'nm-players-row',
+                (homeGoalsHtml || awayGoalsHtml) ? 'has-goals' : '',
+                (homeChipsHtml || awayChipsHtml) ? 'has-chips' : ''
+            ].filter(Boolean).join(' ');
+            const goalsRowHtml = (homeGoalsHtml || awayGoalsHtml) ? `
+                    <div class="nm-players-side nm-goals-side left">
                         ${homeGoalsHtml}
+                    </div>
+                    <div class="nm-players-side nm-goals-side right">
+                        ${awayGoalsHtml}
+                    </div>` : '';
+            const chipsRowHtml = (homeChipsHtml || awayChipsHtml) ? `
+                    <div class="nm-players-side nm-chips-side left">
                         ${homeChipsHtml ? `<div class="nm-player-chips">${homeChipsHtml}</div>` : ''}
                     </div>
-                    <div class="nm-players-divider"></div>
-                    <div class="nm-players-side right">
-                        ${awayGoalsHtml}
+                    <div class="nm-players-side nm-chips-side right">
                         ${awayChipsHtml ? `<div class="nm-player-chips">${awayChipsHtml}</div>` : ''}
-                    </div>
+                    </div>` : '';
+            const playersRowHtml = hasPlayersOrGoals ? `
+                <div class="${playersRowClasses}">
+                    <div class="nm-players-divider"></div>
+                    ${goalsRowHtml}
+                    ${chipsRowHtml}
                 </div>` : '';
 
             const stageMatch = { ...match, teamA, teamB, round: match.round || '' };
