@@ -4413,15 +4413,22 @@
             border: 1px solid rgba(255,255,255,0.12);
             background: var(--dark-card);
             display: block;
+            overflow: visible;
+        }
+
+        .sc-player-avatar > img,
+        .sc-player-avatar .player-photo-placeholder {
+            border-radius: inherit;
         }
 
         .sc-player-avatar .player-photo-captain-badge {
-            right: -1px;
-            bottom: -1px;
-            width: 13px;
-            height: 13px;
+            top: -2px;
+            right: -2px;
+            bottom: auto;
+            width: 12px;
+            height: 12px;
             border-width: 1px;
-            font-size: 0.48rem;
+            font-size: 7px;
         }
 
         .sc-player-avatar-points {
@@ -5017,14 +5024,21 @@
             object-fit: cover;
             border: 2px solid rgba(255,255,255,0.12);
             background: var(--dark-card);
+            overflow: visible;
+        }
+
+        .sc-player-card-photo > img,
+        .sc-player-card-photo .player-photo-placeholder {
+            border-radius: inherit;
         }
 
         .sc-player-card-photo .player-photo-captain-badge {
-            right: 2px;
-            bottom: 2px;
-            width: 20px;
-            height: 20px;
-            font-size: 0.68rem;
+            top: -2px;
+            right: -2px;
+            bottom: auto;
+            width: 15px;
+            height: 15px;
+            font-size: 8px;
         }
 
         .sc-player-card.drafted .sc-player-card-photo {
@@ -5233,6 +5247,14 @@
                 height: 26px;
             }
 
+            .sc-player-avatar .player-photo-captain-badge {
+                top: -1px;
+                right: -1px;
+                width: 11px;
+                height: 11px;
+                font-size: 6px;
+            }
+
             .sc-team-name {
                 font-size: 0.82rem;
                 line-height: 1.15;
@@ -5349,6 +5371,12 @@
             .sc-player-avatar {
                 width: 24px;
                 height: 24px;
+            }
+
+            .sc-player-avatar .player-photo-captain-badge {
+                width: 10px;
+                height: 10px;
+                font-size: 6px;
             }
 
             .sc-team-name {
