@@ -41,6 +41,7 @@ const APP_CONFIG = (() => {
   const FALLBACK_TOURNAMENT_KEY = "wm2026";
 
   const URL_PARAM_NAME = "tournament";
+  let firestorePersistenceAttempted = false;
 
   /* ─────────────────────────────────────────────────────────
    * Domain → Turnier Mapping.
@@ -773,7 +774,20 @@ const APP_CONFIG = (() => {
       window.firebase.initializeApp(firebaseConfig);
     }
 
-    return window.firebase.firestore();
+    const db = window.firebase.firestore();
+
+    if (
+      !firestorePersistenceAttempted &&
+      db &&
+      typeof db.enablePersistence === "function"
+    ) {
+      firestorePersistenceAttempted = true;
+      db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+        console.warn("[APP_CONFIG] Firestore Offline Persistence konnte nicht aktiviert werden:", err);
+      });
+    }
+
+    return db;
   }
 
   /* ─────────────────────────────────────────────────────────

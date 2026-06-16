@@ -133,6 +133,11 @@ const {
   buildFixturesMapFromPlanCache,
   writePublicFixtureBundle
 } = require('./fixture-public-cache.js');
+const {
+  DEFAULT_PUBLIC_POINTS_SHARD_COUNT,
+  writePublicPointsCache,
+  readPublicPointsShards
+} = require('./points-public-cache.js');
 
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN']);
 const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE']);
@@ -1816,6 +1821,38 @@ async function readExistingPointsFromFirestore(db, tournament) {
   return points;
 }
 
+async function readPointsMetaDocument(db, tournament) {
+  const ref = db.collection(tournament.firestore.metaCollection).doc(tournament.firestore.metaDocId);
+  const snap = await ref.get();
+  return snap.exists ? (snap.data() || {}) : {};
+}
+
+function getCurrentPointsVersion(meta) {
+  return meta && Number.isFinite(meta.pointsVersion) ? meta.pointsVersion : 0;
+}
+
+async function readExistingPointsForReconciliation(db, tournament, opts) {
+  let meta = null;
+  try {
+    meta = await readPointsMetaDocument(db, tournament);
+    const shardResult = await readPublicPointsShards(db, tournament, meta);
+    if (shardResult && shardResult.ok) {
+      logInfo(
+        `Bestehende Punktebasis aus Public-Shards geladen ` +
+        `(${Object.keys(shardResult.points || {}).length} Spieler, ${shardResult.shardCount} Shards).`
+      );
+      return shardResult.points || {};
+    }
+    logInfo(`Public-Points-Shards nicht nutzbar (${shardResult ? shardResult.reason : 'unknown'}), nutze Collection-Fallback.`);
+  } catch (err) {
+    logWarn(`Public-Points-Shards konnten nicht gelesen werden (${err.message}), nutze Collection-Fallback.`);
+  }
+
+  const points = await readExistingPointsFromFirestore(db, tournament);
+  logInfo(`Bestehende Punktebasis aus Collection geladen (${Object.keys(points).length} Dokumente).`);
+  return points;
+}
+
 function buildPointBaseFromExisting(playersData, existingPoints, fixtureIdsToReplace, changedPlayerIds) {
   const allPlayerPoints = {};
   const replaceIds = new Set(Array.from(fixtureIdsToReplace || []).map(id => String(id)));
@@ -1851,6 +1888,8 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
   let written = 0;
   let deleted = 0;
   let skipped = 0;
+  const deltaSet = {};
+  const deltaDelete = [];
 
   for (const pid of targetIds) {
     const obj = allPlayerPoints[pid];
@@ -1895,8 +1934,13 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
       countInBatch++;
     }
 
-    if (hasPoints) written++;
-    else deleted++;
+    if (hasPoints) {
+      written++;
+      deltaSet[String(pid)] = obj;
+    } else {
+      deleted++;
+      deltaDelete.push(String(pid));
+    }
 
     rememberChangedPlayerForAudit(
       opts,
@@ -1921,23 +1965,116 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
     written,
     deleted,
     skipped,
-    touched: written + deleted
+    touched: written + deleted,
+    deltaSet,
+    deltaDelete
   };
 }
 
-async function bumpPointsMetaVersion(db, tournament, opts) {
+function buildNullPointsCacheMetaFields() {
+  return {
+    pointsCacheGeneratedAt: null,
+    pointsShardCount: null,
+    pointsDeltaDocId: null,
+    pointsDeltaBaseVersion: null,
+    pointsDeltaNextVersion: null
+  };
+}
+
+function buildSuccessfulPointsCacheMetaFields(cacheResult, baseVersion, nextVersion) {
+  const deltaDocId = cacheResult && cacheResult.deltaDocId ? cacheResult.deltaDocId : null;
+  return {
+    pointsCacheGeneratedAt: cacheResult.cacheGenerationMs,
+    pointsShardCount: cacheResult.shardCount,
+    pointsDeltaDocId: deltaDocId,
+    pointsDeltaBaseVersion: deltaDocId ? baseVersion : null,
+    pointsDeltaNextVersion: deltaDocId ? nextVersion : null
+  };
+}
+
+function buildPublicPointsCacheSource(allPlayerPoints, existingPoints, writeResult) {
+  const source = {};
+  const deltaSet = writeResult && writeResult.deltaSet ? writeResult.deltaSet : {};
+
+  Object.keys(allPlayerPoints || {}).forEach(playerId => {
+    const pid = String(playerId);
+    const current = allPlayerPoints[pid];
+    if (!hasAnyPointValue(current)) return;
+
+    if (Object.prototype.hasOwnProperty.call(deltaSet, pid)) {
+      source[pid] = deltaSet[pid];
+      return;
+    }
+
+    if (existingPoints && existingPoints[pid] && hasAnyPointValue(existingPoints[pid])) {
+      source[pid] = existingPoints[pid];
+      return;
+    }
+
+    source[pid] = current;
+  });
+
+  return source;
+}
+
+async function writePublicPointsCacheForNextVersion(
+  db,
+  tournament,
+  allPlayerPoints,
+  writeResult,
+  baseVersion,
+  nextVersion,
+  opts,
+  existingPointsForPublicCache = null
+) {
+  const pointsForCache = buildPublicPointsCacheSource(
+    allPlayerPoints,
+    existingPointsForPublicCache,
+    writeResult
+  );
+  const cacheResult = await writePublicPointsCache(db, tournament, pointsForCache, {
+    dryRun: opts.dryRun,
+    shardCount: DEFAULT_PUBLIC_POINTS_SHARD_COUNT,
+    cacheGenerationMs: Date.now(),
+    pointsVersion: nextVersion,
+    baseVersion,
+    nextVersion,
+    deltaSet: writeResult.deltaSet || {},
+    deltaDelete: writeResult.deltaDelete || [],
+    includePoint: hasAnyPointValue
+  });
+
+  logInfo(
+    `Public Points Cache ${opts.dryRun ? '(DRY-RUN) berechnet' : 'geschrieben'} ` +
+    `(${cacheResult.pointsCount} Spieler, ${cacheResult.shardCount} Shards, ` +
+    `cacheGenerationMs=${cacheResult.cacheGenerationMs}).`
+  );
+  if (cacheResult.deltaWritten) {
+    logInfo(`Public Points Delta geschrieben (${cacheResult.deltaBytes} Bytes).`);
+  } else if (cacheResult.deltaTooLarge) {
+    logWarn(`Public Points Delta ist zu gross (${cacheResult.deltaBytes} Bytes) - Clients nutzen Shards.`);
+  }
+
+  return cacheResult;
+}
+
+async function bumpPointsMetaVersion(db, tournament, opts, nextPointsVersion = null, pointsCacheMetaFields = null) {
   if (opts.dryRun) return;
   const FieldValue = admin.firestore.FieldValue;
   const ref = db.collection(tournament.firestore.metaCollection).doc(tournament.firestore.metaDocId);
-  await ref.set({
+  const payload = {
     tournamentKey: tournament.key,
     tournamentType: tournament.type,
     tournamentYear: tournament.year,
     tournamentLabel: tournament.shortLabel,
     year: tournament.year,
-    pointsVersion: FieldValue.increment(1),
+    pointsVersion: Number.isFinite(nextPointsVersion) ? nextPointsVersion : FieldValue.increment(1),
     pointsUpdatedAt: Date.now()
-  }, { merge: true });
+  };
+  if (pointsCacheMetaFields && typeof pointsCacheMetaFields === 'object') {
+    Object.assign(payload, pointsCacheMetaFields);
+  }
+  await ref.set(payload, { merge: true });
 }
 
 async function bumpFixturesMetaVersion(db, tournament, opts, fixturesCacheGeneratedAt = null) {
@@ -2235,8 +2372,7 @@ async function ensureFixturePlanCacheForBundle(db, tournament, opts) {
 }
 
 async function writeFixturePlanPublicBundle(db, tournament, opts, cacheGenerationMs, source) {
-  const cache = getFixturePlanCache(opts);
-  await refreshFixturePlanCache(db, tournament, opts, cache);
+  const cache = await ensureFixturePlanCacheForBundle(db, tournament, opts);
   const fixturesBundle = buildFixturesMapFromPlanCache(cache, cacheGenerationMs);
   const bundleResult = await writePublicFixtureBundle(
     db,
@@ -2552,7 +2688,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     modeLabel = 'Delta/Reconciliation';
     changedPlayerIds = new Set();
     logInfo('Lade bestehende Punktedokumente als Basis fuer Delta/Reconciliation.');
-    existingPoints = await readExistingPointsFromFirestore(db, tournament);
+    existingPoints = await readExistingPointsForReconciliation(db, tournament, opts);
     const replaceFixtureIds = new Set(scoringGames.map(g => String(g.fixture.id)));
     Object.assign(
       allPlayerPoints,
@@ -2657,7 +2793,39 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   let pointsVersionIncreased = false;
   if (writeResult.touched > 0) {
-    await bumpPointsMetaVersion(db, tournament, opts);
+    let nextPointsVersion = null;
+    let pointsCacheMetaFields = buildNullPointsCacheMetaFields();
+
+    if (!opts.dryRun) {
+      try {
+        const currentMeta = await readPointsMetaDocument(db, tournament);
+        const currentPointsVersion = getCurrentPointsVersion(currentMeta);
+        nextPointsVersion = currentPointsVersion + 1;
+        const cacheResult = await writePublicPointsCacheForNextVersion(
+          db,
+          tournament,
+          allPlayerPoints,
+          writeResult,
+          currentPointsVersion,
+          nextPointsVersion,
+          opts,
+          existingPoints
+        );
+        pointsCacheMetaFields = buildSuccessfulPointsCacheMetaFields(
+          cacheResult,
+          currentPointsVersion,
+          nextPointsVersion
+        );
+      } catch (err) {
+        logWarn(
+          `Public Points Cache konnte nicht geschrieben werden (${err.message}). ` +
+          `pointsVersion wird mit Collection-Fallback-Signal erhoeht.`
+        );
+        pointsCacheMetaFields = buildNullPointsCacheMetaFields();
+      }
+    }
+
+    await bumpPointsMetaVersion(db, tournament, opts, nextPointsVersion, pointsCacheMetaFields);
     pointsVersionIncreased = !opts.dryRun;
     logInfo(`Meta-Dokument ${tournament.firestore.metaCollection}/${tournament.firestore.metaDocId} ${opts.dryRun ? '(DRY-RUN) ' : ''}aktualisiert.`);
   } else {

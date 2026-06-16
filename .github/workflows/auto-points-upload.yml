@@ -39,6 +39,7 @@ on:
     paths:
       - ".github/workflows/auto-points-upload.yml"
       - "scripts/auto-points-upload.js"
+      - "scripts/points-public-cache.js"
       - "tournament-config.js"
       - "data-wm2026.js"
       - "position-overrides.js"

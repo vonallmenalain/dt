@@ -152,7 +152,26 @@ service cloud.firestore {
         || collection == 'Spiele WM 2026'
         || collection == 'Punkte Spieler WM 2026'
         || (collection == 'app_meta' && docId == 'turnier_wm2026')
-        || (collection == 'public_cache' && docId == 'wm2026_fixtures')
+        || (collection == 'public_cache' && (
+             docId == 'wm2026_fixtures'
+          || docId == 'wm2026_points_delta_current'
+          || docId == 'wm2026_points_shard_00'
+          || docId == 'wm2026_points_shard_01'
+          || docId == 'wm2026_points_shard_02'
+          || docId == 'wm2026_points_shard_03'
+          || docId == 'wm2026_points_shard_04'
+          || docId == 'wm2026_points_shard_05'
+          || docId == 'wm2026_points_shard_06'
+          || docId == 'wm2026_points_shard_07'
+          || docId == 'wm2026_points_shard_08'
+          || docId == 'wm2026_points_shard_09'
+          || docId == 'wm2026_points_shard_10'
+          || docId == 'wm2026_points_shard_11'
+          || docId == 'wm2026_points_shard_12'
+          || docId == 'wm2026_points_shard_13'
+          || docId == 'wm2026_points_shard_14'
+          || docId == 'wm2026_points_shard_15'
+        ))
         || (collection == 'Admin Auto Points Logs WM 2026' && isAdmin());
 
       allow create:

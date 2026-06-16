@@ -67,8 +67,11 @@
         teamsCollection: null,
         pointsCollection: null,
         fixturesCollection: null,
+        includeFixtures: true,
         fixturesBundleCollection: 'public_cache',
         fixturesBundleDocId: 'wm2026_fixtures',
+        pointsCacheCollection: 'public_cache',
+        pointsShardDocPrefix: 'wm2026_points_shard_',
         fallbackMaxAgeMs: 10 * 60 * 1000,
         // Wie lange das zuletzt gelesene Meta-Dokument für andere Seiten
         // derselben Browser-Session als "frisch genug" gilt. In dieser
@@ -127,6 +130,15 @@
     function toPositiveInteger(value) {
         const n = Number(value);
         return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+    }
+
+    function isPlainObject(value) {
+        return !!value && typeof value === 'object' && !Array.isArray(value);
+    }
+
+    function getPublicPointsShardDocId(index, cfg) {
+        const prefix = (cfg && cfg.pointsShardDocPrefix) || DEFAULTS.pointsShardDocPrefix;
+        return `${prefix}${String(index).padStart(2, '0')}`;
     }
 
     function resolveFixtureCountConfig(cfg) {
@@ -354,6 +366,13 @@
             pointsUpdatedAt: toNumberOrNull(source.pointsUpdatedAt),
             fixturesUpdatedAt: toNumberOrNull(source.fixturesUpdatedAt),
             fixturesCacheGeneratedAt: toNumberOrNull(source.fixturesCacheGeneratedAt),
+            pointsCacheGeneratedAt: toNumberOrNull(source.pointsCacheGeneratedAt),
+            pointsShardCount: toNumberOrNull(source.pointsShardCount),
+            pointsDeltaDocId: typeof source.pointsDeltaDocId === 'string' && source.pointsDeltaDocId
+                ? source.pointsDeltaDocId
+                : null,
+            pointsDeltaBaseVersion: toNumberOrNull(source.pointsDeltaBaseVersion),
+            pointsDeltaNextVersion: toNumberOrNull(source.pointsDeltaNextVersion),
             fetchedAt: now()
         };
     }
@@ -441,12 +460,18 @@
             || (app && app.firestore && typeof app.firestore.pointsCollection === 'function' ? app.firestore.pointsCollection() : null)
             || `Punkte Spieler WM ${cfg.year}`;
 
-        cfg.fixturesCollection = cfg.fixturesCollection
-            || (app && app.firestore && typeof app.firestore.fixturesCollection === 'function' ? app.firestore.fixturesCollection() : null)
-            || null;
+        if (cfg.includeFixtures === false) {
+            cfg.fixturesCollection = null;
+        } else {
+            cfg.fixturesCollection = cfg.fixturesCollection
+                || (app && app.firestore && typeof app.firestore.fixturesCollection === 'function' ? app.firestore.fixturesCollection() : null)
+                || null;
+        }
 
         cfg.fixturesBundleCollection = cfg.fixturesBundleCollection || DEFAULTS.fixturesBundleCollection;
         cfg.fixturesBundleDocId = cfg.fixturesBundleDocId || DEFAULTS.fixturesBundleDocId;
+        cfg.pointsCacheCollection = cfg.pointsCacheCollection || DEFAULTS.pointsCacheCollection;
+        cfg.pointsShardDocPrefix = cfg.pointsShardDocPrefix || DEFAULTS.pointsShardDocPrefix;
         cfg.fixtureCount = cfg.fixtureCount || (app && app.fixtureCount) || null;
 
         cfg.keys = buildKeys(cfg);
@@ -474,7 +499,7 @@
         if (kind === 'teams') {
             validator = (data) => isValidTeamsData(data, cfg.allowEmptyTeams);
         } else if (kind === 'fixtures') {
-            validator = (data) => isValidFixturesData(data, cfg.allowEmptyFixtures, cfg, meta) && !fixturesContainActiveStatus(data);
+            validator = (data) => isValidFixturesData(data, cfg.allowEmptyFixtures, cfg, meta);
         } else {
             validator = (data) => isValidPointsData(data, cfg.allowEmptyPoints, cfg, meta);
         }
@@ -498,6 +523,17 @@
                 : backupValid
                     ? backup.savedAt
                     : 0
+        };
+    }
+
+    function skippedDatasetState(data) {
+        return {
+            current: null,
+            backup: null,
+            valid: true,
+            usedBackup: false,
+            data,
+            savedAt: 0
         };
     }
 
@@ -606,7 +642,15 @@
             ? ['fixturesVersion', 'fixturesUpdatedAt', 'fixturesCacheGeneratedAt']
             : kind === 'teams'
                 ? ['teamsVersion', 'teamsUpdatedAt']
-                : ['pointsVersion', 'pointsUpdatedAt'];
+                : [
+                    'pointsVersion',
+                    'pointsUpdatedAt',
+                    'pointsCacheGeneratedAt',
+                    'pointsShardCount',
+                    'pointsDeltaDocId',
+                    'pointsDeltaBaseVersion',
+                    'pointsDeltaNextVersion'
+                ];
         keys.forEach((key) => {
             nextMeta[key] = localMeta[key];
         });
@@ -675,7 +719,135 @@
         return teams;
     }
 
-    async function fetchPoints(cfg) {
+    function metaMatchesCacheDocument(doc, cfg) {
+        if (!doc || typeof doc !== 'object') return false;
+        return doc.tournamentKey === cfg.tournamentKey && String(doc.year) === String(cfg.year);
+    }
+
+    function isValidPointsDeltaDocument(delta, cfg, remoteMeta) {
+        if (!metaMatchesCacheDocument(delta, cfg)) return false;
+        if (delta.kind !== 'points_delta') return false;
+        if (delta.baseVersion !== remoteMeta.pointsDeltaBaseVersion) return false;
+        if (delta.nextVersion !== remoteMeta.pointsDeltaNextVersion) return false;
+        if (delta.pointsVersion !== remoteMeta.pointsVersion) return false;
+        if (delta.set != null && !isPlainObject(delta.set)) return false;
+        if (delta.delete != null && !Array.isArray(delta.delete)) return false;
+
+        const setMap = delta.set || {};
+        const deleteList = delta.delete || [];
+        if (!Object.values(setMap).every(isPlainObject)) return false;
+        if (!deleteList.every((id) => typeof id === 'string' && id)) return false;
+        return true;
+    }
+
+    async function fetchPointsDelta(cfg, remoteMeta, pointsState, localMeta) {
+        if (!remoteMeta || !remoteMeta.pointsDeltaDocId) return null;
+        if (!pointsState || !pointsState.valid || !isPlainObject(pointsState.data)) return null;
+        if (!localMeta || localMeta.pointsVersion !== remoteMeta.pointsDeltaBaseVersion) return null;
+        if (remoteMeta.pointsDeltaNextVersion !== remoteMeta.pointsVersion) return null;
+        if (remoteMeta.pointsVersion === null || remoteMeta.pointsDeltaBaseVersion === null) return null;
+
+        try {
+            const snap = await cfg.db.collection(cfg.pointsCacheCollection).doc(remoteMeta.pointsDeltaDocId).get();
+            if (!snap.exists) {
+                log(cfg, 'Points-Delta fehlt, versuche Shards/Collection.');
+                return null;
+            }
+
+            const delta = snap.data() || {};
+            if (!isValidPointsDeltaDocument(delta, cfg, remoteMeta)) {
+                log(cfg, 'Points-Delta ungueltig, versuche Shards/Collection.');
+                return null;
+            }
+
+            const nextPoints = { ...(pointsState.data || {}) };
+            Object.entries(delta.set || {}).forEach(([playerId, pointDoc]) => {
+                nextPoints[String(playerId)] = pointDoc;
+            });
+            (delta.delete || []).forEach((playerId) => {
+                delete nextPoints[String(playerId)];
+            });
+
+            const normalized = normalizePointsData(nextPoints);
+            if (!isValidPointsData(normalized, cfg.allowEmptyPoints, cfg, remoteMeta)) {
+                log(cfg, 'Points-Delta Ergebnis ungueltig, versuche Shards/Collection.');
+                return null;
+            }
+
+            return normalized;
+        } catch (err) {
+            log(cfg, 'Points-Delta-Fetch fehlgeschlagen:', err);
+            return null;
+        }
+    }
+
+    function getRemotePointsShardCount(remoteMeta) {
+        if (!remoteMeta || !Number.isInteger(remoteMeta.pointsShardCount) || remoteMeta.pointsShardCount <= 0) {
+            return 0;
+        }
+        return remoteMeta.pointsShardCount;
+    }
+
+    async function fetchPointsShards(cfg, remoteMeta) {
+        const shardCount = getRemotePointsShardCount(remoteMeta);
+        if (!remoteMeta || typeof remoteMeta.pointsCacheGeneratedAt !== 'number') return null;
+        if (!shardCount || typeof remoteMeta.pointsVersion !== 'number') return null;
+
+        try {
+            const snaps = await Promise.all(
+                Array.from({ length: shardCount }, (_, index) => (
+                    cfg.db
+                        .collection(cfg.pointsCacheCollection)
+                        .doc(getPublicPointsShardDocId(index, cfg))
+                        .get()
+                ))
+            );
+
+            const points = {};
+            for (let index = 0; index < snaps.length; index++) {
+                const snap = snaps[index];
+                if (!snap.exists) {
+                    log(cfg, `Points-Shard ${index} fehlt, nutze Collection-Fallback.`);
+                    return null;
+                }
+
+                const shard = snap.data() || {};
+                if (
+                    !metaMatchesCacheDocument(shard, cfg) ||
+                    shard.kind !== 'points_shard' ||
+                    shard.cacheGenerationMs !== remoteMeta.pointsCacheGeneratedAt ||
+                    shard.pointsVersion !== remoteMeta.pointsVersion ||
+                    shard.shardIndex !== index ||
+                    shard.shardCount !== shardCount ||
+                    !isPlainObject(shard.points)
+                ) {
+                    log(cfg, `Points-Shard ${index} ungueltig/veraltet, nutze Collection-Fallback.`);
+                    return null;
+                }
+
+                Object.assign(points, shard.points);
+            }
+
+            const normalized = normalizePointsData(points);
+            if (!isValidPointsData(normalized, cfg.allowEmptyPoints, cfg, remoteMeta)) {
+                log(cfg, 'Points-Shards Ergebnis ungueltig, nutze Collection-Fallback.');
+                return null;
+            }
+
+            return normalized;
+        } catch (err) {
+            log(cfg, 'Points-Shards-Fetch fehlgeschlagen:', err);
+            return null;
+        }
+    }
+
+    async function fetchPoints(cfg, remoteMeta, pointsState, localMeta) {
+        const deltaPoints = await fetchPointsDelta(cfg, remoteMeta, pointsState, localMeta);
+        if (deltaPoints) return deltaPoints;
+
+        const shardedPoints = await fetchPointsShards(cfg, remoteMeta);
+        if (shardedPoints) return shardedPoints;
+
         const snap = await cfg.db.collection(cfg.pointsCollection).get();
         const points = {};
         snap.forEach((doc) => {
@@ -712,11 +884,6 @@
                 return null;
             }
 
-            if (fixturesContainActiveStatus(fixtures)) {
-                log(cfg, 'Fixture-Bundle enthaelt Live-Daten, nutze Collection-Fallback fuer frische Spielereignisse.');
-                return null;
-            }
-
             return fixtures;
         } catch (err) {
             log(cfg, 'Fixture-Bundle-Fetch fehlgeschlagen:', err);
@@ -749,7 +916,9 @@
         const metaState = readMetaState(cfg);
         const teamsState = readDatasetState('teams', cfg, metaState.data);
         const pointsState = readDatasetState('points', cfg, metaState.data);
-        const fixturesState = readDatasetState('fixtures', cfg, metaState.data);
+        const fixturesState = cfg.includeFixtures === false
+            ? skippedDatasetState({})
+            : readDatasetState('fixtures', cfg, metaState.data);
         const fixturesOk = !cfg.fixturesCollection || fixturesState.valid;
 
         return {
@@ -777,7 +946,9 @@
         const localMetaState = readMetaState(cfg);
         const teamsState = readDatasetState('teams', cfg, localMetaState.data);
         const pointsState = readDatasetState('points', cfg, localMetaState.data);
-        const fixturesState = readDatasetState('fixtures', cfg, localMetaState.data);
+        const fixturesState = cfg.includeFixtures === false
+            ? skippedDatasetState({})
+            : readDatasetState('fixtures', cfg, localMetaState.data);
 
         let teams = teamsState.data;
         let points = pointsState.data;
@@ -852,7 +1023,7 @@
 
         if (needPoints) {
             try {
-                const freshPoints = await fetchPoints(cfg);
+                const freshPoints = await fetchPoints(cfg, remoteMeta, pointsState, localMetaState.data);
 
                 if (isValidPointsData(freshPoints, cfg.allowEmptyPoints, cfg, remoteMeta)) {
                     points = freshPoints;
