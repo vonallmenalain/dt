@@ -300,6 +300,10 @@ const APP_CONFIG = (() => {
         competitionId: 1,
         season: "2026"
       },
+      fixtureCount: {
+        minPublished: 72,
+        expectedFinal: 104
+      },
       firestore: {
         metaCollection: "app_meta",
         metaDocId: "turnier_wm2026",
@@ -936,6 +940,10 @@ const APP_CONFIG = (() => {
 
     get timezone() {
       return getActiveTournament().timezone || "Europe/Zurich";
+    },
+
+    get fixtureCount() {
+      return getActiveTournament().fixtureCount || null;
     },
 
     get DREAMTEAM_START() {

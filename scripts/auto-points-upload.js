@@ -158,6 +158,64 @@ const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
 const MAX_CHANGED_PLAYER_LOG_DOCS = 1200;
 const MAX_AUDIT_FIXTURE_EVENTS = 300;
 
+function getFixtureCountConfig(tournament) {
+  const raw = tournament && tournament.fixtureCount && typeof tournament.fixtureCount === 'object'
+    ? tournament.fixtureCount
+    : {};
+  const minPublished = Number(raw.minPublished || raw.min || 0);
+  const expectedFinal = Number(raw.expectedFinal || raw.final || 0);
+  return {
+    minPublished: Number.isFinite(minPublished) && minPublished > 0 ? Math.floor(minPublished) : 0,
+    expectedFinal: Number.isFinite(expectedFinal) && expectedFinal > 0 ? Math.floor(expectedFinal) : 0
+  };
+}
+
+function cleanText(value) {
+  return value == null ? '' : String(value).trim();
+}
+
+function isKnownFixtureTeamName(value) {
+  const text = cleanText(value).toUpperCase();
+  return !!text && text !== 'TBD' && text !== 'TBA' && text !== '-' && text !== '?';
+}
+
+function countKnownFixtureTeamSlots(fixtures) {
+  return (fixtures || []).reduce((acc, fixture) => {
+    const teams = fixture && fixture.teams ? fixture.teams : {};
+    const home = teams.home || {};
+    const away = teams.away || {};
+    if (isKnownFixtureTeamName(home.name)) acc.names++;
+    if (isKnownFixtureTeamName(away.name)) acc.names++;
+    if (cleanText(home.logo)) acc.logos++;
+    if (cleanText(away.logo)) acc.logos++;
+    return acc;
+  }, { names: 0, logos: 0 });
+}
+
+function assertApiFixtureListSafe(tournament, fixtures, contextLabel) {
+  const fixtureCount = getFixtureCountConfig(tournament);
+  const minPublished = fixtureCount.minPublished;
+  if (!minPublished) return;
+
+  const incomingCount = Array.isArray(fixtures) ? fixtures.length : 0;
+  if (incomingCount < minPublished) {
+    throw new Error(
+      `${contextLabel} abgebrochen: API lieferte nur ${incomingCount} Fixtures, ` +
+      `erwartet sind aktuell mindestens ${minPublished}.`
+    );
+  }
+
+  const requiredKnownSlots = minPublished * 2;
+  const knownSlots = countKnownFixtureTeamSlots(fixtures);
+  if (knownSlots.names < requiredKnownSlots || knownSlots.logos < requiredKnownSlots) {
+    throw new Error(
+      `${contextLabel} abgebrochen: API-Fixture-Liste wirkt unvollstaendig ` +
+      `(${knownSlots.names}/${requiredKnownSlots} Teamnamen, ` +
+      `${knownSlots.logos}/${requiredKnownSlots} Logos fuer die publizierten Spiele).`
+    );
+  }
+}
+
 let activeAuditLog = null;
 
 function envBool(name, fallback = false) {
@@ -950,6 +1008,18 @@ async function refreshFixturePlanCache(db, tournament, opts, cache) {
   return cache;
 }
 
+function assertFixturePlanCacheSafe(tournament, cache) {
+  const minPublished = getFixtureCountConfig(tournament).minPublished;
+  if (!minPublished) return;
+  const count = cache && Array.isArray(cache.all) ? cache.all.length : 0;
+  if (count < minPublished) {
+    throw new Error(
+      `Fixture-Plan-Cache unvollstaendig: Firestore enthaelt nur ${count} Fixtures, ` +
+      `erwartet sind aktuell mindestens ${minPublished}.`
+    );
+  }
+}
+
 function getFixturePlanCache(opts) {
   if (!opts.fixturePlanCache || typeof opts.fixturePlanCache !== 'object') {
     opts.fixturePlanCache = {};
@@ -965,6 +1035,7 @@ async function ensureFixturePlanCacheLoaded(db, tournament, opts, forceRefresh =
   } else {
     rememberFixturePlanReadForAudit(opts, 0, false, true);
   }
+  assertFixturePlanCacheSafe(tournament, cache);
   return cache;
 }
 
@@ -1799,6 +1870,11 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
       }
     }
 
+    if (!hasPoints && isPartialWrite && !opts.allowPartialPointDeletes) {
+      skipped++;
+      continue;
+    }
+
     if (hasPoints) {
       obj.lastUpdated = FieldValue.serverTimestamp();
     }
@@ -2367,6 +2443,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
   }
 
   const allApiGames = fixData.response.filter(f => f && f.fixture && f.fixture.id != null);
+  assertApiFixtureListSafe(tournament, allApiGames, 'Punkte-Workflow');
   const apiGamesById = new Map(allApiGames.map(g => [String(g.fixture.id), g]));
   const finishedGames = allApiGames.filter(isFinishedFixture);
   const candidateGames = candidateFixtureIds
@@ -2552,7 +2629,18 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   Object.values(allPlayerPoints).forEach(recalculateTotalPoints);
 
-  const writeResult = await writePointsToFirestore(db, tournament, allPlayerPoints, opts, changedPlayerIds, existingPoints);
+  const allowPartialPointDeletes = !changedPlayerIds || scoringGames.every(isFinishedFixture);
+  if (changedPlayerIds && !allowPartialPointDeletes) {
+    logInfo('Live-/Pre-Match-Delta: leere Spieler-Dokumente werden nicht geloescht, sondern uebersprungen.');
+  }
+  const writeResult = await writePointsToFirestore(
+    db,
+    tournament,
+    allPlayerPoints,
+    { ...opts, allowPartialPointDeletes },
+    changedPlayerIds,
+    existingPoints
+  );
   if (opts.audit) {
     opts.audit.writeResult = {
       written: writeResult.written,

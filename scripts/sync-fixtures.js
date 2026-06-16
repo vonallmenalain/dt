@@ -183,6 +183,85 @@ function shouldFetchFixtureEvents(fixture) {
     getFixtureGoalTotal(fixture) > 0;
 }
 
+function getFixtureCountConfig(tournament) {
+  const raw = tournament && tournament.fixtureCount && typeof tournament.fixtureCount === 'object'
+    ? tournament.fixtureCount
+    : {};
+  const minPublished = Number(raw.minPublished || raw.min || 0);
+  const expectedFinal = Number(raw.expectedFinal || raw.final || 0);
+  return {
+    minPublished: Number.isFinite(minPublished) && minPublished > 0 ? Math.floor(minPublished) : 0,
+    expectedFinal: Number.isFinite(expectedFinal) && expectedFinal > 0 ? Math.floor(expectedFinal) : 0
+  };
+}
+
+function cleanText(value) {
+  return value == null ? '' : String(value).trim();
+}
+
+function isKnownTeamName(value) {
+  const text = cleanText(value).toUpperCase();
+  return !!text && text !== 'TBD' && text !== 'TBA' && text !== '-' && text !== '?';
+}
+
+function countKnownFixtureTeamSlots(fixtures) {
+  return (fixtures || []).reduce((acc, fixture) => {
+    const teams = fixture && fixture.teams ? fixture.teams : {};
+    const home = teams.home || {};
+    const away = teams.away || {};
+    if (isKnownTeamName(home.name)) acc.names++;
+    if (isKnownTeamName(away.name)) acc.names++;
+    if (cleanText(home.logo)) acc.logos++;
+    if (cleanText(away.logo)) acc.logos++;
+    return acc;
+  }, { names: 0, logos: 0 });
+}
+
+async function getExistingFixtureCount(db, tournament) {
+  const collectionName = tournament && tournament.firestore && tournament.firestore.fixturesCollection;
+  if (!collectionName) return 0;
+  const snap = await db.collection(collectionName).select().get();
+  return snap.size || 0;
+}
+
+async function assertFixtureSyncIsSafe(db, tournament, fixtures) {
+  const fixtureCount = getFixtureCountConfig(tournament);
+  const minPublished = fixtureCount.minPublished;
+  const incomingCount = Array.isArray(fixtures) ? fixtures.length : 0;
+
+  if (minPublished > 0 && incomingCount < minPublished) {
+    throw new Error(
+      `Fixture-Sync abgebrochen: API lieferte nur ${incomingCount} Spiele, ` +
+      `erwartet sind aktuell mindestens ${minPublished}.`
+    );
+  }
+
+  const existingCount = await getExistingFixtureCount(db, tournament);
+  if (existingCount > 0 && incomingCount < existingCount) {
+    throw new Error(
+      `Fixture-Sync abgebrochen: API lieferte ${incomingCount} Spiele, ` +
+      `Firestore enthaelt bereits ${existingCount}. Ein Rueckschritt wuerde den Spielplan leeren.`
+    );
+  }
+
+  if (minPublished > 0) {
+    const requiredKnownSlots = minPublished * 2;
+    const knownSlots = countKnownFixtureTeamSlots(fixtures);
+    if (knownSlots.names < requiredKnownSlots || knownSlots.logos < requiredKnownSlots) {
+      throw new Error(
+        `Fixture-Sync abgebrochen: API-Daten wirken unvollstaendig ` +
+        `(${knownSlots.names}/${requiredKnownSlots} Teamnamen, ` +
+        `${knownSlots.logos}/${requiredKnownSlots} Logos fuer die publizierten Spiele).`
+      );
+    }
+  }
+
+  logInfo(
+    `Fixture-Guard ok: API=${incomingCount}, Firestore bisher=${existingCount}, ` +
+    `Minimum=${minPublished || 'n/a'}, Final-Erwartung=${fixtureCount.expectedFinal || 'n/a'}.`
+  );
+}
+
 async function fetchVenueDetails(venueId, apiKey, venueCache) {
   if (!venueId) return null;
   const idStr = String(venueId);
@@ -431,6 +510,7 @@ async function runSync(db, tournament, opts) {
 
   const allFixtures = fixData.response;
   logInfo(`${allFixtures.length} Spiele von der API erhalten.`);
+  await assertFixtureSyncIsSafe(db, tournament, allFixtures);
 
   // Eindeutige Venues sammeln und (optional) laden.
   const uniqueVenueIds = new Set();

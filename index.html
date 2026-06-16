@@ -9019,6 +9019,8 @@
     const FINISHED_MATCH_STATUSES = ['FT', 'AET', 'PEN'];
     const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
     const OPTIMISTIC_LIVE_WINDOW_MIN = 150;
+    const MAX_NEXT_MATCH_CARDS = 5;
+    const MAX_FUTURE_MATCH_CARDS = 3;
 
     function isMatchFinishedStatus(statusShort) {
         return FINISHED_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
@@ -9624,8 +9626,7 @@
             .filter(({ timingState }) => {
                 return !timingState.isFinished && !timingState.isLive && !timingState.isUpdateOpen;
             })
-            .sort(compareMatchEntriesByKickoff)
-            .slice(0, 3);
+            .sort(compareMatchEntriesByKickoff);
         const hasRunningMatch = liveMatches.length > 0 || updateOpenMatches.length > 0;
         const latestFinishedMatches = hasRunningMatch
             ? []
@@ -9634,12 +9635,16 @@
                 .sort(compareFinishedMatchEntriesByRecency)
                 .slice(0, 1);
         const displayedFinishedMatches = new Set(latestFinishedMatches.map(({ match }) => match));
-
-        let upcoming = [
+        const priorityMatches = [
             ...liveMatches,
             ...updateOpenMatches,
-            ...latestFinishedMatches,
-            ...upcomingFuture
+            ...latestFinishedMatches
+        ];
+        const futureSlots = Math.min(MAX_FUTURE_MATCH_CARDS, Math.max(0, MAX_NEXT_MATCH_CARDS - priorityMatches.length));
+
+        let upcoming = [
+            ...priorityMatches,
+            ...upcomingFuture.slice(0, futureSlots)
         ].map(({ match }) => match);
 
         // If no real upcoming data available, use turnier-spezifische Fallbacks
