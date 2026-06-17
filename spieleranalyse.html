@@ -7757,18 +7757,24 @@
         const timingState = getScheduleTimingState(match, referenceMs);
         const isLive = timingState.isLive || ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'].includes(statusShort);
         const isUpdateOpen = timingState.isUpdateOpen;
+        const hasKickoffReached = !timingState.kickoffMs || referenceMs >= timingState.kickoffMs;
         const catalogMatch = typeof findMatchCatalogForScheduleEntry === 'function'
             ? findMatchCatalogForScheduleEntry(match)
             : null;
         const hasRecordedResult = !!(catalogMatch && getScheduleScoreParts(match, catalogMatch));
-        const isFinished = timingState.isFinished || ['FT', 'AET', 'PEN'].includes(statusShort) || (!isLive && !isUpdateOpen && hasRecordedResult);
+        // Pre-match lineups can create a temporary "0:0" points result before
+        // kickoff. Keep those games upcoming until the actual start time.
+        const resultCountsAsPlayed = hasRecordedResult && hasKickoffReached;
+        const isFinished = timingState.isFinished || ['FT', 'AET', 'PEN'].includes(statusShort) || (!isLive && !isUpdateOpen && resultCountsAsPlayed);
         return {
             timingState,
             isFinished,
             isLive,
             isUpdateOpen,
             isUpcoming: !isFinished && !isLive && !isUpdateOpen,
-            isRecentFinished: isRecentScheduleFinished(match, { ...timingState, isFinished }, referenceMs)
+            isRecentFinished: isRecentScheduleFinished(match, { ...timingState, isFinished }, referenceMs),
+            hasRecordedResult,
+            resultCountsAsPlayed
         };
     }
 
@@ -8604,7 +8610,7 @@
                 const mc = findMatchCatalogForScheduleEntry(m);
                 const scoreParts = getScheduleScoreParts(m, mc);
                 const statusInfo = getScheduleStatusInfo(m);
-                const isFinished = statusInfo.isFinished || (!!mc && !!scoreParts);
+                const isFinished = statusInfo.isFinished;
                 const isLive = statusInfo.isLive;
                 const isUpdateOpen = statusInfo.isUpdateOpen;
                 const kickoffMetaHtml = isFinished && validDt
@@ -8942,6 +8948,14 @@
         const seen = new Set();
 
         const addMatch = (m, mc, fallbackKey) => {
+            const scheduledMatch = mc?.rawMatchId !== undefined && mc?.rawMatchId !== null
+                ? findScheduleEntryForRawMatchId(mc.rawMatchId)
+                : (scheduleCatalog.includes(m) ? m : null);
+            if (scheduledMatch) {
+                const statusInfo = getScheduleStatusInfo(scheduledMatch);
+                if (!statusInfo.isLive && !statusInfo.isUpdateOpen && !statusInfo.isFinished) return;
+            }
+
             const score = getTournamentMatchScore(m, mc);
             if (!score) return;
             if (!Number.isFinite(score.homeGoals) || !Number.isFinite(score.awayGoals)) return;
