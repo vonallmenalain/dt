@@ -9472,15 +9472,45 @@
     function sumPointBucket(value) {
         if (typeof value === 'number' && Number.isFinite(value)) return value;
         if (!value || typeof value !== 'object') return 0;
-        return Object.values(value).reduce((sum, item) => {
+
+        const explicitTotal = value.TotalPunkte ?? value.Punkte;
+        if (typeof explicitTotal === 'number' && Number.isFinite(explicitTotal)) return explicitTotal;
+
+        const lineup = value.Aufstellung;
+        if (lineup && typeof lineup === 'object' && !Array.isArray(lineup)) {
+            return sumPointBucket(lineup);
+        }
+
+        const metaKeys = new Set(['MatchID', 'matchId', 'fixtureId', 'id']);
+        return Object.entries(value).reduce((sum, [key, item]) => {
+            if (metaKeys.has(key)) return sum;
             return sum + (typeof item === 'number' && Number.isFinite(item) ? item : 0);
         }, 0);
+    }
+
+    function getPlayerFixturePoint(doc, matchId) {
+        const numericId = Number(matchId);
+
+        for (const [key, val] of Object.entries(doc || {})) {
+            if (!key.startsWith('Spiel_') || !val || typeof val !== 'object') continue;
+
+            const keyId = key.replace(/^Spiel_/, '');
+            const rawId = val.MatchID ?? val.matchId ?? val.fixtureId ?? val.id ?? keyId;
+            const sameStringId = rawId !== undefined && String(rawId) === String(matchId);
+            const sameNumericId = Number.isFinite(numericId) && Number(rawId) === numericId;
+            if (sameStringId || sameNumericId) return val;
+        }
+
+        return null;
     }
 
     function getPlayerMatchPoints(data, playerId, matchId) {
         if (!data || playerId === undefined || playerId === null || matchId === undefined || matchId === null) return null;
         const doc = data.points?.[String(playerId)];
         if (!doc || typeof doc !== 'object') return null;
+
+        const fixturePoint = getPlayerFixturePoint(doc, matchId);
+        if (fixturePoint) return sumPointBucket(fixturePoint);
 
         const matchKeys = [String(matchId)];
         const numericId = Number(matchId);
@@ -9491,17 +9521,6 @@
             if (Object.prototype.hasOwnProperty.call(matches, key)) {
                 return sumPointBucket(matches[key]);
             }
-        }
-
-        for (const [key, val] of Object.entries(doc)) {
-            if (!key.startsWith('Spiel_') || !val || typeof val !== 'object') continue;
-            const rawId = val.MatchID ?? val.matchId ?? val.fixtureId ?? val.id;
-            const sameStringId = rawId !== undefined && String(rawId) === String(matchId);
-            const sameNumericId = Number.isFinite(numericId) && Number(rawId) === numericId;
-            if (!sameStringId && !sameNumericId) continue;
-            if (typeof val.TotalPunkte === 'number') return val.TotalPunkte;
-            if (typeof val.Punkte === 'number') return val.Punkte;
-            return null;
         }
 
         return null;

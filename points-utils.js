@@ -92,6 +92,31 @@
     return 0;
   }
 
+  function getFixtureMatchId(fixtureKey, fixturePoint) {
+    const rawId = fixturePoint && (
+      fixturePoint.MatchID ??
+      fixturePoint.matchId ??
+      fixturePoint.fixtureId ??
+      fixturePoint.id
+    );
+    if (rawId !== undefined && rawId !== null && rawId !== '') return String(rawId);
+    return String(fixtureKey || '').replace(/^Spiel_/, '');
+  }
+
+  function buildMatchBucketFromFixture(fixturePoint, fixtureTotal, ruleKeys = getRuleKeys()) {
+    const lineup = getFixtureLineup(fixturePoint);
+    if (lineup) {
+      const bucket = {};
+      ruleKeys.forEach((ruleKey) => {
+        const value = finiteNumber(lineup[ruleKey], 0);
+        if (value !== 0) bucket[ruleKey] = value;
+      });
+      return bucket;
+    }
+
+    return { TotalPunkte: finiteNumber(fixtureTotal, 0) };
+  }
+
   function getTopLevelRuleTotal(pointDoc, ruleKeys = getRuleKeys()) {
     if (!pointDoc || typeof pointDoc !== 'object') return 0;
     return ruleKeys.reduce((sum, key) => sum + finiteNumber(pointDoc[key], 0), 0);
@@ -110,6 +135,7 @@
     let hasFixtures = false;
     let hasAnyLineupValues = false;
     let fixtureTotalSum = 0;
+    const derivedMatches = {};
 
     Object.entries(pointDoc).forEach(([key, value]) => {
       if (!key.startsWith('Spiel_') || !value || typeof value !== 'object' || Array.isArray(value)) return;
@@ -133,9 +159,15 @@
 
       fixtureTotalSum += fixtureTotal;
       normalized[key] = fixtureCopy;
+
+      const matchId = getFixtureMatchId(key, fixtureCopy);
+      if (matchId) {
+        derivedMatches[matchId] = buildMatchBucketFromFixture(fixtureCopy, fixtureTotal, ruleKeys);
+      }
     });
 
     if (hasFixtures) {
+      normalized.matches = derivedMatches;
       if (hasAnyLineupValues) {
         ruleKeys.forEach((key) => { normalized[key] = aggregate[key]; });
       }
@@ -167,6 +199,7 @@
   const api = {
     getRuleKeys,
     getFixtureTotal,
+    getFixtureMatchId,
     getPlayerTotal,
     normalizePlayerPointDocument,
     normalizePointsMap
