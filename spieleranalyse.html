@@ -8692,7 +8692,7 @@
                 // re-renders the same players in larger cards.
                 const homeDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamA);
                 const awayDrafted = getDraftedPlayersForScheduleTeam(m, mc, m.teamB);
-                const showMatchPlayerPoints = (isLive || isFinished) && !!mc;
+                const showMatchPlayerPoints = !!mc;
                 const homeGoalsHtml = renderScheduleGoalEventList(m, m.teamA);
                 const awayGoalsHtml = renderScheduleGoalEventList(m, m.teamB);
                 const goalsStripHtml = (homeGoalsHtml || awayGoalsHtml)

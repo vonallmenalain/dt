@@ -3428,6 +3428,12 @@
             color: #fbbf24;
         }
 
+        .nm-time-badge.countdown {
+            background: rgba(248,113,113,0.14);
+            border-color: rgba(248,113,113,0.32);
+            color: #fca5a5;
+        }
+
         .nm-time-badge.live {
             background: rgba(248,113,113,0.18);
             border-color: rgba(248,113,113,0.35);
@@ -9102,6 +9108,7 @@
     const FINISHED_MATCH_STATUSES = ['FT', 'AET', 'PEN'];
     const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
     const OPTIMISTIC_LIVE_WINDOW_MIN = 150;
+    const PREMATCH_COUNTDOWN_WINDOW_MIN = 30;
     const MAX_NEXT_MATCH_CARDS = 5;
     const MAX_FUTURE_MATCH_CARDS = 3;
 
@@ -9224,6 +9231,11 @@
         if (statusShort === 'ET') return 'Verlaengerung';
         if (statusShort === 'P') return 'Elfmeterschiessen';
         return 'Live';
+    }
+
+    function formatPrematchCountdown(diffMin) {
+        const minutes = Math.max(1, Math.ceil(Number(diffMin) || 0));
+        return minutes === 1 ? 'Live in 1 Minute' : `Live in ${minutes} Minuten`;
     }
 
     function getMatchScoreParts(match) {
@@ -9818,6 +9830,10 @@
                         isLive = true;
                         timeBadgeText = formatMatchLiveMinute(match);
                         timeBadgeCls = 'live';
+                    } else if (diffMin >= 0 && diffMin <= PREMATCH_COUNTDOWN_WINDOW_MIN && swissDayDiff === 0) {
+                        timeBadgeText = formatPrematchCountdown(diffMin);
+                        timeBadgeCls = 'countdown';
+                        timeSubText = formatSwissMatchTime(matchDate);
                     } else if (diffMin >= 0 && swissDayDiff === 0) {
                         timeBadgeText = 'Heute';
                         timeBadgeCls = 'today';
@@ -9833,8 +9849,6 @@
             } else {
                 timeBadgeText = '–';
             }
-
-            const showPlayerPoints = isLive || isDisplayedFinished;
 
             // Venue line
             const venueText = match.venue && match.venue !== 'Spielort folgt'
@@ -9871,7 +9885,7 @@
             function buildChips(players) {
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
-                    const pts = showPlayerPoints ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
+                    const pts = getPlayerMatchPoints(data, player['player.id'], matchId);
                     const ptsHtml = pts !== null
                         ? `<span class="nm-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
                         : '';
@@ -9903,7 +9917,7 @@
 
                 return players.map(({ player, managers = [] }) => {
                     const url = `spieleranalyse.html?playerId=${encodeURIComponent(player['player.id'])}`;
-                    const pts = showPlayerPoints ? getPlayerMatchPoints(data, player['player.id'], matchId) : null;
+                    const pts = getPlayerMatchPoints(data, player['player.id'], matchId);
                     const ptsHtml = pts !== null
                         ? `<span class="nm-detail-player-points ${getPointsClass(pts)}">${escapeHtml(formatSignedPoints(pts))}</span>`
                         : '';
