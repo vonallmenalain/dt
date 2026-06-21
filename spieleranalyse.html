@@ -6925,6 +6925,16 @@
         });
     }
 
+    function getPointDocTotal(pointDoc) {
+        return window.DreamTeamPoints && typeof window.DreamTeamPoints.getPlayerTotal === 'function'
+            ? window.DreamTeamPoints.getPlayerTotal(pointDoc)
+            : (pointDoc && typeof pointDoc.totalPoints === 'number' ? pointDoc.totalPoints : 0);
+    }
+
+    function getPlayerTotalPoints(playerId) {
+        return getPointDocTotal(pointsData[String(playerId)]);
+    }
+
     function isTeamsLocked() {
         try {
             return !!(window.APP_CONFIG && window.APP_CONFIG.isPreStart && window.APP_CONFIG.isPreStart());
@@ -6984,15 +6994,12 @@
        ========================================================= */
     function calculatePerfectTeamIds() {
         perfectTeamIds = new Set();
-        const allPlayersWithPts = playersData.map(p => {
-            const pData = pointsData[String(p['player.id'])];
-            return {
-                id: String(p['player.id']),
-                nation: p['Nationalteam.name'],
-                pos: p.Position ? p.Position.toUpperCase() : 'UNKNOWN',
-                pts: pData ? (pData.totalPoints || 0) : 0
-            };
-        });
+        const allPlayersWithPts = playersData.map(p => ({
+            id: String(p['player.id']),
+            nation: p['Nationalteam.name'],
+            pos: p.Position ? p.Position.toUpperCase() : 'UNKNOWN',
+            pts: getPlayerTotalPoints(p['player.id'])
+        }));
 
         const selectedNations = new Set();
         const teamSlots = { GK: [], DEF: [], MID: [], ATT: [] };
@@ -7117,8 +7124,8 @@
 
         if (currentSort === 'pts') {
             filteredData.sort((a, b) => {
-                const ptsA = pointsData[String(a['player.id'])]?.totalPoints || 0;
-                const ptsB = pointsData[String(b['player.id'])]?.totalPoints || 0;
+                const ptsA = getPlayerTotalPoints(a['player.id']);
+                const ptsB = getPlayerTotalPoints(b['player.id']);
                 if (ptsB !== ptsA) return ptsB - ptsA;
                 return a.Spielername.localeCompare(b.Spielername, 'de');
             });
@@ -7140,8 +7147,7 @@
             div.setAttribute('role', 'listitem');
             if (player.Spielername === currentPlayerName) div.classList.add('active');
 
-            const ptsDoc = pointsData[String(player['player.id'])];
-            const pts = ptsDoc ? (ptsDoc.totalPoints || 0) : 0;
+            const pts = getPlayerTotalPoints(player['player.id']);
             const isDrafted = isPlayerDrafted(player['player.id']);
 
             div.innerHTML = `
@@ -7307,7 +7313,7 @@
 
         // Points badge
         const ptsDoc = pointsData[String(player['player.id'])];
-        const totalPts = ptsDoc ? (ptsDoc.totalPoints || 0) : 0;
+        const totalPts = getPointDocTotal(ptsDoc);
         const badge = document.getElementById('detail-total-pts');
         badge.textContent = `${totalPts > 0 ? '+' : ''}${totalPts} Pkt.`;
         badge.className = `player-score-pill ${totalPts > 0 ? 'pos' : (totalPts < 0 ? 'neg' : 'zero')}`;
@@ -10959,8 +10965,7 @@
     }
 
     function getPlayerBasePoints(playerId) {
-        const doc = pointsData[String(playerId)];
-        return doc && typeof doc.totalPoints === 'number' ? doc.totalPoints : 0;
+        return getPlayerTotalPoints(playerId);
     }
 
     // An "Einsatz" is counted as either being in the starting line-up
@@ -11111,7 +11116,7 @@
             club: player['Club.name'] || '–',
             clubLogo: player['Club.logo'] || '',
             photo: player.Spielerfoto || '',
-            totalPoints: typeof doc.totalPoints === 'number' ? doc.totalPoints : 0,
+            totalPoints: getPointDocTotal(doc),
             goals: 0, assists: 0, starts: 0, subbedIn: 0, subbedOut: 0,
             yellow: 0, red: 0,
             penGoals: 0, penMissed: 0, penSaved: 0, penCommitted: 0, penWon: 0,

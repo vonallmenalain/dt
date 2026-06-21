@@ -399,12 +399,16 @@
         if (count === 0) {
             return !!allowEmptyPoints && !shouldRequireNonEmptyDataset(cfg, meta, 'points');
         }
-        return true;
+        return Object.values(points).every((doc) => doc && typeof doc === 'object' && !Array.isArray(doc));
     }
 
     function normalizePointsData(points) {
         const helper = window.DreamTeamPoints;
         if (helper && typeof helper.normalizePointsMap === 'function') {
+            // Punktedokumente enthalten ein gespeichertes totalPoints-Aggregat
+            // und die pro Spiel abgeleiteten Details. Der Cache darf bei
+            // Konflikten nie das Aggregat gewinnen lassen, weil gerade PWA-
+            // Container alte localStorage/Firestore-Staende laenger behalten.
             return helper.normalizePointsMap(points);
         }
         return points;

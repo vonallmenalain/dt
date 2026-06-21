@@ -2007,11 +2007,10 @@ function buildPublicPointsCacheSource(allPlayerPoints, existingPoints, writeResu
       return;
     }
 
-    if (existingPoints && existingPoints[pid] && hasAnyPointValue(existingPoints[pid])) {
-      source[pid] = existingPoints[pid];
-      return;
-    }
-
+    // Public-Shards werden aus der rekalkulierten Basis geschrieben. Das
+    // verhindert, dass ein altes Shard-Dokument mit falschem totalPoints-
+    // Aggregat fuer unveraenderte Spieler wieder in die naechste Cache-
+    // Generation kopiert wird.
     source[pid] = current;
   });
 

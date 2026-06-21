@@ -3098,7 +3098,9 @@
         playerPointsData = {};
         playerPointDocs = rawPoints && typeof rawPoints === 'object' && !Array.isArray(rawPoints) ? rawPoints : {};
         Object.entries(rawPoints || {}).forEach(([id, docData]) => {
-            playerPointsData[id] = docData && typeof docData.totalPoints === 'number' ? docData.totalPoints : 0;
+            playerPointsData[id] = window.DreamTeamPoints && typeof window.DreamTeamPoints.getPlayerTotal === 'function'
+                ? window.DreamTeamPoints.getPlayerTotal(docData)
+                : (docData && typeof docData.totalPoints === 'number' ? docData.totalPoints : 0);
         });
     }
 

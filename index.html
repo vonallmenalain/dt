@@ -7102,7 +7102,9 @@
     function computeTotalPoints(points) {
         const result = {};
         Object.entries(points || {}).forEach(([id, doc]) => {
-            result[id] = (typeof doc?.totalPoints === 'number') ? doc.totalPoints : 0;
+            result[id] = window.DreamTeamPoints && typeof window.DreamTeamPoints.getPlayerTotal === 'function'
+                ? window.DreamTeamPoints.getPlayerTotal(doc)
+                : ((typeof doc?.totalPoints === 'number') ? doc.totalPoints : 0);
         });
         return result;
     }
@@ -10391,7 +10393,9 @@
     function champBuildPlayerPointsMap(rawPoints) {
         const map = {};
         Object.entries(rawPoints || {}).forEach(([id, docData]) => {
-            map[String(id)] = docData && typeof docData.totalPoints === 'number' ? docData.totalPoints : 0;
+            map[String(id)] = window.DreamTeamPoints && typeof window.DreamTeamPoints.getPlayerTotal === 'function'
+                ? window.DreamTeamPoints.getPlayerTotal(docData)
+                : (docData && typeof docData.totalPoints === 'number' ? docData.totalPoints : 0);
         });
         return map;
     }
