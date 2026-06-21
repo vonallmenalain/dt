@@ -16,7 +16,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-21-derived-points';
+const CACHE_VERSION = 'v2026-06-21-cache-refresh-1';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -100,8 +100,12 @@ self.addEventListener('activate', event => {
  *   3. Cache leer → trotzdem auf Netzwerk warten (besser etwas spaet als gar nichts).
  *   4. Netzwerk komplett aus → Cache, sonst Index-Fallback.
  */
-function fetchAndCache(request) {
-  return fetch(request).then((response) => {
+function fetchAndCache(request, options = {}) {
+  const networkRequest = options.bypassHttpCache
+    ? new Request(request, { cache: 'reload' })
+    : request;
+
+  return fetch(networkRequest).then((response) => {
     if (response && response.ok) {
       const copy = response.clone();
       caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
@@ -110,7 +114,7 @@ function fetchAndCache(request) {
   });
 }
 
-async function networkFirstWithTimeout(request, timeoutMs = 3000, matchOptions = undefined) {
+async function networkFirstWithTimeout(request, timeoutMs = 3000, matchOptions = undefined, options = {}) {
   const cached = await caches.match(request, matchOptions);
 
   let timeoutId;
@@ -120,7 +124,7 @@ async function networkFirstWithTimeout(request, timeoutMs = 3000, matchOptions =
 
   let networkPromise;
   try {
-    networkPromise = fetchAndCache(request);
+    networkPromise = fetchAndCache(request, options);
   } catch (err) {
     networkPromise = Promise.reject(err);
   }
@@ -164,6 +168,10 @@ function networkFirstIgnoreSearch(request) {
   return networkFirstWithTimeout(request, 3000, { ignoreSearch: true });
 }
 
+function networkFirstFreshIgnoreSearch(request) {
+  return networkFirstWithTimeout(request, 5000, { ignoreSearch: true }, { bypassHttpCache: true });
+}
+
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
@@ -192,12 +200,12 @@ self.addEventListener('fetch', event => {
   const isImageAsset = /\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$/.test(pathname);
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstIgnoreSearch(request));
+    event.respondWith(networkFirstFreshIgnoreSearch(request));
     return;
   }
 
   if (isCriticalAsset) {
-    event.respondWith(networkFirstIgnoreSearch(request));
+    event.respondWith(networkFirstFreshIgnoreSearch(request));
     return;
   }
 

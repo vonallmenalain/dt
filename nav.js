@@ -12,6 +12,15 @@
         }
         keysToDelete.forEach((key) => window.localStorage.removeItem(key));
 
+        const sessionKeysToDelete = [];
+        for (let i = 0; i < window.sessionStorage.length; i += 1) {
+            const key = window.sessionStorage.key(i);
+            if (key && key.toLowerCase().startsWith('dreamteam')) {
+                sessionKeysToDelete.push(key);
+            }
+        }
+        sessionKeysToDelete.forEach((key) => window.sessionStorage.removeItem(key));
+
         Promise.resolve()
             .then(async () => {
                 if ('caches' in window) {
@@ -47,10 +56,40 @@ function registerServiceWorker() {
         return;
     }
 
+    let reloadAfterControllerChange = !!navigator.serviceWorker.controller;
+    let controllerReloadStarted = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!reloadAfterControllerChange || controllerReloadStarted) {
+            reloadAfterControllerChange = true;
+            return;
+        }
+
+        controllerReloadStarted = true;
+        window.location.reload();
+    });
+
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+        navigator.serviceWorker.register('./service-worker.js', {
+            scope: './',
+            updateViaCache: 'none'
+        })
             .then(registration => {
                 console.log('[PWA] Service Worker registriert:', registration.scope);
+                registration.update().catch(() => { /* Update-Check darf die App nicht blockieren. */ });
+
+                let lastUpdateCheck = 0;
+                const checkForServiceWorkerUpdate = () => {
+                    const ageMs = Date.now() - lastUpdateCheck;
+                    if (ageMs < 5 * 60 * 1000) return;
+                    lastUpdateCheck = Date.now();
+                    registration.update().catch(() => { /* Offline/Background: spaeter erneut versuchen. */ });
+                };
+
+                window.addEventListener('online', checkForServiceWorkerUpdate);
+                window.addEventListener('focus', checkForServiceWorkerUpdate);
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) checkForServiceWorkerUpdate();
+                });
             })
             .catch(error => {
                 console.error('[PWA] Service Worker Registrierung fehlgeschlagen:', error);

@@ -79,6 +79,7 @@
         // Live-Listener liefert ohnehin Updates, sobald sich die
         // pointsVersion oder teamsVersion erhöht.
         sessionMetaTtlMs: 30 * 1000,
+        resumeRefreshMinIntervalMs: 30 * 1000,
         postStartEmptyGraceMs: 4 * 60 * 60 * 1000,
         minFixtureCount: null,
         allowEmptyTeams: true,
@@ -95,6 +96,18 @@
 
     function now() {
         return Date.now();
+    }
+
+    function isSnapshotFromCache(snap) {
+        return !!(snap && snap.metadata && snap.metadata.fromCache);
+    }
+
+    function getDocFromServer(ref) {
+        return ref.get({ source: 'server' });
+    }
+
+    function getCollectionFromServer(ref) {
+        return ref.get({ source: 'server' });
     }
 
     function toNumberOrNull(value) {
@@ -670,7 +683,7 @@
 
     async function fetchMeta(cfg) {
         try {
-            const snap = await cfg.db.collection(cfg.metaCollection).doc(cfg.metaDocId).get();
+            const snap = await getDocFromServer(cfg.db.collection(cfg.metaCollection).doc(cfg.metaDocId));
 
             if (!snap.exists) {
                 log(cfg, 'Kein Meta-Dokument gefunden:', cfg.metaCollection, cfg.metaDocId);
@@ -701,6 +714,10 @@
             return normalized;
         }
 
+        if (options && options.bypassSessionMeta === true) {
+            return fetchMeta(cfg);
+        }
+
         const session = readSessionMeta(cfg);
         const ttl = typeof cfg.sessionMetaTtlMs === 'number' && cfg.sessionMetaTtlMs >= 0
             ? cfg.sessionMetaTtlMs
@@ -715,7 +732,7 @@
     }
 
     async function fetchTeams(cfg) {
-        const snap = await cfg.db.collection(cfg.teamsCollection).get();
+        const snap = await getCollectionFromServer(cfg.db.collection(cfg.teamsCollection));
         const teams = [];
         snap.forEach((doc) => {
             teams.push(doc.data());
@@ -752,7 +769,7 @@
         if (remoteMeta.pointsVersion === null || remoteMeta.pointsDeltaBaseVersion === null) return null;
 
         try {
-            const snap = await cfg.db.collection(cfg.pointsCacheCollection).doc(remoteMeta.pointsDeltaDocId).get();
+            const snap = await getDocFromServer(cfg.db.collection(cfg.pointsCacheCollection).doc(remoteMeta.pointsDeltaDocId));
             if (!snap.exists) {
                 log(cfg, 'Points-Delta fehlt, versuche Shards/Collection.');
                 return null;
@@ -800,10 +817,11 @@
         try {
             const snaps = await Promise.all(
                 Array.from({ length: shardCount }, (_, index) => (
-                    cfg.db
-                        .collection(cfg.pointsCacheCollection)
-                        .doc(getPublicPointsShardDocId(index, cfg))
-                        .get()
+                    getDocFromServer(
+                        cfg.db
+                            .collection(cfg.pointsCacheCollection)
+                            .doc(getPublicPointsShardDocId(index, cfg))
+                    )
                 ))
             );
 
@@ -852,7 +870,7 @@
         const shardedPoints = await fetchPointsShards(cfg, remoteMeta);
         if (shardedPoints) return shardedPoints;
 
-        const snap = await cfg.db.collection(cfg.pointsCollection).get();
+        const snap = await getCollectionFromServer(cfg.db.collection(cfg.pointsCollection));
         const points = {};
         snap.forEach((doc) => {
             points[doc.id] = doc.data();
@@ -864,7 +882,7 @@
         if (!cfg.fixturesBundleCollection || !cfg.fixturesBundleDocId) return null;
 
         try {
-            const snap = await cfg.db.collection(cfg.fixturesBundleCollection).doc(cfg.fixturesBundleDocId).get();
+            const snap = await getDocFromServer(cfg.db.collection(cfg.fixturesBundleCollection).doc(cfg.fixturesBundleDocId));
             if (!snap.exists) {
                 log(cfg, 'Fixture-Bundle fehlt, nutze Collection-Fallback.');
                 return null;
@@ -903,7 +921,7 @@
         }
 
         try {
-            const snap = await cfg.db.collection(cfg.fixturesCollection).get();
+            const snap = await getCollectionFromServer(cfg.db.collection(cfg.fixturesCollection));
             const fixtures = {};
             snap.forEach((doc) => {
                 fixtures[doc.id] = doc.data();
@@ -1180,11 +1198,15 @@
         }
 
         return cfg.db.collection(cfg.metaCollection).doc(cfg.metaDocId).onSnapshot(
+            { includeMetadataChanges: true },
             (snap) => {
                 if (!snap.exists) return;
 
                 const remoteMeta = normalizeMeta(snap.data(), cfg.year, cfg.tournamentKey);
-                writeSessionMeta(cfg, remoteMeta);
+                const fromCache = isSnapshotFromCache(snap);
+                if (!fromCache) {
+                    writeSessionMeta(cfg, remoteMeta);
+                }
 
                 const localMeta = readMetaState(cfg).data;
 
@@ -1192,7 +1214,7 @@
                 const pointsChanged = hasChanged(remoteMeta, localMeta, 'points');
                 const fixturesChanged = !!cfg.fixturesCollection && hasChanged(remoteMeta, localMeta, 'fixtures');
 
-                if (teamsChanged || pointsChanged || fixturesChanged) {
+                if (!fromCache && (teamsChanged || pointsChanged || fixturesChanged)) {
                     options.onChange({
                         remoteMeta,
                         teamsChanged,
@@ -1278,6 +1300,7 @@
         //    übernimmt die Rolle des bisherigen separaten `fetchMeta()`.
         let listenerInitialFired = false;
         const unsubscribe = cfg.db.collection(cfg.metaCollection).doc(cfg.metaDocId).onSnapshot(
+            { includeMetadataChanges: true },
             async (snap) => {
                 if (!snap.exists) {
                     // Kein Meta-Dokument vorhanden. Wenn wir noch keinen
@@ -1292,6 +1315,11 @@
                         }
                     }
                     listenerInitialFired = true;
+                    return;
+                }
+
+                if (isSnapshotFromCache(snap)) {
+                    log(cfg, 'Meta-Snapshot aus Firestore-Cache ignoriert.');
                     return;
                 }
 
@@ -1322,7 +1350,48 @@
             }
         );
 
-        return unsubscribe;
+        let resumeRefreshInFlight = false;
+        let lastResumeRefreshAt = now();
+        const resumeRefreshMinIntervalMs = typeof cfg.resumeRefreshMinIntervalMs === 'number' && cfg.resumeRefreshMinIntervalMs >= 0
+            ? cfg.resumeRefreshMinIntervalMs
+            : DEFAULTS.resumeRefreshMinIntervalMs;
+
+        const refreshFromServer = async (reason) => {
+            if (resumeRefreshInFlight) return;
+            const ageMs = now() - lastResumeRefreshAt;
+            if (ageMs < resumeRefreshMinIntervalMs) return;
+
+            resumeRefreshInFlight = true;
+            lastResumeRefreshAt = now();
+
+            try {
+                const fresh = await loadBundle({ ...options, bypassSessionMeta: true });
+                if (onUpdate) {
+                    onUpdate(fresh.data, { ...fresh.info, refreshReason: reason });
+                }
+            } catch (err) {
+                if (onError) onError(err);
+            } finally {
+                resumeRefreshInFlight = false;
+            }
+        };
+
+        const handleVisible = () => {
+            if (!document.hidden) refreshFromServer('visible');
+        };
+        const handleOnline = () => refreshFromServer('online');
+        const handleFocus = () => refreshFromServer('focus');
+
+        document.addEventListener('visibilitychange', handleVisible);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            unsubscribe();
+            document.removeEventListener('visibilitychange', handleVisible);
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('focus', handleFocus);
+        };
     }
 
     async function bumpMetaVersion(options) {
