@@ -1964,6 +1964,47 @@
         .dark-sub-label.red { color: #f87171; }
         .dark-sub-label.muted { color: var(--text-muted); }
 
+        .dashboard-mini-list .dark-sub-label {
+            padding: 4px 0 3px;
+            margin: 0 0 1px !important;
+            font-size: 0.68rem;
+        }
+
+        .dashboard-mini-list .dark-bar-row + .dark-sub-label {
+            margin-top: 5px !important;
+        }
+
+        .dashboard-mini-list .dark-bar-row {
+            min-height: 30px;
+            padding: 4px 0;
+            gap: 7px;
+        }
+
+        .dashboard-mini-list .dark-bar-label {
+            min-width: 108px;
+            max-width: 126px;
+            font-size: 0.78rem;
+        }
+
+        .dashboard-mini-list .dark-bar-label a {
+            min-height: 0;
+            line-height: 1.18;
+        }
+
+        .dashboard-mini-list .dark-bar-track {
+            height: 5px;
+        }
+
+        .dashboard-mini-list .dark-bar-val {
+            font-size: 0.76rem;
+            min-width: 32px;
+        }
+
+        .dashboard-mini-list .age-badge {
+            padding: 2px 7px;
+            font-size: 0.76rem;
+        }
+
         /* Club row */
         .club-row {
             display: flex;
@@ -2119,12 +2160,29 @@
         }
 
         .pick-meta {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 0;
             font-size: 0.72rem;
             color: var(--text-muted);
             margin-top: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .pick-meta-names {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pick-meta-more {
+            flex: 0 0 auto;
+            color: #4ade80;
+            font-weight: 800;
         }
 
         .pick-pts {
@@ -4848,11 +4906,15 @@
         .tf-grid {
             display: grid;
             gap: 16px;
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
         }
 
         @media (min-width: 720px) {
-            .tf-grid { grid-template-columns: 1fr 1fr; }
+            .tf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .tf-grid > * {
+            min-width: 0;
         }
 
         .tf-block-h {
@@ -4889,8 +4951,12 @@
         }
 
         .tf-block-sub {
+            min-width: 0;
             font-size: 0.72rem;
             color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .picks-list {
@@ -6340,7 +6406,7 @@
                     <span class="gtile-title-icon">🔬</span> Scouting Barometer
                 </div>
             </div>
-            <div id="tile-scouting-barometer" aria-label="Scouting Barometer">
+            <div id="tile-scouting-barometer" class="dashboard-mini-list" aria-label="Scouting Barometer">
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
@@ -6354,7 +6420,7 @@
                     <span class="gtile-title-icon">🎂</span> Team-Altersstruktur
                 </div>
             </div>
-            <div id="tile-age-structure" aria-label="Team-Altersstruktur">
+            <div id="tile-age-structure" class="dashboard-mini-list" aria-label="Team-Altersstruktur">
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                 <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
@@ -6562,7 +6628,7 @@
                             <span class="gtile-title-icon">🔬</span> Scouting Barometer
                         </div>
                     </div>
-                    <div id="tile-post-scouting-barometer" aria-label="Scouting Barometer">
+                    <div id="tile-post-scouting-barometer" class="dashboard-mini-list" aria-label="Scouting Barometer">
                         <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                         <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                         <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
@@ -6576,7 +6642,7 @@
                             <span class="gtile-title-icon">🎂</span> Team-Altersstruktur
                         </div>
                     </div>
-                    <div id="tile-post-age-structure" aria-label="Team-Altersstruktur">
+                    <div id="tile-post-age-structure" class="dashboard-mini-list" aria-label="Team-Altersstruktur">
                         <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                         <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
                         <div class="skel" style="height:30px;margin-bottom:6px;border-radius:6px;"></div>
@@ -7985,6 +8051,31 @@
             .map((p) => ({ ...p, pts: ptMap[String(p['player.id'])] || 0 }))
             .sort((a, b) => b.pts - a.pts);
 
+        function buildPickedBySummary(managers) {
+            const names = (managers || [])
+                .map((name) => String(name || '').trim())
+                .filter(Boolean);
+            if (!names.length) {
+                return {
+                    html: '<span class="pick-meta-names">-</span>',
+                    title: '',
+                    aria: 'Von keinem Manager gewählt'
+                };
+            }
+
+            const visible = names.slice(0, 2);
+            const extraCount = Math.max(names.length - visible.length, 0);
+            const visibleHtml = `<span class="pick-meta-names">${escapeHtml(visible.join(', '))}</span>`;
+            const extraHtml = extraCount > 0 ? `<span class="pick-meta-more">+${extraCount}</span>` : '';
+            const countLabel = names.length === 1 ? '1 Manager' : `${names.length} Managern`;
+
+            return {
+                html: visibleHtml + extraHtml,
+                title: names.join(', '),
+                aria: `Gewählt von ${countLabel}: ${names.join(', ')}`
+            };
+        }
+
         function buildPicksHTML(list) {
             if (!list.length) return '<li><div class="empty-state"><div class="empty-state-icon">📊</div>Noch keine Daten</div></li>';
             return list.map((p, i) => {
@@ -7992,16 +8083,17 @@
                 const ptsClass = p.pts > 0 ? 'pos' : (p.pts < 0 ? 'neg' : 'zero');
                 const sign = p.pts > 0 ? '+' : '';
                 const rankCls = i === 0 ? 'gold' : (i === 1 ? 'silver' : (i === 2 ? 'bronze' : ''));
-                const pickedBy = teams
+                const pickedByManagers = teams
                     .filter((t) => (t.players || []).some((tp) => {
                         const full = resolvePlayer(tp);
                         return full && String(full['player.id']) === String(p['player.id']);
                     }))
-                    .map((t) => t.manager)
-                    .join(', ');
+                    .map((t) => t.manager);
+                const pickedBy = buildPickedBySummary(pickedByManagers);
+                const itemLabel = `${p.Spielername}, ${sign}${p.pts} Punkte. ${pickedBy.aria}`;
                 return `
                     <li>
-                        <a class="pick-item" href="${url}" aria-label="${escapeHtml(p.Spielername)}, ${sign}${p.pts} Punkte">
+                        <a class="pick-item" href="${url}" aria-label="${escapeHtml(itemLabel)}">
                             <span class="pick-rank ${rankCls}">${i + 1}</span>
                             <div class="pick-avatar-wrap">
                                 <img class="pick-avatar" src="${escapeHtml(p.Spielerfoto)}" alt="${escapeHtml(p.Spielername)}" loading="lazy">
@@ -8009,7 +8101,7 @@
                             </div>
                             <div class="pick-info">
                                 <div class="pick-name">${escapeHtml(p.Spielername)}</div>
-                                <div class="pick-meta">${escapeHtml(pickedBy)}</div>
+                                <div class="pick-meta" title="${escapeHtml(pickedBy.title)}">${pickedBy.html}</div>
                             </div>
                             <div class="pick-pts ${ptsClass}">${sign}${p.pts}</div>
                         </a>
