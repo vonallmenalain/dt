@@ -9,7 +9,8 @@
   "scripts": {
     "auto-upload": "node auto-points-upload.js",
     "sync-fixtures": "node sync-fixtures.js",
-    "test:points": "node test-points-utils.js"
+    "test:points": "node test-points-utils.js",
+    "test:cache": "node test-cache-freshness.js"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"

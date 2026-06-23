@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-    <link rel="manifest" href="Icons/site.webmanifest">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-06-23-freshness-1">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -36,7 +36,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-    <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=2026-06-23-freshness-1">
 
     <style>
         /* =====================================================
@@ -2181,16 +2181,16 @@
     </div>
 </div>
 
-<script src="tournament-config.js"></script>
-<script src="nav.js"></script>
+<script src="tournament-config.js?v=2026-06-23-freshness-1"></script>
+<script src="nav.js?v=2026-06-23-freshness-1"></script>
 
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="data.js"></script>
-<script src="points-utils.js"></script>
-<script src="cache.js"></script>
+<script src="data.js?v=2026-06-23-freshness-1"></script>
+<script src="points-utils.js?v=2026-06-23-freshness-1"></script>
+<script src="cache.js?v=2026-06-23-freshness-1"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css">
+<link rel="stylesheet" href="auth-modal.css?v=2026-06-23-freshness-1">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
@@ -4365,6 +4365,17 @@
         hasRenderedOnce = true;
     }
 
+    function isServerVerifiedCacheInfo(info) {
+        return !!(info && info.verifiedFromServer === true && info.stale !== true);
+    }
+
+    function showFreshnessError(message) {
+        const el = document.getElementById("loading");
+        if (!el) return;
+        el.style.display = "block";
+        el.textContent = message;
+    }
+
     function recomputeAndRender() {
         if (!lastRawData) return;
 
@@ -4498,8 +4509,18 @@
             if (!metaUnsubscribe) {
                 metaUnsubscribe = await DreamTeamCache.bootstrap({
                     ...CACHE_OPTIONS,
-                    onCachedReady: (data) => applyRankingData(data),
-                    onUpdate: (data) => {
+                    onCachedReady: (data, info) => {
+                        if (!isServerVerifiedCacheInfo(info)) {
+                            showFreshnessError(`Rangliste fuer ${TOURNAMENT_LABEL} wartet auf frische Serverdaten.`);
+                            return;
+                        }
+                        applyRankingData(data);
+                    },
+                    onUpdate: (data, info) => {
+                        if (!isServerVerifiedCacheInfo(info)) {
+                            showFreshnessError('Offline oder Server nicht erreichbar. Alte Ranglisten-/Punktedaten werden nicht als aktueller Stand angezeigt.');
+                            return;
+                        }
                         if (isMetaRefreshRunning) return;
                         isMetaRefreshRunning = true;
                         try {
@@ -4510,6 +4531,7 @@
                     },
                     onError: (err) => {
                         console.error("Meta-Listener Fehler:", err);
+                        showFreshnessError(`Aktuelle Ranglistendaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
                         if (!hasRenderedOnce) {
                             document.getElementById("loading").innerHTML = `<span style="font-size:1.5rem;opacity:0.4;">⚠️</span> Fehler beim Berechnen der Rangliste für ${escapeHtml(TOURNAMENT_LABEL)}.`;
                         }
@@ -4518,6 +4540,7 @@
             }
         } catch (e) {
             console.error(e);
+            showFreshnessError(`Aktuelle Ranglistendaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
             if (!hasRenderedOnce) {
                 document.getElementById("loading").innerHTML = `<span style="font-size:1.5rem;opacity:0.4;">⚠️</span> Fehler beim Berechnen der Rangliste für ${escapeHtml(TOURNAMENT_LABEL)}.`;
             }

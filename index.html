@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-    <link rel="manifest" href="Icons/site.webmanifest">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-06-23-freshness-1">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -45,7 +45,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-    <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=2026-06-23-freshness-1">
 
     <!-- =====================================================
          PRE/POST-START VIEW DECIDER (synchron, FOUC-frei)
@@ -6655,18 +6655,18 @@
 
 </div><!-- /#indexHomePostStart -->
 
-<script src="tournament-config.js"></script>
-<script src="nav.js"></script>
+<script src="tournament-config.js?v=2026-06-23-freshness-1"></script>
+<script src="nav.js?v=2026-06-23-freshness-1"></script>
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen
      (parallel zum HTML-Parsing). DreamTeamCache/Auth nutzen sie erst
      nach DOMContentLoaded, also nachdem alle defer-Skripte ausgeführt
      wurden. -->
 <script src="country-aliases.js"></script>
-<script src="data.js"></script>
-<script src="points-utils.js"></script>
-<script src="cache.js"></script>
+<script src="data.js?v=2026-06-23-freshness-1"></script>
+<script src="points-utils.js?v=2026-06-23-freshness-1"></script>
+<script src="cache.js?v=2026-06-23-freshness-1"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css">
+<link rel="stylesheet" href="auth-modal.css?v=2026-06-23-freshness-1">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
@@ -11489,6 +11489,32 @@
         }
     }
 
+    function isServerVerifiedCacheInfo(info) {
+        return !!(info && info.verifiedFromServer === true && info.stale !== true);
+    }
+
+    function showFreshnessWarning(message) {
+        let el = document.getElementById('index-freshness-warning');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'index-freshness-warning';
+            el.className = 'empty-state';
+            el.style.maxWidth = '920px';
+            el.style.margin = '24px auto';
+            el.style.border = '1px solid rgba(248,113,113,0.35)';
+            el.style.color = 'var(--red-soft)';
+            const root = document.getElementById('indexHomePostStart') || document.body;
+            root.insertBefore(el, root.firstChild);
+        }
+        el.textContent = message;
+        el.style.display = 'block';
+    }
+
+    function clearFreshnessWarning() {
+        const el = document.getElementById('index-freshness-warning');
+        if (el) el.style.display = 'none';
+    }
+
     /* =========================================================
        INIT
        ========================================================= */
@@ -11520,13 +11546,31 @@
             // (1 Read pro Seitenaufruf gespart).
             await DreamTeamCache.bootstrap({
                 ...CACHE_OPTS,
-                onCachedReady: (data) => render(data),
-                onUpdate: (data) => render(data),
-                onError: (err) => console.error('[index] Cache-Fehler:', err)
+                onCachedReady: (data, info) => {
+                    if (!isServerVerifiedCacheInfo(info)) {
+                        showFreshnessWarning('Daten konnten noch nicht frisch vom Server bestaetigt werden.');
+                        return;
+                    }
+                    clearFreshnessWarning();
+                    render(data);
+                },
+                onUpdate: (data, info) => {
+                    if (!isServerVerifiedCacheInfo(info)) {
+                        showFreshnessWarning('Offline oder Server nicht erreichbar. Alte Browserdaten werden nicht als aktueller Stand angezeigt.');
+                        return;
+                    }
+                    clearFreshnessWarning();
+                    render(data);
+                },
+                onError: (err) => {
+                    console.error('[index] Cache-Fehler:', err);
+                    showFreshnessWarning('Aktuelle Daten konnten nicht vom Server geladen werden.');
+                }
             });
 
         } catch (err) {
             console.error('[index] Daten konnten nicht geladen werden:', err);
+            showFreshnessWarning('Aktuelle Daten konnten nicht vom Server geladen werden.');
             // Show graceful empty states – already baked in per-tile
         }
     }

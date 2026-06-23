@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-    <link rel="manifest" href="Icons/site.webmanifest">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-06-23-freshness-1">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -35,7 +35,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-    <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=2026-06-23-freshness-1">
 
     <style>
         /* =====================================================
@@ -6115,15 +6115,15 @@
 </div>
 <!-- /analysis-page -->
 
-<script src="tournament-config.js"></script>
-<script src="nav.js"></script>
+<script src="tournament-config.js?v=2026-06-23-freshness-1"></script>
+<script src="nav.js?v=2026-06-23-freshness-1"></script>
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="country-aliases.js"></script>
-<script src="data.js"></script>
-<script src="points-utils.js"></script>
-<script src="cache.js"></script>
+<script src="data.js?v=2026-06-23-freshness-1"></script>
+<script src="points-utils.js?v=2026-06-23-freshness-1"></script>
+<script src="cache.js?v=2026-06-23-freshness-1"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css">
+<link rel="stylesheet" href="auth-modal.css?v=2026-06-23-freshness-1">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
@@ -12648,6 +12648,17 @@
         hasRenderedOnce = true;
     }
 
+    function isServerVerifiedCacheInfo(info) {
+        return !!(info && info.verifiedFromServer === true && info.stale !== true);
+    }
+
+    function showFreshnessError(message) {
+        const list = document.getElementById('player-list');
+        if (list) {
+            list.innerHTML = `<div class="list-empty" style="color:var(--red-soft);">${escapeHtml(message)}</div>`;
+        }
+    }
+
     /* =========================================================
        EVENT LISTENERS
        ========================================================= */
@@ -12841,8 +12852,18 @@
             if (!metaUnsubscribe) {
                 metaUnsubscribe = await DreamTeamCache.bootstrap({
                     ...CACHE_OPTIONS,
-                    onCachedReady: (data) => applyDataset(data, { preserveCurrentPlayer: false }),
-                    onUpdate: (data) => {
+                    onCachedReady: (data, info) => {
+                        if (!isServerVerifiedCacheInfo(info)) {
+                            showFreshnessError(`Spieleranalyse fuer ${TOURNAMENT_LABEL} wartet auf frische Serverdaten.`);
+                            return;
+                        }
+                        applyDataset(data, { preserveCurrentPlayer: false });
+                    },
+                    onUpdate: (data, info) => {
+                        if (!isServerVerifiedCacheInfo(info)) {
+                            showFreshnessError('Offline oder Server nicht erreichbar. Alte Spieler-/Punkte-/Spielplandaten werden nicht als aktueller Stand angezeigt.');
+                            return;
+                        }
                         if (isMetaRefreshRunning) return;
                         isMetaRefreshRunning = true;
                         try {
@@ -12853,6 +12874,7 @@
                     },
                     onError: (err) => {
                         console.error('Meta-Listener Fehler:', err);
+                        showFreshnessError('Aktuelle Analyse-Daten konnten nicht vom Server geladen werden.');
                         if (!hasRenderedOnce) {
                             document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
                         }
@@ -12861,6 +12883,7 @@
             }
         } catch (e) {
             console.error(e);
+            showFreshnessError('Aktuelle Analyse-Daten konnten nicht vom Server geladen werden.');
             if (!hasRenderedOnce) {
                 document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
             }

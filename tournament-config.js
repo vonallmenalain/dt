@@ -41,6 +41,7 @@ const APP_CONFIG = (() => {
   const FALLBACK_TOURNAMENT_KEY = "wm2026";
 
   const URL_PARAM_NAME = "tournament";
+  const ENABLE_FIRESTORE_PERSISTENCE = false;
   let firestorePersistenceAttempted = false;
 
   /* ─────────────────────────────────────────────────────────
@@ -777,6 +778,7 @@ const APP_CONFIG = (() => {
     const db = window.firebase.firestore();
 
     if (
+      ENABLE_FIRESTORE_PERSISTENCE &&
       !firestorePersistenceAttempted &&
       db &&
       typeof db.enablePersistence === "function"

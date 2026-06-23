@@ -72,6 +72,8 @@
         fixturesBundleDocId: 'wm2026_fixtures',
         pointsCacheCollection: 'public_cache',
         pointsShardDocPrefix: 'wm2026_points_shard_',
+        freshnessFirst: true,
+        renderCached: null,
         fallbackMaxAgeMs: 10 * 60 * 1000,
         // Wie lange das zuletzt gelesene Meta-Dokument für andere Seiten
         // derselben Browser-Session als "frisch genug" gilt. In dieser
@@ -88,10 +90,18 @@
         log: false
     };
 
+    const CACHE_SCHEMA_VERSION = 2;
+    const CACHE_SCHEMA_MARKER_KEY = 'dreamteam_cache_schema_v2_applied';
+    const REFRESH_STATE_BY_BASE = new Map();
+
     function log(cfg, ...args) {
         if (cfg.log) {
             console.log('[DreamTeamCache]', ...args);
         }
+    }
+
+    function warn(...args) {
+        console.warn('[DreamTeamCache]', ...args);
     }
 
     function now() {
@@ -248,6 +258,7 @@
         try {
             return window.localStorage.getItem(key);
         } catch (err) {
+            warn('LocalStorage read failed for key:', key, err);
             return null;
         }
     }
@@ -257,6 +268,7 @@
             window.localStorage.setItem(key, JSON.stringify(value));
             return true;
         } catch (err) {
+            warn('LocalStorage write failed for key:', key, err);
             return false;
         }
     }
@@ -266,6 +278,7 @@
             window.localStorage.removeItem(key);
             return true;
         } catch (err) {
+            warn('LocalStorage remove failed for key:', key, err);
             return false;
         }
     }
@@ -274,6 +287,7 @@
         try {
             return window.sessionStorage.getItem(key);
         } catch (err) {
+            warn('SessionStorage read failed for key:', key, err);
             return null;
         }
     }
@@ -283,6 +297,7 @@
             window.sessionStorage.setItem(key, JSON.stringify(value));
             return true;
         } catch (err) {
+            warn('SessionStorage write failed for key:', key, err);
             return false;
         }
     }
@@ -292,6 +307,7 @@
             window.sessionStorage.removeItem(key);
             return true;
         } catch (err) {
+            warn('SessionStorage remove failed for key:', key, err);
             return false;
         }
     }
@@ -320,6 +336,7 @@
     function buildKeys(cfg) {
         const base = resolveStorageBase(cfg);
         return {
+            base,
             teams: `${base}_teams`,
             points: `${base}_points`,
             fixtures: `${base}_fixtures`,
@@ -331,10 +348,51 @@
         };
     }
 
-    function createEnvelope(data) {
+    function purgeDatasetStorage(cfg, reason) {
+        if (reason) warn(reason);
+        [
+            cfg.keys.teams,
+            cfg.keys.points,
+            cfg.keys.fixtures,
+            cfg.keys.meta,
+            cfg.keys.lastGoodTeams,
+            cfg.keys.lastGoodPoints,
+            cfg.keys.lastGoodFixtures
+        ].forEach((key) => removeStorage(key));
+        removeSession(cfg.keys.sessionMeta);
+    }
+
+    function applySchemaMigration(cfg) {
+        if (cfg.freshnessFirst === false) return;
+        if (readStorage(CACHE_SCHEMA_MARKER_KEY)) return;
+        purgeDatasetStorage(cfg, 'Applying cache schema v2 migration; clearing old dataset caches.');
+        writeStorage(CACHE_SCHEMA_MARKER_KEY, {
+            schemaVersion: CACHE_SCHEMA_VERSION,
+            appliedAt: now()
+        });
+    }
+
+    function createEnvelopeMeta(meta) {
+        const source = meta && typeof meta === 'object' ? meta : {};
         return {
+            teamsVersion: toNumberOrNull(source.teamsVersion),
+            pointsVersion: toNumberOrNull(source.pointsVersion),
+            fixturesVersion: toNumberOrNull(source.fixturesVersion),
+            teamsUpdatedAt: toNumberOrNull(source.teamsUpdatedAt),
+            pointsUpdatedAt: toNumberOrNull(source.pointsUpdatedAt),
+            fixturesUpdatedAt: toNumberOrNull(source.fixturesUpdatedAt),
+            fixturesCacheGeneratedAt: toNumberOrNull(source.fixturesCacheGeneratedAt),
+            pointsCacheGeneratedAt: toNumberOrNull(source.pointsCacheGeneratedAt),
+            pointsShardCount: toNumberOrNull(source.pointsShardCount)
+        };
+    }
+
+    function createEnvelope(data, meta) {
+        return {
+            schemaVersion: CACHE_SCHEMA_VERSION,
             savedAt: now(),
-            data
+            data,
+            meta: createEnvelopeMeta(meta || {})
         };
     }
 
@@ -346,8 +404,10 @@
         if (!parsed || typeof parsed !== 'object') return null;
 
         return {
+            schemaVersion: parsed.schemaVersion === CACHE_SCHEMA_VERSION ? CACHE_SCHEMA_VERSION : 1,
             savedAt: typeof parsed.savedAt === 'number' ? parsed.savedAt : 0,
-            data: parsed.data
+            data: parsed.data,
+            meta: isPlainObject(parsed.meta) ? parsed.meta : null
         };
     }
 
@@ -359,9 +419,67 @@
         if (!parsed || typeof parsed !== 'object') return null;
 
         return {
+            schemaVersion: parsed.schemaVersion === CACHE_SCHEMA_VERSION ? CACHE_SCHEMA_VERSION : 1,
             savedAt: typeof parsed.savedAt === 'number' ? parsed.savedAt : 0,
-            data: parsed.data
+            data: parsed.data,
+            meta: isPlainObject(parsed.meta) ? parsed.meta : null
         };
+    }
+
+    function numberOrNull(value) {
+        return typeof value === 'number' && Number.isFinite(value) ? value : null;
+    }
+
+    function metaValueMatches(envelopeMeta, currentMeta, versionKey, updatedAtKey) {
+        const currentVersion = numberOrNull(currentMeta && currentMeta[versionKey]);
+        const envelopeVersion = numberOrNull(envelopeMeta && envelopeMeta[versionKey]);
+        if (currentVersion !== null) {
+            return envelopeVersion === currentVersion;
+        }
+
+        const currentUpdatedAt = numberOrNull(currentMeta && currentMeta[updatedAtKey]);
+        const envelopeUpdatedAt = numberOrNull(envelopeMeta && envelopeMeta[updatedAtKey]);
+        if (currentUpdatedAt !== null) {
+            return envelopeUpdatedAt === currentUpdatedAt;
+        }
+
+        return envelopeVersion === null && envelopeUpdatedAt === null;
+    }
+
+    function datasetEnvelopeMatchesMeta(kind, envelope, currentMeta) {
+        if (!envelope || envelope.schemaVersion !== CACHE_SCHEMA_VERSION || !isPlainObject(envelope.meta) || !currentMeta) {
+            return false;
+        }
+
+        const meta = envelope.meta;
+        if (kind === 'teams') {
+            return metaValueMatches(meta, currentMeta, 'teamsVersion', 'teamsUpdatedAt');
+        }
+
+        if (kind === 'points') {
+            if (!metaValueMatches(meta, currentMeta, 'pointsVersion', 'pointsUpdatedAt')) return false;
+
+            const currentGeneration = numberOrNull(currentMeta.pointsCacheGeneratedAt);
+            if (currentGeneration !== null && numberOrNull(meta.pointsCacheGeneratedAt) !== currentGeneration) {
+                return false;
+            }
+
+            const currentShardCount = numberOrNull(currentMeta.pointsShardCount);
+            if (currentShardCount !== null && numberOrNull(meta.pointsShardCount) !== currentShardCount) {
+                return false;
+            }
+
+            return true;
+        }
+
+        if (!metaValueMatches(meta, currentMeta, 'fixturesVersion', 'fixturesUpdatedAt')) return false;
+
+        const currentGeneration = numberOrNull(currentMeta.fixturesCacheGeneratedAt);
+        if (currentGeneration !== null && numberOrNull(meta.fixturesCacheGeneratedAt) !== currentGeneration) {
+            return false;
+        }
+
+        return true;
     }
 
     function normalizeMeta(meta, year, tournamentKey) {
@@ -492,11 +610,19 @@
         cfg.fixtureCount = cfg.fixtureCount || (app && app.fixtureCount) || null;
 
         cfg.keys = buildKeys(cfg);
+        applySchemaMigration(cfg);
 
         return cfg;
     }
 
-    function readDatasetState(kind, cfg, meta) {
+    function readDatasetState(kind, cfg, meta, options) {
+        const opts = options || {};
+        const requireMetaMatch = Object.prototype.hasOwnProperty.call(opts, 'requireMetaMatch')
+            ? !!opts.requireMetaMatch
+            : cfg.freshnessFirst !== false;
+        const allowBackupAsCurrent = Object.prototype.hasOwnProperty.call(opts, 'allowBackupAsCurrent')
+            ? !!opts.allowBackupAsCurrent
+            : !(cfg.freshnessFirst !== false && (kind === 'points' || kind === 'fixtures'));
         let currentKey, backupKey;
         if (kind === 'teams') {
             currentKey = cfg.keys.teams;
@@ -521,8 +647,10 @@
             validator = (data) => isValidPointsData(data, cfg.allowEmptyPoints, cfg, meta);
         }
 
-        const currentValid = current ? validator(current.data) : false;
-        const backupValid = backup ? validator(backup.data) : false;
+        const currentMetaOk = !requireMetaMatch || datasetEnvelopeMatchesMeta(kind, current, meta);
+        const backupMetaOk = !requireMetaMatch || datasetEnvelopeMatchesMeta(kind, backup, meta);
+        const currentValid = current ? currentMetaOk && validator(current.data) : false;
+        const backupValid = allowBackupAsCurrent && backup ? backupMetaOk && validator(backup.data) : false;
 
         let data = currentValid ? current.data : backupValid ? backup.data : null;
         if (kind === 'points' && data) {
@@ -534,6 +662,8 @@
             backup,
             valid: currentValid || backupValid,
             usedBackup: !currentValid && backupValid,
+            currentMetaOk,
+            backupMetaOk,
             data,
             savedAt: currentValid
                 ? current.savedAt
@@ -579,42 +709,103 @@
     }
 
     function writeSessionMeta(cfg, meta) {
-        if (!meta) return;
-        writeSession(cfg.keys.sessionMeta, createEnvelope(meta));
+        if (!meta) return false;
+        return writeSession(cfg.keys.sessionMeta, createEnvelope(meta, meta));
     }
 
-    function saveTeams(teams, cfg) {
+    function saveTeams(teams, cfg, meta) {
         if (!isValidTeamsData(teams, cfg.allowEmptyTeams)) return false;
-        const payload = createEnvelope(teams);
-        writeStorage(cfg.keys.teams, payload);
-        writeStorage(cfg.keys.lastGoodTeams, payload);
-        return true;
+        const payload = createEnvelope(teams, meta);
+        const currentOk = writeStorage(cfg.keys.teams, payload);
+        const backupOk = writeStorage(cfg.keys.lastGoodTeams, payload);
+        return currentOk && backupOk;
     }
 
     function savePoints(points, cfg, meta) {
         const normalizedPoints = normalizePointsData(points);
         if (!isValidPointsData(normalizedPoints, cfg.allowEmptyPoints, cfg, meta)) return false;
-        const payload = createEnvelope(normalizedPoints);
-        writeStorage(cfg.keys.points, payload);
-        writeStorage(cfg.keys.lastGoodPoints, payload);
-        return true;
+        const payload = createEnvelope(normalizedPoints, meta);
+        const currentOk = writeStorage(cfg.keys.points, payload);
+        const backupOk = writeStorage(cfg.keys.lastGoodPoints, payload);
+        return currentOk && backupOk;
     }
 
     function saveFixtures(fixtures, cfg, meta) {
         if (!isValidFixturesData(fixtures, cfg.allowEmptyFixtures, cfg, meta)) return false;
-        const payload = createEnvelope(fixtures);
-        writeStorage(cfg.keys.fixtures, payload);
-        writeStorage(cfg.keys.lastGoodFixtures, payload);
+        const payload = createEnvelope(fixtures, meta);
+        const currentOk = writeStorage(cfg.keys.fixtures, payload);
+        const backupOk = writeStorage(cfg.keys.lastGoodFixtures, payload);
+        return currentOk && backupOk;
+    }
+
+    function metaVersionNumber(meta, key) {
+        const value = meta && meta[key];
+        return typeof value === 'number' && Number.isFinite(value) ? value : null;
+    }
+
+    function isMetaBehind(candidate, current) {
+        if (!candidate || !current) return false;
+        return [
+            'teamsVersion',
+            'pointsVersion',
+            'fixturesVersion',
+            'pointsCacheGeneratedAt',
+            'fixturesCacheGeneratedAt'
+        ].some((key) => {
+            const nextValue = metaVersionNumber(candidate, key);
+            const currentValue = metaVersionNumber(current, key);
+            return nextValue !== null && currentValue !== null && nextValue < currentValue;
+        });
+    }
+
+    function sameMetaGeneration(a, b) {
+        if (!a || !b) return false;
+        return [
+            'teamsVersion',
+            'pointsVersion',
+            'fixturesVersion',
+            'teamsUpdatedAt',
+            'pointsUpdatedAt',
+            'fixturesUpdatedAt',
+            'pointsCacheGeneratedAt',
+            'fixturesCacheGeneratedAt',
+            'pointsShardCount'
+        ].every((key) => numberOrNull(a[key]) === numberOrNull(b[key]));
+    }
+
+    function rememberFreshestMeta(cfg, meta) {
+        if (!meta) return false;
+        const current = REFRESH_STATE_BY_BASE.get(cfg.keys.base);
+        if (current && isMetaBehind(meta, current)) {
+            return false;
+        }
+        if (!current || isMetaBehind(current, meta) || !sameMetaGeneration(current, meta)) {
+            REFRESH_STATE_BY_BASE.set(cfg.keys.base, meta);
+        }
         return true;
+    }
+
+    function isBehindFreshestMeta(cfg, meta) {
+        const current = REFRESH_STATE_BY_BASE.get(cfg.keys.base);
+        return !!current && isMetaBehind(meta, current);
     }
 
     function saveMeta(meta, cfg) {
         const normalized = normalizeMeta(meta, cfg.year, cfg.tournamentKey);
-        writeStorage(cfg.keys.meta, createEnvelope(normalized));
+        const localMeta = readMetaState(cfg).data;
+        if (localMeta && isMetaBehind(normalized, localMeta)) {
+            warn('Refusing to save older meta over newer local meta.', { next: normalized, current: localMeta });
+            return false;
+        }
+        const localOk = writeStorage(cfg.keys.meta, createEnvelope(normalized, normalized));
         // Spiegelkopie für die aktuelle Browser-Session – damit andere
         // Seiten innerhalb der nächsten Sekunden den Meta-Read sparen
         // können.
-        writeSessionMeta(cfg, normalized);
+        const sessionOk = writeSessionMeta(cfg, normalized);
+        if (!localOk || !sessionOk) {
+            warn('Meta storage failed; local meta will not be trusted as current.');
+            return false;
+        }
         return normalized;
     }
 
@@ -694,7 +885,7 @@
             writeSessionMeta(cfg, normalized);
             return normalized;
         } catch (err) {
-            log(cfg, 'Meta-Fetch fehlgeschlagen:', err);
+            warn('Meta fetch from server failed:', err);
             return null;
         }
     }
@@ -712,6 +903,10 @@
             const normalized = normalizeMeta(override, cfg.year, cfg.tournamentKey);
             writeSessionMeta(cfg, normalized);
             return normalized;
+        }
+
+        if (cfg.freshnessFirst !== false) {
+            return fetchMeta(cfg);
         }
 
         if (options && options.bypassSessionMeta === true) {
@@ -797,7 +992,7 @@
 
             return normalized;
         } catch (err) {
-            log(cfg, 'Points-Delta-Fetch fehlgeschlagen:', err);
+            warn('Points delta fetch failed:', err);
             return null;
         }
     }
@@ -858,15 +1053,14 @@
 
             return normalized;
         } catch (err) {
-            log(cfg, 'Points-Shards-Fetch fehlgeschlagen:', err);
+            warn('Points shards fetch failed:', err);
             return null;
         }
     }
 
     async function fetchPoints(cfg, remoteMeta, pointsState, localMeta) {
-        const deltaPoints = await fetchPointsDelta(cfg, remoteMeta, pointsState, localMeta);
-        if (deltaPoints) return deltaPoints;
-
+        // Delta documents were a read-optimization only. Freshness-first uses
+        // strictly versioned public shards, then falls back to the collection.
         const shardedPoints = await fetchPointsShards(cfg, remoteMeta);
         if (shardedPoints) return shardedPoints;
 
@@ -890,7 +1084,13 @@
 
             const bundle = snap.data() || {};
             const fixtures = bundle.fixtures;
-            if (!fixtures || typeof fixtures !== 'object' || Array.isArray(fixtures)) {
+            if (
+                bundle.kind !== 'fixtures_bundle' ||
+                !metaMatchesCacheDocument(bundle, cfg) ||
+                !fixtures ||
+                typeof fixtures !== 'object' ||
+                Array.isArray(fixtures)
+            ) {
                 log(cfg, 'Fixture-Bundle ungueltig, nutze Collection-Fallback.');
                 return null;
             }
@@ -898,8 +1098,12 @@
             const requiredGeneration = remoteMeta && typeof remoteMeta.fixturesCacheGeneratedAt === 'number'
                 ? remoteMeta.fixturesCacheGeneratedAt
                 : null;
+            if (remoteMeta && toPositiveInteger(remoteMeta.fixturesVersion) > 0 && requiredGeneration === null) {
+                warn('Fixture bundle rejected: remote meta has fixturesVersion but no fixturesCacheGeneratedAt.');
+                return null;
+            }
             if (
-                requiredGeneration !== null &&
+                requiredGeneration === null ||
                 bundle.cacheGenerationMs !== requiredGeneration
             ) {
                 log(cfg, 'Fixture-Bundle veraltet, nutze Collection-Fallback.');
@@ -908,7 +1112,7 @@
 
             return fixtures;
         } catch (err) {
-            log(cfg, 'Fixture-Bundle-Fetch fehlgeschlagen:', err);
+            warn('Fixture bundle fetch failed:', err);
             return null;
         }
     }
@@ -928,23 +1132,75 @@
             });
             return fixtures;
         } catch (err) {
-            log(cfg, 'Fixtures-Fetch fehlgeschlagen:', err);
+            warn('Fixtures collection fetch failed:', err);
             return null;
         }
+    }
+
+    function buildOfflineFallbackBundle(cfg, localMeta) {
+        const meta = localMeta || normalizeMeta({}, cfg.year, cfg.tournamentKey);
+        const teamsState = readDatasetState('teams', cfg, meta, {
+            requireMetaMatch: false,
+            allowBackupAsCurrent: true
+        });
+        const pointsState = readDatasetState('points', cfg, meta, {
+            requireMetaMatch: false,
+            allowBackupAsCurrent: true
+        });
+        const fixturesState = cfg.includeFixtures === false
+            ? skippedDatasetState({})
+            : readDatasetState('fixtures', cfg, meta, {
+                requireMetaMatch: false,
+                allowBackupAsCurrent: true
+            });
+        const fixturesOk = !cfg.fixturesCollection || fixturesState.valid;
+
+        if (!teamsState.valid || !pointsState.valid || !fixturesOk) {
+            return null;
+        }
+
+        return {
+            data: {
+                teams: teamsState.data || [],
+                points: pointsState.data || {},
+                fixtures: fixturesState.data || {},
+                meta
+            },
+            info: {
+                refreshedTeams: false,
+                refreshedPoints: false,
+                refreshedFixtures: false,
+                usedBackupTeams: teamsState.usedBackup,
+                usedBackupPoints: pointsState.usedBackup,
+                usedBackupFixtures: fixturesState.usedBackup,
+                fromCacheOnly: true,
+                stale: true,
+                offlineFallback: true,
+                verifiedFromServer: false
+            }
+        };
     }
 
     function getCachedBundle(options) {
         const cfg = resolveConfig(options);
         const metaState = readMetaState(cfg);
-        const teamsState = readDatasetState('teams', cfg, metaState.data);
-        const pointsState = readDatasetState('points', cfg, metaState.data);
+        const freshnessFirst = cfg.freshnessFirst !== false;
+        const teamsState = readDatasetState('teams', cfg, metaState.data, {
+            requireMetaMatch: freshnessFirst
+        });
+        const pointsState = readDatasetState('points', cfg, metaState.data, {
+            requireMetaMatch: freshnessFirst
+        });
         const fixturesState = cfg.includeFixtures === false
             ? skippedDatasetState({})
-            : readDatasetState('fixtures', cfg, metaState.data);
+            : readDatasetState('fixtures', cfg, metaState.data, {
+                requireMetaMatch: freshnessFirst
+            });
         const fixturesOk = !cfg.fixturesCollection || fixturesState.valid;
+        const locallyComplete = teamsState.valid && pointsState.valid && fixturesOk;
 
         return {
-            ok: teamsState.valid && pointsState.valid && fixturesOk,
+            ok: !freshnessFirst && locallyComplete,
             data: {
                 teams: teamsState.data || [],
                 points: pointsState.data || {},
@@ -958,13 +1214,178 @@
                 teamsSavedAt: teamsState.savedAt,
                 pointsSavedAt: pointsState.savedAt,
                 fixturesSavedAt: fixturesState.savedAt,
-                metaSavedAt: metaState.savedAt
+                metaSavedAt: metaState.savedAt,
+                stale: freshnessFirst,
+                offlineFallback: false,
+                verifiedFromServer: false
+            }
+        };
+    }
+
+    async function loadBundleFreshnessFirst(options, cfg) {
+        const localMetaState = readMetaState(cfg);
+        const remoteMeta = await resolveRemoteMeta(cfg, options || {});
+
+        if (!remoteMeta) {
+            const fallback = buildOfflineFallbackBundle(cfg, localMetaState.data);
+            if (fallback) return fallback;
+            throw new Error('DreamTeamCache: Server-Meta nicht verfuegbar; keine serververifizierten Daten.');
+        }
+
+        if (isBehindFreshestMeta(cfg, remoteMeta)) {
+            warn('Ignoring older refresh meta.', remoteMeta);
+            return {
+                data: { teams: [], points: {}, fixtures: {}, meta: remoteMeta },
+                info: {
+                    ignoredOlderRefresh: true,
+                    stale: true,
+                    offlineFallback: false,
+                    verifiedFromServer: false
+                }
+            };
+        }
+
+        rememberFreshestMeta(cfg, remoteMeta);
+
+        const teamsState = readDatasetState('teams', cfg, remoteMeta, { requireMetaMatch: true });
+        const pointsState = readDatasetState('points', cfg, remoteMeta, { requireMetaMatch: true });
+        const fixturesState = cfg.includeFixtures === false
+            ? skippedDatasetState({})
+            : readDatasetState('fixtures', cfg, remoteMeta, { requireMetaMatch: true });
+
+        let teams = teamsState.data;
+        let points = pointsState.data;
+        let fixtures = fixturesState.data;
+        const needTeams = !teamsState.valid;
+        const needPoints = !pointsState.valid;
+        const needFixtures = !fixturesState.valid && !!cfg.fixturesCollection;
+
+        let refreshedTeams = false;
+        let refreshedPoints = false;
+        let refreshedFixtures = false;
+        let storageOk = true;
+        let storagePurged = false;
+
+        function noteStorageResult(ok, kind) {
+            if (ok) return;
+            storageOk = false;
+            warn(`${kind} cache write failed; clearing dataset caches so the next load must read the server.`);
+            if (!storagePurged) {
+                purgeDatasetStorage(cfg, null);
+                storagePurged = true;
+            }
+        }
+
+        if (needTeams) {
+            const freshTeams = await fetchTeams(cfg);
+            if (!isValidTeamsData(freshTeams, cfg.allowEmptyTeams)) {
+                throw new Error('DreamTeamCache: Teams-Fetch war ungueltig.');
+            }
+            teams = freshTeams;
+            if (storageOk && !isBehindFreshestMeta(cfg, remoteMeta)) {
+                noteStorageResult(saveTeams(freshTeams, cfg, remoteMeta), 'Teams');
+            }
+            refreshedTeams = true;
+        }
+
+        if (needPoints) {
+            const freshPoints = await fetchPoints(cfg, remoteMeta, pointsState, localMetaState.data);
+            if (!isValidPointsData(freshPoints, cfg.allowEmptyPoints, cfg, remoteMeta)) {
+                throw new Error('DreamTeamCache: Punkte-Fetch war ungueltig.');
+            }
+            points = freshPoints;
+            if (storageOk && !isBehindFreshestMeta(cfg, remoteMeta)) {
+                noteStorageResult(savePoints(freshPoints, cfg, remoteMeta), 'Points');
+            }
+            refreshedPoints = true;
+        }
+
+        if (needFixtures && cfg.fixturesCollection) {
+            const freshFixtures = await fetchFixtures(cfg, remoteMeta);
+            if (!isValidFixturesData(freshFixtures, cfg.allowEmptyFixtures, cfg, remoteMeta)) {
+                throw new Error('DreamTeamCache: Fixtures-Fetch war ungueltig.');
+            }
+            fixtures = freshFixtures;
+            if (storageOk && !isBehindFreshestMeta(cfg, remoteMeta)) {
+                noteStorageResult(saveFixtures(freshFixtures, cfg, remoteMeta), 'Fixtures');
+            }
+            refreshedFixtures = true;
+        }
+
+        if (isBehindFreshestMeta(cfg, remoteMeta)) {
+            warn('Skipping older refresh result after a newer meta was processed.', remoteMeta);
+            return {
+                data: { teams, points, fixtures: fixtures || {}, meta: remoteMeta },
+                info: {
+                    ignoredOlderRefresh: true,
+                    stale: true,
+                    offlineFallback: false,
+                    verifiedFromServer: false
+                }
+            };
+        }
+
+        const finalMeta = normalizeMeta(remoteMeta, cfg.year, cfg.tournamentKey);
+
+        if (storageOk) {
+            const savedMeta = saveMeta(finalMeta, cfg);
+            if (!savedMeta) storageOk = false;
+        } else {
+            warn('Skipping local meta save because one or more dataset cache writes failed.');
+        }
+
+        if (!isValidTeamsData(teams, cfg.allowEmptyTeams)) {
+            if (cfg.allowEmptyTeams) {
+                teams = [];
+            } else {
+                throw new Error('DreamTeamCache: Keine gueltigen Teamdaten verfuegbar.');
+            }
+        }
+
+        if (!isValidPointsData(points, cfg.allowEmptyPoints, cfg, finalMeta)) {
+            if (cfg.allowEmptyPoints && !shouldRequireNonEmptyDataset(cfg, finalMeta, 'points')) {
+                points = {};
+            } else {
+                throw new Error('DreamTeamCache: Keine gueltigen Punktedaten verfuegbar.');
+            }
+        }
+
+        if (cfg.fixturesCollection && !isValidFixturesData(fixtures, cfg.allowEmptyFixtures, cfg, finalMeta)) {
+            if (cfg.allowEmptyFixtures && !shouldRequireNonEmptyDataset(cfg, finalMeta, 'fixtures')) {
+                fixtures = {};
+            } else {
+                throw new Error('DreamTeamCache: Keine gueltigen Spielplandaten verfuegbar.');
+            }
+        }
+
+        return {
+            data: {
+                teams,
+                points,
+                fixtures: fixtures || {},
+                meta: finalMeta
+            },
+            info: {
+                refreshedTeams,
+                refreshedPoints,
+                refreshedFixtures,
+                usedBackupTeams: false,
+                usedBackupPoints: false,
+                usedBackupFixtures: false,
+                fromCacheOnly: !refreshedTeams && !refreshedPoints && !refreshedFixtures,
+                stale: false,
+                offlineFallback: false,
+                verifiedFromServer: true,
+                storageOk
             }
         };
     }
 
     async function loadBundle(options) {
         const cfg = resolveConfig(options);
+        if (cfg.freshnessFirst !== false) {
+            return loadBundleFreshnessFirst(options || {}, cfg);
+        }
         const localMetaState = readMetaState(cfg);
         const teamsState = readDatasetState('teams', cfg, localMetaState.data);
         const pointsState = readDatasetState('points', cfg, localMetaState.data);
@@ -1255,8 +1676,126 @@
      *
      * Rückgabewert: eine Funktion zum Beenden der Subscription.
      */
+    async function bootstrapFreshnessFirst(options, cfg) {
+        const opts = options || {};
+        const onCachedReady = typeof opts.onCachedReady === 'function' ? opts.onCachedReady : null;
+        const onUpdate = typeof opts.onUpdate === 'function' ? opts.onUpdate : null;
+        const onError = typeof opts.onError === 'function' ? opts.onError : null;
+        const renderCached = Object.prototype.hasOwnProperty.call(opts, 'renderCached')
+            ? !!opts.renderCached
+            : cfg.renderCached === true;
+
+        if (renderCached && onCachedReady) {
+            try {
+                const cached = getCachedBundle(opts);
+                onCachedReady(cached.data, {
+                    ...cached.info,
+                    stale: true,
+                    offlineFallback: false,
+                    verifiedFromServer: false
+                });
+            } catch (err) {
+                if (onError) onError(err);
+            }
+        }
+
+        let latestDeliveredMeta = null;
+        let refreshChain = Promise.resolve();
+
+        function shouldDeliver(bundle) {
+            if (!bundle || (bundle.info && bundle.info.ignoredOlderRefresh)) return false;
+            if (!bundle.info || bundle.info.verifiedFromServer !== true) return true;
+
+            const meta = bundle.data && bundle.data.meta;
+            if (!meta) return true;
+            if (latestDeliveredMeta && isMetaBehind(meta, latestDeliveredMeta)) {
+                warn('Skipping DOM update from older meta.', { next: meta, current: latestDeliveredMeta });
+                return false;
+            }
+            if (latestDeliveredMeta && sameMetaGeneration(meta, latestDeliveredMeta)) {
+                return false;
+            }
+            latestDeliveredMeta = meta;
+            return true;
+        }
+
+        function deliver(bundle, reason) {
+            if (!onUpdate || !shouldDeliver(bundle)) return;
+            onUpdate(bundle.data, { ...bundle.info, refreshReason: reason });
+        }
+
+        function enqueueRefresh(loadOptions, reason) {
+            refreshChain = refreshChain
+                .catch(() => null)
+                .then(async () => {
+                    try {
+                        const fresh = await loadBundle({ ...opts, ...(loadOptions || {}) });
+                        deliver(fresh, reason);
+                    } catch (err) {
+                        if (onError) onError(err);
+                    }
+                });
+            return refreshChain;
+        }
+
+        await enqueueRefresh({ bypassSessionMeta: true }, 'initial');
+
+        const unsubscribe = cfg.db.collection(cfg.metaCollection).doc(cfg.metaDocId).onSnapshot(
+            { includeMetadataChanges: true },
+            (snap) => {
+                if (!snap.exists) return;
+                if (isSnapshotFromCache(snap)) {
+                    log(cfg, 'Meta-Snapshot aus Firestore-Cache ignoriert.');
+                    return;
+                }
+
+                const remoteMeta = normalizeMeta(snap.data(), cfg.year, cfg.tournamentKey);
+                writeSessionMeta(cfg, remoteMeta);
+                if (latestDeliveredMeta && sameMetaGeneration(remoteMeta, latestDeliveredMeta)) {
+                    return;
+                }
+                enqueueRefresh({ remoteMetaOverride: remoteMeta }, 'meta');
+            },
+            (err) => {
+                if (onError) onError(err);
+            }
+        );
+
+        let lastResumeRefreshAt = now();
+        const resumeRefreshMinIntervalMs = typeof cfg.resumeRefreshMinIntervalMs === 'number' && cfg.resumeRefreshMinIntervalMs >= 0
+            ? cfg.resumeRefreshMinIntervalMs
+            : DEFAULTS.resumeRefreshMinIntervalMs;
+
+        const refreshFromServer = (reason) => {
+            const ageMs = now() - lastResumeRefreshAt;
+            if (ageMs < resumeRefreshMinIntervalMs) return;
+            lastResumeRefreshAt = now();
+            enqueueRefresh({ bypassSessionMeta: true }, reason);
+        };
+
+        const handleVisible = () => {
+            if (!document.hidden) refreshFromServer('visible');
+        };
+        const handleOnline = () => refreshFromServer('online');
+        const handleFocus = () => refreshFromServer('focus');
+
+        document.addEventListener('visibilitychange', handleVisible);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            unsubscribe();
+            document.removeEventListener('visibilitychange', handleVisible);
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }
+
     async function bootstrap(options) {
         const cfg = resolveConfig(options);
+        if (cfg.freshnessFirst !== false) {
+            return bootstrapFreshnessFirst(options || {}, cfg);
+        }
 
         const onCachedReady = typeof options.onCachedReady === 'function' ? options.onCachedReady : null;
         const onUpdate = typeof options.onUpdate === 'function' ? options.onUpdate : null;

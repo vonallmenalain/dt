@@ -252,6 +252,72 @@ Damit Live-Update funktioniert, muss also nicht ein Browser oder eine
 Admin-Seite offen sein. Entscheidend ist, dass der GitHub-Workflow schreibt
 und das Meta-Dokument die passende Version erhoeht.
 
+### Freshness-First Browser Cache
+
+Seit dem Freshness-First-Fix vom 2026-06-23 gilt fuer die oeffentlichen
+Live-Seiten: lokale Browserdaten sind nie Quelle der Wahrheit. `app_meta`
+ist nur dann ein Freshness-Signal, wenn es beim Initialisieren direkt vom
+Server gelesen wurde. Ein Session-Meta oder ein altes LocalStorage-Meta
+darf keinen Server-Read ersetzen, sobald Rangliste, Punkte, Teams mit
+Punkten, Spielplan oder Analyse angezeigt werden.
+
+Die Dataset-Caches fuer Teams, Punkte und Fixtures verwenden ein
+versioniertes Envelope-Schema:
+
+```text
+{
+  schemaVersion: 2,
+  savedAt,
+  data,
+  meta: {
+    teamsVersion,
+    pointsVersion,
+    fixturesVersion,
+    teamsUpdatedAt,
+    pointsUpdatedAt,
+    fixturesUpdatedAt,
+    fixturesCacheGeneratedAt,
+    pointsCacheGeneratedAt,
+    pointsShardCount
+  }
+}
+```
+
+Ein lokaler Dataset-Cache gilt nur als frisch, wenn sein Envelope exakt
+zur aktuellen Server-Meta passt. Alte v1-Envelopes ohne Meta-Bindung oder
+Envelopes mit anderer Version/Generation werden verworfen und vom Server
+neu geladen. `last_good_points` und `last_good_fixtures` duerfen online
+nicht als aktuelle Daten angezeigt werden. Bei Offline-/Serverfehlern darf
+die UI nur einen klar markierten stale/offline-Status zeigen
+(`verifiedFromServer=false`, `stale=true`, `offlineFallback=true`), aber
+keine normale Live-Anzeige.
+
+LocalStorage-Write-Fehler sind freshness-kritisch. Wenn ein benoetigter
+Dataset-Cache nicht gespeichert werden kann, wird die lokale Meta nicht als
+aktuell gespeichert und die dynamischen Dataset-Cache-Keys werden geloescht.
+Die aktuelle Session darf die frisch vom Server geladenen Daten trotzdem
+anzeigen; beim naechsten Laden muss wieder der Server gelesen werden.
+
+Wichtige `app_meta`-Felder:
+
+- Notwendig fuer Freshness: `teamsVersion`, `pointsVersion`,
+  `fixturesVersion` sowie die jeweiligen `UpdatedAt`-Felder.
+- Optional fuer Public Cache: `fixturesCacheGeneratedAt`,
+  `pointsCacheGeneratedAt`, `pointsShardCount`.
+- Nicht mehr clientkritisch: `pointsDeltaDocId`,
+  `pointsDeltaBaseVersion`, `pointsDeltaNextVersion`. Diese Delta-Felder
+  waren eine Read-Optimierung und werden vom Client aktuell bewusst nicht
+  fuer Freshness verwendet.
+
+Public Fixture Bundles werden nur akzeptiert, wenn `kind`, Turnier-Key,
+Jahr und `cacheGenerationMs` exakt zur Server-Meta passen. Fehlt
+`fixturesCacheGeneratedAt` bei einer positiven `fixturesVersion` oder passt
+die Generation nicht, liest der Client direkt `Spiele WM 2026`.
+
+Firestore Offline Persistence ist standardmaessig deaktiviert. Cached
+Firestore-Snapshots aus Listenern werden weiterhin ignoriert; der Initial-
+Load nutzt einen expliziten Server-Read.
+
 ## Notwendige Voraussetzungen
 
 GitHub:

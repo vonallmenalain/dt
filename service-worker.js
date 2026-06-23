@@ -16,7 +16,7 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-21-cache-refresh-1';
+const CACHE_VERSION = 'v2026-06-23-freshness-1';
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -114,6 +114,19 @@ function fetchAndCache(request, options = {}) {
   });
 }
 
+async function networkOnlyWithOfflineFallback(request, options = {}) {
+  try {
+    return await fetchAndCache(request, options);
+  } catch (error) {
+    const exactCached = await caches.match(request);
+    if (exactCached) return exactCached;
+    if (options.navigationFallback) {
+      return (await caches.match('./index.html')) || Response.error();
+    }
+    return Response.error();
+  }
+}
+
 async function networkFirstWithTimeout(request, timeoutMs = 3000, matchOptions = undefined, options = {}) {
   const cached = await caches.match(request, matchOptions);
 
@@ -164,14 +177,6 @@ function networkFirst(request) {
   return networkFirstWithTimeout(request);
 }
 
-function networkFirstIgnoreSearch(request) {
-  return networkFirstWithTimeout(request, 3000, { ignoreSearch: true });
-}
-
-function networkFirstFreshIgnoreSearch(request) {
-  return networkFirstWithTimeout(request, 5000, { ignoreSearch: true }, { bypassHttpCache: true });
-}
-
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
@@ -200,12 +205,17 @@ self.addEventListener('fetch', event => {
   const isImageAsset = /\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$/.test(pathname);
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstFreshIgnoreSearch(request));
+    event.respondWith(networkOnlyWithOfflineFallback(request, {
+      bypassHttpCache: true,
+      navigationFallback: true
+    }));
     return;
   }
 
   if (isCriticalAsset) {
-    event.respondWith(networkFirstFreshIgnoreSearch(request));
+    event.respondWith(networkOnlyWithOfflineFallback(request, {
+      bypassHttpCache: true
+    }));
     return;
   }
 
