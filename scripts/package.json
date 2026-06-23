@@ -9,7 +9,7 @@
   "scripts": {
     "auto-upload": "node auto-points-upload.js",
     "sync-fixtures": "node sync-fixtures.js",
-    "test:points": "node test-points-utils.js",
+    "test:points": "node test-points-utils.js && node test-auto-points-upload.js",
     "test:cache": "node test-cache-freshness.js"
   },
   "dependencies": {

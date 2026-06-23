@@ -108,8 +108,11 @@ let admin;
 try {
   admin = require('firebase-admin');
 } catch (err) {
-  console.error('[auto-points] firebase-admin ist nicht installiert. Bitte `npm install` ausführen.');
-  process.exit(1);
+  if (require.main === module) {
+    console.error('[auto-points] firebase-admin ist nicht installiert. Bitte `npm install` ausführen.');
+    process.exit(1);
+  }
+  admin = null;
 }
 
 let fetchFn = (typeof fetch === 'function') ? fetch : null;
@@ -893,6 +896,9 @@ function playerBelongsToFixtureTeam(player, team) {
  *  Firebase Admin Initialisierung
  * ───────────────────────────────────────────────────────────────────────────── */
 function initFirebase() {
+  if (!admin) {
+    throw new Error('firebase-admin ist nicht installiert. Bitte `npm install` ausführen.');
+  }
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT (Service-Account-JSON) ist nicht gesetzt.');
@@ -1275,7 +1281,8 @@ function findLineupForTeam(fixtureData, teamId) {
 }
 
 function hasStartLineup(lineup) {
-  return !!(lineup && Array.isArray(lineup.startXI) && lineup.startXI.length > 0);
+  const rows = lineup && Array.isArray(lineup.startXI) ? lineup.startXI : [];
+  return rows.length > 0 && rows.length <= 11;
 }
 
 function hasAnyPublishedStartLineup(fixtureData) {
@@ -1294,6 +1301,16 @@ function getPrimaryStats(pStats) {
 
 function getMinutes(stats) {
   return (stats && stats.games && typeof stats.games.minutes === 'number') ? stats.games.minutes : 0;
+}
+
+function isApiStarterStat(stats) {
+  return !!(stats && stats.games && stats.games.substitute === false);
+}
+
+function shouldTreatStatsAsStarter(stats, minutes, matchHasStarted, matchIsFinished, teamLineupPublished) {
+  if (!matchHasStarted || teamLineupPublished || !isApiStarterStat(stats)) return false;
+  if (minutes > 0) return true;
+  return !matchIsFinished;
 }
 
 function getGoalValue(value) {
@@ -1416,13 +1433,15 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
     statsByPid.forEach((pStats, pid) => {
       const stats = getPrimaryStats(pStats);
       const minutes = getMinutes(stats);
-      const isApiStarter = stats.games && stats.games.substitute === false;
-      if (minutes > 0 || (matchHasStarted && isApiStarter)) {
+      if (
+        minutes > 0 ||
+        shouldTreatStatsAsStarter(stats, minutes, matchHasStarted, matchIsFinished, teamLineupPublished)
+      ) {
         participantIds.add(pid);
       }
     });
 
-    if (canAwardTeamLineupPoints) {
+    if (teamLineupPublished) {
       starterIds.forEach(pid => participantIds.add(pid));
     }
     if (matchHasStarted) {
@@ -1451,14 +1470,17 @@ function processFixtureDetail(fixtureData, game, allPlayerPoints, playersData, o
       const pStats = statsByPid.get(pid) || { player: { id: pid }, statistics: [{}] };
       const stats = getPrimaryStats(pStats);
       const minutes = getMinutes(stats);
-      const started = canAwardTeamLineupPoints && (
-        starterIds.has(pid) ||
-        (matchHasStarted && stats.games && stats.games.substitute === false)
+      const cameOnAsSub = subbedInPlayerIds.includes(pid);
+      const started = (
+        !cameOnAsSub &&
+        (
+          (teamLineupPublished && starterIds.has(pid)) ||
+          shouldTreatStatsAsStarter(stats, minutes, matchHasStarted, matchIsFinished, teamLineupPublished)
+        )
       );
       const subbedIn = matchHasStarted && !started && (
         minutes > 0 ||
-        subbedInPlayerIds.includes(pid) ||
-        (stats.games && stats.games.substitute === true)
+        cameOnAsSub
       );
       const ownGoals = ownGoalsMap[pid] || 0;
 
@@ -3251,8 +3273,17 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  logError('Unerwarteter Fehler: ' + (err && err.message || err));
-  if (err && err.stack) console.error(err.stack);
-  process.exit(2);
-});
+if (require.main === module) {
+  main().catch(err => {
+    logError('Unerwarteter Fehler: ' + (err && err.message || err));
+    if (err && err.stack) console.error(err.stack);
+    process.exit(2);
+  });
+}
+
+module.exports = {
+  buildEmptyPlayerObject,
+  processFixtureDetail,
+  recalculateTotalPoints,
+  shouldTreatStatsAsStarter
+};
