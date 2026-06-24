@@ -9201,8 +9201,8 @@
     const LIVE_MATCH_STATUSES = ['1H', '2H', 'HT', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'];
     const OPTIMISTIC_LIVE_WINDOW_MIN = 150;
     const PREMATCH_COUNTDOWN_WINDOW_MIN = 30;
-    const MAX_NEXT_MATCH_CARDS = 5;
-    const MAX_FUTURE_MATCH_CARDS = 3;
+    const MAX_NEXT_MATCH_CARDS = 6;
+    const MAX_FUTURE_MATCH_CARDS = 4;
 
     function isMatchFinishedStatus(statusShort) {
         return FINISHED_MATCH_STATUSES.includes(String(statusShort || '').toUpperCase());
