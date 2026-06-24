@@ -272,6 +272,32 @@
             width: 100%;
         }
 
+        .rl-hero-update.is-live .rl-hero-update-time {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .rl-hero-update.is-pending {
+            align-items: stretch;
+            text-align: left;
+        }
+
+        .rl-hero-update.is-pending .rl-hero-update-game {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            max-width: none;
+        }
+
+        .rl-hero-update.is-pending a.rl-hero-update-game-link {
+            display: flex;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         .rl-hero-update-game {
             font-size: 0.78rem;
             color: var(--text-muted);
@@ -3977,20 +4003,23 @@
             });
     }
 
-    function findNextFixture(fixtures, nowMs = Date.now()) {
-        return getSortedFixtureInfos(fixtures).find(item => (
+    function findNextFixtures(fixtures, nowMs = Date.now()) {
+        const candidates = getSortedFixtureInfos(fixtures).filter(item => (
             item.kickoffMs > nowMs &&
             !isFixtureLive(item.fixture) &&
             !isFixtureFinished(item.fixture)
-        )) || null;
+        ));
+        if (!candidates.length) return [];
+        const earliestMs = candidates[0].kickoffMs;
+        return candidates.filter(item => item.kickoffMs === earliestMs);
     }
 
-    function findPendingKickoffFixture(fixtures, nowMs = Date.now()) {
-        return getSortedFixtureInfos(fixtures).find(item => {
+    function findPendingKickoffFixtures(fixtures, nowMs = Date.now()) {
+        return getSortedFixtureInfos(fixtures).filter(item => {
             if (item.kickoffMs > nowMs) return false;
             if (isFixtureLive(item.fixture) || isFixtureFinished(item.fixture)) return false;
             return (nowMs - item.kickoffMs) <= PENDING_FIXTURE_WINDOW_MS;
-        }) || null;
+        });
     }
 
     function isOpeningFixture(fixtures, fixtureInfo) {
@@ -4097,9 +4126,9 @@
         return "Live";
     }
 
-    function findLiveFixture(fixtures) {
+    function findLiveFixtures(fixtures) {
         const entries = Object.entries(fixtures || {});
-        const live = entries
+        return entries
             .map(([id, fixture]) => ({ id, fixture }))
             .filter(item => isFixtureLive(item.fixture))
             .sort((a, b) => {
@@ -4107,7 +4136,6 @@
                 const bTs = Number(b.fixture && b.fixture.kickoffTimestamp) || 0;
                 return aTs - bTs;
             });
-        return live.length ? live[0] : null;
     }
 
     function buildGameAnalysisHref(matchId, fixtures) {
@@ -4206,61 +4234,70 @@
         const latestMatchId = getLatestMatchIdFromPoints(points, fixtures);
         const hasRealPointMatches = latestMatchId !== null;
         const latestPointsUpdatedAt = hasRealPointMatches ? pointsUpdatedAt : null;
-        const liveFixtureInfo = findLiveFixture(fixtures);
+        const liveFixtureInfos = findLiveFixtures(fixtures);
         const nowMs = Date.now();
-        const pendingFixtureInfo = liveFixtureInfo ? null : findPendingKickoffFixture(fixtures, nowMs);
-        const nextFixtureInfo = liveFixtureInfo || pendingFixtureInfo ? null : findNextFixture(fixtures, nowMs);
+        const pendingFixtureInfos = liveFixtureInfos.length ? [] : findPendingKickoffFixtures(fixtures, nowMs);
+        const nextFixtureInfos = liveFixtureInfos.length || pendingFixtureInfos.length ? [] : findNextFixtures(fixtures, nowMs);
 
-        containerEl.classList.toggle("is-live", !!liveFixtureInfo);
-        containerEl.classList.toggle("is-countdown", !!nextFixtureInfo);
+        const hasLive = liveFixtureInfos.length > 0;
+        const hasPending = pendingFixtureInfos.length > 0;
+        const hasNext = nextFixtureInfos.length > 0;
+
+        containerEl.classList.toggle("is-live", hasLive);
+        containerEl.classList.toggle("is-countdown", hasNext);
+        containerEl.classList.toggle("is-pending", hasPending);
         timeEl.removeAttribute("aria-label");
         timeEl.removeAttribute("role");
         if (labelEl) {
-            labelEl.textContent = liveFixtureInfo
+            labelEl.textContent = hasLive
                 ? "Live Punkte-Update"
-                : nextFixtureInfo
-                    ? (isOpeningFixture(fixtures, nextFixtureInfo) && !hasRealPointMatches ? "Countdown zum Eröffnungsspiel" : "Nächstes Spiel")
-                    : pendingFixtureInfo
+                : hasNext
+                    ? (nextFixtureInfos.length > 1
+                        ? "Nächste Spiele"
+                        : (isOpeningFixture(fixtures, nextFixtureInfos[0]) && !hasRealPointMatches ? "Countdown zum Eröffnungsspiel" : "Nächstes Spiel"))
+                    : hasPending
                         ? "Anpfiff erreicht"
                         : "Spielpunkte aktualisiert";
         }
 
-        if (liveFixtureInfo) {
-            const fixture = liveFixtureInfo.fixture;
-            const updateMarker = formatLiveUpdateMarker(fixture.status || {});
-
+        if (hasLive) {
             containerEl.style.display = "";
-            timeEl.innerHTML = buildLiveScoreboardHtml(liveFixtureInfo, fixtures, updateMarker);
+            timeEl.innerHTML = liveFixtureInfos.map(info => {
+                const updateMarker = formatLiveUpdateMarker(info.fixture.status || {});
+                return buildLiveScoreboardHtml(info, fixtures, updateMarker);
+            }).join("");
             gameEl.innerHTML = "";
             setLastUpdateCountdownActive(false);
             return;
         }
 
-        if (pendingFixtureInfo) {
-            const kickoffText = formatFixtureKickoff(pendingFixtureInfo.kickoffMs);
+        if (hasPending) {
+            const firstPending = pendingFixtureInfos[0];
+            const kickoffText = formatFixtureKickoff(firstPending.kickoffMs);
 
             containerEl.style.display = "";
-            timeEl.textContent = formatElapsedSinceKickoff(pendingFixtureInfo.kickoffMs, nowMs);
+            timeEl.textContent = formatElapsedSinceKickoff(firstPending.kickoffMs, nowMs);
             gameEl.innerHTML =
-                buildFixtureLinkHtml(pendingFixtureInfo, fixtures) +
+                pendingFixtureInfos.map(info => buildFixtureLinkHtml(info, fixtures)).join("") +
                 (kickoffText ? `<span class="rl-hero-update-meta">Anpfiff ${escapeHtml(kickoffText)}</span>` : "");
             setLastUpdateCountdownActive(true);
             return;
         }
 
-        if (nextFixtureInfo) {
-            const kickoffText = formatFixtureKickoff(nextFixtureInfo.kickoffMs);
+        if (hasNext) {
+            const firstNext = nextFixtureInfos[0];
+            const kickoffText = formatFixtureKickoff(firstNext.kickoffMs);
             const latestPointsMeta = latestPointsUpdatedAt
                 ? `<span class="rl-hero-update-meta">Letzte Spielpunkte: ${escapeHtml(formatUpdatedAt(latestPointsUpdatedAt))}</span>`
                 : "";
 
             containerEl.style.display = "";
-            const countdownMs = nextFixtureInfo.kickoffMs - nowMs;
+            const countdownMs = firstNext.kickoffMs - nowMs;
             timeEl.setAttribute("role", "timer");
             timeEl.setAttribute("aria-label", formatCountdown(countdownMs));
             timeEl.innerHTML = buildCountdownHtml(countdownMs);
             gameEl.innerHTML =
-                buildFixtureLinkHtml(nextFixtureInfo, fixtures) +
+                nextFixtureInfos.map(info => buildFixtureLinkHtml(info, fixtures)).join("") +
                 (kickoffText ? `<span class="rl-hero-update-meta">Anpfiff ${escapeHtml(kickoffText)}</span>` : "") +
                 latestPointsMeta;
             setLastUpdateCountdownActive(true);
