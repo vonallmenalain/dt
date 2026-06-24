@@ -9839,7 +9839,7 @@
             : enrichedMatches
                 .filter(({ timingState }) => timingState.isFinished)
                 .sort(compareFinishedMatchEntriesByRecency)
-                .slice(0, 1);
+                .slice(0, 2);
         const displayedFinishedMatches = new Set(latestFinishedMatches.map(({ match }) => match));
         const priorityMatches = [
             ...liveMatches,
