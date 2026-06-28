@@ -559,6 +559,24 @@
             background: rgba(74,222,128,0.08);
         }
 
+        /* "Spieler noch im Turnier"-Indikator neben dem Rang. Optisch an
+           den Rang-Chip angelehnt, aber nicht klickbar (kein Hover-Lift). */
+        .alive-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 14px;
+            background: rgba(251,146,60,0.08);
+            border: 1px solid rgba(251,146,60,0.22);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .alive-display[hidden] { display: none; }
+
+        .alive-display .rank-display-value { color: #fbbf24; }
+
         .rank-display-icon { font-size: 18px; line-height: 1; }
 
         .rank-display-text {
@@ -1211,6 +1229,7 @@
         body.teams-locked #team-roster-warning,
         body.teams-locked .display-rank-link,
         body.teams-locked #display-rank-link,
+        body.teams-locked #display-alive,
         body.teams-locked #display-total-points {
             display: none !important;
         }
@@ -2335,6 +2354,13 @@
                                     <div class="rank-display-value" id="display-rank">–</div>
                                 </div>
                             </a>
+                            <div id="display-alive" class="alive-display animate-header-text" title="Spieler, deren Nation noch nicht aus dem Turnier ausgeschieden ist" hidden>
+                                <span class="rank-display-icon" aria-hidden="true">⚽</span>
+                                <div class="rank-display-text">
+                                    <div class="rank-display-label">Im Turnier</div>
+                                    <div class="rank-display-value" id="display-alive-value">–</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="team-roster-warning" class="team-roster-warning" role="alert" aria-live="polite"></div>
@@ -2543,6 +2569,9 @@
     let playerPointsData = {};
     let playerPointDocs = {};
     let fixturesData = {};
+    // Fixture-basierter Nationen-Lebenszyklus (siehe APP_CONFIG.getNationStatus).
+    // Bestimmt, welche Spieler noch im Turnier sind (Nation nicht ausgeschieden).
+    let nationLifecycle = null;
     let badgeSnapshotsData = null;
     let globalPickCounts = {};
     let perfectTeamIds = new Set();
@@ -3733,7 +3762,8 @@
             document.getElementById('manager-awards'),
             document.getElementById('team-roster-warning'),
             document.getElementById('display-total-points'),
-            document.getElementById('display-rank-link')
+            document.getElementById('display-rank-link'),
+            document.getElementById('display-alive')
         ];
 
         els.forEach(el => { if (el) el.classList.remove('animate-header-text'); });
@@ -4088,6 +4118,37 @@
     /* =====================================================
        LOAD TEAM
        ===================================================== */
+    /* "Spieler noch im Turnier": Anzahl der Spieler eines Teams, deren
+       Nation noch nicht aus dem Turnier ausgeschieden ist. Wird neben
+       dem Rang angezeigt. Vor Turnierstart bleibt der Chip versteckt
+       (zusätzlich via body.teams-locked-CSS abgesichert). */
+    function computeActivePlayers(team) {
+        const players = (team && Array.isArray(team.mergedPlayers)) ? team.mergedPlayers : [];
+        if (nationLifecycle && typeof nationLifecycle.countActivePlayers === 'function') {
+            return nationLifecycle.countActivePlayers(players, p => p && p.nation);
+        }
+        return players.length;
+    }
+
+    function updateAliveDisplay(team) {
+        const wrap = document.getElementById('display-alive');
+        const valueEl = document.getElementById('display-alive-value');
+        if (!wrap || !valueEl) return;
+
+        const players = (team && Array.isArray(team.mergedPlayers)) ? team.mergedPlayers : [];
+        const total = players.length;
+
+        if (isTeamsLocked() || total === 0) {
+            wrap.hidden = true;
+            return;
+        }
+
+        const active = computeActivePlayers(team);
+        valueEl.textContent = `${active}/${total}`;
+        wrap.title = `Spieler noch im Turnier: ${active} von ${total} (Nation nicht ausgeschieden)`;
+        wrap.hidden = false;
+    }
+
     function loadTeam(team) {
         const emptyState = document.getElementById('empty-state');
         const teamView   = document.getElementById('team-view');
@@ -4107,6 +4168,8 @@
             rankLink.href = 'rangliste.html';
             rankLink.title = team.currentRank ? `Zur Rangliste wechseln (aktueller Rang ${team.currentRank})` : 'Zur Rangliste wechseln';
         }
+
+        updateAliveDisplay(team);
 
         // Wenn Teams aktuell gesperrt sind, NICHT das Kader rendern: nur
         // Manager-Name (Header) und Lock-Placeholder werden gezeigt. Wir
@@ -4250,6 +4313,9 @@
 
         buildPlayerPointsMap(data.points || {});
         fixturesData = data.fixtures && typeof data.fixtures === 'object' && !Array.isArray(data.fixtures) ? data.fixtures : {};
+        nationLifecycle = (APP && typeof APP.getNationStatus === 'function')
+            ? APP.getNationStatus(fixturesData)
+            : null;
         badgeSnapshotsData = data.badgeSnapshots && typeof data.badgeSnapshots === 'object' ? data.badgeSnapshots : null;
         allTeams = enrichTeamsWithScores(data.teams || []);
         allTeams = assignTeamRanks(allTeams);
