@@ -551,24 +551,43 @@ const APP_CONFIG = (() => {
    * Nationen-Lebenszyklus ("Spieler noch im Turnier").
    *
    * Bestimmt anhand der Fixture-Sammlung, welche Nationen noch
-   * im Turnier sind. Der Ansatz kommt ohne Round-Text-Parsing aus
-   * und ist dadurch robust:
-   *   • Zwei Teams aus derselben Gruppe spielen nur in der
-   *     Gruppenphase gegeneinander  → Gruppenspiel.
-   *   • Teams aus verschiedenen Gruppen treffen erst in der
-   *     K.-o.-Runde aufeinander      → K.-o.-Spiel.
-   *   • Eine Nation lebt, wenn sie noch ein nicht beendetes Spiel
-   *     hat (geplant/live) ODER ihr jüngstes beendetes K.-o.-Spiel
-   *     gewonnen hat (die nächste Runde ist evtl. noch nicht mit
-   *     konkreten Namen befüllt).
-   *   • Solange noch kein benanntes K.-o.-Spiel existiert (reine
-   *     Gruppenphase bzw. Übergangsfenster), gilt niemand als
-   *     ausgeschieden – wir können Gruppen-Endstände nicht allein
-   *     aus Fixtures ableiten und werten daher konservativ.
+   * im Turnier sind. Die Logik spiegelt exakt die Qualifikations-
+   * regeln, die in der Analyse-Ansicht (Turnier → Gruppenphase /
+   * Finalrunde) gezeigt werden, damit beide Stellen denselben
+   * Endstand liefern:
    *
-   * Penalty-Entscheidungen werden korrekt behandelt, weil der
-   * API-Sieger-Flag (`homeTeam.winner` / `awayTeam.winner`) genutzt
-   * wird statt der reinen Tore.
+   *   1. GRUPPENPHASE: Aus allen beendeten Gruppenspielen wird die
+   *      komplette Tabelle pro Gruppe berechnet (Punkte, danach –
+   *      bei Gleichstand – Direktvergleich, Tordifferenz, Tore,
+   *      Fairplay, FIFA-Rang, Auslosungs­reihenfolge). Sobald ALLE
+   *      Gruppen fertig gespielt sind, gilt:
+   *        • Platz 1 + 2 jeder Gruppe  → qualifiziert (im Turnier)
+   *        • die besten N Gruppendritten (N = bestThirdPlaces aus
+   *          dem K.-o.-Baum, WM 2026: 8 von 12) → qualifiziert
+   *        • alle übrigen Dritten und alle Vierten → ausgeschieden
+   *      Solange noch nicht alle Gruppen fertig sind, gilt niemand
+   *      als ausgeschieden (konservativ – Drittplatzierte lassen
+   *      sich erst nach Abschluss aller Gruppen vergleichen).
+   *
+   *   2. K.-O.-RUNDE: Aus jedem beendeten K.-o.-Spiel wird der
+   *      Verlierer bestimmt und als ausgeschieden markiert. Der
+   *      Sieger bleibt im Turnier, auch wenn die Folgepaarung in
+   *      den Fixtures noch nicht benannt ist. Penalty-Entscheidungen
+   *      werden korrekt behandelt, weil zuerst das API-Sieger-Flag
+   *      (`homeTeam.winner` / `awayTeam.winner`) genutzt wird und
+   *      nur als Fallback die reinen Tore.
+   *
+   * Eine Nation ist "im Turnier", solange sie nicht in der
+   * Ausgeschieden-Menge steht. Unbekannte Nationen (ohne Gruppen-
+   * Konfiguration) werten wir konservativ als aktiv.
+   *
+   * Gruppen- vs. K.-o.-Spiel wird primär am Runden-Text der Fixture
+   * (`league.round`, z. B. "Group A - 1" vs. "Round of 32") erkannt
+   * und – falls kein Text vorhanden ist – an der Gruppen­zugehörig­
+   * keit der beiden Teams (gleiche Gruppe → Gruppenspiel, sonst
+   * K.-o.). Dadurch werden auch K.-o.-Fixtures mit noch unbenanntem
+   * Gegner (z. B. "Dritter X/Y/Z") korrekt der jeweils benannten
+   * Nation gutgeschrieben, statt sie fälschlich auszuschliessen.
    * ───────────────────────────────────────────────────────── */
   const FINISHED_FIXTURE_STATUSES = new Set(["FT", "AET", "PEN"]);
 
@@ -580,6 +599,24 @@ const APP_CONFIG = (() => {
         getTournamentTeamNames(team).forEach((name) => {
           const key = normalizeTournamentTeamName(name);
           if (key && !index.has(key)) index.set(key, letter);
+        });
+      });
+    });
+    return index;
+  }
+
+  // Map: normalisierter Name ODER Alias -> kanonischer Team-Key
+  // (kanonisch = normalisierter Hauptname). Damit werden Aliase wie
+  // "Turkey" auf dieselbe Nation wie "Turkiye" aufgelöst.
+  function buildNationKeyIndex() {
+    const index = new Map();
+    getGroupStageGroups().forEach((group) => {
+      (group.teams || []).forEach((team) => {
+        const canonical = normalizeTournamentTeamName(team.name || team.slot || "");
+        if (!canonical) return;
+        getTournamentTeamNames(team).forEach((name) => {
+          const key = normalizeTournamentTeamName(name);
+          if (key && !index.has(key)) index.set(key, canonical);
         });
       });
     });
@@ -620,72 +657,302 @@ const APP_CONFIG = (() => {
     return Number.isFinite(ms) ? ms : 0;
   }
 
+  function getFixtureRoundText(fixture) {
+    if (!fixture || typeof fixture !== "object") return "";
+    if (fixture.league && fixture.league.round) return String(fixture.league.round);
+    if (fixture.round) return String(fixture.round);
+    return "";
+  }
+
+  function getFixtureGoals(fixture) {
+    const goals = (fixture && fixture.goals) || {};
+    const rawHome = goals.home != null ? goals.home
+      : (fixture && fixture.homeGoals != null ? fixture.homeGoals : null);
+    const rawAway = goals.away != null ? goals.away
+      : (fixture && fixture.awayGoals != null ? fixture.awayGoals : null);
+    const home = rawHome != null ? Number(rawHome) : NaN;
+    const away = rawAway != null ? Number(rawAway) : NaN;
+    return {
+      home: Number.isFinite(home) ? home : null,
+      away: Number.isFinite(away) ? away : null
+    };
+  }
+
+  /* Qualifikations-Parameter aus dem K.-o.-Baum:
+   *  - groupRanks       : Gruppenplätze, die direkt qualifiziert sind
+   *  - bestThirdPlaces  : Anzahl der besten Gruppendritten, die zusätzlich
+   *                       qualifiziert sind (0 = keine Dritten). */
+  function getKnockoutQualifierConfig() {
+    const bracket = getActiveTournament().knockoutBracket || {};
+    const q = bracket.qualifiers || {};
+    const groupRanks = Array.isArray(q.groupRanks) && q.groupRanks.length
+      ? q.groupRanks.map(Number).filter(Number.isFinite)
+      : [1, 2];
+    const bestThirdPlaces = Number.isFinite(Number(q.bestThirdPlaces)) ? Number(q.bestThirdPlaces) : 0;
+    return { groupRanks, bestThirdPlaces };
+  }
+
+  /* Leere Tabellen-Zeilen pro Gruppe aufbauen (gespiegelt an der
+   * Analyse-Ansicht). Fairplay/FIFA-Rang sind in der Gruppen-Konfig
+   * i. d. R. nicht gesetzt und wirken dann als neutrale Tiebreaker. */
+  function buildGroupStandingRows() {
+    const byLetter = new Map();
+    getGroupStageGroups().forEach((group) => {
+      const letter = String(group.group || "").toUpperCase();
+      if (!letter) return;
+      const rows = (group.teams || []).map((team, idx) => {
+        const names = getTournamentTeamNames(team);
+        const key = normalizeTournamentTeamName(team.name || team.slot || names[0] || "");
+        const fairPlayRaw = Number(
+          team.fairPlayScore != null ? team.fairPlayScore
+            : (team.fairPlay != null ? team.fairPlay : 0)
+        );
+        const fifaRaw = Number(
+          team.fifaRank != null ? team.fifaRank
+            : (team.fifaRanking != null ? team.fifaRanking : Infinity)
+        );
+        return {
+          key,
+          group: letter,
+          order: idx + 1,
+          played: 0, won: 0, drawn: 0, lost: 0,
+          gf: 0, ga: 0, gd: 0, pts: 0,
+          fairPlay: Number.isFinite(fairPlayRaw) ? fairPlayRaw : 0,
+          fifaRank: Number.isFinite(fifaRaw) ? fifaRaw : Infinity,
+          h2h: new Map(),
+          rank: null
+        };
+      }).filter((row) => row.key);
+      const rowsByKey = new Map(rows.map((row) => [row.key, row]));
+      byLetter.set(letter, { letter, rows, rowsByKey, expectedPerTeam: Math.max(rows.length - 1, 0) });
+    });
+    return byLetter;
+  }
+
+  function getNationH2hRow(row, opponentKey) {
+    if (!row.h2h.has(opponentKey)) {
+      row.h2h.set(opponentKey, { played: 0, pts: 0, gf: 0, ga: 0 });
+    }
+    return row.h2h.get(opponentKey);
+  }
+
+  function applyGroupMatchToRows(rowsByKey, homeKey, awayKey, hg, ag) {
+    const home = rowsByKey.get(homeKey);
+    const away = rowsByKey.get(awayKey);
+    if (!home || !away) return;
+
+    const homePts = hg > ag ? 3 : (hg === ag ? 1 : 0);
+    const awayPts = ag > hg ? 3 : (hg === ag ? 1 : 0);
+
+    home.played += 1; away.played += 1;
+    home.gf += hg; home.ga += ag; away.gf += ag; away.ga += hg;
+    home.pts += homePts; away.pts += awayPts;
+    if (hg > ag) { home.won += 1; away.lost += 1; }
+    else if (ag > hg) { away.won += 1; home.lost += 1; }
+    else { home.drawn += 1; away.drawn += 1; }
+    home.gd = home.gf - home.ga;
+    away.gd = away.gf - away.ga;
+
+    const homeH2h = getNationH2hRow(home, awayKey);
+    homeH2h.played += 1; homeH2h.pts += homePts; homeH2h.gf += hg; homeH2h.ga += ag;
+    const awayH2h = getNationH2hRow(away, homeKey);
+    awayH2h.played += 1; awayH2h.pts += awayPts; awayH2h.gf += ag; awayH2h.ga += hg;
+  }
+
+  function getNationH2hStats(row, tiedRows) {
+    return tiedRows.reduce((acc, opponent) => {
+      if (!opponent || opponent.key === row.key) return acc;
+      const item = row.h2h.get(opponent.key);
+      if (!item) return acc;
+      acc.played += item.played;
+      acc.pts += item.pts;
+      acc.gf += item.gf;
+      acc.ga += item.ga;
+      return acc;
+    }, { played: 0, pts: 0, gf: 0, ga: 0 });
+  }
+
+  function compareNationTiedRows(a, b, tiedRows) {
+    const h2hA = getNationH2hStats(a, tiedRows);
+    const h2hB = getNationH2hStats(b, tiedRows);
+    const gdA = h2hA.gf - h2hA.ga;
+    const gdB = h2hB.gf - h2hB.ga;
+    if (h2hA.pts !== h2hB.pts) return h2hB.pts - h2hA.pts;
+    if (gdA !== gdB) return gdB - gdA;
+    if (h2hA.gf !== h2hB.gf) return h2hB.gf - h2hA.gf;
+    if (a.gd !== b.gd) return b.gd - a.gd;
+    if (a.gf !== b.gf) return b.gf - a.gf;
+    if (a.fairPlay !== b.fairPlay) return b.fairPlay - a.fairPlay;
+    if (a.fifaRank !== b.fifaRank) return a.fifaRank - b.fifaRank;
+    return a.order - b.order;
+  }
+
+  function sortNationGroupRows(rows) {
+    const buckets = new Map();
+    rows.forEach((row) => {
+      const key = String(row.pts);
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(row);
+    });
+    return Array.from(buckets.keys())
+      .map(Number)
+      .sort((a, b) => b - a)
+      .flatMap((points) => {
+        const bucket = buckets.get(String(points)) || [];
+        if (bucket.length <= 1) return bucket;
+        return bucket.slice().sort((a, b) => compareNationTiedRows(a, b, bucket));
+      })
+      .map((row, idx) => {
+        row.rank = idx + 1;
+        return row;
+      });
+  }
+
+  function compareNationThirdRows(a, b) {
+    if (a.pts !== b.pts) return b.pts - a.pts;
+    if (a.gd !== b.gd) return b.gd - a.gd;
+    if (a.gf !== b.gf) return b.gf - a.gf;
+    if (a.fairPlay !== b.fairPlay) return b.fairPlay - a.fairPlay;
+    if (a.fifaRank !== b.fifaRank) return a.fifaRank - b.fifaRank;
+    return String(a.group).localeCompare(String(b.group), "de");
+  }
+
   function computeTournamentNationStatus(fixtures) {
     const groupIndex = buildNationGroupIndex();
+    const keyIndex = buildNationKeyIndex();
     const hasGroupConfig = groupIndex.size > 0;
+    const groupOf = (key) => groupIndex.get(key) || null;
+    // Alias auf kanonischen Team-Key auflösen (Fallback: roher Schlüssel).
+    const canon = (key) => (key && keyIndex.get(key)) || key;
 
     const list = fixtures && typeof fixtures === "object"
       ? (Array.isArray(fixtures) ? fixtures : Object.values(fixtures))
       : [];
 
-    // key -> { hasUpcoming, lastKickoff, lastWasKnockoutWin }
-    const nations = new Map();
-    let knockoutStarted = false;
-
-    const groupOf = (key) => groupIndex.get(key) || null;
+    const standings = buildGroupStandingRows();
+    const knockoutFixtures = [];
+    const participantKeys = new Set();
+    let knockoutPhaseReached = false;
 
     list.forEach((fixture) => {
       if (!fixture || typeof fixture !== "object") return;
+
       const homeName = getFixtureSideName(fixture, "home");
       const awayName = getFixtureSideName(fixture, "away");
-      if (!homeName || !awayName) return; // unaufgelöste K.-o.-Platzhalter ignorieren
-
-      const homeKey = normalizeTournamentTeamName(homeName);
-      const awayKey = normalizeTournamentTeamName(awayName);
-      if (!homeKey || !awayKey) return;
+      const homeKey = canon(normalizeTournamentTeamName(homeName));
+      const awayKey = canon(normalizeTournamentTeamName(awayName));
+      if (homeKey) participantKeys.add(homeKey);
+      if (awayKey) participantKeys.add(awayKey);
 
       const isFinished = FINISHED_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture));
-      const kickoff = getFixtureKickoffValue(fixture);
+      const roundText = getFixtureRoundText(fixture);
+      const groupLikeRound = isGroupStageRound(roundText);
+      const gh = homeKey ? groupOf(homeKey) : null;
+      const ga = awayKey ? groupOf(awayKey) : null;
 
-      const gh = groupOf(homeKey);
-      const ga = groupOf(awayKey);
-      // Gruppenspiel: beide Teams in derselben Gruppe. Andernfalls
-      // (verschiedene Gruppen) handelt es sich um ein K.-o.-Spiel.
-      const isGroupMatch = hasGroupConfig && gh && ga && gh === ga;
-      const isKnockoutMatch = hasGroupConfig && !isGroupMatch;
-      if (isKnockoutMatch) knockoutStarted = true;
+      // Klassifikation: Runden-Text hat Vorrang, sonst Gruppenzugehörigkeit.
+      let kind = "unknown";
+      if (roundText && !groupLikeRound) {
+        kind = "knockout";
+      } else if (hasGroupConfig && gh && ga && gh === ga) {
+        kind = "group";
+      } else if (hasGroupConfig && gh && ga && gh !== ga) {
+        kind = "knockout";
+      }
 
-      [["home", homeKey], ["away", awayKey]].forEach(([side, key]) => {
-        let entry = nations.get(key);
-        if (!entry) {
-          entry = { hasUpcoming: false, lastKickoff: -Infinity, lastWasKnockoutWin: false };
-          nations.set(key, entry);
+      if (kind === "knockout") {
+        knockoutPhaseReached = true;
+        knockoutFixtures.push({
+          homeKey,
+          awayKey,
+          isFinished,
+          homeWinner: getFixtureSideWinner(fixture, "home"),
+          awayWinner: getFixtureSideWinner(fixture, "away"),
+          goals: getFixtureGoals(fixture)
+        });
+      } else if (kind === "group" && isFinished) {
+        const { home: hg, away: ag } = getFixtureGoals(fixture);
+        if (Number.isFinite(hg) && Number.isFinite(ag)) {
+          const entry = standings.get(gh);
+          if (entry) applyGroupMatchToRows(entry.rowsByKey, homeKey, awayKey, hg, ag);
         }
-        if (!isFinished) {
-          entry.hasUpcoming = true;
-        } else if (kickoff >= entry.lastKickoff) {
-          entry.lastKickoff = kickoff;
-          entry.lastWasKnockoutWin = isKnockoutMatch && getFixtureSideWinner(fixture, side) === true;
-        }
+      }
+    });
+
+    // Tabellen ranken.
+    const groupResults = [];
+    standings.forEach((entry) => {
+      entry.ranked = sortNationGroupRows(entry.rows);
+      groupResults.push(entry);
+    });
+
+    // Alle Gruppen fertig gespielt? Erst dann lassen sich Endstände und
+    // (vor allem) die besten Drittplatzierten zuverlässig bestimmen.
+    const allGroupsComplete = groupResults.length > 0 && groupResults.every((entry) =>
+      entry.expectedPerTeam > 0 &&
+      entry.rows.length > 0 &&
+      entry.rows.every((row) => row.played === entry.expectedPerTeam)
+    );
+
+    const { groupRanks, bestThirdPlaces } = getKnockoutQualifierConfig();
+    const advancedRanks = new Set(groupRanks);
+
+    const advanced = new Set();
+    const eliminated = new Set();
+
+    if (allGroupsComplete) {
+      groupResults.forEach((entry) => {
+        (entry.ranked || []).forEach((row) => {
+          if (advancedRanks.has(row.rank)) advanced.add(row.key);
+        });
       });
+
+      if (bestThirdPlaces > 0) {
+        const thirds = groupResults
+          .map((entry) => (entry.ranked || [])[2])
+          .filter(Boolean)
+          .slice()
+          .sort(compareNationThirdRows);
+        thirds.forEach((row, idx) => {
+          if (idx < bestThirdPlaces) advanced.add(row.key);
+        });
+      }
+
+      // Nach Abschluss der Gruppenphase: jede nicht qualifizierte
+      // Nation ist ausgeschieden.
+      groupResults.forEach((entry) => {
+        entry.rows.forEach((row) => {
+          if (!advanced.has(row.key)) eliminated.add(row.key);
+        });
+      });
+    }
+
+    // K.-o.-Verlierer ausscheiden lassen (gewinnt eine bereits in der
+    // Gruppenphase qualifizierte Nation nicht, fliegt sie hier raus).
+    knockoutFixtures.forEach((kf) => {
+      if (!kf.isFinished) return;
+      let loserKey = null;
+      if (kf.homeWinner === true && kf.awayKey) loserKey = kf.awayKey;
+      else if (kf.awayWinner === true && kf.homeKey) loserKey = kf.homeKey;
+      else {
+        const { home: hg, away: ag } = kf.goals;
+        if (Number.isFinite(hg) && Number.isFinite(ag) && hg !== ag) {
+          loserKey = hg > ag ? kf.awayKey : kf.homeKey;
+        }
+      }
+      if (loserKey) eliminated.add(loserKey);
     });
 
     const aliveKeys = new Set();
-    nations.forEach((entry, key) => {
-      if (entry.hasUpcoming || entry.lastWasKnockoutWin) aliveKeys.add(key);
+    participantKeys.forEach((key) => {
+      if (!eliminated.has(key)) aliveKeys.add(key);
     });
 
     function isNationAlive(nationName) {
-      // Ohne Gruppenkonfiguration oder solange die K.-o.-Phase noch
-      // nicht benannt ist, werten wir konservativ: alle aktiv.
-      if (!hasGroupConfig || !knockoutStarted) return true;
-      const key = normalizeTournamentTeamName(nationName);
+      if (!hasGroupConfig) return true;
+      const key = canon(normalizeTournamentTeamName(nationName));
       if (!key) return true;
-      if (aliveKeys.has(key)) return true;
-      // Nation kam in den Fixtures vor, ist aber nicht mehr aktiv → raus.
-      if (nations.has(key)) return false;
-      // Unbekannte Nation (keine Fixture-Daten) → konservativ aktiv.
-      return true;
+      return !eliminated.has(key);
     }
 
     function countActivePlayers(players, getNation) {
@@ -697,9 +964,14 @@ const APP_CONFIG = (() => {
     }
 
     return {
-      knockoutStarted,
+      // `knockoutStarted` bleibt als Kompatibilitäts-Feld erhalten: true,
+      // sobald die K.-o.-Phase erkennbar ist oder die Gruppen-Endstände
+      // feststehen (ab dann werden Nationen ausgeschieden).
+      knockoutStarted: knockoutPhaseReached || allGroupsComplete,
+      allGroupsComplete,
       aliveKeys,
-      participantKeys: new Set(nations.keys()),
+      eliminatedKeys: eliminated,
+      participantKeys,
       isNationAlive,
       countActivePlayers
     };
