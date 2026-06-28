@@ -548,6 +548,164 @@ const APP_CONFIG = (() => {
   }
 
   /* ─────────────────────────────────────────────────────────
+   * Nationen-Lebenszyklus ("Spieler noch im Turnier").
+   *
+   * Bestimmt anhand der Fixture-Sammlung, welche Nationen noch
+   * im Turnier sind. Der Ansatz kommt ohne Round-Text-Parsing aus
+   * und ist dadurch robust:
+   *   • Zwei Teams aus derselben Gruppe spielen nur in der
+   *     Gruppenphase gegeneinander  → Gruppenspiel.
+   *   • Teams aus verschiedenen Gruppen treffen erst in der
+   *     K.-o.-Runde aufeinander      → K.-o.-Spiel.
+   *   • Eine Nation lebt, wenn sie noch ein nicht beendetes Spiel
+   *     hat (geplant/live) ODER ihr jüngstes beendetes K.-o.-Spiel
+   *     gewonnen hat (die nächste Runde ist evtl. noch nicht mit
+   *     konkreten Namen befüllt).
+   *   • Solange noch kein benanntes K.-o.-Spiel existiert (reine
+   *     Gruppenphase bzw. Übergangsfenster), gilt niemand als
+   *     ausgeschieden – wir können Gruppen-Endstände nicht allein
+   *     aus Fixtures ableiten und werten daher konservativ.
+   *
+   * Penalty-Entscheidungen werden korrekt behandelt, weil der
+   * API-Sieger-Flag (`homeTeam.winner` / `awayTeam.winner`) genutzt
+   * wird statt der reinen Tore.
+   * ───────────────────────────────────────────────────────── */
+  const FINISHED_FIXTURE_STATUSES = new Set(["FT", "AET", "PEN"]);
+
+  function buildNationGroupIndex() {
+    const index = new Map(); // normalisierter Name/Alias -> Gruppenbuchstabe
+    getGroupStageGroups().forEach((group) => {
+      const letter = String(group.group || "").toUpperCase();
+      (group.teams || []).forEach((team) => {
+        getTournamentTeamNames(team).forEach((name) => {
+          const key = normalizeTournamentTeamName(name);
+          if (key && !index.has(key)) index.set(key, letter);
+        });
+      });
+    });
+    return index;
+  }
+
+  function getFixtureSideName(fixture, side) {
+    if (!fixture || typeof fixture !== "object") return "";
+    const camel = side === "home" ? fixture.homeTeam : fixture.awayTeam;
+    if (camel && typeof camel === "object" && camel.name) return String(camel.name);
+    if (typeof camel === "string" && camel) return camel;
+    const legacy = fixture.teams && fixture.teams[side];
+    if (legacy && legacy.name) return String(legacy.name);
+    return "";
+  }
+
+  function getFixtureSideWinner(fixture, side) {
+    if (!fixture || typeof fixture !== "object") return null;
+    const camel = side === "home" ? fixture.homeTeam : fixture.awayTeam;
+    if (camel && typeof camel === "object" && typeof camel.winner === "boolean") return camel.winner;
+    const legacy = fixture.teams && fixture.teams[side];
+    if (legacy && typeof legacy.winner === "boolean") return legacy.winner;
+    return null;
+  }
+
+  function getFixtureStatusShort(fixture) {
+    if (!fixture || typeof fixture !== "object") return "";
+    if (fixture.status && fixture.status.short) return String(fixture.status.short);
+    if (fixture.statusShort) return String(fixture.statusShort);
+    return "";
+  }
+
+  function getFixtureKickoffValue(fixture) {
+    const ts = Number(fixture && fixture.kickoffTimestamp);
+    if (Number.isFinite(ts) && ts > 0) return ts > 1e11 ? ts : ts * 1000;
+    const raw = fixture && (fixture.kickoffIso || fixture.date || fixture.datetime || fixture.kickoff);
+    const ms = raw ? new Date(raw).getTime() : NaN;
+    return Number.isFinite(ms) ? ms : 0;
+  }
+
+  function computeTournamentNationStatus(fixtures) {
+    const groupIndex = buildNationGroupIndex();
+    const hasGroupConfig = groupIndex.size > 0;
+
+    const list = fixtures && typeof fixtures === "object"
+      ? (Array.isArray(fixtures) ? fixtures : Object.values(fixtures))
+      : [];
+
+    // key -> { hasUpcoming, lastKickoff, lastWasKnockoutWin }
+    const nations = new Map();
+    let knockoutStarted = false;
+
+    const groupOf = (key) => groupIndex.get(key) || null;
+
+    list.forEach((fixture) => {
+      if (!fixture || typeof fixture !== "object") return;
+      const homeName = getFixtureSideName(fixture, "home");
+      const awayName = getFixtureSideName(fixture, "away");
+      if (!homeName || !awayName) return; // unaufgelöste K.-o.-Platzhalter ignorieren
+
+      const homeKey = normalizeTournamentTeamName(homeName);
+      const awayKey = normalizeTournamentTeamName(awayName);
+      if (!homeKey || !awayKey) return;
+
+      const isFinished = FINISHED_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture));
+      const kickoff = getFixtureKickoffValue(fixture);
+
+      const gh = groupOf(homeKey);
+      const ga = groupOf(awayKey);
+      // Gruppenspiel: beide Teams in derselben Gruppe. Andernfalls
+      // (verschiedene Gruppen) handelt es sich um ein K.-o.-Spiel.
+      const isGroupMatch = hasGroupConfig && gh && ga && gh === ga;
+      const isKnockoutMatch = hasGroupConfig && !isGroupMatch;
+      if (isKnockoutMatch) knockoutStarted = true;
+
+      [["home", homeKey], ["away", awayKey]].forEach(([side, key]) => {
+        let entry = nations.get(key);
+        if (!entry) {
+          entry = { hasUpcoming: false, lastKickoff: -Infinity, lastWasKnockoutWin: false };
+          nations.set(key, entry);
+        }
+        if (!isFinished) {
+          entry.hasUpcoming = true;
+        } else if (kickoff >= entry.lastKickoff) {
+          entry.lastKickoff = kickoff;
+          entry.lastWasKnockoutWin = isKnockoutMatch && getFixtureSideWinner(fixture, side) === true;
+        }
+      });
+    });
+
+    const aliveKeys = new Set();
+    nations.forEach((entry, key) => {
+      if (entry.hasUpcoming || entry.lastWasKnockoutWin) aliveKeys.add(key);
+    });
+
+    function isNationAlive(nationName) {
+      // Ohne Gruppenkonfiguration oder solange die K.-o.-Phase noch
+      // nicht benannt ist, werten wir konservativ: alle aktiv.
+      if (!hasGroupConfig || !knockoutStarted) return true;
+      const key = normalizeTournamentTeamName(nationName);
+      if (!key) return true;
+      if (aliveKeys.has(key)) return true;
+      // Nation kam in den Fixtures vor, ist aber nicht mehr aktiv → raus.
+      if (nations.has(key)) return false;
+      // Unbekannte Nation (keine Fixture-Daten) → konservativ aktiv.
+      return true;
+    }
+
+    function countActivePlayers(players, getNation) {
+      if (!Array.isArray(players)) return 0;
+      const resolve = typeof getNation === "function"
+        ? getNation
+        : (p) => (p && (p.nation || p["Nationalteam.name"])) || "";
+      return players.reduce((sum, p) => sum + (isNationAlive(resolve(p)) ? 1 : 0), 0);
+    }
+
+    return {
+      knockoutStarted,
+      aliveKeys,
+      participantKeys: new Set(nations.keys()),
+      isNationAlive,
+      countActivePlayers
+    };
+  }
+
+  /* ─────────────────────────────────────────────────────────
    * Aktives Turnier robust auflösen.
    *
    * Reihenfolge:
@@ -1112,6 +1270,20 @@ const APP_CONFIG = (() => {
 
     formatKnockoutSlotLabel(slot) {
       return formatKnockoutSlotLabel(slot);
+    },
+
+    normalizeTeamName(value) {
+      return normalizeTournamentTeamName(value);
+    },
+
+    /**
+     * Liefert den Lebenszyklus-Status der Nationen anhand der
+     * Fixture-Sammlung. Siehe `computeTournamentNationStatus` für
+     * Details. Rückgabe enthält u.a. `isNationAlive(name)` und
+     * `countActivePlayers(players, getNation)`.
+     */
+    getNationStatus(fixtures) {
+      return computeTournamentNationStatus(fixtures);
     },
 
     firebaseConfig,
