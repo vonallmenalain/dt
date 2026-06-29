@@ -6437,20 +6437,60 @@
         return `${num > 0 ? '+' : ''}${num}`;
     }
 
+    // Performance: O(1)-Lookups statt linearer Scans über den gesamten
+    // Spielerpool (~1200 Einträge). `playersData` wird zur Ladezeit einmal
+    // befüllt und danach weder in Länge noch Reihenfolge verändert (data.js
+    // mutiert ausschliesslich Position-Felder in place), deshalb darf der
+    // Index lazy einmal aufgebaut und wiederverwendet werden. Die Map-
+    // Befüllung "erster Treffer gewinnt" spiegelt exakt die bisherige
+    // Array.find-Semantik wider.
+    let __dtPlayerIndexById = null;
+    let __dtPlayerIndexByName = null;
+    function __dtEnsurePlayerIndexes() {
+        if (__dtPlayerIndexById) return;
+        __dtPlayerIndexById = new Map();
+        __dtPlayerIndexByName = new Map();
+        if (typeof playersData === 'undefined' || !Array.isArray(playersData)) return;
+        for (let i = 0; i < playersData.length; i++) {
+            const pd = playersData[i];
+            if (!pd) continue;
+            const rawId = pd['player.id'];
+            if (rawId !== undefined && rawId !== null) {
+                const key = String(rawId);
+                if (!__dtPlayerIndexById.has(key)) __dtPlayerIndexById.set(key, pd);
+            }
+            const name = pd.Spielername;
+            if (name) {
+                const list = __dtPlayerIndexByName.get(name);
+                if (list) list.push(pd);
+                else __dtPlayerIndexByName.set(name, [pd]);
+            }
+        }
+    }
+
     function getPlayerById(playerId) {
-        return playersData.find(p => String(p['player.id']) === String(playerId)) || null;
+        if (playerId === undefined || playerId === null) return null;
+        __dtEnsurePlayerIndexes();
+        return __dtPlayerIndexById.get(String(playerId)) || null;
     }
 
     function getPlayerByName(name) {
-        return playersData.find(p => p.Spielername === name) || null;
+        if (!name) return null;
+        __dtEnsurePlayerIndexes();
+        const list = __dtPlayerIndexByName.get(name);
+        return list ? list[0] : null;
     }
 
     function getPlayerByStoredSnapshot(savedPlayer) {
         if (!savedPlayer || !savedPlayer.name) return null;
-        return playersData.find(p => {
-            if (p.Spielername !== savedPlayer.name) return false;
-            return !savedPlayer.nation || (p['Nationalteam.name'] || '') === savedPlayer.nation;
-        }) || null;
+        __dtEnsurePlayerIndexes();
+        const list = __dtPlayerIndexByName.get(savedPlayer.name);
+        if (!list) return null;
+        for (let i = 0; i < list.length; i++) {
+            const p = list[i];
+            if (!savedPlayer.nation || (p['Nationalteam.name'] || '') === savedPlayer.nation) return p;
+        }
+        return null;
     }
 
     function resolveStoredPlayer(savedPlayer) {
@@ -12364,7 +12404,7 @@
                 closeDropdown();
                 return;
             }
-            const player = playersData.find(p => String(p['player.id']) === String(id));
+            const player = getPlayerById(id);
             input.value = player ? (player.Spielername || '') : '';
             updateClear();
             closeDropdown();
