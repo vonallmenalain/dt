@@ -420,7 +420,8 @@ function normalizeFixtureGoalEvents(fixture, fixtureEvents) {
         playerName: player.name || '',
         assistId: assist.id != null ? String(assist.id) : '',
         assistName: assist.name || '',
-        detail: event && event.detail ? String(event.detail) : ''
+        detail: event && event.detail ? String(event.detail) : '',
+        comments: event && event.comments ? String(event.comments) : ''
       };
     })
     .sort((a, b) => {
