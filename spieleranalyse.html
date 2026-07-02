@@ -4538,6 +4538,17 @@
             opacity: 0.6;
         }
 
+        .sc-score-note {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: none;
+            color: var(--text-muted, #8b949e);
+            vertical-align: 2px;
+        }
+
         .sc-score.sc-finished {
             color: #4ade80;
         }
@@ -8000,6 +8011,68 @@
         return { home: parsed.homeGoals, away: parsed.awayGoals };
     }
 
+    // Liefert den offiziellen Endstand für ein abgeschlossenes Spiel inkl.
+    // Hinweis, ob nach Verlaengerung (n.V.) oder nach Elfmeterschiessen
+    // (n.E.) entschieden wurde. Bei Elfmeterschiessen wird das
+    // Elfmeterschiessen-Ergebnis selbst als Stand angezeigt (z.B. "3:4"),
+    // sonst der Spielstand nach 90 bzw. 120 Minuten.
+    function getScheduleFinalScoreInfo(m, mc) {
+        const base = getScheduleScoreParts(m, mc);
+        const score = m?.score || {};
+        const num = v => (v === null || v === undefined || v === '' ? null : Number(v));
+        const fulltime = score.fulltime || score.fullTime || score.ft || {};
+        const extratime = score.extratime || score.extraTime || score.et || {};
+        const penalty = score.penalty || {};
+
+        const ftHome = num(fulltime.home ?? fulltime.homeGoals);
+        const ftAway = num(fulltime.away ?? fulltime.awayGoals);
+        const etHome = num(extratime.home ?? extratime.homeGoals);
+        const etAway = num(extratime.away ?? extratime.awayGoals);
+        const penHome = num(penalty.home ?? penalty.homeGoals);
+        const penAway = num(penalty.away ?? penalty.awayGoals);
+
+        const hasFulltime = Number.isFinite(ftHome) && Number.isFinite(ftAway);
+        const hasExtratime = Number.isFinite(etHome) && Number.isFinite(etAway);
+        const hasPenalty = Number.isFinite(penHome) && Number.isFinite(penAway);
+
+        let home = hasFulltime ? ftHome : (base ? Number(base.home) : null);
+        let away = hasFulltime ? ftAway : (base ? Number(base.away) : null);
+        let note = '';
+
+        if (hasExtratime && (etHome !== home || etAway !== away)) {
+            home = etHome;
+            away = etAway;
+            note = 'n.V.';
+        }
+
+        if (hasPenalty) {
+            home = penHome;
+            away = penAway;
+            note = 'n.E.';
+        }
+
+        if (!Number.isFinite(home) || !Number.isFinite(away)) {
+            return base ? { home: Number(base.home), away: Number(base.away), note: '' } : null;
+        }
+        return { home, away, note };
+    }
+
+    // Ermittelt die siegreiche Seite eines Spiels ('home'/'away'/null).
+    // Nutzt bevorzugt das API-Sieger-Flag (berücksichtigt automatisch
+    // Elfmeterschiessen), fällt sonst auf den Endstand zurück.
+    function getScheduleMatchWinnerSide(m, mc) {
+        if (typeof m?.homeWinner === 'boolean' || typeof m?.awayWinner === 'boolean') {
+            if (m.homeWinner === true) return 'home';
+            if (m.awayWinner === true) return 'away';
+            if (m.homeWinner === false && m.awayWinner === false) return null;
+        }
+        const info = getScheduleFinalScoreInfo(m, mc);
+        if (!info) return null;
+        if (info.home > info.away) return 'home';
+        if (info.away > info.home) return 'away';
+        return null;
+    }
+
     function getScheduleGoalEventName(...values) {
         for (const value of values) {
             if (value === undefined || value === null) continue;
@@ -8680,8 +8753,13 @@
                         : `<div class="sc-time">${escapeHtml(timeLabel)}</div>`;
                     matchStatusCls = 'sc-card--pending';
                 } else if (isFinished && scoreParts) {
+                    const finalScore = getScheduleFinalScoreInfo(m, mc) || scoreParts;
+                    const finalNoteTitle = finalScore.note === 'n.E.' ? 'Nach Elfmeterschiessen' : (finalScore.note === 'n.V.' ? 'Nach Verlaengerung' : '');
+                    const finalNoteHtml = finalScore.note
+                        ? ` <span class="sc-score-note" title="${escapeHtml(finalNoteTitle)}">${escapeHtml(finalScore.note)}</span>`
+                        : '';
                     centerHtml = `<div class="sc-finished-pill">Abgeschlossen</div>`;
-                    centerHtml += `<div class="sc-score sc-finished">${escapeHtml(String(scoreParts.home))}<span class="sc-colon">:</span>${escapeHtml(String(scoreParts.away))}</div>`;
+                    centerHtml += `<div class="sc-score sc-finished">${escapeHtml(String(finalScore.home))}<span class="sc-colon">:</span>${escapeHtml(String(finalScore.away))}${finalNoteHtml}</div>`;
                     centerHtml += kickoffMetaHtml;
                     matchStatusCls = 'sc-card--finished';
                 } else if (isFinished) {
@@ -10323,6 +10401,137 @@
         return possible.length === 1 ? possible[0].group : '';
     }
 
+    // Klassifiziert einen Runden-Text ('Round of 16', 'Group A', ...) als
+    // K.-o.- (true) oder Gruppenspiel (false). Liefert null, wenn der Text
+    // fehlt/nicht eindeutig ist – der Aufrufer soll dann auf die
+    // Gruppenzugehoerigkeit der beiden Teams zurueckfallen.
+    function isTournamentKnockoutRoundText(roundText) {
+        const value = String(roundText || '').trim().toLowerCase();
+        if (!value) return null;
+        if (/group|matchday|spieltag|regular season/.test(value)) return false;
+        return true;
+    }
+
+    // Baut einen Index aller bereits ausgetragenen K.-o.-Spiele, indiziert
+    // nach dem (sortierten) Team-Paar. Wird verwendet, um im Auto-Modus
+    // herauszufinden, wer ein bestimmtes K.-o.-Spiel (z. B. "Spiel 73")
+    // tatsaechlich gewonnen hat, sobald es abgepfiffen ist.
+    function buildTournamentKnockoutMatchIndex(context) {
+        if (context.knockoutMatchIndex) return context.knockoutMatchIndex;
+
+        const resolver = buildTournamentTeamResolver(getTournamentGroupsConfig());
+        const index = new Map();
+
+        const addMatch = (m, mc) => {
+            const scheduledMatch = mc?.rawMatchId !== undefined && mc?.rawMatchId !== null
+                ? findScheduleEntryForRawMatchId(mc.rawMatchId)
+                : (scheduleCatalog.includes(m) ? m : null);
+            const sourceMatch = scheduledMatch || m;
+
+            if (scheduledMatch) {
+                const statusInfo = getScheduleStatusInfo(scheduledMatch);
+                if (!statusInfo.isFinished) return;
+            }
+
+            const homeName = sourceMatch?.teamA || sourceMatch?.home || sourceMatch?.homeTeam || '';
+            const awayName = sourceMatch?.teamB || sourceMatch?.away || sourceMatch?.awayTeam || '';
+            if (!homeName || !awayName) return;
+
+            const roundText = sourceMatch?.round || (sourceMatch?.league && sourceMatch.league.round) || '';
+            const knockoutByRound = isTournamentKnockoutRoundText(roundText);
+            const groupMatch = APP && typeof APP.getGroupStageGroup === 'function'
+                ? APP.getGroupStageGroup(homeName, awayName)
+                : null;
+            const isKnockout = knockoutByRound === null ? !groupMatch : knockoutByRound;
+            if (!isKnockout) return;
+
+            const homeTeam = findTournamentTeam(homeName, resolver);
+            const awayTeam = findTournamentTeam(awayName, resolver);
+            if (!homeTeam || !awayTeam || homeTeam.key === awayTeam.key) return;
+
+            const winnerSide = getScheduleMatchWinnerSide(sourceMatch, mc);
+            if (!winnerSide) return;
+
+            const pairKey = [homeTeam.key, awayTeam.key].sort().join('__');
+            index.set(pairKey, {
+                homeKey: homeTeam.key,
+                awayKey: awayTeam.key,
+                winnerKey: winnerSide === 'home' ? homeTeam.key : awayTeam.key,
+                scoreInfo: getScheduleFinalScoreInfo(sourceMatch, mc)
+            });
+        };
+
+        scheduleCatalog.forEach(m => addMatch(m, findMatchCatalogForScheduleEntry(m)));
+        matchCatalog.forEach(mc => addMatch({
+            id: mc.rawMatchId,
+            teamA: mc.teamA,
+            teamB: mc.teamB,
+            resultText: mc.resultText,
+            date: mc.dateTime
+        }, mc));
+
+        context.knockoutMatchIndex = index;
+        return index;
+    }
+
+    // Liefert Sieger-Seite + Endstand des tatsaechlich ausgetragenen Spiels
+    // zwischen zwei (bereits aufgeloesten) Team-Zeilen, relativ zur
+    // uebergebenen home/away-Reihenfolge des Bracket-Slots.
+    function getTournamentKnockoutMatchForTeams(homeRow, awayRow, context) {
+        if (!homeRow || !awayRow || homeRow.key === awayRow.key) return null;
+        const index = buildTournamentKnockoutMatchIndex(context);
+        const pairKey = [homeRow.key, awayRow.key].sort().join('__');
+        const entry = index.get(pairKey);
+        if (!entry) return null;
+
+        const swapped = entry.homeKey !== homeRow.key;
+        const winnerSide = entry.winnerKey === homeRow.key ? 'home' : (entry.winnerKey === awayRow.key ? 'away' : null);
+        const scoreInfo = entry.scoreInfo
+            ? (swapped ? { home: entry.scoreInfo.away, away: entry.scoreInfo.home, note: entry.scoreInfo.note } : entry.scoreInfo)
+            : null;
+        return { winnerSide, scoreInfo };
+    }
+
+    // Auto-Modus-Aequivalent zu getTournamentManualMatchResult: loest ein
+    // K.-o.-Spiel anhand der TATSAECHLICHEN Ergebnisse auf (statt manueller
+    // Tipps), damit Sieger im Turnierbaum automatisch weiterkommen, sobald
+    // ihr Spiel abgepfiffen ist.
+    function getTournamentAutoMatchResult(matchNumber, context, visiting = new Set()) {
+        const n = Number(matchNumber);
+        const empty = { home: null, away: null, winner: null, runnerUp: null, scoreInfo: null };
+        if (!Number.isFinite(n) || visiting.has(n)) return empty;
+
+        if (!context.autoMatchResultCache) context.autoMatchResultCache = new Map();
+        if (context.autoMatchResultCache.has(n)) return context.autoMatchResultCache.get(n);
+
+        const fixture = getTournamentFixtureByMatchNumber(n);
+        if (!fixture) {
+            context.autoMatchResultCache.set(n, empty);
+            return empty;
+        }
+
+        const nextVisiting = new Set(visiting);
+        nextVisiting.add(n);
+        const home = resolveTournamentSlotRow(fixture.home, context, fixture, nextVisiting);
+        const away = resolveTournamentSlotRow(fixture.away, context, fixture, nextVisiting);
+
+        let winner = null;
+        let runnerUp = null;
+        let scoreInfo = null;
+        if (home && away) {
+            const played = getTournamentKnockoutMatchForTeams(home, away, context);
+            if (played && played.winnerSide) {
+                winner = played.winnerSide === 'home' ? home : away;
+                runnerUp = played.winnerSide === 'home' ? away : home;
+                scoreInfo = played.scoreInfo || null;
+            }
+        }
+
+        const result = { home, away, winner, runnerUp, scoreInfo };
+        context.autoMatchResultCache.set(n, result);
+        return result;
+    }
+
     function resolveTournamentSlotRow(slot, context, fixture = null, visiting = new Set()) {
         if (!slot || !context) return null;
         if (slot.type === 'groupRank') {
@@ -10334,10 +10543,11 @@
             return row && row.qualifiesAsThird ? row : null;
         }
         if (slot.winnerOf || slot.runnerUpOf) {
-            if (!isTournamentManualMode()) return null;
             const sourceMatch = Number(slot.winnerOf || slot.runnerUpOf);
             if (!Number.isFinite(sourceMatch)) return null;
-            const result = getTournamentManualMatchResult(sourceMatch, context, visiting);
+            const result = isTournamentManualMode()
+                ? getTournamentManualMatchResult(sourceMatch, context, visiting)
+                : getTournamentAutoMatchResult(sourceMatch, context, visiting);
             return slot.winnerOf ? result.winner : result.runnerUp;
         }
         return null;
@@ -10412,6 +10622,14 @@
         return 'offen';
     }
 
+    // Formatiert einen aufgeloesten K.-o.-Endstand als kompakten Sub-Text,
+    // z. B. "3:1", "1:1 n.V." (nach Verlaengerung) oder "3:4 n.E." (nach
+    // Elfmeterschiessen).
+    function formatTournamentScoreSub(scoreInfo) {
+        if (!scoreInfo || !Number.isFinite(scoreInfo.home) || !Number.isFinite(scoreInfo.away)) return '';
+        return `${scoreInfo.home}:${scoreInfo.away}${scoreInfo.note ? ` ${scoreInfo.note}` : ''}`;
+    }
+
     function resolveTournamentSlot(slot, context, fixture = null) {
         if (!slot) return { label: 'offen', placeholder: true, sub: '' };
 
@@ -10420,8 +10638,22 @@
             let sub = '';
             if (slot.type === 'groupRank') sub = `${slot.rank}. Gruppe ${slot.group}`;
             else if (slot.type === 'bestThird') sub = `Dritter Gruppe ${row.group}`;
-            else if (slot.winnerOf) sub = `Sieger Spiel ${slot.winnerOf}`;
-            else if (slot.runnerUpOf) sub = `Verlierer Spiel ${slot.runnerUpOf}`;
+            else if (slot.winnerOf) {
+                sub = `Sieger Spiel ${slot.winnerOf}`;
+                if (!isTournamentManualMode()) {
+                    const auto = getTournamentAutoMatchResult(slot.winnerOf, context);
+                    const scoreSub = formatTournamentScoreSub(auto.scoreInfo);
+                    if (scoreSub) sub = scoreSub;
+                }
+            }
+            else if (slot.runnerUpOf) {
+                sub = `Verlierer Spiel ${slot.runnerUpOf}`;
+                if (!isTournamentManualMode()) {
+                    const auto = getTournamentAutoMatchResult(slot.runnerUpOf, context);
+                    const scoreSub = formatTournamentScoreSub(auto.scoreInfo);
+                    if (scoreSub) sub = scoreSub;
+                }
+            }
             return {
                 label: row.displayName || row.name,
                 flag: getTournamentFlag(row),
@@ -10449,13 +10681,26 @@
         return { label: formatTournamentSlotFallback(slot), placeholder: true, sub: '' };
     }
 
+    // Liefert den Team-Key des Siegers des AKTUELLEN Fixtures (nicht der
+    // Quellspiele) fuer die Sieger/Verlierer-Hervorhebung: im Manuellen
+    // Modus der getippte Sieger, im Auto-Modus der tatsaechliche Sieger,
+    // sobald das echte Spiel abgepfiffen ist.
+    function getTournamentSlotWinnerKeyForFixture(matchNumber, context) {
+        if (!matchNumber) return '';
+        if (isTournamentManualMode()) {
+            return String((tournamentManualState.winners || {})[String(matchNumber)] || '');
+        }
+        const auto = getTournamentAutoMatchResult(matchNumber, context);
+        return auto && auto.winner ? auto.winner.key : '';
+    }
+
     function renderTournamentSlot(slot, context, fixture, side) {
         const resolved = resolveTournamentSlot(slot, context, fixture);
         const flagHtml = resolved.flag
             ? renderFlagImageHtml('tb-slot-flag', resolved.flag, '', resolved.label)
             : `<span class="tb-slot-flag" aria-hidden="true"></span>`;
         const matchNumber = getTournamentFixtureMatchNumber(fixture);
-        const pickedWinner = matchNumber ? String((tournamentManualState.winners || {})[String(matchNumber)] || '') : '';
+        const pickedWinner = matchNumber ? getTournamentSlotWinnerKeyForFixture(matchNumber, context) : '';
         const isWinner = !!(resolved.teamKey && pickedWinner && resolved.teamKey === pickedWinner);
         const isLoser = !!(resolved.teamKey && pickedWinner && resolved.teamKey !== pickedWinner);
         const isPickable = isTournamentManualMode() && !!matchNumber && !!resolved.teamKey && !resolved.placeholder;
