@@ -2354,7 +2354,7 @@
 
         .tournament-bracket {
             display: grid;
-            --tb-match-height: 168px;
+            --tb-match-height: 198px;
             --tb-match-gap: 12px;
             --tb-step: calc(var(--tb-match-height) + var(--tb-match-gap));
             grid-template-columns: minmax(260px, 1.25fr) repeat(4, minmax(230px, 1fr));
@@ -2423,6 +2423,7 @@
             text-transform: uppercase;
             letter-spacing: 0.55px;
             margin-bottom: 8px;
+            flex-shrink: 0;
         }
 
         .tb-match-number {
@@ -2530,10 +2531,12 @@
         }
 
         .tb-match-meta {
-            margin-top: 8px;
+            margin-top: auto;
+            padding-top: 8px;
             color: var(--text-muted);
             font-size: 0.7rem;
             line-height: 1.35;
+            flex-shrink: 0;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -8075,10 +8078,25 @@
         let away = hasFulltime ? ftAway : (base ? Number(base.away) : null);
         let note = '';
 
-        if (hasExtratime && (etHome !== home || etAway !== away)) {
-            home = etHome;
-            away = etAway;
-            note = 'n.V.';
+        if (hasExtratime) {
+            // Manche Datenquellen liefern die Verlaengerung als Endstand
+            // (kumulativ inkl. der ersten 90 Minuten), andere nur die in der
+            // Verlaengerung erzielten Tore. Anhand der Plausibilitaet
+            // unterscheiden: ein kumulativer Endstand kann fuer keine Seite
+            // unter dem Stand nach 90 Minuten liegen. Sonst werden die Tore
+            // der Verlaengerung zum 90-Minuten-Stand addiert.
+            let etFinalHome = etHome;
+            let etFinalAway = etAway;
+            if (Number.isFinite(ftHome) && Number.isFinite(ftAway)) {
+                const cumulativePlausible = etHome >= ftHome && etAway >= ftAway;
+                etFinalHome = cumulativePlausible ? etHome : ftHome + etHome;
+                etFinalAway = cumulativePlausible ? etAway : ftAway + etAway;
+            }
+            if (etFinalHome !== home || etFinalAway !== away) {
+                home = etFinalHome;
+                away = etFinalAway;
+                note = 'n.V.';
+            }
         }
 
         if (hasPenalty) {
