@@ -1676,12 +1676,7 @@ const APP_CONFIG = (() => {
        * `APP.storage.key(name)`.
        * ───────────────────────────────────────────────────────── */
       globalKeys: {
-        indexViewMode: "dreamteamIndexViewMode",
-        // Admin-Dev-Toggle: erlaubt das Einreichen/Bearbeiten von Teams
-        // trotz Turnierstart. Wirkt nur, solange ein Admin angemeldet ist
-        // (siehe admin.js / DreamTeamAdmin.getLateSubmitOverride) – der
-        // echte Schutz gehört weiterhin in die Firestore Rules.
-        allowLateSubmit: "dreamteamAllowLateSubmit"
+        indexViewMode: "dreamteamIndexViewMode"
       },
 
       appPrefix() {
