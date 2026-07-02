@@ -40,6 +40,13 @@
  *                              Wichtig: Das ist nur eine UI-Schranke,
  *                              die echte Sperre gehört in die
  *                              Firestore Rules / das Backend.
+ *    getLateSubmitOverride() → boolean
+ *                              true, wenn der Admin-Toggle "Späte
+ *                              Einreichung erlauben" aktiv ist – nur für
+ *                              angemeldete Admins, sonst false. Erlaubt
+ *                              das Einreichen von Teams trotz Turnierstart
+ *                              (reine UI-Schranke, s. o.).
+ *    setLateSubmitOverride(b)→ boolean (setzt den Toggle, nur für Admins)
  *    isAuthResolved()        → boolean (initialer Firebase-Auth-Status da?)
  *    onAdminChange(cb)       → unsubscribe()
  *                              cb({ isAdmin, uid, authResolved }) feuert
@@ -88,6 +95,26 @@
             if (fromCfg) return fromCfg;
         } catch (_) { /* fall through */ }
         return 'dreamteamIndexViewMode';
+    })();
+
+    /**
+     * localStorage-Key des "Späte Einreichung erlauben"-Dev-Toggles.
+     * Wird vom Dev-Knopf auf team-builder.html geschrieben und dort
+     * ausgewertet, um das Einreichen/Bearbeiten von Teams trotz
+     * Turnierstart freizuschalten.
+     *
+     * Wie DEV_VIEW_STORAGE_KEY bewusst NICHT turnier-namespaced (globaler
+     * Admin-Toggle), Definition kommt aus APP_CONFIG.storage.globalKeys.
+     */
+    const LATE_SUBMIT_STORAGE_KEY = (function () {
+        try {
+            const fromCfg = window.APP_CONFIG
+                && window.APP_CONFIG.storage
+                && window.APP_CONFIG.storage.globalKeys
+                && window.APP_CONFIG.storage.globalKeys.allowLateSubmit;
+            if (fromCfg) return fromCfg;
+        } catch (_) { /* fall through */ }
+        return 'dreamteamAllowLateSubmit';
     })();
 
     const listeners = new Set();
@@ -174,6 +201,47 @@
         return null;
     }
 
+    /**
+     * Liefert `true`, wenn der Admin-Dev-Toggle "Späte Einreichung
+     * erlauben" aktiv ist – ABER nur, solange gerade ein Admin-Account
+     * angemeldet ist. Für alle anderen Nutzer (oder solange Firebase Auth
+     * noch nicht aufgelöst hat) gibt die Funktion `false` zurück, sodass
+     * die normale Turnierstart-Sperre greift.
+     *
+     * Wie bei getDevViewOverride ist dies nur eine UI-Schranke: Der
+     * localStorage-Wert ist clientseitig manipulierbar, deshalb muss der
+     * echte Schutz gegen Schreibzugriffe nach Turnierstart weiterhin in
+     * den Firestore Rules / Cloud Functions liegen.
+     */
+    function getLateSubmitOverride() {
+        if (!currentIsAdmin) return false;
+        try {
+            const value = window.localStorage && window.localStorage.getItem(LATE_SUBMIT_STORAGE_KEY);
+            return value === '1' || value === 'true' || value === 'on';
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
+     * Setzt den "Späte Einreichung erlauben"-Dev-Toggle. Schreibt nur,
+     * wenn ein Admin angemeldet ist – so kann der Wert nicht versehentlich
+     * durch Nicht-Admin-Code gesetzt werden. Gibt den effektiven Zustand
+     * (boolean) zurück.
+     */
+    function setLateSubmitOverride(enabled) {
+        if (!currentIsAdmin) return false;
+        try {
+            if (!window.localStorage) return false;
+            if (enabled) {
+                window.localStorage.setItem(LATE_SUBMIT_STORAGE_KEY, '1');
+            } else {
+                window.localStorage.removeItem(LATE_SUBMIT_STORAGE_KEY);
+            }
+        } catch (_) { /* localStorage geblockt – nichts zu tun */ }
+        return getLateSubmitOverride();
+    }
+
     window.DreamTeamAdmin = {
         ADMIN_UIDS,
         isAdmin()   { return currentIsAdmin; },
@@ -182,6 +250,8 @@
         isAuthReady() { return authResolved; },
         isAdminUid,
         getDevViewOverride,
+        getLateSubmitOverride,
+        setLateSubmitOverride,
         onAdminChange(cb) {
             if (typeof cb !== 'function') return function () {};
             listeners.add(cb);

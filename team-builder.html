@@ -1727,6 +1727,54 @@
         }
 
         /* =====================================================
+           DEV: SPÄTE EINREICHUNG ERLAUBEN (nur Admins)
+           =====================================================
+           Kleiner, unauffälliger Dev-Knopf oben rechts. Wie der
+           Dev-Umschalter auf index.html standardmässig versteckt
+           (visibility: hidden) und nur für angemeldete Admins per
+           .is-admin-visible eingeblendet. */
+        .dev-latesubmit-toggle {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 9999;
+            font-size: 11px;
+            font-family: monospace;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.55);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            opacity: 0.55;
+            transition: opacity 0.2s ease, background 0.2s ease;
+            line-height: 1.4;
+            user-select: none;
+            -webkit-user-select: none;
+            visibility: hidden;
+        }
+
+        .dev-latesubmit-toggle.is-admin-visible {
+            visibility: visible;
+        }
+
+        .dev-latesubmit-toggle:hover {
+            opacity: 0.9;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .dev-latesubmit-toggle[data-late="on"] {
+            border-color: rgba(74, 222, 128, 0.5);
+            color: rgba(74, 222, 128, 0.9);
+        }
+
+        .dev-latesubmit-toggle[data-late="off"] {
+            border-color: rgba(251, 191, 36, 0.5);
+            color: rgba(251, 191, 36, 0.85);
+        }
+
+        /* =====================================================
            TOAST FEEDBACK
            ===================================================== */
         .mobile-feedback {
@@ -2769,6 +2817,13 @@
 
 <!-- Next-slot action toast (mobile only) -->
 <div id="next-slot-action" class="next-slot-action" role="button" tabindex="0" aria-label="Nächsten freien Slot öffnen" style="display:none;"></div>
+
+<!-- DEV-Knopf (nur Admins): erlaubt das Einreichen/Bearbeiten von Teams
+     trotz Turnierstart. Sichtbarkeit ist Admin-gegated (siehe admin.js /
+     DreamTeamAdmin) und wird per JS eingeblendet. -->
+<button class="dev-latesubmit-toggle" id="dev-latesubmit-toggle" type="button" data-late="off"
+        title="DEV: Einreichung trotz Turnierstart erlauben"
+        aria-label="DEV: Späte Einreichung umschalten">DEV: Einreichung gesperrt</button>
 
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
@@ -4509,6 +4564,14 @@
        ========================================================= */
     function isTournamentStarted() {
         const Admin = window.DreamTeamAdmin;
+        // Admin-Dev-Toggle: erlaubt das Einreichen/Bearbeiten trotz
+        // Turnierstart. Wirkt nur für angemeldete Admins (die Prüfung
+        // steckt in getLateSubmitOverride) – für alle anderen bleibt die
+        // Sperre aktiv. Der echte Schutz liegt in den Firestore Rules.
+        if (Admin && typeof Admin.getLateSubmitOverride === 'function'
+            && Admin.getLateSubmitOverride()) {
+            return false;
+        }
         const override = (Admin && typeof Admin.getDevViewOverride === 'function')
             ? Admin.getDevViewOverride()
             : null;
@@ -5002,7 +5065,59 @@
     function bindTournamentLockToAdminState() {
         const Admin = window.DreamTeamAdmin;
         if (!Admin || typeof Admin.onAdminChange !== 'function') return;
-        Admin.onAdminChange(() => applyTournamentClosedState());
+        Admin.onAdminChange(() => {
+            applyTournamentClosedState();
+            updateLateSubmitToggle();
+        });
+    }
+
+    /* =========================================================
+       DEV-KNOPF: SPÄTE EINREICHUNG ERLAUBEN (nur Admins)
+       =========================================================
+       Blendet für angemeldete Admins einen kleinen Dev-Knopf ein,
+       mit dem sich die Turnierstart-Sperre manuell aufheben lässt.
+       Der eigentliche Override wird admin-gegated in admin.js
+       (get/setLateSubmitOverride) gespeichert; hier kümmern wir uns
+       nur um UI-Zustand und das erneute Anwenden der Sperre.
+       ========================================================= */
+    function isLateSubmitEnabled() {
+        const Admin = window.DreamTeamAdmin;
+        return !!(Admin && typeof Admin.getLateSubmitOverride === 'function'
+            && Admin.getLateSubmitOverride());
+    }
+
+    function updateLateSubmitToggle() {
+        const btn = document.getElementById('dev-latesubmit-toggle');
+        if (!btn) return;
+        const Admin = window.DreamTeamAdmin;
+        const isAdmin = !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
+        btn.classList.toggle('is-admin-visible', isAdmin);
+
+        const on = isLateSubmitEnabled();
+        btn.dataset.late = on ? 'on' : 'off';
+        btn.textContent = on ? 'DEV: Einreichung offen ✓' : 'DEV: Einreichung gesperrt';
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+
+    function initLateSubmitToggle() {
+        const btn = document.getElementById('dev-latesubmit-toggle');
+        if (!btn) return;
+
+        updateLateSubmitToggle();
+
+        btn.addEventListener('click', () => {
+            const Admin = window.DreamTeamAdmin;
+            if (!Admin || typeof Admin.setLateSubmitOverride !== 'function') return;
+            const next = !isLateSubmitEnabled();
+            Admin.setLateSubmitOverride(next);
+            updateLateSubmitToggle();
+            // Sperre sofort neu auswerten (Submit-Button, Manager-Name,
+            // Banner) und ggf. den korrekten Default-Label setzen.
+            applyTournamentClosedState();
+            showToast(next
+                ? '🔓 DEV: Team-Einreichung trotz Turnierstart freigeschaltet.'
+                : '🔒 DEV: Team-Einreichung wieder gesperrt.');
+        });
     }
 
     /* =========================================================
@@ -5021,6 +5136,7 @@
 
         applyTournamentClosedState();
         bindTournamentLockToAdminState();
+        initLateSubmitToggle();
 
         /* Button events */
         if (dom.clearTeamBtn) dom.clearTeamBtn.addEventListener('click', clearTeam);
