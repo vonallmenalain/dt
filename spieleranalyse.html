@@ -2445,6 +2445,42 @@
 
         .tb-slot + .tb-slot { margin-top: 6px; }
 
+        .tb-match-teams {
+            position: relative;
+        }
+
+        .tb-slot-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tb-slot-score {
+            margin-left: auto;
+            padding-left: 8px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: inherit;
+        }
+
+        .tb-match-note {
+            position: absolute;
+            top: 50%;
+            right: 6px;
+            transform: translateY(-50%);
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: rgba(15,23,42,0.9);
+            color: var(--text-muted);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.4px;
+            line-height: 1.2;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 1;
+        }
+
         .tb-slot-btn {
             width: 100%;
             border: 0;
@@ -8201,8 +8237,38 @@
             assistId: getScheduleGoalEventName(raw?.assistId, assist.id),
             assistName: getScheduleGoalEventName(raw?.assistName, assist.name, assist),
             detail: getScheduleGoalEventName(raw?.detail),
-            type: getScheduleGoalEventName(raw?.type)
+            type: getScheduleGoalEventName(raw?.type),
+            comments: getScheduleGoalEventName(raw?.comments)
         };
+    }
+
+    // Liefert die Elfmeterschiessen-Bilanz eines Spiels (z. B. {home:2, away:3})
+    // oder null, wenn kein Elfmeterschiessen stattgefunden hat.
+    function getSchedulePenaltyShootout(match) {
+        const score = match?.score || {};
+        const penalty = score.penalty || {};
+        const num = v => (v === null || v === undefined || v === '' ? null : Number(v));
+        const home = num(penalty.home ?? penalty.homeGoals);
+        const away = num(penalty.away ?? penalty.awayGoals);
+        if (Number.isFinite(home) && Number.isFinite(away)) return { home, away };
+        return null;
+    }
+
+    // Erkennt Tore aus dem Elfmeterschiessen. Diese sollen NICHT als
+    // Torschuetzen des Spiels aufgelistet werden, damit alle Spiele mit
+    // Elfmeterschiessen gleich dargestellt werden (die Datenlage der
+    // Schuetzen ist zwischen den Spielen uneinheitlich). Der Anbieter
+    // verbucht Elfmeterschiessen-Schuesse am Ende der Verlaengerung
+    // (elapsed 120) mit hochzaehlendem "extra"-Wert und nur dann, wenn das
+    // Spiel tatsaechlich ins Elfmeterschiessen ging. Ein in der regulaeren
+    // Spiel-/Verlaengerungszeit verwandelter Elfmeter behaelt seine echte
+    // Spielminute und wird dadurch nicht ausgeblendet.
+    function isSchedulePenaltyShootoutEvent(event, match) {
+        if (!event) return false;
+        const comments = String(event.comments || '').toLowerCase();
+        if (comments.includes('shootout') || comments.includes('elfmeterschie')) return true;
+        if (!isSchedulePenaltyGoalEvent(event)) return false;
+        return Number(event.elapsed) === 120 && !!getSchedulePenaltyShootout(match);
     }
 
     function getScheduleGoalEvents(match) {
@@ -8217,7 +8283,9 @@
 
         return source
             .map(normalizeScheduleGoalEvent)
-            .filter((event) => event.playerName && !String(event.detail || '').toLowerCase().includes('missed'))
+            .filter((event) => event.playerName
+                && !String(event.detail || '').toLowerCase().includes('missed')
+                && !isSchedulePenaltyShootoutEvent(event, match))
             .sort((a, b) => {
                 const elapsedA = a.elapsed ?? 999;
                 const elapsedB = b.elapsed ?? 999;
@@ -10622,14 +10690,6 @@
         return 'offen';
     }
 
-    // Formatiert einen aufgeloesten K.-o.-Endstand als kompakten Sub-Text,
-    // z. B. "3:1", "1:1 n.V." (nach Verlaengerung) oder "3:4 n.E." (nach
-    // Elfmeterschiessen).
-    function formatTournamentScoreSub(scoreInfo) {
-        if (!scoreInfo || !Number.isFinite(scoreInfo.home) || !Number.isFinite(scoreInfo.away)) return '';
-        return `${scoreInfo.home}:${scoreInfo.away}${scoreInfo.note ? ` ${scoreInfo.note}` : ''}`;
-    }
-
     function resolveTournamentSlot(slot, context, fixture = null) {
         if (!slot) return { label: 'offen', placeholder: true, sub: '' };
 
@@ -10638,22 +10698,8 @@
             let sub = '';
             if (slot.type === 'groupRank') sub = `${slot.rank}. Gruppe ${slot.group}`;
             else if (slot.type === 'bestThird') sub = `Dritter Gruppe ${row.group}`;
-            else if (slot.winnerOf) {
-                sub = `Sieger Spiel ${slot.winnerOf}`;
-                if (!isTournamentManualMode()) {
-                    const auto = getTournamentAutoMatchResult(slot.winnerOf, context);
-                    const scoreSub = formatTournamentScoreSub(auto.scoreInfo);
-                    if (scoreSub) sub = scoreSub;
-                }
-            }
-            else if (slot.runnerUpOf) {
-                sub = `Verlierer Spiel ${slot.runnerUpOf}`;
-                if (!isTournamentManualMode()) {
-                    const auto = getTournamentAutoMatchResult(slot.runnerUpOf, context);
-                    const scoreSub = formatTournamentScoreSub(auto.scoreInfo);
-                    if (scoreSub) sub = scoreSub;
-                }
-            }
+            else if (slot.winnerOf) sub = `Sieger Spiel ${slot.winnerOf}`;
+            else if (slot.runnerUpOf) sub = `Verlierer Spiel ${slot.runnerUpOf}`;
             return {
                 label: row.displayName || row.name,
                 flag: getTournamentFlag(row),
@@ -10694,7 +10740,7 @@
         return auto && auto.winner ? auto.winner.key : '';
     }
 
-    function renderTournamentSlot(slot, context, fixture, side) {
+    function renderTournamentSlot(slot, context, fixture, side, scoreInfo = null) {
         const resolved = resolveTournamentSlot(slot, context, fixture);
         const flagHtml = resolved.flag
             ? renderFlagImageHtml('tb-slot-flag', resolved.flag, '', resolved.label)
@@ -10708,12 +10754,17 @@
         const attrs = isPickable
             ? ` type="button" data-tournament-match-winner="${escapeHtml(matchNumber)}" data-team-key="${escapeHtml(resolved.teamKey)}" aria-label="${escapeHtml(resolved.label)} als Sieger von Spiel ${matchNumber} wählen"`
             : '';
+        const goalValue = scoreInfo && Number.isFinite(scoreInfo[side]) ? scoreInfo[side] : null;
+        const scoreHtml = goalValue !== null
+            ? `<span class="tb-slot-score">${escapeHtml(goalValue)}</span>`
+            : '';
         return `<${tag} class="tb-slot${isPickable ? ' tb-slot-btn' : ''}${resolved.placeholder ? ' tb-slot-placeholder' : ''}${isWinner ? ' tb-slot--winner' : ''}${isLoser ? ' tb-slot--loser' : ''}" data-side="${escapeHtml(side || '')}"${attrs}>
             ${flagHtml}
-            <div style="min-width:0;">
+            <div class="tb-slot-main">
                 <div class="tb-slot-label">${escapeHtml(resolved.label)}</div>
                 ${resolved.sub ? `<div class="tb-slot-sub" title="${escapeHtml(resolved.sub)}">${escapeHtml(resolved.sub)}</div>` : ''}
             </div>
+            ${scoreHtml}
         </${tag}>`;
     }
 
@@ -10866,13 +10917,25 @@
         const gridStyle = layout
             ? ` style="grid-column: ${escapeHtml(layout.col)}; grid-row: ${escapeHtml(layout.rowStart)} / span 2;"`
             : '';
+        const matchNumber = getTournamentFixtureMatchNumber(fixture);
+        let scoreInfo = null;
+        if (!isTournamentManualMode() && matchNumber) {
+            const auto = getTournamentAutoMatchResult(matchNumber, context);
+            scoreInfo = auto ? auto.scoreInfo : null;
+        }
+        const noteHtml = scoreInfo && scoreInfo.note
+            ? `<div class="tb-match-note" title="${escapeHtml(scoreInfo.note === 'n.E.' ? 'Nach Elfmeterschiessen' : (scoreInfo.note === 'n.V.' ? 'Nach Verlaengerung' : scoreInfo.note))}">${escapeHtml(scoreInfo.note)}</div>`
+            : '';
         return `<article class="tb-match" data-round="${escapeHtml(round.key)}"${gridStyle}>
             <div class="tb-match-head">
                 <span>${escapeHtml(isThirdPlace ? 'Platz 3' : matchLabel)}</span>
                 ${fixture.match ? `<span class="tb-match-number">#${escapeHtml(fixture.match)}</span>` : ''}
             </div>
-            ${renderTournamentSlot(fixture.home, context, fixture, 'home')}
-            ${renderTournamentSlot(fixture.away, context, fixture, 'away')}
+            <div class="tb-match-teams">
+                ${renderTournamentSlot(fixture.home, context, fixture, 'home', scoreInfo)}
+                ${renderTournamentSlot(fixture.away, context, fixture, 'away', scoreInfo)}
+                ${noteHtml}
+            </div>
             ${meta ? `<div class="tb-match-meta">${escapeHtml(meta)}</div>` : ''}
         </article>`;
     }
