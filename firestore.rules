@@ -14,7 +14,9 @@ rules_version = '2';
 //   2) Team-Writes verlangen verifizierte E-Mail und eigenes Doc
 //      (matched per userId ODER userEmailLower).
 //   3) Team-Writes sind nach Anpfiff (2026-06-11 19:00 UTC) gesperrt;
-//      Admins bleiben schreibberechtigt.
+//      Admins bleiben schreibberechtigt. Zusaetzlich kann der Admin ueber
+//      das Feld `lateSubmitOpen` im Meta-Dokument (app_meta/turnier_wm2026)
+//      die Einreichung global fuer ALLE verifizierten Nutzer wieder oeffnen.
 //   4) Team-Schema: exakt 15 Spieler, erlaubte Felder als Allowlist.
 //   5) Verifizierte User duerfen den teamsVersion-Counter im app_meta-Doc
 //      nur um +1 erhoehen; Admin darf alles.
@@ -35,6 +37,25 @@ service cloud.firestore {
     // = 2026-06-11 19:00:00 UTC = 1781204400000 ms.
     function isBeforeTeamDeadline() {
       return request.time.toMillis() < 1781204400000;
+    }
+
+    // Admin-gesteuerter Not-/Nachzuegler-Schalter. Setzt der Admin im
+    // Meta-Dokument (app_meta/turnier_wm2026) das Feld `lateSubmitOpen`
+    // auf true, duerfen ALLE verifizierten Nutzer weiterhin Teams
+    // einreichen/aendern, obwohl der Anpfiff bereits vorbei ist. Der
+    // Schalter wird ueber den Dev-Knopf im Team-Builder (nur fuer Admins
+    // sichtbar) umgelegt und gilt dann global fuer alle Clients.
+    function lateSubmitOpen() {
+      return exists(/databases/$(database)/documents/app_meta/turnier_wm2026)
+          && get(/databases/$(database)/documents/app_meta/turnier_wm2026)
+               .data.get('lateSubmitOpen', false) == true;
+    }
+
+    // Teams duerfen geschrieben werden, wenn wir vor der Deadline sind,
+    // der Admin den Nachzuegler-Schalter aktiviert hat, oder der Anfragende
+    // selbst Admin ist.
+    function teamWritesAllowed() {
+      return isBeforeTeamDeadline() || lateSubmitOpen() || isAdmin();
     }
 
     function isAdmin() {
@@ -177,7 +198,7 @@ service cloud.firestore {
       allow create:
         if (
             collection == 'Teams WM 2026'
-            && (isBeforeTeamDeadline() || isAdmin())
+            && teamWritesAllowed()
             && validTeamCreate()
         )
         || (
@@ -189,7 +210,7 @@ service cloud.firestore {
       allow update:
         if (
             collection == 'Teams WM 2026'
-            && (isBeforeTeamDeadline() || isAdmin())
+            && teamWritesAllowed()
             && validTeamUpdate()
         )
         || (
@@ -204,7 +225,7 @@ service cloud.firestore {
       allow delete:
         if (
             collection == 'Teams WM 2026'
-            && (isBeforeTeamDeadline() || isAdmin())
+            && teamWritesAllowed()
             && validTeamDelete()
         )
         || (

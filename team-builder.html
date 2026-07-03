@@ -1727,6 +1727,54 @@
         }
 
         /* =====================================================
+           DEV: SPÄTE EINREICHUNG ERLAUBEN (nur Admins)
+           =====================================================
+           Kleiner, unauffälliger Dev-Knopf oben rechts. Wie der
+           Dev-Umschalter auf index.html standardmässig versteckt
+           (visibility: hidden) und nur für angemeldete Admins per
+           .is-admin-visible eingeblendet. */
+        .dev-latesubmit-toggle {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 9999;
+            font-size: 11px;
+            font-family: monospace;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.55);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            opacity: 0.55;
+            transition: opacity 0.2s ease, background 0.2s ease;
+            line-height: 1.4;
+            user-select: none;
+            -webkit-user-select: none;
+            visibility: hidden;
+        }
+
+        .dev-latesubmit-toggle.is-admin-visible {
+            visibility: visible;
+        }
+
+        .dev-latesubmit-toggle:hover {
+            opacity: 0.9;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .dev-latesubmit-toggle[data-late="on"] {
+            border-color: rgba(74, 222, 128, 0.5);
+            color: rgba(74, 222, 128, 0.9);
+        }
+
+        .dev-latesubmit-toggle[data-late="off"] {
+            border-color: rgba(251, 191, 36, 0.5);
+            color: rgba(251, 191, 36, 0.85);
+        }
+
+        /* =====================================================
            TOAST FEEDBACK
            ===================================================== */
         .mobile-feedback {
@@ -2770,6 +2818,16 @@
 <!-- Next-slot action toast (mobile only) -->
 <div id="next-slot-action" class="next-slot-action" role="button" tabindex="0" aria-label="Nächsten freien Slot öffnen" style="display:none;"></div>
 
+<!-- DEV-Knopf (nur Admins): schaltet die Team-Einreichung trotz
+     Turnierstart global für ALLE Nutzer frei/gesperrt. Der Zustand liegt
+     im Firestore-Meta-Dokument (Feld lateSubmitOpen). Sichtbarkeit ist
+     Admin-gegated (siehe admin.js / DreamTeamAdmin) und wird per JS
+     eingeblendet; das Schreiben ist zusätzlich in den Firestore Rules auf
+     Admins beschränkt. -->
+<button class="dev-latesubmit-toggle" id="dev-latesubmit-toggle" type="button" data-late="off"
+        title="DEV: Einreichung trotz Turnierstart für ALLE freischalten/sperren"
+        aria-label="DEV: Späte Einreichung für alle umschalten">DEV: Einreichung gesperrt</button>
+
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
@@ -2951,6 +3009,13 @@
     let isSubmitting          = false;
     let feedbackTimer         = null;
     let pendingBuilderNotice  = '';
+
+    /* Globaler Admin-Schalter "Nachzügler-Einreichung erlauben". Wird aus
+       dem Meta-Dokument (Firestore) gelesen (siehe subscribeLateSubmitFlag)
+       und gilt für ALLE Nutzer. Default konservativ `false` (= gesperrt),
+       bis die Firestore-Antwort da ist – die Sperre schlägt also im
+       Zweifel zu, nie in die andere Richtung. */
+    let lateSubmitOpen        = false;
 
     /* Mobile filter chip state */
     let mobileFilterOnlyAvailable = false;
@@ -4509,6 +4574,12 @@
        ========================================================= */
     function isTournamentStarted() {
         const Admin = window.DreamTeamAdmin;
+        // Globaler Nachzuegler-Schalter: Hat der Admin die Einreichung
+        // wieder geöffnet (Feld `lateSubmitOpen` im Meta-Dokument), gilt
+        // das für ALLE Nutzer – nicht nur für den Admin. Der Wert kommt
+        // aus Firestore (siehe subscribeLateSubmitFlag) und wird zusätzlich
+        // von den Firestore Rules durchgesetzt.
+        if (lateSubmitOpen) return false;
         const override = (Admin && typeof Admin.getDevViewOverride === 'function')
             ? Admin.getDevViewOverride()
             : null;
@@ -5002,7 +5073,123 @@
     function bindTournamentLockToAdminState() {
         const Admin = window.DreamTeamAdmin;
         if (!Admin || typeof Admin.onAdminChange !== 'function') return;
-        Admin.onAdminChange(() => applyTournamentClosedState());
+        Admin.onAdminChange(() => {
+            applyTournamentClosedState();
+            updateLateSubmitToggle();
+        });
+    }
+
+    /* =========================================================
+       GLOBALER NACHZÜGLER-SCHALTER + ADMIN-DEV-KNOPF
+       =========================================================
+       Der Schalter lebt als Feld `lateSubmitOpen` im Meta-Dokument in
+       Firestore und gilt damit für ALLE Nutzer: Legt der Admin ihn um,
+       können auch normale (verifizierte) Nutzer trotz Turnierstart ein
+       Team einreichen/ändern. Durchgesetzt wird das zusätzlich von den
+       Firestore Rules (siehe firestore.rules → lateSubmitOpen()).
+
+       Der Dev-Knopf, mit dem sich der Schalter umlegen lässt, ist nur
+       für angemeldete Admins sichtbar (Admin-Gate wie beim Dev-Umschalter
+       auf index.html). Das Schreiben ist zusätzlich in den Rules auf
+       Admins beschränkt.
+       ========================================================= */
+    let lateSubmitToggleBusy = false;
+
+    function updateLateSubmitToggle() {
+        const btn = document.getElementById('dev-latesubmit-toggle');
+        if (!btn) return;
+        const Admin = window.DreamTeamAdmin;
+        const isAdmin = !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
+        btn.classList.toggle('is-admin-visible', isAdmin);
+
+        const on = !!lateSubmitOpen;
+        btn.dataset.late = on ? 'on' : 'off';
+        if (lateSubmitToggleBusy) {
+            btn.textContent = 'DEV: Speichere…';
+        } else {
+            btn.textContent = on ? 'DEV: Einreichung offen ✓' : 'DEV: Einreichung gesperrt';
+        }
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.disabled = lateSubmitToggleBusy;
+    }
+
+    /** Reagiert auf eine (lokale oder aus Firestore gepushte) Änderung des
+     *  Nachzügler-Schalters: State übernehmen und die komplette
+     *  Sperr-UI (Submit-Button, Manager-Name, Banner) neu auswerten. */
+    function applyLateSubmitState(open) {
+        const next = !!open;
+        if (next === lateSubmitOpen) {
+            updateLateSubmitToggle();
+            return;
+        }
+        lateSubmitOpen = next;
+        applyTournamentClosedState();
+        updateLateSubmitToggle();
+    }
+
+    /** Live-Listener auf das Meta-Dokument: hält `lateSubmitOpen` für ALLE
+     *  Clients synchron, sodass ein Admin-Umschalten sofort bei allen
+     *  offenen Team-Buildern ankommt. */
+    function subscribeLateSubmitFlag() {
+        try {
+            db.collection(META_COLLECTION).doc(META_DOC_ID).onSnapshot(
+                (snap) => {
+                    const data = (snap && snap.exists) ? snap.data() : null;
+                    applyLateSubmitState(!!(data && data.lateSubmitOpen === true));
+                },
+                (err) => {
+                    console.warn('[TeamBuilder] Meta-Listener (lateSubmitOpen) fehlgeschlagen:', err);
+                }
+            );
+        } catch (err) {
+            console.warn('[TeamBuilder] Konnte Meta-Listener nicht einrichten:', err);
+        }
+    }
+
+    async function setLateSubmitFlag(open) {
+        const FieldValue = firebase.firestore.FieldValue;
+        await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
+            year:          TOURNAMENT_YEAR,
+            lateSubmitOpen: !!open,
+            // teamsVersion mit-bumpen, damit andere Clients ihren
+            // Teams-Cache ohnehin frisch ziehen.
+            teamsVersion:   FieldValue.increment(1),
+            teamsUpdatedAt: Date.now()
+        }, { merge: true });
+    }
+
+    function initLateSubmitToggle() {
+        const btn = document.getElementById('dev-latesubmit-toggle');
+        if (!btn) return;
+
+        updateLateSubmitToggle();
+        subscribeLateSubmitFlag();
+
+        btn.addEventListener('click', async () => {
+            const Admin = window.DreamTeamAdmin;
+            const isAdmin = !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
+            if (!isAdmin || lateSubmitToggleBusy) return;
+
+            const next = !lateSubmitOpen;
+            lateSubmitToggleBusy = true;
+            updateLateSubmitToggle();
+            try {
+                await setLateSubmitFlag(next);
+                // Der onSnapshot-Listener übernimmt den neuen Zustand für
+                // uns und alle anderen Clients; wir setzen ihn hier optimistisch
+                // trotzdem, falls der Listener minimal verzögert feuert.
+                lateSubmitToggleBusy = false;
+                applyLateSubmitState(next);
+                showToast(next
+                    ? '🔓 Team-Einreichung ist jetzt für ALLE freigeschaltet (trotz Turnierstart).'
+                    : '🔒 Team-Einreichung wieder für alle gesperrt.');
+            } catch (err) {
+                console.error('[TeamBuilder] Umschalten des Nachzügler-Schalters fehlgeschlagen:', err);
+                lateSubmitToggleBusy = false;
+                updateLateSubmitToggle();
+                showToast('⚠️ Konnte den Schalter nicht speichern (nur Admins dürfen das).');
+            }
+        });
     }
 
     /* =========================================================
@@ -5021,6 +5208,7 @@
 
         applyTournamentClosedState();
         bindTournamentLockToAdminState();
+        initLateSubmitToggle();
 
         /* Button events */
         if (dom.clearTeamBtn) dom.clearTeamBtn.addEventListener('click', clearTeam);
