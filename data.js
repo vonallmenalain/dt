@@ -50,13 +50,19 @@
       activeKey = window.APP_CONFIG.key;
     }
 
-    // Defence-in-depth: Wenn APP_CONFIG einen Key für ein deaktiviertes
-    // oder nicht verfügbares Turnier liefert (z.B. alte Bookmarks mit
-    // ?tournament=… oder gestrichene Templates), nicht auf eine fehlende
-    // Datei zugreifen, sondern auf den Default zurückfallen.
-    if (window.APP_CONFIG
-        && typeof window.APP_CONFIG.isTournamentAvailable === "function"
-        && !window.APP_CONFIG.isTournamentAvailable(activeKey)) {
+    // Defence-in-depth: Wenn das aktive Turnier nicht ladbar ist (nicht
+    // verfügbar UND nicht als Admin-Vorschau aktiv), nicht auf eine
+    // fehlende Datei zugreifen, sondern auf den Default zurückfallen.
+    // isTournamentLoadable deckt zusätzlich den Preview-Kanal ab
+    // (Admin betrachtet ein noch gesperrtes Turnier via ?preview=…);
+    // fehlt die Funktion (ältere Version), gilt isTournamentAvailable.
+    var loadable = null;
+    if (window.APP_CONFIG && typeof window.APP_CONFIG.isTournamentLoadable === "function") {
+      loadable = window.APP_CONFIG.isTournamentLoadable(activeKey);
+    } else if (window.APP_CONFIG && typeof window.APP_CONFIG.isTournamentAvailable === "function") {
+      loadable = window.APP_CONFIG.isTournamentAvailable(activeKey);
+    }
+    if (loadable === false) {
       fileName = "data-wm2026.js";
       activeKey = "wm2026";
     }

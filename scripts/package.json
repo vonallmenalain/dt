@@ -14,7 +14,8 @@
     "test:nation-status": "node test-nation-status.js",
     "test:freeze": "node test-wm2026-freeze.js",
     "test:scaffold": "node test-cl2627-scaffold.js",
-    "test:cl-league": "node test-cl-league-status.js"
+    "test:cl-league": "node test-cl-league-status.js",
+    "test:cl-preview": "node test-cl-preview.js"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"

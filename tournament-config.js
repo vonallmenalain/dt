@@ -1499,14 +1499,186 @@ const APP_CONFIG = (() => {
     return FALLBACK_TOURNAMENT_KEY;
   }
 
+  /* ─────────────────────────────────────────────────────────
+   * Preview-Kanal (Admin-Vorschau nicht freigeschalteter Turniere).
+   *
+   * Damit ein Admin die CL VOR der offiziellen Freischaltung testen
+   * kann, gibt es einen bewusst separaten „Preview"-Kanal:
+   *   • `?preview=<key>` in der URL, ODER
+   *   • ein host-spezifisch persistierter Preview-Override in
+   *     localStorage (`dreamteam_preview_${hostname}`), gesetzt vom
+   *     Admin-Switcher in nav.js.
+   *
+   * Dieser Kanal lädt ausdrücklich auch Turniere mit `available: false`
+   * (sofern sie eine `data-<key>.js` deklarieren). Er ist WISSENS-
+   * basiert: normale Nutzer kennen den geheimen Parameter nicht und
+   * landen daher nie im Preview. Der Admin-Switcher blendet die
+   * Vorschau-Option zusätzlich nur für eingeloggte Admins ein. Echter
+   * Schutz (Firestore-Schreibzugriffe) liegt weiterhin in den
+   * Firestore Rules – hier geht es rein um die angezeigte Datensicht.
+   * ───────────────────────────────────────────────────────── */
+  function previewOverrideStorageKey(hostname) {
+    const host = (hostname || currentHostname() || "unknown").toLowerCase();
+    return `dreamteam_preview_${host}`;
+  }
+
+  function readUrlPreviewKey() {
+    try {
+      if (typeof window === "undefined" || !window.location) return null;
+      const params = new URLSearchParams(window.location.search);
+      const value = params.get("preview");
+      return value ? value.trim().toLowerCase() : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function readPreviewOverride() {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) return null;
+      const value = window.localStorage.getItem(previewOverrideStorageKey());
+      return value ? value.trim().toLowerCase() : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function persistPreviewOverride(key) {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) return;
+      window.localStorage.setItem(previewOverrideStorageKey(), key);
+    } catch (err) {
+      // Storage evtl. blockiert – kein Hard-Fail.
+    }
+  }
+
+  function clearPreviewOverride() {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) return;
+      window.localStorage.removeItem(previewOverrideStorageKey());
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  /**
+   * Ist ein Turnier als VORSCHAU ladbar? Genau dann, wenn es existiert,
+   * (noch) nicht regulär verfügbar ist (`available`/`dataReady`) und eine
+   * `data-<key>.js` deklariert. Bereits verfügbare Turniere brauchen
+   * keine Vorschau und sind hier bewusst ausgeschlossen.
+   */
+  function isTournamentPreviewable(key) {
+    const t = key ? TOURNAMENTS[key] : null;
+    if (!t) return false;
+    if (isTournamentAvailable(key)) return false;
+    return typeof t.dataFile === "string" && t.dataFile.length > 0;
+  }
+
+  function getPreviewableTournamentKeys() {
+    return Object.keys(TOURNAMENTS).filter(isTournamentPreviewable);
+  }
+
+  /**
+   * Ist ein Turnier tatsächlich LADBAR (Kaderdatei etc.)? Regulär
+   * verfügbare Turniere immer; ein nicht freigeschaltetes Turnier nur,
+   * wenn es gerade das aktive Preview-Turnier ist. data.js nutzt dies,
+   * um im Preview die richtige data-<key>.js zu laden statt auf wm2026
+   * zurückzufallen.
+   */
+  function isTournamentLoadable(key) {
+    if (isTournamentAvailable(key)) return true;
+    if (key && key === ACTIVE_PREVIEW_KEY && isTournamentPreviewable(key)) return true;
+    return false;
+  }
+
+  // Neuladen mit bereinigter URL (entfernt volatile ?tournament=/?preview=,
+  // da die Auswahl nun persistiert ist).
+  function reloadWithCleanUrl() {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(URL_PARAM_NAME);
+      url.searchParams.delete("preview");
+      window.location.replace(url.toString());
+    } catch (err) {
+      window.location.reload();
+    }
+  }
+
+  /**
+   * Vorschau für ein nicht freigeschaltetes Turnier aktivieren
+   * (Admin-Switcher). Persistiert host-spezifisch und lädt neu.
+   */
+  function setPreviewTournament(key, options) {
+    const opts = options || {};
+    const normalized = (key || "").toLowerCase();
+    if (!isTournamentPreviewable(normalized)) {
+      console.warn(`[APP_CONFIG] Turnier "${key}" ist nicht als Vorschau verfügbar.`);
+      return false;
+    }
+    // Ein evtl. bestehender regulärer Dev-Override würde sonst mit dem
+    // Preview konkurrieren – Preview gewinnt, also Dev-Override räumen.
+    clearDevOverride();
+    persistPreviewOverride(normalized);
+
+    if (opts.reload === false) {
+      ACTIVE_PREVIEW_KEY = normalized;
+      ACTIVE_TOURNAMENT_KEY = normalized;
+      return true;
+    }
+    reloadWithCleanUrl();
+    return true;
+  }
+
+  /**
+   * Vorschau beenden und auf die normale Auflösung (Domain-Default)
+   * zurückkehren.
+   */
+  function clearPreview(options) {
+    const opts = options || {};
+    clearPreviewOverride();
+    if (opts.reload === false) {
+      ACTIVE_PREVIEW_KEY = null;
+      ACTIVE_TOURNAMENT_KEY = resolveDomainDefaultKey();
+      return true;
+    }
+    reloadWithCleanUrl();
+    return true;
+  }
+
+  function isPreviewActive() {
+    return !!ACTIVE_PREVIEW_KEY;
+  }
+
   /**
    * Zentrale Auflösung des aktiven Turnier-Keys.
-   * Reihenfolge: URL > host-spezifischer Dev-Override > Domain > Fallback.
-   * Akzeptiert ausschliesslich verfügbare Turniere (siehe
-   * `isTournamentAvailable`); alles andere fällt durch.
+   * Reihenfolge: Preview > URL > host-spezifischer Dev-Override > Domain
+   * > Fallback. Reguläre Kanäle akzeptieren ausschliesslich verfügbare
+   * Turniere (siehe `isTournamentAvailable`); nur der Preview-Kanal lädt
+   * bewusst auch gesperrte Turniere.
    */
   function resolveTournamentKey() {
     cleanupLegacyKeys();
+
+    // 0) Preview-Kanal (nur explizit via ?preview= oder persistierter
+    //    Preview-Override). Lädt bewusst auch (noch) nicht freigeschaltete
+    //    Turniere – siehe Kommentar oben.
+    const fromUrlPreview = readUrlPreviewKey();
+    if (fromUrlPreview && isTournamentPreviewable(fromUrlPreview)) {
+      persistPreviewOverride(fromUrlPreview);
+      ACTIVE_PREVIEW_KEY = fromUrlPreview;
+      return fromUrlPreview;
+    }
+    const persistedPreview = readPreviewOverride();
+    if (persistedPreview && isTournamentPreviewable(persistedPreview)) {
+      ACTIVE_PREVIEW_KEY = persistedPreview;
+      return persistedPreview;
+    }
+    // Veralteter Preview (Turnier inzwischen regulär verfügbar oder
+    // entfernt) → aufräumen und regulär auflösen.
+    if (persistedPreview) {
+      clearPreviewOverride();
+    }
+    ACTIVE_PREVIEW_KEY = null;
 
     const fromUrl = readUrlTournamentKey();
     if (fromUrl && isTournamentAvailable(fromUrl)) {
@@ -1527,6 +1699,13 @@ const APP_CONFIG = (() => {
   // Backwards-Kompatibilität: Andere Aufrufer dürfen weiterhin
   // `resolveActiveTournamentKey()` benutzen.
   const resolveActiveTournamentKey = resolveTournamentKey;
+
+  // Aktiver Vorschau-Key (Preview-Kanal, siehe resolveTournamentKey).
+  // Wird gesetzt, wenn ein Admin ein (noch) nicht freigeschaltetes
+  // Turnier via geheimem `?preview=<key>` bzw. persistiertem Preview-
+  // Override betrachtet. isTournamentLoadable() und data.js
+  // berücksichtigen ihn, damit die passende data-<key>.js geladen wird.
+  let ACTIVE_PREVIEW_KEY = null;
 
   let ACTIVE_TOURNAMENT_KEY = resolveTournamentKey();
 
@@ -1670,6 +1849,9 @@ const APP_CONFIG = (() => {
     const opts = options || {};
     const normalized = (key || "").toLowerCase();
 
+    // In ein reguläres Turnier wechseln beendet eine evtl. aktive Vorschau.
+    clearPreviewOverride();
+
     if (!isTournamentAvailable(normalized)) {
       console.warn(`[APP_CONFIG] Turnier "${key}" ist aktuell nicht verfügbar.`);
       return false;
@@ -1709,6 +1891,7 @@ const APP_CONFIG = (() => {
   function resetToDomainDefault(options) {
     const opts = options || {};
     clearDevOverride();
+    clearPreviewOverride();
 
     if (opts.reload === false) {
       ACTIVE_TOURNAMENT_KEY = resolveDomainDefaultKey();
@@ -1758,6 +1941,22 @@ const APP_CONFIG = (() => {
 
     isTournamentAvailable,
     getAvailableTournamentKeys,
+
+    // Preview-Kanal (Admin-Vorschau nicht freigeschalteter Turniere).
+    isTournamentPreviewable,
+    isTournamentLoadable,
+    getPreviewableTournamentKeys,
+    setPreviewTournament,
+    clearPreview,
+    isPreviewActive,
+
+    get previewableTournamentKeys() {
+      return getPreviewableTournamentKeys();
+    },
+
+    get activePreviewKey() {
+      return ACTIVE_PREVIEW_KEY;
+    },
 
     get domainDefaultKey() {
       return resolveDomainDefaultKey();

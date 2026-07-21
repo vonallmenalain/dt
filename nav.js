@@ -157,9 +157,20 @@ function buildDevTournamentSwitcher(APP) {
         tournamentKeys = Object.keys(APP.tournaments || {});
     }
 
-    // Solange nur ein einziges Turnier verfügbar ist, gibt es nichts
-    // zu wechseln → Switcher gar nicht erst anzeigen.
-    if (tournamentKeys.length < 2) return;
+    // Zusätzlich: (noch) nicht freigeschaltete Turniere, die als
+    // Admin-Vorschau geladen werden können (Preview-Kanal, siehe
+    // tournament-config.js). Diese Optionen sind – wie der ganze
+    // Switcher – nur für eingeloggte Admins sichtbar (Admin-Gate unten).
+    let previewKeys = [];
+    if (Array.isArray(APP.previewableTournamentKeys)) {
+        previewKeys = APP.previewableTournamentKeys.slice();
+    } else if (typeof APP.getPreviewableTournamentKeys === 'function') {
+        previewKeys = APP.getPreviewableTournamentKeys();
+    }
+
+    // Der Switcher erscheint, sobald es überhaupt etwas zu wählen gibt:
+    // mehrere verfügbare Turniere ODER mindestens eine Admin-Vorschau.
+    if (tournamentKeys.length + previewKeys.length < 2) return;
 
     const overrideActive = typeof APP.isDevOverrideActive === 'function'
         ? APP.isDevOverrideActive()
@@ -358,6 +369,48 @@ function buildDevTournamentSwitcher(APP) {
             }
         }));
     });
+
+    // Admin-Vorschau-Optionen (noch nicht freigeschaltete Turniere, z. B.
+    // die CL vor dem 27.08.). Klick lädt das Turnier über den Preview-
+    // Kanal – nur für Admins sichtbar.
+    if (previewKeys.length) {
+        const sep = document.createElement('div');
+        Object.assign(sep.style, {
+            borderTop: '1px solid rgba(255,255,255,0.10)',
+            margin: '4px 0'
+        });
+        popover.appendChild(sep);
+
+        previewKeys.forEach((key) => {
+            const t = APP.tournaments[key];
+            const baseLabel = t && t.shortLabel ? t.shortLabel : key;
+            const isActive = key === APP.activeTournamentKey;
+            popover.appendChild(makeItem({
+                text: `${baseLabel} — Vorschau${isActive ? ' · aktiv' : ''}`,
+                isActive,
+                accent: '#8ec7ff',
+                onClick: () => {
+                    if (isActive) return;
+                    if (typeof APP.setPreviewTournament === 'function') {
+                        APP.setPreviewTournament(key);
+                    }
+                }
+            }));
+        });
+    }
+
+    // Aktive Vorschau beenden → zurück auf die normale Auflösung.
+    if (typeof APP.isPreviewActive === 'function' && APP.isPreviewActive()) {
+        popover.appendChild(makeItem({
+            text: '↺ Vorschau beenden',
+            accent: '#8ec7ff',
+            onClick: () => {
+                if (typeof APP.clearPreview === 'function') {
+                    APP.clearPreview();
+                }
+            }
+        }));
+    }
 
     if (overrideActive) {
         popover.appendChild(makeItem({
