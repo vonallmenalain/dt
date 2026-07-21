@@ -202,20 +202,42 @@ async function writePublicPointsCache(db, tournament, pointsMap, opts = {}) {
     };
   }
 
-  const batch = db.batch();
-  shards.forEach(shard => {
-    batch.set(
-      db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(shard.docId),
-      shard.data
-    );
-  });
+  // Shards + Delta groessenbasiert in mehreren Commits schreiben. Bei vielen
+  // Spielern (z. B. CL, 1131) ueberschreitet die Summe aller 16 Shards in
+  // EINEM Batch die 10-MiB-Transaktionsgrenze ("Transaction too big").
+  // Konservativ bei 8 MiB flushen; ein einzelner Shard (~1-2 MiB) bleibt
+  // immer unter dem Limit.
+  const MAX_CACHE_BATCH_BYTES = 8 * 1024 * 1024;
+  const writes = shards.map(shard => ({
+    ref: db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(shard.docId),
+    data: shard.data,
+    bytes: getJsonByteLength(shard.data)
+  }));
   if (delta) {
-    batch.set(
-      db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(getPublicPointsDeltaDocId(tournament)),
-      delta
-    );
+    writes.push({
+      ref: db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(getPublicPointsDeltaDocId(tournament)),
+      data: delta,
+      bytes: getJsonByteLength(delta)
+    });
   }
-  await batch.commit();
+
+  let batch = db.batch();
+  let opsInBatch = 0;
+  let bytesInBatch = 0;
+  for (const w of writes) {
+    if (opsInBatch > 0 && bytesInBatch + w.bytes > MAX_CACHE_BATCH_BYTES) {
+      await batch.commit();
+      batch = db.batch();
+      opsInBatch = 0;
+      bytesInBatch = 0;
+    }
+    batch.set(w.ref, w.data);
+    opsInBatch++;
+    bytesInBatch += w.bytes;
+  }
+  if (opsInBatch > 0) {
+    await batch.commit();
+  }
 
   return {
     dryRun: false,
