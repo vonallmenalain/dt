@@ -190,6 +190,11 @@
     }
 
     function isPostStartDataRequired(cfg) {
+        // Test-/Staging-Turniere ohne scharfe Datenpipeline (dataReady:false,
+        // z. B. die CL-Vorschau cl2526) dürfen nach Turnierstart legitim leere
+        // Datensätze haben (nie Punkte hochgeladen). Für sie wird die
+        // "nach Start nicht leer"-Regel deaktiviert (siehe resolveConfig).
+        if (cfg && cfg.requirePostStartData === false) return false;
         const startMs = getDreamteamStartMs(cfg);
         if (startMs === null) return false;
         const graceMs = Number.isFinite(Number(cfg && cfg.postStartEmptyGraceMs))
@@ -582,6 +587,21 @@
 
         cfg.year = String(resolvedYear);
         cfg.tournamentKey = cfg.tournamentKey || (app && app.key) || cfg.year;
+
+        // Post-Start-Enforcement (leere Datensätze nach Turnierstart als
+        // Fehler werten, siehe isPostStartDataRequired/isValidPointsData) gilt
+        // nur für Turniere mit scharfer Datenpipeline. Ein als dataReady:false
+        // markiertes aktives Turnier (Test/Staging wie cl2526) hat legitim
+        // (noch) keine Punkte – dort würde die Regel den Load mit
+        // "Punkte-Fetch war ungültig" hart abbrechen. Default bleibt true
+        // (WM-Verhalten unverändert); nur ein explizit nicht-dataReady
+        // aktives Turnier lockert die Regel. Aufrufer können via Option
+        // requirePostStartData den Wert weiterhin explizit erzwingen.
+        if (typeof cfg.requirePostStartData !== 'boolean') {
+            const activeT = app && app.activeTournament;
+            const matchesActive = activeT && String(activeT.key) === String(cfg.tournamentKey);
+            cfg.requirePostStartData = !(matchesActive && activeT.dataReady === false);
+        }
         cfg.metaCollection = cfg.metaCollection || (app && app.firestore && app.firestore.metaCollection) || DEFAULTS.metaCollection;
         cfg.metaDocId = cfg.metaDocId
             || (app && app.firestore && typeof app.firestore.metaDocId === 'function' ? app.firestore.metaDocId() : null)

@@ -339,7 +339,127 @@ async function testOfflineOldCacheIsStaleOnly() {
   assert.equal(result.data.points.p1.totalPoints, 9);
 }
 
+// Baut ein Sandbox-window mit frei wählbarer APP_CONFIG (für Turniere, die
+// nicht dem wm2026-Default von makeWindow entsprechen, z. B. die CL-Vorschau).
+function makeWindowWithApp(localStorage, appConfig) {
+  const windowObj = {
+    localStorage,
+    sessionStorage: createStorage(),
+    console,
+    Date,
+    Promise,
+    setTimeout,
+    clearTimeout,
+    location: { origin: 'https://example.test', hostname: 'example.test' },
+    APP_CONFIG: appConfig
+  };
+  const context = { window: windowObj, console, Date, Promise, setTimeout, clearTimeout };
+  vm.runInNewContext(CACHE_SOURCE, context, { filename: 'cache.js' });
+  return windowObj;
+}
+
+function clAppConfig(overrides = {}) {
+  return {
+    year: '2025',
+    key: 'cl2526',
+    DREAMTEAM_START: '2020-01-01T00:00:00Z', // längst vergangen → "post start"
+    activeTournament: { key: 'cl2526', dataReady: false },
+    fixtureCount: { minPublished: 0, expectedFinal: 0 },
+    storage: { appPrefix() { return 'dreamteam_cl2526'; } },
+    firestore: {
+      metaCollection: 'app_meta',
+      metaDocId() { return 'turnier_cl2526'; },
+      teamsCollection() { return 'Teams CL'; },
+      pointsCollection() { return 'Punkte CL'; },
+      fixturesCollection() { return 'Spiele CL'; }
+    },
+    ...overrides
+  };
+}
+
+// Unit-Test der Kern-Guard-Logik: Leere Punkte nach Turnierstart sind für ein
+// Turnier mit scharfer Datenpipeline ungültig; requirePostStartData:false
+// (aus dataReady:false abgeleitet) lockert das.
+async function testPointsGuardRespectsRequirePostStartData() {
+  const windowObj = makeWindow(storageWithMarker());
+  const api = windowObj.DreamTeamCache;
+  const past = { dreamteamStart: '2020-01-01T00:00:00Z' };
+  // Post-Start + scharfe Pipeline (Default): leere Punkte ungültig.
+  assert.equal(api.isValidPointsData({}, true, { ...past }, {}), false);
+  // dataReady:false → Enforcement aus: leere Punkte gültig.
+  assert.equal(api.isValidPointsData({}, true, { ...past, requirePostStartData: false }, {}), true);
+  // Nicht-leere Punkte bleiben in beiden Fällen gültig.
+  assert.equal(api.isValidPointsData({ p1: { totalPoints: 3 } }, true, { ...past }, {}), true);
+}
+
+// Integrationstest: Eine aktive Vorschau (dataReady:false) mit vergangenem
+// Startdatum und (noch) ohne hochgeladene Punkte lädt ohne harten Fehler –
+// genau der Fall, der die CL-Vorschau cl2526 blockierte.
+async function testPreviewToleratesEmptyPointsAfterStart() {
+  const windowObj = makeWindowWithApp(storageWithMarker(), clAppConfig());
+  const db = makeDb({
+    docs: {
+      'app_meta/turnier_cl2526': {
+        year: '2025', tournamentKey: 'cl2526',
+        fixturesVersion: 1, fixturesUpdatedAt: 1, fixturesCacheGeneratedAt: 5
+      }
+    },
+    collections: {
+      'Teams CL': {},
+      'Punkte CL': {},                                  // <-- keine Punkte
+      'Spiele CL': { f1: { id: 'f1', statusShort: 'NS' } }
+    }
+  });
+  const result = await windowObj.DreamTeamCache.loadBundle({
+    db, year: '2025', tournamentKey: 'cl2526',
+    allowEmptyPoints: true, allowEmptyFixtures: true
+  });
+  assert.equal(Object.keys(result.data.points).length, 0);
+  assert.ok(result.data.fixtures.f1);
+}
+
+// Kontrast/Safety-Net: Dasselbe Szenario für ein dataReady:true-Turnier (WM)
+// MUSS weiterhin hart fehlschlagen (leere Punkte nach Start = kaputt).
+async function testLiveTournamentRejectsEmptyPointsAfterStart() {
+  const appConfig = clAppConfig({
+    year: '2026', key: 'wm2026',
+    activeTournament: { key: 'wm2026', dataReady: true },
+    storage: { appPrefix() { return 'dreamteam_wm2026'; } },
+    firestore: {
+      metaCollection: 'app_meta',
+      metaDocId() { return 'turnier_wm2026'; },
+      teamsCollection() { return 'Teams WM'; },
+      pointsCollection() { return 'Punkte WM'; },
+      fixturesCollection() { return 'Spiele WM'; }
+    }
+  });
+  const windowObj = makeWindowWithApp(storageWithMarker(), appConfig);
+  const db = makeDb({
+    docs: {
+      'app_meta/turnier_wm2026': {
+        year: '2026', tournamentKey: 'wm2026',
+        fixturesVersion: 1, fixturesUpdatedAt: 1, fixturesCacheGeneratedAt: 5
+      }
+    },
+    collections: {
+      'Teams WM': {},
+      'Punkte WM': {},
+      'Spiele WM': { f1: { id: 'f1', statusShort: 'NS' } }
+    }
+  });
+  await assert.rejects(
+    windowObj.DreamTeamCache.loadBundle({
+      db, year: '2026', tournamentKey: 'wm2026',
+      allowEmptyPoints: true, allowEmptyFixtures: true
+    }),
+    /Punkte-Fetch war ungueltig/
+  );
+}
+
 const tests = [
+  ['points guard respects requirePostStartData', testPointsGuardRespectsRequirePostStartData],
+  ['preview (dataReady:false) tolerates empty points after start', testPreviewToleratesEmptyPointsAfterStart],
+  ['live tournament rejects empty points after start', testLiveTournamentRejectsEmptyPointsAfterStart],
   ['fixture envelope mismatch refreshes server', testFixtureEnvelopeMismatchRefreshesServer],
   ['fixture quota failure does not save meta', testFixtureWriteQuotaDoesNotSaveMeta],
   ['equal meta with missing envelope still refreshes', testEqualMetaWithMissingEnvelopeStillRefreshes],
