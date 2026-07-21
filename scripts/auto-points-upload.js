@@ -1909,17 +1909,22 @@ function buildPointBaseFromExisting(playersData, existingPoints, fixtureIdsToRep
 // die CL mit 1131 Spielern und Ligaphasen-Details ueber viele Spiele) reisst
 // ein 400er-Batch die 10-MiB-Grenze ("Transaction too big"). Deshalb wird
 // zusaetzlich groessenbasiert geflusht – konservativ bei 8 MiB.
-const MAX_POINTS_BATCH_COUNT = 400;
+// Harte Obergrenze der Writes pro Batch (deterministisches Sicherheitsnetz,
+// unabhaengig von der Groessenschaetzung). Bei CL-Punktedokumenten (~25-30 KB)
+// bleiben 200 Writes klar unter 10 MiB.
+const MAX_POINTS_BATCH_COUNT = 200;
 const MAX_POINTS_BATCH_BYTES = 8 * 1024 * 1024;
 
-// Grobe Byte-Schaetzung eines Punktedokuments (FieldValue-Sentinels sind klein
-// und werden von JSON.stringify als leeres Objekt gezaehlt – ausreichend genau
-// fuer die Flush-Entscheidung).
+// Grobe Byte-Schaetzung eines Punktedokuments fuer die groessenbasierte
+// Flush-Entscheidung. WICHTIG: nur auf reinen Datenobjekten aufrufen (ohne
+// FieldValue-Sentinel). Bei Fehlern konservativ HOCH schaetzen, damit lieber
+// zu frueh als zu spaet geflusht wird.
 function approxPointDocBytes(obj) {
   try {
-    return Buffer.byteLength(JSON.stringify(obj) || '', 'utf8');
+    const s = JSON.stringify(obj);
+    return s ? Buffer.byteLength(s, 'utf8') : 50 * 1024;
   } catch (_) {
-    return 4096;
+    return 50 * 1024;
   }
 }
 
@@ -1963,6 +1968,11 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
       continue;
     }
 
+    // Groesse VOR dem Setzen von lastUpdated messen: obj ist hier noch reine
+    // Datenstruktur (JSON-serialisierbar). Das FieldValue-Sentinel wuerde die
+    // Schaetzung sonst verfaelschen bzw. JSON.stringify werfen lassen.
+    const docBytes = hasPoints ? approxPointDocBytes(obj) : 64;
+
     if (hasPoints) {
       obj.lastUpdated = FieldValue.serverTimestamp();
     }
@@ -1977,11 +1987,10 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
         // API nachtraeglich entfernt hat) zuverlaessig aus dem Dokument
         // und Summe-zu-Detail-Inkonsistenzen werden vermieden.
         batch.set(docRef, obj);
-        bytesInBatch += approxPointDocBytes(obj);
       } else {
         batch.delete(docRef);
-        bytesInBatch += 64;
       }
+      bytesInBatch += docBytes;
       countInBatch++;
     }
 
