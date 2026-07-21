@@ -563,16 +563,21 @@ async function writeChangedPlayerAuditDocs(db, logRef, changedPlayers) {
 
   let batch = db.batch();
   let countInBatch = 0;
+  let bytesInBatch = 0;
 
   for (const [playerId, payload] of entries) {
     const docRef = logRef.collection('changedPlayers').doc(String(playerId));
     batch.set(docRef, payload);
     countInBatch++;
+    bytesInBatch += approxPointDocBytes(payload);
 
-    if (countInBatch === 400) {
+    // Auch hier gegen die 10-MiB-Transaktionsgrenze absichern (viele
+    // geaenderte Spieler bei einem Full-Recompute, z. B. CL-Backfill).
+    if (countInBatch >= MAX_POINTS_BATCH_COUNT || bytesInBatch >= MAX_POINTS_BATCH_BYTES) {
       await batch.commit();
       batch = db.batch();
       countInBatch = 0;
+      bytesInBatch = 0;
     }
   }
 
@@ -1898,6 +1903,26 @@ function buildPointBaseFromExisting(playersData, existingPoints, fixtureIdsToRep
 /* ─────────────────────────────────────────────────────────────────────────────
  *  Schreib-Workflow
  * ───────────────────────────────────────────────────────────────────────────── */
+
+// Firestore-Commit-Limits: max. 500 Writes UND max. 10 MiB pro Transaktion.
+// Bei Turnieren mit vielen Spielern und detailreichen Punktedokumenten (z. B.
+// die CL mit 1131 Spielern und Ligaphasen-Details ueber viele Spiele) reisst
+// ein 400er-Batch die 10-MiB-Grenze ("Transaction too big"). Deshalb wird
+// zusaetzlich groessenbasiert geflusht – konservativ bei 8 MiB.
+const MAX_POINTS_BATCH_COUNT = 400;
+const MAX_POINTS_BATCH_BYTES = 8 * 1024 * 1024;
+
+// Grobe Byte-Schaetzung eines Punktedokuments (FieldValue-Sentinels sind klein
+// und werden von JSON.stringify als leeres Objekt gezaehlt – ausreichend genau
+// fuer die Flush-Entscheidung).
+function approxPointDocBytes(obj) {
+  try {
+    return Buffer.byteLength(JSON.stringify(obj) || '', 'utf8');
+  } catch (_) {
+    return 4096;
+  }
+}
+
 async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onlyPlayerIds = null, existingPoints = null) {
   const FieldValue = admin.firestore.FieldValue;
   const collection = tournament.firestore.pointsCollection;
@@ -1908,6 +1933,7 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
 
   let batch = db.batch();
   let countInBatch = 0;
+  let bytesInBatch = 0;
   let written = 0;
   let deleted = 0;
   let skipped = 0;
@@ -1951,8 +1977,10 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
         // API nachtraeglich entfernt hat) zuverlaessig aus dem Dokument
         // und Summe-zu-Detail-Inkonsistenzen werden vermieden.
         batch.set(docRef, obj);
+        bytesInBatch += approxPointDocBytes(obj);
       } else {
         batch.delete(docRef);
+        bytesInBatch += 64;
       }
       countInBatch++;
     }
@@ -1973,10 +2001,11 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
       hasPoints ? obj : null
     );
 
-    if (countInBatch === 400) {
+    if (countInBatch >= MAX_POINTS_BATCH_COUNT || bytesInBatch >= MAX_POINTS_BATCH_BYTES) {
       await batch.commit();
       batch = db.batch();
       countInBatch = 0;
+      bytesInBatch = 0;
     }
   }
 
