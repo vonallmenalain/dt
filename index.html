@@ -11533,7 +11533,7 @@
         return !!(info && info.verifiedFromServer === true && info.stale !== true);
     }
 
-    function showFreshnessWarning(message) {
+    function showFreshnessWarning(message, tone) {
         let el = document.getElementById('index-freshness-warning');
         if (!el) {
             el = document.createElement('div');
@@ -11541,13 +11541,39 @@
             el.className = 'empty-state';
             el.style.maxWidth = '920px';
             el.style.margin = '24px auto';
-            el.style.border = '1px solid rgba(248,113,113,0.35)';
-            el.style.color = 'var(--red-soft)';
             const root = document.getElementById('indexHomePostStart') || document.body;
             root.insertBefore(el, root.firstChild);
         }
+        // 'info' = ruhiger, neutraler Hinweis (z. B. Admin-Vorschau ohne
+        // Live-Daten); Default = roter Fehlerton (unveraendertes Verhalten).
+        if (tone === 'info') {
+            el.style.border = '1px solid rgba(255,255,255,0.18)';
+            el.style.color = 'var(--text-muted)';
+        } else {
+            el.style.border = '1px solid rgba(248,113,113,0.35)';
+            el.style.color = 'var(--red-soft)';
+        }
         el.textContent = message;
         el.style.display = 'block';
+    }
+
+    /* Fehlermeldung fuer fehlgeschlagenen Datenload. In einer bewusst
+       aktivierten Admin-Vorschau (z. B. CL-Test cl2526) liegen fuer ein noch
+       nicht gestartetes Turnier oft schlicht noch keine Live-Daten vor – das
+       ist KEIN Server-/App-Fehler. Dann einen ruhigen Hinweis zeigen statt
+       der alarmierenden roten Meldung. Die Produktivseite (WM, keine
+       Vorschau aktiv) bleibt beim bisherigen Fehlerton. */
+    function reportDataLoadFailure() {
+        const previewActive = !!(APP && typeof APP.isPreviewActive === 'function'
+            && APP.isPreviewActive());
+        if (previewActive) {
+            showFreshnessWarning(
+                'Vorschau: Fuer dieses Turnier liegen noch keine Live-Daten vor.',
+                'info'
+            );
+        } else {
+            showFreshnessWarning('Aktuelle Daten konnten nicht vom Server geladen werden.');
+        }
     }
 
     function clearFreshnessWarning() {
@@ -11613,7 +11639,7 @@
                         && APP.recoverFromBrokenPreview()) {
                         return; // Reload läuft bereits – keine Fehlermeldung.
                     }
-                    showFreshnessWarning('Aktuelle Daten konnten nicht vom Server geladen werden.');
+                    reportDataLoadFailure();
                 }
             });
 
@@ -11623,7 +11649,7 @@
                 && APP.recoverFromBrokenPreview()) {
                 return; // Hängende Vorschau → Rückfall auf WM läuft.
             }
-            showFreshnessWarning('Aktuelle Daten konnten nicht vom Server geladen werden.');
+            reportDataLoadFailure();
             // Show graceful empty states – already baked in per-tile
         }
     }
