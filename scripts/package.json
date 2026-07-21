@@ -12,7 +12,8 @@
     "test:points": "node test-points-utils.js && node test-auto-points-upload.js",
     "test:cache": "node test-cache-freshness.js",
     "test:nation-status": "node test-nation-status.js",
-    "test:freeze": "node test-wm2026-freeze.js"
+    "test:freeze": "node test-wm2026-freeze.js",
+    "test:scaffold": "node test-cl2627-scaffold.js"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"

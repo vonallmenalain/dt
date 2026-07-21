@@ -317,6 +317,117 @@ const APP_CONFIG = (() => {
       groupStageGroups: GROUP_STAGE_GROUPS_WM2026,
       groupStagePairingPattern: GROUP_STAGE_PAIRING_PATTERN,
       knockoutBracket: KNOCKOUT_BRACKET_WM2026
+    },
+
+    /* ═════════════════════════════════════════════════════════════
+     * Champions League 2026/27  —  GERÜST (Meilenstein M1)
+     *
+     * Bewusst `available: false` UND `dataReady: false`: dieses Turnier
+     * ist weder per URL-Parameter, Dev-Switcher noch Domain-Mapping
+     * auswählbar, solange keine `data-cl2627.js` existiert und die Flags
+     * nicht auf true stehen. Der Block ist damit vollständig INERT – die
+     * produktive WM 2026 bleibt unberührt.
+     *
+     * Freischaltung (später, ~27.08.2026 nach der Auslosung):
+     *   1. `data-cl2627.js` (Kader der 36 qualifizierten Klubs) deployen.
+     *   2. `available: true`, `dataReady: true` setzen.
+     *   3. `defaultActiveFrom` sorgt dann dafür, dass dt.alae.app ab
+     *      diesem Datum automatisch auf die CL defaultet (die WM bleibt
+     *      per Admin-Switcher / `?tournament=wm2026` erreichbar).
+     *
+     * Viele Werte unten sind PLATZHALTER (TBD) und werden präzisiert,
+     * sobald Auslosung und Spielplan feststehen. Da der Block inert ist,
+     * hat das keine Laufzeitwirkung.
+     * ═════════════════════════════════════════════════════════════ */
+    cl2627: {
+      key: "cl2627",
+      type: "CL",
+      year: "2026",
+      name: "Champions League 2026/27",
+      shortLabel: "CL 2026/27",
+      longLabel: "UEFA Champions League 2026/27",
+      brandName: "DreamTeam CL 2026/27",
+      pageTitlePrefix: "CL 2026/27 DreamTeam",
+      competitionName: "UEFA Champions League",
+      timezone: "Europe/Zurich",
+
+      // NOCH NICHT freigeschaltet – siehe Kommentar oben.
+      available: false,
+      dataReady: false,
+
+      // Turnierstruktur-Diskriminator. Die CL 2024/25+ hat KEINE
+      // Vierergruppen mehr, sondern eine gemeinsame Ligaphase (36 Klubs,
+      // je 8 Spiele) mit anschliessender Playoff-/K.-o.-Runde. Konsumenten
+      // behandeln ein fehlendes Feld als "groups" (WM-Verhalten), sodass
+      // die WM-Config unangetastet bleibt. Die zugehörige Ligaphasen-
+      // Logik kommt in M2.
+      structure: "league",
+
+      // Domain(s), für die dieses Turnier ab `defaultActiveFrom` zum
+      // Standard wird (siehe resolveScheduledDomainKey). Wirkt erst, wenn
+      // das Turnier `available` ist.
+      defaultDomains: ["dt.alae.app"],
+      // Ab diesem Zeitpunkt defaultet die oben genannte Domain auf die CL –
+      // Auslosung 27.08.2026 (Schweizer Zeit). Genaues Datum TBD.
+      defaultActiveFrom: "2026-08-27T00:00:00+02:00",
+
+      // TBD: erster Ligaphasen-Spieltag (Team-Bau-Deadline / Reveal).
+      DREAMTEAM_START: "2026-09-16T21:00:00+02:00",
+      // TBD: aktives Zeitfenster für den Auto-Punkte-Upload (CL-Saison
+      // ~Sep 2026 bis Finale ~Ende Mai/Anfang Juni 2027). Wird in M7
+      // zusammen mit den Cron-Fenstern präzisiert.
+      AUTO_POINTS_FROM: "2026-09-16T18:00:00+02:00",
+      AUTO_POINTS_UNTIL: "2027-06-06T23:59:00+02:00",
+
+      storagePrefix: "dreamteam_cl2627",
+      cachePrefix: "dreamteam-cl2627",
+      dataFile: "data-cl2627.js",
+
+      api: {
+        competitionParam: "league",
+        // API-Football Liga-ID der UEFA Champions League.
+        competitionId: 2,
+        // API-Football führt die Saison 2026/27 unter dem Startjahr.
+        season: "2026"
+      },
+
+      // TBD: Ligaphase 36 Klubs × 8 Spiele / 2 = 144 Ligaspiele, plus
+      // Playoffs/K.-o. Genaue Zahlen in M2/M7.
+      fixtureCount: {
+        minPublished: 144,
+        expectedFinal: 189
+      },
+
+      firestore: {
+        metaCollection: "app_meta",
+        metaDocId: "turnier_cl2627",
+        teamsCollection: "Teams CL 2026-27",
+        pointsCollection: "Punkte Spieler CL 2026-27",
+        fixturesCollection: "Spiele CL 2026-27"
+      },
+
+      // CL hat eine Ligaphase statt Vierergruppen – kein Gruppen-/Bracket-
+      // Schema aus der WM. Ein eigenes Liga-Modell kommt in M2.
+      fallbackFixtures: [],
+
+      // Eigene Punkteregeln (M0-Mechanik: pro Turnier überschreibbar).
+      // `rules` wird bewusst NICHT gesetzt → es gelten vorerst die
+      // eingefrorenen Defaults (= WM), bis du sie hier überschreibst.
+      // Captain-Multiplikator: CL soll 1.5× statt 2×. Wird in M4 von den
+      // CL-Views konsumiert (die WM-Views bleiben bei hartkodiertem 2×).
+      captainMultiplier: 1.5,
+
+      // Theme-Tokens (PLATZHALTER) – finales CL-Farb-/Layoutkonzept in M4.
+      // Werden über `:root[data-tournament="cl2627"]` bzw. die CL-Views
+      // konsumiert; solange die CL nicht gerendert wird, ohne Wirkung.
+      theme: {
+        // Provisorisch – bitte in M4 durch das echte CL-Design ersetzen.
+        primary: "#0a1a3f",
+        accent: "#1b6ec2",
+        background: "#0b1020",
+        surface: "#141b2e",
+        text: "#e8ecf4"
+      }
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -1065,12 +1176,64 @@ const APP_CONFIG = (() => {
   }
 
   /**
+   * Zeitgesteuerter Domain-Default.
+   *
+   * Turniere dürfen eine oder mehrere Domains (`defaultDomains`) ab einem
+   * Stichtag (`defaultActiveFrom`) als Standard beanspruchen. So wechselt
+   * z. B. dt.alae.app ab dem Auslosungsdatum automatisch von der WM auf
+   * die CL, ohne dass das statische DOMAIN_TOURNAMENT_MAP angefasst wird.
+   *
+   * Es zählen ausschliesslich `available` Turniere. Von mehreren
+   * zutreffenden gewinnt das mit dem jüngsten bereits erreichten
+   * `defaultActiveFrom`. Liefert null, wenn (noch) keines greift – dann
+   * gilt die bisherige Domain-/Fallback-Logik unverändert.
+   *
+   * DORMANT bis zur CL-Freischaltung: solange `cl2627` `available: false`
+   * ist, liefert diese Funktion immer null und dt.alae.app bleibt bei der
+   * WM – auch nach dem Stichtag.
+   *
+   * @param {string} [hostname]  Default: aktuelle Hostname.
+   * @param {number} [nowMs]     Default: Date.now() (für Tests injizierbar).
+   */
+  function resolveScheduledDomainKey(hostname, nowMs) {
+    const host = (hostname || currentHostname() || "").toLowerCase();
+    if (!host) return null;
+    const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+
+    let bestKey = null;
+    let bestFrom = -Infinity;
+    Object.keys(TOURNAMENTS).forEach((key) => {
+      if (!isTournamentAvailable(key)) return;
+      const t = TOURNAMENTS[key];
+      const domains = Array.isArray(t.defaultDomains)
+        ? t.defaultDomains.map((d) => String(d).toLowerCase())
+        : [];
+      if (domains.indexOf(host) === -1) return;
+      const fromMs = t.defaultActiveFrom ? new Date(t.defaultActiveFrom).getTime() : NaN;
+      if (!Number.isFinite(fromMs) || now < fromMs) return;
+      if (fromMs > bestFrom) {
+        bestFrom = fromMs;
+        bestKey = key;
+      }
+    });
+    return bestKey;
+  }
+
+  /**
    * Liefert das standardmässig zur aktuellen Domain gehörende Turnier
    * (ohne Berücksichtigung von URL- oder Dev-Override).
-   * Wenn die Domain nicht im Mapping enthalten ist, wird der globale
-   * Fallback zurückgegeben.
+   *
+   * Reihenfolge:
+   *   1. Zeitgesteuerter Domain-Default (`defaultDomains` +
+   *      `defaultActiveFrom`, siehe resolveScheduledDomainKey) – so
+   *      wechselt z. B. dt.alae.app ab dem Auslosungsdatum automatisch
+   *      auf die CL.
+   *   2. Statisches Domain-Mapping (DOMAIN_TOURNAMENT_MAP).
+   *   3. Globaler Fallback (FALLBACK_TOURNAMENT_KEY).
    */
   function resolveDomainDefaultKey() {
+    const scheduled = resolveScheduledDomainKey();
+    if (scheduled) return scheduled;
     const fromDomain = getDomainTournamentKey();
     if (fromDomain) return fromDomain;
     return FALLBACK_TOURNAMENT_KEY;
@@ -1351,6 +1514,7 @@ const APP_CONFIG = (() => {
     isDevOverrideActive,
     isUrlOverrideActive,
     resolveTournamentKey,
+    resolveScheduledDomainKey,
     getDomainTournamentKey,
     resetToDomainDefault,
     clearDevOverride,
@@ -1791,6 +1955,20 @@ const APP_CONFIG = (() => {
 
 if (typeof window !== "undefined") {
   window.APP_CONFIG = APP_CONFIG;
+
+  /* Turnier-/Theme-Hook: aktives Turnier als Attribut am <html>-Element
+   * hinterlegen, damit turnierspezifisches CSS darauf targeten kann
+   * (z. B. `:root[data-tournament="cl2627"] { --… }` für die CL-Farbwelt).
+   *
+   * Für die WM 2026 rein additiv/inert: kein bestehendes CSS liest dieses
+   * Attribut, das Aussehen bleibt unverändert. CL-spezifische Seiten
+   * können das Attribut später (M4) zusätzlich früh im <head> setzen, um
+   * ein Aufblitzen des Default-Themes zu vermeiden. */
+  try {
+    if (typeof document !== "undefined" && document.documentElement) {
+      document.documentElement.setAttribute("data-tournament", APP_CONFIG.activeTournamentKey);
+    }
+  } catch (_) { /* DOM nicht verfügbar – ignorieren */ }
 }
 if (typeof module !== "undefined" && module.exports) {
   module.exports = APP_CONFIG;
