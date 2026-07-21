@@ -449,6 +449,71 @@ const APP_CONFIG = (() => {
         surface: "#141b2e",
         text: "#e8ecf4"
       }
+    },
+
+    /* ═════════════════════════════════════════════════════════════
+     * Champions League 2025/26  —  TEST-/STAGING-Turnier (M2b-Gerüst)
+     *
+     * Ausschliesslich für die interne Validierung der Ligaphasen-Logik
+     * gegen eine ABGESCHLOSSENE Saison mit bekannten Ergebnissen. Bleibt
+     * dauerhaft `available: false` (nie öffentlich), ist aber als Admin-
+     * VORSCHAU ladbar (Preview-Kanal), SOBALD `data-cl2526.js` existiert.
+     * Nutzt dieselbe Liga-Logik/Struktur wie cl2627.
+     *
+     * Offen (siehe Übergabe): `data-cl2526.js` (Kader) + Fixtures müssen
+     * noch generiert werden – dafür fehlt aktuell Generator-Tooling im
+     * Repo und ein club-zentrierter Schema-Entscheid.
+     * ═════════════════════════════════════════════════════════════ */
+    cl2526: {
+      key: "cl2526",
+      type: "CL",
+      year: "2025",
+      name: "Champions League 2025/26 (Test)",
+      shortLabel: "CL 2025/26 (Test)",
+      longLabel: "UEFA Champions League 2025/26 – Teststand",
+      brandName: "DreamTeam CL 2025/26 (Test)",
+      pageTitlePrefix: "CL 2025/26 Test",
+      competitionName: "UEFA Champions League",
+      timezone: "Europe/Zurich",
+
+      // Nie öffentlich – reines internes Test-/Preview-Turnier.
+      available: false,
+      dataReady: false,
+
+      structure: "league",
+      captainMultiplier: 1.5,
+
+      // Abgeschlossene Saison: API-Football Liga-ID 2, Saison-Startjahr 2025.
+      api: {
+        competitionParam: "league",
+        competitionId: 2,
+        season: "2025"
+      },
+
+      leaguePhase: {
+        teamCount: 36,
+        matchesPerTeam: 8,
+        directQualifyThrough: 8,
+        playoffThrough: 24
+      },
+      knockout: { twoLegged: true },
+
+      // Referenz: erster Spieltag der 25/26-Ligaphase.
+      DREAMTEAM_START: "2025-09-16T21:00:00+02:00",
+
+      storagePrefix: "dreamteam_cl2526",
+      cachePrefix: "dreamteam-cl2526",
+      dataFile: "data-cl2526.js",
+
+      firestore: {
+        metaCollection: "app_meta",
+        metaDocId: "turnier_cl2526",
+        teamsCollection: "Teams CL 2025-26 Test",
+        pointsCollection: "Punkte Spieler CL 2025-26 Test",
+        fixturesCollection: "Spiele CL 2025-26 Test"
+      },
+
+      fallbackFixtures: []
     }
 
     /* ─────────────────────────────────────────────────────────

@@ -23,8 +23,12 @@ assert.equal(APP.isTournamentPreviewable('wm2026'), false,
   'wm2026 ist regulär verfügbar → keine Vorschau.');
 assert.equal(APP.isTournamentPreviewable('gibtsnicht'), false,
   'Unbekannter Key ist nicht als Vorschau verfügbar.');
-assert.deepEqual(APP.previewableTournamentKeys, ['cl2627'],
-  'Nur cl2627 ist aktuell als Vorschau verfügbar.');
+assert.ok(APP.previewableTournamentKeys.includes('cl2627'),
+  'cl2627 muss als Vorschau verfügbar sein.');
+assert.ok(APP.previewableTournamentKeys.includes('cl2526'),
+  'cl2526 (Teststand) muss als Vorschau verfügbar sein.');
+assert.ok(!APP.previewableTournamentKeys.includes('wm2026'),
+  'wm2026 (regulär verfügbar) darf nicht als Vorschau gelten.');
 
 /* ── 2) Ohne aktive Vorschau: WM aktiv, CL nicht ladbar ───────────────── */
 assert.equal(APP.isPreviewActive(), false, 'Ohne Preview: isPreviewActive false.');
