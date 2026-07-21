@@ -1,0 +1,74 @@
+name: Kader generieren
+
+# Erzeugt die statische data-<key>.js (Spielerpool) fuer ein Turnier aus
+# der API-Football und committet sie zurueck. Manuell ausgeloest.
+#
+# Benoetigtes Repo-Secret:
+#   RAPIDAPI_KEY   RapidAPI / API-Football Key.
+#
+# Der Generator (scripts/generate-kader.js) liest competitionId/season aus
+# tournament-config.js anhand des tournament_key-Inputs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tournament_key:
+        description: "Turnier-Key (z. B. cl2526)"
+        required: true
+        type: string
+        default: "cl2526"
+      commit:
+        description: "Ergebnis committen & pushen"
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: generate-kader-${{ github.ref }}-${{ inputs.tournament_key }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package.json
+
+      - name: Install script dependencies
+        working-directory: scripts
+        run: npm install --no-audit --no-fund --omit=dev
+
+      - name: Generate kader file
+        working-directory: scripts
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          TOURNAMENT_KEY: ${{ inputs.tournament_key }}
+        run: node generate-kader.js
+
+      - name: Commit & push generated data
+        if: ${{ inputs.commit }}
+        env:
+          KEY: ${{ inputs.tournament_key }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          FILE="data-${KEY}.js"
+          if [ -n "$(git status --porcelain "$FILE")" ]; then
+            git add "$FILE"
+            git commit -m "Kader generieren: $FILE (via generate-kader Workflow)"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+            echo "Committed $FILE to ${GITHUB_REF_NAME}."
+          else
+            echo "Keine Aenderung an $FILE – nichts zu committen."
+          fi
