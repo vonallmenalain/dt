@@ -1120,7 +1120,18 @@ const APP_CONFIG = (() => {
   };
 
   /* ─────────────────────────────────────────────────────────
-   * Punkteregeln & Labels (turnierübergreifend identisch).
+   * Punkteregeln & Labels.
+   *
+   * Dies sind die eingefrorenen DEFAULT-Werte und entsprechen exakt
+   * dem Regelwerk der WM 2026. Ein einzelner Turnier-Block in
+   * TOURNAMENTS darf `rules` / `ruleLabels` überschreiben (z. B. die
+   * Champions League mit einem eigenen Punktesystem); fehlt die
+   * Überschreibung, gelten diese Defaults.
+   *
+   * Die WM 2026 nutzt bewusst KEINE eigene Überschreibung und bleibt
+   * damit fest an diese Werte gebunden. Ein Freeze-Test stellt sicher,
+   * dass sie sich nicht mehr ändern (siehe
+   * scripts/test-wm2026-freeze.js).
    * ───────────────────────────────────────────────────────── */
   const rules = {
     START: 5,
@@ -1559,8 +1570,25 @@ const APP_CONFIG = (() => {
     },
 
     firebaseConfig,
-    rules,
-    ruleLabels,
+
+    /* Punkteregeln & Labels des AKTIVEN Turniers.
+     *
+     * Ein Turnier-Block darf eigene `rules` / `ruleLabels` mitbringen;
+     * fehlen sie, gelten die eingefrorenen Defaults oben (= WM 2026).
+     * Dadurch bleibt die WM unverändert, selbst wenn ein anderes
+     * Turnier (z. B. CL) später ein eigenes Punktesystem definiert.
+     * Getter statt statischer Referenz, damit die Auflösung immer dem
+     * aktiven Turnier folgt – analog zu allen anderen turnier-
+     * spezifischen Werten in diesem Objekt. */
+    get rules() {
+      const t = getActiveTournament();
+      return (t && t.rules) || rules;
+    },
+
+    get ruleLabels() {
+      const t = getActiveTournament();
+      return (t && t.ruleLabels) || ruleLabels;
+    },
 
     api: {
       get competitionParam() {

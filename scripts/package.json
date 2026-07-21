@@ -11,7 +11,8 @@
     "sync-fixtures": "node sync-fixtures.js",
     "test:points": "node test-points-utils.js && node test-auto-points-upload.js",
     "test:cache": "node test-cache-freshness.js",
-    "test:nation-status": "node test-nation-status.js"
+    "test:nation-status": "node test-nation-status.js",
+    "test:freeze": "node test-wm2026-freeze.js"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"
