@@ -690,6 +690,14 @@ document.addEventListener("DOMContentLoaded", () => {
         { href: "punktesystem.html", label: "📊 Punktesystem", shortLabel: "Punkte", icon: "📊" }
     ];
 
+    // CL-spezifisch: Ligatabelle nur bei Ligaphasen-Turnieren einblenden.
+    // Für die WM (kein `structure: "league"`) unverändert.
+    try {
+        if (APP && APP.activeTournament && APP.activeTournament.structure === 'league') {
+            navItems.splice(3, 0, { href: "liga-tabelle.html", label: "📋 Ligatabelle", shortLabel: "Tabelle", icon: "📋" });
+        }
+    } catch (_) { /* nav bleibt ohne Ligatabelle */ }
+
     const topNavLinks = navItems
         .map(item => `<a href="${withTournamentParam(item.href)}" class="nav-item"${navActionAttr(item)}>${item.label}</a>`)
         .join("");
