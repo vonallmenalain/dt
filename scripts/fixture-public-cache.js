@@ -1,7 +1,15 @@
 'use strict';
 
 const PUBLIC_FIXTURE_CACHE_COLLECTION = 'public_cache';
+// Basis-Default (Legacy). Der tatsächliche Doc-Name wird turnier-spezifisch
+// aus dem Turnier-Key gebildet – siehe getPublicFixtureCacheDocId. So
+// überschreibt ein CL-Sync NICHT mehr das WM-Cache-Dokument.
 const PUBLIC_FIXTURE_CACHE_DOC_ID = 'wm2026_fixtures';
+
+function getPublicFixtureCacheDocId(tournament) {
+  const key = (tournament && tournament.key) ? String(tournament.key) : 'wm2026';
+  return `${key}_fixtures`;
+}
 
 function isObject(value) {
   return !!value && typeof value === 'object';
@@ -75,7 +83,7 @@ async function writePublicFixtureBundle(db, tournament, fixtures, source, opts =
 
   await db
     .collection(PUBLIC_FIXTURE_CACHE_COLLECTION)
-    .doc(PUBLIC_FIXTURE_CACHE_DOC_ID)
+    .doc(getPublicFixtureCacheDocId(tournament))
     .set(bundle);
 
   return { dryRun: false, cacheGenerationMs, fixturesCount };
@@ -84,6 +92,7 @@ async function writePublicFixtureBundle(db, tournament, fixtures, source, opts =
 module.exports = {
   PUBLIC_FIXTURE_CACHE_COLLECTION,
   PUBLIC_FIXTURE_CACHE_DOC_ID,
+  getPublicFixtureCacheDocId,
   buildFixturesMapFromDocuments,
   buildFixturesMapFromPlanCache,
   buildPublicFixtureBundle,

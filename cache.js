@@ -604,9 +604,13 @@
         }
 
         cfg.fixturesBundleCollection = cfg.fixturesBundleCollection || DEFAULTS.fixturesBundleCollection;
-        cfg.fixturesBundleDocId = cfg.fixturesBundleDocId || DEFAULTS.fixturesBundleDocId;
+        // Turnier-spezifische Cache-Doc-IDs, damit z. B. die CL nicht das
+        // WM-Public-Cache-Dokument liest (oder umgekehrt). Für die WM
+        // (tournamentKey "wm2026") ergeben sich exakt die bisherigen Namen
+        // (`wm2026_fixtures` / `wm2026_points_shard_`) – also unverändert.
+        cfg.fixturesBundleDocId = cfg.fixturesBundleDocId || `${cfg.tournamentKey}_fixtures`;
         cfg.pointsCacheCollection = cfg.pointsCacheCollection || DEFAULTS.pointsCacheCollection;
-        cfg.pointsShardDocPrefix = cfg.pointsShardDocPrefix || DEFAULTS.pointsShardDocPrefix;
+        cfg.pointsShardDocPrefix = cfg.pointsShardDocPrefix || `${cfg.tournamentKey}_points_shard_`;
         cfg.fixtureCount = cfg.fixtureCount || (app && app.fixtureCount) || null;
 
         cfg.keys = buildKeys(cfg);

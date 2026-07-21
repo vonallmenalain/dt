@@ -1,0 +1,52 @@
+name: Firestore-Rules deployen
+
+# Deployt firestore.rules ins Firebase-Projekt. Manuell ausgeloest.
+# Aendert ausschliesslich die Sicherheitsregeln (firestore.rules) – keine
+# Daten. Benoetigt das Secret FIREBASE_SERVICE_ACCOUNT (Service-Account-JSON).
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Nur validieren, nicht deployen (firebase deploy --dry-run)"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-firestore-rules
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Write service account credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT Secret ist nicht gesetzt."
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          echo "PROJECT_ID=$(node -e 'process.stdout.write(require(process.env.RUNNER_TEMP + "/sa.json").project_id)')" >> "$GITHUB_ENV"
+
+      - name: Deploy Firestore rules
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npx --yes firebase-tools@13 deploy --only firestore:rules --project "$PROJECT_ID" --non-interactive --dry-run
+          else
+            npx --yes firebase-tools@13 deploy --only firestore:rules --project "$PROJECT_ID" --non-interactive
+          fi

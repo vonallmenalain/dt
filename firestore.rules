@@ -193,6 +193,22 @@ service cloud.firestore {
           || docId == 'wm2026_points_shard_14'
           || docId == 'wm2026_points_shard_15'
         ))
+        // ── Champions League (Test cl2526 + produktiv cl2627): nur Reads.
+        //    Schreibzugriffe (Teams) folgen separat beim CL-Launch, da das
+        //    Team-Schema club-zentriert abweicht. Server-Writes (Fixtures/
+        //    Punkte) laufen ohnehin ueber das Admin-SDK.
+        || collection == 'Teams CL 2025-26 Test'
+        || collection == 'Spiele CL 2025-26 Test'
+        || collection == 'Punkte Spieler CL 2025-26 Test'
+        || (collection == 'app_meta' && docId == 'turnier_cl2526')
+        || collection == 'Teams CL 2026-27'
+        || collection == 'Spiele CL 2026-27'
+        || collection == 'Punkte Spieler CL 2026-27'
+        || (collection == 'app_meta' && docId == 'turnier_cl2627')
+        || (collection == 'public_cache' && (
+             docId == 'cl2526_fixtures'
+          || docId == 'cl2627_fixtures'
+        ))
         || (collection == 'Admin Auto Points Logs WM 2026' && isAdmin());
 
       allow create:
