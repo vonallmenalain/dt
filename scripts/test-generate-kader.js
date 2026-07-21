@@ -40,12 +40,31 @@ function stat(teamName, teamLogo, position) {
     playerDisplayName({ name: 'Achraf Hakimi', firstname: 'Achraf', lastname: 'Hakimi Mouh' }),
     'Achraf Hakimi'
   );
+  // Abgekürzte Initiale wird mit echtem Vornamen ersetzt.
+  assert.equal(
+    playerDisplayName({ name: 'A. Hakimi', firstname: 'Achraf', lastname: 'Hakimi Mouhoubi' }),
+    'Achraf Hakimi'
+  );
+  assert.equal(
+    playerDisplayName({ name: 'J. Bellingham', firstname: 'Jude', lastname: 'Bellingham' }),
+    'Jude Bellingham'
+  );
+  // Sehr langer (>3 Tokens) bürgerlicher Name → auf Vorname+Nachname gekürzt.
+  assert.equal(
+    playerDisplayName({
+      name: 'Lucas Rodrigues Carvalho Anjos',
+      firstname: 'Lucas', lastname: 'Rodrigues Carvalho Anjos'
+    }),
+    'Lucas Rodrigues'
+  );
+  // Einzelname (Kürzel) bleibt.
+  assert.equal(playerDisplayName({ name: 'Rodri', firstname: 'Rodrigo', lastname: 'Hernández Cascante' }), 'Rodri');
   // Fallback auf firstname+lastname, wenn kein `name` da ist.
   assert.equal(
     playerDisplayName({ name: '', firstname: 'Max', lastname: 'Muster' }),
     'Max Muster'
   );
-  console.log('ok - display name prefers common API name');
+  console.log('ok - display name prefers common API name, de-abbreviates, shortens');
 })();
 
 // ── Nationenflagge: /countries-Treffer, Alias, unmatched ────────────────
@@ -57,6 +76,10 @@ function stat(teamName, teamLogo, position) {
   assert.equal(resolveNationFlag("Côte d'Ivoire", flagMap), `${FLAG_BASE}/ci.svg`); // via Alias
   assert.equal(resolveNationFlag('Czechia', flagMap), `${FLAG_BASE}/cz.svg`); // via Alias
   assert.equal(resolveNationFlag('Korea Republic', flagMap), `${FLAG_BASE}/kr.svg`); // via Alias
+  assert.equal(resolveNationFlag('Mozambique', flagMap), `${FLAG_BASE}/mz.svg`); // via Alias
+  assert.equal(resolveNationFlag('North Macedonia', flagMap), `${FLAG_BASE}/mk.svg`); // via Alias
+  assert.equal(resolveNationFlag('Republic of Ireland', flagMap), `${FLAG_BASE}/ie.svg`); // via Alias
+  assert.equal(resolveNationFlag('Guinea-Bissau', flagMap), `${FLAG_BASE}/gw.svg`); // via Alias
   // Nicht auflösbar → leer + in unmatched vermerkt.
   const unmatched = new Set();
   assert.equal(resolveNationFlag('Neverland', flagMap, unmatched), '');

@@ -130,10 +130,37 @@ function numericOnly(value) {
 // oft zu lang: "Lamine Yamal Nasraoui Ebana", "Vinícius José Paixão de
 // Oliveira Júnior"). Für die Anzeige wird der kurze `name` bevorzugt;
 // firstname+lastname dient nur als Fallback.
+function firstToken(value) {
+  const parts = String(value == null ? '' : value).trim().split(/\s+/).filter(Boolean);
+  return parts.length ? parts[0] : '';
+}
+
 function playerDisplayName(p) {
-  const common = p && p.name != null ? String(p.name).trim() : '';
-  if (common) return common;
-  return [p && p.firstname, p && p.lastname].filter(Boolean).join(' ').trim();
+  const firstName = String((p && p.firstname) || '').trim();
+  const lastName = String((p && p.lastname) || '').trim();
+  let common = String((p && p.name) || '').trim();
+
+  // Führende Initiale ("A. Hakimi", "J. Bellingham") durch den echten
+  // Vornamen ersetzen, falls vorhanden → "Achraf Hakimi", "Jude Bellingham".
+  const initial = common.match(/^[A-Za-zÀ-ÖØ-öø-ÿ]\.\s+(.+)$/);
+  if (initial && firstName) common = `${firstName} ${initial[1]}`.trim();
+
+  // Kurzer, sauberer Common-Name (≤ 3 Tokens, keine Initiale) direkt nutzen:
+  // deckt "Lamine Yamal", "Vinícius Júnior", "Kylian Mbappé", "Rodri" ab.
+  const tokens = common ? common.split(/\s+/) : [];
+  const looksAbbrev = /(^|\s)[A-Za-zÀ-ÖØ-öø-ÿ]\.(\s|$)/.test(common);
+  if (common && !looksAbbrev && tokens.length >= 1 && tokens.length <= 3) {
+    return common;
+  }
+
+  // Sonst "Vorname Nachname" aus erstem Vornamen- + erstem Nachnamen-Token
+  // bauen (kürzt lange bürgerliche Namen wie "Lucas Rodrigues Carvalho
+  // Anjos" → "Lucas Rodrigues"; spanische/arabische Mehrfachnamen wie
+  // "Achraf Hakimi", "Lamine Yamal" bleiben korrekt).
+  const built = [firstToken(firstName), firstToken(lastName)].filter(Boolean).join(' ').trim();
+  if (built) return built;
+
+  return common || `${firstName} ${lastName}`.trim();
 }
 
 const FLAG_BASE = 'https://media.api-sports.io/flags';
@@ -164,7 +191,13 @@ const NATION_FLAG_ALIASES = {
   bosniaandherzegovina: 'ba', bosnia: 'ba',
   drcongo: 'cd', congodr: 'cd', democraticrepublicofthecongo: 'cd',
   capeverdeislands: 'cv', capeverde: 'cv',
-  russia: 'ru'
+  russia: 'ru',
+  // Aus dem cl2526-Lauf als unauflösbar geloggt:
+  mozambique: 'mz',
+  centralafricanrepublic: 'cf',
+  northmacedonia: 'mk', macedonia: 'mk',
+  republicofireland: 'ie', ireland: 'ie',
+  guineabissau: 'gw'
 };
 
 // Ländername (nationality) → Flaggen-URL. Reihenfolge: 1) direkter Treffer
