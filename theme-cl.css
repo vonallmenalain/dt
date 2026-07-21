@@ -114,3 +114,15 @@
 [data-tournament^="cl"] body.dark-page .bottom-nav a.active {
   color: var(--cl-accent, #7db4ff);
 }
+
+/* ── Klub-Logos in den (ursprünglich flaggen-förmigen) Slots ────────────
+ * Bei der CL steht der Klub im Fokus: die Views zeigen in den „Flaggen"-
+ * Elementen jetzt Klub-Wappen (quadratisch) statt Länderflaggen
+ * (rechteckig). `object-fit: contain` verhindert Verzerrung; ein dezenter
+ * Hintergrund/Radius lässt die Wappen sauber sitzen. Greift breit über
+ * alle img-Elemente, deren Klasse „flag" enthält – nur im CL-Scope. */
+[data-tournament^="cl"] img[class*="flag"] {
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+}

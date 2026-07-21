@@ -25,6 +25,7 @@ assert.ok(cl, 'cl2627-Block fehlt in TOURNAMENTS.');
 assert.equal(cl.key, 'cl2627', 'cl2627.key falsch.');
 assert.equal(cl.type, 'CL', 'cl2627.type soll "CL" sein.');
 assert.equal(cl.structure, 'league', 'CL muss structure "league" haben (Ligaphase).');
+assert.equal(cl.primaryEntity, 'club', 'CL muss club-zentriert sein (primaryEntity "club").');
 assert.equal(cl.captainMultiplier, 1.5, 'CL-Captain-Multiplikator soll 1.5 sein.');
 assert.equal(cl.api.competitionId, 2, 'CL API competitionId soll 2 (Champions League) sein.');
 assert.ok(Array.isArray(cl.defaultDomains) && cl.defaultDomains.includes('dt.alae.app'),
@@ -40,6 +41,7 @@ assert.ok(!APP.availableTournamentKeys.includes('cl2627'),
 
 /* ── 3) WM bleibt aktiv und Default ────────────────────────────────────── */
 assert.equal(APP.activeTournamentKey, 'wm2026', 'Aktives Turnier muss wm2026 bleiben.');
+assert.equal(APP.primaryEntity, 'nation', 'WM bleibt nation-zentriert (Default).');
 assert.equal(APP.domainDefaultKey, 'wm2026', 'Domain-Default muss wm2026 bleiben.');
 assert.deepEqual(APP.availableTournamentKeys, ['wm2026'],
   'Nur wm2026 darf verfügbar sein.');

@@ -389,6 +389,13 @@ const APP_CONFIG = (() => {
       // Logik kommt in M2.
       structure: "league",
 
+      // Primäre Anzeige-Entität: bei der CL steht der KLUB im Fokus
+      // (nicht das Land wie bei der WM). data.js schiebt dafür beim Laden
+      // den Klub in die primären Anzeigefelder und die Nation in die
+      // sekundären – so werden alle Views club-zentriert, ohne die
+      // (eingefrorenen) WM-Views anzufassen.
+      primaryEntity: "club",
+
       // Domain(s), für die dieses Turnier ab `defaultActiveFrom` zum
       // Standard wird (siehe resolveScheduledDomainKey). Wirkt erst, wenn
       // das Turnier `available` ist.
@@ -504,6 +511,7 @@ const APP_CONFIG = (() => {
       dataReady: false,
 
       structure: "league",
+      primaryEntity: "club",
       captainMultiplier: 1.5,
 
       // Abgeschlossene Saison: API-Football Liga-ID 2, Saison-Startjahr 2025.
@@ -2074,6 +2082,13 @@ const APP_CONFIG = (() => {
 
     get key() {
       return getActiveTournament().key;
+    },
+
+    // Primäre Anzeige-Entität des aktiven Turniers: "club" (CL) oder
+    // "nation" (WM, Default). Steuert den Club-Remap in data.js.
+    get primaryEntity() {
+      var pe = getActiveTournament().primaryEntity;
+      return pe === "club" ? "club" : "nation";
     },
 
     get type() {

@@ -128,4 +128,37 @@
       '}' +
     '})(' + serializedKey + ');<\/script>'
   );
+
+  // 4) Club-zentrierter Remap. Wenn das aktive Turnier `primaryEntity:
+  //    "club"` hat (z.B. CL), den Klub in die PRIMÄREN Anzeigefelder
+  //    (Nationalteam.*) schieben und die Nation in die sekundären (Club.*).
+  //    Die bestehenden Views zeigen die Nationalteam.*-Felder prominent
+  //    (Flagge + Name) und Club.name sekundär – nach dem Remap also den
+  //    Klub prominent und die Nation sekundär, ohne die (eingefrorenen)
+  //    WM-Views zu verändern. Für die WM (primaryEntity "nation") ist der
+  //    Block ein No-op.
+  document.write(
+    '<script>(function(){' +
+      'try {' +
+        'var cfg = window.APP_CONFIG;' +
+        'var primary = (cfg && typeof cfg.primaryEntity === "string") ? cfg.primaryEntity : "nation";' +
+        'if (primary !== "club") { window.__PRIMARY_ENTITY_REMAP__ = { entity: primary, count: 0 }; return; }' +
+        'var data = (typeof playersData !== "undefined" && Array.isArray(playersData)) ? playersData : null;' +
+        'if (!data) { window.__PRIMARY_ENTITY_REMAP__ = { entity: "club", count: 0, reason: "no playersData" }; return; }' +
+        'for (var i=0;i<data.length;i++){' +
+          'var p = data[i]; if (!p) continue;' +
+          'var cn = p["Club.name"], cl = p["Club.logo"];' +
+          'var nn = p["Nationalteam.name"], nl = p["Nationalteam.logo"];' +
+          'p["Nationalteam.name"] = cn || nn || "";' +
+          'p["Nationalteam.logo"] = cl || nl || "";' +
+          'p["Club.name"] = nn || "";' +
+          'p["Club.logo"] = nl || "";' +
+        '}' +
+        'window.__PRIMARY_ENTITY_REMAP__ = { entity: "club", count: data.length };' +
+        'try { console.log("[data.js] Club-Remap: " + data.length + " Spieler auf Klub-primär umgestellt."); } catch(_){}' +
+      '} catch (err) {' +
+        'try { console.warn("[data.js] Club-Remap fehlgeschlagen:", err); } catch(_){}' +
+      '}' +
+    '})();<\/script>'
+  );
 })();
