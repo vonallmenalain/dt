@@ -1,9 +1,21 @@
 'use strict';
 
 const PUBLIC_POINTS_CACHE_COLLECTION = 'public_cache';
+// Turnier-spezifische Public-Cache-Doc-IDs, damit z. B. die CL nicht das
+// WM-Punkte-Cache-Dokument ueberschreibt (oder umgekehrt). Fuer die WM
+// (tournamentKey "wm2026") ergeben sich exakt die bisherigen Namen
+// (`wm2026_points_shard_XX` / `wm2026_points_delta_current`) → unveraendert.
 const PUBLIC_POINTS_SHARD_DOC_PREFIX = 'wm2026_points_shard_';
 const PUBLIC_POINTS_DELTA_DOC_ID = 'wm2026_points_delta_current';
 const DEFAULT_PUBLIC_POINTS_SHARD_COUNT = 16;
+
+function tournamentKeyOf(tournament) {
+  return tournament && tournament.key ? String(tournament.key) : 'wm2026';
+}
+
+function getPublicPointsDeltaDocId(tournament) {
+  return `${tournamentKeyOf(tournament)}_points_delta_current`;
+}
 const DEFAULT_PUBLIC_POINTS_DELTA_MAX_BYTES = 880 * 1024;
 
 function isObject(value) {
@@ -26,8 +38,9 @@ function normalizeShardCount(value) {
   return Number.isInteger(n) && n > 0 ? n : DEFAULT_PUBLIC_POINTS_SHARD_COUNT;
 }
 
-function getPublicPointsShardDocId(index) {
-  return `${PUBLIC_POINTS_SHARD_DOC_PREFIX}${String(index).padStart(2, '0')}`;
+function getPublicPointsShardDocId(index, tournament) {
+  const prefix = `${tournamentKeyOf(tournament)}_points_shard_`;
+  return `${prefix}${String(index).padStart(2, '0')}`;
 }
 
 function hashPlayerId(playerId) {
@@ -74,7 +87,7 @@ function buildPublicPointsShards(tournament, pointsMap, opts = {}) {
   }
 
   const shards = Array.from({ length: shardCount }, (_, index) => ({
-    docId: getPublicPointsShardDocId(index),
+    docId: getPublicPointsShardDocId(index, tournament),
     data: {
       kind: 'points_shard',
       tournamentKey: tournament.key,
@@ -185,7 +198,7 @@ async function writePublicPointsCache(db, tournament, pointsMap, opts = {}) {
       deltaWritten,
       deltaTooLarge,
       deltaBytes,
-      deltaDocId: deltaWritten ? PUBLIC_POINTS_DELTA_DOC_ID : null
+      deltaDocId: deltaWritten ? getPublicPointsDeltaDocId(tournament) : null
     };
   }
 
@@ -198,7 +211,7 @@ async function writePublicPointsCache(db, tournament, pointsMap, opts = {}) {
   });
   if (delta) {
     batch.set(
-      db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(PUBLIC_POINTS_DELTA_DOC_ID),
+      db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(getPublicPointsDeltaDocId(tournament)),
       delta
     );
   }
@@ -212,7 +225,7 @@ async function writePublicPointsCache(db, tournament, pointsMap, opts = {}) {
     deltaWritten,
     deltaTooLarge,
     deltaBytes,
-    deltaDocId: deltaWritten ? PUBLIC_POINTS_DELTA_DOC_ID : null
+    deltaDocId: deltaWritten ? getPublicPointsDeltaDocId(tournament) : null
   };
 }
 
@@ -246,7 +259,7 @@ async function readPublicPointsShards(db, tournament, meta) {
     Array.from({ length: meta.pointsShardCount }, (_, index) => (
       db
         .collection(PUBLIC_POINTS_CACHE_COLLECTION)
-        .doc(getPublicPointsShardDocId(index))
+        .doc(getPublicPointsShardDocId(index, tournament))
         .get()
     ))
   );
@@ -278,6 +291,7 @@ module.exports = {
   DEFAULT_PUBLIC_POINTS_SHARD_COUNT,
   PUBLIC_POINTS_CACHE_COLLECTION,
   getPublicPointsShardDocId,
+  getPublicPointsDeltaDocId,
   PUBLIC_POINTS_DELTA_DOC_ID,
   buildPublicPointsShards,
   writePublicPointsCache,

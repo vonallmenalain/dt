@@ -58,6 +58,11 @@ on:
         required: false
         type: boolean
         default: false
+      tournament_key:
+        description: "Turnier-Key (leer = Default aus tournament-config.js). Fuer Vorschau-Backfill z. B. cl2526 (mit force_run=An)."
+        required: false
+        type: string
+        default: ""
 
 concurrency:
   group: auto-points-upload-${{ github.ref }}
@@ -89,6 +94,7 @@ jobs:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.force_run == true && '1' || '0' }}
+          TOURNAMENT_KEY: ${{ github.event_name == 'workflow_dispatch' && inputs.tournament_key || '' }}
         run: |
           echo "[auto-points] Effective workflow config:"
           if [ "$FORCE_RUN" = "1" ]; then
