@@ -285,6 +285,17 @@ const APP_CONFIG = (() => {
     navGradient: "linear-gradient(135deg, #081029 0%, #10265a 45%, #16346f 100%)"
   };
 
+  /* Transfer-Regeln für die CL (Vorschlag/Standardwerte, anpassbar):
+   * 2 Transfer-Aktionen für die GESAMTE Champions League, pro Aktion bis
+   * zu 3 Spieler tauschbar, jederzeit (vorerst ohne Zeitfenster). Die WM
+   * 2026 hat KEIN `transfers` → kein Transfer-Feature (unverändert). */
+  const CL_TRANSFERS = {
+    enabled: true,
+    totalTransfers: 2,
+    maxPlayersPerTransfer: 3,
+    anytime: true
+  };
+
   const TOURNAMENTS = {
     wm2026: {
       key: "wm2026",
@@ -453,6 +464,10 @@ const APP_CONFIG = (() => {
       // CL-Views konsumiert (die WM-Views bleiben bei hartkodiertem 2×).
       captainMultiplier: 1.5,
 
+      // Transfer-Feature (siehe CL_TRANSFERS): 2 Transfers für die ganze
+      // CL, je bis zu 3 Spieler, jederzeit. Konsumiert von transfer-utils.js.
+      transfers: CL_TRANSFERS,
+
       // CL-Theme (dunkelblau + hellblau, siehe CL_THEME). Wird vom
       // Theme-Hook als CSS-Variablen injiziert; theme-cl.css konsumiert
       // sie. Farben jederzeit über CL_THEME anpassbar.
@@ -522,6 +537,9 @@ const APP_CONFIG = (() => {
       },
 
       fallbackFixtures: [],
+
+      // Gleiches Transfer-Feature wie 2026/27 (zum Testen).
+      transfers: CL_TRANSFERS,
 
       // Gleiches CL-Theme wie 2026/27 (dunkelblau) für konsistente Vorschau.
       theme: CL_THEME
