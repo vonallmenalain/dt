@@ -202,41 +202,27 @@ async function writePublicPointsCache(db, tournament, pointsMap, opts = {}) {
     };
   }
 
-  // Shards + Delta groessenbasiert in mehreren Commits schreiben. Bei vielen
-  // Spielern (z. B. CL, 1131) ueberschreitet die Summe aller 16 Shards in
-  // EINEM Batch die 10-MiB-Transaktionsgrenze ("Transaction too big").
-  // Konservativ bei 8 MiB flushen; ein einzelner Shard (~1-2 MiB) bleibt
-  // immer unter dem Limit.
-  const MAX_CACHE_BATCH_BYTES = 8 * 1024 * 1024;
+  // Jeden Shard (und das Delta) in einem EIGENEN Commit schreiben. Ein
+  // gemeinsamer Batch ueber alle 16 Shards reisst bei vielen Spielern (CL,
+  // 1131) die 10-MiB-Transaktionsgrenze; und die reale Firestore-
+  // Transaktionsgroesse (inkl. Feld-/Index-Overhead) liegt spuerbar ueber
+  // der reinen JSON-Groesse, sodass eine byte-basierte Batch-Schaetzung
+  // unzuverlaessig ist. Ein einzelner Shard (~1/16 der Daten) bleibt
+  // dagegen sicher unter dem Limit. Nicht-atomar ist unkritisch: der
+  // pointsVersion-Bump im Meta-Dokument erfolgt erst danach (Commit-Punkt);
+  // bis dahin lesen Clients den alten Stand bzw. die Collection.
   const writes = shards.map(shard => ({
     ref: db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(shard.docId),
-    data: shard.data,
-    bytes: getJsonByteLength(shard.data)
+    data: shard.data
   }));
   if (delta) {
     writes.push({
       ref: db.collection(PUBLIC_POINTS_CACHE_COLLECTION).doc(getPublicPointsDeltaDocId(tournament)),
-      data: delta,
-      bytes: getJsonByteLength(delta)
+      data: delta
     });
   }
-
-  let batch = db.batch();
-  let opsInBatch = 0;
-  let bytesInBatch = 0;
   for (const w of writes) {
-    if (opsInBatch > 0 && bytesInBatch + w.bytes > MAX_CACHE_BATCH_BYTES) {
-      await batch.commit();
-      batch = db.batch();
-      opsInBatch = 0;
-      bytesInBatch = 0;
-    }
-    batch.set(w.ref, w.data);
-    opsInBatch++;
-    bytesInBatch += w.bytes;
-  }
-  if (opsInBatch > 0) {
-    await batch.commit();
+    await w.ref.set(w.data);
   }
 
   return {
