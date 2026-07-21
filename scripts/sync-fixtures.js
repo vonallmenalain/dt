@@ -607,11 +607,19 @@ async function main() {
   const tournamentKey = envKey || APP_CONFIG.activeTournamentKey;
   const tournament = TOURNAMENTS[tournamentKey];
 
-  if (!tournament || !APP_CONFIG.isTournamentAvailable(tournamentKey)) {
+  // Sync akzeptiert regulär verfügbare UND als Vorschau ladbare Turniere
+  // (z. B. das Test-Turnier cl2526). Der Sync schreibt nur in die
+  // turnier-eigenen Collections, daher ist das unbedenklich.
+  const available = APP_CONFIG.isTournamentAvailable(tournamentKey);
+  const previewable = typeof APP_CONFIG.isTournamentPreviewable === 'function'
+    && APP_CONFIG.isTournamentPreviewable(tournamentKey);
+  if (!tournament || !(available || previewable)) {
+    const previewList = (typeof APP_CONFIG.getPreviewableTournamentKeys === 'function'
+      ? APP_CONFIG.getPreviewableTournamentKeys() : []).join(', ') || '(keine)';
     logError(
-      `Ungültiger oder nicht verfügbarer TOURNAMENT_KEY="${tournamentKey}". ` +
-      `Aktuell verfügbar laut tournament-config.js: ` +
-      `${APP_CONFIG.getAvailableTournamentKeys().join(', ') || '(keine)'}. ` +
+      `Ungültiger TOURNAMENT_KEY="${tournamentKey}". ` +
+      `Verfügbar: ${APP_CONFIG.getAvailableTournamentKeys().join(', ') || '(keine)'}; ` +
+      `als Vorschau synchronisierbar: ${previewList}. ` +
       `Env-Variable TOURNAMENT_KEY leer lassen, um den Default zu verwenden.`
     );
     process.exit(1);
