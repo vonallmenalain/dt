@@ -124,6 +124,105 @@ function numericOnly(value) {
   return s;
 }
 
+// Anzeigename: API-Football liefert pro Spieler einen gebräuchlichen
+// Kurznamen (`name`, z. B. "Lamine Yamal", "Vinícius Júnior", "Achraf
+// Hakimi") UND den vollständigen bürgerlichen Namen (firstname+lastname,
+// oft zu lang: "Lamine Yamal Nasraoui Ebana", "Vinícius José Paixão de
+// Oliveira Júnior"). Für die Anzeige wird der kurze `name` bevorzugt;
+// firstname+lastname dient nur als Fallback.
+function playerDisplayName(p) {
+  const common = p && p.name != null ? String(p.name).trim() : '';
+  if (common) return common;
+  return [p && p.firstname, p && p.lastname].filter(Boolean).join(' ').trim();
+}
+
+const FLAG_BASE = 'https://media.api-sports.io/flags';
+
+// Normalisierung für Ländernamen-Vergleiche: Diakritika entfernen, nur
+// Kleinbuchstaben – so matchen "Türkiye"/"Turkiye", "Côte d'Ivoire"/
+// "Cote dIvoire", "Bosnia and Herzegovina"/"Bosnia-and-Herzegovina" etc.
+function normalizeCountryName(name) {
+  return String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+}
+
+// Bekannte Abweichungen zwischen der `nationality` aus /players und den
+// Namen aus /countries – als direkte ISO2-Flag-Codes (Flag =
+// flags/<code>.svg). Nur nötig, wenn der Name NICHT direkt in /countries
+// gefunden wird. Schlüssel sind bereits normalisiert.
+const NATION_FLAG_ALIASES = {
+  turkiye: 'tr', turkey: 'tr',
+  czechia: 'cz', czechrepublic: 'cz',
+  korearepublic: 'kr', southkorea: 'kr', korea: 'kr',
+  northkorea: 'kp', koreadpr: 'kp',
+  cotedivoire: 'ci', ivorycoast: 'ci',
+  usa: 'us', unitedstates: 'us', unitedstatesofamerica: 'us',
+  unitedkingdom: 'gb', uk: 'gb',
+  bosniaandherzegovina: 'ba', bosnia: 'ba',
+  drcongo: 'cd', congodr: 'cd', democraticrepublicofthecongo: 'cd',
+  capeverdeislands: 'cv', capeverde: 'cv',
+  russia: 'ru'
+};
+
+// Ländername (nationality) → Flaggen-URL. Reihenfolge: 1) direkter Treffer
+// in der /countries-Map (autoritative Flag-URL des Anbieters), 2) kuratierter
+// ISO2-Alias, 3) nicht auflösbar → in `unmatched` merken (wird am Ende
+// geloggt, damit fehlende Aliasse für die 26/27-Saison ergänzt werden können).
+function resolveNationFlag(nationality, flagMap, unmatched) {
+  const norm = normalizeCountryName(nationality);
+  if (!norm) return '';
+  if (flagMap && flagMap.has(norm)) return flagMap.get(norm);
+  if (NATION_FLAG_ALIASES[norm]) return `${FLAG_BASE}/${NATION_FLAG_ALIASES[norm]}.svg`;
+  if (unmatched && nationality) unmatched.add(String(nationality));
+  return '';
+}
+
+// Baut den (turnier-agnostischen, club-zentrierten) Spieler-Datensatz aus
+// einem API-Football-Player + der gewählten Wettbewerbs-Statistik. Rein und
+// nebenwirkungsfrei (bis auf das optionale `unmatched`-Set) → unit-testbar.
+function buildRecord(p, stat, flagMap, unmatched) {
+  const team = (stat && stat.team) || {};
+  const position = mapPosition(stat && stat.games && stat.games.position);
+  return {
+    'player.id': p.id,
+    'Spielername': playerDisplayName(p),
+    'Spielerfoto': p.photo || '',
+    'Position': position,
+    // CLUB primär (bei der CL der Verein aus der Wettbewerbs-Statistik).
+    'Club.name': team.name || '',
+    'Club.logo': team.logo || '',
+    // Nation sekundär: Name aus der Nationalität, Flagge aus /countries.
+    'Nationalteam.name': p.nationality || '',
+    'Nationalteam.logo': resolveNationFlag(p.nationality, flagMap, unmatched),
+    'Geburtsdatum': (p.birth && p.birth.date) || '',
+    'Groesse': numericOnly(p.height),
+    'Gewicht': numericOnly(p.weight)
+  };
+}
+
+// Ländername → Flaggen-URL aus dem /countries-Endpoint (autoritative Quelle
+// des Anbieters). Bei Fehlern leere Map (Flaggen bleiben dann leer, statt
+// den ganzen Lauf abzubrechen).
+async function fetchCountryFlagMap(apiKey) {
+  try {
+    const json = await fetchJson(`https://${API_HOST}/countries`, apiKey);
+    const resp = Array.isArray(json.response) ? json.response : [];
+    const map = new Map();
+    for (const c of resp) {
+      if (!c || !c.name) continue;
+      const flag = c.flag || (c.code ? `${FLAG_BASE}/${String(c.code).toLowerCase()}.svg` : '');
+      if (flag) map.set(normalizeCountryName(c.name), flag);
+    }
+    return map;
+  } catch (err) {
+    logWarn(`/countries konnte nicht geladen werden (${err.message}) – Nationenflaggen bleiben leer.`);
+    return new Map();
+  }
+}
+
 // Statistik-Eintrag des Ziel-Wettbewerbs wählen (dort steht der CL-Klub),
 // sonst der erste mit gültigem Team.
 function pickCompetitionStat(statistics, competitionId) {
@@ -176,6 +275,11 @@ async function main() {
   if (allow.size > 0) logInfo(`Ligaphasen-Klubs (aus Standings): ${allow.size}`);
   else logInfo('Kein Standings-Filter aktiv – alle Klubs werden aufgenommen.');
 
+  // Nationenflaggen (autoritative URLs aus /countries) einmalig laden.
+  const flagMap = await fetchCountryFlagMap(apiKey);
+  logInfo(`Nationenflaggen aus /countries: ${flagMap.size} Länder.`);
+  const unmatchedNations = new Set();
+
   // Seite 1 holen, um paging.total zu bestimmen.
   const firstUrl = playersUrl(t.competitionParam, t.competitionId, t.season, 1);
   const first = await fetchJson(firstUrl, apiKey);
@@ -193,23 +297,8 @@ async function main() {
       const team = (stat && stat.team) || {};
       // Nur Klubs der Ligaphase (sofern Filter verfügbar).
       if (allow.size > 0 && team.id != null && !allow.has(team.id)) continue;
-      const position = mapPosition(stat && stat.games && stat.games.position);
 
-      const record = {
-        'player.id': p.id,
-        'Spielername': [p.firstname, p.lastname].filter(Boolean).join(' ').trim() || p.name || '',
-        'Spielerfoto': p.photo || '',
-        'Position': position,
-        // CLUB primär (bei der CL der Verein aus der Wettbewerbs-Statistik).
-        'Club.name': team.name || '',
-        'Club.logo': team.logo || '',
-        // Nation sekundär (Nationalität des Spielers).
-        'Nationalteam.name': p.nationality || '',
-        'Nationalteam.logo': '',
-        'Geburtsdatum': (p.birth && p.birth.date) || '',
-        'Groesse': numericOnly(p.height),
-        'Gewicht': numericOnly(p.weight)
-      };
+      const record = buildRecord(p, stat, flagMap, unmatchedNations);
 
       // Dedupe: bereits vorhandenen Eintrag nur ersetzen, wenn der neue
       // eine erkannte Position hat und der alte nicht.
@@ -237,7 +326,15 @@ async function main() {
   });
 
   const clubs = new Set(players.map((p) => p['Club.name']).filter(Boolean));
+  const withFlag = players.filter((p) => p['Nationalteam.logo']).length;
   logInfo(`Fertig: ${players.length} Spieler aus ${clubs.size} Klubs.`);
+  logInfo(`Nationenflaggen gesetzt: ${withFlag}/${players.length} Spieler.`);
+  if (unmatchedNations.size) {
+    logWarn(
+      `Ohne Flagge (Nationalität nicht aufgelöst, ggf. Alias in ` +
+      `NATION_FLAG_ALIASES ergänzen): ${Array.from(unmatchedNations).sort().join(', ')}`
+    );
+  }
 
   const outPath = path.join(__dirname, '..', t.dataFile);
   const banner =
@@ -255,7 +352,23 @@ async function main() {
   logInfo(`Geschrieben: ${outPath}`);
 }
 
-main().catch((err) => {
-  console.error(`[generate-kader] ❌ ${err && err.stack ? err.stack : err}`);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(`[generate-kader] ❌ ${err && err.stack ? err.stack : err}`);
+    process.exit(1);
+  });
+}
+
+// Pure Helfer für Unit-Tests (scripts/test-generate-kader.js). Der CLI-Lauf
+// oben wird durch die require.main-Guard nicht ausgelöst, wenn diese Datei
+// nur importiert wird.
+module.exports = {
+  buildRecord,
+  playerDisplayName,
+  resolveNationFlag,
+  normalizeCountryName,
+  fetchCountryFlagMap,
+  mapPosition,
+  NATION_FLAG_ALIASES,
+  FLAG_BASE
+};
