@@ -1,0 +1,116 @@
+/* =============================================================================
+ *  theme-cl.css  —  Champions-League-Farbwelt (dunkelblau + hellblau)
+ *
+ *  Wird NUR bei aktivem CL-Turnier geladen (siehe Theme-Hook in
+ *  tournament-config.js) und ist zusätzlich strikt auf CL-Turniere
+ *  gescoped: alle Regeln hängen an `:root[data-tournament^="cl"]` bzw.
+ *  `[data-tournament^="cl"] …`. Die WM 2026 (`data-tournament="wm2026"`)
+ *  wird dadurch NIE getroffen und bleibt grün/gold – unabhängig davon, ob
+ *  diese Datei geladen ist.
+ *
+ *  Die konkreten Farben kommen bevorzugt aus CSS-Variablen (`--cl-*`), die
+ *  der Theme-Hook aus den `theme`-Tokens (CL_THEME) injiziert; die Werte
+ *  hier sind Fallbacks. Farben also am besten zentral über CL_THEME in
+ *  tournament-config.js anpassen.
+ *
+ *  Umfang: Dies ist die Basis-Farbwelt (Rahmen: Navigation, Hintergrund,
+ *  Akzente, Palette-Variablen). Der vollständige club-zentrierte Umbau der
+ *  einzelnen Ansichten kommt mit den CL-eigenen View-Dateien; diese
+ *  konsumieren dieselbe Palette.
+ * ============================================================================= */
+
+:root[data-tournament^="cl"] {
+  --cl-primary: #3d8bff;
+  --cl-accent: #7db4ff;
+  --cl-background: #0a1633;
+  --cl-surface: #132347;
+  --cl-surface-alt: #0f1c3d;
+  --cl-text: #dce8ff;
+  --cl-text-muted: #9db6e8;
+  --cl-nav-gradient: linear-gradient(135deg, #081029 0%, #10265a 45%, #16346f 100%);
+
+  /* Geteilte styles.css-Variablen auf die CL-Palette umlenken (nur CL). */
+  --primary: var(--cl-primary);
+  --dark: var(--cl-surface);
+  --light: var(--cl-background);
+}
+
+/* ── Seite ──────────────────────────────────────────────────────────── */
+[data-tournament^="cl"] body {
+  background-color: var(--cl-background, #0a1633);
+  color: var(--cl-text, #dce8ff);
+}
+
+[data-tournament^="cl"] a {
+  color: var(--cl-accent, #7db4ff);
+}
+
+/* ── Obere Navigation ───────────────────────────────────────────────── */
+[data-tournament^="cl"] .navbar {
+  background: var(--cl-nav-gradient, linear-gradient(135deg, #081029 0%, #10265a 45%, #16346f 100%));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+[data-tournament^="cl"] .navbar-brand .brand-gold {
+  color: var(--cl-accent, #7db4ff);
+}
+
+[data-tournament^="cl"] .navbar-brand .brand-green {
+  color: var(--cl-primary, #3d8bff);
+}
+
+[data-tournament^="cl"] .nav-links a {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-tournament^="cl"] .nav-links a:hover,
+[data-tournament^="cl"] .nav-links a.active {
+  background: var(--cl-primary, #3d8bff);
+}
+
+/* ── Untere Mobile-Navigation ───────────────────────────────────────── */
+[data-tournament^="cl"] .bottom-nav {
+  background: var(--cl-surface, #132347);
+  border-top-color: rgba(125, 180, 255, 0.14);
+}
+
+[data-tournament^="cl"] .bottom-nav a {
+  color: var(--cl-text-muted, #9db6e8);
+}
+
+[data-tournament^="cl"] .bottom-nav a.active {
+  color: var(--cl-accent, #7db4ff);
+}
+
+[data-tournament^="cl"] .bottom-nav a.active .icon {
+  filter: none;
+  opacity: 1;
+}
+
+[data-tournament^="cl"] .bottom-nav a:focus-visible {
+  outline-color: var(--cl-accent, #7db4ff);
+}
+
+/* ── Dark-Page-Varianten (index.html / team-builder.html) ───────────── */
+[data-tournament^="cl"] body.dark-page {
+  background: var(--cl-background, #0a1633);
+  color: var(--cl-text, #dce8ff);
+}
+
+[data-tournament^="cl"] body.dark-page > nav.navbar {
+  background: rgba(8, 16, 41, 0.95);
+  border-bottom: 1px solid rgba(125, 180, 255, 0.14);
+}
+
+[data-tournament^="cl"] body.dark-page .bottom-nav {
+  background: var(--cl-surface, #132347);
+  border-top-color: rgba(125, 180, 255, 0.14);
+}
+
+[data-tournament^="cl"] body.dark-page .bottom-nav a {
+  color: var(--cl-text-muted, #9db6e8);
+}
+
+[data-tournament^="cl"] body.dark-page .bottom-nav a.active {
+  color: var(--cl-accent, #7db4ff);
+}

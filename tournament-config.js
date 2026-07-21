@@ -270,6 +270,21 @@ const APP_CONFIG = (() => {
    *  Turniere bleiben deaktiviert, bis ihre Kader-Datei vorhanden
    *  ist.
    * ───────────────────────────────────────────────────────── */
+  /* Gemeinsames CL-Theme (dunkelblau + hellblau) – Vorschlag, jederzeit
+   * anpassbar. Wird vom Theme-Hook (Dateiende) als CSS-Variablen injiziert
+   * und von theme-cl.css konsumiert. Gilt nur für CL-Turniere; die WM 2026
+   * hat KEIN `theme` und bleibt daher unverändert (grün/gold). */
+  const CL_THEME = {
+    primary: "#3d8bff",     // kräftiges Blau: Buttons, aktive Elemente
+    accent: "#7db4ff",      // Hellblau: Links, Überschriften, Akzente
+    background: "#0a1633",  // Dunkelblau: Seitenhintergrund
+    surface: "#132347",     // Karten-/Navbar-Fläche
+    surfaceAlt: "#0f1c3d",  // leicht abgesetzte Fläche
+    text: "#dce8ff",        // helle, bläuliche Grundschrift
+    textMuted: "#9db6e8",   // gedämpfte Sekundärschrift
+    navGradient: "linear-gradient(135deg, #081029 0%, #10265a 45%, #16346f 100%)"
+  };
+
   const TOURNAMENTS = {
     wm2026: {
       key: "wm2026",
@@ -438,17 +453,10 @@ const APP_CONFIG = (() => {
       // CL-Views konsumiert (die WM-Views bleiben bei hartkodiertem 2×).
       captainMultiplier: 1.5,
 
-      // Theme-Tokens (PLATZHALTER) – finales CL-Farb-/Layoutkonzept in M4.
-      // Werden über `:root[data-tournament="cl2627"]` bzw. die CL-Views
-      // konsumiert; solange die CL nicht gerendert wird, ohne Wirkung.
-      theme: {
-        // Provisorisch – bitte in M4 durch das echte CL-Design ersetzen.
-        primary: "#0a1a3f",
-        accent: "#1b6ec2",
-        background: "#0b1020",
-        surface: "#141b2e",
-        text: "#e8ecf4"
-      }
+      // CL-Theme (dunkelblau + hellblau, siehe CL_THEME). Wird vom
+      // Theme-Hook als CSS-Variablen injiziert; theme-cl.css konsumiert
+      // sie. Farben jederzeit über CL_THEME anpassbar.
+      theme: CL_THEME
     },
 
     /* ═════════════════════════════════════════════════════════════
@@ -513,7 +521,10 @@ const APP_CONFIG = (() => {
         fixturesCollection: "Spiele CL 2025-26 Test"
       },
 
-      fallbackFixtures: []
+      fallbackFixtures: [],
+
+      // Gleiches CL-Theme wie 2026/27 (dunkelblau) für konsistente Vorschau.
+      theme: CL_THEME
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -2493,17 +2504,59 @@ const APP_CONFIG = (() => {
 if (typeof window !== "undefined") {
   window.APP_CONFIG = APP_CONFIG;
 
-  /* Turnier-/Theme-Hook: aktives Turnier als Attribut am <html>-Element
-   * hinterlegen, damit turnierspezifisches CSS darauf targeten kann
-   * (z. B. `:root[data-tournament="cl2627"] { --… }` für die CL-Farbwelt).
+  /* Turnier-/Theme-Hook.
    *
-   * Für die WM 2026 rein additiv/inert: kein bestehendes CSS liest dieses
-   * Attribut, das Aussehen bleibt unverändert. CL-spezifische Seiten
-   * können das Attribut später (M4) zusätzlich früh im <head> setzen, um
-   * ein Aufblitzen des Default-Themes zu vermeiden. */
+   * 1) Aktives Turnier als `data-tournament` am <html>-Element hinterlegen,
+   *    damit turnierspezifisches CSS darauf targeten kann.
+   * 2) Falls das aktive Turnier ein `theme` hat (nur CL), dessen Tokens als
+   *    CSS-Variablen (`--cl-*`) injizieren und das theme-cl.css laden.
+   *
+   * Für die WM 2026 rein additiv/inert: sie hat KEIN `theme`, also wird
+   * weder CSS injiziert noch theme-cl.css geladen – das Aussehen bleibt
+   * unverändert. CL-eigene Seiten (spätere View-Dateien) können denselben
+   * Hook früh im <head> nachbilden, um ein Aufblitzen zu vermeiden. */
   try {
     if (typeof document !== "undefined" && document.documentElement) {
-      document.documentElement.setAttribute("data-tournament", APP_CONFIG.activeTournamentKey);
+      var __docEl = document.documentElement;
+      var __key = APP_CONFIG.activeTournamentKey;
+      __docEl.setAttribute("data-tournament", __key);
+
+      var __theme = APP_CONFIG.activeTournament && APP_CONFIG.activeTournament.theme;
+      if (__theme && typeof __theme === "object") {
+        var __head = document.head || __docEl;
+
+        // (1) Theme-Tokens als CSS-Variablen auf dem aktiven Turnier-Scope.
+        if (!document.getElementById("cl-theme-vars")) {
+          var __map = {
+            primary: "--cl-primary",
+            accent: "--cl-accent",
+            background: "--cl-background",
+            surface: "--cl-surface",
+            surfaceAlt: "--cl-surface-alt",
+            text: "--cl-text",
+            textMuted: "--cl-text-muted",
+            navGradient: "--cl-nav-gradient"
+          };
+          var __css = ':root[data-tournament="' + __key + '"]{';
+          for (var __k in __map) {
+            if (__theme[__k]) __css += __map[__k] + ":" + __theme[__k] + ";";
+          }
+          __css += "}";
+          var __style = document.createElement("style");
+          __style.id = "cl-theme-vars";
+          __style.textContent = __css;
+          __head.appendChild(__style);
+        }
+
+        // (2) CL-Stylesheet (scoped auf [data-tournament^="cl"]) laden.
+        if (!document.getElementById("cl-theme-css")) {
+          var __link = document.createElement("link");
+          __link.id = "cl-theme-css";
+          __link.rel = "stylesheet";
+          __link.href = "theme-cl.css";
+          __head.appendChild(__link);
+        }
+      }
     }
   } catch (_) { /* DOM nicht verfügbar – ignorieren */ }
 }
