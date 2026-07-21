@@ -867,6 +867,15 @@ const APP_CONFIG = (() => {
     return "";
   }
 
+  function getFixtureSideLogo(fixture, side) {
+    if (!fixture || typeof fixture !== "object") return "";
+    const camel = side === "home" ? fixture.homeTeam : fixture.awayTeam;
+    if (camel && typeof camel === "object" && camel.logo) return String(camel.logo);
+    const legacy = fixture.teams && fixture.teams[side];
+    if (legacy && legacy.logo) return String(legacy.logo);
+    return "";
+  }
+
   function getFixtureSideWinner(fixture, side) {
     if (!fixture || typeof fixture !== "object") return null;
     const camel = side === "home" ? fixture.homeTeam : fixture.awayTeam;
@@ -1306,6 +1315,8 @@ const APP_CONFIG = (() => {
       : [];
 
     const rows = new Map();
+    const names = new Map();  // key → Anzeigename (erste Fundstelle)
+    const logos = new Map();  // key → Logo-URL (erste Fundstelle)
     const participantKeys = new Set();
     const ties = new Map();
     let knockoutPhaseReached = false;
@@ -1313,10 +1324,20 @@ const APP_CONFIG = (() => {
     list.forEach((fixture) => {
       if (!fixture || typeof fixture !== "object") return;
 
-      const homeKey = normalizeTournamentTeamName(getFixtureSideName(fixture, "home"));
-      const awayKey = normalizeTournamentTeamName(getFixtureSideName(fixture, "away"));
-      if (homeKey) participantKeys.add(homeKey);
-      if (awayKey) participantKeys.add(awayKey);
+      const homeName = getFixtureSideName(fixture, "home");
+      const awayName = getFixtureSideName(fixture, "away");
+      const homeKey = normalizeTournamentTeamName(homeName);
+      const awayKey = normalizeTournamentTeamName(awayName);
+      if (homeKey) {
+        participantKeys.add(homeKey);
+        if (!names.has(homeKey)) names.set(homeKey, homeName);
+        if (!logos.has(homeKey)) { const l = getFixtureSideLogo(fixture, "home"); if (l) logos.set(homeKey, l); }
+      }
+      if (awayKey) {
+        participantKeys.add(awayKey);
+        if (!names.has(awayKey)) names.set(awayKey, awayName);
+        if (!logos.has(awayKey)) { const l = getFixtureSideLogo(fixture, "away"); if (l) logos.set(awayKey, l); }
+      }
 
       const roundText = getFixtureRoundText(fixture);
       const isFinished = FINISHED_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture));
@@ -1363,7 +1384,11 @@ const APP_CONFIG = (() => {
 
     // Tabelle ranken (immer – nützlich für die spätere Analyse-Ansicht).
     const ranked = leagueParticipants.slice().sort(compareLeagueRows);
-    ranked.forEach((row, idx) => { row.rank = idx + 1; });
+    ranked.forEach((row, idx) => {
+      row.rank = idx + 1;
+      row.name = names.get(row.key) || row.key;
+      row.logo = logos.get(row.key) || "";
+    });
 
     if (leaguePhaseComplete) {
       ranked.forEach((row) => {

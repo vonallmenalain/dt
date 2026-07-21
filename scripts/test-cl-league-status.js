@@ -84,6 +84,7 @@ const LP = 'League Phase - ';
   );
   assert.equal(s.standings[0].rank, 1);
   assert.equal(s.standings[0].pts, 6);
+  assert.equal(s.standings[0].name, 'Real Madrid', 'Tabellenzeile trägt den Anzeigenamen.');
 
   // Rang 1 (direkt) + Rang 2 (Playoff) bleiben drin; 3 und 4 raus.
   assert.equal(s.isNationAlive('Real Madrid'), true, 'Rang 1 bleibt drin.');

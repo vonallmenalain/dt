@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>DreamTeam – Ligatabelle</title>
+    <meta name="theme-color" content="#0a1633">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        /* Seiten-Layout (dunkelblau; nutzt die CL-Palette-Variablen aus
+           theme-cl.css, mit Fallbacks – die Seite ist eine reine CL-Ansicht). */
+        body { background: var(--cl-background, #0a1633); color: var(--cl-text, #dce8ff); }
+        .lt-page { max-width: 860px; margin: 0 auto; padding: 16px 12px 96px; }
+        .lt-head { margin: 8px 4px 16px; }
+        .lt-title { font-size: 1.5em; font-weight: 900; margin: 0; letter-spacing: -0.5px; }
+        .lt-title .accent { color: var(--cl-accent, #7db4ff); }
+        .lt-sub { color: var(--cl-text-muted, #9db6e8); font-size: 0.9em; margin: 4px 0 0; }
+
+        .lt-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 12px 4px 14px; font-size: 0.78em; color: var(--cl-text-muted, #9db6e8); }
+        .lt-legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .lt-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+        .dot-r16 { background: #35c27a; }
+        .dot-po { background: #e0a03d; }
+        .dot-out { background: #d15a6a; }
+
+        .lt-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(125,180,255,0.14); }
+        table.lt { width: 100%; border-collapse: collapse; background: var(--cl-surface, #132347); font-size: 0.9em; min-width: 560px; }
+        table.lt th, table.lt td { padding: 9px 8px; text-align: center; white-space: nowrap; }
+        table.lt th { position: sticky; top: 0; background: var(--cl-surface-alt, #0f1c3d); color: var(--cl-text-muted, #9db6e8);
+            font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 800; }
+        table.lt td { border-top: 1px solid rgba(255,255,255,0.05); }
+        table.lt tr:hover td { background: rgba(125,180,255,0.06); }
+
+        .lt-rank { font-weight: 800; color: var(--cl-text-muted, #9db6e8); width: 34px; }
+        .lt-club { text-align: left; }
+        .lt-club-inner { display: flex; align-items: center; gap: 9px; }
+        .lt-club-inner img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+        .lt-club-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+        .lt-pts { font-weight: 900; color: var(--cl-accent, #7db4ff); }
+        .lt-zone { width: 4px; padding: 0 !important; }
+        .zone-r16 { background: #35c27a; }
+        .zone-po { background: #e0a03d; }
+        .zone-out { background: #d15a6a; }
+
+        .lt-empty { text-align: center; padding: 48px 16px; color: var(--cl-text-muted, #9db6e8); }
+        .lt-note { margin: 14px 4px 0; font-size: 0.78em; color: var(--cl-text-muted, #9db6e8); }
+    </style>
+</head>
+<body>
+
+<div class="lt-page">
+    <header class="lt-head">
+        <h1 class="lt-title"><span class="accent">Liga</span>tabelle</h1>
+        <p class="lt-sub" id="lt-sub">Champions-League-Ligaphase</p>
+    </header>
+
+    <div class="lt-legend">
+        <span><i class="lt-dot dot-r16"></i> Achtelfinale (direkt)</span>
+        <span><i class="lt-dot dot-po"></i> Playoff-Runde</span>
+        <span><i class="lt-dot dot-out"></i> ausgeschieden</span>
+    </div>
+
+    <div id="lt-body">
+        <div class="lt-empty">Tabelle wird geladen …</div>
+    </div>
+
+    <p class="lt-note" id="lt-note"></p>
+</div>
+
+<script src="tournament-config.js"></script>
+<script src="nav.js"></script>
+<link rel="stylesheet" href="auth-modal.css">
+<script src="admin.js"></script>
+<script src="auth.js"></script>
+<script src="auth-modal.js"></script>
+
+<script>
+(function () {
+    'use strict';
+    const APP = window.APP_CONFIG;
+    const bodyEl = document.getElementById('lt-body');
+    const subEl = document.getElementById('lt-sub');
+    const noteEl = document.getElementById('lt-note');
+
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    function showMessage(msg) {
+        bodyEl.innerHTML = '<div class="lt-empty">' + esc(msg) + '</div>';
+    }
+
+    // Nur für Ligaphasen-Turniere (CL). Auf der WM gibt es keine Ligatabelle.
+    const active = APP && APP.activeTournament;
+    if (!active || active.structure !== 'league') {
+        subEl.textContent = '';
+        showMessage('Diese Ansicht gibt es nur für die Champions League. '
+            + 'Als Admin über den Turnier-Switcher bzw. ?preview=cl2526 öffnen.');
+        return;
+    }
+    subEl.textContent = (active.longLabel || active.name || 'Ligaphase');
+
+    const lp = active.leaguePhase || {};
+    const directThrough = Number(lp.directQualifyThrough) || 8;
+    const playoffThrough = Number(lp.playoffThrough) || 24;
+
+    function zoneClass(rank) {
+        if (rank <= directThrough) return 'zone-r16';
+        if (rank <= playoffThrough) return 'zone-po';
+        return 'zone-out';
+    }
+
+    function render(standings) {
+        if (!standings || !standings.length) {
+            showMessage('Noch keine Spieldaten vorhanden – sobald der Spielplan gesynct ist, erscheint hier die Tabelle.');
+            return;
+        }
+        var rows = standings.map(function (r) {
+            var logo = r.logo
+                ? '<img src="' + esc(r.logo) + '" alt="" loading="lazy">'
+                : '';
+            return '<tr>'
+                + '<td class="lt-zone ' + zoneClass(r.rank) + '"></td>'
+                + '<td class="lt-rank">' + r.rank + '</td>'
+                + '<td class="lt-club"><div class="lt-club-inner">' + logo
+                + '<span class="lt-club-name">' + esc(r.name || r.key) + '</span></div></td>'
+                + '<td>' + r.played + '</td>'
+                + '<td>' + r.won + '-' + r.drawn + '-' + r.lost + '</td>'
+                + '<td>' + r.gf + ':' + r.ga + '</td>'
+                + '<td>' + (r.gd > 0 ? '+' : '') + r.gd + '</td>'
+                + '<td class="lt-pts">' + r.pts + '</td>'
+                + '</tr>';
+        }).join('');
+
+        bodyEl.innerHTML =
+            '<div class="lt-table-wrap"><table class="lt">'
+            + '<thead><tr>'
+            + '<th class="lt-zone"></th><th class="lt-rank">#</th><th class="lt-club" style="text-align:left">Klub</th>'
+            + '<th>Sp</th><th>S-U-N</th><th>Tore</th><th>Diff</th><th>Pkt</th>'
+            + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+
+    async function load() {
+        try {
+            const db = APP.getDb();
+            const col = APP.firestore.fixturesCollection();
+            const snap = await db.collection(col).get();
+            const fixtures = snap.docs.map(function (d) { return d.data(); });
+            const status = APP.getTournamentStatus(fixtures);
+            render(status && status.standings);
+            var finished = fixtures.filter(function (f) {
+                var s = f && f.status && f.status.short;
+                return s === 'FT' || s === 'AET' || s === 'PEN';
+            }).length;
+            noteEl.textContent = fixtures.length
+                ? (fixtures.length + ' Spiele geladen · ' + finished + ' beendet'
+                    + (status && status.leaguePhaseComplete ? ' · Ligaphase abgeschlossen' : ''))
+                : '';
+        } catch (err) {
+            showMessage('Tabelle konnte nicht geladen werden: ' + (err && err.message ? err.message : err));
+        }
+    }
+
+    load();
+})();
+</script>
+
+</body>
+</html>
