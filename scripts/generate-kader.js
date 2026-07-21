@@ -135,6 +135,31 @@ function pickCompetitionStat(statistics, competitionId) {
   return statistics.find((s) => s && s.team && s.team.id) || statistics[0] || null;
 }
 
+// Team-IDs der Ligaphase aus den Standings holen. Damit filtern wir die
+// vielen Qualifikations-Klubs heraus, die `/players?league=…` ebenfalls
+// liefert – wir wollen nur die (bei der CL) 36 Ligaphasen-Klubs.
+async function fetchLeaguePhaseTeamIds(competitionId, season, apiKey) {
+  try {
+    const url = `https://${API_HOST}/standings?league=${competitionId}&season=${season}`;
+    const json = await fetchJson(url, apiKey);
+    const ids = new Set();
+    const resp = Array.isArray(json.response) ? json.response : [];
+    for (const leagueObj of resp) {
+      const league = leagueObj && leagueObj.league;
+      const groups = (league && league.standings) || [];
+      for (const group of groups) {
+        for (const row of (group || [])) {
+          if (row && row.team && row.team.id != null) ids.add(row.team.id);
+        }
+      }
+    }
+    return ids;
+  } catch (err) {
+    logWarn(`Standings konnten nicht geladen werden (${err.message}) – kein Klub-Filter.`);
+    return new Set();
+  }
+}
+
 const POSITION_ORDER = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELDER: 2, ATTACKER: 3, '': 4 };
 
 async function main() {
@@ -145,6 +170,11 @@ async function main() {
 
   const t = resolveTournament(key);
   logInfo(`Turnier "${t.key}": ${t.competitionParam}=${t.competitionId}, Saison ${t.season} → ${t.dataFile}`);
+
+  // Ligaphasen-Klubs bestimmen (Filter gegen Qualifikations-Klubs).
+  const allow = await fetchLeaguePhaseTeamIds(t.competitionId, t.season, apiKey);
+  if (allow.size > 0) logInfo(`Ligaphasen-Klubs (aus Standings): ${allow.size}`);
+  else logInfo('Kein Standings-Filter aktiv – alle Klubs werden aufgenommen.');
 
   // Seite 1 holen, um paging.total zu bestimmen.
   const firstUrl = playersUrl(t.competitionParam, t.competitionId, t.season, 1);
@@ -161,11 +191,13 @@ async function main() {
       if (!p || p.id == null) continue;
       const stat = pickCompetitionStat(entry.statistics, t.competitionId);
       const team = (stat && stat.team) || {};
+      // Nur Klubs der Ligaphase (sofern Filter verfügbar).
+      if (allow.size > 0 && team.id != null && !allow.has(team.id)) continue;
       const position = mapPosition(stat && stat.games && stat.games.position);
 
       const record = {
         'player.id': p.id,
-        'Spielername': p.name || [p.firstname, p.lastname].filter(Boolean).join(' ') || '',
+        'Spielername': [p.firstname, p.lastname].filter(Boolean).join(' ').trim() || p.name || '',
         'Spielerfoto': p.photo || '',
         'Position': position,
         // CLUB primär (bei der CL der Verein aus der Wettbewerbs-Statistik).
