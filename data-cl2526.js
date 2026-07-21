@@ -9,7 +9,7 @@
 const playersData = [
   {
     "player.id": 394700,
-    "Spielername": "J. Heerkens",
+    "Spielername": "Joeri Jesse Heerkens",
     "Spielerfoto": "https://media.api-sports.io/football/players/394700.png",
     "Position": "GOALKEEPER",
     "Club.name": "Ajax",
@@ -22,7 +22,7 @@ const playersData = [
   },
   {
     "player.id": 392258,
-    "Spielername": "P. Reverson",
+    "Spielername": "Paul Reverson",
     "Spielerfoto": "https://media.api-sports.io/football/players/392258.png",
     "Position": "GOALKEEPER",
     "Club.name": "Ajax",
@@ -35,7 +35,7 @@ const playersData = [
   },
   {
     "player.id": 37113,
-    "Spielername": "R. Pasveer",
+    "Spielername": "Remko Jurian Pasveer",
     "Spielerfoto": "https://media.api-sports.io/football/players/37113.png",
     "Position": "GOALKEEPER",
     "Club.name": "Ajax",
@@ -48,7 +48,7 @@ const playersData = [
   },
   {
     "player.id": 162687,
-    "Spielername": "V. Jaroš",
+    "Spielername": "Vítězslav Jaroš",
     "Spielerfoto": "https://media.api-sports.io/football/players/162687.png",
     "Position": "GOALKEEPER",
     "Club.name": "Ajax",
@@ -61,7 +61,7 @@ const playersData = [
   },
   {
     "player.id": 453706,
-    "Spielername": "A. Bouwman",
+    "Spielername": "Aaron Bouwman",
     "Spielerfoto": "https://media.api-sports.io/football/players/453706.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -74,7 +74,7 @@ const playersData = [
   },
   {
     "player.id": 313941,
-    "Spielername": "A. Gaaei",
+    "Spielername": "Anton Gaaei",
     "Spielerfoto": "https://media.api-sports.io/football/players/313941.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -100,7 +100,7 @@ const playersData = [
   },
   {
     "player.id": 443829,
-    "Spielername": "J. Mokio",
+    "Spielername": "Jorthy Mokio",
     "Spielerfoto": "https://media.api-sports.io/football/players/443829.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -113,7 +113,7 @@ const playersData = [
   },
   {
     "player.id": 14701,
-    "Spielername": "J. Šutalo",
+    "Spielername": "Josip Šutalo",
     "Spielerfoto": "https://media.api-sports.io/football/players/14701.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -126,7 +126,7 @@ const playersData = [
   },
   {
     "player.id": 38114,
-    "Spielername": "K. Itakura",
+    "Spielername": "Ko Itakura",
     "Spielerfoto": "https://media.api-sports.io/football/players/38114.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -152,7 +152,7 @@ const playersData = [
   },
   {
     "player.id": 453711,
-    "Spielername": "M. van der Lans",
+    "Spielername": "Mylo van",
     "Spielerfoto": "https://media.api-sports.io/football/players/453711.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -165,7 +165,7 @@ const playersData = [
   },
   {
     "player.id": 36893,
-    "Spielername": "O. Wijndal",
+    "Spielername": "Owen Wijndal",
     "Spielerfoto": "https://media.api-sports.io/football/players/36893.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -178,7 +178,7 @@ const playersData = [
   },
   {
     "player.id": 294684,
-    "Spielername": "Y. Baas",
+    "Spielername": "Youri Baas",
     "Spielerfoto": "https://media.api-sports.io/football/players/294684.png",
     "Position": "DEFENDER",
     "Club.name": "Ajax",
@@ -204,7 +204,7 @@ const playersData = [
   },
   {
     "player.id": 37652,
-    "Spielername": "B. van den Boomen",
+    "Spielername": "Branco van",
     "Spielerfoto": "https://media.api-sports.io/football/players/37652.png",
     "Position": "MIDFIELDER",
     "Club.name": "Ajax",
@@ -217,7 +217,7 @@ const playersData = [
   },
   {
     "player.id": 25321,
-    "Spielername": "D. Klaassen",
+    "Spielername": "Davy Klaassen",
     "Spielerfoto": "https://media.api-sports.io/football/players/25321.png",
     "Position": "MIDFIELDER",
     "Club.name": "Ajax",
@@ -230,7 +230,7 @@ const playersData = [
   },
   {
     "player.id": 287109,
-    "Spielername": "J. McConnell",
+    "Spielername": "James McConnell",
     "Spielerfoto": "https://media.api-sports.io/football/players/287109.png",
     "Position": "MIDFIELDER",
     "Club.name": "Ajax",
@@ -242,21 +242,8 @@ const playersData = [
     "Gewicht": "65"
   },
   {
-    "player.id": 36895,
-    "Spielername": "K. Fitz-Jim",
-    "Spielerfoto": "https://media.api-sports.io/football/players/36895.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Ajax",
-    "Club.logo": "https://media.api-sports.io/football/teams/194.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "2003-07-05",
-    "Groesse": "174",
-    "Gewicht": "70"
-  },
-  {
     "player.id": 38749,
-    "Spielername": "K. Taylor",
+    "Spielername": "Kenneth Taylor",
     "Spielerfoto": "https://media.api-sports.io/football/players/38749.png",
     "Position": "MIDFIELDER",
     "Club.name": "Ajax",
@@ -266,6 +253,19 @@ const playersData = [
     "Geburtsdatum": "2002-05-16",
     "Groesse": "182",
     "Gewicht": "75"
+  },
+  {
+    "player.id": 36895,
+    "Spielername": "Kian Fitz-Jim",
+    "Spielerfoto": "https://media.api-sports.io/football/players/36895.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Ajax",
+    "Club.logo": "https://media.api-sports.io/football/teams/194.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "2003-07-05",
+    "Groesse": "174",
+    "Gewicht": "70"
   },
   {
     "player.id": 469321,
@@ -282,7 +282,7 @@ const playersData = [
   },
   {
     "player.id": 161883,
-    "Spielername": "Y. Regeer",
+    "Spielername": "Youri Pieter Regeer",
     "Spielerfoto": "https://media.api-sports.io/football/players/161883.png",
     "Position": "MIDFIELDER",
     "Club.name": "Ajax",
@@ -295,7 +295,7 @@ const playersData = [
   },
   {
     "player.id": 474378,
-    "Spielername": "Don-Angelo Christoffel Annum-Assamoah Konadu",
+    "Spielername": "Don-Angelo Christoffel",
     "Spielerfoto": "https://media.api-sports.io/football/players/474378.png",
     "Position": "ATTACKER",
     "Club.name": "Ajax",
@@ -308,7 +308,7 @@ const playersData = [
   },
   {
     "player.id": 550,
-    "Spielername": "K. Dolberg",
+    "Spielername": "Kasper Dolberg",
     "Spielerfoto": "https://media.api-sports.io/football/players/550.png",
     "Position": "ATTACKER",
     "Club.name": "Ajax",
@@ -321,7 +321,7 @@ const playersData = [
   },
   {
     "player.id": 340153,
-    "Spielername": "M. Godts",
+    "Spielername": "Mika Marcel Godts",
     "Spielerfoto": "https://media.api-sports.io/football/players/340153.png",
     "Position": "ATTACKER",
     "Club.name": "Ajax",
@@ -334,7 +334,7 @@ const playersData = [
   },
   {
     "player.id": 138753,
-    "Spielername": "O. Edvardsen",
+    "Spielername": "Oliver Valaker Edvardsen",
     "Spielerfoto": "https://media.api-sports.io/football/players/138753.png",
     "Position": "ATTACKER",
     "Club.name": "Ajax",
@@ -386,7 +386,7 @@ const playersData = [
   },
   {
     "player.id": 37160,
-    "Spielername": "S. Berghuis",
+    "Spielername": "Steven Berghuis",
     "Spielerfoto": "https://media.api-sports.io/football/players/37160.png",
     "Position": "ATTACKER",
     "Club.name": "Ajax",
@@ -399,7 +399,7 @@ const playersData = [
   },
   {
     "player.id": 25416,
-    "Spielername": "W. Weghorst",
+    "Spielername": "Wout Weghorst",
     "Spielerfoto": "https://media.api-sports.io/football/players/25416.png",
     "Position": "ATTACKER",
     "Club.name": "Ajax",
@@ -438,7 +438,7 @@ const playersData = [
   },
   {
     "player.id": 416697,
-    "Spielername": "J. Porter",
+    "Spielername": "Jack Porter",
     "Spielerfoto": "https://media.api-sports.io/football/players/416697.png",
     "Position": "GOALKEEPER",
     "Club.name": "Arsenal",
@@ -448,19 +448,6 @@ const playersData = [
     "Geburtsdatum": "2008-07-15",
     "Groesse": "187",
     "Gewicht": "75"
-  },
-  {
-    "player.id": 403221,
-    "Spielername": "K. Ranson",
-    "Spielerfoto": "https://media.api-sports.io/football/players/403221.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Arsenal",
-    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2007-09-13",
-    "Groesse": "",
-    "Gewicht": ""
   },
   {
     "player.id": 2273,
@@ -476,8 +463,21 @@ const playersData = [
     "Gewicht": "84"
   },
   {
+    "player.id": 403221,
+    "Spielername": "Khari Ranson",
+    "Spielerfoto": "https://media.api-sports.io/football/players/403221.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Arsenal",
+    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2007-09-13",
+    "Groesse": "",
+    "Gewicht": ""
+  },
+  {
     "player.id": 342243,
-    "Spielername": "T. Setford",
+    "Spielername": "Tommy Setford",
     "Spielerfoto": "https://media.api-sports.io/football/players/342243.png",
     "Position": "GOALKEEPER",
     "Club.name": "Arsenal",
@@ -490,7 +490,7 @@ const playersData = [
   },
   {
     "player.id": 19959,
-    "Spielername": "B. White",
+    "Spielername": "Benjamin William White",
     "Spielerfoto": "https://media.api-sports.io/football/players/19959.png",
     "Position": "DEFENDER",
     "Club.name": "Arsenal",
@@ -528,19 +528,6 @@ const playersData = [
     "Gewicht": "78"
   },
   {
-    "player.id": 38746,
-    "Spielername": "J. Timber",
-    "Spielerfoto": "https://media.api-sports.io/football/players/38746.png",
-    "Position": "DEFENDER",
-    "Club.name": "Arsenal",
-    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "2001-06-17",
-    "Groesse": "179",
-    "Gewicht": "79"
-  },
-  {
     "player.id": 380696,
     "Spielername": "Joshua Nichols",
     "Spielerfoto": "https://media.api-sports.io/football/players/380696.png",
@@ -554,21 +541,21 @@ const playersData = [
     "Gewicht": "56"
   },
   {
-    "player.id": 313245,
-    "Spielername": "M. Lewis-Skelly",
-    "Spielerfoto": "https://media.api-sports.io/football/players/313245.png",
+    "player.id": 38746,
+    "Spielername": "Jurriën Timber",
+    "Spielerfoto": "https://media.api-sports.io/football/players/38746.png",
     "Position": "DEFENDER",
     "Club.name": "Arsenal",
     "Club.logo": "https://media.api-sports.io/football/teams/42.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2006-09-26",
-    "Groesse": "178",
-    "Gewicht": "72"
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "2001-06-17",
+    "Groesse": "179",
+    "Gewicht": "79"
   },
   {
     "player.id": 482903,
-    "Spielername": "M. Salmon",
+    "Spielername": "Marli Ellis Salmon",
     "Spielerfoto": "https://media.api-sports.io/football/players/482903.png",
     "Position": "DEFENDER",
     "Club.name": "Arsenal",
@@ -580,8 +567,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 313245,
+    "Spielername": "Myles Anthony Lewis-Skelly",
+    "Spielerfoto": "https://media.api-sports.io/football/players/313245.png",
+    "Position": "DEFENDER",
+    "Club.name": "Arsenal",
+    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2006-09-26",
+    "Groesse": "178",
+    "Gewicht": "72"
+  },
+  {
     "player.id": 127817,
-    "Spielername": "P. Hincapié",
+    "Spielername": "Piero Martín Hincapié",
     "Spielerfoto": "https://media.api-sports.io/football/players/127817.png",
     "Position": "DEFENDER",
     "Club.name": "Arsenal",
@@ -594,7 +594,7 @@ const playersData = [
   },
   {
     "player.id": 157052,
-    "Spielername": "R. Calafiori",
+    "Spielername": "Riccardo Calafiori",
     "Spielerfoto": "https://media.api-sports.io/football/players/157052.png",
     "Position": "DEFENDER",
     "Club.name": "Arsenal",
@@ -607,7 +607,7 @@ const playersData = [
   },
   {
     "player.id": 22090,
-    "Spielername": "W. Saliba",
+    "Spielername": "William Saliba",
     "Spielerfoto": "https://media.api-sports.io/football/players/22090.png",
     "Position": "DEFENDER",
     "Club.name": "Arsenal",
@@ -620,7 +620,7 @@ const playersData = [
   },
   {
     "player.id": 30407,
-    "Spielername": "C. Nørgaard",
+    "Spielername": "Christian Nørgaard",
     "Spielerfoto": "https://media.api-sports.io/football/players/30407.png",
     "Position": "MIDFIELDER",
     "Club.name": "Arsenal",
@@ -633,7 +633,7 @@ const playersData = [
   },
   {
     "player.id": 2937,
-    "Spielername": "D. Rice",
+    "Spielername": "Declan Rice",
     "Spielerfoto": "https://media.api-sports.io/football/players/2937.png",
     "Position": "MIDFIELDER",
     "Club.name": "Arsenal",
@@ -646,7 +646,7 @@ const playersData = [
   },
   {
     "player.id": 313236,
-    "Spielername": "E. Nwaneri",
+    "Spielername": "Ethan Chidiebere Nwaneri",
     "Spielerfoto": "https://media.api-sports.io/football/players/313236.png",
     "Position": "MIDFIELDER",
     "Club.name": "Arsenal",
@@ -710,21 +710,8 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 442044,
-    "Spielername": "M. Dowman",
-    "Spielerfoto": "https://media.api-sports.io/football/players/442044.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Arsenal",
-    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2009-12-31",
-    "Groesse": "183",
-    "Gewicht": ""
-  },
-  {
     "player.id": 37127,
-    "Spielername": "M. Ødegaard",
+    "Spielername": "Martin Ødegaard",
     "Spielerfoto": "https://media.api-sports.io/football/players/37127.png",
     "Position": "MIDFIELDER",
     "Club.name": "Arsenal",
@@ -749,6 +736,19 @@ const playersData = [
     "Gewicht": "74"
   },
   {
+    "player.id": 442044,
+    "Spielername": "Max Dowman",
+    "Spielerfoto": "https://media.api-sports.io/football/players/442044.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Arsenal",
+    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2009-12-31",
+    "Groesse": "183",
+    "Gewicht": ""
+  },
+  {
     "player.id": 47311,
     "Spielername": "Mikel Merino",
     "Spielerfoto": "https://media.api-sports.io/football/players/47311.png",
@@ -763,7 +763,7 @@ const playersData = [
   },
   {
     "player.id": 457731,
-    "Spielername": "A. Annous",
+    "Spielername": "Andre Annous",
     "Spielerfoto": "https://media.api-sports.io/football/players/457731.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -776,7 +776,7 @@ const playersData = [
   },
   {
     "player.id": 463908,
-    "Spielername": "B. Bailey-Joseph",
+    "Spielername": "Brando Nyle Bailey-Joseph",
     "Spielerfoto": "https://media.api-sports.io/football/players/463908.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -789,7 +789,7 @@ const playersData = [
   },
   {
     "player.id": 1460,
-    "Spielername": "B. Saka",
+    "Spielername": "Bukayo Saka",
     "Spielerfoto": "https://media.api-sports.io/football/players/1460.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -802,7 +802,7 @@ const playersData = [
   },
   {
     "player.id": 284571,
-    "Spielername": "C. Sagoe",
+    "Spielername": "Charles Kwame Sagoe",
     "Spielerfoto": "https://media.api-sports.io/football/players/284571.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -814,8 +814,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 136723,
+    "Spielername": "Chukwunonso Tristan Madueke",
+    "Spielerfoto": "https://media.api-sports.io/football/players/136723.png",
+    "Position": "ATTACKER",
+    "Club.name": "Arsenal",
+    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2002-03-10",
+    "Groesse": "182",
+    "Gewicht": "75"
+  },
+  {
     "player.id": 19586,
-    "Spielername": "E. Eze",
+    "Spielername": "Eberechi Oluchi Eze",
     "Spielerfoto": "https://media.api-sports.io/football/players/19586.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -841,7 +854,7 @@ const playersData = [
   },
   {
     "player.id": 978,
-    "Spielername": "K. Havertz",
+    "Spielername": "Kai Lukas Havertz",
     "Spielerfoto": "https://media.api-sports.io/football/players/978.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -854,7 +867,7 @@ const playersData = [
   },
   {
     "player.id": 1946,
-    "Spielername": "L. Trossard",
+    "Spielername": "Leandro Trossard",
     "Spielerfoto": "https://media.api-sports.io/football/players/1946.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -866,21 +879,8 @@ const playersData = [
     "Gewicht": "61"
   },
   {
-    "player.id": 136723,
-    "Spielername": "N. Madueke",
-    "Spielerfoto": "https://media.api-sports.io/football/players/136723.png",
-    "Position": "ATTACKER",
-    "Club.name": "Arsenal",
-    "Club.logo": "https://media.api-sports.io/football/teams/42.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2002-03-10",
-    "Groesse": "182",
-    "Gewicht": "75"
-  },
-  {
     "player.id": 18979,
-    "Spielername": "V. Gyökeres",
+    "Spielername": "Viktor Einar Gyökeres",
     "Spielerfoto": "https://media.api-sports.io/football/players/18979.png",
     "Position": "ATTACKER",
     "Club.name": "Arsenal",
@@ -893,7 +893,7 @@ const playersData = [
   },
   {
     "player.id": 30419,
-    "Spielername": "F. Rossi",
+    "Spielername": "Francesco Rossi",
     "Spielerfoto": "https://media.api-sports.io/football/players/30419.png",
     "Position": "GOALKEEPER",
     "Club.name": "Atalanta",
@@ -906,7 +906,7 @@ const playersData = [
   },
   {
     "player.id": 30417,
-    "Spielername": "M. Carnesecchi",
+    "Spielername": "Marco Carnesecchi",
     "Spielerfoto": "https://media.api-sports.io/football/players/30417.png",
     "Position": "GOALKEEPER",
     "Club.name": "Atalanta",
@@ -919,7 +919,7 @@ const playersData = [
   },
   {
     "player.id": 31069,
-    "Spielername": "M. Sportiello",
+    "Spielername": "Marco Sportiello",
     "Spielerfoto": "https://media.api-sports.io/football/players/31069.png",
     "Position": "GOALKEEPER",
     "Club.name": "Atalanta",
@@ -932,7 +932,7 @@ const playersData = [
   },
   {
     "player.id": 30421,
-    "Spielername": "B. Djimsiti",
+    "Spielername": "Berat Djimsiti",
     "Spielerfoto": "https://media.api-sports.io/football/players/30421.png",
     "Position": "DEFENDER",
     "Club.name": "Atalanta",
@@ -945,7 +945,7 @@ const playersData = [
   },
   {
     "player.id": 289761,
-    "Spielername": "G. Scalvini",
+    "Spielername": "Giorgio Scalvini",
     "Spielerfoto": "https://media.api-sports.io/football/players/289761.png",
     "Position": "DEFENDER",
     "Club.name": "Atalanta",
@@ -958,7 +958,7 @@ const playersData = [
   },
   {
     "player.id": 453906,
-    "Spielername": "H. Ahanor",
+    "Spielername": "Honest Ahanor",
     "Spielerfoto": "https://media.api-sports.io/football/players/453906.png",
     "Position": "DEFENDER",
     "Club.name": "Atalanta",
@@ -971,7 +971,7 @@ const playersData = [
   },
   {
     "player.id": 137976,
-    "Spielername": "I. Hien",
+    "Spielername": "Isak Hien",
     "Spielerfoto": "https://media.api-sports.io/football/players/137976.png",
     "Position": "DEFENDER",
     "Club.name": "Atalanta",
@@ -983,21 +983,8 @@ const playersData = [
     "Gewicht": "88"
   },
   {
-    "player.id": 530,
-    "Spielername": "M. Bakker",
-    "Spielerfoto": "https://media.api-sports.io/football/players/530.png",
-    "Position": "DEFENDER",
-    "Club.name": "Atalanta",
-    "Club.logo": "https://media.api-sports.io/football/teams/499.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "2000-06-20",
-    "Groesse": "185",
-    "Gewicht": "85"
-  },
-  {
     "player.id": 48119,
-    "Spielername": "O. Kossounou",
+    "Spielername": "Kouakou Kossounou",
     "Spielerfoto": "https://media.api-sports.io/football/players/48119.png",
     "Position": "DEFENDER",
     "Club.name": "Atalanta",
@@ -1009,8 +996,21 @@ const playersData = [
     "Gewicht": "79"
   },
   {
+    "player.id": 530,
+    "Spielername": "Mitchel Bakker",
+    "Spielerfoto": "https://media.api-sports.io/football/players/530.png",
+    "Position": "DEFENDER",
+    "Club.name": "Atalanta",
+    "Club.logo": "https://media.api-sports.io/football/teams/499.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "2000-06-20",
+    "Groesse": "185",
+    "Gewicht": "85"
+  },
+  {
     "player.id": 400530,
-    "Spielername": "R. ObriÄ",
+    "Spielername": "Relja ObriÄ",
     "Spielerfoto": "https://media.api-sports.io/football/players/400530.png",
     "Position": "DEFENDER",
     "Club.name": "Atalanta",
@@ -1023,7 +1023,7 @@ const playersData = [
   },
   {
     "player.id": 1442,
-    "Spielername": "S. Kolašinac",
+    "Spielername": "Sead Kolašinac",
     "Spielerfoto": "https://media.api-sports.io/football/players/1442.png",
     "Position": "DEFENDER",
     "Club.name": "Atalanta",
@@ -1036,7 +1036,7 @@ const playersData = [
   },
   {
     "player.id": 2286,
-    "Spielername": "D. Zappacosta",
+    "Spielername": "Davide Zappacosta",
     "Spielerfoto": "https://media.api-sports.io/football/players/2286.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1062,7 +1062,7 @@ const playersData = [
   },
   {
     "player.id": 443501,
-    "Spielername": "F. Cassa",
+    "Spielername": "Federico Cassa",
     "Spielerfoto": "https://media.api-sports.io/football/players/443501.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1074,21 +1074,8 @@ const playersData = [
     "Gewicht": "75"
   },
   {
-    "player.id": 264857,
-    "Spielername": "L. Bernasconi",
-    "Spielerfoto": "https://media.api-sports.io/football/players/264857.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Atalanta",
-    "Club.logo": "https://media.api-sports.io/football/teams/499.png",
-    "Nationalteam.name": "Italy",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
-    "Geburtsdatum": "2003-11-16",
-    "Groesse": "190",
-    "Gewicht": "72"
-  },
-  {
     "player.id": 178749,
-    "Spielername": "L. Samardžić",
+    "Spielername": "Lazar Vujadin Samardžić",
     "Spielerfoto": "https://media.api-sports.io/football/players/178749.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1100,8 +1087,21 @@ const playersData = [
     "Gewicht": "70"
   },
   {
+    "player.id": 264857,
+    "Spielername": "Lorenzo Bernasconi",
+    "Spielerfoto": "https://media.api-sports.io/football/players/264857.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Atalanta",
+    "Club.logo": "https://media.api-sports.io/football/teams/499.png",
+    "Nationalteam.name": "Italy",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
+    "Geburtsdatum": "2003-11-16",
+    "Groesse": "190",
+    "Gewicht": "72"
+  },
+  {
     "player.id": 1639,
-    "Spielername": "M. Brescianini",
+    "Spielername": "Marco Brescianini",
     "Spielerfoto": "https://media.api-sports.io/football/players/1639.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1114,7 +1114,7 @@ const playersData = [
   },
   {
     "player.id": 30432,
-    "Spielername": "M. de Roon",
+    "Spielername": "Marten de",
     "Spielerfoto": "https://media.api-sports.io/football/players/30432.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1127,7 +1127,7 @@ const playersData = [
   },
   {
     "player.id": 203474,
-    "Spielername": "N. Zalewski",
+    "Spielername": "Nicola Zalewski",
     "Spielerfoto": "https://media.api-sports.io/football/players/203474.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1140,7 +1140,7 @@ const playersData = [
   },
   {
     "player.id": 91422,
-    "Spielername": "R. Bellanova",
+    "Spielername": "Raoul Bellanova",
     "Spielerfoto": "https://media.api-sports.io/football/players/91422.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1153,7 +1153,7 @@ const playersData = [
   },
   {
     "player.id": 162106,
-    "Spielername": "Y. Musah",
+    "Spielername": "Yunus Dimoara Musah",
     "Spielerfoto": "https://media.api-sports.io/football/players/162106.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atalanta",
@@ -1166,7 +1166,7 @@ const playersData = [
   },
   {
     "player.id": 18767,
-    "Spielername": "A. Lookman",
+    "Spielername": "Ademola Alade",
     "Spielerfoto": "https://media.api-sports.io/football/players/18767.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1179,7 +1179,7 @@ const playersData = [
   },
   {
     "player.id": 147859,
-    "Spielername": "C. De Ketelaere",
+    "Spielername": "Charles De",
     "Spielerfoto": "https://media.api-sports.io/football/players/147859.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1192,7 +1192,7 @@ const playersData = [
   },
   {
     "player.id": 134926,
-    "Spielername": "D. Maldini",
+    "Spielername": "Daniel Maldini",
     "Spielerfoto": "https://media.api-sports.io/football/players/134926.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1205,7 +1205,7 @@ const playersData = [
   },
   {
     "player.id": 383017,
-    "Spielername": "D. Vavassori",
+    "Spielername": "Dominic Vavassori",
     "Spielerfoto": "https://media.api-sports.io/football/players/383017.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1218,7 +1218,7 @@ const playersData = [
   },
   {
     "player.id": 30544,
-    "Spielername": "G. Scamacca",
+    "Spielername": "Gianluca Scamacca",
     "Spielerfoto": "https://media.api-sports.io/football/players/30544.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1231,7 +1231,7 @@ const playersData = [
   },
   {
     "player.id": 458409,
-    "Spielername": "H. Camara",
+    "Spielername": "Henry Camara",
     "Spielerfoto": "https://media.api-sports.io/football/players/458409.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1244,7 +1244,7 @@ const playersData = [
   },
   {
     "player.id": 199837,
-    "Spielername": "K. Sulemana",
+    "Spielername": "Kamaldeen Sulemana",
     "Spielerfoto": "https://media.api-sports.io/football/players/199837.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1257,7 +1257,7 @@ const playersData = [
   },
   {
     "player.id": 2763,
-    "Spielername": "M. Pašalić",
+    "Spielername": "Mario Pašalić",
     "Spielerfoto": "https://media.api-sports.io/football/players/2763.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1270,7 +1270,7 @@ const playersData = [
   },
   {
     "player.id": 66817,
-    "Spielername": "N. Krstović",
+    "Spielername": "Nikola Krstović",
     "Spielerfoto": "https://media.api-sports.io/football/players/66817.png",
     "Position": "ATTACKER",
     "Club.name": "Atalanta",
@@ -1322,7 +1322,7 @@ const playersData = [
   },
   {
     "player.id": 336998,
-    "Spielername": "A. Boiro",
+    "Spielername": "Adama Boiro",
     "Spielerfoto": "https://media.api-sports.io/football/players/336998.png",
     "Position": "DEFENDER",
     "Club.name": "Athletic Club",
@@ -1647,7 +1647,7 @@ const playersData = [
   },
   {
     "player.id": 47294,
-    "Spielername": "I. Williams",
+    "Spielername": "Iñaki Arthuer Williams",
     "Spielerfoto": "https://media.api-sports.io/football/players/47294.png",
     "Position": "ATTACKER",
     "Club.name": "Athletic Club",
@@ -1685,21 +1685,8 @@ const playersData = [
     "Gewicht": "72"
   },
   {
-    "player.id": 2465,
-    "Spielername": "J. Musso",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2465.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Atletico Madrid",
-    "Club.logo": "https://media.api-sports.io/football/teams/530.png",
-    "Nationalteam.name": "Argentina",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
-    "Geburtsdatum": "1994-05-06",
-    "Groesse": "193",
-    "Gewicht": "93"
-  },
-  {
     "player.id": 29,
-    "Spielername": "J. Oblak",
+    "Spielername": "Jan Oblak",
     "Spielerfoto": "https://media.api-sports.io/football/players/29.png",
     "Position": "GOALKEEPER",
     "Club.name": "Atletico Madrid",
@@ -1709,6 +1696,19 @@ const playersData = [
     "Geburtsdatum": "1993-01-07",
     "Groesse": "188",
     "Gewicht": "87"
+  },
+  {
+    "player.id": 2465,
+    "Spielername": "Juan Agustín Musso",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2465.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Atletico Madrid",
+    "Club.logo": "https://media.api-sports.io/football/teams/530.png",
+    "Nationalteam.name": "Argentina",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
+    "Geburtsdatum": "1994-05-06",
+    "Groesse": "193",
+    "Gewicht": "93"
   },
   {
     "player.id": 189997,
@@ -1738,7 +1738,7 @@ const playersData = [
   },
   {
     "player.id": 133,
-    "Spielername": "C. Lenglet",
+    "Spielername": "Clément Lenglet",
     "Spielerfoto": "https://media.api-sports.io/football/players/133.png",
     "Position": "DEFENDER",
     "Club.name": "Atletico Madrid",
@@ -1748,19 +1748,6 @@ const playersData = [
     "Geburtsdatum": "1995-06-17",
     "Groesse": "186",
     "Gewicht": "81"
-  },
-  {
-    "player.id": 30399,
-    "Spielername": "D. Hancko",
-    "Spielerfoto": "https://media.api-sports.io/football/players/30399.png",
-    "Position": "DEFENDER",
-    "Club.name": "Atletico Madrid",
-    "Club.logo": "https://media.api-sports.io/football/teams/530.png",
-    "Nationalteam.name": "Slovakia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
-    "Geburtsdatum": "1997-12-13",
-    "Groesse": "188",
-    "Gewicht": "82"
   },
   {
     "player.id": 386869,
@@ -1776,17 +1763,17 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 31,
-    "Spielername": "J. Giménez",
-    "Spielerfoto": "https://media.api-sports.io/football/players/31.png",
+    "player.id": 30399,
+    "Spielername": "Dávid Hancko",
+    "Spielerfoto": "https://media.api-sports.io/football/players/30399.png",
     "Position": "DEFENDER",
     "Club.name": "Atletico Madrid",
     "Club.logo": "https://media.api-sports.io/football/teams/530.png",
-    "Nationalteam.name": "Uruguay",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
-    "Geburtsdatum": "1995-01-20",
-    "Groesse": "186",
-    "Gewicht": "77"
+    "Nationalteam.name": "Slovakia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
+    "Geburtsdatum": "1997-12-13",
+    "Groesse": "188",
+    "Gewicht": "82"
   },
   {
     "player.id": 47566,
@@ -1815,17 +1802,17 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 162012,
-    "Spielername": "M. Ruggeri",
-    "Spielerfoto": "https://media.api-sports.io/football/players/162012.png",
+    "player.id": 31,
+    "Spielername": "José María Giménez",
+    "Spielerfoto": "https://media.api-sports.io/football/players/31.png",
     "Position": "DEFENDER",
     "Club.name": "Atletico Madrid",
     "Club.logo": "https://media.api-sports.io/football/teams/530.png",
-    "Nationalteam.name": "Italy",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
-    "Geburtsdatum": "2002-07-11",
-    "Groesse": "187",
-    "Gewicht": "69"
+    "Nationalteam.name": "Uruguay",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
+    "Geburtsdatum": "1995-01-20",
+    "Groesse": "186",
+    "Gewicht": "77"
   },
   {
     "player.id": 295793,
@@ -1854,8 +1841,21 @@ const playersData = [
     "Gewicht": "74"
   },
   {
+    "player.id": 162012,
+    "Spielername": "Matteo Ruggeri",
+    "Spielerfoto": "https://media.api-sports.io/football/players/162012.png",
+    "Position": "DEFENDER",
+    "Club.name": "Atletico Madrid",
+    "Club.logo": "https://media.api-sports.io/football/teams/530.png",
+    "Nationalteam.name": "Italy",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
+    "Geburtsdatum": "2002-07-11",
+    "Groesse": "187",
+    "Gewicht": "69"
+  },
+  {
     "player.id": 6503,
-    "Spielername": "N. Molina",
+    "Spielername": "Nahuel Molina",
     "Spielerfoto": "https://media.api-sports.io/football/players/6503.png",
     "Position": "DEFENDER",
     "Club.name": "Atletico Madrid",
@@ -1894,7 +1894,7 @@ const playersData = [
   },
   {
     "player.id": 67972,
-    "Spielername": "C. Gallagher",
+    "Spielername": "Conor John Gallagher",
     "Spielerfoto": "https://media.api-sports.io/football/players/67972.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atletico Madrid",
@@ -1907,7 +1907,7 @@ const playersData = [
   },
   {
     "player.id": 323935,
-    "Spielername": "G. Simeone",
+    "Spielername": "Giuliano Simeone",
     "Spielerfoto": "https://media.api-sports.io/football/players/323935.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atletico Madrid",
@@ -1920,7 +1920,7 @@ const playersData = [
   },
   {
     "player.id": 133185,
-    "Spielername": "J. Cardoso",
+    "Spielername": "João Lucas Cardoso",
     "Spielerfoto": "https://media.api-sports.io/football/players/133185.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atletico Madrid",
@@ -1933,7 +1933,7 @@ const playersData = [
   },
   {
     "player.id": 386870,
-    "Spielername": "Julio Díaz del Romo",
+    "Spielername": "Julio del",
     "Spielerfoto": "https://media.api-sports.io/football/players/386870.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atletico Madrid",
@@ -1959,7 +1959,7 @@ const playersData = [
   },
   {
     "player.id": 26315,
-    "Spielername": "N. González",
+    "Spielername": "Nicolás Iván González",
     "Spielerfoto": "https://media.api-sports.io/football/players/26315.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atletico Madrid",
@@ -1972,7 +1972,7 @@ const playersData = [
   },
   {
     "player.id": 313383,
-    "Spielername": "O. Vargas",
+    "Spielername": "Obed Vargas",
     "Spielerfoto": "https://media.api-sports.io/football/players/313383.png",
     "Position": "MIDFIELDER",
     "Club.name": "Atletico Madrid",
@@ -2010,19 +2010,6 @@ const playersData = [
     "Gewicht": "72"
   },
   {
-    "player.id": 6067,
-    "Spielername": "T. Almada",
-    "Spielerfoto": "https://media.api-sports.io/football/players/6067.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Atletico Madrid",
-    "Club.logo": "https://media.api-sports.io/football/teams/530.png",
-    "Nationalteam.name": "Argentina",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
-    "Geburtsdatum": "2001-04-26",
-    "Groesse": "171",
-    "Gewicht": "63"
-  },
-  {
     "player.id": 548867,
     "Spielername": "T. Seidu",
     "Spielerfoto": "https://media.api-sports.io/football/players/548867.png",
@@ -2049,21 +2036,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 56,
-    "Spielername": "A. Griezmann",
-    "Spielerfoto": "https://media.api-sports.io/football/players/56.png",
-    "Position": "ATTACKER",
+    "player.id": 6067,
+    "Spielername": "Thiago Ezequiel Almada",
+    "Spielerfoto": "https://media.api-sports.io/football/players/6067.png",
+    "Position": "MIDFIELDER",
     "Club.name": "Atletico Madrid",
     "Club.logo": "https://media.api-sports.io/football/teams/530.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "1991-03-21",
-    "Groesse": "176",
-    "Gewicht": "73"
+    "Nationalteam.name": "Argentina",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
+    "Geburtsdatum": "2001-04-26",
+    "Groesse": "171",
+    "Gewicht": "63"
   },
   {
     "player.id": 8492,
-    "Spielername": "A. Sørloth",
+    "Spielername": "Alexander Sørloth",
     "Spielerfoto": "https://media.api-sports.io/football/players/8492.png",
     "Position": "ATTACKER",
     "Club.name": "Atletico Madrid",
@@ -2073,6 +2060,19 @@ const playersData = [
     "Geburtsdatum": "1995-12-05",
     "Groesse": "196",
     "Gewicht": "90"
+  },
+  {
+    "player.id": 56,
+    "Spielername": "Antoine Griezmann",
+    "Spielerfoto": "https://media.api-sports.io/football/players/56.png",
+    "Position": "ATTACKER",
+    "Club.name": "Atletico Madrid",
+    "Club.logo": "https://media.api-sports.io/football/teams/530.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "1991-03-21",
+    "Groesse": "176",
+    "Gewicht": "73"
   },
   {
     "player.id": 324750,
@@ -2089,7 +2089,7 @@ const playersData = [
   },
   {
     "player.id": 30543,
-    "Spielername": "G. Raspadori",
+    "Spielername": "Giacomo Raspadori",
     "Spielerfoto": "https://media.api-sports.io/football/players/30543.png",
     "Position": "ATTACKER",
     "Club.name": "Atletico Madrid",
@@ -2115,7 +2115,7 @@ const playersData = [
   },
   {
     "player.id": 6009,
-    "Spielername": "J. Álvarez",
+    "Spielername": "Julián Álvarez",
     "Spielerfoto": "https://media.api-sports.io/football/players/6009.png",
     "Position": "ATTACKER",
     "Club.name": "Atletico Madrid",
@@ -2141,7 +2141,7 @@ const playersData = [
   },
   {
     "player.id": 383647,
-    "Spielername": "D. Kochen",
+    "Spielername": "Diego Kochen",
     "Spielerfoto": "https://media.api-sports.io/football/players/383647.png",
     "Position": "GOALKEEPER",
     "Club.name": "Barcelona",
@@ -2180,7 +2180,7 @@ const playersData = [
   },
   {
     "player.id": 127,
-    "Spielername": "M. ter Stegen",
+    "Spielername": "Marc-André ter Stegen",
     "Spielerfoto": "https://media.api-sports.io/football/players/127.png",
     "Position": "GOALKEEPER",
     "Club.name": "Barcelona",
@@ -2193,7 +2193,7 @@ const playersData = [
   },
   {
     "player.id": 851,
-    "Spielername": "W. Szczęsny",
+    "Spielername": "Wojciech Tomasz Szczęsny",
     "Spielerfoto": "https://media.api-sports.io/football/players/851.png",
     "Position": "GOALKEEPER",
     "Club.name": "Barcelona",
@@ -2203,19 +2203,6 @@ const playersData = [
     "Geburtsdatum": "1990-04-18",
     "Groesse": "195",
     "Gewicht": "96"
-  },
-  {
-    "player.id": 2282,
-    "Spielername": "A. Christensen",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2282.png",
-    "Position": "DEFENDER",
-    "Club.name": "Barcelona",
-    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
-    "Nationalteam.name": "Denmark",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
-    "Geburtsdatum": "1996-04-10",
-    "Groesse": "189",
-    "Gewicht": "84"
   },
   {
     "player.id": 161928,
@@ -2244,6 +2231,19 @@ const playersData = [
     "Gewicht": "82"
   },
   {
+    "player.id": 2282,
+    "Spielername": "Andreas Christensen",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2282.png",
+    "Position": "DEFENDER",
+    "Club.name": "Barcelona",
+    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
+    "Nationalteam.name": "Denmark",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
+    "Geburtsdatum": "1996-04-10",
+    "Groesse": "189",
+    "Gewicht": "84"
+  },
+  {
     "player.id": 619,
     "Spielername": "Eric García",
     "Spielerfoto": "https://media.api-sports.io/football/players/619.png",
@@ -2268,19 +2268,6 @@ const playersData = [
     "Geburtsdatum": "2002-02-26",
     "Groesse": "186",
     "Gewicht": "82"
-  },
-  {
-    "player.id": 1257,
-    "Spielername": "J. Koundé",
-    "Spielerfoto": "https://media.api-sports.io/football/players/1257.png",
-    "Position": "DEFENDER",
-    "Club.name": "Barcelona",
-    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "1998-11-12",
-    "Groesse": "181",
-    "Gewicht": "84"
   },
   {
     "player.id": 855,
@@ -2309,6 +2296,19 @@ const playersData = [
     "Gewicht": "75"
   },
   {
+    "player.id": 1257,
+    "Spielername": "Jules Olivier Koundé",
+    "Spielerfoto": "https://media.api-sports.io/football/players/1257.png",
+    "Position": "DEFENDER",
+    "Club.name": "Barcelona",
+    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "1998-11-12",
+    "Groesse": "181",
+    "Gewicht": "84"
+  },
+  {
     "player.id": 396623,
     "Spielername": "Pau Cubarsí Paredes",
     "Spielerfoto": "https://media.api-sports.io/football/players/396623.png",
@@ -2323,7 +2323,7 @@ const playersData = [
   },
   {
     "player.id": 101814,
-    "Spielername": "R. Araújo",
+    "Spielername": "Ronald Federico Araújo",
     "Spielerfoto": "https://media.api-sports.io/football/players/101814.png",
     "Position": "DEFENDER",
     "Club.name": "Barcelona",
@@ -2361,19 +2361,6 @@ const playersData = [
     "Gewicht": "73"
   },
   {
-    "player.id": 538,
-    "Spielername": "F. de Jong",
-    "Spielerfoto": "https://media.api-sports.io/football/players/538.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Barcelona",
-    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "1997-05-12",
-    "Groesse": "182",
-    "Gewicht": "75"
-  },
-  {
     "player.id": 340626,
     "Spielername": "Fermín",
     "Spielerfoto": "https://media.api-sports.io/football/players/340626.png",
@@ -2385,6 +2372,19 @@ const playersData = [
     "Geburtsdatum": "2003-05-11",
     "Groesse": "176",
     "Gewicht": "73"
+  },
+  {
+    "player.id": 538,
+    "Spielername": "Frenkie de Jong",
+    "Spielerfoto": "https://media.api-sports.io/football/players/538.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Barcelona",
+    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "1997-05-12",
+    "Groesse": "182",
+    "Gewicht": "75"
   },
   {
     "player.id": 296667,
@@ -2426,19 +2426,6 @@ const playersData = [
     "Gewicht": "72"
   },
   {
-    "player.id": 909,
-    "Spielername": "M. Rashford",
-    "Spielerfoto": "https://media.api-sports.io/football/players/909.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Barcelona",
-    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "1997-10-31",
-    "Groesse": "188",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 433396,
     "Spielername": "Marc Bernal",
     "Spielerfoto": "https://media.api-sports.io/football/players/433396.png",
@@ -2463,6 +2450,19 @@ const playersData = [
     "Geburtsdatum": "2003-09-14",
     "Groesse": "171",
     "Gewicht": "65"
+  },
+  {
+    "player.id": 909,
+    "Spielername": "Marcus Rashford",
+    "Spielerfoto": "https://media.api-sports.io/football/players/909.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Barcelona",
+    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "1997-10-31",
+    "Groesse": "188",
+    "Gewicht": "80"
   },
   {
     "player.id": 133609,
@@ -2543,21 +2543,8 @@ const playersData = [
     "Gewicht": "80"
   },
   {
-    "player.id": 338958,
-    "Spielername": "R. Bardghji",
-    "Spielerfoto": "https://media.api-sports.io/football/players/338958.png",
-    "Position": "ATTACKER",
-    "Club.name": "Barcelona",
-    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
-    "Nationalteam.name": "Sweden",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
-    "Geburtsdatum": "2005-11-15",
-    "Groesse": "173",
-    "Gewicht": "73"
-  },
-  {
     "player.id": 521,
-    "Spielername": "R. Lewandowski",
+    "Spielername": "Robert Lewandowski",
     "Spielerfoto": "https://media.api-sports.io/football/players/521.png",
     "Position": "ATTACKER",
     "Club.name": "Barcelona",
@@ -2567,6 +2554,19 @@ const playersData = [
     "Geburtsdatum": "1988-08-21",
     "Groesse": "186",
     "Gewicht": "81"
+  },
+  {
+    "player.id": 338958,
+    "Spielername": "Roony Bardghji",
+    "Spielerfoto": "https://media.api-sports.io/football/players/338958.png",
+    "Position": "ATTACKER",
+    "Club.name": "Barcelona",
+    "Club.logo": "https://media.api-sports.io/football/teams/529.png",
+    "Nationalteam.name": "Sweden",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
+    "Geburtsdatum": "2005-11-15",
+    "Groesse": "173",
+    "Gewicht": "73"
   },
   {
     "player.id": 445973,
@@ -2582,32 +2582,6 @@ const playersData = [
     "Gewicht": "73"
   },
   {
-    "player.id": 37246,
-    "Spielername": "J. Blaswich",
-    "Spielerfoto": "https://media.api-sports.io/football/players/37246.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Bayer Leverkusen",
-    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "1991-05-02",
-    "Groesse": "193",
-    "Gewicht": "88"
-  },
-  {
-    "player.id": 2801,
-    "Spielername": "J. Omlin",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2801.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Bayer Leverkusen",
-    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
-    "Nationalteam.name": "Switzerland",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
-    "Geburtsdatum": "1994-01-10",
-    "Groesse": "190",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 568379,
     "Spielername": "J. Schlich",
     "Spielerfoto": "https://media.api-sports.io/football/players/568379.png",
@@ -2621,8 +2595,34 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 37246,
+    "Spielername": "Janis Jonathan Blaswich",
+    "Spielerfoto": "https://media.api-sports.io/football/players/37246.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Bayer Leverkusen",
+    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "1991-05-02",
+    "Groesse": "193",
+    "Gewicht": "88"
+  },
+  {
+    "player.id": 2801,
+    "Spielername": "Jonas Omlin",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2801.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Bayer Leverkusen",
+    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
+    "Nationalteam.name": "Switzerland",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
+    "Geburtsdatum": "1994-01-10",
+    "Groesse": "190",
+    "Gewicht": "80"
+  },
+  {
     "player.id": 26232,
-    "Spielername": "M. Flekken",
+    "Spielername": "Mark Flekken",
     "Spielerfoto": "https://media.api-sports.io/football/players/26232.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bayer Leverkusen",
@@ -2635,7 +2635,7 @@ const playersData = [
   },
   {
     "player.id": 25168,
-    "Spielername": "N. Lomb",
+    "Spielername": "Niklas Lomb",
     "Spielerfoto": "https://media.api-sports.io/football/players/25168.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bayer Leverkusen",
@@ -2645,19 +2645,6 @@ const playersData = [
     "Geburtsdatum": "1993-07-28",
     "Groesse": "186",
     "Gewicht": "84"
-  },
-  {
-    "player.id": 491103,
-    "Spielername": "A. Tape",
-    "Spielerfoto": "https://media.api-sports.io/football/players/491103.png",
-    "Position": "DEFENDER",
-    "Club.name": "Bayer Leverkusen",
-    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "2007-08-10",
-    "Groesse": "180",
-    "Gewicht": "75"
   },
   {
     "player.id": 352375,
@@ -2673,8 +2660,21 @@ const playersData = [
     "Gewicht": "70"
   },
   {
+    "player.id": 491103,
+    "Spielername": "Axel Tape",
+    "Spielerfoto": "https://media.api-sports.io/football/players/491103.png",
+    "Position": "DEFENDER",
+    "Club.name": "Bayer Leverkusen",
+    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "2007-08-10",
+    "Groesse": "180",
+    "Gewicht": "75"
+  },
+  {
     "player.id": 486523,
-    "Spielername": "B. Hawighorst",
+    "Spielername": "Ben Hawighorst",
     "Spielerfoto": "https://media.api-sports.io/football/players/486523.png",
     "Position": "DEFENDER",
     "Club.name": "Bayer Leverkusen",
@@ -2687,7 +2687,7 @@ const playersData = [
   },
   {
     "player.id": 41150,
-    "Spielername": "E. Tapsoba",
+    "Spielername": "Edmond Fayçal Tapsoba",
     "Spielerfoto": "https://media.api-sports.io/football/players/41150.png",
     "Position": "DEFENDER",
     "Club.name": "Bayer Leverkusen",
@@ -2712,21 +2712,8 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 343316,
-    "Spielername": "J. Belocian",
-    "Spielerfoto": "https://media.api-sports.io/football/players/343316.png",
-    "Position": "DEFENDER",
-    "Club.name": "Bayer Leverkusen",
-    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "2005-02-17",
-    "Groesse": "186",
-    "Gewicht": "73"
-  },
-  {
     "player.id": 158698,
-    "Spielername": "J. Quansah",
+    "Spielername": "Jarell Quansah",
     "Spielerfoto": "https://media.api-sports.io/football/players/158698.png",
     "Position": "DEFENDER",
     "Club.name": "Bayer Leverkusen",
@@ -2738,8 +2725,21 @@ const playersData = [
     "Gewicht": "84"
   },
   {
+    "player.id": 343316,
+    "Spielername": "Jeanuël Belocian",
+    "Spielerfoto": "https://media.api-sports.io/football/players/343316.png",
+    "Position": "DEFENDER",
+    "Club.name": "Bayer Leverkusen",
+    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "2005-02-17",
+    "Groesse": "186",
+    "Gewicht": "73"
+  },
+  {
     "player.id": 174918,
-    "Spielername": "L. Badé",
+    "Spielername": "Loïc Badé",
     "Spielerfoto": "https://media.api-sports.io/football/players/174918.png",
     "Position": "DEFENDER",
     "Club.name": "Bayer Leverkusen",
@@ -2778,7 +2778,7 @@ const playersData = [
   },
   {
     "player.id": 414385,
-    "Spielername": "C. Echeverri",
+    "Spielername": "Claudio Jeremías Echeverri",
     "Spielerfoto": "https://media.api-sports.io/football/players/414385.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayer Leverkusen",
@@ -2790,21 +2790,8 @@ const playersData = [
     "Gewicht": "62"
   },
   {
-    "player.id": 237087,
-    "Spielername": "E. Fernández",
-    "Spielerfoto": "https://media.api-sports.io/football/players/237087.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Bayer Leverkusen",
-    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
-    "Nationalteam.name": "Argentina",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
-    "Geburtsdatum": "2002-07-25",
-    "Groesse": "178",
-    "Gewicht": "70"
-  },
-  {
     "player.id": 6002,
-    "Spielername": "E. Palacios",
+    "Spielername": "Exequiel Alejandro Palacios",
     "Spielerfoto": "https://media.api-sports.io/football/players/6002.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayer Leverkusen",
@@ -2816,21 +2803,21 @@ const playersData = [
     "Gewicht": "69"
   },
   {
-    "player.id": 25635,
-    "Spielername": "J. Hofmann",
-    "Spielerfoto": "https://media.api-sports.io/football/players/25635.png",
+    "player.id": 237087,
+    "Spielername": "Ignacio Fernández",
+    "Spielerfoto": "https://media.api-sports.io/football/players/237087.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayer Leverkusen",
     "Club.logo": "https://media.api-sports.io/football/teams/168.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "1992-07-14",
-    "Groesse": "176",
-    "Gewicht": "73"
+    "Nationalteam.name": "Argentina",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
+    "Geburtsdatum": "2002-07-25",
+    "Groesse": "178",
+    "Gewicht": "70"
   },
   {
     "player.id": 493409,
-    "Spielername": "J. Mensah",
+    "Spielername": "Jeremiah Mensah",
     "Spielerfoto": "https://media.api-sports.io/football/players/493409.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayer Leverkusen",
@@ -2840,6 +2827,19 @@ const playersData = [
     "Geburtsdatum": "2008-02-21",
     "Groesse": "",
     "Gewicht": ""
+  },
+  {
+    "player.id": 25635,
+    "Spielername": "Jonas Hofmann",
+    "Spielerfoto": "https://media.api-sports.io/football/players/25635.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Bayer Leverkusen",
+    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "1992-07-14",
+    "Groesse": "176",
+    "Gewicht": "73"
   },
   {
     "player.id": 757,
@@ -2856,7 +2856,7 @@ const playersData = [
   },
   {
     "player.id": 444961,
-    "Spielername": "M. Culbreath",
+    "Spielername": "Montrell Culbreath",
     "Spielerfoto": "https://media.api-sports.io/football/players/444961.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayer Leverkusen",
@@ -2882,7 +2882,7 @@ const playersData = [
   },
   {
     "player.id": 24903,
-    "Spielername": "R. Andrich",
+    "Spielername": "Robert Andrich",
     "Spielerfoto": "https://media.api-sports.io/football/players/24903.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayer Leverkusen",
@@ -2908,7 +2908,7 @@ const playersData = [
   },
   {
     "player.id": 343320,
-    "Spielername": "E. Ben Seghir",
+    "Spielername": "Eliesse Ben Seghir",
     "Spielerfoto": "https://media.api-sports.io/football/players/343320.png",
     "Position": "ATTACKER",
     "Club.name": "Bayer Leverkusen",
@@ -2921,7 +2921,7 @@ const playersData = [
   },
   {
     "player.id": 312840,
-    "Spielername": "E. Poku",
+    "Spielername": "Ernest Poku",
     "Spielerfoto": "https://media.api-sports.io/football/players/312840.png",
     "Position": "ATTACKER",
     "Club.name": "Bayer Leverkusen",
@@ -2934,7 +2934,7 @@ const playersData = [
   },
   {
     "player.id": 380587,
-    "Spielername": "I. Maza",
+    "Spielername": "Ibrahim Maza",
     "Spielerfoto": "https://media.api-sports.io/football/players/380587.png",
     "Position": "ATTACKER",
     "Club.name": "Bayer Leverkusen",
@@ -2959,21 +2959,8 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 663,
-    "Spielername": "M. Terrier",
-    "Spielerfoto": "https://media.api-sports.io/football/players/663.png",
-    "Position": "ATTACKER",
-    "Club.name": "Bayer Leverkusen",
-    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "1997-03-04",
-    "Groesse": "184",
-    "Gewicht": "71"
-  },
-  {
     "player.id": 162037,
-    "Spielername": "M. Tillman",
+    "Spielername": "Malik Leon Tillman",
     "Spielerfoto": "https://media.api-sports.io/football/players/162037.png",
     "Position": "ATTACKER",
     "Club.name": "Bayer Leverkusen",
@@ -2985,8 +2972,21 @@ const playersData = [
     "Gewicht": "71"
   },
   {
+    "player.id": 663,
+    "Spielername": "Martin Terrier",
+    "Spielerfoto": "https://media.api-sports.io/football/players/663.png",
+    "Position": "ATTACKER",
+    "Club.name": "Bayer Leverkusen",
+    "Club.logo": "https://media.api-sports.io/football/teams/168.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "1997-03-04",
+    "Groesse": "184",
+    "Gewicht": "71"
+  },
+  {
     "player.id": 231029,
-    "Spielername": "N. Tella",
+    "Spielername": "Nathan Tella",
     "Spielerfoto": "https://media.api-sports.io/football/players/231029.png",
     "Position": "ATTACKER",
     "Club.name": "Bayer Leverkusen",
@@ -2999,7 +2999,7 @@ const playersData = [
   },
   {
     "player.id": 794,
-    "Spielername": "P. Schick",
+    "Spielername": "Patrik Schick",
     "Spielerfoto": "https://media.api-sports.io/football/players/794.png",
     "Position": "ATTACKER",
     "Club.name": "Bayer Leverkusen",
@@ -3009,19 +3009,6 @@ const playersData = [
     "Geburtsdatum": "1996-01-24",
     "Groesse": "191",
     "Gewicht": "87"
-  },
-  {
-    "player.id": 203376,
-    "Spielername": "J. Urbig",
-    "Spielerfoto": "https://media.api-sports.io/football/players/203376.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Bayern München",
-    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "2003-08-08",
-    "Groesse": "189",
-    "Gewicht": "83"
   },
   {
     "player.id": 432595,
@@ -3035,6 +3022,19 @@ const playersData = [
     "Geburtsdatum": "2006-06-24",
     "Groesse": "",
     "Gewicht": ""
+  },
+  {
+    "player.id": 203376,
+    "Spielername": "Jonas Kurt Urbig",
+    "Spielerfoto": "https://media.api-sports.io/football/players/203376.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Bayern München",
+    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "2003-08-08",
+    "Groesse": "189",
+    "Gewicht": "83"
   },
   {
     "player.id": 568316,
@@ -3064,7 +3064,7 @@ const playersData = [
   },
   {
     "player.id": 497,
-    "Spielername": "M. Neuer",
+    "Spielername": "Manuel Peter Neuer",
     "Spielerfoto": "https://media.api-sports.io/football/players/497.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bayern München",
@@ -3077,7 +3077,7 @@ const playersData = [
   },
   {
     "player.id": 498,
-    "Spielername": "S. Ulreich",
+    "Spielername": "Sven Ulreich",
     "Spielerfoto": "https://media.api-sports.io/football/players/498.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bayern München",
@@ -3090,7 +3090,7 @@ const playersData = [
   },
   {
     "player.id": 509,
-    "Spielername": "A. Davies",
+    "Spielername": "Alphonso Boyle Davies",
     "Spielerfoto": "https://media.api-sports.io/football/players/509.png",
     "Position": "DEFENDER",
     "Club.name": "Bayern München",
@@ -3129,7 +3129,7 @@ const playersData = [
   },
   {
     "player.id": 1149,
-    "Spielername": "D. Upamecano",
+    "Spielername": "Dayotchanculle Oswald Upamecano",
     "Spielerfoto": "https://media.api-sports.io/football/players/1149.png",
     "Position": "DEFENDER",
     "Club.name": "Bayern München",
@@ -3155,7 +3155,7 @@ const playersData = [
   },
   {
     "player.id": 32893,
-    "Spielername": "H. Ito",
+    "Spielername": "Hiroki Ito",
     "Spielerfoto": "https://media.api-sports.io/football/players/32893.png",
     "Position": "DEFENDER",
     "Club.name": "Bayern München",
@@ -3167,21 +3167,8 @@ const playersData = [
     "Gewicht": "84"
   },
   {
-    "player.id": 125171,
-    "Spielername": "J. Stanišić",
-    "Spielerfoto": "https://media.api-sports.io/football/players/125171.png",
-    "Position": "DEFENDER",
-    "Club.name": "Bayern München",
-    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
-    "Nationalteam.name": "Croatia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
-    "Geburtsdatum": "2000-04-02",
-    "Groesse": "186",
-    "Gewicht": "77"
-  },
-  {
     "player.id": 972,
-    "Spielername": "J. Tah",
+    "Spielername": "Jonathan Tah",
     "Spielerfoto": "https://media.api-sports.io/football/players/972.png",
     "Position": "DEFENDER",
     "Club.name": "Bayern München",
@@ -3193,17 +3180,17 @@ const playersData = [
     "Gewicht": "94"
   },
   {
-    "player.id": 1157,
-    "Spielername": "K. Laimer",
-    "Spielerfoto": "https://media.api-sports.io/football/players/1157.png",
+    "player.id": 125171,
+    "Spielername": "Josip Stanišić",
+    "Spielerfoto": "https://media.api-sports.io/football/players/125171.png",
     "Position": "DEFENDER",
     "Club.name": "Bayern München",
     "Club.logo": "https://media.api-sports.io/football/teams/157.png",
-    "Nationalteam.name": "Austria",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
-    "Geburtsdatum": "1997-05-27",
-    "Groesse": "180",
-    "Gewicht": "72"
+    "Nationalteam.name": "Croatia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
+    "Geburtsdatum": "2000-04-02",
+    "Groesse": "186",
+    "Gewicht": "77"
   },
   {
     "player.id": 2897,
@@ -3217,6 +3204,19 @@ const playersData = [
     "Geburtsdatum": "1996-11-15",
     "Groesse": "190",
     "Gewicht": "88"
+  },
+  {
+    "player.id": 1157,
+    "Spielername": "Konrad Laimer",
+    "Spielerfoto": "https://media.api-sports.io/football/players/1157.png",
+    "Position": "DEFENDER",
+    "Club.name": "Bayern München",
+    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
+    "Nationalteam.name": "Austria",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
+    "Geburtsdatum": "1997-05-27",
+    "Groesse": "180",
+    "Gewicht": "72"
   },
   {
     "player.id": 8,
@@ -3233,7 +3233,7 @@ const playersData = [
   },
   {
     "player.id": 2195,
-    "Spielername": "S. Boey",
+    "Spielername": "Sacha Boey",
     "Spielerfoto": "https://media.api-sports.io/football/players/2195.png",
     "Position": "DEFENDER",
     "Club.name": "Bayern München",
@@ -3272,7 +3272,7 @@ const playersData = [
   },
   {
     "player.id": 328033,
-    "Spielername": "A. Pavlović",
+    "Spielername": "Aleksandar Pavlović",
     "Spielerfoto": "https://media.api-sports.io/football/players/328033.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
@@ -3298,7 +3298,7 @@ const playersData = [
   },
   {
     "player.id": 414474,
-    "Spielername": "F. Chávez",
+    "Spielername": "Felipe Marlon Chávez",
     "Spielerfoto": "https://media.api-sports.io/football/players/414474.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
@@ -3310,21 +3310,8 @@ const playersData = [
     "Gewicht": "64"
   },
   {
-    "player.id": 502,
-    "Spielername": "J. Kimmich",
-    "Spielerfoto": "https://media.api-sports.io/football/players/502.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Bayern München",
-    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "1995-02-08",
-    "Groesse": "177",
-    "Gewicht": "75"
-  },
-  {
     "player.id": 181812,
-    "Spielername": "J. Musiala",
+    "Spielername": "Jamal Musiala",
     "Spielerfoto": "https://media.api-sports.io/football/players/181812.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
@@ -3336,34 +3323,21 @@ const playersData = [
     "Gewicht": "72"
   },
   {
-    "player.id": 2489,
-    "Spielername": "L. Díaz",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2489.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Bayern München",
-    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
-    "Nationalteam.name": "Colombia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
-    "Geburtsdatum": "1997-01-13",
-    "Groesse": "178",
-    "Gewicht": "65"
-  },
-  {
-    "player.id": 511,
-    "Spielername": "L. Goretzka",
-    "Spielerfoto": "https://media.api-sports.io/football/players/511.png",
+    "player.id": 502,
+    "Spielername": "Joshua Walter Kimmich",
+    "Spielerfoto": "https://media.api-sports.io/football/players/502.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
     "Club.logo": "https://media.api-sports.io/football/teams/157.png",
     "Nationalteam.name": "Germany",
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "1995-02-06",
-    "Groesse": "189",
-    "Gewicht": "82"
+    "Geburtsdatum": "1995-02-08",
+    "Groesse": "177",
+    "Gewicht": "75"
   },
   {
     "player.id": 494131,
-    "Spielername": "L. Karl",
+    "Spielername": "Lennart Karl",
     "Spielerfoto": "https://media.api-sports.io/football/players/494131.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
@@ -3375,8 +3349,34 @@ const playersData = [
     "Gewicht": "67"
   },
   {
+    "player.id": 511,
+    "Spielername": "Leon Christoph Goretzka",
+    "Spielerfoto": "https://media.api-sports.io/football/players/511.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Bayern München",
+    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "1995-02-06",
+    "Groesse": "189",
+    "Gewicht": "82"
+  },
+  {
+    "player.id": 2489,
+    "Spielername": "Luis Fernando Díaz",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2489.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Bayern München",
+    "Club.logo": "https://media.api-sports.io/football/teams/157.png",
+    "Nationalteam.name": "Colombia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
+    "Geburtsdatum": "1997-01-13",
+    "Groesse": "178",
+    "Gewicht": "65"
+  },
+  {
     "player.id": 19617,
-    "Spielername": "M. Olise",
+    "Spielername": "Michael Akpovie Olise",
     "Spielerfoto": "https://media.api-sports.io/football/players/19617.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
@@ -3389,7 +3389,7 @@ const playersData = [
   },
   {
     "player.id": 510,
-    "Spielername": "S. Gnabry",
+    "Spielername": "Serge David Gnabry",
     "Spielerfoto": "https://media.api-sports.io/football/players/510.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
@@ -3402,7 +3402,7 @@ const playersData = [
   },
   {
     "player.id": 325975,
-    "Spielername": "T. Bischof",
+    "Spielername": "Tom Bischof",
     "Spielerfoto": "https://media.api-sports.io/football/players/325975.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bayern München",
@@ -3415,7 +3415,7 @@ const playersData = [
   },
   {
     "player.id": 184,
-    "Spielername": "H. Kane",
+    "Spielername": "Harry Edward Kane",
     "Spielerfoto": "https://media.api-sports.io/football/players/184.png",
     "Position": "ATTACKER",
     "Club.name": "Bayern München",
@@ -3428,7 +3428,7 @@ const playersData = [
   },
   {
     "player.id": 283058,
-    "Spielername": "N. Jackson",
+    "Spielername": "Nicolas Jackson",
     "Spielerfoto": "https://media.api-sports.io/football/players/283058.png",
     "Position": "ATTACKER",
     "Club.name": "Bayern München",
@@ -3441,7 +3441,7 @@ const playersData = [
   },
   {
     "player.id": 496738,
-    "Spielername": "W. Mike",
+    "Spielername": "Wisdom Mike",
     "Spielerfoto": "https://media.api-sports.io/football/players/496738.png",
     "Position": "ATTACKER",
     "Club.name": "Bayern München",
@@ -3454,7 +3454,7 @@ const playersData = [
   },
   {
     "player.id": 675,
-    "Spielername": "A. Trubin",
+    "Spielername": "Anatolii Trubin",
     "Spielerfoto": "https://media.api-sports.io/football/players/675.png",
     "Position": "GOALKEEPER",
     "Club.name": "Benfica",
@@ -3493,7 +3493,7 @@ const playersData = [
   },
   {
     "player.id": 15623,
-    "Spielername": "A. Bah",
+    "Spielername": "Alexander Bah",
     "Spielerfoto": "https://media.api-sports.io/football/players/15623.png",
     "Position": "DEFENDER",
     "Club.name": "Benfica",
@@ -3506,7 +3506,7 @@ const playersData = [
   },
   {
     "player.id": 7318,
-    "Spielername": "A. Dedić",
+    "Spielername": "Amar Dedić",
     "Spielerfoto": "https://media.api-sports.io/football/players/7318.png",
     "Position": "DEFENDER",
     "Club.name": "Benfica",
@@ -3571,7 +3571,7 @@ const playersData = [
   },
   {
     "player.id": 312164,
-    "Spielername": "J. Wynder",
+    "Spielername": "Joshua Liam Wynder",
     "Spielerfoto": "https://media.api-sports.io/football/players/312164.png",
     "Position": "DEFENDER",
     "Club.name": "Benfica",
@@ -3584,7 +3584,7 @@ const playersData = [
   },
   {
     "player.id": 474842,
-    "Spielername": "Leandro Henrique Sousa Santos",
+    "Spielername": "Leandro Sousa",
     "Spielerfoto": "https://media.api-sports.io/football/players/474842.png",
     "Position": "DEFENDER",
     "Club.name": "Benfica",
@@ -3597,7 +3597,7 @@ const playersData = [
   },
   {
     "player.id": 624,
-    "Spielername": "N. Otamendi",
+    "Spielername": "Nicolás Otamendi",
     "Spielerfoto": "https://media.api-sports.io/football/players/624.png",
     "Position": "DEFENDER",
     "Club.name": "Benfica",
@@ -3623,7 +3623,7 @@ const playersData = [
   },
   {
     "player.id": 135505,
-    "Spielername": "S. Dahl",
+    "Spielername": "Samuel Elias Dahl",
     "Spielerfoto": "https://media.api-sports.io/football/players/135505.png",
     "Position": "DEFENDER",
     "Club.name": "Benfica",
@@ -3636,7 +3636,7 @@ const playersData = [
   },
   {
     "player.id": 308689,
-    "Spielername": "S. Lopes Cabral",
+    "Spielername": "Sidny Lopes Cabral",
     "Spielerfoto": "https://media.api-sports.io/football/players/308689.png",
     "Position": "DEFENDER",
     "Club.name": "Benfica",
@@ -3661,21 +3661,8 @@ const playersData = [
     "Gewicht": "81"
   },
   {
-    "player.id": 397737,
-    "Spielername": "A. Chemong",
-    "Spielerfoto": "https://media.api-sports.io/football/players/397737.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Benfica",
-    "Club.logo": "https://media.api-sports.io/football/teams/211.png",
-    "Nationalteam.name": "Thailand",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/th.svg",
-    "Geburtsdatum": "2002-08-26",
-    "Groesse": "186",
-    "Gewicht": "73"
-  },
-  {
     "player.id": 301528,
-    "Spielername": "A. Schjelderup",
+    "Spielername": "Andreas Schjelderup",
     "Spielerfoto": "https://media.api-sports.io/football/players/301528.png",
     "Position": "MIDFIELDER",
     "Club.name": "Benfica",
@@ -3684,6 +3671,19 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "2004-06-01",
     "Groesse": "176",
+    "Gewicht": "73"
+  },
+  {
+    "player.id": 397737,
+    "Spielername": "Asuwan Chemong",
+    "Spielerfoto": "https://media.api-sports.io/football/players/397737.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Benfica",
+    "Club.logo": "https://media.api-sports.io/football/teams/211.png",
+    "Nationalteam.name": "Thailand",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/th.svg",
+    "Geburtsdatum": "2002-08-26",
+    "Groesse": "186",
     "Gewicht": "73"
   },
   {
@@ -3701,7 +3701,7 @@ const playersData = [
   },
   {
     "player.id": 158378,
-    "Spielername": "E. Barrenechea",
+    "Spielername": "Enzo Barrenechea",
     "Spielerfoto": "https://media.api-sports.io/football/players/158378.png",
     "Position": "MIDFIELDER",
     "Club.name": "Benfica",
@@ -3711,19 +3711,6 @@ const playersData = [
     "Geburtsdatum": "2001-05-25",
     "Groesse": "186",
     "Gewicht": "81"
-  },
-  {
-    "player.id": 39043,
-    "Spielername": "F. Aursnes",
-    "Spielerfoto": "https://media.api-sports.io/football/players/39043.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Benfica",
-    "Club.logo": "https://media.api-sports.io/football/teams/211.png",
-    "Nationalteam.name": "Norway",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
-    "Geburtsdatum": "1995-12-10",
-    "Groesse": "179",
-    "Gewicht": "71"
   },
   {
     "player.id": 575,
@@ -3739,8 +3726,21 @@ const playersData = [
     "Gewicht": "74"
   },
   {
+    "player.id": 39043,
+    "Spielername": "Fredrik Aursnes",
+    "Spielerfoto": "https://media.api-sports.io/football/players/39043.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Benfica",
+    "Club.logo": "https://media.api-sports.io/football/teams/211.png",
+    "Nationalteam.name": "Norway",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
+    "Geburtsdatum": "1995-12-10",
+    "Groesse": "179",
+    "Gewicht": "71"
+  },
+  {
     "player.id": 161945,
-    "Spielername": "H. Sudakov",
+    "Spielername": "Heorhii Sudakov",
     "Spielerfoto": "https://media.api-sports.io/football/players/161945.png",
     "Position": "MIDFIELDER",
     "Club.name": "Benfica",
@@ -3753,7 +3753,7 @@ const playersData = [
   },
   {
     "player.id": 345427,
-    "Spielername": "João Pedro Seno Luís Rêgo",
+    "Spielername": "João Seno",
     "Spielerfoto": "https://media.api-sports.io/football/players/345427.png",
     "Position": "MIDFIELDER",
     "Club.name": "Benfica",
@@ -3779,7 +3779,7 @@ const playersData = [
   },
   {
     "player.id": 25918,
-    "Spielername": "L. Barreiro",
+    "Spielername": "Leandro Barreiro",
     "Spielerfoto": "https://media.api-sports.io/football/players/25918.png",
     "Position": "MIDFIELDER",
     "Club.name": "Benfica",
@@ -3804,19 +3804,6 @@ const playersData = [
     "Gewicht": "83"
   },
   {
-    "player.id": 195104,
-    "Spielername": "R. Rios",
-    "Spielerfoto": "https://media.api-sports.io/football/players/195104.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Benfica",
-    "Club.logo": "https://media.api-sports.io/football/teams/211.png",
-    "Nationalteam.name": "Colombia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
-    "Geburtsdatum": "2000-06-02",
-    "Groesse": "185",
-    "Gewicht": "74"
-  },
-  {
     "player.id": 573,
     "Spielername": "Rafa",
     "Spielerfoto": "https://media.api-sports.io/football/players/573.png",
@@ -3828,6 +3815,19 @@ const playersData = [
     "Geburtsdatum": "1993-05-17",
     "Groesse": "172",
     "Gewicht": "62"
+  },
+  {
+    "player.id": 195104,
+    "Spielername": "Richard Rios",
+    "Spielerfoto": "https://media.api-sports.io/football/players/195104.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Benfica",
+    "Club.logo": "https://media.api-sports.io/football/teams/211.png",
+    "Nationalteam.name": "Colombia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
+    "Geburtsdatum": "2000-06-02",
+    "Groesse": "185",
+    "Gewicht": "74"
   },
   {
     "player.id": 567695,
@@ -3857,7 +3857,7 @@ const playersData = [
   },
   {
     "player.id": 25458,
-    "Spielername": "D. Lukebakio",
+    "Spielername": "Dodi Lukebakio",
     "Spielerfoto": "https://media.api-sports.io/football/players/25458.png",
     "Position": "ATTACKER",
     "Club.name": "Benfica",
@@ -3870,7 +3870,7 @@ const playersData = [
   },
   {
     "player.id": 202951,
-    "Spielername": "F. Ivanović",
+    "Spielername": "Franjo Ivanović",
     "Spielerfoto": "https://media.api-sports.io/football/players/202951.png",
     "Position": "ATTACKER",
     "Club.name": "Benfica",
@@ -3883,7 +3883,7 @@ const playersData = [
   },
   {
     "player.id": 362755,
-    "Spielername": "G. Prestianni",
+    "Spielername": "Gianluca Prestianni",
     "Spielerfoto": "https://media.api-sports.io/football/players/362755.png",
     "Position": "ATTACKER",
     "Club.name": "Benfica",
@@ -3922,7 +3922,7 @@ const playersData = [
   },
   {
     "player.id": 142959,
-    "Spielername": "K. Aktürkoğlu",
+    "Spielername": "Muhammed Kerem Aktürkoğlu",
     "Spielerfoto": "https://media.api-sports.io/football/players/142959.png",
     "Position": "ATTACKER",
     "Club.name": "Benfica",
@@ -3935,7 +3935,7 @@ const playersData = [
   },
   {
     "player.id": 441268,
-    "Spielername": "Rodrigo Miguel Ferreira Rêgo",
+    "Spielername": "Rodrigo Ferreira",
     "Spielerfoto": "https://media.api-sports.io/football/players/441268.png",
     "Position": "ATTACKER",
     "Club.name": "Benfica",
@@ -3961,7 +3961,7 @@ const playersData = [
   },
   {
     "player.id": 36798,
-    "Spielername": "V. Pavlidis",
+    "Spielername": "Vangelis Pavlidis",
     "Spielerfoto": "https://media.api-sports.io/football/players/36798.png",
     "Position": "ATTACKER",
     "Club.name": "Benfica",
@@ -3974,7 +3974,7 @@ const playersData = [
   },
   {
     "player.id": 407659,
-    "Spielername": "I. Sjong",
+    "Spielername": "Isak Aron Sjong",
     "Spielerfoto": "https://media.api-sports.io/football/players/407659.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bodo/Glimt",
@@ -3987,7 +3987,7 @@ const playersData = [
   },
   {
     "player.id": 39178,
-    "Spielername": "J. Faye Lund",
+    "Spielername": "Julian Faye Lund",
     "Spielerfoto": "https://media.api-sports.io/football/players/39178.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bodo/Glimt",
@@ -4000,7 +4000,7 @@ const playersData = [
   },
   {
     "player.id": 319319,
-    "Spielername": "M. Brøndbo",
+    "Spielername": "Magnus Brøndbo",
     "Spielerfoto": "https://media.api-sports.io/football/players/319319.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bodo/Glimt",
@@ -4013,7 +4013,7 @@ const playersData = [
   },
   {
     "player.id": 39055,
-    "Spielername": "N. Haikin",
+    "Spielername": "Nikita Haikin",
     "Spielerfoto": "https://media.api-sports.io/football/players/39055.png",
     "Position": "GOALKEEPER",
     "Club.name": "Bodo/Glimt",
@@ -4026,7 +4026,7 @@ const playersData = [
   },
   {
     "player.id": 39061,
-    "Spielername": "B. Moe",
+    "Spielername": "Brede Mathias Moe",
     "Spielerfoto": "https://media.api-sports.io/football/players/39061.png",
     "Position": "DEFENDER",
     "Club.name": "Bodo/Glimt",
@@ -4039,7 +4039,7 @@ const playersData = [
   },
   {
     "player.id": 39058,
-    "Spielername": "F. Bjørkan",
+    "Spielername": "Fredrik André Bjørkan",
     "Spielerfoto": "https://media.api-sports.io/football/players/39058.png",
     "Position": "DEFENDER",
     "Club.name": "Bodo/Glimt",
@@ -4052,7 +4052,7 @@ const playersData = [
   },
   {
     "player.id": 351483,
-    "Spielername": "F. Sjøvold",
+    "Spielername": "Fredrik Sjøvold",
     "Spielerfoto": "https://media.api-sports.io/football/players/351483.png",
     "Position": "DEFENDER",
     "Club.name": "Bodo/Glimt",
@@ -4065,7 +4065,7 @@ const playersData = [
   },
   {
     "player.id": 31541,
-    "Spielername": "H. Aleesami",
+    "Spielername": "Haitam Aleesami",
     "Spielerfoto": "https://media.api-sports.io/football/players/31541.png",
     "Position": "DEFENDER",
     "Club.name": "Bodo/Glimt",
@@ -4078,7 +4078,7 @@ const playersData = [
   },
   {
     "player.id": 39352,
-    "Spielername": "J. Gundersen",
+    "Spielername": "Jostein Gundersen",
     "Spielerfoto": "https://media.api-sports.io/football/players/39352.png",
     "Position": "DEFENDER",
     "Club.name": "Bodo/Glimt",
@@ -4091,7 +4091,7 @@ const playersData = [
   },
   {
     "player.id": 39083,
-    "Spielername": "O. Bjørtuft",
+    "Spielername": "Odin Bjørtuft",
     "Spielerfoto": "https://media.api-sports.io/football/players/39083.png",
     "Position": "DEFENDER",
     "Club.name": "Bodo/Glimt",
@@ -4104,7 +4104,7 @@ const playersData = [
   },
   {
     "player.id": 449592,
-    "Spielername": "V. Nielsen",
+    "Spielername": "Villads Nielsen",
     "Spielerfoto": "https://media.api-sports.io/football/players/449592.png",
     "Position": "DEFENDER",
     "Club.name": "Bodo/Glimt",
@@ -4117,7 +4117,7 @@ const playersData = [
   },
   {
     "player.id": 264692,
-    "Spielername": "A. Klynge",
+    "Spielername": "Anders Klynge",
     "Spielerfoto": "https://media.api-sports.io/football/players/264692.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4130,7 +4130,7 @@ const playersData = [
   },
   {
     "player.id": 39065,
-    "Spielername": "H. Evjen",
+    "Spielername": "Håkon Evjen",
     "Spielerfoto": "https://media.api-sports.io/football/players/39065.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4143,7 +4143,7 @@ const playersData = [
   },
   {
     "player.id": 266663,
-    "Spielername": "M. Riisnæs",
+    "Spielername": "Magnus Bech Riisnæs",
     "Spielerfoto": "https://media.api-sports.io/football/players/266663.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4156,7 +4156,7 @@ const playersData = [
   },
   {
     "player.id": 151510,
-    "Spielername": "O. Didrik Blomberg",
+    "Spielername": "Ole Blomberg",
     "Spielerfoto": "https://media.api-sports.io/football/players/151510.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4169,7 +4169,7 @@ const playersData = [
   },
   {
     "player.id": 39064,
-    "Spielername": "P. Berg",
+    "Spielername": "Patrick Berg",
     "Spielerfoto": "https://media.api-sports.io/football/players/39064.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4182,7 +4182,7 @@ const playersData = [
   },
   {
     "player.id": 262598,
-    "Spielername": "S. Auklend",
+    "Spielername": "Sondre Auklend",
     "Spielerfoto": "https://media.api-sports.io/football/players/262598.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4195,7 +4195,7 @@ const playersData = [
   },
   {
     "player.id": 57159,
-    "Spielername": "S. Fet",
+    "Spielername": "Sondre Fet",
     "Spielerfoto": "https://media.api-sports.io/football/players/57159.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4208,7 +4208,7 @@ const playersData = [
   },
   {
     "player.id": 39069,
-    "Spielername": "U. Saltnes",
+    "Spielername": "Ulrik Saltnes",
     "Spielerfoto": "https://media.api-sports.io/football/players/39069.png",
     "Position": "MIDFIELDER",
     "Club.name": "Bodo/Glimt",
@@ -4221,7 +4221,7 @@ const playersData = [
   },
   {
     "player.id": 39099,
-    "Spielername": "A. Helmersen",
+    "Spielername": "Andreas Helmersen",
     "Spielerfoto": "https://media.api-sports.io/football/players/39099.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4234,7 +4234,7 @@ const playersData = [
   },
   {
     "player.id": 39360,
-    "Spielername": "A. Mikkelsen",
+    "Spielername": "August Mikkelsen",
     "Spielerfoto": "https://media.api-sports.io/football/players/39360.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4247,7 +4247,7 @@ const playersData = [
   },
   {
     "player.id": 364814,
-    "Spielername": "D. Bassi",
+    "Spielername": "Daniel Joshua Bassi",
     "Spielerfoto": "https://media.api-sports.io/football/players/364814.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4273,7 +4273,7 @@ const playersData = [
   },
   {
     "player.id": 57153,
-    "Spielername": "I. Määttä",
+    "Spielername": "Isak Määttä",
     "Spielerfoto": "https://media.api-sports.io/football/players/57153.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4286,7 +4286,7 @@ const playersData = [
   },
   {
     "player.id": 39073,
-    "Spielername": "J. Hauge",
+    "Spielername": "Jens Petter Hauge",
     "Spielerfoto": "https://media.api-sports.io/football/players/39073.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4299,7 +4299,7 @@ const playersData = [
   },
   {
     "player.id": 15704,
-    "Spielername": "K. Høgh",
+    "Spielername": "Kasper Høgh",
     "Spielerfoto": "https://media.api-sports.io/football/players/15704.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4311,21 +4311,8 @@ const playersData = [
     "Gewicht": "61"
   },
   {
-    "player.id": 508061,
-    "Spielername": "M. Hansen",
-    "Spielerfoto": "https://media.api-sports.io/football/players/508061.png",
-    "Position": "ATTACKER",
-    "Club.name": "Bodo/Glimt",
-    "Club.logo": "https://media.api-sports.io/football/teams/327.png",
-    "Nationalteam.name": "Denmark",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
-    "Geburtsdatum": "2009-01-25",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 50968,
-    "Spielername": "M. Jørgensen",
+    "Spielername": "Mathias Jørgensen",
     "Spielerfoto": "https://media.api-sports.io/football/players/50968.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4337,8 +4324,21 @@ const playersData = [
     "Gewicht": "79"
   },
   {
+    "player.id": 508061,
+    "Spielername": "Mikkel Hansen",
+    "Spielerfoto": "https://media.api-sports.io/football/players/508061.png",
+    "Position": "ATTACKER",
+    "Club.name": "Bodo/Glimt",
+    "Club.logo": "https://media.api-sports.io/football/teams/327.png",
+    "Nationalteam.name": "Denmark",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
+    "Geburtsdatum": "2009-01-25",
+    "Groesse": "",
+    "Gewicht": ""
+  },
+  {
     "player.id": 335096,
-    "Spielername": "S. Burakovsky",
+    "Spielername": "Samuel Burakovsky",
     "Spielerfoto": "https://media.api-sports.io/football/players/335096.png",
     "Position": "ATTACKER",
     "Club.name": "Bodo/Glimt",
@@ -4351,7 +4351,7 @@ const playersData = [
   },
   {
     "player.id": 26292,
-    "Spielername": "A. Meyer",
+    "Spielername": "Alexander Niklas Meyer",
     "Spielerfoto": "https://media.api-sports.io/football/players/26292.png",
     "Position": "GOALKEEPER",
     "Club.name": "Borussia Dortmund",
@@ -4364,7 +4364,7 @@ const playersData = [
   },
   {
     "player.id": 25282,
-    "Spielername": "G. Kobel",
+    "Spielername": "Gregor Kobel",
     "Spielerfoto": "https://media.api-sports.io/football/players/25282.png",
     "Position": "GOALKEEPER",
     "Club.name": "Borussia Dortmund",
@@ -4377,7 +4377,7 @@ const playersData = [
   },
   {
     "player.id": 280463,
-    "Spielername": "S. Ostrzinski",
+    "Spielername": "Silas Ostrzinski",
     "Spielerfoto": "https://media.api-sports.io/football/players/280463.png",
     "Position": "GOALKEEPER",
     "Club.name": "Borussia Dortmund",
@@ -4390,7 +4390,7 @@ const playersData = [
   },
   {
     "player.id": 422780,
-    "Spielername": "A. Anselmino",
+    "Spielername": "Aaron Anselmino",
     "Spielerfoto": "https://media.api-sports.io/football/players/422780.png",
     "Position": "DEFENDER",
     "Club.name": "Borussia Dortmund",
@@ -4403,7 +4403,7 @@ const playersData = [
   },
   {
     "player.id": 394667,
-    "Spielername": "Almugera Raouf Mohammed Kabar",
+    "Spielername": "Almugera Raouf",
     "Spielerfoto": "https://media.api-sports.io/football/players/394667.png",
     "Position": "DEFENDER",
     "Club.name": "Borussia Dortmund",
@@ -4413,6 +4413,19 @@ const playersData = [
     "Geburtsdatum": "2006-02-06",
     "Groesse": "186",
     "Gewicht": "78"
+  },
+  {
+    "player.id": 2194,
+    "Spielername": "Amir Bensebaïni",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2194.png",
+    "Position": "DEFENDER",
+    "Club.name": "Borussia Dortmund",
+    "Club.logo": "https://media.api-sports.io/football/teams/165.png",
+    "Nationalteam.name": "Algeria",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
+    "Geburtsdatum": "1995-04-16",
+    "Groesse": "187",
+    "Gewicht": "82"
   },
   {
     "player.id": 420351,
@@ -4429,7 +4442,7 @@ const playersData = [
   },
   {
     "player.id": 341839,
-    "Spielername": "F. Mané",
+    "Spielername": "Filippo Calixte Mané",
     "Spielerfoto": "https://media.api-sports.io/football/players/341839.png",
     "Position": "DEFENDER",
     "Club.name": "Borussia Dortmund",
@@ -4442,7 +4455,7 @@ const playersData = [
   },
   {
     "player.id": 24845,
-    "Spielername": "J. Ryerson",
+    "Spielername": "Julian Ryerson",
     "Spielerfoto": "https://media.api-sports.io/football/players/24845.png",
     "Position": "DEFENDER",
     "Club.name": "Borussia Dortmund",
@@ -4468,7 +4481,7 @@ const playersData = [
   },
   {
     "player.id": 26243,
-    "Spielername": "N. Schlotterbeck",
+    "Spielername": "Nico Cedric Schlotterbeck",
     "Spielerfoto": "https://media.api-sports.io/football/players/26243.png",
     "Position": "DEFENDER",
     "Club.name": "Borussia Dortmund",
@@ -4481,7 +4494,7 @@ const playersData = [
   },
   {
     "player.id": 506,
-    "Spielername": "N. Süle",
+    "Spielername": "Niklas Süle",
     "Spielerfoto": "https://media.api-sports.io/football/players/506.png",
     "Position": "DEFENDER",
     "Club.name": "Borussia Dortmund",
@@ -4493,21 +4506,8 @@ const playersData = [
     "Gewicht": "99"
   },
   {
-    "player.id": 2194,
-    "Spielername": "R. Bensebaïni",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2194.png",
-    "Position": "DEFENDER",
-    "Club.name": "Borussia Dortmund",
-    "Club.logo": "https://media.api-sports.io/football/teams/165.png",
-    "Nationalteam.name": "Algeria",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
-    "Geburtsdatum": "1995-04-16",
-    "Groesse": "187",
-    "Gewicht": "82"
-  },
-  {
     "player.id": 25368,
-    "Spielername": "W. Anton",
+    "Spielername": "Waldemar Anton",
     "Spielerfoto": "https://media.api-sports.io/football/players/25368.png",
     "Position": "DEFENDER",
     "Club.name": "Borussia Dortmund",
@@ -4520,7 +4520,7 @@ const playersData = [
   },
   {
     "player.id": 138935,
-    "Spielername": "C. Chukwuemeka",
+    "Spielername": "Carney Chibueze Chukwuemeka",
     "Spielerfoto": "https://media.api-sports.io/football/players/138935.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4533,7 +4533,7 @@ const playersData = [
   },
   {
     "player.id": 198654,
-    "Spielername": "D. Svensson",
+    "Spielername": "Daniel Svensson",
     "Spielerfoto": "https://media.api-sports.io/football/players/198654.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4559,7 +4559,7 @@ const playersData = [
   },
   {
     "player.id": 864,
-    "Spielername": "E. Can",
+    "Spielername": "Emre Can",
     "Spielerfoto": "https://media.api-sports.io/football/players/864.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4572,7 +4572,7 @@ const playersData = [
   },
   {
     "player.id": 637,
-    "Spielername": "F. Nmecha",
+    "Spielername": "Felix Kalu Nmecha",
     "Spielerfoto": "https://media.api-sports.io/football/players/637.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4585,7 +4585,7 @@ const playersData = [
   },
   {
     "player.id": 326757,
-    "Spielername": "J. Bellingham",
+    "Spielername": "Jobe Bellingham",
     "Spielerfoto": "https://media.api-sports.io/football/players/326757.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4598,7 +4598,7 @@ const playersData = [
   },
   {
     "player.id": 984,
-    "Spielername": "J. Brandt",
+    "Spielername": "Julian Brandt",
     "Spielerfoto": "https://media.api-sports.io/football/players/984.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4611,7 +4611,7 @@ const playersData = [
   },
   {
     "player.id": 1159,
-    "Spielername": "M. Sabitzer",
+    "Spielername": "Marcel Sabitzer",
     "Spielerfoto": "https://media.api-sports.io/football/players/1159.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4624,7 +4624,7 @@ const playersData = [
   },
   {
     "player.id": 18970,
-    "Spielername": "P. Groß",
+    "Spielername": "Pascal Groß",
     "Spielerfoto": "https://media.api-sports.io/football/players/18970.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4637,7 +4637,7 @@ const playersData = [
   },
   {
     "player.id": 24807,
-    "Spielername": "S. Özcan",
+    "Spielername": "Salih Özcan",
     "Spielerfoto": "https://media.api-sports.io/football/players/24807.png",
     "Position": "MIDFIELDER",
     "Club.name": "Borussia Dortmund",
@@ -4676,7 +4676,7 @@ const playersData = [
   },
   {
     "player.id": 368230,
-    "Spielername": "J. Duranville",
+    "Spielername": "Julien Duranville",
     "Spielerfoto": "https://media.api-sports.io/football/players/368230.png",
     "Position": "ATTACKER",
     "Club.name": "Borussia Dortmund",
@@ -4689,7 +4689,7 @@ const playersData = [
   },
   {
     "player.id": 7334,
-    "Spielername": "K. Adeyemi",
+    "Spielername": "Karim-David Adeyemi",
     "Spielerfoto": "https://media.api-sports.io/football/players/7334.png",
     "Position": "ATTACKER",
     "Club.name": "Borussia Dortmund",
@@ -4702,7 +4702,7 @@ const playersData = [
   },
   {
     "player.id": 158644,
-    "Spielername": "M. Beier",
+    "Spielername": "Maximilian Beier",
     "Spielerfoto": "https://media.api-sports.io/football/players/158644.png",
     "Position": "ATTACKER",
     "Club.name": "Borussia Dortmund",
@@ -4714,21 +4714,8 @@ const playersData = [
     "Gewicht": "72"
   },
   {
-    "player.id": 21393,
-    "Spielername": "S. Guirassy",
-    "Spielerfoto": "https://media.api-sports.io/football/players/21393.png",
-    "Position": "ATTACKER",
-    "Club.name": "Borussia Dortmund",
-    "Club.logo": "https://media.api-sports.io/football/teams/165.png",
-    "Nationalteam.name": "Guinea",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gn.svg",
-    "Geburtsdatum": "1996-03-12",
-    "Groesse": "187",
-    "Gewicht": "82"
-  },
-  {
     "player.id": 478991,
-    "Spielername": "S. Inacio",
+    "Spielername": "Samuele Inacio",
     "Spielerfoto": "https://media.api-sports.io/football/players/478991.png",
     "Position": "ATTACKER",
     "Club.name": "Borussia Dortmund",
@@ -4738,6 +4725,19 @@ const playersData = [
     "Geburtsdatum": "2008-04-02",
     "Groesse": "",
     "Gewicht": ""
+  },
+  {
+    "player.id": 21393,
+    "Spielername": "Serhou Yadaly Guirassy",
+    "Spielerfoto": "https://media.api-sports.io/football/players/21393.png",
+    "Position": "ATTACKER",
+    "Club.name": "Borussia Dortmund",
+    "Club.logo": "https://media.api-sports.io/football/teams/165.png",
+    "Nationalteam.name": "Guinea",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gn.svg",
+    "Geburtsdatum": "1996-03-12",
+    "Groesse": "187",
+    "Gewicht": "82"
   },
   {
     "player.id": 328617,
@@ -4754,7 +4754,7 @@ const playersData = [
   },
   {
     "player.id": 286616,
-    "Spielername": "F. Jörgensen",
+    "Spielername": "Filip Jörgensen",
     "Spielerfoto": "https://media.api-sports.io/football/players/286616.png",
     "Position": "GOALKEEPER",
     "Club.name": "Chelsea",
@@ -4792,19 +4792,6 @@ const playersData = [
     "Gewicht": "90"
   },
   {
-    "player.id": 180940,
-    "Spielername": "T. Sharman-Lowe",
-    "Spielerfoto": "https://media.api-sports.io/football/players/180940.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Chelsea",
-    "Club.logo": "https://media.api-sports.io/football/teams/49.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2003-03-30",
-    "Groesse": "189",
-    "Gewicht": "73"
-  },
-  {
     "player.id": 298061,
     "Spielername": "Ted Curd",
     "Spielerfoto": "https://media.api-sports.io/football/players/298061.png",
@@ -4818,8 +4805,34 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 180940,
+    "Spielername": "Teddy Samuel Sharman-Lowe",
+    "Spielerfoto": "https://media.api-sports.io/football/players/180940.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Chelsea",
+    "Club.logo": "https://media.api-sports.io/football/teams/49.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2003-03-30",
+    "Groesse": "189",
+    "Gewicht": "73"
+  },
+  {
+    "player.id": 19145,
+    "Spielername": "Abdul-Nasir Oluwatosin Adarabioyo",
+    "Spielerfoto": "https://media.api-sports.io/football/players/19145.png",
+    "Position": "DEFENDER",
+    "Club.name": "Chelsea",
+    "Club.logo": "https://media.api-sports.io/football/teams/49.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "1997-09-24",
+    "Groesse": "196",
+    "Gewicht": "80"
+  },
+  {
     "player.id": 95,
-    "Spielername": "B. Badiashile",
+    "Spielername": "Benoît Ntambue Badiashile",
     "Spielerfoto": "https://media.api-sports.io/football/players/95.png",
     "Position": "DEFENDER",
     "Club.name": "Chelsea",
@@ -4832,7 +4845,7 @@ const playersData = [
   },
   {
     "player.id": 341642,
-    "Spielername": "J. Hato",
+    "Spielername": "Jorrel Hato",
     "Spielerfoto": "https://media.api-sports.io/football/players/341642.png",
     "Position": "DEFENDER",
     "Club.name": "Chelsea",
@@ -4858,7 +4871,7 @@ const playersData = [
   },
   {
     "player.id": 161907,
-    "Spielername": "M. Gusto",
+    "Spielername": "Malo Gusto",
     "Spielerfoto": "https://media.api-sports.io/football/players/161907.png",
     "Position": "DEFENDER",
     "Club.name": "Chelsea",
@@ -4871,7 +4884,7 @@ const playersData = [
   },
   {
     "player.id": 276184,
-    "Spielername": "M. Sarr",
+    "Spielername": "Mamadou Sarr",
     "Spielerfoto": "https://media.api-sports.io/football/players/276184.png",
     "Position": "DEFENDER",
     "Club.name": "Chelsea",
@@ -4896,21 +4909,8 @@ const playersData = [
     "Gewicht": "66"
   },
   {
-    "player.id": 19145,
-    "Spielername": "T. Adarabioyo",
-    "Spielerfoto": "https://media.api-sports.io/football/players/19145.png",
-    "Position": "DEFENDER",
-    "Club.name": "Chelsea",
-    "Club.logo": "https://media.api-sports.io/football/teams/49.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "1997-09-24",
-    "Groesse": "196",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 19720,
-    "Spielername": "T. Chalobah",
+    "Spielername": "Trevoh Thomas Chalobah",
     "Spielerfoto": "https://media.api-sports.io/football/players/19720.png",
     "Position": "DEFENDER",
     "Club.name": "Chelsea",
@@ -4923,7 +4923,7 @@ const playersData = [
   },
   {
     "player.id": 22094,
-    "Spielername": "W. Fofana",
+    "Spielername": "Wesley Tidjan Fofana",
     "Spielerfoto": "https://media.api-sports.io/football/players/22094.png",
     "Position": "DEFENDER",
     "Club.name": "Chelsea",
@@ -4949,7 +4949,7 @@ const playersData = [
   },
   {
     "player.id": 152982,
-    "Spielername": "C. Palmer",
+    "Spielername": "Cole Jermaine Palmer",
     "Spielerfoto": "https://media.api-sports.io/football/players/152982.png",
     "Position": "MIDFIELDER",
     "Club.name": "Chelsea",
@@ -4962,7 +4962,7 @@ const playersData = [
   },
   {
     "player.id": 5996,
-    "Spielername": "E. Fernández",
+    "Spielername": "Enzo Jeremías Fernández",
     "Spielerfoto": "https://media.api-sports.io/football/players/5996.png",
     "Position": "MIDFIELDER",
     "Club.name": "Chelsea",
@@ -4975,7 +4975,7 @@ const playersData = [
   },
   {
     "player.id": 311334,
-    "Spielername": "F. Buonanotte",
+    "Spielername": "Facundo Valentín Buonanotte",
     "Spielerfoto": "https://media.api-sports.io/football/players/311334.png",
     "Position": "MIDFIELDER",
     "Club.name": "Chelsea",
@@ -4988,7 +4988,7 @@ const playersData = [
   },
   {
     "player.id": 454935,
-    "Spielername": "L. Emenalo",
+    "Spielername": "Landon Emenalo",
     "Spielerfoto": "https://media.api-sports.io/football/players/454935.png",
     "Position": "MIDFIELDER",
     "Club.name": "Chelsea",
@@ -5001,7 +5001,7 @@ const playersData = [
   },
   {
     "player.id": 116117,
-    "Spielername": "M. Caicedo",
+    "Spielername": "Moisés Isaac Caicedo",
     "Spielerfoto": "https://media.api-sports.io/football/players/116117.png",
     "Position": "MIDFIELDER",
     "Club.name": "Chelsea",
@@ -5027,7 +5027,7 @@ const playersData = [
   },
   {
     "player.id": 19545,
-    "Spielername": "R. James",
+    "Spielername": "Reece Lewis James",
     "Spielerfoto": "https://media.api-sports.io/football/players/19545.png",
     "Position": "MIDFIELDER",
     "Club.name": "Chelsea",
@@ -5039,21 +5039,8 @@ const playersData = [
     "Gewicht": "82"
   },
   {
-    "player.id": 282125,
-    "Spielername": "R. Lavia",
-    "Spielerfoto": "https://media.api-sports.io/football/players/282125.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Chelsea",
-    "Club.logo": "https://media.api-sports.io/football/teams/49.png",
-    "Nationalteam.name": "Belgium",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
-    "Geburtsdatum": "2004-01-06",
-    "Groesse": "181",
-    "Gewicht": "76"
-  },
-  {
     "player.id": 482888,
-    "Spielername": "R. Walsh",
+    "Spielername": "Reggie Walsh",
     "Spielerfoto": "https://media.api-sports.io/football/players/482888.png",
     "Position": "MIDFIELDER",
     "Club.name": "Chelsea",
@@ -5065,8 +5052,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 282125,
+    "Spielername": "Roméo Lavia",
+    "Spielerfoto": "https://media.api-sports.io/football/players/282125.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Chelsea",
+    "Club.logo": "https://media.api-sports.io/football/teams/49.png",
+    "Nationalteam.name": "Belgium",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
+    "Geburtsdatum": "2004-01-06",
+    "Groesse": "181",
+    "Gewicht": "76"
+  },
+  {
     "player.id": 284324,
-    "Spielername": "A. Garnacho",
+    "Spielername": "Alejandro Garnacho",
     "Spielerfoto": "https://media.api-sports.io/football/players/284324.png",
     "Position": "ATTACKER",
     "Club.name": "Chelsea",
@@ -5092,7 +5092,7 @@ const playersData = [
   },
   {
     "player.id": 286894,
-    "Spielername": "J. Bynoe-Gittens",
+    "Spielername": "Jamie Jermaine Bynoe-Gittens",
     "Spielerfoto": "https://media.api-sports.io/football/players/286894.png",
     "Position": "ATTACKER",
     "Club.name": "Chelsea",
@@ -5118,7 +5118,7 @@ const playersData = [
   },
   {
     "player.id": 161948,
-    "Spielername": "L. Delap",
+    "Spielername": "Liam Rory Delap",
     "Spielerfoto": "https://media.api-sports.io/football/players/161948.png",
     "Position": "ATTACKER",
     "Club.name": "Chelsea",
@@ -5182,19 +5182,6 @@ const playersData = [
     "Gewicht": "75"
   },
   {
-    "player.id": 395891,
-    "Spielername": "A. De Corte",
-    "Spielerfoto": "https://media.api-sports.io/football/players/395891.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Club Brugge KV",
-    "Club.logo": "https://media.api-sports.io/football/teams/569.png",
-    "Nationalteam.name": "Belgium",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
-    "Geburtsdatum": "2006-03-24",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 426668,
     "Spielername": "Argus Vanden Driessche",
     "Spielerfoto": "https://media.api-sports.io/football/players/426668.png",
@@ -5208,21 +5195,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 282903,
-    "Spielername": "D. van den Heuvel",
-    "Spielerfoto": "https://media.api-sports.io/football/players/282903.png",
+    "player.id": 395891,
+    "Spielername": "Axl De Corte",
+    "Spielerfoto": "https://media.api-sports.io/football/players/395891.png",
     "Position": "GOALKEEPER",
     "Club.name": "Club Brugge KV",
     "Club.logo": "https://media.api-sports.io/football/teams/569.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "2003-05-28",
-    "Groesse": "186",
-    "Gewicht": "73"
+    "Nationalteam.name": "Belgium",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
+    "Geburtsdatum": "2006-03-24",
+    "Groesse": "",
+    "Gewicht": ""
   },
   {
     "player.id": 1923,
-    "Spielername": "N. Jackers",
+    "Spielername": "Nordin Jackers",
     "Spielerfoto": "https://media.api-sports.io/football/players/1923.png",
     "Position": "GOALKEEPER",
     "Club.name": "Club Brugge KV",
@@ -5235,7 +5222,7 @@ const playersData = [
   },
   {
     "player.id": 282,
-    "Spielername": "S. Mignolet",
+    "Spielername": "Simon Mignolet",
     "Spielerfoto": "https://media.api-sports.io/football/players/282.png",
     "Position": "GOALKEEPER",
     "Club.name": "Club Brugge KV",
@@ -5247,21 +5234,21 @@ const playersData = [
     "Gewicht": "88"
   },
   {
-    "player.id": 69,
-    "Spielername": "B. Mechele",
-    "Spielerfoto": "https://media.api-sports.io/football/players/69.png",
-    "Position": "DEFENDER",
+    "player.id": 282903,
+    "Spielername": "Tristan van",
+    "Spielerfoto": "https://media.api-sports.io/football/players/282903.png",
+    "Position": "GOALKEEPER",
     "Club.name": "Club Brugge KV",
     "Club.logo": "https://media.api-sports.io/football/teams/569.png",
-    "Nationalteam.name": "Belgium",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
-    "Geburtsdatum": "1993-01-28",
-    "Groesse": "190",
-    "Gewicht": "81"
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "2003-05-28",
+    "Groesse": "186",
+    "Gewicht": "73"
   },
   {
     "player.id": 314265,
-    "Spielername": "B. Meijer",
+    "Spielername": "Bjorn Thomas Meijer",
     "Spielerfoto": "https://media.api-sports.io/football/players/314265.png",
     "Position": "DEFENDER",
     "Club.name": "Club Brugge KV",
@@ -5273,8 +5260,21 @@ const playersData = [
     "Gewicht": "89"
   },
   {
+    "player.id": 69,
+    "Spielername": "Brandon Mechele",
+    "Spielerfoto": "https://media.api-sports.io/football/players/69.png",
+    "Position": "DEFENDER",
+    "Club.name": "Club Brugge KV",
+    "Club.logo": "https://media.api-sports.io/football/teams/569.png",
+    "Nationalteam.name": "Belgium",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
+    "Geburtsdatum": "1993-01-28",
+    "Groesse": "190",
+    "Gewicht": "81"
+  },
+  {
     "player.id": 290213,
-    "Spielername": "H. Siquet",
+    "Spielername": "Hugo Thierry Siquet",
     "Spielerfoto": "https://media.api-sports.io/football/players/290213.png",
     "Position": "DEFENDER",
     "Club.name": "Club Brugge KV",
@@ -5286,21 +5286,8 @@ const playersData = [
     "Gewicht": "70"
   },
   {
-    "player.id": 354027,
-    "Spielername": "J. Ordoñez",
-    "Spielerfoto": "https://media.api-sports.io/football/players/354027.png",
-    "Position": "DEFENDER",
-    "Club.name": "Club Brugge KV",
-    "Club.logo": "https://media.api-sports.io/football/teams/569.png",
-    "Nationalteam.name": "Ecuador",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ec.svg",
-    "Geburtsdatum": "2004-04-21",
-    "Groesse": "188",
-    "Gewicht": "76"
-  },
-  {
     "player.id": 375974,
-    "Spielername": "J. Seys",
+    "Spielername": "Joaquin Seys",
     "Spielerfoto": "https://media.api-sports.io/football/players/375974.png",
     "Position": "DEFENDER",
     "Club.name": "Club Brugge KV",
@@ -5312,8 +5299,21 @@ const playersData = [
     "Gewicht": "52"
   },
   {
+    "player.id": 354027,
+    "Spielername": "Joel Leandro Ordoñez",
+    "Spielerfoto": "https://media.api-sports.io/football/players/354027.png",
+    "Position": "DEFENDER",
+    "Club.name": "Club Brugge KV",
+    "Club.logo": "https://media.api-sports.io/football/teams/569.png",
+    "Nationalteam.name": "Ecuador",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ec.svg",
+    "Geburtsdatum": "2004-04-21",
+    "Groesse": "188",
+    "Gewicht": "76"
+  },
+  {
     "player.id": 304984,
-    "Spielername": "J. Spileers",
+    "Spielername": "Jorne Spileers",
     "Spielerfoto": "https://media.api-sports.io/football/players/304984.png",
     "Position": "DEFENDER",
     "Club.name": "Club Brugge KV",
@@ -5326,7 +5326,7 @@ const playersData = [
   },
   {
     "player.id": 301322,
-    "Spielername": "K. Sabbe",
+    "Spielername": "Kyriani Sabbe",
     "Spielerfoto": "https://media.api-sports.io/football/players/301322.png",
     "Position": "DEFENDER",
     "Club.name": "Club Brugge KV",
@@ -5339,7 +5339,7 @@ const playersData = [
   },
   {
     "player.id": 474741,
-    "Spielername": "V. Osuji",
+    "Spielername": "Vince Chijioke Osuji",
     "Spielerfoto": "https://media.api-sports.io/football/players/474741.png",
     "Position": "DEFENDER",
     "Club.name": "Club Brugge KV",
@@ -5352,7 +5352,7 @@ const playersData = [
   },
   {
     "player.id": 180927,
-    "Spielername": "Z. Romero",
+    "Spielername": "Zaid Abner Romero",
     "Spielerfoto": "https://media.api-sports.io/football/players/180927.png",
     "Position": "DEFENDER",
     "Club.name": "Club Brugge KV",
@@ -5365,7 +5365,7 @@ const playersData = [
   },
   {
     "player.id": 342230,
-    "Spielername": "A. Stanković",
+    "Spielername": "Aleksandar Stanković",
     "Spielerfoto": "https://media.api-sports.io/football/players/342230.png",
     "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
@@ -5378,7 +5378,7 @@ const playersData = [
   },
   {
     "player.id": 162211,
-    "Spielername": "C. Sandra",
+    "Spielername": "Cisse Sandra",
     "Spielerfoto": "https://media.api-sports.io/football/players/162211.png",
     "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
@@ -5391,7 +5391,7 @@ const playersData = [
   },
   {
     "player.id": 325594,
-    "Spielername": "F. Lemaréchal",
+    "Spielername": "Félix Lemaréchal",
     "Spielerfoto": "https://media.api-sports.io/football/players/325594.png",
     "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
@@ -5404,7 +5404,7 @@ const playersData = [
   },
   {
     "player.id": 78,
-    "Spielername": "H. Vanaken",
+    "Spielername": "Hans Vanaken",
     "Spielerfoto": "https://media.api-sports.io/football/players/78.png",
     "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
@@ -5417,7 +5417,7 @@ const playersData = [
   },
   {
     "player.id": 38124,
-    "Spielername": "L. Reis",
+    "Spielername": "Ludovit Reis",
     "Spielerfoto": "https://media.api-sports.io/football/players/38124.png",
     "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
@@ -5430,7 +5430,7 @@ const playersData = [
   },
   {
     "player.id": 162219,
-    "Spielername": "R. Onyedika",
+    "Spielername": "Raphael Onyedika",
     "Spielerfoto": "https://media.api-sports.io/football/players/162219.png",
     "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
@@ -5442,21 +5442,8 @@ const playersData = [
     "Gewicht": "78"
   },
   {
-    "player.id": 336658,
-    "Spielername": "S. Audoor",
-    "Spielerfoto": "https://media.api-sports.io/football/players/336658.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Club Brugge KV",
-    "Club.logo": "https://media.api-sports.io/football/teams/569.png",
-    "Nationalteam.name": "Belgium",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
-    "Geburtsdatum": "2003-10-13",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 439579,
-    "Spielername": "S. Gomez van Hoogen",
+    "Spielername": "Samuel Gomez",
     "Spielerfoto": "https://media.api-sports.io/football/players/439579.png",
     "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
@@ -5468,17 +5455,17 @@ const playersData = [
     "Gewicht": "74"
   },
   {
-    "player.id": 161800,
-    "Spielername": "C. Tzolis",
-    "Spielerfoto": "https://media.api-sports.io/football/players/161800.png",
-    "Position": "ATTACKER",
+    "player.id": 336658,
+    "Spielername": "Sem Audoor",
+    "Spielerfoto": "https://media.api-sports.io/football/players/336658.png",
+    "Position": "MIDFIELDER",
     "Club.name": "Club Brugge KV",
     "Club.logo": "https://media.api-sports.io/football/teams/569.png",
-    "Nationalteam.name": "Greece",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
-    "Geburtsdatum": "2002-01-30",
-    "Groesse": "179",
-    "Gewicht": "70"
+    "Nationalteam.name": "Belgium",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
+    "Geburtsdatum": "2003-10-13",
+    "Groesse": "",
+    "Gewicht": ""
   },
   {
     "player.id": 282126,
@@ -5494,8 +5481,21 @@ const playersData = [
     "Gewicht": "62"
   },
   {
+    "player.id": 161800,
+    "Spielername": "Christos Tzolis",
+    "Spielerfoto": "https://media.api-sports.io/football/players/161800.png",
+    "Position": "ATTACKER",
+    "Club.name": "Club Brugge KV",
+    "Club.logo": "https://media.api-sports.io/football/teams/569.png",
+    "Nationalteam.name": "Greece",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
+    "Geburtsdatum": "2002-01-30",
+    "Groesse": "179",
+    "Gewicht": "70"
+  },
+  {
     "player.id": 15683,
-    "Spielername": "G. Nilsson",
+    "Spielername": "Håkan Gustaf Nilsson",
     "Spielerfoto": "https://media.api-sports.io/football/players/15683.png",
     "Position": "ATTACKER",
     "Club.name": "Club Brugge KV",
@@ -5508,7 +5508,7 @@ const playersData = [
   },
   {
     "player.id": 39291,
-    "Spielername": "H. Vetlesen",
+    "Spielername": "Hugo Vegard Vetlesen",
     "Spielerfoto": "https://media.api-sports.io/football/players/39291.png",
     "Position": "ATTACKER",
     "Club.name": "Club Brugge KV",
@@ -5534,7 +5534,7 @@ const playersData = [
   },
   {
     "player.id": 386481,
-    "Spielername": "M. Diakhon",
+    "Spielername": "Mamadou Diakhon",
     "Spielerfoto": "https://media.api-sports.io/football/players/386481.png",
     "Position": "ATTACKER",
     "Club.name": "Club Brugge KV",
@@ -5547,7 +5547,7 @@ const playersData = [
   },
   {
     "player.id": 40809,
-    "Spielername": "M. Skóraś",
+    "Spielername": "Michał Krzysztof Skóraś",
     "Spielerfoto": "https://media.api-sports.io/football/players/40809.png",
     "Position": "ATTACKER",
     "Club.name": "Club Brugge KV",
@@ -5560,7 +5560,7 @@ const playersData = [
   },
   {
     "player.id": 287923,
-    "Spielername": "N. Tresoldi",
+    "Spielername": "Nicolò Tresoldi",
     "Spielerfoto": "https://media.api-sports.io/football/players/287923.png",
     "Position": "ATTACKER",
     "Club.name": "Club Brugge KV",
@@ -5573,7 +5573,7 @@ const playersData = [
   },
   {
     "player.id": 271276,
-    "Spielername": "R. Vermant",
+    "Spielername": "Romeo Vermant",
     "Spielerfoto": "https://media.api-sports.io/football/players/271276.png",
     "Position": "ATTACKER",
     "Club.name": "Club Brugge KV",
@@ -5586,7 +5586,7 @@ const playersData = [
   },
   {
     "player.id": 430077,
-    "Spielername": "S. Campbell",
+    "Spielername": "Shandre Campbell",
     "Spielerfoto": "https://media.api-sports.io/football/players/430077.png",
     "Position": "ATTACKER",
     "Club.name": "Club Brugge KV",
@@ -5599,7 +5599,7 @@ const playersData = [
   },
   {
     "player.id": 26291,
-    "Spielername": "J. Grahl",
+    "Spielername": "Jens Grahl",
     "Spielerfoto": "https://media.api-sports.io/football/players/26291.png",
     "Position": "GOALKEEPER",
     "Club.name": "Eintracht Frankfurt",
@@ -5625,7 +5625,7 @@ const playersData = [
   },
   {
     "player.id": 7288,
-    "Spielername": "M. Zetterer",
+    "Spielername": "Michael Zetterer",
     "Spielerfoto": "https://media.api-sports.io/football/players/7288.png",
     "Position": "GOALKEEPER",
     "Club.name": "Eintracht Frankfurt",
@@ -5637,21 +5637,8 @@ const playersData = [
     "Gewicht": "79"
   },
   {
-    "player.id": 162414,
-    "Spielername": "A. Amenda",
-    "Spielerfoto": "https://media.api-sports.io/football/players/162414.png",
-    "Position": "DEFENDER",
-    "Club.name": "Eintracht Frankfurt",
-    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
-    "Nationalteam.name": "Switzerland",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
-    "Geburtsdatum": "2003-07-31",
-    "Groesse": "194",
-    "Gewicht": "90"
-  },
-  {
     "player.id": 204043,
-    "Spielername": "A. Theate",
+    "Spielername": "Arthur Nicolas Theate",
     "Spielerfoto": "https://media.api-sports.io/football/players/204043.png",
     "Position": "DEFENDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5661,6 +5648,19 @@ const playersData = [
     "Geburtsdatum": "2000-05-25",
     "Groesse": "185",
     "Gewicht": "79"
+  },
+  {
+    "player.id": 162414,
+    "Spielername": "Aurèle Florian Amenda",
+    "Spielerfoto": "https://media.api-sports.io/football/players/162414.png",
+    "Position": "DEFENDER",
+    "Club.name": "Eintracht Frankfurt",
+    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
+    "Nationalteam.name": "Switzerland",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
+    "Geburtsdatum": "2003-07-31",
+    "Groesse": "194",
+    "Gewicht": "90"
   },
   {
     "player.id": 8451,
@@ -5703,7 +5703,7 @@ const playersData = [
   },
   {
     "player.id": 280074,
-    "Spielername": "N. Brown",
+    "Spielername": "Nathaniel Brown",
     "Spielerfoto": "https://media.api-sports.io/football/players/280074.png",
     "Position": "DEFENDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5716,7 +5716,7 @@ const playersData = [
   },
   {
     "player.id": 269531,
-    "Spielername": "N. Collins",
+    "Spielername": "Pharrell Nnamdi Collins",
     "Spielerfoto": "https://media.api-sports.io/football/players/269531.png",
     "Position": "DEFENDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5729,7 +5729,7 @@ const playersData = [
   },
   {
     "player.id": 26238,
-    "Spielername": "R. Koch",
+    "Spielername": "Robin Leon Koch",
     "Spielerfoto": "https://media.api-sports.io/football/players/26238.png",
     "Position": "DEFENDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5742,7 +5742,7 @@ const playersData = [
   },
   {
     "player.id": 161922,
-    "Spielername": "A. Knauff",
+    "Spielername": "Ansgar Knauff",
     "Spielerfoto": "https://media.api-sports.io/football/players/161922.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5755,7 +5755,7 @@ const playersData = [
   },
   {
     "player.id": 339887,
-    "Spielername": "C. Uzun",
+    "Spielername": "Can Yılmaz Uzun",
     "Spielerfoto": "https://media.api-sports.io/football/players/339887.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5768,7 +5768,7 @@ const playersData = [
   },
   {
     "player.id": 21587,
-    "Spielername": "E. Skhiri",
+    "Spielername": "Ellyes Joris Skhiri",
     "Spielerfoto": "https://media.api-sports.io/football/players/21587.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5781,7 +5781,7 @@ const playersData = [
   },
   {
     "player.id": 276670,
-    "Spielername": "F. Chaïbi",
+    "Spielername": "Farès Chaïbi",
     "Spielerfoto": "https://media.api-sports.io/football/players/276670.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5794,7 +5794,7 @@ const playersData = [
   },
   {
     "player.id": 335094,
-    "Spielername": "H. Larsson",
+    "Spielername": "Hugo Emanuel Larsson",
     "Spielerfoto": "https://media.api-sports.io/football/players/335094.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5807,7 +5807,7 @@ const playersData = [
   },
   {
     "player.id": 14,
-    "Spielername": "M. Dahoud",
+    "Spielername": "Mahmoud Dahoud",
     "Spielerfoto": "https://media.api-sports.io/football/players/14.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5819,21 +5819,8 @@ const playersData = [
     "Gewicht": "68"
   },
   {
-    "player.id": 478662,
-    "Spielername": "M. Dills",
-    "Spielerfoto": "https://media.api-sports.io/football/players/478662.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Eintracht Frankfurt",
-    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "2007-04-25",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 16,
-    "Spielername": "M. Götze",
+    "Spielername": "Mario Götze",
     "Spielerfoto": "https://media.api-sports.io/football/players/16.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5845,8 +5832,21 @@ const playersData = [
     "Gewicht": "75"
   },
   {
+    "player.id": 478662,
+    "Spielername": "Marvin Dills",
+    "Spielerfoto": "https://media.api-sports.io/football/players/478662.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Eintracht Frankfurt",
+    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "2007-04-25",
+    "Groesse": "",
+    "Gewicht": ""
+  },
+  {
     "player.id": 339874,
-    "Spielername": "O. HÃ¸jlund",
+    "Spielername": "Oscar HÃ¸jlund",
     "Spielerfoto": "https://media.api-sports.io/football/players/339874.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5858,21 +5858,8 @@ const playersData = [
     "Gewicht": "76"
   },
   {
-    "player.id": 2598,
-    "Spielername": "R. Dōan",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2598.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Eintracht Frankfurt",
-    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
-    "Nationalteam.name": "Japan",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/jp.svg",
-    "Geburtsdatum": "1998-06-16",
-    "Groesse": "172",
-    "Gewicht": "70"
-  },
-  {
     "player.id": 533,
-    "Spielername": "R. Kristensen",
+    "Spielername": "Rasmus Kristensen",
     "Spielerfoto": "https://media.api-sports.io/football/players/533.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5884,8 +5871,21 @@ const playersData = [
     "Gewicht": "70"
   },
   {
+    "player.id": 2598,
+    "Spielername": "Ritsu Dōan",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2598.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Eintracht Frankfurt",
+    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
+    "Nationalteam.name": "Japan",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/jp.svg",
+    "Geburtsdatum": "1998-06-16",
+    "Groesse": "172",
+    "Gewicht": "70"
+  },
+  {
     "player.id": 1803,
-    "Spielername": "T. Chandler",
+    "Spielername": "Timothy Chandler",
     "Spielerfoto": "https://media.api-sports.io/football/players/1803.png",
     "Position": "MIDFIELDER",
     "Club.name": "Eintracht Frankfurt",
@@ -5910,21 +5910,8 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 162707,
-    "Spielername": "E. Wahi",
-    "Spielerfoto": "https://media.api-sports.io/football/players/162707.png",
-    "Position": "ATTACKER",
-    "Club.name": "Eintracht Frankfurt",
-    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "2003-01-02",
-    "Groesse": "184",
-    "Gewicht": "74"
-  },
-  {
     "player.id": 369674,
-    "Spielername": "J. Bahoya",
+    "Spielername": "Jean-Mattéo Bahoya",
     "Spielerfoto": "https://media.api-sports.io/football/players/369674.png",
     "Position": "ATTACKER",
     "Club.name": "Eintracht Frankfurt",
@@ -5937,7 +5924,7 @@ const playersData = [
   },
   {
     "player.id": 25926,
-    "Spielername": "J. Burkardt",
+    "Spielername": "Jonathan Michael Burkardt",
     "Spielerfoto": "https://media.api-sports.io/football/players/25926.png",
     "Position": "ATTACKER",
     "Club.name": "Eintracht Frankfurt",
@@ -5949,21 +5936,8 @@ const playersData = [
     "Gewicht": "76"
   },
   {
-    "player.id": 162771,
-    "Spielername": "J. Ngankam",
-    "Spielerfoto": "https://media.api-sports.io/football/players/162771.png",
-    "Position": "ATTACKER",
-    "Club.name": "Eintracht Frankfurt",
-    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "2000-07-20",
-    "Groesse": "184",
-    "Gewicht": "84"
-  },
-  {
     "player.id": 2927,
-    "Spielername": "M. Batshuayi",
+    "Spielername": "Michy Batshuayi",
     "Spielerfoto": "https://media.api-sports.io/football/players/2927.png",
     "Position": "ATTACKER",
     "Club.name": "Eintracht Frankfurt",
@@ -5975,8 +5949,34 @@ const playersData = [
     "Gewicht": "76"
   },
   {
+    "player.id": 162771,
+    "Spielername": "Ngankam Ngankam",
+    "Spielerfoto": "https://media.api-sports.io/football/players/162771.png",
+    "Position": "ATTACKER",
+    "Club.name": "Eintracht Frankfurt",
+    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "2000-07-20",
+    "Groesse": "184",
+    "Gewicht": "84"
+  },
+  {
+    "player.id": 162707,
+    "Spielername": "Sepe Elye Wahi",
+    "Spielerfoto": "https://media.api-sports.io/football/players/162707.png",
+    "Position": "ATTACKER",
+    "Club.name": "Eintracht Frankfurt",
+    "Club.logo": "https://media.api-sports.io/football/teams/169.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "2003-01-02",
+    "Groesse": "184",
+    "Gewicht": "74"
+  },
+  {
     "player.id": 524,
-    "Spielername": "D. Kotarski",
+    "Spielername": "Dominik Kotarski",
     "Spielerfoto": "https://media.api-sports.io/football/players/524.png",
     "Position": "GOALKEEPER",
     "Club.name": "FC Copenhagen",
@@ -5989,7 +5989,7 @@ const playersData = [
   },
   {
     "player.id": 90494,
-    "Spielername": "N. Trott",
+    "Spielername": "Nathan Wallace Trott",
     "Spielerfoto": "https://media.api-sports.io/football/players/90494.png",
     "Position": "GOALKEEPER",
     "Club.name": "FC Copenhagen",
@@ -6015,7 +6015,7 @@ const playersData = [
   },
   {
     "player.id": 2784,
-    "Spielername": "R. Rúnarsson",
+    "Spielername": "Rúnar Alex Rúnarsson",
     "Spielerfoto": "https://media.api-sports.io/football/players/2784.png",
     "Position": "GOALKEEPER",
     "Club.name": "FC Copenhagen",
@@ -6028,7 +6028,7 @@ const playersData = [
   },
   {
     "player.id": 1173,
-    "Spielername": "B. Meling",
+    "Spielername": "Birger Meling",
     "Spielerfoto": "https://media.api-sports.io/football/players/1173.png",
     "Position": "DEFENDER",
     "Club.name": "FC Copenhagen",
@@ -6067,7 +6067,7 @@ const playersData = [
   },
   {
     "player.id": 351014,
-    "Spielername": "J. Suzuki",
+    "Spielername": "Junnosuke Suzuki",
     "Spielerfoto": "https://media.api-sports.io/football/players/351014.png",
     "Position": "DEFENDER",
     "Club.name": "FC Copenhagen",
@@ -6079,21 +6079,8 @@ const playersData = [
     "Gewicht": "76"
   },
   {
-    "player.id": 354267,
-    "Spielername": "M. Garananga",
-    "Spielerfoto": "https://media.api-sports.io/football/players/354267.png",
-    "Position": "DEFENDER",
-    "Club.name": "FC Copenhagen",
-    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
-    "Nationalteam.name": "Zimbabwe",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/zw.svg",
-    "Geburtsdatum": "2001-01-18",
-    "Groesse": "186",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 2431,
-    "Spielername": "M. López",
+    "Spielername": "Marcos Johan López",
     "Spielerfoto": "https://media.api-sports.io/football/players/2431.png",
     "Position": "DEFENDER",
     "Club.name": "FC Copenhagen",
@@ -6105,8 +6092,21 @@ const playersData = [
     "Gewicht": "68"
   },
   {
+    "player.id": 354267,
+    "Spielername": "Munashe Peter Garananga",
+    "Spielerfoto": "https://media.api-sports.io/football/players/354267.png",
+    "Position": "DEFENDER",
+    "Club.name": "FC Copenhagen",
+    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
+    "Nationalteam.name": "Zimbabwe",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/zw.svg",
+    "Geburtsdatum": "2001-01-18",
+    "Groesse": "186",
+    "Gewicht": "80"
+  },
+  {
     "player.id": 36885,
-    "Spielername": "P. Hatzidiakos",
+    "Spielername": "Pantelis Hatzidiakos",
     "Spielerfoto": "https://media.api-sports.io/football/players/36885.png",
     "Position": "DEFENDER",
     "Club.name": "FC Copenhagen",
@@ -6119,7 +6119,7 @@ const playersData = [
   },
   {
     "player.id": 310199,
-    "Spielername": "R. Huescas",
+    "Spielername": "Rodrigo Jhossel Huescas",
     "Spielerfoto": "https://media.api-sports.io/football/players/310199.png",
     "Position": "DEFENDER",
     "Club.name": "FC Copenhagen",
@@ -6144,34 +6144,8 @@ const playersData = [
     "Gewicht": "58"
   },
   {
-    "player.id": 442537,
-    "Spielername": "D. Sarapata",
-    "Spielerfoto": "https://media.api-sports.io/football/players/442537.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "FC Copenhagen",
-    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
-    "Nationalteam.name": "Poland",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
-    "Geburtsdatum": "2007-10-25",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
-    "player.id": 42012,
-    "Spielername": "E. Achouri",
-    "Spielerfoto": "https://media.api-sports.io/football/players/42012.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "FC Copenhagen",
-    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
-    "Nationalteam.name": "Tunisia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/tn.svg",
-    "Geburtsdatum": "1999-02-10",
-    "Groesse": "177",
-    "Gewicht": "68"
-  },
-  {
     "player.id": 48203,
-    "Spielername": "J. Larsson",
+    "Spielername": "Carl Larsson",
     "Spielerfoto": "https://media.api-sports.io/football/players/48203.png",
     "Position": "MIDFIELDER",
     "Club.name": "FC Copenhagen",
@@ -6181,6 +6155,19 @@ const playersData = [
     "Geburtsdatum": "1997-06-20",
     "Groesse": "175",
     "Gewicht": "69"
+  },
+  {
+    "player.id": 442537,
+    "Spielername": "Dominik Sarapata",
+    "Spielerfoto": "https://media.api-sports.io/football/players/442537.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "FC Copenhagen",
+    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
+    "Nationalteam.name": "Poland",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
+    "Geburtsdatum": "2007-10-25",
+    "Groesse": "",
+    "Gewicht": ""
   },
   {
     "player.id": 444418,
@@ -6197,7 +6184,7 @@ const playersData = [
   },
   {
     "player.id": 2736,
-    "Spielername": "L. Lerager",
+    "Spielername": "Lukas Lerager",
     "Spielerfoto": "https://media.api-sports.io/football/players/2736.png",
     "Position": "MIDFIELDER",
     "Club.name": "FC Copenhagen",
@@ -6209,21 +6196,8 @@ const playersData = [
     "Gewicht": "80"
   },
   {
-    "player.id": 18946,
-    "Spielername": "M. Elyounoussi",
-    "Spielerfoto": "https://media.api-sports.io/football/players/18946.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "FC Copenhagen",
-    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
-    "Nationalteam.name": "Norway",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
-    "Geburtsdatum": "1994-08-04",
-    "Groesse": "178",
-    "Gewicht": "70"
-  },
-  {
     "player.id": 15934,
-    "Spielername": "M. Emil Madsen",
+    "Spielername": "Mads Møller",
     "Spielerfoto": "https://media.api-sports.io/football/players/15934.png",
     "Position": "MIDFIELDER",
     "Club.name": "FC Copenhagen",
@@ -6236,7 +6210,7 @@ const playersData = [
   },
   {
     "player.id": 15935,
-    "Spielername": "M. Mattsson",
+    "Spielername": "Magnus Elkjær Mattsson",
     "Spielerfoto": "https://media.api-sports.io/football/players/15935.png",
     "Position": "MIDFIELDER",
     "Club.name": "FC Copenhagen",
@@ -6246,6 +6220,32 @@ const playersData = [
     "Geburtsdatum": "1999-02-25",
     "Groesse": "174",
     "Gewicht": "63"
+  },
+  {
+    "player.id": 18946,
+    "Spielername": "Mohamed Amine Elyounoussi",
+    "Spielerfoto": "https://media.api-sports.io/football/players/18946.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "FC Copenhagen",
+    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
+    "Nationalteam.name": "Norway",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
+    "Geburtsdatum": "1994-08-04",
+    "Groesse": "178",
+    "Gewicht": "70"
+  },
+  {
+    "player.id": 42012,
+    "Spielername": "Mohamed Elias Achouri",
+    "Spielerfoto": "https://media.api-sports.io/football/players/42012.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "FC Copenhagen",
+    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
+    "Nationalteam.name": "Tunisia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/tn.svg",
+    "Geburtsdatum": "1999-02-10",
+    "Groesse": "177",
+    "Gewicht": "68"
   },
   {
     "player.id": 395602,
@@ -6275,7 +6275,7 @@ const playersData = [
   },
   {
     "player.id": 15,
-    "Spielername": "T. Delaney",
+    "Spielername": "Thomas Joseph Delaney",
     "Spielerfoto": "https://media.api-sports.io/football/players/15.png",
     "Position": "MIDFIELDER",
     "Club.name": "FC Copenhagen",
@@ -6288,7 +6288,7 @@ const playersData = [
   },
   {
     "player.id": 2080,
-    "Spielername": "V. Claesson",
+    "Spielername": "Viktor Claesson",
     "Spielerfoto": "https://media.api-sports.io/football/players/2080.png",
     "Position": "MIDFIELDER",
     "Club.name": "FC Copenhagen",
@@ -6301,7 +6301,7 @@ const playersData = [
   },
   {
     "player.id": 349212,
-    "Spielername": "W. Clem",
+    "Spielername": "William Clem",
     "Spielerfoto": "https://media.api-sports.io/football/players/349212.png",
     "Position": "MIDFIELDER",
     "Club.name": "FC Copenhagen",
@@ -6311,19 +6311,6 @@ const playersData = [
     "Geburtsdatum": "2004-06-20",
     "Groesse": "180",
     "Gewicht": "70"
-  },
-  {
-    "player.id": 1274,
-    "Spielername": "A. Cornelius",
-    "Spielerfoto": "https://media.api-sports.io/football/players/1274.png",
-    "Position": "ATTACKER",
-    "Club.name": "FC Copenhagen",
-    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
-    "Nationalteam.name": "Denmark",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
-    "Geburtsdatum": "1993-03-16",
-    "Groesse": "193",
-    "Gewicht": "91"
   },
   {
     "player.id": 393073,
@@ -6339,8 +6326,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 1274,
+    "Spielername": "Andreas Evald Cornelius",
+    "Spielerfoto": "https://media.api-sports.io/football/players/1274.png",
+    "Position": "ATTACKER",
+    "Club.name": "FC Copenhagen",
+    "Club.logo": "https://media.api-sports.io/football/teams/400.png",
+    "Nationalteam.name": "Denmark",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
+    "Geburtsdatum": "1993-03-16",
+    "Groesse": "193",
+    "Gewicht": "91"
+  },
+  {
     "player.id": 416088,
-    "Spielername": "L. West",
+    "Spielername": "Liam West",
     "Spielerfoto": "https://media.api-sports.io/football/players/416088.png",
     "Position": "ATTACKER",
     "Club.name": "FC Copenhagen",
@@ -6353,7 +6353,7 @@ const playersData = [
   },
   {
     "player.id": 426288,
-    "Spielername": "V. Dadason",
+    "Spielername": "Viktor Bjarki Dadason",
     "Spielerfoto": "https://media.api-sports.io/football/players/426288.png",
     "Position": "ATTACKER",
     "Club.name": "FC Copenhagen",
@@ -6366,7 +6366,7 @@ const playersData = [
   },
   {
     "player.id": 161919,
-    "Spielername": "Y. Moukoko",
+    "Spielername": "Youssoufa Moukoko",
     "Spielerfoto": "https://media.api-sports.io/football/players/161919.png",
     "Position": "ATTACKER",
     "Club.name": "FC Copenhagen",
@@ -6379,7 +6379,7 @@ const playersData = [
   },
   {
     "player.id": 430,
-    "Spielername": "B. Şen",
+    "Spielername": "Batuhan Ahmet Şen",
     "Spielerfoto": "https://media.api-sports.io/football/players/430.png",
     "Position": "GOALKEEPER",
     "Club.name": "Galatasaray",
@@ -6405,7 +6405,7 @@ const playersData = [
   },
   {
     "player.id": 61950,
-    "Spielername": "G. Güvenç",
+    "Spielername": "Günay Güvenç",
     "Spielerfoto": "https://media.api-sports.io/football/players/61950.png",
     "Position": "GOALKEEPER",
     "Club.name": "Galatasaray",
@@ -6418,7 +6418,7 @@ const playersData = [
   },
   {
     "player.id": 49866,
-    "Spielername": "U. Çakır",
+    "Spielername": "Uğurcan Çakır",
     "Spielerfoto": "https://media.api-sports.io/football/players/49866.png",
     "Position": "GOALKEEPER",
     "Club.name": "Galatasaray",
@@ -6431,7 +6431,7 @@ const playersData = [
   },
   {
     "player.id": 61837,
-    "Spielername": "A. Bardakcı",
+    "Spielername": "Abdülkerim Bardakcı",
     "Spielerfoto": "https://media.api-sports.io/football/players/61837.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6444,7 +6444,7 @@ const playersData = [
   },
   {
     "player.id": 404443,
-    "Spielername": "A. Ünyay",
+    "Spielername": "Arda Ünyay",
     "Spielerfoto": "https://media.api-sports.io/football/players/404443.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6457,7 +6457,7 @@ const playersData = [
   },
   {
     "player.id": 168,
-    "Spielername": "D. Sánchez",
+    "Spielername": "Davinson Sánchez",
     "Spielerfoto": "https://media.api-sports.io/football/players/168.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6470,7 +6470,7 @@ const playersData = [
   },
   {
     "player.id": 50057,
-    "Spielername": "E. Elmalı",
+    "Spielername": "Evren Eren Elmalı",
     "Spielerfoto": "https://media.api-sports.io/football/players/50057.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6483,7 +6483,7 @@ const playersData = [
   },
   {
     "player.id": 158121,
-    "Spielername": "I. Jakobs",
+    "Spielername": "Ismail Joshua Jakobs",
     "Spielerfoto": "https://media.api-sports.io/football/players/158121.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6496,7 +6496,7 @@ const playersData = [
   },
   {
     "player.id": 25448,
-    "Spielername": "K. Ayhan",
+    "Spielername": "Kaan Ayhan",
     "Spielerfoto": "https://media.api-sports.io/football/players/25448.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6509,7 +6509,7 @@ const playersData = [
   },
   {
     "player.id": 162000,
-    "Spielername": "M. Baltacı",
+    "Spielername": "Metehan Baltacı",
     "Spielerfoto": "https://media.api-sports.io/football/players/162000.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6522,7 +6522,7 @@ const playersData = [
   },
   {
     "player.id": 26252,
-    "Spielername": "R. Sallai",
+    "Spielername": "Roland Sallai",
     "Spielerfoto": "https://media.api-sports.io/football/players/26252.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6535,7 +6535,7 @@ const playersData = [
   },
   {
     "player.id": 30504,
-    "Spielername": "W. Singo",
+    "Spielername": "Wilfried Stephane Singo",
     "Spielerfoto": "https://media.api-sports.io/football/players/30504.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6548,7 +6548,7 @@ const playersData = [
   },
   {
     "player.id": 568393,
-    "Spielername": "Y. Kahraman",
+    "Spielername": "Yusuf Kahraman",
     "Spielerfoto": "https://media.api-sports.io/football/players/568393.png",
     "Position": "DEFENDER",
     "Club.name": "Galatasaray",
@@ -6561,7 +6561,7 @@ const playersData = [
   },
   {
     "player.id": 264627,
-    "Spielername": "B. Kutlu",
+    "Spielername": "Berkan İsmail Kutlu",
     "Spielerfoto": "https://media.api-sports.io/football/players/264627.png",
     "Position": "MIDFIELDER",
     "Club.name": "Galatasaray",
@@ -6571,32 +6571,6 @@ const playersData = [
     "Geburtsdatum": "1998-01-25",
     "Groesse": "186",
     "Gewicht": "75"
-  },
-  {
-    "player.id": 568050,
-    "Spielername": "E. Arac",
-    "Spielerfoto": "https://media.api-sports.io/football/players/568050.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Galatasaray",
-    "Club.logo": "https://media.api-sports.io/football/teams/645.png",
-    "Nationalteam.name": "Turkey",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
-    "Geburtsdatum": "2007-02-28",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
-    "player.id": 322506,
-    "Spielername": "E. Aydın",
-    "Spielerfoto": "https://media.api-sports.io/football/players/322506.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Galatasaray",
-    "Club.logo": "https://media.api-sports.io/football/teams/645.png",
-    "Nationalteam.name": "Türkiye",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
-    "Geburtsdatum": "2004-08-02",
-    "Groesse": "181",
-    "Gewicht": "62"
   },
   {
     "player.id": 567978,
@@ -6612,8 +6586,34 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 568050,
+    "Spielername": "Ege Arac",
+    "Spielerfoto": "https://media.api-sports.io/football/players/568050.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Galatasaray",
+    "Club.logo": "https://media.api-sports.io/football/teams/645.png",
+    "Nationalteam.name": "Turkey",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
+    "Geburtsdatum": "2007-02-28",
+    "Groesse": "",
+    "Gewicht": ""
+  },
+  {
+    "player.id": 322506,
+    "Spielername": "Eyüp Aydın",
+    "Spielerfoto": "https://media.api-sports.io/football/players/322506.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Galatasaray",
+    "Club.logo": "https://media.api-sports.io/football/teams/645.png",
+    "Nationalteam.name": "Türkiye",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
+    "Geburtsdatum": "2004-08-02",
+    "Groesse": "181",
+    "Gewicht": "62"
+  },
+  {
     "player.id": 498673,
-    "Spielername": "F. Koçak",
+    "Spielername": "Furkan Koçak",
     "Spielerfoto": "https://media.api-sports.io/football/players/498673.png",
     "Position": "MIDFIELDER",
     "Club.name": "Galatasaray",
@@ -6665,7 +6665,7 @@ const playersData = [
   },
   {
     "player.id": 644,
-    "Spielername": "L. Sané",
+    "Spielername": "Leroy Aziz Sané",
     "Spielerfoto": "https://media.api-sports.io/football/players/644.png",
     "Position": "MIDFIELDER",
     "Club.name": "Galatasaray",
@@ -6678,7 +6678,7 @@ const playersData = [
   },
   {
     "player.id": 1462,
-    "Spielername": "L. Torreira",
+    "Spielername": "Lucas Sebastián Torreira",
     "Spielerfoto": "https://media.api-sports.io/football/players/1462.png",
     "Position": "MIDFIELDER",
     "Club.name": "Galatasaray",
@@ -6691,7 +6691,7 @@ const playersData = [
   },
   {
     "player.id": 18947,
-    "Spielername": "M. Lemina",
+    "Spielername": "Mario Lemina",
     "Spielerfoto": "https://media.api-sports.io/football/players/18947.png",
     "Position": "MIDFIELDER",
     "Club.name": "Galatasaray",
@@ -6704,7 +6704,7 @@ const playersData = [
   },
   {
     "player.id": 454,
-    "Spielername": "Y. Akgün",
+    "Spielername": "Yunus Akgün",
     "Spielerfoto": "https://media.api-sports.io/football/players/454.png",
     "Position": "MIDFIELDER",
     "Club.name": "Galatasaray",
@@ -6717,7 +6717,7 @@ const playersData = [
   },
   {
     "player.id": 422,
-    "Spielername": "A. Kutucu",
+    "Spielername": "Ahmed Kutucu",
     "Spielerfoto": "https://media.api-sports.io/football/players/422.png",
     "Position": "ATTACKER",
     "Club.name": "Galatasaray",
@@ -6730,7 +6730,7 @@ const playersData = [
   },
   {
     "player.id": 63274,
-    "Spielername": "B. Yılmaz",
+    "Spielername": "Barış Alper Yılmaz",
     "Spielerfoto": "https://media.api-sports.io/football/players/63274.png",
     "Position": "ATTACKER",
     "Club.name": "Galatasaray",
@@ -6743,7 +6743,7 @@ const playersData = [
   },
   {
     "player.id": 508419,
-    "Spielername": "Ç. Balta",
+    "Spielername": "Çağrı Hakan Balta",
     "Spielerfoto": "https://media.api-sports.io/football/players/508419.png",
     "Position": "ATTACKER",
     "Club.name": "Galatasaray",
@@ -6756,7 +6756,7 @@ const playersData = [
   },
   {
     "player.id": 216,
-    "Spielername": "M. Icardi",
+    "Spielername": "Mauro Emanuel Icardi",
     "Spielerfoto": "https://media.api-sports.io/football/players/216.png",
     "Position": "ATTACKER",
     "Club.name": "Galatasaray",
@@ -6769,7 +6769,7 @@ const playersData = [
   },
   {
     "player.id": 2780,
-    "Spielername": "V. Osimhen",
+    "Spielername": "Victor James Osimhen",
     "Spielerfoto": "https://media.api-sports.io/football/players/2780.png",
     "Position": "ATTACKER",
     "Club.name": "Galatasaray",
@@ -6782,7 +6782,7 @@ const playersData = [
   },
   {
     "player.id": 281795,
-    "Spielername": "Y. Asprilla",
+    "Spielername": "Yáser Esnéider Asprilla",
     "Spielerfoto": "https://media.api-sports.io/football/players/281795.png",
     "Position": "ATTACKER",
     "Club.name": "Galatasaray",
@@ -6795,7 +6795,7 @@ const playersData = [
   },
   {
     "player.id": 131294,
-    "Spielername": "Y. Demir",
+    "Spielername": "Yusuf Demir",
     "Spielerfoto": "https://media.api-sports.io/football/players/131294.png",
     "Position": "ATTACKER",
     "Club.name": "Galatasaray",
@@ -6807,21 +6807,8 @@ const playersData = [
     "Gewicht": "72"
   },
   {
-    "player.id": 336707,
-    "Spielername": "A. Calligaris",
-    "Spielerfoto": "https://media.api-sports.io/football/players/336707.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Inter",
-    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
-    "Nationalteam.name": "Italy",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
-    "Geburtsdatum": "2005-03-07",
-    "Groesse": "185",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 449683,
-    "Spielername": "A. Taho",
+    "Spielername": "Alain Taho",
     "Spielerfoto": "https://media.api-sports.io/football/players/449683.png",
     "Position": "GOALKEEPER",
     "Club.name": "Inter",
@@ -6831,6 +6818,19 @@ const playersData = [
     "Geburtsdatum": "2007-04-30",
     "Groesse": "",
     "Gewicht": ""
+  },
+  {
+    "player.id": 336707,
+    "Spielername": "Alessandro Calligaris",
+    "Spielerfoto": "https://media.api-sports.io/football/players/336707.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Inter",
+    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
+    "Nationalteam.name": "Italy",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
+    "Geburtsdatum": "2005-03-07",
+    "Groesse": "185",
+    "Gewicht": "80"
   },
   {
     "player.id": 46988,
@@ -6847,7 +6847,7 @@ const playersData = [
   },
   {
     "player.id": 91488,
-    "Spielername": "R. Di Gennaro",
+    "Spielername": "Raffaele Di Gennaro",
     "Spielerfoto": "https://media.api-sports.io/football/players/91488.png",
     "Position": "GOALKEEPER",
     "Club.name": "Inter",
@@ -6860,7 +6860,7 @@ const playersData = [
   },
   {
     "player.id": 2802,
-    "Spielername": "Y. Sommer",
+    "Spielername": "Yann Sommer",
     "Spielerfoto": "https://media.api-sports.io/football/players/2802.png",
     "Position": "GOALKEEPER",
     "Club.name": "Inter",
@@ -6873,7 +6873,7 @@ const playersData = [
   },
   {
     "player.id": 31009,
-    "Spielername": "A. Bastoni",
+    "Spielername": "Alessandro Bastoni",
     "Spielerfoto": "https://media.api-sports.io/football/players/31009.png",
     "Position": "DEFENDER",
     "Club.name": "Inter",
@@ -6883,19 +6883,6 @@ const playersData = [
     "Geburtsdatum": "1999-04-13",
     "Groesse": "190",
     "Gewicht": "75"
-  },
-  {
-    "player.id": 343345,
-    "Spielername": "C. Alexiou",
-    "Spielerfoto": "https://media.api-sports.io/football/players/343345.png",
-    "Position": "DEFENDER",
-    "Club.name": "Inter",
-    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
-    "Nationalteam.name": "Greece",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
-    "Geburtsdatum": "2005-06-30",
-    "Groesse": "184",
-    "Gewicht": "79"
   },
   {
     "player.id": 10238,
@@ -6911,8 +6898,21 @@ const playersData = [
     "Gewicht": "78"
   },
   {
+    "player.id": 343345,
+    "Spielername": "Christos Alexiou",
+    "Spielerfoto": "https://media.api-sports.io/football/players/343345.png",
+    "Position": "DEFENDER",
+    "Club.name": "Inter",
+    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
+    "Nationalteam.name": "Greece",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
+    "Geburtsdatum": "2005-06-30",
+    "Groesse": "184",
+    "Gewicht": "79"
+  },
+  {
     "player.id": 1836,
-    "Spielername": "F. Acerbi",
+    "Spielername": "Francesco Acerbi",
     "Spielerfoto": "https://media.api-sports.io/football/players/1836.png",
     "Position": "DEFENDER",
     "Club.name": "Inter",
@@ -6925,7 +6925,7 @@ const playersData = [
   },
   {
     "player.id": 5,
-    "Spielername": "M. Akanji",
+    "Spielername": "Manuel Obafemi Akanji",
     "Spielerfoto": "https://media.api-sports.io/football/players/5.png",
     "Position": "DEFENDER",
     "Club.name": "Inter",
@@ -6938,7 +6938,7 @@ const playersData = [
   },
   {
     "player.id": 392493,
-    "Spielername": "M. Cocchi",
+    "Spielername": "Matteo Cocchi",
     "Spielerfoto": "https://media.api-sports.io/football/players/392493.png",
     "Position": "DEFENDER",
     "Club.name": "Inter",
@@ -6951,7 +6951,7 @@ const playersData = [
   },
   {
     "player.id": 887,
-    "Spielername": "M. Darmian",
+    "Spielername": "Matteo Darmian",
     "Spielerfoto": "https://media.api-sports.io/football/players/887.png",
     "Position": "DEFENDER",
     "Club.name": "Inter",
@@ -6964,7 +6964,7 @@ const playersData = [
   },
   {
     "player.id": 194,
-    "Spielername": "S. de Vrij",
+    "Spielername": "Stefan de Vrij",
     "Spielerfoto": "https://media.api-sports.io/football/players/194.png",
     "Position": "DEFENDER",
     "Club.name": "Inter",
@@ -6977,7 +6977,7 @@ const playersData = [
   },
   {
     "player.id": 24953,
-    "Spielername": "Y. Bisseck",
+    "Spielername": "Yann Bisseck",
     "Spielerfoto": "https://media.api-sports.io/football/players/24953.png",
     "Position": "DEFENDER",
     "Club.name": "Inter",
@@ -6990,7 +6990,7 @@ const playersData = [
   },
   {
     "player.id": 270509,
-    "Spielername": "A. Diouf",
+    "Spielername": "Andy Alune Diouf",
     "Spielerfoto": "https://media.api-sports.io/football/players/270509.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7002,21 +7002,8 @@ const playersData = [
     "Gewicht": "82"
   },
   {
-    "player.id": 226,
-    "Spielername": "D. Dumfries",
-    "Spielerfoto": "https://media.api-sports.io/football/players/226.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Inter",
-    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "1996-04-18",
-    "Groesse": "188",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 31173,
-    "Spielername": "D. Frattesi",
+    "Spielername": "Davide Frattesi",
     "Spielerfoto": "https://media.api-sports.io/football/players/31173.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7028,8 +7015,21 @@ const playersData = [
     "Gewicht": "74"
   },
   {
+    "player.id": 226,
+    "Spielername": "Denzel Dumfries",
+    "Spielerfoto": "https://media.api-sports.io/football/players/226.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Inter",
+    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "1996-04-18",
+    "Groesse": "188",
+    "Gewicht": "80"
+  },
+  {
     "player.id": 31010,
-    "Spielername": "F. Dimarco",
+    "Spielername": "Federico Dimarco",
     "Spielerfoto": "https://media.api-sports.io/football/players/31010.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7042,7 +7042,7 @@ const playersData = [
   },
   {
     "player.id": 1640,
-    "Spielername": "H. Çalhanoğlu",
+    "Spielername": "Hakan Çalhanoğlu",
     "Spielerfoto": "https://media.api-sports.io/football/players/1640.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7055,7 +7055,7 @@ const playersData = [
   },
   {
     "player.id": 1457,
-    "Spielername": "H. Mkhitaryan",
+    "Spielername": "Henrikh Mkhitaryan",
     "Spielerfoto": "https://media.api-sports.io/football/players/1457.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7081,7 +7081,7 @@ const playersData = [
   },
   {
     "player.id": 30558,
-    "Spielername": "N. Barella",
+    "Spielername": "Nicolò Barella",
     "Spielerfoto": "https://media.api-sports.io/football/players/30558.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7094,7 +7094,7 @@ const playersData = [
   },
   {
     "player.id": 348205,
-    "Spielername": "P. Sučić",
+    "Spielername": "Petar Sučić",
     "Spielerfoto": "https://media.api-sports.io/football/players/348205.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7107,7 +7107,7 @@ const playersData = [
   },
   {
     "player.id": 329,
-    "Spielername": "P. Zieliński",
+    "Spielername": "Piotr Sebastian Zieliński",
     "Spielerfoto": "https://media.api-sports.io/football/players/329.png",
     "Position": "MIDFIELDER",
     "Club.name": "Inter",
@@ -7120,7 +7120,7 @@ const playersData = [
   },
   {
     "player.id": 275651,
-    "Spielername": "A. Bonny",
+    "Spielername": "Ange-Yoan Bonny",
     "Spielerfoto": "https://media.api-sports.io/football/players/275651.png",
     "Position": "ATTACKER",
     "Club.name": "Inter",
@@ -7133,7 +7133,7 @@ const playersData = [
   },
   {
     "player.id": 345808,
-    "Spielername": "F. Esposito",
+    "Spielername": "Francesco Pio Esposito",
     "Spielerfoto": "https://media.api-sports.io/football/players/345808.png",
     "Position": "ATTACKER",
     "Club.name": "Inter",
@@ -7171,21 +7171,8 @@ const playersData = [
     "Gewicht": "85"
   },
   {
-    "player.id": 461830,
-    "Spielername": "M. Lavelli",
-    "Spielerfoto": "https://media.api-sports.io/football/players/461830.png",
-    "Position": "ATTACKER",
-    "Club.name": "Inter",
-    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
-    "Nationalteam.name": "Italy",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
-    "Geburtsdatum": "2006-12-08",
-    "Groesse": "185",
-    "Gewicht": "78"
-  },
-  {
     "player.id": 21509,
-    "Spielername": "M. Thuram",
+    "Spielername": "Marcus Lilian Thuram",
     "Spielerfoto": "https://media.api-sports.io/football/players/21509.png",
     "Position": "ATTACKER",
     "Club.name": "Inter",
@@ -7197,8 +7184,21 @@ const playersData = [
     "Gewicht": "90"
   },
   {
+    "player.id": 461830,
+    "Spielername": "Matteo Lavelli",
+    "Spielerfoto": "https://media.api-sports.io/football/players/461830.png",
+    "Position": "ATTACKER",
+    "Club.name": "Inter",
+    "Club.logo": "https://media.api-sports.io/football/teams/505.png",
+    "Nationalteam.name": "Italy",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
+    "Geburtsdatum": "2006-12-08",
+    "Groesse": "185",
+    "Gewicht": "78"
+  },
+  {
     "player.id": 850,
-    "Spielername": "C. Pinsoglio",
+    "Spielername": "Carlo Pinsoglio",
     "Spielerfoto": "https://media.api-sports.io/football/players/850.png",
     "Position": "GOALKEEPER",
     "Club.name": "Juventus",
@@ -7210,21 +7210,8 @@ const playersData = [
     "Gewicht": "85"
   },
   {
-    "player.id": 30670,
-    "Spielername": "M. Di Gregorio",
-    "Spielerfoto": "https://media.api-sports.io/football/players/30670.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Juventus",
-    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
-    "Nationalteam.name": "Italy",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
-    "Geburtsdatum": "1997-07-27",
-    "Groesse": "187",
-    "Gewicht": "82"
-  },
-  {
     "player.id": 408319,
-    "Spielername": "M. Fuscaldo",
+    "Spielername": "Matteo Fuscaldo",
     "Spielerfoto": "https://media.api-sports.io/football/players/408319.png",
     "Position": "GOALKEEPER",
     "Club.name": "Juventus",
@@ -7237,7 +7224,7 @@ const playersData = [
   },
   {
     "player.id": 849,
-    "Spielername": "M. Perin",
+    "Spielername": "Mattia Perin",
     "Spielerfoto": "https://media.api-sports.io/football/players/849.png",
     "Position": "GOALKEEPER",
     "Club.name": "Juventus",
@@ -7249,8 +7236,21 @@ const playersData = [
     "Gewicht": "85"
   },
   {
+    "player.id": 30670,
+    "Spielername": "Michele Di Gregorio",
+    "Spielerfoto": "https://media.api-sports.io/football/players/30670.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Juventus",
+    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
+    "Nationalteam.name": "Italy",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
+    "Geburtsdatum": "1997-07-27",
+    "Groesse": "187",
+    "Gewicht": "82"
+  },
+  {
     "player.id": 335099,
-    "Spielername": "S. Scaglia",
+    "Spielername": "Simone Scaglia",
     "Spielerfoto": "https://media.api-sports.io/football/players/335099.png",
     "Position": "GOALKEEPER",
     "Club.name": "Juventus",
@@ -7276,7 +7276,7 @@ const playersData = [
   },
   {
     "player.id": 861,
-    "Spielername": "D. Rugani",
+    "Spielername": "Daniele Rugani",
     "Spielerfoto": "https://media.api-sports.io/football/players/861.png",
     "Position": "DEFENDER",
     "Club.name": "Juventus",
@@ -7289,7 +7289,7 @@ const playersData = [
   },
   {
     "player.id": 268341,
-    "Spielername": "F. Gatti",
+    "Spielername": "Federico Gatti",
     "Spielerfoto": "https://media.api-sports.io/football/players/268341.png",
     "Position": "DEFENDER",
     "Club.name": "Juventus",
@@ -7299,32 +7299,6 @@ const playersData = [
     "Geburtsdatum": "1998-06-24",
     "Groesse": "190",
     "Gewicht": "82"
-  },
-  {
-    "player.id": 125674,
-    "Spielername": "J. Cabal",
-    "Spielerfoto": "https://media.api-sports.io/football/players/125674.png",
-    "Position": "DEFENDER",
-    "Club.name": "Juventus",
-    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
-    "Nationalteam.name": "Colombia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
-    "Geburtsdatum": "2001-01-08",
-    "Groesse": "186",
-    "Gewicht": "79"
-  },
-  {
-    "player.id": 335101,
-    "Spielername": "J. Rouhi",
-    "Spielerfoto": "https://media.api-sports.io/football/players/335101.png",
-    "Position": "DEFENDER",
-    "Club.name": "Juventus",
-    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
-    "Nationalteam.name": "Sweden",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
-    "Geburtsdatum": "2004-01-07",
-    "Groesse": "183",
-    "Gewicht": "68"
   },
   {
     "player.id": 436925,
@@ -7353,8 +7327,34 @@ const playersData = [
     "Gewicht": "66"
   },
   {
+    "player.id": 335101,
+    "Spielername": "Jonas Jakob Rouhi",
+    "Spielerfoto": "https://media.api-sports.io/football/players/335101.png",
+    "Position": "DEFENDER",
+    "Club.name": "Juventus",
+    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
+    "Nationalteam.name": "Sweden",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
+    "Geburtsdatum": "2004-01-07",
+    "Groesse": "183",
+    "Gewicht": "68"
+  },
+  {
+    "player.id": 125674,
+    "Spielername": "Juan David Cabal",
+    "Spielerfoto": "https://media.api-sports.io/football/players/125674.png",
+    "Position": "DEFENDER",
+    "Club.name": "Juventus",
+    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
+    "Nationalteam.name": "Colombia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
+    "Geburtsdatum": "2001-01-08",
+    "Groesse": "186",
+    "Gewicht": "79"
+  },
+  {
     "player.id": 19263,
-    "Spielername": "L. Kelly",
+    "Spielername": "Lloyd Casius Kelly",
     "Spielerfoto": "https://media.api-sports.io/football/players/19263.png",
     "Position": "DEFENDER",
     "Club.name": "Juventus",
@@ -7367,7 +7367,7 @@ const playersData = [
   },
   {
     "player.id": 405298,
-    "Spielername": "N. Rizzo",
+    "Spielername": "Niccolò Rizzo",
     "Spielerfoto": "https://media.api-sports.io/football/players/405298.png",
     "Position": "DEFENDER",
     "Club.name": "Juventus",
@@ -7380,7 +7380,7 @@ const playersData = [
   },
   {
     "player.id": 162188,
-    "Spielername": "P. Kalulu",
+    "Spielername": "Pierre Kalulu",
     "Spielerfoto": "https://media.api-sports.io/football/players/162188.png",
     "Position": "DEFENDER",
     "Club.name": "Juventus",
@@ -7393,7 +7393,7 @@ const playersData = [
   },
   {
     "player.id": 127011,
-    "Spielername": "A. Cambiaso",
+    "Spielername": "Andrea Cambiaso",
     "Spielerfoto": "https://media.api-sports.io/football/players/127011.png",
     "Position": "MIDFIELDER",
     "Club.name": "Juventus",
@@ -7405,21 +7405,8 @@ const playersData = [
     "Gewicht": "77"
   },
   {
-    "player.id": 1821,
-    "Spielername": "F. Kostić",
-    "Spielerfoto": "https://media.api-sports.io/football/players/1821.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Juventus",
-    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
-    "Nationalteam.name": "Serbia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
-    "Geburtsdatum": "1992-11-01",
-    "Groesse": "184",
-    "Gewicht": "81"
-  },
-  {
     "player.id": 181808,
-    "Spielername": "F. Miretti",
+    "Spielername": "Fabio Miretti",
     "Spielerfoto": "https://media.api-sports.io/football/players/181808.png",
     "Position": "MIDFIELDER",
     "Club.name": "Juventus",
@@ -7431,8 +7418,21 @@ const playersData = [
     "Gewicht": "75"
   },
   {
+    "player.id": 1821,
+    "Spielername": "Filip Kostić",
+    "Spielerfoto": "https://media.api-sports.io/football/players/1821.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Juventus",
+    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
+    "Nationalteam.name": "Serbia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
+    "Geburtsdatum": "1992-11-01",
+    "Groesse": "184",
+    "Gewicht": "81"
+  },
+  {
     "player.id": 116,
-    "Spielername": "K. Thuram",
+    "Spielername": "Khéphren Thuram",
     "Spielerfoto": "https://media.api-sports.io/football/players/116.png",
     "Position": "MIDFIELDER",
     "Club.name": "Juventus",
@@ -7445,7 +7445,7 @@ const playersData = [
   },
   {
     "player.id": 30533,
-    "Spielername": "M. Locatelli",
+    "Spielername": "Manuel Locatelli",
     "Spielerfoto": "https://media.api-sports.io/football/players/30533.png",
     "Position": "MIDFIELDER",
     "Club.name": "Juventus",
@@ -7458,7 +7458,7 @@ const playersData = [
   },
   {
     "player.id": 36899,
-    "Spielername": "T. Koopmeiners",
+    "Spielername": "Teun Koopmeiners",
     "Spielerfoto": "https://media.api-sports.io/football/players/36899.png",
     "Position": "MIDFIELDER",
     "Club.name": "Juventus",
@@ -7484,7 +7484,7 @@ const playersData = [
   },
   {
     "player.id": 415,
-    "Spielername": "W. McKennie",
+    "Spielername": "Weston McKennie",
     "Spielerfoto": "https://media.api-sports.io/football/players/415.png",
     "Position": "MIDFIELDER",
     "Club.name": "Juventus",
@@ -7497,7 +7497,7 @@ const playersData = [
   },
   {
     "player.id": 30415,
-    "Spielername": "D. Vlahović",
+    "Spielername": "Dušan Vlahović",
     "Spielerfoto": "https://media.api-sports.io/football/players/30415.png",
     "Position": "ATTACKER",
     "Club.name": "Juventus",
@@ -7510,7 +7510,7 @@ const playersData = [
   },
   {
     "player.id": 48392,
-    "Spielername": "E. Zhegrova",
+    "Spielername": "Edon Zhegrova",
     "Spielerfoto": "https://media.api-sports.io/football/players/48392.png",
     "Position": "ATTACKER",
     "Club.name": "Juventus",
@@ -7535,8 +7535,21 @@ const playersData = [
     "Gewicht": "64"
   },
   {
+    "player.id": 86,
+    "Spielername": "Ikoma-Loïs Openda",
+    "Spielerfoto": "https://media.api-sports.io/football/players/86.png",
+    "Position": "ATTACKER",
+    "Club.name": "Juventus",
+    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
+    "Nationalteam.name": "Belgium",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
+    "Geburtsdatum": "2000-02-16",
+    "Groesse": "177",
+    "Gewicht": "75"
+  },
+  {
     "player.id": 8489,
-    "Spielername": "J. David",
+    "Spielername": "Jonathan Christian David",
     "Spielerfoto": "https://media.api-sports.io/football/players/8489.png",
     "Position": "ATTACKER",
     "Club.name": "Juventus",
@@ -7549,7 +7562,7 @@ const playersData = [
   },
   {
     "player.id": 339883,
-    "Spielername": "K. Yıldız",
+    "Spielername": "Kenan Yıldız",
     "Spielerfoto": "https://media.api-sports.io/football/players/339883.png",
     "Position": "ATTACKER",
     "Club.name": "Juventus",
@@ -7561,21 +7574,8 @@ const playersData = [
     "Gewicht": "77"
   },
   {
-    "player.id": 86,
-    "Spielername": "L. Openda",
-    "Spielerfoto": "https://media.api-sports.io/football/players/86.png",
-    "Position": "ATTACKER",
-    "Club.name": "Juventus",
-    "Club.logo": "https://media.api-sports.io/football/teams/496.png",
-    "Nationalteam.name": "Belgium",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
-    "Geburtsdatum": "2000-02-16",
-    "Groesse": "177",
-    "Gewicht": "75"
-  },
-  {
     "player.id": 111587,
-    "Spielername": "A. Zarutskiy",
+    "Spielername": "Aleksandr Zarutskiy",
     "Spielerfoto": "https://media.api-sports.io/football/players/111587.png",
     "Position": "GOALKEEPER",
     "Club.name": "Kairat Almaty",
@@ -7614,7 +7614,7 @@ const playersData = [
   },
   {
     "player.id": 453664,
-    "Spielername": "D. Reymov",
+    "Spielername": "Dias Reymov",
     "Spielerfoto": "https://media.api-sports.io/football/players/453664.png",
     "Position": "GOALKEEPER",
     "Club.name": "Kairat Almaty",
@@ -7627,7 +7627,7 @@ const playersData = [
   },
   {
     "player.id": 445524,
-    "Spielername": "S. Kalmurza",
+    "Spielername": "Sherkhan Kalmurza",
     "Spielerfoto": "https://media.api-sports.io/football/players/445524.png",
     "Position": "GOALKEEPER",
     "Club.name": "Kairat Almaty",
@@ -7640,7 +7640,7 @@ const playersData = [
   },
   {
     "player.id": 265533,
-    "Spielername": "T. Anarbekov",
+    "Spielername": "Temirlan Anarbekov",
     "Spielerfoto": "https://media.api-sports.io/football/players/265533.png",
     "Position": "GOALKEEPER",
     "Club.name": "Kairat Almaty",
@@ -7666,7 +7666,7 @@ const playersData = [
   },
   {
     "player.id": 2074,
-    "Spielername": "A. Martynovich",
+    "Spielername": "Aleksandr Martynovich",
     "Spielerfoto": "https://media.api-sports.io/football/players/2074.png",
     "Position": "DEFENDER",
     "Club.name": "Kairat Almaty",
@@ -7679,7 +7679,7 @@ const playersData = [
   },
   {
     "player.id": 323820,
-    "Spielername": "A. Mrynskiy",
+    "Spielername": "Aleksandr Mrynskiy",
     "Spielerfoto": "https://media.api-sports.io/football/players/323820.png",
     "Position": "DEFENDER",
     "Club.name": "Kairat Almaty",
@@ -7692,7 +7692,7 @@ const playersData = [
   },
   {
     "player.id": 265528,
-    "Spielername": "A. Shirobokov",
+    "Spielername": "Aleksandr Shirobokov",
     "Spielerfoto": "https://media.api-sports.io/football/players/265528.png",
     "Position": "DEFENDER",
     "Club.name": "Kairat Almaty",
@@ -7705,7 +7705,7 @@ const playersData = [
   },
   {
     "player.id": 322050,
-    "Spielername": "D. Kasabulat",
+    "Spielername": "Damir Kasabulat",
     "Spielerfoto": "https://media.api-sports.io/football/players/322050.png",
     "Position": "DEFENDER",
     "Club.name": "Kairat Almaty",
@@ -7718,7 +7718,7 @@ const playersData = [
   },
   {
     "player.id": 53597,
-    "Spielername": "E. Sorokin",
+    "Spielername": "Egor Sorokin",
     "Spielerfoto": "https://media.api-sports.io/football/players/53597.png",
     "Position": "DEFENDER",
     "Club.name": "Kairat Almaty",
@@ -7731,7 +7731,7 @@ const playersData = [
   },
   {
     "player.id": 111532,
-    "Spielername": "E. Tapalov",
+    "Spielername": "Erkin Tapalov",
     "Spielerfoto": "https://media.api-sports.io/football/players/111532.png",
     "Position": "DEFENDER",
     "Club.name": "Kairat Almaty",
@@ -7743,21 +7743,8 @@ const playersData = [
     "Gewicht": "65"
   },
   {
-    "player.id": 24769,
-    "Spielername": "L. Gadrani",
-    "Spielerfoto": "https://media.api-sports.io/football/players/24769.png",
-    "Position": "DEFENDER",
-    "Club.name": "Kairat Almaty",
-    "Club.logo": "https://media.api-sports.io/football/teams/664.png",
-    "Nationalteam.name": "Georgia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
-    "Geburtsdatum": "1997-04-12",
-    "Groesse": "185",
-    "Gewicht": "77"
-  },
-  {
     "player.id": 324709,
-    "Spielername": "L. Kurgin",
+    "Spielername": "Lev Kurgin",
     "Spielerfoto": "https://media.api-sports.io/football/players/324709.png",
     "Position": "DEFENDER",
     "Club.name": "Kairat Almaty",
@@ -7782,8 +7769,21 @@ const playersData = [
     "Gewicht": "70"
   },
   {
+    "player.id": 24769,
+    "Spielername": "Luka Gadrani",
+    "Spielerfoto": "https://media.api-sports.io/football/players/24769.png",
+    "Position": "DEFENDER",
+    "Club.name": "Kairat Almaty",
+    "Club.logo": "https://media.api-sports.io/football/teams/664.png",
+    "Nationalteam.name": "Georgia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
+    "Geburtsdatum": "1997-04-12",
+    "Groesse": "185",
+    "Gewicht": "77"
+  },
+  {
     "player.id": 319495,
-    "Spielername": "A. Sadybekov",
+    "Spielername": "Adilet Sadybekov",
     "Spielerfoto": "https://media.api-sports.io/football/players/319495.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7796,7 +7796,7 @@ const playersData = [
   },
   {
     "player.id": 490788,
-    "Spielername": "A. Tuyakbayev",
+    "Spielername": "Azamat Tuyakbayev",
     "Spielerfoto": "https://media.api-sports.io/football/players/490788.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7809,7 +7809,7 @@ const playersData = [
   },
   {
     "player.id": 56009,
-    "Spielername": "D. Glazer",
+    "Spielername": "Dan Leon Glazer",
     "Spielerfoto": "https://media.api-sports.io/football/players/56009.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7822,7 +7822,7 @@ const playersData = [
   },
   {
     "player.id": 445472,
-    "Spielername": "D. Satpaev",
+    "Spielername": "Dastan Satpaev",
     "Spielerfoto": "https://media.api-sports.io/football/players/445472.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7835,7 +7835,7 @@ const playersData = [
   },
   {
     "player.id": 24614,
-    "Spielername": "G. Zaria",
+    "Spielername": "Giorgi Zaria",
     "Spielerfoto": "https://media.api-sports.io/football/players/24614.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7845,19 +7845,6 @@ const playersData = [
     "Geburtsdatum": "1997-07-14",
     "Groesse": "178",
     "Gewicht": "72"
-  },
-  {
-    "player.id": 133406,
-    "Spielername": "J. Stanojev",
-    "Spielerfoto": "https://media.api-sports.io/football/players/133406.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Kairat Almaty",
-    "Club.logo": "https://media.api-sports.io/football/teams/664.png",
-    "Nationalteam.name": "Serbia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
-    "Geburtsdatum": "1999-07-29",
-    "Groesse": "175",
-    "Gewicht": "70"
   },
   {
     "player.id": 142620,
@@ -7871,6 +7858,19 @@ const playersData = [
     "Geburtsdatum": "1997-11-09",
     "Groesse": "169",
     "Gewicht": "65"
+  },
+  {
+    "player.id": 133406,
+    "Spielername": "Jug Stanojev",
+    "Spielerfoto": "https://media.api-sports.io/football/players/133406.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Kairat Almaty",
+    "Club.logo": "https://media.api-sports.io/football/teams/664.png",
+    "Nationalteam.name": "Serbia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
+    "Geburtsdatum": "1999-07-29",
+    "Groesse": "175",
+    "Gewicht": "70"
   },
   {
     "player.id": 532000,
@@ -7887,7 +7887,7 @@ const playersData = [
   },
   {
     "player.id": 110941,
-    "Spielername": "O. Arad",
+    "Spielername": "Ofri Arad",
     "Spielerfoto": "https://media.api-sports.io/football/players/110941.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7900,7 +7900,7 @@ const playersData = [
   },
   {
     "player.id": 345422,
-    "Spielername": "O. Baybek",
+    "Spielername": "Olzhas Baybek",
     "Spielerfoto": "https://media.api-sports.io/football/players/345422.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7913,7 +7913,7 @@ const playersData = [
   },
   {
     "player.id": 7780,
-    "Spielername": "V. Gromyko",
+    "Spielername": "Valeri Gromyko",
     "Spielerfoto": "https://media.api-sports.io/football/players/7780.png",
     "Position": "MIDFIELDER",
     "Club.name": "Kairat Almaty",
@@ -7939,7 +7939,7 @@ const playersData = [
   },
   {
     "player.id": 453670,
-    "Spielername": "I. Bekbolat",
+    "Spielername": "Ismail Bekbolat",
     "Spielerfoto": "https://media.api-sports.io/football/players/453670.png",
     "Position": "ATTACKER",
     "Club.name": "Kairat Almaty",
@@ -7965,7 +7965,7 @@ const playersData = [
   },
   {
     "player.id": 453725,
-    "Spielername": "R. Bagdat",
+    "Spielername": "Ramazan Bagdat",
     "Spielerfoto": "https://media.api-sports.io/football/players/453725.png",
     "Position": "ATTACKER",
     "Club.name": "Kairat Almaty",
@@ -8004,7 +8004,7 @@ const playersData = [
   },
   {
     "player.id": 18889,
-    "Spielername": "F. Woodman",
+    "Spielername": "Frederick John Woodman",
     "Spielerfoto": "https://media.api-sports.io/football/players/18889.png",
     "Position": "GOALKEEPER",
     "Club.name": "Liverpool",
@@ -8017,7 +8017,7 @@ const playersData = [
   },
   {
     "player.id": 24760,
-    "Spielername": "G. Mamardashvili",
+    "Spielername": "Giorgi Mamardashvili",
     "Spielerfoto": "https://media.api-sports.io/football/players/24760.png",
     "Position": "GOALKEEPER",
     "Club.name": "Liverpool",
@@ -8030,7 +8030,7 @@ const playersData = [
   },
   {
     "player.id": 415992,
-    "Spielername": "K. Miściur",
+    "Spielername": "Kornel Artur Miściur",
     "Spielerfoto": "https://media.api-sports.io/football/players/415992.png",
     "Position": "GOALKEEPER",
     "Club.name": "Liverpool",
@@ -8043,7 +8043,7 @@ const playersData = [
   },
   {
     "player.id": 407032,
-    "Spielername": "A. Nallo",
+    "Spielername": "Amara Nallo",
     "Spielerfoto": "https://media.api-sports.io/football/players/407032.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8056,7 +8056,7 @@ const playersData = [
   },
   {
     "player.id": 289,
-    "Spielername": "A. Robertson",
+    "Spielername": "Andrew Henry Robertson",
     "Spielerfoto": "https://media.api-sports.io/football/players/289.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8069,7 +8069,7 @@ const playersData = [
   },
   {
     "player.id": 180317,
-    "Spielername": "C. Bradley",
+    "Spielername": "Conor Bradley",
     "Spielerfoto": "https://media.api-sports.io/football/players/180317.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8082,7 +8082,7 @@ const playersData = [
   },
   {
     "player.id": 409047,
-    "Spielername": "G. Leoni",
+    "Spielername": "Giovanni Leoni",
     "Spielerfoto": "https://media.api-sports.io/football/players/409047.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8095,7 +8095,7 @@ const playersData = [
   },
   {
     "player.id": 1145,
-    "Spielername": "I. Konaté",
+    "Spielername": "Ibrahima Konaté",
     "Spielerfoto": "https://media.api-sports.io/football/players/1145.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8108,7 +8108,7 @@ const playersData = [
   },
   {
     "player.id": 152654,
-    "Spielername": "J. Frimpong",
+    "Spielername": "Jeremie Agyekum Frimpong",
     "Spielerfoto": "https://media.api-sports.io/football/players/152654.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8121,7 +8121,7 @@ const playersData = [
   },
   {
     "player.id": 284,
-    "Spielername": "J. Gomez",
+    "Spielername": "Joseph Dave Gomez",
     "Spielerfoto": "https://media.api-sports.io/football/players/284.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8134,7 +8134,7 @@ const playersData = [
   },
   {
     "player.id": 206254,
-    "Spielername": "M. Kerkez",
+    "Spielername": "Miloš Kerkez",
     "Spielerfoto": "https://media.api-sports.io/football/players/206254.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8147,7 +8147,7 @@ const playersData = [
   },
   {
     "player.id": 290,
-    "Spielername": "V. van Dijk",
+    "Spielername": "Virgil van Dijk",
     "Spielerfoto": "https://media.api-sports.io/football/players/290.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8160,7 +8160,7 @@ const playersData = [
   },
   {
     "player.id": 328081,
-    "Spielername": "W. Omoruyi",
+    "Spielername": "Wellity Omoruyi",
     "Spielerfoto": "https://media.api-sports.io/football/players/328081.png",
     "Position": "DEFENDER",
     "Club.name": "Liverpool",
@@ -8173,7 +8173,7 @@ const playersData = [
   },
   {
     "player.id": 6716,
-    "Spielername": "A. Mac Allister",
+    "Spielername": "Alexis Mac Allister",
     "Spielerfoto": "https://media.api-sports.io/football/players/6716.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8186,7 +8186,7 @@ const playersData = [
   },
   {
     "player.id": 247,
-    "Spielername": "C. Gakpo",
+    "Spielername": "Cody Mathès Gakpo",
     "Spielerfoto": "https://media.api-sports.io/football/players/247.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8199,7 +8199,7 @@ const playersData = [
   },
   {
     "player.id": 293,
-    "Spielername": "C. Jones",
+    "Spielername": "Curtis Julian Jones",
     "Spielerfoto": "https://media.api-sports.io/football/players/293.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8212,7 +8212,7 @@ const playersData = [
   },
   {
     "player.id": 1096,
-    "Spielername": "D. Szoboszlai",
+    "Spielername": "Dominik Szoboszlai",
     "Spielerfoto": "https://media.api-sports.io/football/players/1096.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8225,7 +8225,7 @@ const playersData = [
   },
   {
     "player.id": 203224,
-    "Spielername": "F. Wirtz",
+    "Spielername": "Florian Richard Wirtz",
     "Spielerfoto": "https://media.api-sports.io/football/players/203224.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8238,7 +8238,7 @@ const playersData = [
   },
   {
     "player.id": 389032,
-    "Spielername": "K. Morrison",
+    "Spielername": "Kieran Morrison",
     "Spielerfoto": "https://media.api-sports.io/football/players/389032.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8264,7 +8264,7 @@ const playersData = [
   },
   {
     "player.id": 542,
-    "Spielername": "R. Gravenberch",
+    "Spielername": "Ryan Jiro Gravenberch",
     "Spielerfoto": "https://media.api-sports.io/football/players/542.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8277,7 +8277,7 @@ const playersData = [
   },
   {
     "player.id": 397997,
-    "Spielername": "T. Nyoni",
+    "Spielername": "Treymaurice Nyoni",
     "Spielerfoto": "https://media.api-sports.io/football/players/397997.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8290,7 +8290,7 @@ const playersData = [
   },
   {
     "player.id": 8500,
-    "Spielername": "W. Endo",
+    "Spielername": "Wataru Endo",
     "Spielerfoto": "https://media.api-sports.io/football/players/8500.png",
     "Position": "MIDFIELDER",
     "Club.name": "Liverpool",
@@ -8303,7 +8303,7 @@ const playersData = [
   },
   {
     "player.id": 2864,
-    "Spielername": "A. Isak",
+    "Spielername": "Alexander Isak",
     "Spielerfoto": "https://media.api-sports.io/football/players/2864.png",
     "Position": "ATTACKER",
     "Club.name": "Liverpool",
@@ -8316,7 +8316,7 @@ const playersData = [
   },
   {
     "player.id": 30410,
-    "Spielername": "F. Chiesa",
+    "Spielername": "Federico Chiesa",
     "Spielerfoto": "https://media.api-sports.io/football/players/30410.png",
     "Position": "ATTACKER",
     "Club.name": "Liverpool",
@@ -8329,7 +8329,7 @@ const playersData = [
   },
   {
     "player.id": 174565,
-    "Spielername": "H. Ekitike",
+    "Spielername": "Hugo Ekitike",
     "Spielerfoto": "https://media.api-sports.io/football/players/174565.png",
     "Position": "ATTACKER",
     "Club.name": "Liverpool",
@@ -8342,7 +8342,7 @@ const playersData = [
   },
   {
     "player.id": 314661,
-    "Spielername": "J. Danns",
+    "Spielername": "Jayden Danns",
     "Spielerfoto": "https://media.api-sports.io/football/players/314661.png",
     "Position": "ATTACKER",
     "Club.name": "Liverpool",
@@ -8355,7 +8355,7 @@ const playersData = [
   },
   {
     "player.id": 452685,
-    "Spielername": "R. Ngumoha",
+    "Spielername": "Rio Ngumoha",
     "Spielerfoto": "https://media.api-sports.io/football/players/452685.png",
     "Position": "ATTACKER",
     "Club.name": "Liverpool",
@@ -8368,7 +8368,7 @@ const playersData = [
   },
   {
     "player.id": 1622,
-    "Spielername": "G. Donnarumma",
+    "Spielername": "Gianluigi Donnarumma",
     "Spielerfoto": "https://media.api-sports.io/football/players/1622.png",
     "Position": "GOALKEEPER",
     "Club.name": "Manchester City",
@@ -8381,7 +8381,7 @@ const playersData = [
   },
   {
     "player.id": 162489,
-    "Spielername": "J. Trafford",
+    "Spielername": "James Harrington Trafford",
     "Spielerfoto": "https://media.api-sports.io/football/players/162489.png",
     "Position": "GOALKEEPER",
     "Club.name": "Manchester City",
@@ -8394,7 +8394,7 @@ const playersData = [
   },
   {
     "player.id": 19012,
-    "Spielername": "M. Bettinelli",
+    "Spielername": "Marcus Bettinelli",
     "Spielerfoto": "https://media.api-sports.io/football/players/19012.png",
     "Position": "GOALKEEPER",
     "Club.name": "Manchester City",
@@ -8407,7 +8407,7 @@ const playersData = [
   },
   {
     "player.id": 360114,
-    "Spielername": "A. Khusanov",
+    "Spielername": "Abduqodir Khusanov",
     "Spielerfoto": "https://media.api-sports.io/football/players/360114.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
@@ -8419,21 +8419,21 @@ const playersData = [
     "Gewicht": "84"
   },
   {
-    "player.id": 129033,
-    "Spielername": "J. Gvardiol",
-    "Spielerfoto": "https://media.api-sports.io/football/players/129033.png",
+    "player.id": 67971,
+    "Spielername": "Addji Guéhi",
+    "Spielerfoto": "https://media.api-sports.io/football/players/67971.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
     "Club.logo": "https://media.api-sports.io/football/teams/50.png",
-    "Nationalteam.name": "Croatia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
-    "Geburtsdatum": "2002-01-23",
-    "Groesse": "185",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2000-07-13",
+    "Groesse": "182",
     "Gewicht": "80"
   },
   {
     "player.id": 626,
-    "Spielername": "J. Stones",
+    "Spielername": "John Stones",
     "Spielerfoto": "https://media.api-sports.io/football/players/626.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
@@ -8442,6 +8442,19 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1994-05-28",
     "Groesse": "188",
+    "Gewicht": "80"
+  },
+  {
+    "player.id": 129033,
+    "Spielername": "Joško Gvardiol",
+    "Spielerfoto": "https://media.api-sports.io/football/players/129033.png",
+    "Position": "DEFENDER",
+    "Club.name": "Manchester City",
+    "Club.logo": "https://media.api-sports.io/football/teams/50.png",
+    "Nationalteam.name": "Croatia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
+    "Geburtsdatum": "2002-01-23",
+    "Groesse": "185",
     "Gewicht": "80"
   },
   {
@@ -8458,19 +8471,6 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 67971,
-    "Spielername": "M. Guéhi",
-    "Spielerfoto": "https://media.api-sports.io/football/players/67971.png",
-    "Position": "DEFENDER",
-    "Club.name": "Manchester City",
-    "Club.logo": "https://media.api-sports.io/football/teams/50.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2000-07-13",
-    "Groesse": "182",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 293168,
     "Spielername": "Max Alleyne",
     "Spielerfoto": "https://media.api-sports.io/football/players/293168.png",
@@ -8485,7 +8485,7 @@ const playersData = [
   },
   {
     "player.id": 18861,
-    "Spielername": "N. Aké",
+    "Spielername": "Nathan Benjamin Aké",
     "Spielerfoto": "https://media.api-sports.io/football/players/18861.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
@@ -8498,7 +8498,7 @@ const playersData = [
   },
   {
     "player.id": 307123,
-    "Spielername": "N. O&apos;Reilly",
+    "Spielername": "Nico O&apos;Reilly",
     "Spielerfoto": "https://media.api-sports.io/football/players/307123.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
@@ -8511,7 +8511,7 @@ const playersData = [
   },
   {
     "player.id": 21138,
-    "Spielername": "R. Aït-Nouri",
+    "Spielername": "Rayan Aït-Nouri",
     "Spielerfoto": "https://media.api-sports.io/football/players/21138.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
@@ -8524,7 +8524,7 @@ const playersData = [
   },
   {
     "player.id": 284230,
-    "Spielername": "R. Lewis",
+    "Spielername": "Rico Lewis",
     "Spielerfoto": "https://media.api-sports.io/football/players/284230.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
@@ -8550,7 +8550,7 @@ const playersData = [
   },
   {
     "player.id": 382358,
-    "Spielername": "S. Mfuni",
+    "Spielername": "Stephen Mfuni",
     "Spielerfoto": "https://media.api-sports.io/football/players/382358.png",
     "Position": "DEFENDER",
     "Club.name": "Manchester City",
@@ -8589,7 +8589,7 @@ const playersData = [
   },
   {
     "player.id": 380681,
-    "Spielername": "D. Mukasa",
+    "Spielername": "Divine Mukasa",
     "Spielerfoto": "https://media.api-sports.io/football/players/380681.png",
     "Position": "MIDFIELDER",
     "Club.name": "Manchester City",
@@ -8602,7 +8602,7 @@ const playersData = [
   },
   {
     "player.id": 1422,
-    "Spielername": "J. Doku",
+    "Spielername": "Jérémy Baffour Doku",
     "Spielerfoto": "https://media.api-sports.io/football/players/1422.png",
     "Position": "MIDFIELDER",
     "Club.name": "Manchester City",
@@ -8615,7 +8615,7 @@ const playersData = [
   },
   {
     "player.id": 2291,
-    "Spielername": "M. Kovačić",
+    "Spielername": "Mateo Kovačić",
     "Spielerfoto": "https://media.api-sports.io/football/players/2291.png",
     "Position": "MIDFIELDER",
     "Club.name": "Manchester City",
@@ -8638,6 +8638,19 @@ const playersData = [
     "Geburtsdatum": "1998-08-27",
     "Groesse": "183",
     "Gewicht": "78"
+  },
+  {
+    "player.id": 156477,
+    "Spielername": "Mathis Rayan Cherki",
+    "Spielerfoto": "https://media.api-sports.io/football/players/156477.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Manchester City",
+    "Club.logo": "https://media.api-sports.io/football/teams/50.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "2003-08-17",
+    "Groesse": "180",
+    "Gewicht": "71"
   },
   {
     "player.id": 161933,
@@ -8667,7 +8680,7 @@ const playersData = [
   },
   {
     "player.id": 631,
-    "Spielername": "P. Foden",
+    "Spielername": "Philip Walter Foden",
     "Spielerfoto": "https://media.api-sports.io/football/players/631.png",
     "Position": "MIDFIELDER",
     "Club.name": "Manchester City",
@@ -8677,19 +8690,6 @@ const playersData = [
     "Geburtsdatum": "2000-05-28",
     "Groesse": "171",
     "Gewicht": "63"
-  },
-  {
-    "player.id": 156477,
-    "Spielername": "R. Cherki",
-    "Spielerfoto": "https://media.api-sports.io/football/players/156477.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Manchester City",
-    "Club.logo": "https://media.api-sports.io/football/teams/50.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "2003-08-17",
-    "Groesse": "180",
-    "Gewicht": "71"
   },
   {
     "player.id": 44,
@@ -8706,7 +8706,7 @@ const playersData = [
   },
   {
     "player.id": 36902,
-    "Spielername": "T. Reijnders",
+    "Spielername": "Tijjani Reijnders",
     "Spielerfoto": "https://media.api-sports.io/football/players/36902.png",
     "Position": "MIDFIELDER",
     "Club.name": "Manchester City",
@@ -8719,7 +8719,7 @@ const playersData = [
   },
   {
     "player.id": 19281,
-    "Spielername": "A. Semenyo",
+    "Spielername": "Antoine Serlom Semenyo",
     "Spielerfoto": "https://media.api-sports.io/football/players/19281.png",
     "Position": "ATTACKER",
     "Club.name": "Manchester City",
@@ -8732,7 +8732,7 @@ const playersData = [
   },
   {
     "player.id": 1100,
-    "Spielername": "E. Haaland",
+    "Spielername": "Erling Haaland",
     "Spielerfoto": "https://media.api-sports.io/football/players/1100.png",
     "Position": "ATTACKER",
     "Club.name": "Manchester City",
@@ -8784,7 +8784,7 @@ const playersData = [
   },
   {
     "player.id": 47296,
-    "Spielername": "G. Rulli",
+    "Spielername": "Gerónimo Rulli",
     "Spielerfoto": "https://media.api-sports.io/football/players/47296.png",
     "Position": "GOALKEEPER",
     "Club.name": "Marseille",
@@ -8797,7 +8797,7 @@ const playersData = [
   },
   {
     "player.id": 36827,
-    "Spielername": "J. de Lange",
+    "Spielername": "Jeffrey de Lange",
     "Spielerfoto": "https://media.api-sports.io/football/players/36827.png",
     "Position": "GOALKEEPER",
     "Club.name": "Marseille",
@@ -8810,7 +8810,7 @@ const playersData = [
   },
   {
     "player.id": 336654,
-    "Spielername": "J. Van Neck",
+    "Spielername": "Jelle Van Neck",
     "Spielerfoto": "https://media.api-sports.io/football/players/336654.png",
     "Position": "GOALKEEPER",
     "Club.name": "Marseille",
@@ -8823,7 +8823,7 @@ const playersData = [
   },
   {
     "player.id": 451437,
-    "Spielername": "A. Doubal",
+    "Spielername": "Anis Doubal",
     "Spielerfoto": "https://media.api-sports.io/football/players/451437.png",
     "Position": "DEFENDER",
     "Club.name": "Marseille",
@@ -8835,21 +8835,8 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 2973,
-    "Spielername": "A. Murillo",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2973.png",
-    "Position": "DEFENDER",
-    "Club.name": "Marseille",
-    "Club.logo": "https://media.api-sports.io/football/teams/81.png",
-    "Nationalteam.name": "Panama",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/pa.svg",
-    "Geburtsdatum": "1996-02-11",
-    "Groesse": "184",
-    "Gewicht": "75"
-  },
-  {
     "player.id": 2725,
-    "Spielername": "B. Pavard",
+    "Spielername": "Benjamin Pavard",
     "Spielerfoto": "https://media.api-sports.io/football/players/2725.png",
     "Position": "DEFENDER",
     "Club.name": "Marseille",
@@ -8862,7 +8849,7 @@ const playersData = [
   },
   {
     "player.id": 181827,
-    "Spielername": "C. Egan-Riley",
+    "Spielername": "Conrad Jaden Egan-Riley",
     "Spielerfoto": "https://media.api-sports.io/football/players/181827.png",
     "Position": "DEFENDER",
     "Club.name": "Marseille",
@@ -8888,7 +8875,7 @@ const playersData = [
   },
   {
     "player.id": 6231,
-    "Spielername": "F. Medina",
+    "Spielername": "Facundo Axel Medina",
     "Spielerfoto": "https://media.api-sports.io/football/players/6231.png",
     "Position": "DEFENDER",
     "Club.name": "Marseille",
@@ -8901,7 +8888,7 @@ const playersData = [
   },
   {
     "player.id": 6,
-    "Spielername": "L. Balerdi",
+    "Spielername": "Leonardo Julián Balerdi",
     "Spielerfoto": "https://media.api-sports.io/football/players/6.png",
     "Position": "DEFENDER",
     "Club.name": "Marseille",
@@ -8913,8 +8900,21 @@ const playersData = [
     "Gewicht": "76"
   },
   {
+    "player.id": 2973,
+    "Spielername": "Michael Amir Murillo",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2973.png",
+    "Position": "DEFENDER",
+    "Club.name": "Marseille",
+    "Club.logo": "https://media.api-sports.io/football/teams/81.png",
+    "Nationalteam.name": "Panama",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/pa.svg",
+    "Geburtsdatum": "1996-02-11",
+    "Groesse": "184",
+    "Gewicht": "75"
+  },
+  {
     "player.id": 21694,
-    "Spielername": "N. Aguerd",
+    "Spielername": "Nayef Aguerd",
     "Spielerfoto": "https://media.api-sports.io/football/players/21694.png",
     "Position": "DEFENDER",
     "Club.name": "Marseille",
@@ -8940,7 +8940,7 @@ const playersData = [
   },
   {
     "player.id": 943,
-    "Spielername": "U. Garcia",
+    "Spielername": "Ulisses Alexandre Garcia",
     "Spielerfoto": "https://media.api-sports.io/football/players/943.png",
     "Position": "DEFENDER",
     "Club.name": "Marseille",
@@ -8953,7 +8953,7 @@ const playersData = [
   },
   {
     "player.id": 896,
-    "Spielername": "A. Gomes",
+    "Spielername": "Adilson Angel Gomes",
     "Spielerfoto": "https://media.api-sports.io/football/players/896.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -8966,7 +8966,7 @@ const playersData = [
   },
   {
     "player.id": 340154,
-    "Spielername": "A. Vermeeren",
+    "Spielername": "Arthur Denis Vermeeren",
     "Spielerfoto": "https://media.api-sports.io/football/players/340154.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -8979,7 +8979,7 @@ const playersData = [
   },
   {
     "player.id": 283216,
-    "Spielername": "B. Nadir",
+    "Spielername": "Bilal Nadir",
     "Spielerfoto": "https://media.api-sports.io/football/players/283216.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -8992,7 +8992,7 @@ const playersData = [
   },
   {
     "player.id": 455245,
-    "Spielername": "D. Bakola",
+    "Spielername": "Darryl Bakola",
     "Spielerfoto": "https://media.api-sports.io/football/players/455245.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -9005,20 +9005,20 @@ const playersData = [
   },
   {
     "player.id": 926,
-    "Spielername": "G. Kondogbia",
+    "Spielername": "Geoffrey Edwin Kondogbia",
     "Spielerfoto": "https://media.api-sports.io/football/players/926.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
     "Club.logo": "https://media.api-sports.io/football/teams/81.png",
     "Nationalteam.name": "Central African Republic",
-    "Nationalteam.logo": "",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/cf.svg",
     "Geburtsdatum": "1993-02-15",
     "Groesse": "188",
     "Gewicht": "80"
   },
   {
     "player.id": 31057,
-    "Spielername": "H. Traorè",
+    "Spielername": "Hamed Junior Traorè",
     "Spielerfoto": "https://media.api-sports.io/football/players/31057.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -9031,7 +9031,7 @@ const playersData = [
   },
   {
     "player.id": 897,
-    "Spielername": "M. Greenwood",
+    "Spielername": "Mason Greenwood",
     "Spielerfoto": "https://media.api-sports.io/football/players/897.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -9044,7 +9044,7 @@ const playersData = [
   },
   {
     "player.id": 19030,
-    "Spielername": "M. O&apos;Riley",
+    "Spielername": "Matthew Sean O&apos;Riley",
     "Spielerfoto": "https://media.api-sports.io/football/players/19030.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -9057,7 +9057,7 @@ const playersData = [
   },
   {
     "player.id": 2735,
-    "Spielername": "P. Højbjerg",
+    "Spielername": "Pierre-Emile Kordt Højbjerg",
     "Spielerfoto": "https://media.api-sports.io/football/players/2735.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -9083,7 +9083,7 @@ const playersData = [
   },
   {
     "player.id": 1138,
-    "Spielername": "T. Weah",
+    "Spielername": "Timothy Weah",
     "Spielerfoto": "https://media.api-sports.io/football/players/1138.png",
     "Position": "MIDFIELDER",
     "Club.name": "Marseille",
@@ -9096,7 +9096,7 @@ const playersData = [
   },
   {
     "player.id": 85041,
-    "Spielername": "A. Gouiri",
+    "Spielername": "Amine Ferid Gouiri",
     "Spielerfoto": "https://media.api-sports.io/football/players/85041.png",
     "Position": "ATTACKER",
     "Club.name": "Marseille",
@@ -9148,7 +9148,7 @@ const playersData = [
   },
   {
     "player.id": 1465,
-    "Spielername": "P. Aubameyang",
+    "Spielername": "Pierre-Emerick Aubameyang",
     "Spielerfoto": "https://media.api-sports.io/football/players/1465.png",
     "Position": "ATTACKER",
     "Club.name": "Marseille",
@@ -9161,7 +9161,7 @@ const playersData = [
   },
   {
     "player.id": 435482,
-    "Spielername": "R. Vaz",
+    "Spielername": "Robinio Vaz",
     "Spielerfoto": "https://media.api-sports.io/football/players/435482.png",
     "Position": "ATTACKER",
     "Club.name": "Marseille",
@@ -9174,7 +9174,7 @@ const playersData = [
   },
   {
     "player.id": 440070,
-    "Spielername": "J. Stawiecki",
+    "Spielername": "Jules Stawiecki",
     "Spielerfoto": "https://media.api-sports.io/football/players/440070.png",
     "Position": "GOALKEEPER",
     "Club.name": "Monaco",
@@ -9187,7 +9187,7 @@ const playersData = [
   },
   {
     "player.id": 963,
-    "Spielername": "L. Hrádecký",
+    "Spielername": "Lukáš Hrádecký",
     "Spielerfoto": "https://media.api-sports.io/football/players/963.png",
     "Position": "GOALKEEPER",
     "Club.name": "Monaco",
@@ -9200,7 +9200,7 @@ const playersData = [
   },
   {
     "player.id": 7313,
-    "Spielername": "P. Köhn",
+    "Spielername": "Philipp François Köhn",
     "Spielerfoto": "https://media.api-sports.io/football/players/7313.png",
     "Position": "GOALKEEPER",
     "Club.name": "Monaco",
@@ -9210,19 +9210,6 @@ const playersData = [
     "Geburtsdatum": "1998-04-02",
     "Groesse": "190",
     "Gewicht": "80"
-  },
-  {
-    "player.id": 274296,
-    "Spielername": "Y. Lienard",
-    "Spielerfoto": "https://media.api-sports.io/football/players/274296.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Monaco",
-    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "2003-03-16",
-    "Groesse": "194",
-    "Gewicht": "83"
   },
   {
     "player.id": 488254,
@@ -9238,8 +9225,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 274296,
+    "Spielername": "Yann François Lienard",
+    "Spielerfoto": "https://media.api-sports.io/football/players/274296.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Monaco",
+    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "2003-03-16",
+    "Groesse": "194",
+    "Gewicht": "83"
+  },
+  {
     "player.id": 399893,
-    "Spielername": "B. Kiwa",
+    "Spielername": "Bradel Kiwa",
     "Spielerfoto": "https://media.api-sports.io/football/players/399893.png",
     "Position": "DEFENDER",
     "Club.name": "Monaco",
@@ -9249,19 +9249,6 @@ const playersData = [
     "Geburtsdatum": "2006-02-05",
     "Groesse": "191",
     "Gewicht": "90"
-  },
-  {
-    "player.id": 371916,
-    "Spielername": "C. Mawissa Elebi",
-    "Spielerfoto": "https://media.api-sports.io/football/players/371916.png",
-    "Position": "DEFENDER",
-    "Club.name": "Monaco",
-    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "2005-04-18",
-    "Groesse": "185",
-    "Gewicht": "77"
   },
   {
     "player.id": 10316,
@@ -9277,8 +9264,21 @@ const playersData = [
     "Gewicht": "68"
   },
   {
+    "player.id": 371916,
+    "Spielername": "Christian Mawissa Elebi",
+    "Spielerfoto": "https://media.api-sports.io/football/players/371916.png",
+    "Position": "DEFENDER",
+    "Club.name": "Monaco",
+    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "2005-04-18",
+    "Groesse": "185",
+    "Gewicht": "77"
+  },
+  {
     "player.id": 175,
-    "Spielername": "E. Dier",
+    "Spielername": "Eric Dier",
     "Spielerfoto": "https://media.api-sports.io/football/players/175.png",
     "Position": "DEFENDER",
     "Club.name": "Monaco",
@@ -9290,8 +9290,21 @@ const playersData = [
     "Gewicht": "83"
   },
   {
+    "player.id": 261,
+    "Spielername": "Jan Thilo Kehrer",
+    "Spielerfoto": "https://media.api-sports.io/football/players/261.png",
+    "Position": "DEFENDER",
+    "Club.name": "Monaco",
+    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "1996-09-21",
+    "Groesse": "186",
+    "Gewicht": "76"
+  },
+  {
     "player.id": 231,
-    "Spielername": "J. Teze",
+    "Spielername": "Jordan Teze",
     "Spielerfoto": "https://media.api-sports.io/football/players/231.png",
     "Position": "DEFENDER",
     "Club.name": "Monaco",
@@ -9304,7 +9317,7 @@ const playersData = [
   },
   {
     "player.id": 333137,
-    "Spielername": "K. Ouattara",
+    "Spielername": "Kassoum Ouattara",
     "Spielerfoto": "https://media.api-sports.io/football/players/333137.png",
     "Position": "DEFENDER",
     "Club.name": "Monaco",
@@ -9317,7 +9330,7 @@ const playersData = [
   },
   {
     "player.id": 47480,
-    "Spielername": "M. Salisu",
+    "Spielername": "Mohammed Salisu",
     "Spielerfoto": "https://media.api-sports.io/football/players/47480.png",
     "Position": "DEFENDER",
     "Club.name": "Monaco",
@@ -9327,19 +9340,6 @@ const playersData = [
     "Geburtsdatum": "1999-04-17",
     "Groesse": "191",
     "Gewicht": "82"
-  },
-  {
-    "player.id": 261,
-    "Spielername": "T. Kehrer",
-    "Spielerfoto": "https://media.api-sports.io/football/players/261.png",
-    "Position": "DEFENDER",
-    "Club.name": "Monaco",
-    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "1996-09-21",
-    "Groesse": "186",
-    "Gewicht": "76"
   },
   {
     "player.id": 291649,
@@ -9356,7 +9356,7 @@ const playersData = [
   },
   {
     "player.id": 8694,
-    "Spielername": "W. Faes",
+    "Spielername": "Wout Faes",
     "Spielerfoto": "https://media.api-sports.io/football/players/8694.png",
     "Position": "DEFENDER",
     "Club.name": "Monaco",
@@ -9369,7 +9369,7 @@ const playersData = [
   },
   {
     "player.id": 453792,
-    "Spielername": "A. Bamba",
+    "Spielername": "Aladji Bamba",
     "Spielerfoto": "https://media.api-sports.io/football/players/453792.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9382,7 +9382,7 @@ const playersData = [
   },
   {
     "player.id": 109,
-    "Spielername": "A. Golovin",
+    "Spielername": "Aleksandr Golovin",
     "Spielerfoto": "https://media.api-sports.io/football/players/109.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9395,7 +9395,7 @@ const playersData = [
   },
   {
     "player.id": 2810,
-    "Spielername": "D. Zakaria",
+    "Spielername": "Denis Lemi Zakaria",
     "Spielerfoto": "https://media.api-sports.io/football/players/2810.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9421,7 +9421,7 @@ const playersData = [
   },
   {
     "player.id": 81,
-    "Spielername": "K. Diatta",
+    "Spielername": "Krépin Diatta",
     "Spielerfoto": "https://media.api-sports.io/football/players/81.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9434,7 +9434,7 @@ const playersData = [
   },
   {
     "player.id": 374058,
-    "Spielername": "L. Camara",
+    "Spielername": "Lamine Camara",
     "Spielerfoto": "https://media.api-sports.io/football/players/374058.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9447,7 +9447,7 @@ const playersData = [
   },
   {
     "player.id": 274300,
-    "Spielername": "M. Akliouche",
+    "Spielername": "Maghnes Akliouche",
     "Spielerfoto": "https://media.api-sports.io/football/players/274300.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9460,7 +9460,7 @@ const playersData = [
   },
   {
     "player.id": 419035,
-    "Spielername": "M. Coulibaly",
+    "Spielername": "Mamadou Coulibaly",
     "Spielerfoto": "https://media.api-sports.io/football/players/419035.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9470,19 +9470,6 @@ const playersData = [
     "Geburtsdatum": "2004-04-21",
     "Groesse": "180",
     "Gewicht": "75"
-  },
-  {
-    "player.id": 904,
-    "Spielername": "P. Pogba",
-    "Spielerfoto": "https://media.api-sports.io/football/players/904.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Monaco",
-    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "1993-03-15",
-    "Groesse": "191",
-    "Gewicht": "84"
   },
   {
     "player.id": 543470,
@@ -9498,8 +9485,34 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 904,
+    "Spielername": "Paul Labile Pogba",
+    "Spielerfoto": "https://media.api-sports.io/football/players/904.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Monaco",
+    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "1993-03-15",
+    "Groesse": "191",
+    "Gewicht": "84"
+  },
+  {
+    "player.id": 449676,
+    "Spielername": "Samuel Kondi Nibombé",
+    "Spielerfoto": "https://media.api-sports.io/football/players/449676.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Monaco",
+    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
+    "Nationalteam.name": "Belgium",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
+    "Geburtsdatum": "2007-08-15",
+    "Groesse": "198",
+    "Gewicht": "83"
+  },
+  {
     "player.id": 301771,
-    "Spielername": "S. Adingra",
+    "Spielername": "Simon Adingra",
     "Spielerfoto": "https://media.api-sports.io/football/players/301771.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9512,7 +9525,7 @@ const playersData = [
   },
   {
     "player.id": 340152,
-    "Spielername": "S. Idumbo-Muzambo",
+    "Spielername": "Stanis Idumbo-Muzambo",
     "Spielerfoto": "https://media.api-sports.io/football/players/340152.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9524,21 +9537,8 @@ const playersData = [
     "Gewicht": "60"
   },
   {
-    "player.id": 449676,
-    "Spielername": "S. Nibombé",
-    "Spielerfoto": "https://media.api-sports.io/football/players/449676.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Monaco",
-    "Club.logo": "https://media.api-sports.io/football/teams/91.png",
-    "Nationalteam.name": "Belgium",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
-    "Geburtsdatum": "2007-08-15",
-    "Groesse": "198",
-    "Gewicht": "83"
-  },
-  {
     "player.id": 1101,
-    "Spielername": "T. Minamino",
+    "Spielername": "Takumi Minamino",
     "Spielerfoto": "https://media.api-sports.io/football/players/1101.png",
     "Position": "MIDFIELDER",
     "Club.name": "Monaco",
@@ -9564,7 +9564,7 @@ const playersData = [
   },
   {
     "player.id": 138835,
-    "Spielername": "F. Balogun",
+    "Spielername": "Folarin Jerry Balogun",
     "Spielerfoto": "https://media.api-sports.io/football/players/138835.png",
     "Position": "ATTACKER",
     "Club.name": "Monaco",
@@ -9577,7 +9577,7 @@ const playersData = [
   },
   {
     "player.id": 395040,
-    "Spielername": "G. Ilenikhena",
+    "Spielername": "George Ilenikhena",
     "Spielerfoto": "https://media.api-sports.io/football/players/395040.png",
     "Position": "ATTACKER",
     "Club.name": "Monaco",
@@ -9590,7 +9590,7 @@ const playersData = [
   },
   {
     "player.id": 343319,
-    "Spielername": "L. Michal",
+    "Spielername": "Lucas Michal",
     "Spielerfoto": "https://media.api-sports.io/football/players/343319.png",
     "Position": "ATTACKER",
     "Club.name": "Monaco",
@@ -9603,7 +9603,7 @@ const playersData = [
   },
   {
     "player.id": 283026,
-    "Spielername": "M. Biereth",
+    "Spielername": "Mika Biereth",
     "Spielerfoto": "https://media.api-sports.io/football/players/283026.png",
     "Position": "ATTACKER",
     "Club.name": "Monaco",
@@ -9616,7 +9616,7 @@ const playersData = [
   },
   {
     "player.id": 312,
-    "Spielername": "A. Meret",
+    "Spielername": "Alex Meret",
     "Spielerfoto": "https://media.api-sports.io/football/players/312.png",
     "Position": "GOALKEEPER",
     "Club.name": "Napoli",
@@ -9629,7 +9629,7 @@ const playersData = [
   },
   {
     "player.id": 355007,
-    "Spielername": "A. Yazıcı",
+    "Spielername": "Arda Yazıcı",
     "Spielerfoto": "https://media.api-sports.io/football/players/355007.png",
     "Position": "GOALKEEPER",
     "Club.name": "Napoli",
@@ -9655,7 +9655,7 @@ const playersData = [
   },
   {
     "player.id": 32172,
-    "Spielername": "N. Contini",
+    "Spielername": "Nikita Contini",
     "Spielerfoto": "https://media.api-sports.io/football/players/32172.png",
     "Position": "GOALKEEPER",
     "Club.name": "Napoli",
@@ -9668,7 +9668,7 @@ const playersData = [
   },
   {
     "player.id": 31156,
-    "Spielername": "V. Milinković-Savić",
+    "Spielername": "Vanja Milinković-Savić",
     "Spielerfoto": "https://media.api-sports.io/football/players/31156.png",
     "Position": "GOALKEEPER",
     "Club.name": "Napoli",
@@ -9681,7 +9681,7 @@ const playersData = [
   },
   {
     "player.id": 31226,
-    "Spielername": "A. Buongiorno",
+    "Spielername": "Alessandro Buongiorno",
     "Spielerfoto": "https://media.api-sports.io/football/players/31226.png",
     "Position": "DEFENDER",
     "Club.name": "Napoli",
@@ -9720,7 +9720,7 @@ const playersData = [
   },
   {
     "player.id": 31042,
-    "Spielername": "G. Di Lorenzo",
+    "Spielername": "Giovanni Di Lorenzo",
     "Spielerfoto": "https://media.api-sports.io/football/players/31042.png",
     "Position": "DEFENDER",
     "Club.name": "Napoli",
@@ -9746,7 +9746,7 @@ const playersData = [
   },
   {
     "player.id": 862,
-    "Spielername": "L. Spinazzola",
+    "Spielername": "Leonardo Spinazzola",
     "Spielerfoto": "https://media.api-sports.io/football/players/862.png",
     "Position": "DEFENDER",
     "Club.name": "Napoli",
@@ -9759,7 +9759,7 @@ const playersData = [
   },
   {
     "player.id": 47254,
-    "Spielername": "M. Olivera",
+    "Spielername": "Mathías Olivera",
     "Spielerfoto": "https://media.api-sports.io/football/players/47254.png",
     "Position": "DEFENDER",
     "Club.name": "Napoli",
@@ -9785,7 +9785,7 @@ const playersData = [
   },
   {
     "player.id": 37604,
-    "Spielername": "S. Beukema",
+    "Spielername": "Sam Beukema",
     "Spielerfoto": "https://media.api-sports.io/football/players/37604.png",
     "Position": "DEFENDER",
     "Club.name": "Napoli",
@@ -9797,21 +9797,8 @@ const playersData = [
     "Gewicht": "77"
   },
   {
-    "player.id": 347395,
-    "Spielername": "A. Vergara",
-    "Spielerfoto": "https://media.api-sports.io/football/players/347395.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Napoli",
-    "Club.logo": "https://media.api-sports.io/football/teams/492.png",
-    "Nationalteam.name": "Italy",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
-    "Geburtsdatum": "2003-01-16",
-    "Groesse": "182",
-    "Gewicht": "70"
-  },
-  {
     "player.id": 3406,
-    "Spielername": "A. Zambo Anguissa",
+    "Spielername": "André-Frank Zambo Anguissa",
     "Spielerfoto": "https://media.api-sports.io/football/players/3406.png",
     "Position": "MIDFIELDER",
     "Club.name": "Napoli",
@@ -9823,8 +9810,21 @@ const playersData = [
     "Gewicht": "78"
   },
   {
+    "player.id": 347395,
+    "Spielername": "Antonio Vergara",
+    "Spielerfoto": "https://media.api-sports.io/football/players/347395.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Napoli",
+    "Club.logo": "https://media.api-sports.io/football/teams/492.png",
+    "Nationalteam.name": "Italy",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
+    "Geburtsdatum": "2003-01-16",
+    "Groesse": "182",
+    "Gewicht": "70"
+  },
+  {
     "player.id": 130423,
-    "Spielername": "B. Gilmour",
+    "Spielername": "Billy Clifford Gilmour",
     "Spielerfoto": "https://media.api-sports.io/football/players/130423.png",
     "Position": "MIDFIELDER",
     "Club.name": "Napoli",
@@ -9850,20 +9850,20 @@ const playersData = [
   },
   {
     "player.id": 1358,
-    "Spielername": "E. Elmas",
+    "Spielername": "Eljif Elmas",
     "Spielerfoto": "https://media.api-sports.io/football/players/1358.png",
     "Position": "MIDFIELDER",
     "Club.name": "Napoli",
     "Club.logo": "https://media.api-sports.io/football/teams/492.png",
     "Nationalteam.name": "North Macedonia",
-    "Nationalteam.logo": "",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/mk.svg",
     "Geburtsdatum": "1999-09-24",
     "Groesse": "184",
     "Gewicht": "78"
   },
   {
     "player.id": 629,
-    "Spielername": "K. De Bruyne",
+    "Spielername": "Kevin De Bruyne",
     "Spielerfoto": "https://media.api-sports.io/football/players/629.png",
     "Position": "MIDFIELDER",
     "Club.name": "Napoli",
@@ -9876,7 +9876,7 @@ const playersData = [
   },
   {
     "player.id": 219,
-    "Spielername": "M. Politano",
+    "Spielername": "Matteo Politano",
     "Spielerfoto": "https://media.api-sports.io/football/players/219.png",
     "Position": "MIDFIELDER",
     "Club.name": "Napoli",
@@ -9888,21 +9888,8 @@ const playersData = [
     "Gewicht": "67"
   },
   {
-    "player.id": 47439,
-    "Spielername": "S. Lobotka",
-    "Spielerfoto": "https://media.api-sports.io/football/players/47439.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Napoli",
-    "Club.logo": "https://media.api-sports.io/football/teams/492.png",
-    "Nationalteam.name": "Slovakia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
-    "Geburtsdatum": "1994-11-25",
-    "Groesse": "168",
-    "Gewicht": "68"
-  },
-  {
     "player.id": 903,
-    "Spielername": "S. McTominay",
+    "Spielername": "Scott Francis McTominay",
     "Spielerfoto": "https://media.api-sports.io/football/players/903.png",
     "Position": "MIDFIELDER",
     "Club.name": "Napoli",
@@ -9912,6 +9899,19 @@ const playersData = [
     "Geburtsdatum": "1996-12-08",
     "Groesse": "193",
     "Gewicht": "88"
+  },
+  {
+    "player.id": 47439,
+    "Spielername": "Stanislav Lobotka",
+    "Spielerfoto": "https://media.api-sports.io/football/players/47439.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Napoli",
+    "Club.logo": "https://media.api-sports.io/football/teams/492.png",
+    "Nationalteam.name": "Slovakia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
+    "Geburtsdatum": "1994-11-25",
+    "Groesse": "168",
+    "Gewicht": "68"
   },
   {
     "player.id": 561707,
@@ -9941,7 +9941,7 @@ const playersData = [
   },
   {
     "player.id": 341912,
-    "Spielername": "G. Ambrosino",
+    "Spielername": "Giuseppe Ambrosino",
     "Spielerfoto": "https://media.api-sports.io/football/players/341912.png",
     "Position": "ATTACKER",
     "Club.name": "Napoli",
@@ -9954,7 +9954,7 @@ const playersData = [
   },
   {
     "player.id": 199089,
-    "Spielername": "L. Lucca",
+    "Spielername": "Lorenzo Lucca",
     "Spielerfoto": "https://media.api-sports.io/football/players/199089.png",
     "Position": "ATTACKER",
     "Club.name": "Napoli",
@@ -9967,7 +9967,7 @@ const playersData = [
   },
   {
     "player.id": 544,
-    "Spielername": "N. Lang",
+    "Spielername": "Noa Noëll Lang",
     "Spielerfoto": "https://media.api-sports.io/football/players/544.png",
     "Position": "ATTACKER",
     "Club.name": "Napoli",
@@ -9980,7 +9980,7 @@ const playersData = [
   },
   {
     "player.id": 288006,
-    "Spielername": "R. Højlund",
+    "Spielername": "Rasmus Højlund",
     "Spielerfoto": "https://media.api-sports.io/football/players/288006.png",
     "Position": "ATTACKER",
     "Club.name": "Napoli",
@@ -9993,7 +9993,7 @@ const playersData = [
   },
   {
     "player.id": 907,
-    "Spielername": "R. Lukaku",
+    "Spielername": "Romelu Menama Lukaku",
     "Spielerfoto": "https://media.api-sports.io/football/players/907.png",
     "Position": "ATTACKER",
     "Club.name": "Napoli",
@@ -10005,21 +10005,8 @@ const playersData = [
     "Gewicht": "93"
   },
   {
-    "player.id": 402524,
-    "Spielername": "A. Harrison",
-    "Spielerfoto": "https://media.api-sports.io/football/players/402524.png",
-    "Position": "GOALKEEPER",
-    "Club.name": "Newcastle",
-    "Club.logo": "https://media.api-sports.io/football/teams/34.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2006-10-20",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 20355,
-    "Spielername": "A. Ramsdale",
+    "Spielername": "Aaron Christopher Ramsdale",
     "Spielerfoto": "https://media.api-sports.io/football/players/20355.png",
     "Position": "GOALKEEPER",
     "Club.name": "Newcastle",
@@ -10029,6 +10016,19 @@ const playersData = [
     "Geburtsdatum": "1998-05-14",
     "Groesse": "190",
     "Gewicht": "88"
+  },
+  {
+    "player.id": 402524,
+    "Spielername": "Adam Alan Harrison",
+    "Spielerfoto": "https://media.api-sports.io/football/players/402524.png",
+    "Position": "GOALKEEPER",
+    "Club.name": "Newcastle",
+    "Club.logo": "https://media.api-sports.io/football/teams/34.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2006-10-20",
+    "Groesse": "",
+    "Gewicht": ""
   },
   {
     "player.id": 365988,
@@ -10045,7 +10045,7 @@ const playersData = [
   },
   {
     "player.id": 18737,
-    "Spielername": "J. Ruddy",
+    "Spielername": "John Ruddy",
     "Spielerfoto": "https://media.api-sports.io/football/players/18737.png",
     "Position": "GOALKEEPER",
     "Club.name": "Newcastle",
@@ -10071,7 +10071,7 @@ const playersData = [
   },
   {
     "player.id": 18911,
-    "Spielername": "N. Pope",
+    "Spielername": "Nicholas David Pope",
     "Spielerfoto": "https://media.api-sports.io/football/players/18911.png",
     "Position": "GOALKEEPER",
     "Club.name": "Newcastle",
@@ -10084,20 +10084,20 @@ const playersData = [
   },
   {
     "player.id": 318056,
-    "Spielername": "A. Murphy",
+    "Spielername": "Alex Murphy",
     "Spielerfoto": "https://media.api-sports.io/football/players/318056.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
     "Club.logo": "https://media.api-sports.io/football/teams/34.png",
     "Nationalteam.name": "Republic of Ireland",
-    "Nationalteam.logo": "",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ie.svg",
     "Geburtsdatum": "2004-06-25",
     "Groesse": "188",
     "Gewicht": "78"
   },
   {
     "player.id": 18961,
-    "Spielername": "D. Burn",
+    "Spielername": "Daniel Johnson Burn",
     "Spielerfoto": "https://media.api-sports.io/football/players/18961.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10110,7 +10110,7 @@ const playersData = [
   },
   {
     "player.id": 2855,
-    "Spielername": "E. Krafth",
+    "Spielername": "Emil Krafth",
     "Spielerfoto": "https://media.api-sports.io/football/players/2855.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10123,7 +10123,7 @@ const playersData = [
   },
   {
     "player.id": 2806,
-    "Spielername": "F. Schär",
+    "Spielername": "Fabian Lukas Schär",
     "Spielerfoto": "https://media.api-sports.io/football/players/2806.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10136,7 +10136,7 @@ const playersData = [
   },
   {
     "player.id": 169,
-    "Spielername": "K. Trippier",
+    "Spielername": "Kieran John Trippier",
     "Spielerfoto": "https://media.api-sports.io/football/players/169.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10148,21 +10148,8 @@ const playersData = [
     "Gewicht": "71"
   },
   {
-    "player.id": 284492,
-    "Spielername": "L. Hall",
-    "Spielerfoto": "https://media.api-sports.io/football/players/284492.png",
-    "Position": "DEFENDER",
-    "Club.name": "Newcastle",
-    "Club.logo": "https://media.api-sports.io/football/teams/34.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2004-09-08",
-    "Groesse": "179",
-    "Gewicht": "73"
-  },
-  {
     "player.id": 337934,
-    "Spielername": "L. Shahar",
+    "Spielername": "Leo Shahar",
     "Spielerfoto": "https://media.api-sports.io/football/players/337934.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10174,8 +10161,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 284492,
+    "Spielername": "Lewis Kieran Hall",
+    "Spielerfoto": "https://media.api-sports.io/football/players/284492.png",
+    "Position": "DEFENDER",
+    "Club.name": "Newcastle",
+    "Club.logo": "https://media.api-sports.io/football/teams/34.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2004-09-08",
+    "Groesse": "179",
+    "Gewicht": "73"
+  },
+  {
     "player.id": 163189,
-    "Spielername": "M. Thiaw",
+    "Spielername": "Malick Laye Thiaw",
     "Spielerfoto": "https://media.api-sports.io/football/players/163189.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10188,7 +10188,7 @@ const playersData = [
   },
   {
     "player.id": 38734,
-    "Spielername": "S. Botman",
+    "Spielername": "Sven Adriaan Botman",
     "Spielerfoto": "https://media.api-sports.io/football/players/38734.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10201,7 +10201,7 @@ const playersData = [
   },
   {
     "player.id": 158694,
-    "Spielername": "T. Livramento",
+    "Spielername": "Valentino Francisco Livramento",
     "Spielerfoto": "https://media.api-sports.io/football/players/158694.png",
     "Position": "DEFENDER",
     "Club.name": "Newcastle",
@@ -10227,7 +10227,7 @@ const playersData = [
   },
   {
     "player.id": 19163,
-    "Spielername": "J. Murphy",
+    "Spielername": "Jacob Kai Murphy",
     "Spielerfoto": "https://media.api-sports.io/football/players/19163.png",
     "Position": "MIDFIELDER",
     "Club.name": "Newcastle",
@@ -10240,7 +10240,7 @@ const playersData = [
   },
   {
     "player.id": 19192,
-    "Spielername": "J. Ramsey",
+    "Spielername": "Jacob Matthew Ramsey",
     "Spielerfoto": "https://media.api-sports.io/football/players/19192.png",
     "Position": "MIDFIELDER",
     "Club.name": "Newcastle",
@@ -10250,19 +10250,6 @@ const playersData = [
     "Geburtsdatum": "2001-05-28",
     "Groesse": "180",
     "Gewicht": "75"
-  },
-  {
-    "player.id": 1463,
-    "Spielername": "J. Willock",
-    "Spielerfoto": "https://media.api-sports.io/football/players/1463.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Newcastle",
-    "Club.logo": "https://media.api-sports.io/football/teams/34.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "1999-08-20",
-    "Groesse": "179",
-    "Gewicht": "71"
   },
   {
     "player.id": 723,
@@ -10278,8 +10265,21 @@ const playersData = [
     "Gewicht": "81"
   },
   {
+    "player.id": 1463,
+    "Spielername": "Joseph George Willock",
+    "Spielerfoto": "https://media.api-sports.io/football/players/1463.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Newcastle",
+    "Club.logo": "https://media.api-sports.io/football/teams/34.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "1999-08-20",
+    "Groesse": "179",
+    "Gewicht": "71"
+  },
+  {
     "player.id": 328105,
-    "Spielername": "L. Miley",
+    "Spielername": "Lewis Miley",
     "Spielerfoto": "https://media.api-sports.io/football/players/328105.png",
     "Position": "MIDFIELDER",
     "Club.name": "Newcastle",
@@ -10305,7 +10305,7 @@ const playersData = [
   },
   {
     "player.id": 31146,
-    "Spielername": "S. Tonali",
+    "Spielername": "Sandro Tonali",
     "Spielerfoto": "https://media.api-sports.io/football/players/31146.png",
     "Position": "MIDFIELDER",
     "Club.name": "Newcastle",
@@ -10318,7 +10318,7 @@ const playersData = [
   },
   {
     "player.id": 153430,
-    "Spielername": "A. Elanga",
+    "Spielername": "Anthony David Elanga",
     "Spielerfoto": "https://media.api-sports.io/football/players/153430.png",
     "Position": "ATTACKER",
     "Club.name": "Newcastle",
@@ -10331,7 +10331,7 @@ const playersData = [
   },
   {
     "player.id": 138787,
-    "Spielername": "A. Gordon",
+    "Spielername": "Anthony Michael Gordon",
     "Spielerfoto": "https://media.api-sports.io/football/players/138787.png",
     "Position": "ATTACKER",
     "Club.name": "Newcastle",
@@ -10344,7 +10344,7 @@ const playersData = [
   },
   {
     "player.id": 18778,
-    "Spielername": "H. Barnes",
+    "Spielername": "Harvey Lewis Barnes",
     "Spielerfoto": "https://media.api-sports.io/football/players/18778.png",
     "Position": "ATTACKER",
     "Club.name": "Newcastle",
@@ -10357,7 +10357,7 @@ const playersData = [
   },
   {
     "player.id": 158054,
-    "Spielername": "N. Woltemade",
+    "Spielername": "Nick Woltemade",
     "Spielerfoto": "https://media.api-sports.io/football/players/158054.png",
     "Position": "ATTACKER",
     "Club.name": "Newcastle",
@@ -10370,7 +10370,7 @@ const playersData = [
   },
   {
     "player.id": 394165,
-    "Spielername": "S. Neave",
+    "Spielername": "Sean Thoms Neave",
     "Spielerfoto": "https://media.api-sports.io/football/players/394165.png",
     "Position": "ATTACKER",
     "Club.name": "Newcastle",
@@ -10383,7 +10383,7 @@ const playersData = [
   },
   {
     "player.id": 315237,
-    "Spielername": "W. Osula",
+    "Spielername": "William Idamudia Osula",
     "Spielerfoto": "https://media.api-sports.io/football/players/315237.png",
     "Position": "ATTACKER",
     "Club.name": "Newcastle",
@@ -10396,7 +10396,7 @@ const playersData = [
   },
   {
     "player.id": 20649,
-    "Spielername": "Y. Wissa",
+    "Spielername": "Yoane Wissa",
     "Spielerfoto": "https://media.api-sports.io/football/players/20649.png",
     "Position": "ATTACKER",
     "Club.name": "Newcastle",
@@ -10422,7 +10422,7 @@ const playersData = [
   },
   {
     "player.id": 2355,
-    "Spielername": "A. Paschalakis",
+    "Spielername": "Alexandros Paschalakis",
     "Spielerfoto": "https://media.api-sports.io/football/players/2355.png",
     "Position": "GOALKEEPER",
     "Club.name": "Olympiakos Piraeus",
@@ -10435,7 +10435,7 @@ const playersData = [
   },
   {
     "player.id": 451997,
-    "Spielername": "G. Kouraklis",
+    "Spielername": "Georgios Kouraklis",
     "Spielerfoto": "https://media.api-sports.io/football/players/451997.png",
     "Position": "GOALKEEPER",
     "Club.name": "Olympiakos Piraeus",
@@ -10448,7 +10448,7 @@ const playersData = [
   },
   {
     "player.id": 1591,
-    "Spielername": "K. Tzolakis",
+    "Spielername": "Konstantinos Tzolakis",
     "Spielerfoto": "https://media.api-sports.io/football/players/1591.png",
     "Position": "GOALKEEPER",
     "Club.name": "Olympiakos Piraeus",
@@ -10461,7 +10461,7 @@ const playersData = [
   },
   {
     "player.id": 343194,
-    "Spielername": "N. Botis",
+    "Spielername": "Nikolaos Nestoras Botis",
     "Spielerfoto": "https://media.api-sports.io/football/players/343194.png",
     "Position": "GOALKEEPER",
     "Club.name": "Olympiakos Piraeus",
@@ -10474,7 +10474,7 @@ const playersData = [
   },
   {
     "player.id": 313222,
-    "Spielername": "A. Kalogeropoulos",
+    "Spielername": "Alexandros Kalogeropoulos",
     "Spielerfoto": "https://media.api-sports.io/football/players/313222.png",
     "Position": "DEFENDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10500,7 +10500,7 @@ const playersData = [
   },
   {
     "player.id": 6064,
-    "Spielername": "F. Ortega",
+    "Spielername": "Francisco Gabriel Ortega",
     "Spielerfoto": "https://media.api-sports.io/football/players/6064.png",
     "Position": "DEFENDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10513,7 +10513,7 @@ const playersData = [
   },
   {
     "player.id": 84081,
-    "Spielername": "G. Biancone",
+    "Spielername": "Giulian Biancone",
     "Spielerfoto": "https://media.api-sports.io/football/players/84081.png",
     "Position": "DEFENDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10526,7 +10526,7 @@ const playersData = [
   },
   {
     "player.id": 134431,
-    "Spielername": "L. Pirola",
+    "Spielername": "Lorenzo Pirola",
     "Spielerfoto": "https://media.api-sports.io/football/players/134431.png",
     "Position": "DEFENDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10539,7 +10539,7 @@ const playersData = [
   },
   {
     "player.id": 971,
-    "Spielername": "P. Retsos",
+    "Spielername": "Panagiotis Retsos",
     "Spielerfoto": "https://media.api-sports.io/football/players/971.png",
     "Position": "DEFENDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10565,7 +10565,7 @@ const playersData = [
   },
   {
     "player.id": 278196,
-    "Spielername": "S. Onyemaechi",
+    "Spielername": "Sopuruchukwu Bruno Onyemaechi",
     "Spielerfoto": "https://media.api-sports.io/football/players/278196.png",
     "Position": "DEFENDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10590,19 +10590,6 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 392514,
-    "Spielername": "C. Mouzakitis",
-    "Spielerfoto": "https://media.api-sports.io/football/players/392514.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Olympiakos Piraeus",
-    "Club.logo": "https://media.api-sports.io/football/teams/553.png",
-    "Nationalteam.name": "Greece",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
-    "Geburtsdatum": "2006-12-25",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 41130,
     "Spielername": "Chiquinho",
     "Spielerfoto": "https://media.api-sports.io/football/players/41130.png",
@@ -10614,6 +10601,19 @@ const playersData = [
     "Geburtsdatum": "1995-07-19",
     "Groesse": "174",
     "Gewicht": "66"
+  },
+  {
+    "player.id": 392514,
+    "Spielername": "Christos Mouzakitis",
+    "Spielerfoto": "https://media.api-sports.io/football/players/392514.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Olympiakos Piraeus",
+    "Club.logo": "https://media.api-sports.io/football/teams/553.png",
+    "Nationalteam.name": "Greece",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
+    "Geburtsdatum": "2006-12-25",
+    "Groesse": "",
+    "Gewicht": ""
   },
   {
     "player.id": 47281,
@@ -10682,7 +10682,7 @@ const playersData = [
   },
   {
     "player.id": 364513,
-    "Spielername": "L. Scipioni",
+    "Spielername": "Lorenzo Scipioni",
     "Spielerfoto": "https://media.api-sports.io/football/players/364513.png",
     "Position": "MIDFIELDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10695,7 +10695,7 @@ const playersData = [
   },
   {
     "player.id": 195929,
-    "Spielername": "S. Hezze",
+    "Spielername": "Santiago Hezze",
     "Spielerfoto": "https://media.api-sports.io/football/players/195929.png",
     "Position": "MIDFIELDER",
     "Club.name": "Olympiakos Piraeus",
@@ -10705,19 +10705,6 @@ const playersData = [
     "Geburtsdatum": "2001-10-22",
     "Groesse": "182",
     "Gewicht": "75"
-  },
-  {
-    "player.id": 2722,
-    "Spielername": "A. El Kaabi",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2722.png",
-    "Position": "ATTACKER",
-    "Club.name": "Olympiakos Piraeus",
-    "Club.logo": "https://media.api-sports.io/football/teams/553.png",
-    "Nationalteam.name": "Morocco",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
-    "Geburtsdatum": "1993-06-25",
-    "Groesse": "182",
-    "Gewicht": "79"
   },
   {
     "player.id": 325717,
@@ -10731,6 +10718,19 @@ const playersData = [
     "Geburtsdatum": "2002-02-23",
     "Groesse": "185",
     "Gewicht": "77"
+  },
+  {
+    "player.id": 2722,
+    "Spielername": "Ayoub El Kaabi",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2722.png",
+    "Position": "ATTACKER",
+    "Club.name": "Olympiakos Piraeus",
+    "Club.logo": "https://media.api-sports.io/football/teams/553.png",
+    "Nationalteam.name": "Morocco",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
+    "Geburtsdatum": "1993-06-25",
+    "Groesse": "182",
+    "Gewicht": "79"
   },
   {
     "player.id": 195580,
@@ -10747,7 +10747,7 @@ const playersData = [
   },
   {
     "player.id": 42315,
-    "Spielername": "M. Taremi",
+    "Spielername": "Mehdi Taremi",
     "Spielerfoto": "https://media.api-sports.io/football/players/42315.png",
     "Position": "ATTACKER",
     "Club.name": "Olympiakos Piraeus",
@@ -10760,7 +10760,7 @@ const playersData = [
   },
   {
     "player.id": 8493,
-    "Spielername": "R. Yaremchuk",
+    "Spielername": "Roman Yaremchuk",
     "Spielerfoto": "https://media.api-sports.io/football/players/8493.png",
     "Position": "ATTACKER",
     "Club.name": "Olympiakos Piraeus",
@@ -10786,7 +10786,7 @@ const playersData = [
   },
   {
     "player.id": 37599,
-    "Spielername": "J. Gorter",
+    "Spielername": "Jay Gorter",
     "Spielerfoto": "https://media.api-sports.io/football/players/37599.png",
     "Position": "GOALKEEPER",
     "Club.name": "Pafos",
@@ -10799,7 +10799,7 @@ const playersData = [
   },
   {
     "player.id": 26909,
-    "Spielername": "N. Michael",
+    "Spielername": "Neofytos Michael",
     "Spielerfoto": "https://media.api-sports.io/football/players/26909.png",
     "Position": "GOALKEEPER",
     "Club.name": "Pafos",
@@ -10812,7 +10812,7 @@ const playersData = [
   },
   {
     "player.id": 443765,
-    "Spielername": "P. Petrou",
+    "Spielername": "Petros Petrou",
     "Spielerfoto": "https://media.api-sports.io/football/players/443765.png",
     "Position": "GOALKEEPER",
     "Club.name": "Pafos",
@@ -10825,7 +10825,7 @@ const playersData = [
   },
   {
     "player.id": 344535,
-    "Spielername": "T. Papadoudis",
+    "Spielername": "Thanasis Theologos Papadoudis",
     "Spielerfoto": "https://media.api-sports.io/football/players/344535.png",
     "Position": "GOALKEEPER",
     "Club.name": "Pafos",
@@ -10857,23 +10857,10 @@ const playersData = [
     "Club.name": "Pafos",
     "Club.logo": "https://media.api-sports.io/football/teams/3403.png",
     "Nationalteam.name": "Mozambique",
-    "Nationalteam.logo": "",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/mz.svg",
     "Geburtsdatum": "1997-10-31",
     "Groesse": "178",
     "Gewicht": "70"
-  },
-  {
-    "player.id": 25341,
-    "Spielername": "D. Luckassen",
-    "Spielerfoto": "https://media.api-sports.io/football/players/25341.png",
-    "Position": "DEFENDER",
-    "Club.name": "Pafos",
-    "Club.logo": "https://media.api-sports.io/football/teams/3403.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "1995-07-03",
-    "Groesse": "188",
-    "Gewicht": "78"
   },
   {
     "player.id": 108561,
@@ -10902,8 +10889,21 @@ const playersData = [
     "Gewicht": "84"
   },
   {
+    "player.id": 25341,
+    "Spielername": "Derrick Luckassen",
+    "Spielerfoto": "https://media.api-sports.io/football/players/25341.png",
+    "Position": "DEFENDER",
+    "Club.name": "Pafos",
+    "Club.logo": "https://media.api-sports.io/football/teams/3403.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "1995-07-03",
+    "Groesse": "188",
+    "Gewicht": "78"
+  },
+  {
     "player.id": 15553,
-    "Spielername": "K. Pileas",
+    "Spielername": "Kostas Pileas",
     "Spielerfoto": "https://media.api-sports.io/football/players/15553.png",
     "Position": "DEFENDER",
     "Club.name": "Pafos",
@@ -10955,7 +10955,7 @@ const playersData = [
   },
   {
     "player.id": 1324,
-    "Spielername": "I. Šunjić",
+    "Spielername": "Ivan Šunjić",
     "Spielerfoto": "https://media.api-sports.io/football/players/1324.png",
     "Position": "MIDFIELDER",
     "Club.name": "Pafos",
@@ -10981,7 +10981,7 @@ const playersData = [
   },
   {
     "player.id": 2860,
-    "Spielername": "K. Sema",
+    "Spielername": "Kenneth Nlata Sema",
     "Spielerfoto": "https://media.api-sports.io/football/players/2860.png",
     "Position": "MIDFIELDER",
     "Club.name": "Pafos",
@@ -10994,7 +10994,7 @@ const playersData = [
   },
   {
     "player.id": 48132,
-    "Spielername": "M. Tankovic",
+    "Spielername": "Muamer Tankovic",
     "Spielerfoto": "https://media.api-sports.io/football/players/48132.png",
     "Position": "MIDFIELDER",
     "Club.name": "Pafos",
@@ -11033,7 +11033,7 @@ const playersData = [
   },
   {
     "player.id": 31397,
-    "Spielername": "V. Dragomir",
+    "Spielername": "Vlad Mihai Dragomir",
     "Spielerfoto": "https://media.api-sports.io/football/players/31397.png",
     "Position": "MIDFIELDER",
     "Club.name": "Pafos",
@@ -11072,7 +11072,7 @@ const playersData = [
   },
   {
     "player.id": 1434,
-    "Spielername": "L. Dimata",
+    "Spielername": "Landry Nany Dimata",
     "Spielerfoto": "https://media.api-sports.io/football/players/1434.png",
     "Position": "ATTACKER",
     "Club.name": "Pafos",
@@ -11084,21 +11084,8 @@ const playersData = [
     "Gewicht": "81"
   },
   {
-    "player.id": 22347,
-    "Spielername": "M. Bassouamina",
-    "Spielerfoto": "https://media.api-sports.io/football/players/22347.png",
-    "Position": "ATTACKER",
-    "Club.name": "Pafos",
-    "Club.logo": "https://media.api-sports.io/football/teams/3403.png",
-    "Nationalteam.name": "Congo",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/cd.svg",
-    "Geburtsdatum": "1998-05-28",
-    "Groesse": "172",
-    "Gewicht": "71"
-  },
-  {
     "player.id": 15471,
-    "Spielername": "M. Ilia",
+    "Spielername": "Marios Ilia",
     "Spielerfoto": "https://media.api-sports.io/football/players/15471.png",
     "Position": "ATTACKER",
     "Club.name": "Pafos",
@@ -11111,7 +11098,7 @@ const playersData = [
   },
   {
     "player.id": 1330,
-    "Spielername": "M. Oršić",
+    "Spielername": "Mislav Oršić",
     "Spielerfoto": "https://media.api-sports.io/football/players/1330.png",
     "Position": "ATTACKER",
     "Club.name": "Pafos",
@@ -11121,6 +11108,19 @@ const playersData = [
     "Geburtsdatum": "1992-12-29",
     "Groesse": "179",
     "Gewicht": "69"
+  },
+  {
+    "player.id": 22347,
+    "Spielername": "Mons Bassouamina",
+    "Spielerfoto": "https://media.api-sports.io/football/players/22347.png",
+    "Position": "ATTACKER",
+    "Club.name": "Pafos",
+    "Club.logo": "https://media.api-sports.io/football/teams/3403.png",
+    "Nationalteam.name": "Congo",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/cd.svg",
+    "Geburtsdatum": "1998-05-28",
+    "Groesse": "172",
+    "Gewicht": "71"
   },
   {
     "player.id": 568273,
@@ -11150,7 +11150,7 @@ const playersData = [
   },
   {
     "player.id": 162453,
-    "Spielername": "L. Chevalier",
+    "Spielername": "Lucas Chevalier",
     "Spielerfoto": "https://media.api-sports.io/football/players/162453.png",
     "Position": "GOALKEEPER",
     "Club.name": "Paris Saint Germain",
@@ -11176,7 +11176,7 @@ const playersData = [
   },
   {
     "player.id": 2068,
-    "Spielername": "M. Safonov",
+    "Spielername": "Matvey Safonov",
     "Spielerfoto": "https://media.api-sports.io/football/players/2068.png",
     "Position": "GOALKEEPER",
     "Club.name": "Paris Saint Germain",
@@ -11202,7 +11202,7 @@ const playersData = [
   },
   {
     "player.id": 9,
-    "Spielername": "A. Hakimi",
+    "Spielername": "Achraf Hakimi",
     "Spielerfoto": "https://media.api-sports.io/football/players/9.png",
     "Position": "DEFENDER",
     "Club.name": "Paris Saint Germain",
@@ -11228,7 +11228,7 @@ const playersData = [
   },
   {
     "player.id": 161671,
-    "Spielername": "I. Zabarnyi",
+    "Spielername": "Illia Zabarnyi",
     "Spielerfoto": "https://media.api-sports.io/football/players/161671.png",
     "Position": "DEFENDER",
     "Club.name": "Paris Saint Germain",
@@ -11241,7 +11241,7 @@ const playersData = [
   },
   {
     "player.id": 33,
-    "Spielername": "L. Hernández",
+    "Spielername": "Lucas Hernández",
     "Spielerfoto": "https://media.api-sports.io/football/players/33.png",
     "Position": "DEFENDER",
     "Club.name": "Paris Saint Germain",
@@ -11280,7 +11280,7 @@ const playersData = [
   },
   {
     "player.id": 16367,
-    "Spielername": "W. Pacho",
+    "Spielername": "Willian Joel Pacho",
     "Spielerfoto": "https://media.api-sports.io/football/players/16367.png",
     "Position": "DEFENDER",
     "Club.name": "Paris Saint Germain",
@@ -11358,7 +11358,7 @@ const playersData = [
   },
   {
     "player.id": 336657,
-    "Spielername": "W. Zaïre-Emery",
+    "Spielername": "Warren Zaïre-Emery",
     "Spielerfoto": "https://media.api-sports.io/football/players/336657.png",
     "Position": "MIDFIELDER",
     "Club.name": "Paris Saint Germain",
@@ -11371,7 +11371,7 @@ const playersData = [
   },
   {
     "player.id": 161904,
-    "Spielername": "B. Barcola",
+    "Spielername": "Bradley Barcola",
     "Spielerfoto": "https://media.api-sports.io/football/players/161904.png",
     "Position": "ATTACKER",
     "Club.name": "Paris Saint Germain",
@@ -11384,7 +11384,7 @@ const playersData = [
   },
   {
     "player.id": 343027,
-    "Spielername": "D. Doué",
+    "Spielername": "Désiré Doué",
     "Spielerfoto": "https://media.api-sports.io/football/players/343027.png",
     "Position": "ATTACKER",
     "Club.name": "Paris Saint Germain",
@@ -11410,7 +11410,7 @@ const playersData = [
   },
   {
     "player.id": 446249,
-    "Spielername": "I. Mbaye",
+    "Spielername": "Ibrahim Mbaye",
     "Spielerfoto": "https://media.api-sports.io/football/players/446249.png",
     "Position": "ATTACKER",
     "Club.name": "Paris Saint Germain",
@@ -11423,7 +11423,7 @@ const playersData = [
   },
   {
     "player.id": 483,
-    "Spielername": "K. Kvaratskhelia",
+    "Spielername": "Khvicha Kvaratskhelia",
     "Spielerfoto": "https://media.api-sports.io/football/players/483.png",
     "Position": "ATTACKER",
     "Club.name": "Paris Saint Germain",
@@ -11433,6 +11433,19 @@ const playersData = [
     "Geburtsdatum": "2001-02-12",
     "Groesse": "183",
     "Gewicht": "76"
+  },
+  {
+    "player.id": 153,
+    "Spielername": "Masour Ousmane Dembélé",
+    "Spielerfoto": "https://media.api-sports.io/football/players/153.png",
+    "Position": "ATTACKER",
+    "Club.name": "Paris Saint Germain",
+    "Club.logo": "https://media.api-sports.io/football/teams/85.png",
+    "Nationalteam.name": "France",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
+    "Geburtsdatum": "1997-05-15",
+    "Groesse": "178",
+    "Gewicht": "67"
   },
   {
     "player.id": 543469,
@@ -11446,19 +11459,6 @@ const playersData = [
     "Geburtsdatum": "",
     "Groesse": "",
     "Gewicht": ""
-  },
-  {
-    "player.id": 153,
-    "Spielername": "O. Dembélé",
-    "Spielerfoto": "https://media.api-sports.io/football/players/153.png",
-    "Position": "ATTACKER",
-    "Club.name": "Paris Saint Germain",
-    "Club.logo": "https://media.api-sports.io/football/teams/85.png",
-    "Nationalteam.name": "France",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
-    "Geburtsdatum": "1997-05-15",
-    "Groesse": "178",
-    "Gewicht": "67"
   },
   {
     "player.id": 471107,
@@ -11488,7 +11488,7 @@ const playersData = [
   },
   {
     "player.id": 138804,
-    "Spielername": "M. Kovář",
+    "Spielername": "Matěj Kovář",
     "Spielerfoto": "https://media.api-sports.io/football/players/138804.png",
     "Position": "GOALKEEPER",
     "Club.name": "PSV Eindhoven",
@@ -11501,7 +11501,7 @@ const playersData = [
   },
   {
     "player.id": 37818,
-    "Spielername": "N. Olij",
+    "Spielername": "Nick Quinten Olij",
     "Spielerfoto": "https://media.api-sports.io/football/players/37818.png",
     "Position": "GOALKEEPER",
     "Club.name": "PSV Eindhoven",
@@ -11514,7 +11514,7 @@ const playersData = [
   },
   {
     "player.id": 328193,
-    "Spielername": "N. Schiks",
+    "Spielername": "Niek Schiks",
     "Spielerfoto": "https://media.api-sports.io/football/players/328193.png",
     "Position": "GOALKEEPER",
     "Club.name": "PSV Eindhoven",
@@ -11527,7 +11527,7 @@ const playersData = [
   },
   {
     "player.id": 371523,
-    "Spielername": "T. Smolenaars",
+    "Spielername": "Tijn Smolenaars",
     "Spielerfoto": "https://media.api-sports.io/football/players/371523.png",
     "Position": "GOALKEEPER",
     "Club.name": "PSV Eindhoven",
@@ -11540,7 +11540,7 @@ const playersData = [
   },
   {
     "player.id": 307426,
-    "Spielername": "A. Nagalo",
+    "Spielername": "Adamo Nagalo",
     "Spielerfoto": "https://media.api-sports.io/football/players/307426.png",
     "Position": "DEFENDER",
     "Club.name": "PSV Eindhoven",
@@ -11552,21 +11552,8 @@ const playersData = [
     "Gewicht": "75"
   },
   {
-    "player.id": 228,
-    "Spielername": "A. Obispo",
-    "Spielerfoto": "https://media.api-sports.io/football/players/228.png",
-    "Position": "DEFENDER",
-    "Club.name": "PSV Eindhoven",
-    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "1999-03-05",
-    "Groesse": "185",
-    "Gewicht": "79"
-  },
-  {
     "player.id": 162451,
-    "Spielername": "A. Salah-Eddine",
+    "Spielername": "Anass Salah-Eddine",
     "Spielerfoto": "https://media.api-sports.io/football/players/162451.png",
     "Position": "DEFENDER",
     "Club.name": "PSV Eindhoven",
@@ -11578,8 +11565,21 @@ const playersData = [
     "Gewicht": "66"
   },
   {
+    "player.id": 228,
+    "Spielername": "Armando Obispo",
+    "Spielerfoto": "https://media.api-sports.io/football/players/228.png",
+    "Position": "DEFENDER",
+    "Club.name": "PSV Eindhoven",
+    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "1999-03-05",
+    "Groesse": "185",
+    "Gewicht": "79"
+  },
+  {
     "player.id": 412869,
-    "Spielername": "E. Waayers",
+    "Spielername": "Eus Waayers",
     "Spielerfoto": "https://media.api-sports.io/football/players/412869.png",
     "Position": "DEFENDER",
     "Club.name": "PSV Eindhoven",
@@ -11592,7 +11592,7 @@ const playersData = [
   },
   {
     "player.id": 191233,
-    "Spielername": "K. Sildillia",
+    "Spielername": "Kiliann Eric Sildillia",
     "Spielerfoto": "https://media.api-sports.io/football/players/191233.png",
     "Position": "DEFENDER",
     "Club.name": "PSV Eindhoven",
@@ -11618,7 +11618,7 @@ const playersData = [
   },
   {
     "player.id": 342054,
-    "Spielername": "R. Flamingo",
+    "Spielername": "Ryan Flamingo",
     "Spielerfoto": "https://media.api-sports.io/football/players/342054.png",
     "Position": "DEFENDER",
     "Club.name": "PSV Eindhoven",
@@ -11631,7 +11631,7 @@ const playersData = [
   },
   {
     "player.id": 38735,
-    "Spielername": "S. Dest",
+    "Spielername": "Sergiño Gianni Dest",
     "Spielerfoto": "https://media.api-sports.io/football/players/38735.png",
     "Position": "DEFENDER",
     "Club.name": "PSV Eindhoven",
@@ -11657,7 +11657,7 @@ const playersData = [
   },
   {
     "player.id": 36905,
-    "Spielername": "G. Til",
+    "Spielername": "Guus Berend Til",
     "Spielerfoto": "https://media.api-sports.io/football/players/36905.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11669,21 +11669,8 @@ const playersData = [
     "Gewicht": "79"
   },
   {
-    "player.id": 207,
-    "Spielername": "I. Perišić",
-    "Spielerfoto": "https://media.api-sports.io/football/players/207.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "PSV Eindhoven",
-    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
-    "Nationalteam.name": "Croatia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
-    "Geburtsdatum": "1989-02-02",
-    "Groesse": "186",
-    "Gewicht": "80"
-  },
-  {
     "player.id": 161897,
-    "Spielername": "I. Saibari",
+    "Spielername": "Ismael Saibari",
     "Spielerfoto": "https://media.api-sports.io/football/players/161897.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11695,8 +11682,21 @@ const playersData = [
     "Gewicht": "83"
   },
   {
+    "player.id": 207,
+    "Spielername": "Ivan Perišić",
+    "Spielerfoto": "https://media.api-sports.io/football/players/207.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "PSV Eindhoven",
+    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
+    "Nationalteam.name": "Croatia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
+    "Geburtsdatum": "1989-02-02",
+    "Groesse": "186",
+    "Gewicht": "80"
+  },
+  {
     "player.id": 37890,
-    "Spielername": "J. Schouten",
+    "Spielername": "Jerdy Schouten",
     "Spielerfoto": "https://media.api-sports.io/football/players/37890.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11709,7 +11709,7 @@ const playersData = [
   },
   {
     "player.id": 434623,
-    "Spielername": "J. van den Berg",
+    "Spielername": "Joel van",
     "Spielerfoto": "https://media.api-sports.io/football/players/434623.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11722,7 +11722,7 @@ const playersData = [
   },
   {
     "player.id": 37749,
-    "Spielername": "J. Veerman",
+    "Spielername": "Joey Veerman",
     "Spielerfoto": "https://media.api-sports.io/football/players/37749.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11734,21 +11734,8 @@ const playersData = [
     "Gewicht": "81"
   },
   {
-    "player.id": 474550,
-    "Spielername": "N. Fernandez",
-    "Spielerfoto": "https://media.api-sports.io/football/players/474550.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "PSV Eindhoven",
-    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
-    "Nationalteam.name": "Belgium",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
-    "Geburtsdatum": "2005-01-09",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 441047,
-    "Spielername": "N. Verkooijen",
+    "Spielername": "Nicolas Verkooijen",
     "Spielerfoto": "https://media.api-sports.io/football/players/441047.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11760,8 +11747,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 474550,
+    "Spielername": "Noah Fernandez",
+    "Spielerfoto": "https://media.api-sports.io/football/players/474550.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "PSV Eindhoven",
+    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
+    "Nationalteam.name": "Belgium",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
+    "Geburtsdatum": "2005-01-09",
+    "Groesse": "",
+    "Gewicht": ""
+  },
+  {
     "player.id": 327895,
-    "Spielername": "P. Wanner",
+    "Spielername": "Paul Wanner",
     "Spielerfoto": "https://media.api-sports.io/football/players/327895.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11774,7 +11774,7 @@ const playersData = [
   },
   {
     "player.id": 365018,
-    "Spielername": "R. van Bommel",
+    "Spielername": "Ruben van Bommel",
     "Spielerfoto": "https://media.api-sports.io/football/players/365018.png",
     "Position": "MIDFIELDER",
     "Club.name": "PSV Eindhoven",
@@ -11787,7 +11787,7 @@ const playersData = [
   },
   {
     "player.id": 272543,
-    "Spielername": "C. Driouech",
+    "Spielername": "Couhaib Driouech",
     "Spielerfoto": "https://media.api-sports.io/football/players/272543.png",
     "Position": "ATTACKER",
     "Club.name": "PSV Eindhoven",
@@ -11800,7 +11800,7 @@ const playersData = [
   },
   {
     "player.id": 43036,
-    "Spielername": "D. Man",
+    "Spielername": "Dennis Man",
     "Spielerfoto": "https://media.api-sports.io/football/players/43036.png",
     "Position": "ATTACKER",
     "Club.name": "PSV Eindhoven",
@@ -11813,7 +11813,7 @@ const playersData = [
   },
   {
     "player.id": 329409,
-    "Spielername": "E. Bajraktarevic",
+    "Spielername": "Esmir Bajraktarevic",
     "Spielerfoto": "https://media.api-sports.io/football/players/329409.png",
     "Position": "ATTACKER",
     "Club.name": "PSV Eindhoven",
@@ -11826,7 +11826,7 @@ const playersData = [
   },
   {
     "player.id": 36907,
-    "Spielername": "M. Boadu",
+    "Spielername": "Myron Boadu",
     "Spielerfoto": "https://media.api-sports.io/football/players/36907.png",
     "Position": "ATTACKER",
     "Club.name": "PSV Eindhoven",
@@ -11838,21 +11838,8 @@ const playersData = [
     "Gewicht": "67"
   },
   {
-    "player.id": 419629,
-    "Spielername": "R. Duiven",
-    "Spielerfoto": "https://media.api-sports.io/football/players/419629.png",
-    "Position": "ATTACKER",
-    "Club.name": "PSV Eindhoven",
-    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "2006-04-08",
-    "Groesse": "",
-    "Gewicht": ""
-  },
-  {
     "player.id": 73868,
-    "Spielername": "R. Pepi",
+    "Spielername": "Ricardo Daniel Pepi",
     "Spielerfoto": "https://media.api-sports.io/football/players/73868.png",
     "Position": "ATTACKER",
     "Club.name": "PSV Eindhoven",
@@ -11864,8 +11851,21 @@ const playersData = [
     "Gewicht": "73"
   },
   {
+    "player.id": 419629,
+    "Spielername": "Robin Duiven",
+    "Spielerfoto": "https://media.api-sports.io/football/players/419629.png",
+    "Position": "ATTACKER",
+    "Club.name": "PSV Eindhoven",
+    "Club.logo": "https://media.api-sports.io/football/teams/197.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "2006-04-08",
+    "Groesse": "",
+    "Gewicht": ""
+  },
+  {
     "player.id": 334257,
-    "Spielername": "A. Ramazanov",
+    "Spielername": "Amin Ramazanov",
     "Spielerfoto": "https://media.api-sports.io/football/players/334257.png",
     "Position": "GOALKEEPER",
     "Club.name": "Qarabag",
@@ -11878,7 +11878,7 @@ const playersData = [
   },
   {
     "player.id": 25196,
-    "Spielername": "F. Buntić",
+    "Spielername": "Fabijan Buntić",
     "Spielerfoto": "https://media.api-sports.io/football/players/25196.png",
     "Position": "GOALKEEPER",
     "Club.name": "Qarabag",
@@ -11891,7 +11891,7 @@ const playersData = [
   },
   {
     "player.id": 128640,
-    "Spielername": "M. Kochalski",
+    "Spielername": "Mateusz Kochalski",
     "Spielerfoto": "https://media.api-sports.io/football/players/128640.png",
     "Position": "GOALKEEPER",
     "Club.name": "Qarabag",
@@ -11917,7 +11917,7 @@ const playersData = [
   },
   {
     "player.id": 1534,
-    "Spielername": "A. Hüseynov",
+    "Spielername": "Abbas Hüseynov",
     "Spielerfoto": "https://media.api-sports.io/football/players/1534.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -11930,7 +11930,7 @@ const playersData = [
   },
   {
     "player.id": 1535,
-    "Spielername": "B. Hüseynov",
+    "Spielername": "Badavi Hüseynov",
     "Spielerfoto": "https://media.api-sports.io/football/players/1535.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -11943,7 +11943,7 @@ const playersData = [
   },
   {
     "player.id": 70389,
-    "Spielername": "B. Mustafazadə",
+    "Spielername": "Bəhlul Mustafazadə",
     "Spielerfoto": "https://media.api-sports.io/football/players/70389.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -11969,7 +11969,7 @@ const playersData = [
   },
   {
     "player.id": 124613,
-    "Spielername": "E. Cəfərquliyev",
+    "Spielername": "Elvin Cəfərquliyev",
     "Spielerfoto": "https://media.api-sports.io/football/players/124613.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -11982,7 +11982,7 @@ const playersData = [
   },
   {
     "player.id": 445431,
-    "Spielername": "H. Cəbrayılzadə",
+    "Spielername": "Hikmət Cəbrayılzadə",
     "Spielerfoto": "https://media.api-sports.io/football/players/445431.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -11995,7 +11995,7 @@ const playersData = [
   },
   {
     "player.id": 41823,
-    "Spielername": "K. Medina",
+    "Spielername": "Kevin David Medina",
     "Spielerfoto": "https://media.api-sports.io/football/players/41823.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -12021,7 +12021,7 @@ const playersData = [
   },
   {
     "player.id": 8503,
-    "Spielername": "S. Mmaee",
+    "Spielername": "Samy Mmaee",
     "Spielerfoto": "https://media.api-sports.io/football/players/8503.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -12034,7 +12034,7 @@ const playersData = [
   },
   {
     "player.id": 1542,
-    "Spielername": "T. Bayramov",
+    "Spielername": "Toral Bayramov",
     "Spielerfoto": "https://media.api-sports.io/football/players/1542.png",
     "Position": "DEFENDER",
     "Club.name": "Qarabag",
@@ -12047,7 +12047,7 @@ const playersData = [
   },
   {
     "player.id": 1552,
-    "Spielername": "A. Zoubir",
+    "Spielername": "Abdellah Zoubir",
     "Spielerfoto": "https://media.api-sports.io/football/players/1552.png",
     "Position": "MIDFIELDER",
     "Club.name": "Qarabag",
@@ -12060,7 +12060,7 @@ const playersData = [
   },
   {
     "player.id": 49453,
-    "Spielername": "C. Kouakou",
+    "Spielername": "Chris Kouakou",
     "Spielerfoto": "https://media.api-sports.io/football/players/49453.png",
     "Position": "MIDFIELDER",
     "Club.name": "Qarabag",
@@ -12112,7 +12112,7 @@ const playersData = [
   },
   {
     "player.id": 30864,
-    "Spielername": "M. Janković",
+    "Spielername": "Marko Janković",
     "Spielerfoto": "https://media.api-sports.io/football/players/30864.png",
     "Position": "MIDFIELDER",
     "Club.name": "Qarabag",
@@ -12125,7 +12125,7 @@ const playersData = [
   },
   {
     "player.id": 125419,
-    "Spielername": "O. Kashchuk",
+    "Spielername": "Oleksii Kashchuk",
     "Spielerfoto": "https://media.api-sports.io/football/players/125419.png",
     "Position": "MIDFIELDER",
     "Club.name": "Qarabag",
@@ -12151,7 +12151,7 @@ const playersData = [
   },
   {
     "player.id": 454968,
-    "Spielername": "C. Durán",
+    "Spielername": "Camilo Andres Durán",
     "Spielerfoto": "https://media.api-sports.io/football/players/454968.png",
     "Position": "ATTACKER",
     "Club.name": "Qarabag",
@@ -12164,7 +12164,7 @@ const playersData = [
   },
   {
     "player.id": 341080,
-    "Spielername": "E. Addai",
+    "Spielername": "Emmanuel Addai",
     "Spielerfoto": "https://media.api-sports.io/football/players/341080.png",
     "Position": "ATTACKER",
     "Club.name": "Qarabag",
@@ -12177,7 +12177,7 @@ const playersData = [
   },
   {
     "player.id": 134058,
-    "Spielername": "M. Qurbanlı",
+    "Spielername": "Musa Qurbanlı",
     "Spielerfoto": "https://media.api-sports.io/football/players/134058.png",
     "Position": "ATTACKER",
     "Club.name": "Qarabag",
@@ -12190,7 +12190,7 @@ const playersData = [
   },
   {
     "player.id": 375811,
-    "Spielername": "N. Axundzadə",
+    "Spielername": "Nəriman Axundzadə",
     "Spielerfoto": "https://media.api-sports.io/football/players/375811.png",
     "Position": "ATTACKER",
     "Club.name": "Qarabag",
@@ -12203,7 +12203,7 @@ const playersData = [
   },
   {
     "player.id": 47400,
-    "Spielername": "A. Lunin",
+    "Spielername": "Andriy Lunin",
     "Spielerfoto": "https://media.api-sports.io/football/players/47400.png",
     "Position": "GOALKEEPER",
     "Club.name": "Real Madrid",
@@ -12242,7 +12242,7 @@ const playersData = [
   },
   {
     "player.id": 730,
-    "Spielername": "T. Courtois",
+    "Spielername": "Thibaut Courtois",
     "Spielerfoto": "https://media.api-sports.io/football/players/730.png",
     "Position": "GOALKEEPER",
     "Club.name": "Real Madrid",
@@ -12252,19 +12252,6 @@ const playersData = [
     "Geburtsdatum": "1992-05-11",
     "Groesse": "200",
     "Gewicht": "96"
-  },
-  {
-    "player.id": 2285,
-    "Spielername": "A. Rüdiger",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2285.png",
-    "Position": "DEFENDER",
-    "Club.name": "Real Madrid",
-    "Club.logo": "https://media.api-sports.io/football/teams/541.png",
-    "Nationalteam.name": "Germany",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
-    "Geburtsdatum": "1993-03-03",
-    "Groesse": "190",
-    "Gewicht": "85"
   },
   {
     "player.id": 284300,
@@ -12280,30 +12267,17 @@ const playersData = [
     "Gewicht": "78"
   },
   {
-    "player.id": 505,
-    "Spielername": "D. Alaba",
-    "Spielerfoto": "https://media.api-sports.io/football/players/505.png",
+    "player.id": 2285,
+    "Spielername": "Antonio Rüdiger",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2285.png",
     "Position": "DEFENDER",
     "Club.name": "Real Madrid",
     "Club.logo": "https://media.api-sports.io/football/teams/541.png",
-    "Nationalteam.name": "Austria",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
-    "Geburtsdatum": "1992-06-24",
-    "Groesse": "180",
-    "Gewicht": "78"
-  },
-  {
-    "player.id": 361497,
-    "Spielername": "D. Huijsen",
-    "Spielerfoto": "https://media.api-sports.io/football/players/361497.png",
-    "Position": "DEFENDER",
-    "Club.name": "Real Madrid",
-    "Club.logo": "https://media.api-sports.io/football/teams/541.png",
-    "Nationalteam.name": "Netherlands",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
-    "Geburtsdatum": "2005-04-14",
-    "Groesse": "195",
-    "Gewicht": "87"
+    "Nationalteam.name": "Germany",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
+    "Geburtsdatum": "1993-03-03",
+    "Groesse": "190",
+    "Gewicht": "85"
   },
   {
     "player.id": 733,
@@ -12319,6 +12293,19 @@ const playersData = [
     "Gewicht": "73"
   },
   {
+    "player.id": 505,
+    "Spielername": "David Alaba",
+    "Spielerfoto": "https://media.api-sports.io/football/players/505.png",
+    "Position": "DEFENDER",
+    "Club.name": "Real Madrid",
+    "Club.logo": "https://media.api-sports.io/football/teams/541.png",
+    "Nationalteam.name": "Austria",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
+    "Geburtsdatum": "1992-06-24",
+    "Groesse": "180",
+    "Gewicht": "78"
+  },
+  {
     "player.id": 330436,
     "Spielername": "David Jiménez",
     "Spielerfoto": "https://media.api-sports.io/football/players/330436.png",
@@ -12330,6 +12317,19 @@ const playersData = [
     "Geburtsdatum": "2004-03-14",
     "Groesse": "170",
     "Gewicht": "63"
+  },
+  {
+    "player.id": 361497,
+    "Spielername": "Dean Donny Huijsen",
+    "Spielerfoto": "https://media.api-sports.io/football/players/361497.png",
+    "Position": "DEFENDER",
+    "Club.name": "Real Madrid",
+    "Club.logo": "https://media.api-sports.io/football/teams/541.png",
+    "Nationalteam.name": "Netherlands",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
+    "Geburtsdatum": "2005-04-14",
+    "Groesse": "195",
+    "Gewicht": "87"
   },
   {
     "player.id": 451355,
@@ -12359,7 +12359,7 @@ const playersData = [
   },
   {
     "player.id": 653,
-    "Spielername": "F. Mendy",
+    "Spielername": "Ferland Sinna Mendy",
     "Spielerfoto": "https://media.api-sports.io/football/players/653.png",
     "Position": "DEFENDER",
     "Club.name": "Real Madrid",
@@ -12411,7 +12411,7 @@ const playersData = [
   },
   {
     "player.id": 283,
-    "Spielername": "T. Alexander-Arnold",
+    "Spielername": "Trent John Alexander-Arnold",
     "Spielerfoto": "https://media.api-sports.io/football/players/283.png",
     "Position": "DEFENDER",
     "Club.name": "Real Madrid",
@@ -12437,7 +12437,7 @@ const playersData = [
   },
   {
     "player.id": 291964,
-    "Spielername": "A. Güler",
+    "Spielername": "Arda Güler",
     "Spielerfoto": "https://media.api-sports.io/football/players/291964.png",
     "Position": "MIDFIELDER",
     "Club.name": "Real Madrid",
@@ -12450,7 +12450,7 @@ const playersData = [
   },
   {
     "player.id": 1271,
-    "Spielername": "A. Tchouaméni",
+    "Spielername": "Aurélien Djani Tchouaméni",
     "Spielerfoto": "https://media.api-sports.io/football/players/1271.png",
     "Position": "MIDFIELDER",
     "Club.name": "Real Madrid",
@@ -12515,7 +12515,7 @@ const playersData = [
   },
   {
     "player.id": 2207,
-    "Spielername": "E. Camavinga",
+    "Spielername": "Eduardo Camavinga",
     "Spielerfoto": "https://media.api-sports.io/football/players/2207.png",
     "Position": "MIDFIELDER",
     "Club.name": "Real Madrid",
@@ -12528,7 +12528,7 @@ const playersData = [
   },
   {
     "player.id": 756,
-    "Spielername": "F. Valverde",
+    "Spielername": "Federico Santiago Valverde",
     "Spielerfoto": "https://media.api-sports.io/football/players/756.png",
     "Position": "MIDFIELDER",
     "Club.name": "Real Madrid",
@@ -12553,19 +12553,6 @@ const playersData = [
     "Gewicht": "73"
   },
   {
-    "player.id": 129718,
-    "Spielername": "J. Bellingham",
-    "Spielerfoto": "https://media.api-sports.io/football/players/129718.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Real Madrid",
-    "Club.logo": "https://media.api-sports.io/football/teams/541.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2003-06-29",
-    "Groesse": "186",
-    "Gewicht": "75"
-  },
-  {
     "player.id": 560905,
     "Spielername": "J. Cestero Sancho",
     "Spielerfoto": "https://media.api-sports.io/football/players/560905.png",
@@ -12577,6 +12564,19 @@ const playersData = [
     "Geburtsdatum": "",
     "Groesse": "",
     "Gewicht": ""
+  },
+  {
+    "player.id": 129718,
+    "Spielername": "Jude Bellingham",
+    "Spielerfoto": "https://media.api-sports.io/football/players/129718.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Real Madrid",
+    "Club.logo": "https://media.api-sports.io/football/teams/541.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2003-06-29",
+    "Groesse": "186",
+    "Gewicht": "75"
   },
   {
     "player.id": 313167,
@@ -12697,7 +12697,7 @@ const playersData = [
   },
   {
     "player.id": 128768,
-    "Spielername": "J. Markovič",
+    "Spielername": "Jakub Markovič",
     "Spielerfoto": "https://media.api-sports.io/football/players/128768.png",
     "Position": "GOALKEEPER",
     "Club.name": "Slavia Praha",
@@ -12710,7 +12710,7 @@ const playersData = [
   },
   {
     "player.id": 66347,
-    "Spielername": "J. Staněk",
+    "Spielername": "Jindřich Staněk",
     "Spielerfoto": "https://media.api-sports.io/football/players/66347.png",
     "Position": "GOALKEEPER",
     "Club.name": "Slavia Praha",
@@ -12722,21 +12722,8 @@ const playersData = [
     "Gewicht": "84"
   },
   {
-    "player.id": 66214,
-    "Spielername": "D. Douděra",
-    "Spielerfoto": "https://media.api-sports.io/football/players/66214.png",
-    "Position": "DEFENDER",
-    "Club.name": "Slavia Praha",
-    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
-    "Nationalteam.name": "Czechia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
-    "Geburtsdatum": "1998-05-31",
-    "Groesse": "175",
-    "Gewicht": "66"
-  },
-  {
     "player.id": 33095,
-    "Spielername": "D. Hashioka",
+    "Spielername": "Daiki Hashioka",
     "Spielerfoto": "https://media.api-sports.io/football/players/33095.png",
     "Position": "DEFENDER",
     "Club.name": "Slavia Praha",
@@ -12748,8 +12735,21 @@ const playersData = [
     "Gewicht": "73"
   },
   {
+    "player.id": 66214,
+    "Spielername": "David Douděra",
+    "Spielerfoto": "https://media.api-sports.io/football/players/66214.png",
+    "Position": "DEFENDER",
+    "Club.name": "Slavia Praha",
+    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
+    "Nationalteam.name": "Czechia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
+    "Geburtsdatum": "1998-05-31",
+    "Groesse": "175",
+    "Gewicht": "66"
+  },
+  {
     "player.id": 128772,
-    "Spielername": "D. Zima",
+    "Spielername": "David Zima",
     "Spielerfoto": "https://media.api-sports.io/football/players/128772.png",
     "Position": "DEFENDER",
     "Club.name": "Slavia Praha",
@@ -12759,19 +12759,6 @@ const playersData = [
     "Geburtsdatum": "2000-11-08",
     "Groesse": "190",
     "Gewicht": "80"
-  },
-  {
-    "player.id": 524875,
-    "Spielername": "E. Mbodji",
-    "Spielerfoto": "https://media.api-sports.io/football/players/524875.png",
-    "Position": "DEFENDER",
-    "Club.name": "Slavia Praha",
-    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
-    "Nationalteam.name": "Senegal",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
-    "Geburtsdatum": "2004-01-09",
-    "Groesse": "",
-    "Gewicht": ""
   },
   {
     "player.id": 551763,
@@ -12787,8 +12774,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 524875,
+    "Spielername": "El Mbodji",
+    "Spielerfoto": "https://media.api-sports.io/football/players/524875.png",
+    "Position": "DEFENDER",
+    "Club.name": "Slavia Praha",
+    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
+    "Nationalteam.name": "Senegal",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
+    "Geburtsdatum": "2004-01-09",
+    "Groesse": "",
+    "Gewicht": ""
+  },
+  {
     "player.id": 1174,
-    "Spielername": "I. Ogbu",
+    "Spielername": "Igoh Ogbu",
     "Spielerfoto": "https://media.api-sports.io/football/players/1174.png",
     "Position": "DEFENDER",
     "Club.name": "Slavia Praha",
@@ -12800,21 +12800,8 @@ const playersData = [
     "Gewicht": ""
   },
   {
-    "player.id": 1230,
-    "Spielername": "J. Bořil",
-    "Spielerfoto": "https://media.api-sports.io/football/players/1230.png",
-    "Position": "DEFENDER",
-    "Club.name": "Slavia Praha",
-    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
-    "Nationalteam.name": "Czechia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
-    "Geburtsdatum": "1991-01-11",
-    "Groesse": "175",
-    "Gewicht": "69"
-  },
-  {
     "player.id": 462213,
-    "Spielername": "J. Kolísek",
+    "Spielername": "Jakub Kolísek",
     "Spielerfoto": "https://media.api-sports.io/football/players/462213.png",
     "Position": "DEFENDER",
     "Club.name": "Slavia Praha",
@@ -12824,6 +12811,19 @@ const playersData = [
     "Geburtsdatum": "2007-08-14",
     "Groesse": "187",
     "Gewicht": ""
+  },
+  {
+    "player.id": 1230,
+    "Spielername": "Jan Bořil",
+    "Spielerfoto": "https://media.api-sports.io/football/players/1230.png",
+    "Position": "DEFENDER",
+    "Club.name": "Slavia Praha",
+    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
+    "Nationalteam.name": "Czechia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
+    "Geburtsdatum": "1991-01-11",
+    "Groesse": "175",
+    "Gewicht": "69"
   },
   {
     "player.id": 551803,
@@ -12866,7 +12866,7 @@ const playersData = [
   },
   {
     "player.id": 2252,
-    "Spielername": "T. Holeš",
+    "Spielername": "Tomáš Holeš",
     "Spielerfoto": "https://media.api-sports.io/football/players/2252.png",
     "Position": "DEFENDER",
     "Club.name": "Slavia Praha",
@@ -12879,7 +12879,7 @@ const playersData = [
   },
   {
     "player.id": 1236,
-    "Spielername": "T. Vlček",
+    "Spielername": "Tomáš Vlček",
     "Spielerfoto": "https://media.api-sports.io/football/players/1236.png",
     "Position": "DEFENDER",
     "Club.name": "Slavia Praha",
@@ -12892,7 +12892,7 @@ const playersData = [
   },
   {
     "player.id": 216762,
-    "Spielername": "C. Zafeiris",
+    "Spielername": "Christos Zafeiris",
     "Spielerfoto": "https://media.api-sports.io/football/players/216762.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -12905,7 +12905,7 @@ const playersData = [
   },
   {
     "player.id": 400679,
-    "Spielername": "D. Moses",
+    "Spielername": "David Moses",
     "Spielerfoto": "https://media.api-sports.io/football/players/400679.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -12918,7 +12918,7 @@ const playersData = [
   },
   {
     "player.id": 66353,
-    "Spielername": "L. Provod",
+    "Spielername": "Lukáš Provod",
     "Spielerfoto": "https://media.api-sports.io/football/players/66353.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -12930,21 +12930,8 @@ const playersData = [
     "Gewicht": "85"
   },
   {
-    "player.id": 146008,
-    "Spielername": "M. Cham",
-    "Spielerfoto": "https://media.api-sports.io/football/players/146008.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Slavia Praha",
-    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
-    "Nationalteam.name": "Austria",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
-    "Geburtsdatum": "2000-09-26",
-    "Groesse": "180",
-    "Gewicht": "67"
-  },
-  {
     "player.id": 416191,
-    "Spielername": "M. Naskos",
+    "Spielername": "Marek Naskos",
     "Spielerfoto": "https://media.api-sports.io/football/players/416191.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -12957,7 +12944,7 @@ const playersData = [
   },
   {
     "player.id": 241,
-    "Spielername": "M. Sadílek",
+    "Spielername": "Michal Sadílek",
     "Spielerfoto": "https://media.api-sports.io/football/players/241.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -12969,8 +12956,21 @@ const playersData = [
     "Gewicht": "65"
   },
   {
+    "player.id": 146008,
+    "Spielername": "Muhammed Cham",
+    "Spielerfoto": "https://media.api-sports.io/football/players/146008.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Slavia Praha",
+    "Club.logo": "https://media.api-sports.io/football/teams/560.png",
+    "Nationalteam.name": "Austria",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
+    "Geburtsdatum": "2000-09-26",
+    "Groesse": "180",
+    "Gewicht": "67"
+  },
+  {
     "player.id": 66042,
-    "Spielername": "O. Dorley",
+    "Spielername": "Oscar Murphy Dorley",
     "Spielerfoto": "https://media.api-sports.io/football/players/66042.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -12983,7 +12983,7 @@ const playersData = [
   },
   {
     "player.id": 388771,
-    "Spielername": "T. Jelínek",
+    "Spielername": "Tomáš Jelínek",
     "Spielerfoto": "https://media.api-sports.io/football/players/388771.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -12996,7 +12996,7 @@ const playersData = [
   },
   {
     "player.id": 25139,
-    "Spielername": "V. Kušej",
+    "Spielername": "Vasil Kušej",
     "Spielerfoto": "https://media.api-sports.io/football/players/25139.png",
     "Position": "MIDFIELDER",
     "Club.name": "Slavia Praha",
@@ -13022,7 +13022,7 @@ const playersData = [
   },
   {
     "player.id": 388769,
-    "Spielername": "D. Toula",
+    "Spielername": "Daniel Toula",
     "Spielerfoto": "https://media.api-sports.io/football/players/388769.png",
     "Position": "ATTACKER",
     "Club.name": "Slavia Praha",
@@ -13035,7 +13035,7 @@ const playersData = [
   },
   {
     "player.id": 105726,
-    "Spielername": "E. Prekop",
+    "Spielername": "Erik Prekop",
     "Spielerfoto": "https://media.api-sports.io/football/players/105726.png",
     "Position": "ATTACKER",
     "Club.name": "Slavia Praha",
@@ -13048,7 +13048,7 @@ const playersData = [
   },
   {
     "player.id": 15328,
-    "Spielername": "I. Schranz",
+    "Spielername": "Ivan Schranz",
     "Spielerfoto": "https://media.api-sports.io/football/players/15328.png",
     "Position": "ATTACKER",
     "Club.name": "Slavia Praha",
@@ -13061,7 +13061,7 @@ const playersData = [
   },
   {
     "player.id": 66275,
-    "Spielername": "M. Chytil",
+    "Spielername": "Mojmír Chytil",
     "Spielerfoto": "https://media.api-sports.io/football/players/66275.png",
     "Position": "ATTACKER",
     "Club.name": "Slavia Praha",
@@ -13087,7 +13087,7 @@ const playersData = [
   },
   {
     "player.id": 818,
-    "Spielername": "T. Chorý",
+    "Spielername": "Tomáš Chorý",
     "Spielerfoto": "https://media.api-sports.io/football/players/818.png",
     "Position": "ATTACKER",
     "Club.name": "Slavia Praha",
@@ -13216,19 +13216,6 @@ const playersData = [
     "Gewicht": "74"
   },
   {
-    "player.id": 51776,
-    "Spielername": "M. Araújo",
-    "Spielerfoto": "https://media.api-sports.io/football/players/51776.png",
-    "Position": "DEFENDER",
-    "Club.name": "Sporting CP",
-    "Club.logo": "https://media.api-sports.io/football/teams/228.png",
-    "Nationalteam.name": "Uruguay",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
-    "Geburtsdatum": "2000-02-15",
-    "Groesse": "179",
-    "Gewicht": "73"
-  },
-  {
     "player.id": 41179,
     "Spielername": "Matheus Reis",
     "Spielerfoto": "https://media.api-sports.io/football/players/41179.png",
@@ -13240,6 +13227,19 @@ const playersData = [
     "Geburtsdatum": "1995-02-18",
     "Groesse": "184",
     "Gewicht": "80"
+  },
+  {
+    "player.id": 51776,
+    "Spielername": "Maximiliano Javier Araújo",
+    "Spielerfoto": "https://media.api-sports.io/football/players/51776.png",
+    "Position": "DEFENDER",
+    "Club.name": "Sporting CP",
+    "Club.logo": "https://media.api-sports.io/football/teams/228.png",
+    "Nationalteam.name": "Uruguay",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
+    "Geburtsdatum": "2000-02-15",
+    "Groesse": "179",
+    "Gewicht": "73"
   },
   {
     "player.id": 41194,
@@ -13256,7 +13256,7 @@ const playersData = [
   },
   {
     "player.id": 354753,
-    "Spielername": "O. Diomande",
+    "Spielername": "Ousmane Diomande",
     "Spielerfoto": "https://media.api-sports.io/football/players/354753.png",
     "Position": "DEFENDER",
     "Club.name": "Sporting CP",
@@ -13295,7 +13295,7 @@ const playersData = [
   },
   {
     "player.id": 304228,
-    "Spielername": "Z. Debast",
+    "Spielername": "Zeno Koen Debast",
     "Spielerfoto": "https://media.api-sports.io/football/players/304228.png",
     "Position": "DEFENDER",
     "Club.name": "Sporting CP",
@@ -13333,19 +13333,6 @@ const playersData = [
     "Gewicht": "76"
   },
   {
-    "player.id": 119795,
-    "Spielername": "G. Kochorashvili",
-    "Spielerfoto": "https://media.api-sports.io/football/players/119795.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Sporting CP",
-    "Club.logo": "https://media.api-sports.io/football/teams/228.png",
-    "Nationalteam.name": "Georgia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
-    "Geburtsdatum": "1999-06-29",
-    "Groesse": "178",
-    "Gewicht": "74"
-  },
-  {
     "player.id": 154839,
     "Spielername": "Geny Catamo",
     "Spielerfoto": "https://media.api-sports.io/football/players/154839.png",
@@ -13353,7 +13340,7 @@ const playersData = [
     "Club.name": "Sporting CP",
     "Club.logo": "https://media.api-sports.io/football/teams/228.png",
     "Nationalteam.name": "Mozambique",
-    "Nationalteam.logo": "",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/mz.svg",
     "Geburtsdatum": "2001-01-26",
     "Groesse": "173",
     "Gewicht": "69"
@@ -13366,14 +13353,27 @@ const playersData = [
     "Club.name": "Sporting CP",
     "Club.logo": "https://media.api-sports.io/football/teams/228.png",
     "Nationalteam.name": "Guinea-Bissau",
-    "Nationalteam.logo": "",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gw.svg",
     "Geburtsdatum": "2007-04-30",
     "Groesse": "172",
     "Gewicht": "68"
   },
   {
+    "player.id": 119795,
+    "Spielername": "Giorgi Kochorashvili",
+    "Spielerfoto": "https://media.api-sports.io/football/players/119795.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Sporting CP",
+    "Club.logo": "https://media.api-sports.io/football/teams/228.png",
+    "Nationalteam.name": "Georgia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
+    "Geburtsdatum": "1999-06-29",
+    "Groesse": "178",
+    "Gewicht": "74"
+  },
+  {
     "player.id": 32960,
-    "Spielername": "H. Morita",
+    "Spielername": "Hidemasa Morita",
     "Spielerfoto": "https://media.api-sports.io/football/players/32960.png",
     "Position": "MIDFIELDER",
     "Club.name": "Sporting CP",
@@ -13412,7 +13412,7 @@ const playersData = [
   },
   {
     "player.id": 7712,
-    "Spielername": "M. Hjulmand",
+    "Spielername": "Morten Hjulmand",
     "Spielerfoto": "https://media.api-sports.io/football/players/7712.png",
     "Position": "MIDFIELDER",
     "Club.name": "Sporting CP",
@@ -13489,21 +13489,8 @@ const playersData = [
     "Gewicht": "65"
   },
   {
-    "player.id": 47237,
-    "Spielername": "L. Suárez",
-    "Spielerfoto": "https://media.api-sports.io/football/players/47237.png",
-    "Position": "ATTACKER",
-    "Club.name": "Sporting CP",
-    "Club.logo": "https://media.api-sports.io/football/teams/228.png",
-    "Nationalteam.name": "Colombia",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
-    "Geburtsdatum": "1997-12-02",
-    "Groesse": "185",
-    "Gewicht": "74"
-  },
-  {
     "player.id": 416862,
-    "Spielername": "Lucas Rodrigues Carvalho Anjos",
+    "Spielername": "Lucas Rodrigues",
     "Spielerfoto": "https://media.api-sports.io/football/players/416862.png",
     "Position": "ATTACKER",
     "Club.name": "Sporting CP",
@@ -13513,6 +13500,19 @@ const playersData = [
     "Geburtsdatum": "2004-07-07",
     "Groesse": "186",
     "Gewicht": "73"
+  },
+  {
+    "player.id": 47237,
+    "Spielername": "Luis Javier Suárez",
+    "Spielerfoto": "https://media.api-sports.io/football/players/47237.png",
+    "Position": "ATTACKER",
+    "Club.name": "Sporting CP",
+    "Club.logo": "https://media.api-sports.io/football/teams/228.png",
+    "Nationalteam.name": "Colombia",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
+    "Geburtsdatum": "1997-12-02",
+    "Groesse": "185",
+    "Gewicht": "74"
   },
   {
     "player.id": 385674,
@@ -13555,7 +13555,7 @@ const playersData = [
   },
   {
     "player.id": 353771,
-    "Spielername": "S. Faye",
+    "Spielername": "Souleymane Faye",
     "Spielerfoto": "https://media.api-sports.io/football/players/353771.png",
     "Position": "ATTACKER",
     "Club.name": "Sporting CP",
@@ -13568,7 +13568,7 @@ const playersData = [
   },
   {
     "player.id": 265826,
-    "Spielername": "A. Kinský",
+    "Spielername": "Antonín Kinský",
     "Spielerfoto": "https://media.api-sports.io/football/players/265826.png",
     "Position": "GOALKEEPER",
     "Club.name": "Tottenham",
@@ -13581,7 +13581,7 @@ const playersData = [
   },
   {
     "player.id": 156428,
-    "Spielername": "B. Austin",
+    "Spielername": "Brandon Anthony Austin",
     "Spielerfoto": "https://media.api-sports.io/football/players/156428.png",
     "Position": "GOALKEEPER",
     "Club.name": "Tottenham",
@@ -13594,7 +13594,7 @@ const playersData = [
   },
   {
     "player.id": 31354,
-    "Spielername": "G. Vicario",
+    "Spielername": "Guglielmo Vicario",
     "Spielerfoto": "https://media.api-sports.io/football/players/31354.png",
     "Position": "GOALKEEPER",
     "Club.name": "Tottenham",
@@ -13620,7 +13620,7 @@ const playersData = [
   },
   {
     "player.id": 164,
-    "Spielername": "B. Davies",
+    "Spielername": "Benjamin Thomas Davies",
     "Spielerfoto": "https://media.api-sports.io/football/players/164.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13633,7 +13633,7 @@ const playersData = [
   },
   {
     "player.id": 30776,
-    "Spielername": "C. Romero",
+    "Spielername": "Cristian Gabriel Romero",
     "Spielerfoto": "https://media.api-sports.io/football/players/30776.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13646,7 +13646,7 @@ const playersData = [
   },
   {
     "player.id": 19235,
-    "Spielername": "D. Spence",
+    "Spielername": "Diop Tehuti Spence",
     "Spielerfoto": "https://media.api-sports.io/football/players/19235.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13659,7 +13659,7 @@ const playersData = [
   },
   {
     "player.id": 204039,
-    "Spielername": "D. Udogie",
+    "Spielername": "Iyenoma Destiny Udogie",
     "Spielerfoto": "https://media.api-sports.io/football/players/204039.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13669,19 +13669,6 @@ const playersData = [
     "Geburtsdatum": "2002-11-28",
     "Groesse": "186",
     "Gewicht": "73"
-  },
-  {
-    "player.id": 467839,
-    "Spielername": "J. Byfield",
-    "Spielerfoto": "https://media.api-sports.io/football/players/467839.png",
-    "Position": "DEFENDER",
-    "Club.name": "Tottenham",
-    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
-    "Nationalteam.name": "England",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
-    "Geburtsdatum": "2008-03-10",
-    "Groesse": "188",
-    "Gewicht": ""
   },
   {
     "player.id": 361735,
@@ -13697,8 +13684,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 467839,
+    "Spielername": "Jun'ai Byfield",
+    "Spielerfoto": "https://media.api-sports.io/football/players/467839.png",
+    "Position": "DEFENDER",
+    "Club.name": "Tottenham",
+    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
+    "Nationalteam.name": "England",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
+    "Geburtsdatum": "2008-03-10",
+    "Groesse": "188",
+    "Gewicht": ""
+  },
+  {
     "player.id": 25287,
-    "Spielername": "K. Danso",
+    "Spielername": "Kevin Danso",
     "Spielerfoto": "https://media.api-sports.io/football/players/25287.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13711,7 +13711,7 @@ const playersData = [
   },
   {
     "player.id": 459203,
-    "Spielername": "M. Hardy",
+    "Spielername": "Malachi Hardy",
     "Spielerfoto": "https://media.api-sports.io/football/players/459203.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13724,7 +13724,7 @@ const playersData = [
   },
   {
     "player.id": 152849,
-    "Spielername": "M. van de Ven",
+    "Spielername": "Micky van",
     "Spielerfoto": "https://media.api-sports.io/football/players/152849.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13750,7 +13750,7 @@ const playersData = [
   },
   {
     "player.id": 162498,
-    "Spielername": "R. Drăgușin",
+    "Spielername": "Radu Drăgușin",
     "Spielerfoto": "https://media.api-sports.io/football/players/162498.png",
     "Position": "DEFENDER",
     "Club.name": "Tottenham",
@@ -13763,7 +13763,7 @@ const playersData = [
   },
   {
     "player.id": 328089,
-    "Spielername": "A. Gray",
+    "Spielername": "Archie Gray",
     "Spielerfoto": "https://media.api-sports.io/football/players/328089.png",
     "Position": "MIDFIELDER",
     "Club.name": "Tottenham",
@@ -13776,7 +13776,7 @@ const playersData = [
   },
   {
     "player.id": 380689,
-    "Spielername": "C. Olusesi",
+    "Spielername": "Callum Olusesi",
     "Spielerfoto": "https://media.api-sports.io/football/players/380689.png",
     "Position": "MIDFIELDER",
     "Club.name": "Tottenham",
@@ -13801,21 +13801,8 @@ const playersData = [
     "Gewicht": "84"
   },
   {
-    "player.id": 347316,
-    "Spielername": "L. Bergvall",
-    "Spielerfoto": "https://media.api-sports.io/football/players/347316.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Tottenham",
-    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
-    "Nationalteam.name": "Sweden",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
-    "Geburtsdatum": "2006-02-02",
-    "Groesse": "187",
-    "Gewicht": "74"
-  },
-  {
     "player.id": 465310,
-    "Spielername": "L. Williams-Barnett",
+    "Spielername": "Luca Jamie Williams-Barnett",
     "Spielerfoto": "https://media.api-sports.io/football/players/465310.png",
     "Position": "MIDFIELDER",
     "Club.name": "Tottenham",
@@ -13827,8 +13814,21 @@ const playersData = [
     "Gewicht": ""
   },
   {
+    "player.id": 347316,
+    "Spielername": "Lucas Bergvall",
+    "Spielerfoto": "https://media.api-sports.io/football/players/347316.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Tottenham",
+    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
+    "Nationalteam.name": "Sweden",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
+    "Geburtsdatum": "2006-02-02",
+    "Groesse": "187",
+    "Gewicht": "74"
+  },
+  {
     "player.id": 237129,
-    "Spielername": "P. Sarr",
+    "Spielername": "Pape Matar Sarr",
     "Spielerfoto": "https://media.api-sports.io/football/players/237129.png",
     "Position": "MIDFIELDER",
     "Club.name": "Tottenham",
@@ -13838,19 +13838,6 @@ const playersData = [
     "Geburtsdatum": "2002-09-14",
     "Groesse": "185",
     "Gewicht": "70"
-  },
-  {
-    "player.id": 863,
-    "Spielername": "R. Bentancur",
-    "Spielerfoto": "https://media.api-sports.io/football/players/863.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Tottenham",
-    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
-    "Nationalteam.name": "Uruguay",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
-    "Geburtsdatum": "1997-06-25",
-    "Groesse": "187",
-    "Gewicht": "72"
   },
   {
     "player.id": 310531,
@@ -13864,6 +13851,19 @@ const playersData = [
     "Geburtsdatum": "2005-06-09",
     "Groesse": "174",
     "Gewicht": "68"
+  },
+  {
+    "player.id": 863,
+    "Spielername": "Rodrigo Bentancur",
+    "Spielerfoto": "https://media.api-sports.io/football/players/863.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Tottenham",
+    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
+    "Nationalteam.name": "Uruguay",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
+    "Geburtsdatum": "1997-06-25",
+    "Groesse": "187",
+    "Gewicht": "72"
   },
   {
     "player.id": 584077,
@@ -13880,7 +13880,7 @@ const playersData = [
   },
   {
     "player.id": 129711,
-    "Spielername": "B. Johnson",
+    "Spielername": "Brennan Price Johnson",
     "Spielerfoto": "https://media.api-sports.io/football/players/129711.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -13893,7 +13893,7 @@ const playersData = [
   },
   {
     "player.id": 162552,
-    "Spielername": "D. Scarlett",
+    "Spielername": "Dane Pharrell Scarlett",
     "Spielerfoto": "https://media.api-sports.io/football/players/162552.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -13906,7 +13906,7 @@ const playersData = [
   },
   {
     "player.id": 18883,
-    "Spielername": "D. Solanke",
+    "Spielername": "Dominic Ayodele Solanke",
     "Spielerfoto": "https://media.api-sports.io/football/players/18883.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -13918,21 +13918,8 @@ const playersData = [
     "Gewicht": "80"
   },
   {
-    "player.id": 15911,
-    "Spielername": "M. Kudus",
-    "Spielerfoto": "https://media.api-sports.io/football/players/15911.png",
-    "Position": "ATTACKER",
-    "Club.name": "Tottenham",
-    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
-    "Nationalteam.name": "Ghana",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gh.svg",
-    "Geburtsdatum": "2000-08-02",
-    "Groesse": "177",
-    "Gewicht": "70"
-  },
-  {
     "player.id": 270510,
-    "Spielername": "M. Tel",
+    "Spielername": "Mathys Henri Tel",
     "Spielerfoto": "https://media.api-sports.io/football/players/270510.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -13944,8 +13931,21 @@ const playersData = [
     "Gewicht": "77"
   },
   {
+    "player.id": 15911,
+    "Spielername": "Mohammed Kudus",
+    "Spielerfoto": "https://media.api-sports.io/football/players/15911.png",
+    "Position": "ATTACKER",
+    "Club.name": "Tottenham",
+    "Club.logo": "https://media.api-sports.io/football/teams/47.png",
+    "Nationalteam.name": "Ghana",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gh.svg",
+    "Geburtsdatum": "2000-08-02",
+    "Groesse": "177",
+    "Gewicht": "70"
+  },
+  {
     "player.id": 21104,
-    "Spielername": "R. Kolo Muani",
+    "Spielername": "Randal Kolo Muani",
     "Spielerfoto": "https://media.api-sports.io/football/players/21104.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -13984,7 +13984,7 @@ const playersData = [
   },
   {
     "player.id": 336564,
-    "Spielername": "W. Odobert",
+    "Spielername": "Wilson Odobert",
     "Spielerfoto": "https://media.api-sports.io/football/players/336564.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -13997,7 +13997,7 @@ const playersData = [
   },
   {
     "player.id": 162016,
-    "Spielername": "X. Simons",
+    "Spielername": "Xavier Simons",
     "Spielerfoto": "https://media.api-sports.io/football/players/162016.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -14010,7 +14010,7 @@ const playersData = [
   },
   {
     "player.id": 380688,
-    "Spielername": "Y. Akhamrich",
+    "Spielername": "Yusuf Akhamrich",
     "Spielerfoto": "https://media.api-sports.io/football/players/380688.png",
     "Position": "ATTACKER",
     "Club.name": "Tottenham",
@@ -14023,7 +14023,7 @@ const playersData = [
   },
   {
     "player.id": 37276,
-    "Spielername": "K. Scherpen",
+    "Spielername": "Kjell Scherpen",
     "Spielerfoto": "https://media.api-sports.io/football/players/37276.png",
     "Position": "GOALKEEPER",
     "Club.name": "Union St. Gilloise",
@@ -14036,7 +14036,7 @@ const playersData = [
   },
   {
     "player.id": 181815,
-    "Spielername": "V. Chambaere",
+    "Spielername": "Vic Chambaere",
     "Spielerfoto": "https://media.api-sports.io/football/players/181815.png",
     "Position": "GOALKEEPER",
     "Club.name": "Union St. Gilloise",
@@ -14049,7 +14049,7 @@ const playersData = [
   },
   {
     "player.id": 19850,
-    "Spielername": "C. Burgess",
+    "Spielername": "Christian Burgess",
     "Spielerfoto": "https://media.api-sports.io/football/players/19850.png",
     "Position": "DEFENDER",
     "Club.name": "Union St. Gilloise",
@@ -14062,7 +14062,7 @@ const playersData = [
   },
   {
     "player.id": 290546,
-    "Spielername": "F. Leysen",
+    "Spielername": "Fedde Leysen",
     "Spielerfoto": "https://media.api-sports.io/football/players/290546.png",
     "Position": "DEFENDER",
     "Club.name": "Union St. Gilloise",
@@ -14075,7 +14075,7 @@ const playersData = [
   },
   {
     "player.id": 5967,
-    "Spielername": "K. Mac Allister",
+    "Spielername": "Kevin Mac Allister",
     "Spielerfoto": "https://media.api-sports.io/football/players/5967.png",
     "Position": "DEFENDER",
     "Club.name": "Union St. Gilloise",
@@ -14088,7 +14088,7 @@ const playersData = [
   },
   {
     "player.id": 271875,
-    "Spielername": "L. Patris",
+    "Spielername": "Louis Patris",
     "Spielerfoto": "https://media.api-sports.io/football/players/271875.png",
     "Position": "DEFENDER",
     "Club.name": "Union St. Gilloise",
@@ -14101,7 +14101,7 @@ const playersData = [
   },
   {
     "player.id": 465786,
-    "Spielername": "M. Barry",
+    "Spielername": "Mamadou Thierno Barry",
     "Spielerfoto": "https://media.api-sports.io/football/players/465786.png",
     "Position": "DEFENDER",
     "Club.name": "Union St. Gilloise",
@@ -14114,7 +14114,7 @@ const playersData = [
   },
   {
     "player.id": 20176,
-    "Spielername": "R. Sykes",
+    "Spielername": "Ross James Sykes",
     "Spielerfoto": "https://media.api-sports.io/football/players/20176.png",
     "Position": "DEFENDER",
     "Club.name": "Union St. Gilloise",
@@ -14126,21 +14126,8 @@ const playersData = [
     "Gewicht": "73"
   },
   {
-    "player.id": 338735,
-    "Spielername": "A. Khalaili",
-    "Spielerfoto": "https://media.api-sports.io/football/players/338735.png",
-    "Position": "MIDFIELDER",
-    "Club.name": "Union St. Gilloise",
-    "Club.logo": "https://media.api-sports.io/football/teams/1393.png",
-    "Nationalteam.name": "Israel",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/il.svg",
-    "Geburtsdatum": "2004-09-03",
-    "Groesse": "183",
-    "Gewicht": ""
-  },
-  {
     "player.id": 4408,
-    "Spielername": "A. Zorgane",
+    "Spielername": "Adem Zorgane",
     "Spielerfoto": "https://media.api-sports.io/football/players/4408.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14152,8 +14139,21 @@ const playersData = [
     "Gewicht": "80"
   },
   {
+    "player.id": 338735,
+    "Spielername": "Anan Khalaili",
+    "Spielerfoto": "https://media.api-sports.io/football/players/338735.png",
+    "Position": "MIDFIELDER",
+    "Club.name": "Union St. Gilloise",
+    "Club.logo": "https://media.api-sports.io/football/teams/1393.png",
+    "Nationalteam.name": "Israel",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/il.svg",
+    "Geburtsdatum": "2004-09-03",
+    "Groesse": "183",
+    "Gewicht": ""
+  },
+  {
     "player.id": 314145,
-    "Spielername": "Guilherme Henriques da Silva Carvalho",
+    "Spielername": "Guilherme da",
     "Spielerfoto": "https://media.api-sports.io/football/players/314145.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14166,7 +14166,7 @@ const playersData = [
   },
   {
     "player.id": 340574,
-    "Spielername": "K. Van de Perre",
+    "Spielername": "Kamiel Van",
     "Spielerfoto": "https://media.api-sports.io/football/players/340574.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14179,7 +14179,7 @@ const playersData = [
   },
   {
     "player.id": 15917,
-    "Spielername": "M. Rasmussen",
+    "Spielername": "Mathias Rasmussen",
     "Spielerfoto": "https://media.api-sports.io/football/players/15917.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14192,7 +14192,7 @@ const playersData = [
   },
   {
     "player.id": 374124,
-    "Spielername": "N. Huygevelde",
+    "Spielername": "Nathan Huygevelde",
     "Spielerfoto": "https://media.api-sports.io/football/players/374124.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14205,7 +14205,7 @@ const playersData = [
   },
   {
     "player.id": 203456,
-    "Spielername": "O. Niang",
+    "Spielername": "Ousseynou Niang",
     "Spielerfoto": "https://media.api-sports.io/football/players/203456.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14218,7 +14218,7 @@ const playersData = [
   },
   {
     "player.id": 8939,
-    "Spielername": "R. Schoofs",
+    "Spielername": "Rob Schoofs",
     "Spielerfoto": "https://media.api-sports.io/football/players/8939.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14231,7 +14231,7 @@ const playersData = [
   },
   {
     "player.id": 351796,
-    "Spielername": "S. Berradi",
+    "Spielername": "Soulaimane Berradi",
     "Spielerfoto": "https://media.api-sports.io/football/players/351796.png",
     "Position": "MIDFIELDER",
     "Club.name": "Union St. Gilloise",
@@ -14244,7 +14244,7 @@ const playersData = [
   },
   {
     "player.id": 127414,
-    "Spielername": "A. Ait El Hadj",
+    "Spielername": "Anouar Ait",
     "Spielerfoto": "https://media.api-sports.io/football/players/127414.png",
     "Position": "ATTACKER",
     "Club.name": "Union St. Gilloise",
@@ -14257,7 +14257,7 @@ const playersData = [
   },
   {
     "player.id": 361966,
-    "Spielername": "K. Rodríguez",
+    "Spielername": "Kevin José Rodríguez",
     "Spielerfoto": "https://media.api-sports.io/football/players/361966.png",
     "Position": "ATTACKER",
     "Club.name": "Union St. Gilloise",
@@ -14269,21 +14269,8 @@ const playersData = [
     "Gewicht": "83"
   },
   {
-    "player.id": 359006,
-    "Spielername": "M. Fuseini",
-    "Spielerfoto": "https://media.api-sports.io/football/players/359006.png",
-    "Position": "ATTACKER",
-    "Club.name": "Union St. Gilloise",
-    "Club.logo": "https://media.api-sports.io/football/teams/1393.png",
-    "Nationalteam.name": "Ghana",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/gh.svg",
-    "Geburtsdatum": "2002-05-16",
-    "Groesse": "170",
-    "Gewicht": ""
-  },
-  {
     "player.id": 455438,
-    "Spielername": "M. Giger",
+    "Spielername": "Marc Giger",
     "Spielerfoto": "https://media.api-sports.io/football/players/455438.png",
     "Position": "ATTACKER",
     "Club.name": "Union St. Gilloise",
@@ -14295,8 +14282,21 @@ const playersData = [
     "Gewicht": "78"
   },
   {
+    "player.id": 359006,
+    "Spielername": "Mohammed Gadafi Fuseini",
+    "Spielerfoto": "https://media.api-sports.io/football/players/359006.png",
+    "Position": "ATTACKER",
+    "Club.name": "Union St. Gilloise",
+    "Club.logo": "https://media.api-sports.io/football/teams/1393.png",
+    "Nationalteam.name": "Ghana",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/gh.svg",
+    "Geburtsdatum": "2002-05-16",
+    "Groesse": "170",
+    "Gewicht": ""
+  },
+  {
     "player.id": 313353,
-    "Spielername": "P. David",
+    "Spielername": "Promise Akinpelu",
     "Spielerfoto": "https://media.api-sports.io/football/players/313353.png",
     "Position": "ATTACKER",
     "Club.name": "Union St. Gilloise",
@@ -14309,7 +14309,7 @@ const playersData = [
   },
   {
     "player.id": 270201,
-    "Spielername": "R. Florucz",
+    "Spielername": "Raul Alexander Florucz",
     "Spielerfoto": "https://media.api-sports.io/football/players/270201.png",
     "Position": "ATTACKER",
     "Club.name": "Union St. Gilloise",
@@ -14319,19 +14319,6 @@ const playersData = [
     "Geburtsdatum": "2001-06-10",
     "Groesse": "",
     "Gewicht": ""
-  },
-  {
-    "player.id": 2710,
-    "Spielername": "S. Boufal",
-    "Spielerfoto": "https://media.api-sports.io/football/players/2710.png",
-    "Position": "ATTACKER",
-    "Club.name": "Union St. Gilloise",
-    "Club.logo": "https://media.api-sports.io/football/teams/1393.png",
-    "Nationalteam.name": "Morocco",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
-    "Geburtsdatum": "1993-09-17",
-    "Groesse": "175",
-    "Gewicht": "70"
   },
   {
     "player.id": 567755,
@@ -14345,6 +14332,19 @@ const playersData = [
     "Geburtsdatum": "",
     "Groesse": "",
     "Gewicht": ""
+  },
+  {
+    "player.id": 2710,
+    "Spielername": "Sofiane Boufal",
+    "Spielerfoto": "https://media.api-sports.io/football/players/2710.png",
+    "Position": "ATTACKER",
+    "Club.name": "Union St. Gilloise",
+    "Club.logo": "https://media.api-sports.io/football/teams/1393.png",
+    "Nationalteam.name": "Morocco",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
+    "Geburtsdatum": "1993-09-17",
+    "Groesse": "175",
+    "Gewicht": "70"
   },
   {
     "player.id": 568131,
@@ -14412,6 +14412,19 @@ const playersData = [
     "Gewicht": "62"
   },
   {
+    "player.id": 311773,
+    "Spielername": "Álvaro Santiago Mouriño",
+    "Spielerfoto": "https://media.api-sports.io/football/players/311773.png",
+    "Position": "DEFENDER",
+    "Club.name": "Villarreal",
+    "Club.logo": "https://media.api-sports.io/football/teams/533.png",
+    "Nationalteam.name": "Uruguay",
+    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
+    "Geburtsdatum": "2002-02-13",
+    "Groesse": "186",
+    "Gewicht": "76"
+  },
+  {
     "player.id": 455356,
     "Spielername": "Daniel Budesca",
     "Spielerfoto": "https://media.api-sports.io/football/players/455356.png",
@@ -14426,7 +14439,7 @@ const playersData = [
   },
   {
     "player.id": 166,
-    "Spielername": "J. Foyth",
+    "Spielername": "Juan Marcos Foyth",
     "Spielerfoto": "https://media.api-sports.io/football/players/166.png",
     "Position": "DEFENDER",
     "Club.name": "Villarreal",
@@ -14490,19 +14503,6 @@ const playersData = [
     "Gewicht": "88"
   },
   {
-    "player.id": 311773,
-    "Spielername": "S. Mouriño",
-    "Spielerfoto": "https://media.api-sports.io/football/players/311773.png",
-    "Position": "DEFENDER",
-    "Club.name": "Villarreal",
-    "Club.logo": "https://media.api-sports.io/football/teams/533.png",
-    "Nationalteam.name": "Uruguay",
-    "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
-    "Geburtsdatum": "2002-02-13",
-    "Groesse": "186",
-    "Gewicht": "76"
-  },
-  {
     "player.id": 70500,
     "Spielername": "Sergi Cardona",
     "Spielerfoto": "https://media.api-sports.io/football/players/70500.png",
@@ -14517,7 +14517,7 @@ const playersData = [
   },
   {
     "player.id": 463280,
-    "Spielername": "A. Diatta",
+    "Spielername": "Alassane Diatta",
     "Spielerfoto": "https://media.api-sports.io/football/players/463280.png",
     "Position": "MIDFIELDER",
     "Club.name": "Villarreal",
@@ -14556,7 +14556,7 @@ const playersData = [
   },
   {
     "player.id": 3246,
-    "Spielername": "N. Pépé",
+    "Spielername": "Nicolas Pépé",
     "Spielerfoto": "https://media.api-sports.io/football/players/3246.png",
     "Position": "MIDFIELDER",
     "Club.name": "Villarreal",
@@ -14569,7 +14569,7 @@ const playersData = [
   },
   {
     "player.id": 20696,
-    "Spielername": "P. Gueye",
+    "Spielername": "Pape Alassane Gueye",
     "Spielerfoto": "https://media.api-sports.io/football/players/20696.png",
     "Position": "MIDFIELDER",
     "Club.name": "Villarreal",
@@ -14595,7 +14595,7 @@ const playersData = [
   },
   {
     "player.id": 51016,
-    "Spielername": "T. Buchanan",
+    "Spielername": "Tajon Trevor Buchanan",
     "Spielerfoto": "https://media.api-sports.io/football/players/51016.png",
     "Position": "MIDFIELDER",
     "Club.name": "Villarreal",
@@ -14608,7 +14608,7 @@ const playersData = [
   },
   {
     "player.id": 49,
-    "Spielername": "T. Partey",
+    "Spielername": "Thomas Partey",
     "Spielerfoto": "https://media.api-sports.io/football/players/49.png",
     "Position": "MIDFIELDER",
     "Club.name": "Villarreal",
@@ -14634,7 +14634,7 @@ const playersData = [
   },
   {
     "player.id": 180496,
-    "Spielername": "G. Mikautadze",
+    "Spielername": "Georges Mikautadze",
     "Spielerfoto": "https://media.api-sports.io/football/players/180496.png",
     "Position": "ATTACKER",
     "Club.name": "Villarreal",
@@ -14686,7 +14686,7 @@ const playersData = [
   },
   {
     "player.id": 697,
-    "Spielername": "M. Solomon",
+    "Spielername": "Manor Solomon",
     "Spielerfoto": "https://media.api-sports.io/football/players/697.png",
     "Position": "ATTACKER",
     "Club.name": "Villarreal",
@@ -14699,7 +14699,7 @@ const playersData = [
   },
   {
     "player.id": 351587,
-    "Spielername": "T. Oluwaseyi",
+    "Spielername": "Tanitoluwa Oluwaseyi",
     "Spielerfoto": "https://media.api-sports.io/football/players/351587.png",
     "Position": "ATTACKER",
     "Club.name": "Villarreal",
