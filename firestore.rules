@@ -208,6 +208,10 @@ service cloud.firestore {
         || (collection == 'public_cache' && (
              docId == 'cl2526_fixtures'
           || docId == 'cl2627_fixtures'
+          || docId == 'cl2526_points_delta_current'
+          || docId == 'cl2627_points_delta_current'
+          || docId.matches('cl2526_points_shard_[0-9][0-9]')
+          || docId.matches('cl2627_points_shard_[0-9][0-9]')
         ))
         || (collection == 'Admin Auto Points Logs WM 2026' && isAdmin());
 
