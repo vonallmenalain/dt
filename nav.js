@@ -578,6 +578,71 @@ function initNavAuth(APP) {
     setTimeout(retry, 50);
 }
 
+/* =========================================================================
+ *  Vorschau-Hinweisbanner.
+ *
+ *  Sobald eine Admin-VORSCHAU aktiv ist (Preview-Kanal, siehe
+ *  tournament-config.js), einen deutlich sichtbaren, festen Hinweis mit
+ *  1-Klick-Ausstieg einblenden. So lässt sich eine Vorschau nie mit der
+ *  echten Produktiv-Seite verwechseln – unabhängig davon, ob der (Admin-
+ *  gate-abhängige) Turnier-Switcher gerade sichtbar ist. Rein additiv:
+ *  ohne aktive Vorschau ist dies ein No-op (die WM ist nie betroffen).
+ * ========================================================================= */
+function buildPreviewBadge(APP) {
+    if (!APP || typeof APP.isPreviewActive !== 'function' || !APP.isPreviewActive()) return;
+    if (document.getElementById('dt-preview-badge')) return;
+
+    let previewLabel = 'Vorschau';
+    let backLabel = 'Standard-Turnier';
+    try {
+        if (APP.activeTournament && APP.activeTournament.shortLabel) {
+            previewLabel = APP.activeTournament.shortLabel;
+        }
+    } catch (_) { /* keep default */ }
+    try {
+        const def = APP.domainDefaultTournament;
+        if (def && def.shortLabel) backLabel = def.shortLabel;
+    } catch (_) { /* keep default */ }
+
+    const bar = document.createElement('div');
+    bar.id = 'dt-preview-badge';
+    bar.setAttribute('role', 'status');
+    bar.style.cssText = [
+        'position:fixed', 'left:0', 'right:0', 'bottom:0', 'z-index:2147483000',
+        'display:flex', 'align-items:center', 'justify-content:center',
+        'gap:12px', 'flex-wrap:wrap', 'padding:8px 14px',
+        'background:#b45309', 'color:#fff',
+        'font:600 13px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+        'box-shadow:0 -2px 12px rgba(0,0,0,.35)', 'text-align:center'
+    ].join(';');
+
+    const text = document.createElement('span');
+    text.textContent = `🔧 Admin-Vorschau aktiv: ${previewLabel} – nicht die öffentliche Seite.`;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = `↩ Zur ${backLabel} zurück`;
+    btn.style.cssText = [
+        'cursor:pointer', 'border:0', 'border-radius:6px', 'padding:6px 12px',
+        'background:#fff', 'color:#7c2d12',
+        'font:700 13px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+        'white-space:nowrap'
+    ].join(';');
+    btn.addEventListener('click', () => {
+        try {
+            if (typeof APP.clearPreview === 'function') { APP.clearPreview(); return; }
+        } catch (_) { /* fall through */ }
+        try {
+            if (typeof APP.resetToDomainDefault === 'function') { APP.resetToDomainDefault(); return; }
+        } catch (_) { /* fall through */ }
+        window.location.reload();
+    });
+
+    bar.appendChild(text);
+    bar.appendChild(btn);
+    (document.body || document.documentElement).appendChild(bar);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const APP = window.APP_CONFIG;
 
@@ -786,6 +851,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     buildDevTournamentSwitcher(APP);
+    buildPreviewBadge(APP);
 
     registerServiceWorker();
 });

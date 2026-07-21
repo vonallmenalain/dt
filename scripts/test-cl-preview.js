@@ -60,4 +60,32 @@ assert.equal(APP.activeTournamentKey, 'wm2026', 'Nach Beenden: WM wieder aktiv.'
 assert.equal(APP.isTournamentLoadable('cl2627'), false,
   'Nach Beenden ist cl2627 wieder nicht ladbar.');
 
+/* ── 6) Selbstheilung: hängende Vorschau darf die Domain nicht blockieren  */
+assert.equal(typeof APP.recoverFromBrokenPreview, 'function',
+  'recoverFromBrokenPreview muss exponiert sein.');
+// Ohne aktive Vorschau ist die Heilung ein No-op (WM bleibt unberührt).
+assert.equal(APP.recoverFromBrokenPreview({ reload: false }), false,
+  'Ohne aktive Vorschau: keine Heilung nötig (No-op, false).');
+assert.equal(APP.activeTournamentKey, 'wm2026', 'No-op lässt die WM aktiv.');
+
+/* ── 7) Bewusst aktivierte Vorschau bleibt bestehen (kein Auto-Rückfall) ─ */
+// setPreviewTournament markiert die Vorschau als bewusst gewollt (Session-
+// Intent). recoverFromBrokenPreview darf eine solche Vorschau NICHT
+// wegbouncen – der Admin will sie sehen, auch wenn Daten fehlen; dort greift
+// stattdessen der sichtbare Hinweis-Banner mit 1-Klick-Ausstieg (nav.js).
+assert.equal(APP.setPreviewTournament('cl2526', { reload: false }), true,
+  'Vorschau cl2526 (Teststand) muss aktivierbar sein.');
+assert.equal(APP.activeTournamentKey, 'cl2526', 'cl2526-Vorschau ist aktiv.');
+assert.equal(APP.recoverFromBrokenPreview({ reload: false }), false,
+  'Bewusst aktivierte Vorschau bleibt bestehen (kein Auto-Rückfall).');
+assert.equal(APP.activeTournamentKey, 'cl2526',
+  'Bewusst aktivierte Vorschau bleibt trotz Heilungsversuch aktiv.');
+
+// Absicht zurücknehmen (clearPreview leert Override + Intent) und WM wieder
+// als Domain-Default bestätigen.
+assert.equal(APP.clearPreview({ reload: false }), true, 'Vorschau erneut beendbar.');
+assert.equal(APP.activeTournamentKey, 'wm2026', 'Nach Beenden wieder WM aktiv.');
+assert.equal(APP.recoverFromBrokenPreview({ reload: false }), false,
+  'Ohne Vorschau erneut No-op.');
+
 console.log('cl preview tests passed');

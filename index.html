@@ -11604,12 +11604,25 @@
                 },
                 onError: (err) => {
                     console.error('[index] Cache-Fehler:', err);
+                    // Selbstheilung: Steckt der Browser in einer aus einer
+                    // früheren Session hängenden, nicht mehr ladbaren Admin-
+                    // Vorschau, NICHT als "Seite kaputt" anzeigen, sondern
+                    // automatisch auf das Standard-Turnier (WM) zurückfallen.
+                    // Für die WM ist keine Vorschau aktiv → No-op.
+                    if (APP && typeof APP.recoverFromBrokenPreview === 'function'
+                        && APP.recoverFromBrokenPreview()) {
+                        return; // Reload läuft bereits – keine Fehlermeldung.
+                    }
                     showFreshnessWarning('Aktuelle Daten konnten nicht vom Server geladen werden.');
                 }
             });
 
         } catch (err) {
             console.error('[index] Daten konnten nicht geladen werden:', err);
+            if (APP && typeof APP.recoverFromBrokenPreview === 'function'
+                && APP.recoverFromBrokenPreview()) {
+                return; // Hängende Vorschau → Rückfall auf WM läuft.
+            }
             showFreshnessWarning('Aktuelle Daten konnten nicht vom Server geladen werden.');
             // Show graceful empty states – already baked in per-tile
         }

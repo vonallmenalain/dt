@@ -1688,6 +1688,53 @@ const APP_CONFIG = (() => {
     }
   }
 
+  /* ─────────────────────────────────────────────────────────
+   * Vorschau-ABSICHT (Session-scoped).
+   *
+   * Unterscheidet, ob die aktive Vorschau in DIESER Browser-Session
+   * BEWUSST aktiviert wurde (Switcher-Klick oder `?preview=` in der URL)
+   * oder ob sie nur ein aus einer FRÜHEREN Session in localStorage
+   * hängengebliebener Rest ist.
+   *
+   * Wichtig für die Selbstheilung (recoverFromBrokenPreview): eine
+   * bewusst aktivierte Vorschau bleibt bestehen (der Admin will sie
+   * sehen, auch wenn Daten fehlen) – eine still persistierte, nicht mehr
+   * ladbare Vorschau darf die Produktiv-Domain hingegen NICHT blockieren
+   * und fällt automatisch auf das Standard-Turnier (WM) zurück.
+   *
+   * sessionStorage (überlebt den Reload, nicht aber das Schliessen des
+   * Tabs) plus ein Speicher-Fallback für Node/Tests, wo kein window
+   * existiert.
+   * ───────────────────────────────────────────────────────── */
+  const PREVIEW_INTENT_SESSION_KEY = "dreamteam_preview_intent";
+  let previewIntentKeyMem = null;
+
+  function readPreviewIntent() {
+    try {
+      if (typeof window !== "undefined" && window.sessionStorage) {
+        const value = window.sessionStorage.getItem(PREVIEW_INTENT_SESSION_KEY);
+        if (value) return value.trim().toLowerCase();
+      }
+    } catch (err) {
+      // sessionStorage evtl. blockiert – Fallback nutzen.
+    }
+    return previewIntentKeyMem;
+  }
+
+  function writePreviewIntent(key) {
+    previewIntentKeyMem = key ? String(key).toLowerCase() : null;
+    try {
+      if (typeof window === "undefined" || !window.sessionStorage) return;
+      if (previewIntentKeyMem) {
+        window.sessionStorage.setItem(PREVIEW_INTENT_SESSION_KEY, previewIntentKeyMem);
+      } else {
+        window.sessionStorage.removeItem(PREVIEW_INTENT_SESSION_KEY);
+      }
+    } catch (err) {
+      // ignore – Speicher-Fallback (previewIntentKeyMem) reicht.
+    }
+  }
+
   /**
    * Ist ein Turnier als VORSCHAU ladbar? Genau dann, wenn es existiert,
    * (noch) nicht regulär verfügbar ist (`available`/`dataReady`) und eine
@@ -1746,6 +1793,9 @@ const APP_CONFIG = (() => {
     // Preview konkurrieren – Preview gewinnt, also Dev-Override räumen.
     clearDevOverride();
     persistPreviewOverride(normalized);
+    // BEWUSSTE Aktivierung: markiert die Vorschau als gewollt, damit die
+    // Selbstheilung sie nicht sofort wieder auf die WM zurückwirft.
+    writePreviewIntent(normalized);
 
     if (opts.reload === false) {
       ACTIVE_PREVIEW_KEY = normalized;
@@ -1763,6 +1813,7 @@ const APP_CONFIG = (() => {
   function clearPreview(options) {
     const opts = options || {};
     clearPreviewOverride();
+    writePreviewIntent(null);
     if (opts.reload === false) {
       ACTIVE_PREVIEW_KEY = null;
       ACTIVE_TOURNAMENT_KEY = resolveDomainDefaultKey();
@@ -1774,6 +1825,55 @@ const APP_CONFIG = (() => {
 
   function isPreviewActive() {
     return !!ACTIVE_PREVIEW_KEY;
+  }
+
+  /**
+   * Selbstheilung gegen eine „hängende" Admin-Vorschau.
+   *
+   * Wenn die aktive Ansicht eine (still aus einer früheren Session
+   * persistierte) Vorschau ist und deren Daten nicht geladen werden können,
+   * darf sie die Produktiv-Domain NICHT stumm blockieren – sonst wirkt die
+   * Seite für den Admin „kaputt". In diesem Fall wird die Vorschau-Persistenz
+   * entfernt und auf das reguläre Standard-Turnier der Domain (z. B. WM 2026)
+   * zurückgesetzt.
+   *
+   * Bewusst NICHT zurückgesetzt wird eine in DIESER Session absichtlich
+   * aktivierte Vorschau (Switcher/`?preview=`): Der Admin will sie sehen,
+   * auch wenn (noch) Daten fehlen – dort greift stattdessen der sichtbare
+   * Vorschau-Hinweis mit 1-Klick-Ausstieg (siehe nav.js).
+   *
+   * Reine Zustands-/Reload-Logik. Die WM ist nie betroffen: Ist keine
+   * Vorschau aktiv, ist dies ein No-op und liefert false.
+   *
+   * @param {object} [options]  options.reload === false → nur Zustand ändern
+   *                            (für Tests), sonst Reload auf bereinigte URL.
+   * @returns {boolean} true, wenn eine kaputte Vorschau zurückgesetzt wurde.
+   */
+  function recoverFromBrokenPreview(options) {
+    const opts = options || {};
+    if (!ACTIVE_PREVIEW_KEY) return false;            // keine Vorschau → WM/Default unberührt
+    const key = ACTIVE_PREVIEW_KEY;
+    // Bewusst aktivierte Vorschau: bestehen lassen (kein Auto-Rückfall,
+    // kein Reload-Loop). Der sichtbare Hinweis-Banner übernimmt die UX.
+    if (readPreviewIntent() === key) return false;
+
+    clearPreviewOverride();
+    writePreviewIntent(null);
+
+    if (opts.reload === false) {
+      ACTIVE_PREVIEW_KEY = null;
+      ACTIVE_TOURNAMENT_KEY = resolveDomainDefaultKey();
+      return true;
+    }
+
+    try {
+      console.warn(
+        `[APP_CONFIG] Vorschau "${key}" konnte nicht laden – automatischer ` +
+        `Rückfall auf das Standard-Turnier (${resolveDomainDefaultKey()}).`
+      );
+    } catch (_) { /* ignore */ }
+    reloadWithCleanUrl();
+    return true;
   }
 
   /**
@@ -1792,6 +1892,8 @@ const APP_CONFIG = (() => {
     const fromUrlPreview = readUrlPreviewKey();
     if (fromUrlPreview && isTournamentPreviewable(fromUrlPreview)) {
       persistPreviewOverride(fromUrlPreview);
+      // Explizit via URL angefordert = bewusste Absicht → nicht auto-heilen.
+      writePreviewIntent(fromUrlPreview);
       ACTIVE_PREVIEW_KEY = fromUrlPreview;
       return fromUrlPreview;
     }
@@ -2019,6 +2121,7 @@ const APP_CONFIG = (() => {
     const opts = options || {};
     clearDevOverride();
     clearPreviewOverride();
+    writePreviewIntent(null);
 
     if (opts.reload === false) {
       ACTIVE_TOURNAMENT_KEY = resolveDomainDefaultKey();
@@ -2076,6 +2179,7 @@ const APP_CONFIG = (() => {
     setPreviewTournament,
     clearPreview,
     isPreviewActive,
+    recoverFromBrokenPreview,
 
     get previewableTournamentKeys() {
       return getPreviewableTournamentKeys();
