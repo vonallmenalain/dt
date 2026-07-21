@@ -1,10 +1,24 @@
 name: Firestore-Rules deployen
 
-# Deployt firestore.rules ins Firebase-Projekt. Manuell ausgeloest.
+# Deployt firestore.rules ins Firebase-Projekt.
 # Aendert ausschliesslich die Sicherheitsregeln (firestore.rules) – keine
-# Daten. Benoetigt das Secret FIREBASE_SERVICE_ACCOUNT (Service-Account-JSON).
+# Daten und NICHT das Hosting (dt.alae.app laeuft ueber GitHub Pages und
+# deployt separat automatisch bei jedem Push auf main).
+# Benoetigt das Secret FIREBASE_SERVICE_ACCOUNT (Service-Account-JSON).
+#
+# Ausloeser:
+#   • Automatisch bei jedem Push auf main, der die Regeln/Deploy-Config
+#     aendert (firestore.rules, firebase.json, .firebaserc, dieser Workflow).
+#   • Manuell (workflow_dispatch) – mit optionalem Trockenlauf (dry_run).
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "firestore.rules"
+      - "firebase.json"
+      - ".firebaserc"
+      - ".github/workflows/deploy-firestore-rules.yml"
   workflow_dispatch:
     inputs:
       dry_run:
