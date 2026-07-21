@@ -407,8 +407,29 @@ const APP_CONFIG = (() => {
       },
 
       // CL hat eine Ligaphase statt Vierergruppen – kein Gruppen-/Bracket-
-      // Schema aus der WM. Ein eigenes Liga-Modell kommt in M2.
+      // Schema aus der WM, sondern eine gemeinsame 36er-Tabelle.
       fallbackFixtures: [],
+
+      // Ligaphasen-Parameter (Meilenstein M2a). Steuern die Auflösung
+      // „Klub noch im Turnier" in computeTournamentLeagueStatus:
+      //   Ränge 1–8   → direkt Achtelfinale
+      //   Ränge 9–24  → Playoff-Runde (Hin/Rück)
+      //   Ränge 25–36 → ausgeschieden (erst NACH Abschluss der Ligaphase)
+      leaguePhase: {
+        teamCount: 36,
+        matchesPerTeam: 8,
+        directQualifyThrough: 8,
+        playoffThrough: 24
+      },
+
+      // K.-o.-Phase: Playoffs/Achtel/Viertel/Halbfinale sind Hin- und
+      // Rückspiele (Sieger nach Gesamtergebnis, bei Gleichstand
+      // Verlängerung/Elfmeter im Rückspiel). Der Final ist ein Einzelspiel.
+      // Einzelspiel-Runden werden am Runden-Text erkannt (siehe
+      // isSingleLegKnockoutRound); dieses Flag dient der Dokumentation.
+      knockout: {
+        twoLegged: true
+      },
 
       // Eigene Punkteregeln (M0-Mechanik: pro Turnier überschreibbar).
       // `rules` wird bewusst NICHT gesetzt → es gelten vorerst die
@@ -1089,6 +1110,245 @@ const APP_CONFIG = (() => {
   }
 
   /* ─────────────────────────────────────────────────────────
+   * Ligaphasen-Lebenszyklus ("Klub noch im Turnier").
+   *
+   * CL-Variante von computeTournamentNationStatus für Turniere mit
+   * `structure: "league"` (z. B. Champions League 2026/27). Statt
+   * Vierergruppen gibt es eine gemeinsame Tabelle aus `teamCount`
+   * Klubs, die je `matchesPerTeam` Spiele bestreiten. Nach Abschluss
+   * der KOMPLETTEN Ligaphase gilt:
+   *   • Ränge 1..directQualifyThrough → weiter (direkt Achtelfinale)
+   *   • Ränge ..playoffThrough        → weiter (Playoff-Runde)
+   *   • alle dahinter                 → ausgeschieden
+   * Solange die Ligaphase nicht vollständig gespielt ist, gilt – wie
+   * bei der WM – konservativ niemand als ausgeschieden.
+   *
+   * K.-o.-Runde: Playoffs/Achtel/Viertel/Halbfinale sind Hin- und
+   * Rückspiele. Ein Klub scheidet erst aus, wenn BEIDE Legs beendet
+   * sind und das Gesamtergebnis feststeht; bei Gleichstand entscheidet
+   * das Sieger-Flag des entscheidenden Rückspiels (Verlängerung/
+   * Elfmeter). Der Final ist ein Einzelspiel.
+   *
+   * Rückgabeform ist kompatibel zu computeTournamentNationStatus
+   * (isNationAlive / countActivePlayers / aliveKeys / …); „Nation"
+   * entspricht hier dem Klub.
+   * ───────────────────────────────────────────────────────── */
+  function getLeagueRow(rows, key) {
+    if (!rows.has(key)) {
+      rows.set(key, {
+        key, played: 0, won: 0, drawn: 0, lost: 0,
+        gf: 0, ga: 0, gd: 0, pts: 0, awayGf: 0, awayWon: 0, rank: null
+      });
+    }
+    return rows.get(key);
+  }
+
+  function applyLeagueMatchToRows(rows, homeKey, awayKey, hg, ag) {
+    const home = getLeagueRow(rows, homeKey);
+    const away = getLeagueRow(rows, awayKey);
+    home.played += 1; away.played += 1;
+    home.gf += hg; home.ga += ag;
+    away.gf += ag; away.ga += hg;
+    away.awayGf += ag;
+    if (hg > ag) { home.won += 1; home.pts += 3; away.lost += 1; }
+    else if (ag > hg) { away.won += 1; away.awayWon += 1; away.pts += 3; home.lost += 1; }
+    else { home.drawn += 1; away.drawn += 1; home.pts += 1; away.pts += 1; }
+    home.gd = home.gf - home.ga;
+    away.gd = away.gf - away.ga;
+  }
+
+  function compareLeagueRows(a, b) {
+    if (a.pts !== b.pts) return b.pts - a.pts;
+    if (a.gd !== b.gd) return b.gd - a.gd;
+    if (a.gf !== b.gf) return b.gf - a.gf;
+    if (a.awayGf !== b.awayGf) return b.awayGf - a.awayGf;
+    if (a.won !== b.won) return b.won - a.won;
+    if (a.awayWon !== b.awayWon) return b.awayWon - a.awayWon;
+    // Deterministischer Fallback. Die offiziellen weiteren Tiebreaker
+    // (Disziplinar-Wertung, UEFA-Koeffizient) sind hier bewusst NICHT
+    // abgebildet und werden bei Bedarf später ergänzt.
+    return String(a.key).localeCompare(String(b.key), "de");
+  }
+
+  function isLeaguePhaseRound(roundText) {
+    const v = String(roundText || "").trim().toLowerCase();
+    if (!v) return false;
+    return /league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v);
+  }
+
+  function isSingleLegKnockoutRound(roundText) {
+    const v = String(roundText || "").trim().toLowerCase();
+    return /final/.test(v) && !/semi|quarter|halb|viertel/.test(v);
+  }
+
+  function decideKnockoutLegLoser(leg) {
+    if (leg.homeWinner === true) return leg.awayKey;
+    if (leg.awayWinner === true) return leg.homeKey;
+    const hg = leg.goals.home;
+    const ag = leg.goals.away;
+    if (Number.isFinite(hg) && Number.isFinite(ag) && hg !== ag) {
+      return hg > ag ? leg.awayKey : leg.homeKey;
+    }
+    return null;
+  }
+
+  function computeTournamentLeagueStatus(fixtures, opts) {
+    const active = getActiveTournament();
+    const lp = (opts && opts.leaguePhase) || active.leaguePhase || {};
+    const matchesPerTeam = Number.isFinite(Number(lp.matchesPerTeam)) ? Number(lp.matchesPerTeam) : 8;
+    const teamCount = Number.isFinite(Number(lp.teamCount)) ? Number(lp.teamCount) : 36;
+    const playoffThrough = Number.isFinite(Number(lp.playoffThrough)) ? Number(lp.playoffThrough) : 24;
+
+    const list = fixtures && typeof fixtures === "object"
+      ? (Array.isArray(fixtures) ? fixtures : Object.values(fixtures))
+      : [];
+
+    const rows = new Map();
+    const participantKeys = new Set();
+    const ties = new Map();
+    let knockoutPhaseReached = false;
+
+    list.forEach((fixture) => {
+      if (!fixture || typeof fixture !== "object") return;
+
+      const homeKey = normalizeTournamentTeamName(getFixtureSideName(fixture, "home"));
+      const awayKey = normalizeTournamentTeamName(getFixtureSideName(fixture, "away"));
+      if (homeKey) participantKeys.add(homeKey);
+      if (awayKey) participantKeys.add(awayKey);
+
+      const roundText = getFixtureRoundText(fixture);
+      const isFinished = FINISHED_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture));
+
+      if (isLeaguePhaseRound(roundText)) {
+        if (isFinished && homeKey && awayKey) {
+          const { home: hg, away: ag } = getFixtureGoals(fixture);
+          if (Number.isFinite(hg) && Number.isFinite(ag)) {
+            applyLeagueMatchToRows(rows, homeKey, awayKey, hg, ag);
+          }
+        }
+        return;
+      }
+
+      // Alles mit (nicht-Liga-)Runden-Text zählt als K.-o.-Spiel.
+      if (!roundText || !homeKey || !awayKey) return;
+      knockoutPhaseReached = true;
+      const pair = [homeKey, awayKey].slice().sort();
+      const tieKey = roundText.trim().toLowerCase() + "|" + pair.join("#");
+      if (!ties.has(tieKey)) {
+        ties.set(tieKey, {
+          single: isSingleLegKnockoutRound(roundText),
+          a: pair[0], b: pair[1], legs: []
+        });
+      }
+      ties.get(tieKey).legs.push({
+        homeKey, awayKey,
+        isFinished,
+        homeWinner: getFixtureSideWinner(fixture, "home"),
+        awayWinner: getFixtureSideWinner(fixture, "away"),
+        goals: getFixtureGoals(fixture)
+      });
+    });
+
+    // Ligaphase komplett? Erst dann stehen die Ränge – und damit die
+    // Ausscheider dahinter – zuverlässig fest.
+    const leagueParticipants = Array.from(rows.values());
+    const leaguePhaseComplete =
+      leagueParticipants.length >= teamCount &&
+      leagueParticipants.length > 0 &&
+      leagueParticipants.every((r) => r.played >= matchesPerTeam);
+
+    const eliminated = new Set();
+
+    // Tabelle ranken (immer – nützlich für die spätere Analyse-Ansicht).
+    const ranked = leagueParticipants.slice().sort(compareLeagueRows);
+    ranked.forEach((row, idx) => { row.rank = idx + 1; });
+
+    if (leaguePhaseComplete) {
+      ranked.forEach((row) => {
+        if (row.rank > playoffThrough) eliminated.add(row.key);
+      });
+    }
+
+    // K.-o.-Verlierer ausscheiden lassen.
+    ties.forEach((tie) => {
+      const finishedLegs = tie.legs.filter((l) => l.isFinished);
+      if (finishedLegs.length === 0) return;
+
+      if (tie.single) {
+        const loser = decideKnockoutLegLoser(finishedLegs[finishedLegs.length - 1]);
+        if (loser) eliminated.add(loser);
+        return;
+      }
+
+      // Hin/Rück: erst mit beiden beendeten Legs entscheiden.
+      if (finishedLegs.length < 2) return;
+
+      const agg = {};
+      agg[tie.a] = 0; agg[tie.b] = 0;
+      let goalsOk = true;
+      finishedLegs.forEach((leg) => {
+        const hg = leg.goals.home;
+        const ag = leg.goals.away;
+        if (!Number.isFinite(hg) || !Number.isFinite(ag)) { goalsOk = false; return; }
+        agg[leg.homeKey] = (agg[leg.homeKey] || 0) + hg;
+        agg[leg.awayKey] = (agg[leg.awayKey] || 0) + ag;
+      });
+
+      if (goalsOk && agg[tie.a] !== agg[tie.b]) {
+        eliminated.add(agg[tie.a] < agg[tie.b] ? tie.a : tie.b);
+        return;
+      }
+
+      // Gesamt-Gleichstand (oder Tore unklar) → Sieger-Flag des
+      // entscheidenden Legs (Verlängerung/Elfmeter) heranziehen.
+      for (const leg of finishedLegs) {
+        if (leg.homeWinner === true) { eliminated.add(leg.awayKey); break; }
+        if (leg.awayWinner === true) { eliminated.add(leg.homeKey); break; }
+      }
+    });
+
+    const aliveKeys = new Set();
+    participantKeys.forEach((key) => {
+      if (!eliminated.has(key)) aliveKeys.add(key);
+    });
+
+    function isNationAlive(name) {
+      const key = normalizeTournamentTeamName(name);
+      if (!key) return true;
+      return !eliminated.has(key);
+    }
+
+    function countActivePlayers(players, getEntity) {
+      if (!Array.isArray(players)) return 0;
+      const resolve = typeof getEntity === "function"
+        ? getEntity
+        : (p) => (p && (p.club || p.nation || p["Team.name"])) || "";
+      return players.reduce((sum, p) => sum + (isNationAlive(resolve(p)) ? 1 : 0), 0);
+    }
+
+    return {
+      structure: "league",
+      knockoutStarted: knockoutPhaseReached || leaguePhaseComplete,
+      leaguePhaseComplete,
+      standings: ranked,
+      aliveKeys,
+      eliminatedKeys: eliminated,
+      participantKeys,
+      isNationAlive,
+      countActivePlayers
+    };
+  }
+
+  /* Dispatcher: wählt anhand von `structure` die passende Lebenszyklus-
+   * Berechnung. Fehlt das Feld (WM 2026), gilt "groups" – der WM-Pfad
+   * bleibt damit unverändert. */
+  function computeTournamentStatus(fixtures, opts) {
+    const structure = getActiveTournament().structure || "groups";
+    if (structure === "league") return computeTournamentLeagueStatus(fixtures, opts);
+    return computeTournamentNationStatus(fixtures);
+  }
+
+  /* ─────────────────────────────────────────────────────────
    * Aktives Turnier robust auflösen.
    *
    * Reihenfolge:
@@ -1724,13 +1984,26 @@ const APP_CONFIG = (() => {
     },
 
     /**
-     * Liefert den Lebenszyklus-Status der Nationen anhand der
-     * Fixture-Sammlung. Siehe `computeTournamentNationStatus` für
-     * Details. Rückgabe enthält u.a. `isNationAlive(name)` und
-     * `countActivePlayers(players, getNation)`.
+     * Liefert den Lebenszyklus-Status der Teilnehmer anhand der
+     * Fixture-Sammlung. Dispatcht nach `structure`:
+     *   • "groups" (WM 2026) → Nationen-Status (computeTournamentNationStatus)
+     *   • "league"  (CL)     → Klub-/Ligaphasen-Status (computeTournamentLeagueStatus)
+     * Rückgabe ist in beiden Fällen kompatibel (isNationAlive(name),
+     * countActivePlayers(players, getEntity), aliveKeys, …).
      */
+    getTournamentStatus(fixtures) {
+      return computeTournamentStatus(fixtures);
+    },
+
+    // Rückwärtskompatibler Alias – bestehende WM-Views rufen dies auf.
     getNationStatus(fixtures) {
-      return computeTournamentNationStatus(fixtures);
+      return computeTournamentStatus(fixtures);
+    },
+
+    // Direktzugriff auf die Ligaphasen-Berechnung (Tests / spätere
+    // CL-Views). `opts.leaguePhase` überschreibt die Turnier-Parameter.
+    computeLeagueStatus(fixtures, opts) {
+      return computeTournamentLeagueStatus(fixtures, opts);
     },
 
     firebaseConfig,
