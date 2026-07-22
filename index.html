@@ -22,7 +22,7 @@
         d.style.background="#0a1633";
         var s=document.createElement("style");
         s.id="cl-critical-theme";
-        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart{background:#0a1633;}';
+        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;--green-bg-1:#0a1633;--green-bg-2:#081029;--green-bg-3:#0a1633;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart,[data-tournament^="cl"] #indexHomePreStart{background:#0a1633;}';
         (document.head||d).appendChild(s);
       }
     }catch(e){}})();
@@ -187,6 +187,9 @@
             --yellow-pale: #fef08a;
             --yellow-paler: #fef9c3;
             --green-dark: #15803d;
+            --green-bg-1: #0d1f10;
+            --green-bg-2: #071a0a;
+            --green-bg-3: #0a2010;
 
             --green-glow: rgba(var(--rgb-green-2), 0.45);
             --gold: #ffd700;
@@ -308,7 +311,7 @@
                 radial-gradient(ellipse 70% 50% at 50% 80%, rgba(var(--rgb-green-2), 0.25) 0%, transparent 55%),
                 radial-gradient(ellipse 60% 40% at 20% 0%, rgba(var(--rgb-gold), 0.07) 0%, transparent 50%),
                 radial-gradient(ellipse 60% 40% at 80% 0%, rgba(var(--rgb-green-2), 0.18) 0%, transparent 50%),
-                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, #0d1f10 100%);
+                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, var(--green-bg-1) 100%);
             z-index: 0;
         }
 
@@ -370,6 +373,17 @@
             margin-right: auto;
             animation: fadeSlideDown 0.7s 0.2s ease both;
         }
+
+        /* Kleiner Saison-Zusatz unter dem Titel (z. B. „Saison 2025/2026"). */
+        .hero-season {
+            font-size: clamp(0.85rem, 2vw, 1rem);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin: -6px 0 18px;
+            animation: fadeSlideDown 0.7s 0.15s ease both;
+        }
+        .hero-season[hidden] { display: none; }
 
         /* ===================================================
            HERO STATS BAR
@@ -2445,7 +2459,7 @@
                 radial-gradient(ellipse 80% 40% at 50% 100%, rgba(var(--rgb-green-1), 0.30) 0%, transparent 65%),
                 radial-gradient(ellipse 50% 30% at 15% 85%, rgba(var(--rgb-green-2), 0.28) 0%, transparent 60%),
                 radial-gradient(ellipse 50% 30% at 85% 85%, rgba(var(--rgb-green-2), 0.28) 0%, transparent 60%),
-                linear-gradient(180deg, #050a0e 0%, #071a0a 40%, #0a2010 100%);
+                linear-gradient(180deg, #050a0e 0%, var(--green-bg-2) 40%, var(--green-bg-3) 100%);
             min-height: 100vh;
         }
 
@@ -5094,7 +5108,7 @@
                 radial-gradient(ellipse 70% 40% at 50% 70%, rgba(var(--rgb-green-2), 0.28) 0%, transparent 55%),
                 radial-gradient(ellipse 60% 35% at 15% 5%, rgba(var(--rgb-gold), 0.07) 0%, transparent 50%),
                 radial-gradient(ellipse 60% 35% at 85% 5%, rgba(var(--rgb-green-2), 0.20) 0%, transparent 50%),
-                linear-gradient(180deg, #050a0e 0%, #071a0a 40%, #0a2010 100%);
+                linear-gradient(180deg, #050a0e 0%, var(--green-bg-2) 40%, var(--green-bg-3) 100%);
             background-attachment: fixed;
         }
 
@@ -6371,9 +6385,10 @@
             <span class="gold-text" id="hero-title-label">&nbsp;</span><br>
             <span class="accent" id="hero-title-accent">DreamTeam</span>
         </h1>
+        <div class="hero-season" id="hero-season-label" hidden></div>
 
         <p class="hero-claim">
-            15 Spieler. 1 Captain.<br>
+            <span id="hero-claim-line1">15 Spieler. 1 Captain.</span><br>
             Drafte jetzt dein perfektes Fantasy-Team.
         </p>
 
@@ -6506,6 +6521,7 @@
                 <span class="gold-text" id="hero-post-title-label">&nbsp;</span><br>
                 <span class="accent" id="hero-post-title-accent">DreamTeam</span>
             </h1>
+            <div class="hero-season" id="hero-post-season-label" hidden></div>
         </div>
     </section>
 
@@ -7887,6 +7903,9 @@
         const fixturesObj = data.fixtures;
         if (fixturesObj && typeof fixturesObj === 'object' && !Array.isArray(fixturesObj) && Object.keys(fixturesObj).length > 0) {
             return Object.values(fixturesObj)
+                // Qualifikationsspiele (CL) ausblenden – nur echte Champions
+                // League ab der Ligarunde. WM bleibt unberührt.
+                .filter(f => !(window.APP_CONFIG && typeof window.APP_CONFIG.isQualificationFixture === 'function' && window.APP_CONFIG.isQualificationFixture(f)))
                 .sort((a, b) => (getMatchKickoffMs(a) || 0) - (getMatchKickoffMs(b) || 0))
                 .map(f => {
                     const fixtureId = f.fixtureId ?? f.apiFixtureId ?? f.id ?? f.fixture?.id;
@@ -8337,8 +8356,13 @@
 
         // Captain = highest scoring player across all 15 (matches manager scoring rules,
         // where bench points also count towards the team total).
+        // In der CL gibt es kein Captain-Feature → kein Captain im Perfect Team
+        // und keine Punkte-Verdopplung (WM bleibt unverändert).
         const allPicked = [...starters, ...benchers];
-        const captain = allPicked.reduce((best, p) => (!best || p.pts > best.pts) ? p : best, null);
+        const captainEnabledHere = !(window.APP_CONFIG && window.APP_CONFIG.captainEnabled === false);
+        const captain = captainEnabledHere
+            ? allPicked.reduce((best, p) => (!best || p.pts > best.pts) ? p : best, null)
+            : null;
         const captainId = captain ? String(captain['player.id']) : null;
         const maxPts = allPicked.reduce((sum, p) => sum + (String(p['player.id']) === captainId ? p.pts * 2 : p.pts), 0);
 
@@ -8527,6 +8551,42 @@
     // Post-Start hero labels
     const titleLabelPostEl = $('hero-post-title-label');
     if (titleLabelPostEl) titleLabelPostEl.textContent = shortLabel;
+
+    // Optionaler Saison-Zusatz („Saison 2025/2026") klein unter dem Titel –
+    // nur für Turniere, die APP.seasonLabel setzen (aktuell die CL).
+    const seasonLabel = (APP.seasonLabel || '').trim();
+    [$('hero-season-label'), $('hero-post-season-label')].forEach((el) => {
+        if (!el) return;
+        if (seasonLabel) {
+            el.textContent = `Saison ${seasonLabel}`;
+            el.hidden = false;
+        } else {
+            el.textContent = '';
+            el.hidden = true;
+        }
+    });
+
+    // Hero-Claim: ohne Captain-Feature (CL) den „1 Captain"-Teil weglassen.
+    const claimLine1El = $('hero-claim-line1');
+    if (claimLine1El) {
+        const captainOn = !(APP && APP.captainEnabled === false);
+        claimLine1El.textContent = captainOn ? '15 Spieler. 1 Captain.' : '15 Spieler.';
+    }
+
+    // Ohne Captain-Feature (CL) die „Captain Watch"-Kacheln (Vor- & Nach-Start)
+    // ganz entfernen; die verbleibende Kachel der Reihe (Beliebteste Vereine)
+    // wird dann volle Breite.
+    if (APP && APP.captainEnabled === false) {
+        ['tile-captain-watch', 'tile-post-captain-watch'].forEach((id) => {
+            const inner = $(id);
+            const gtile = inner && inner.closest('.gtile');
+            const row = gtile && gtile.parentElement;
+            if (gtile) gtile.remove();
+            if (row && row.children.length === 1) {
+                row.style.gridTemplateColumns = '1fr';
+            }
+        });
+    }
 
     /* =========================================================
        PRE START HERO CARDS – MANUELL KONFIGURIERTE SPIELER
@@ -11221,6 +11281,47 @@
             }
         ];
 
+        // Champions-League-Stars (Saison 2025/26): 15 Topspieler aus
+        // verschiedenen Klubs (max. 2 pro Klub), alle über ihre player.id im
+        // CL-Datensatz vorhanden – Foto, Klub und Nationsflagge kommen also
+        // direkt aus data-cl2526.js. Titel bewusst leer (kein „Stars der …"
+        // über dem Karussell in der CL).
+        const cl2526StarRotation = [
+            {
+                id: "cl_stars_set_1",
+                title: "",
+                players: [
+                    { playerId: 278,    name: "Kylian Mbappé",     nation: "Frankreich",   position: "ANG" },
+                    { playerId: 762,    name: "Vinícius Júnior",    nation: "Brasilien",    position: "ANG" },
+                    { playerId: 521,    name: "Robert Lewandowski", nation: "Polen",        position: "ANG" },
+                    { playerId: 386828, name: "Lamine Yamal",       nation: "Spanien",      position: "ANG" },
+                    { playerId: 1100,   name: "Erling Haaland",     nation: "Norwegen",     position: "ANG" },
+                    { playerId: 306,    name: "Mohamed Salah",      nation: "Ägypten",      position: "ANG" },
+                    { playerId: 184,    name: "Harry Kane",         nation: "England",      position: "ANG" },
+                    { playerId: 153,    name: "Ousmane Dembélé",    nation: "Frankreich",   position: "ANG" },
+                    { playerId: 1460,   name: "Bukayo Saka",        nation: "England",      position: "ANG" },
+                    { playerId: 217,    name: "Lautaro Martínez",   nation: "Argentinien",  position: "ANG" },
+                    { playerId: 629,    name: "Kevin De Bruyne",    nation: "Belgien",      position: "MIT" },
+                    { playerId: 21393,  name: "Serhou Guirassy",    nation: "Guinea",       position: "ANG" },
+                    { playerId: 2780,   name: "Victor Osimhen",     nation: "Nigeria",      position: "ANG" },
+                    { playerId: 339883, name: "Kenan Yıldız",       nation: "Türkei",       position: "ANG" },
+                    { playerId: 6009,   name: "Julián Álvarez",     nation: "Argentinien",  position: "ANG" }
+                ]
+            },
+            {
+                id: "most_picked_players",
+                title: "",
+                type: "dynamic",
+                source: "mostPickedPlayers"
+            }
+        ];
+
+        // Turnierabhängige Auswahl: CL-Turniere nutzen die CL-Stars, alle
+        // anderen (WM) die bisherige WM-Rotation.
+        const starRotation = (window.APP_CONFIG && String(window.APP_CONFIG.key || "").toLowerCase().indexOf("cl") === 0)
+            ? cl2526StarRotation
+            : wm2026StarRotation;
+
         const STAR_NAME_ALIASES = {
             "abdukodir khusanov": ["abduqodir khusanov"]
         };
@@ -11331,13 +11432,13 @@
         }
 
         function getRotationEntry(id) {
-            return wm2026StarRotation.find((entry) => entry.id === id) || null;
+            return starRotation.find((entry) => entry.id === id) || null;
         }
 
         function getNextRotationEntry(lastVariant) {
-            const lastIndex = wm2026StarRotation.findIndex((entry) => entry.id === lastVariant);
-            const nextIndex = lastIndex >= 0 ? (lastIndex + 1) % wm2026StarRotation.length : 0;
-            return wm2026StarRotation[nextIndex];
+            const lastIndex = starRotation.findIndex((entry) => entry.id === lastVariant);
+            const nextIndex = lastIndex >= 0 ? (lastIndex + 1) % starRotation.length : 0;
+            return starRotation[nextIndex];
         }
 
         function buildRotationItems(entry, limit = 15) {
@@ -11351,11 +11452,11 @@
             let lastVariant = null;
             try { lastVariant = localStorage.getItem(VARIANT_STORAGE_KEY); } catch (_) {}
             let entry = forceVariant ? getRotationEntry(forceVariant) : getNextRotationEntry(lastVariant);
-            if (!entry) entry = wm2026StarRotation[0];
+            if (!entry) entry = starRotation[0];
 
             let items = buildRotationItems(entry, limit);
             if (!items.length) {
-                for (const fallbackEntry of wm2026StarRotation) {
+                for (const fallbackEntry of starRotation) {
                     if (fallbackEntry.id === entry.id) continue;
                     const fallbackItems = buildRotationItems(fallbackEntry, limit);
                     if (fallbackItems.length) {
