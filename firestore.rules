@@ -193,10 +193,11 @@ service cloud.firestore {
           || docId == 'wm2026_points_shard_14'
           || docId == 'wm2026_points_shard_15'
         ))
-        // ── Champions League (Test cl2526 + produktiv cl2627): nur Reads.
-        //    Schreibzugriffe (Teams) folgen separat beim CL-Launch, da das
-        //    Team-Schema club-zentriert abweicht. Server-Writes (Fixtures/
-        //    Punkte) laufen ohnehin ueber das Admin-SDK.
+        // ── Champions League: Reads fuer beide CL-Turniere.
+        //    Team-WRITES sind fuer die Test-Saison cl2526 unten freigegeben
+        //    (Testteams in der Admin-Vorschau), fuer die produktive Saison
+        //    cl2627 folgen sie separat beim CL-Launch. Server-Writes
+        //    (Fixtures/Punkte) laufen ohnehin ueber das Admin-SDK.
         || collection == 'Teams CL 2025-26 Test'
         || collection == 'Spiele CL 2025-26 Test'
         || collection == 'Punkte Spieler CL 2025-26 Test'
@@ -225,6 +226,18 @@ service cloud.firestore {
             collection == 'app_meta'
             && docId == 'turnier_wm2026'
             && isAdmin()
+        )
+        // ── CL 2025/26 (Test): Teams anlegen. Kein WM-Deadline-Gate, da es
+        //    ein Test-Turnier ist; Verifizierung, Eigentum und Team-Schema
+        //    gelten wie bei der WM (validTeamCreate).
+        || (
+            collection == 'Teams CL 2025-26 Test'
+            && validTeamCreate()
+        )
+        || (
+            collection == 'app_meta'
+            && docId == 'turnier_cl2526'
+            && isAdmin()
         );
 
       allow update:
@@ -240,6 +253,19 @@ service cloud.firestore {
                 isAdmin()
                 || (isVerified() && isTeamsVersionBumpOnly())
             )
+        )
+        // ── CL 2025/26 (Test): eigenes Team aktualisieren + teamsVersion-Bump.
+        || (
+            collection == 'Teams CL 2025-26 Test'
+            && validTeamUpdate()
+        )
+        || (
+            collection == 'app_meta'
+            && docId == 'turnier_cl2526'
+            && (
+                isAdmin()
+                || (isVerified() && isTeamsVersionBumpOnly())
+            )
         );
 
       allow delete:
@@ -251,6 +277,16 @@ service cloud.firestore {
         || (
             collection == 'app_meta'
             && docId == 'turnier_wm2026'
+            && isAdmin()
+        )
+        // ── CL 2025/26 (Test): eigenes Team loeschen.
+        || (
+            collection == 'Teams CL 2025-26 Test'
+            && validTeamDelete()
+        )
+        || (
+            collection == 'app_meta'
+            && docId == 'turnier_cl2526'
             && isAdmin()
         );
     }
