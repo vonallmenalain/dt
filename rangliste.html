@@ -22,7 +22,7 @@
         d.style.background="#0a1633";
         var s=document.createElement("style");
         s.id="cl-critical-theme";
-        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart{background:#0a1633;}';
+        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;--green-bg-1:#0a1633;--green-bg-2:#081029;--green-bg-3:#0a1633;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart,[data-tournament^="cl"] #indexHomePreStart{background:#0a1633;}';
         (document.head||d).appendChild(s);
       }
     }catch(e){}})();
@@ -97,6 +97,9 @@
             --yellow-pale: #fef08a;
             --yellow-paler: #fef9c3;
             --green-dark: #15803d;
+            --green-bg-1: #0d1f10;
+            --green-bg-2: #071a0a;
+            --green-bg-3: #0a2010;
 
             --gold: #ffd700;
             --gold-dark: #e5a800;
@@ -180,7 +183,7 @@
                 radial-gradient(ellipse 90% 55% at 50% 100%, rgba(var(--rgb-green-1), 0.32) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 40% at 15% 5%, rgba(var(--rgb-gold), 0.06) 0%, transparent 50%),
                 radial-gradient(ellipse 60% 40% at 85% 5%, rgba(var(--rgb-green-1), 0.12) 0%, transparent 50%),
-                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, #0d1f10 100%);
+                linear-gradient(180deg, #050a0e 0%, #0d1117 30%, var(--green-bg-1) 100%);
             z-index: -1;
             pointer-events: none;
         }

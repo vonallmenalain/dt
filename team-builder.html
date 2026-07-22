@@ -22,7 +22,7 @@
         d.style.background="#0a1633";
         var s=document.createElement("style");
         s.id="cl-critical-theme";
-        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart{background:#0a1633;}';
+        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;--green-bg-1:#0a1633;--green-bg-2:#081029;--green-bg-3:#0a1633;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart,[data-tournament^="cl"] #indexHomePreStart{background:#0a1633;}';
         (document.head||d).appendChild(s);
       }
     }catch(e){}})();
@@ -102,6 +102,9 @@
             --pitch-c: #1d7530;
             --pitch-d: #174e22;
             --pitch-e: #1b6424;
+            --green-bg-1: #0d1f10;
+            --green-bg-2: #071a0a;
+            --green-bg-3: #0a2010;
 
             --green-glow: rgba(var(--rgb-green-2), 0.45);
             --gold: #ffd700;
@@ -186,7 +189,7 @@
                 radial-gradient(ellipse 80% 50% at 50% 100%, rgba(var(--rgb-green-2), 0.28) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 40% at 10% 10%, rgba(var(--rgb-gold), 0.04) 0%, transparent 50%),
                 radial-gradient(ellipse 60% 40% at 90% 5%, rgba(var(--rgb-green-2), 0.1) 0%, transparent 50%),
-                linear-gradient(180deg, #050a0e 0%, #0d1117 25%, #0d1f10 100%);
+                linear-gradient(180deg, #050a0e 0%, #0d1117 25%, var(--green-bg-1) 100%);
             z-index: -1;
             pointer-events: none;
         }
@@ -928,30 +931,71 @@
             box-shadow: 0 0 10px rgba(239,68,68,0.4), 0 2px 6px rgba(0,0,0,0.4);
         }
 
-        /* Erreichte Punkte je Spieler (nur nach Turnierstart) oben RECHTS
-           (überall gleich; das Entfernen-„✖" rutscht im Builder dafür nach
-           unten rechts). */
+        /* Erreichte Punkte je Spieler (nur nach Turnierstart) oben RECHTS –
+           identisch zur Teams-Ansicht (.card-pts): blaue Pille, rote Pille bei
+           Minuspunkten, vorzeichenbehaftete Zahl (das Entfernen-„✖" liegt im
+           Builder unten rechts). */
         .builder-card-pts {
             position: absolute;
             top: 8px;
             right: 8px;
             transform: translateZ(30px);
             z-index: 29;
-            padding: 2px 9px;
-            border-radius: 999px;
+            padding: 4px 8px;
+            border-radius: 7px;
             font-weight: 800;
-            font-size: 11px;
-            line-height: 1.5;
+            font-size: 12px;
+            line-height: 1.2;
             white-space: nowrap;
-            background: rgba(16,185,129,0.92);
-            color: #04120c;
-            border: 1.5px solid rgba(255,255,255,0.25);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            background: rgba(var(--rgb-green-1), 0.85);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(var(--rgb-green-1), 0.3);
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             pointer-events: none;
         }
-        .bench-slots .builder-card-pts { top: 4px; right: 4px; font-size: 10px; padding: 1px 7px; }
+        .builder-card-pts.neg {
+            background: rgba(239,68,68,0.85);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(239,68,68,0.3);
+        }
+        .bench-slots .builder-card-pts { top: 4px; right: 4px; font-size: 10px; padding: 2px 6px; }
+
+        /* Ausgetauschte Spieler unter dem Feld (analog zur Teams-Ansicht). */
+        .builder-transferred-out {
+            margin: 20px auto 0;
+            max-width: 1100px;
+            padding: 14px 16px;
+            border: 1px dashed rgba(148,163,184,0.4);
+            border-radius: 14px;
+            background: rgba(148,163,184,0.06);
+        }
+        .builder-transferred-out[hidden] { display: none; }
+        .builder-transferred-out-head {
+            font-weight: 800;
+            margin-bottom: 12px;
+            font-size: 1.02em;
+            color: var(--text-main, #e6edf3);
+        }
+        .builder-transferred-out-sub { font-weight: 500; opacity: 0.7; font-size: 0.85em; }
+        .builder-transferred-out-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        .builder-to-card {
+            position: relative;
+            width: 132px;
+            padding: 10px 8px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.94;
+        }
+        .builder-to-card .avatar-wrapper { margin-top: 4px; }
 
         /* Transfer-„T"-Badge oben links (wie in der Teams-Ansicht). */
         .builder-transfer-badge {
@@ -2809,6 +2853,12 @@
                     <div class="bench-slots" id="bench-slots"></div>
                 </div>
             </div>
+
+            <!-- Ausgetauschte Spieler (nur bei Teams mit Transfers, nach Start) -->
+            <section class="builder-transferred-out" id="builder-transferred-out-section" hidden aria-label="Ausgetauschte Spieler">
+                <div class="builder-transferred-out-head">🔄 Ausgetauschte Spieler <span class="builder-transferred-out-sub">– Punkte bis zum Transfer</span></div>
+                <div class="builder-transferred-out-cards" id="builder-transferred-out-cards"></div>
+            </section>
         </div>
 
         <!-- Picker Panel -->
@@ -3781,10 +3831,15 @@
             : '';
 
         // Erreichte Punkte – nur nach Turnierstart (davor haben alle 0) und
-        // sobald die Punkte geladen sind. Hilft bei der Transfer-Entscheidung.
-        const ptsHtml = (isTournamentStarted() && builderPointsMap && !isOrphan)
-            ? `<div class="builder-card-pts" title="Bisher erreichte Punkte">${Number(builderPointsMap[String(player.id)] || 0)} Pkt.</div>`
-            : '';
+        // sobald die Punkte geladen sind. Anzeige wie in der Teams-Ansicht:
+        // vorzeichenbehaftete Zahl, blaue/rote Pille.
+        let ptsHtml = '';
+        if (isTournamentStarted() && builderPointsMap && !isOrphan) {
+            const rawPts = getBuilderPlayerPts(player.id);
+            const ptsCls = rawPts > 0 ? '' : (rawPts < 0 ? 'neg' : '');
+            const ptsSign = rawPts > 0 ? '+' : '';
+            ptsHtml = `<div class="builder-card-pts ${ptsCls}" title="Bisher erreichte Punkte">${ptsSign}${rawPts}</div>`;
+        }
 
         const innerHtml = isBench
             ? `<div class="bench-btn-row">${captainBtn}${removeBtn}</div>
@@ -3897,8 +3952,9 @@
                     const orphanTag = isOrphan
                         ? ' <span class="orphan-tag" title="Spieler nicht mehr im aktuellen Kader – bitte ersetzen">Ersetzen</span>'
                         : '';
+                    const mPts = getBuilderPlayerPts(player.id);
                     const mPtsHtml = (isTournamentStarted() && builderPointsMap && !isOrphan)
-                        ? `<span style="margin-left:auto;font-weight:800;color:#059669;white-space:nowrap;">${Number(builderPointsMap[String(player.id)] || 0)} Pkt.</span>`
+                        ? `<span style="margin-left:auto;font-weight:800;color:${mPts < 0 ? '#ef4444' : 'rgb(var(--rgb-green-1))'};white-space:nowrap;">${mPts > 0 ? '+' : ''}${mPts} Pkt.</span>`
                         : '';
                     return `
                         <div class="mobile-slot-row${isActive ? ' is-active' : ''}${isOrphan ? ' is-orphan' : ''}" data-slot-id="${escapeHtml(slotId)}" data-action="open-slot" role="button" tabindex="0" aria-label="${escapeHtml(player.name)} – Slot öffnen${isOrphan ? ' (bitte ersetzen)' : ''}">
@@ -4842,6 +4898,26 @@
     let loadedInitialCaptain    = null;   // Kapitän des Start-15 (aus dem Doc)
     let builderPointsMap        = null;   // { playerId: totalPoints } – erst nach Turnierstart geladen
     let builderPointsLoading    = false;
+    // Zeitgefensterte Punkte (nur bei Teams MIT Transfers) + ausgetauschte
+    // Spieler – exakt wie in der Teams-Ansicht berechnet (managerBreakdown-
+    // OverTime). builderWindowedPts hat Vorrang vor builderPointsMap.
+    let builderWindowedPts      = null;   // { playerId: gefensterte Punkte }
+    let builderTransferredOut   = [];     // [{id,name,photo,nation,flag,club,clubLogo,pts,...}]
+    let builderPointDocs        = null;   // rohe Punkte-Dokumente (für Fenster-Wertung)
+    let builderFixtures         = null;   // Fixtures (Anpfiff je Spiel)
+
+    // Punkte eines Spielers für die Anzeige: gefenstert (falls vorhanden),
+    // sonst Gesamtpunkte.
+    function getBuilderPlayerPts(playerId) {
+        const id = String(playerId);
+        if (builderWindowedPts && Object.prototype.hasOwnProperty.call(builderWindowedPts, id)) {
+            return Number(builderWindowedPts[id] || 0);
+        }
+        if (builderPointsMap && Object.prototype.hasOwnProperty.call(builderPointsMap, id)) {
+            return Number(builderPointsMap[id] || 0);
+        }
+        return 0;
+    }
 
     // Bereits erreichte Spieler-Punkte laden (nur nach Turnierstart sinnvoll –
     // davor haben alle 0). Einmaliger Bundle-Load; danach Karten neu rendern,
@@ -4858,20 +4934,136 @@
                 year: TOURNAMENT_YEAR,
                 allowEmptyPoints: true,
                 allowEmptyFixtures: true,
-                includeFixtures: false,
+                // Fixtures für die zeitgefensterte Transfer-Wertung (Punkte bis
+                // zum Transfer / ausgetauschte Spieler – wie in der Teams-Ansicht).
+                includeFixtures: true,
                 log: false
             });
             const points = (bundle && bundle.data && bundle.data.points) || {};
+            builderPointDocs = points;
+            builderFixtures = (bundle && bundle.data && bundle.data.fixtures) || {};
             const map = {};
             Object.keys(points).forEach(id => { map[String(id)] = DreamTeamPoints.getPlayerTotal(points[id]); });
             builderPointsMap = map;
+            computeBuilderTransferScoring();
             renderAllSlots();
             renderMobileBuilder();
+            renderBuilderTransferredOut();
         } catch (e) {
             console.warn('[TeamBuilder] Spieler-Punkte konnten nicht geladen werden:', e);
         } finally {
             builderPointsLoading = false;
         }
+    }
+
+    // Anpfiff-Zeit eines Fixtures in ms (für die Fenster-Wertung) – 1:1 wie
+    // in teams.html.
+    function builderFixtureKickoffMs(fixture) {
+        if (!fixture || typeof fixture !== 'object') return null;
+        const ts = Number(fixture.kickoffTimestamp);
+        if (Number.isFinite(ts) && ts > 0) return ts > 10000000000 ? ts : ts * 1000;
+        const raw = fixture.kickoffIso || fixture.date || fixture.datetime || fixture.kickoff || '';
+        if (raw) { const p = Date.parse(raw); if (Number.isFinite(p)) return p; }
+        return null;
+    }
+    function builderFindFixture(fixtures, matchId) {
+        const map = fixtures || {};
+        const direct = map[matchId] || map[String(matchId)];
+        if (direct && typeof direct === 'object') return direct;
+        const target = String(matchId);
+        for (const fx of Object.values(map)) {
+            if (fx && typeof fx === 'object' && String(fx.fixtureId) === target) return fx;
+        }
+        return null;
+    }
+
+    // Zeitgefensterte Wertung für das gerade bearbeitete Team (nur bei Teams
+    // MIT Transfers). Setzt builderWindowedPts (gefensterte Punkte je Spieler)
+    // und builderTransferredOut (ausgetauschte Spieler mit „Punkten bis zum
+    // Transfer") – exakt wie enrichTeamsWithScores in teams.html.
+    function computeBuilderTransferScoring() {
+        builderWindowedPts = null;
+        builderTransferredOut = [];
+        const TU = window.TransferUtils, DP = window.DreamTeamPoints;
+        if (!TU || typeof TU.managerBreakdownOverTime !== 'function') return;
+        if (!Array.isArray(loadedTransfers) || !loadedTransfers.length) return;
+        if (!transferBaselineTeam) return;
+        if (!builderPointDocs) return;
+
+        const currentIds = Object.values(transferBaselineTeam).map(String);
+        const pmp = {};
+        if (DP && typeof DP.getPlayerMatchTotals === 'function') {
+            Object.keys(builderPointDocs).forEach(id => { pmp[id] = DP.getPlayerMatchTotals(builderPointDocs[id]); });
+        }
+        const fxCache = Object.create(null);
+        const getKickoffMs = (matchId) => {
+            const key = String(matchId);
+            if (key in fxCache) return fxCache[key];
+            fxCache[key] = builderFixtureKickoffMs(builderFindFixture(builderFixtures, matchId));
+            return fxCache[key];
+        };
+        const bd = TU.managerBreakdownOverTime({
+            currentTeamIds: currentIds,
+            transfers: loadedTransfers,
+            initialCaptain: CAPTAIN_ENABLED ? (loadedInitialCaptain || null) : null,
+            playerMatchPoints: pmp,
+            getKickoffMs,
+            captainMultiplier: CAPTAIN_ENABLED ? 2 : 1
+        });
+        builderWindowedPts = bd.perPlayer || {};
+
+        const currentSet = new Set(currentIds);
+        const initialIdsArr = (typeof TU.reconstructInitialTeamIds === 'function')
+            ? TU.reconstructInitialTeamIds(currentIds, loadedTransfers).map(String)
+            : currentIds.slice();
+        builderTransferredOut = initialIdsArr
+            .filter(id => !currentSet.has(id))
+            .map(id => {
+                const fp = getPlayerById(id);
+                return {
+                    id,
+                    name: fp ? fp.name : String(id),
+                    photo: fp ? (fp.photo || '') : '',
+                    nation: fp ? (fp.nation || '?') : '?',
+                    flag: fp ? (fp.flag || '') : '',
+                    club: fp ? (fp.club || '') : '',
+                    clubLogo: fp ? (fp.clubLogo || '') : '',
+                    pts: (bd.perPlayer && bd.perPlayer[id]) || 0,
+                    isOrphan: !fp
+                };
+            })
+            .sort((a, b) => b.pts - a.pts);
+    }
+
+    // Rendert die ausgetauschten Spieler unter dem Feld (Karten wie in Teams).
+    function renderBuilderTransferredOut() {
+        const section = document.getElementById('builder-transferred-out-section');
+        const container = document.getElementById('builder-transferred-out-cards');
+        if (!section || !container) return;
+        const list = Array.isArray(builderTransferredOut) ? builderTransferredOut : [];
+        if (!list.length || !isTournamentStarted()) {
+            section.hidden = true;
+            container.innerHTML = '';
+            return;
+        }
+        container.innerHTML = list.map((p) => {
+            const cls = p.pts > 0 ? '' : (p.pts < 0 ? 'neg' : '');
+            const sign = p.pts > 0 ? '+' : '';
+            const flagImg = p.flag ? `<img src="${escapeHtml(p.flag)}" class="small-icon" alt="${escapeHtml(p.nation)}" loading="lazy">` : '';
+            const clubImg = p.clubLogo ? `<img src="${escapeHtml(p.clubLogo)}" class="small-icon club" alt="${escapeHtml(p.club)}" loading="lazy">` : '';
+            return `
+                <div class="builder-to-card">
+                    <div class="builder-card-pts ${cls}" title="Punkte bis zum Transfer">${sign}${p.pts}</div>
+                    <div class="avatar-wrapper"><img src="${escapeHtml(p.photo)}" class="card-avatar" alt="${escapeHtml(p.name)}" loading="lazy"></div>
+                    <div class="card-info">
+                        <div class="card-name">${escapeHtml(p.name)}</div>
+                        <div class="card-sub-info">${flagImg}<span>${escapeHtml(p.nation)}</span></div>
+                        <div class="card-sub-info">${clubImg}<span>${escapeHtml(p.club)}</span></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        section.hidden = false;
     }
 
     function getTransferCfg() {
@@ -5207,6 +5399,20 @@
             setSubmitDefaultLabel();
             /* Nach Laden ggf. das Transferfenster einblenden (Post-Start). */
             if (typeof applyTournamentClosedState === 'function') applyTournamentClosedState();
+
+            /* Punkte + zeitgefensterte Transfer-Wertung: zeigt die Punkte pro
+               Spieler und die ausgetauschten Spieler unter dem Feld. Sind die
+               Punkte schon geladen, nur neu berechnen; sonst nachladen. */
+            if (isTournamentStarted()) {
+                if (builderPointsMap) {
+                    computeBuilderTransferScoring();
+                    renderAllSlots();
+                    renderMobileBuilder();
+                    renderBuilderTransferredOut();
+                } else {
+                    loadBuilderPoints();
+                }
+            }
 
             if (orphanList.length) {
                 showBuilderNotice(buildRosterNotice(orphanList), 'roster-warning');

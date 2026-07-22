@@ -499,11 +499,14 @@ const APP_CONFIG = (() => {
       key: "cl2526",
       type: "CL",
       year: "2025",
-      name: "Champions League 25/26",
-      shortLabel: "Champions League 25/26",
-      longLabel: "UEFA Champions League 2025/26",
-      brandName: "DreamTeam Champions League 25/26",
-      pageTitlePrefix: "Champions League 25/26 DreamTeam",
+      name: "Champions League",
+      shortLabel: "Champions League",
+      longLabel: "UEFA Champions League 2025/2026",
+      brandName: "DreamTeam Champions League",
+      pageTitlePrefix: "Champions League DreamTeam",
+      // Saison-Zusatz (klein unter dem Titel); bewusst getrennt vom Namen,
+      // damit „25/26" nicht mehr im Label/Brand auftaucht.
+      seasonLabel: "2025/2026",
       competitionName: "UEFA Champions League",
       timezone: "Europe/Zurich",
 
@@ -1287,6 +1290,20 @@ const APP_CONFIG = (() => {
     const v = String(roundText || "").trim().toLowerCase();
     if (!v) return false;
     return /league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v);
+  }
+
+  // Qualifikations-/Vorrunde einer Ligaphasen-Competition (CL): alle Runden
+  // VOR der Ligaphase. Diese sollen in den CL-Ansichten NICHT als „echte"
+  // Champions-League-Spiele gezeigt werden (erst ab der Ligarunde).
+  //   Ausschluss: Preliminary/Qualifying-Runden sowie die Quali-„Play-offs".
+  //   KEIN Ausschluss: „Knockout Round Play-offs" (K.-o.-Phase), Ligaphase,
+  //   Achtel-/Viertel-/Halbfinale, Finale.
+  function isQualificationRound(roundText) {
+    const v = String(roundText || "").trim().toLowerCase();
+    if (!v) return false;
+    if (/qualifying|qualification|preliminary/.test(v)) return true;
+    if (/play[\s-]*offs?\b/.test(v) && !/knockout|league/.test(v)) return true;
+    return false;
   }
 
   function isSingleLegKnockoutRound(roundText) {
@@ -2243,6 +2260,24 @@ const APP_CONFIG = (() => {
 
     get shortLabel() {
       return getActiveTournament().shortLabel;
+    },
+
+    // Optionaler Saison-Zusatz (z. B. „2025/2026") – nur Turniere, die ihn
+    // setzen (aktuell die CL). Leerstring, wenn nicht vorhanden.
+    get seasonLabel() {
+      return getActiveTournament().seasonLabel || "";
+    },
+
+    // Ist dieses Fixture ein Qualifikationsspiel, das in den Spiel-Ansichten
+    // ausgeblendet werden soll? Nur für Ligaphasen-Turniere (CL) aktiv; die
+    // WM (structure ≠ "league") liefert immer false → unverändert.
+    isQualificationFixture(fixtureOrRound) {
+      const t = getActiveTournament();
+      if (!t || t.structure !== "league") return false;
+      const round = typeof fixtureOrRound === "string"
+        ? fixtureOrRound
+        : (fixtureOrRound && ((fixtureOrRound.league && fixtureOrRound.league.round) || fixtureOrRound.round)) || "";
+      return isQualificationRound(round);
     },
 
     get longLabel() {

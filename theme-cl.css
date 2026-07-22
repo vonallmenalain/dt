@@ -87,6 +87,11 @@
   --pitch-c: #1f4d96;
   --pitch-d: #10265a;
   --pitch-e: #14356f;
+
+  /* Dunkelgrüne Basis-Verläufe (Hero-/Dashboard-Atmosphäre) → dunkelblau. */
+  --green-bg-1: #0a1633;
+  --green-bg-2: #081029;
+  --green-bg-3: #0a1633;
 }
 
 /* ── Seite ──────────────────────────────────────────────────────────── */
@@ -268,4 +273,27 @@
   background: none;
   color: var(--cl-primary);
   -webkit-text-fill-color: var(--cl-primary);
+}
+
+/* Kein Titel („Stars der …") über dem Spieler-Karussell in der CL. */
+[data-tournament^="cl"] #indexTestCarouselTitle { display: none; }
+
+/* ── Ränge/Podium: klassische Medaillenfarben statt Blau ─────────────────
+ * Rang 1 soll auch in der CL GOLD sein (Silber/Bronze sind ohnehin fest
+ * verdrahtet). Statt jede Regel einzeln zu überschreiben, werden die
+ * Gold-Variablen NUR auf den Rang-1-/Podium-Containern wieder auf echtes
+ * Gold gesetzt – ihre Nachfahren (Badges, Glows, Kronen) erben das. */
+[data-tournament^="cl"] .champ-card,
+[data-tournament^="cl"] .podium-slot-1,
+[data-tournament^="cl"] .tm-row.rank-1,
+[data-tournament^="cl"] .tp-card.rank-1,
+[data-tournament^="cl"] .rp-rank.rank-1,
+[data-tournament^="cl"] .cc-rank-badge.rank-1,
+[data-tournament^="cl"] .mc-rank-badge.rank-1,
+[data-tournament^="cl"] .pi-rank-1,
+[data-tournament^="cl"] .mir-rank-1 {
+  --gold: #ffd700;
+  --gold-light: #fde68a;
+  --gold-dark: #e5a800;
+  --rgb-gold: 255, 215, 0;
 }
