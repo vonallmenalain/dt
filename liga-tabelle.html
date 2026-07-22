@@ -8,9 +8,17 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase-Compat-SDK: Download startet dank preload sofort und
+         parallel zum HTML-Parsing; die eigentlichen <script>-Tags stehen
+         am Body-Ende direkt VOR tournament-config.js. So blockiert das
+         SDK nicht mehr den First Paint, aber die Ausführungs-Reihenfolge
+         (firebase → APP_CONFIG → App-Skripte) bleibt exakt wie bisher –
+         inklusive der Inline-Body-Skripte, die `APP.getDb()` auf
+         Top-Level aufrufen. Bewusst KEIN `defer`: das hat frueher zu
+         einer "Firebase SDK noch nicht geladen"-Regression gefuehrt. -->
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
     <link rel="stylesheet" href="styles.css">
 
@@ -78,6 +86,12 @@
     <p class="lt-note" id="lt-note"></p>
 </div>
 
+<!-- Firebase-Compat-SDK: per preload im <head> bereits heruntergeladen,
+     hier nur noch ausgefuehrt – VOR tournament-config.js, damit
+     APP.getDb() und alle nachfolgenden Skripte firebase sicher sehen. -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
 <link rel="stylesheet" href="auth-modal.css">

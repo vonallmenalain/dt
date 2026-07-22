@@ -25,6 +25,15 @@
         s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;--green-bg-1:#0a1633;--green-bg-2:#081029;--green-bg-3:#0a1633;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart,[data-tournament^="cl"] #indexHomePreStart{background:#0a1633;}';
         (document.head||d).appendChild(s);
       }
+      // Kaderdatei-Preload: data.js laedt sie spaeter synchron via
+      // document.write – der Preload startet den Download schon jetzt,
+      // parallel zum HTML-Parsing. Spiegel der dataReady-Turniere aus
+      // tournament-config.js (dort nachziehen, wenn ein Turnier dazukommt);
+      // bei Abweichung kostet es nur einen unnoetigen Request.
+      var df=(k==="cl2526")?"data-cl2526.js":"data-wm2026.js";
+      var pl=document.createElement("link");
+      pl.rel="preload";pl.as="script";pl.href=df;
+      (document.head||d).appendChild(pl);
     }catch(e){}})();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -52,14 +61,17 @@
     <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
-    <!-- Firebase-Compat-SDK früh und parallel zum HTML-Parsing laden. -->
-    <!-- Firebase-Compat-SDK SYNCHRON laden – Inline-Body-Skripte rufen
-         `APP.getDb()` zum Top-Level-Auswertungszeitpunkt auf, ein `defer`
-         würde diesen Aufruf vor dem Firebase-Boot ausführen und damit
-         "Firebase SDK ist noch nicht geladen." werfen. -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase-Compat-SDK: Download startet dank preload sofort und
+         parallel zum HTML-Parsing; die eigentlichen <script>-Tags stehen
+         am Body-Ende direkt VOR tournament-config.js. So blockiert das
+         SDK nicht mehr den First Paint, aber die Ausführungs-Reihenfolge
+         (firebase → APP_CONFIG → App-Skripte) bleibt exakt wie bisher –
+         inklusive der Inline-Body-Skripte, die `APP.getDb()` auf
+         Top-Level aufrufen. Bewusst KEIN `defer`: das hat frueher zu
+         einer "Firebase SDK noch nicht geladen"-Regression gefuehrt. -->
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
     <link rel="stylesheet" href="styles.css">
 
@@ -3006,6 +3018,12 @@
         title="DEV: Einreichung trotz Turnierstart für ALLE freischalten/sperren"
         aria-label="DEV: Späte Einreichung für alle umschalten">DEV: Einreichung gesperrt</button>
 
+<!-- Firebase-Compat-SDK: per preload im <head> bereits heruntergeladen,
+     hier nur noch ausgefuehrt – VOR tournament-config.js, damit
+     APP.getDb() und alle nachfolgenden Skripte firebase sicher sehen. -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="tournament-config.js"></script>
 <script src="nav.js"></script>
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->

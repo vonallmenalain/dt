@@ -25,6 +25,15 @@
         s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;--green-bg-1:#0a1633;--green-bg-2:#081029;--green-bg-3:#0a1633;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart,[data-tournament^="cl"] #indexHomePreStart{background:#0a1633;}';
         (document.head||d).appendChild(s);
       }
+      // Kaderdatei-Preload: data.js laedt sie spaeter synchron via
+      // document.write – der Preload startet den Download schon jetzt,
+      // parallel zum HTML-Parsing. Spiegel der dataReady-Turniere aus
+      // tournament-config.js (dort nachziehen, wenn ein Turnier dazukommt);
+      // bei Abweichung kostet es nur einen unnoetigen Request.
+      var df=(k==="cl2526")?"data-cl2526.js":"data-wm2026.js";
+      var pl=document.createElement("link");
+      pl.rel="preload";pl.as="script";pl.href=df;
+      (document.head||d).appendChild(pl);
     }catch(e){}})();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -34,7 +43,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-<link rel="manifest" href="Icons/site.webmanifest?v=2026-06-23-freshness-1">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-22-phase1-1">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -52,25 +61,20 @@
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 
-    <!-- Firebase-Compat-SDK früh und parallel zum HTML-Parsing laden.
-         `defer` garantiert, dass die Skripte in Dokumentreihenfolge VOR
-         DOMContentLoaded ausgeführt werden, nachdem das HTML komplett
-         geparst ist – also rechtzeitig für den End-of-Body-IIFE, der
-         auf Firebase + DreamTeamCache angewiesen ist.
-         Die übrigen Module (tournament-config, nav, data, cache, …)
-         bleiben am Body-Ende, damit `data.js` (document.write) und die
-         Reihenfolgegarantie zu APP_CONFIG nicht angefasst werden. -->
-    <!-- Firebase-Compat-SDK SYNCHRON laden – konsistent zu den übrigen
-         Seiten. Index ruft `APP.getDb()` zwar erst aus dem
-         DOMContentLoaded-Handler auf, aber wir vereinheitlichen das
-         Verhalten, damit eine künftige Top-Level-Verwendung nicht
-         erneut eine "Firebase SDK noch nicht geladen"-Regression
-         auslöst. -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase-Compat-SDK: Download startet dank preload sofort und
+         parallel zum HTML-Parsing; die eigentlichen <script>-Tags stehen
+         am Body-Ende direkt VOR tournament-config.js. So blockiert das
+         SDK nicht mehr den First Paint, aber die Ausführungs-Reihenfolge
+         (firebase → APP_CONFIG → App-Skripte) bleibt exakt wie bisher –
+         inklusive der Seiten, die `APP.getDb()` auf Top-Level aufrufen.
+         Bewusst KEIN `defer`: das hat frueher zu einer "Firebase SDK noch
+         nicht geladen"-Regression bei Top-Level-`getDb()`-Aufrufen
+         gefuehrt. -->
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
-<link rel="stylesheet" href="styles.css?v=2026-06-23-freshness-1">
+<link rel="stylesheet" href="styles.css?v=2026-07-22-phase1-1">
 
     <!-- =====================================================
          PRE/POST-START VIEW DECIDER (synchron, FOUC-frei)
@@ -6726,19 +6730,21 @@
 
 </div><!-- /#indexHomePostStart -->
 
-<script src="tournament-config.js?v=2026-06-23-freshness-1"></script>
-<script src="nav.js?v=2026-06-23-freshness-1"></script>
-<!-- firebase-*-compat werden bereits im <head> mit defer geladen
-     (parallel zum HTML-Parsing). DreamTeamCache/Auth nutzen sie erst
-     nach DOMContentLoaded, also nachdem alle defer-Skripte ausgeführt
-     wurden. -->
+<!-- Firebase-Compat-SDK: per preload im <head> bereits heruntergeladen,
+     hier nur noch ausgefuehrt – VOR tournament-config.js, damit
+     APP.getDb() und alle nachfolgenden Skripte firebase sicher sehen. -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="tournament-config.js?v=2026-07-22-phase1-1"></script>
+<script src="nav.js?v=2026-07-22-phase1-1"></script>
 <script src="country-aliases.js"></script>
-<script src="data.js?v=2026-06-23-freshness-1"></script>
-<script src="points-utils.js?v=2026-06-23-freshness-1"></script>
-<script src="transfer-utils.js?v=2026-06-23-freshness-1"></script>
-<script src="cache.js?v=2026-06-23-freshness-1"></script>
+<script src="data.js?v=2026-07-22-phase1-1"></script>
+<script src="points-utils.js?v=2026-07-22-phase1-1"></script>
+<script src="transfer-utils.js?v=2026-07-22-phase1-1"></script>
+<script src="cache.js?v=2026-07-22-phase1-1"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css?v=2026-06-23-freshness-1">
+<link rel="stylesheet" href="auth-modal.css?v=2026-07-22-phase1-1">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
@@ -11618,7 +11624,7 @@
         }
 
         function tick() {
-            if (!cards.length) return;
+            if (!cards.length) { raf = null; return; }
 
             if (!state.drag) {
                 state.pos += state.vel;
@@ -11633,7 +11639,28 @@
             if (players.length && state.pos < 0) state.pos += players.length;
 
             render();
+
+            // Eingerastet und keine Interaktion → Loop anhalten. Vorher lief
+            // die rAF-Schleife dauerhaft weiter und hat pro Frame fuer jede
+            // Karte transform/opacity/filter/boxShadow neu gesetzt – auf
+            // Mobilgeraeten ein permanenter, unnoetiger GPU-/CPU-Verbrauch.
+            // Jede Interaktion startet den Loop via ensureTicking() neu.
+            const settled = !state.drag
+                && Math.abs(state.vel) < 0.0002
+                && Math.abs(state.pos - Math.round(state.pos)) < 0.001;
+            if (settled) {
+                state.vel = 0;
+                state.pos = players.length ? mod(Math.round(state.pos), players.length) : 0;
+                render();
+                raf = null;
+                return;
+            }
+
             raf = requestAnimationFrame(tick);
+        }
+
+        function ensureTicking() {
+            if (raf === null) raf = requestAnimationFrame(tick);
         }
 
         function pointerDown(clientX, clientY, target) {
@@ -11688,6 +11715,7 @@
         carousel.addEventListener('pointerdown', (e) => {
             carousel.setPointerCapture(e.pointerId);
             pointerDown(e.clientX, e.clientY, e.target);
+            ensureTicking();
         });
         carousel.addEventListener('pointermove', (e) => pointerMove(e.clientX, e.clientY));
         carousel.addEventListener('pointerup', pointerUp);
@@ -11698,16 +11726,19 @@
             e.preventDefault();
             const speed = (Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX) * 0.0012;
             state.vel += speed;
+            ensureTicking();
         }, { passive: false });
 
         window.addEventListener('resize', () => {
             resizeCarousel();
             fitPlayerNames();
+            // Loop steht im Leerlauf still → Kartenlayout einmalig neu anwenden.
+            render();
         }, { passive: true });
 
         resizeCarousel();
         initCarousel();
-        if (!raf) tick();
+        ensureTicking();
     })();
 
     function renderIndexHome(data) {
@@ -11779,6 +11810,72 @@
 
     function isServerVerifiedCacheInfo(info) {
         return !!(info && info.verifiedFromServer === true && info.stale !== true);
+    }
+
+    /* =========================================================
+       CACHED-FIRST RENDERING
+       Der letzte lokale Cache-Stand wird sofort angezeigt, die
+       Server-Bestaetigung laeuft im Hintergrund (dezenter Pill
+       unten). Zur sichtbaren Warnung eskalieren wir erst, wenn
+       nach FRESHNESS_TIMEOUT_MS keine serververifizierten Daten
+       angekommen sind – oder ein Refresh wirklich fehlschlaegt.
+       ========================================================= */
+    const FRESHNESS_TIMEOUT_MS = 5000;
+    let freshnessTimerId = null;
+    let hasVerifiedData = false;
+
+    function showSyncIndicator(message) {
+        let el = document.getElementById('dt-sync-indicator');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'dt-sync-indicator';
+            el.setAttribute('role', 'status');
+            document.body.appendChild(el);
+        }
+        el.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);'
+            + 'z-index:1200;padding:6px 14px;border-radius:999px;font-size:0.78rem;'
+            + 'letter-spacing:0.02em;color:var(--text-muted,#cbd5e1);'
+            + 'background:rgba(10,14,26,0.85);border:1px solid rgba(255,255,255,0.14);'
+            + 'pointer-events:none;opacity:1;transition:opacity .25s ease;';
+        el.textContent = message || 'Daten werden aktualisiert …';
+        return el;
+    }
+
+    /* Nicht-destruktive Variante fuer "Offline/veraltet"-Hinweise, wenn
+       bereits Inhalt sichtbar ist (die harten Fehlerpfade der Seite wuerden
+       den gerenderten Stand ersetzen). */
+    function showStaleNotice(message) {
+        const el = showSyncIndicator(message);
+        el.style.color = '#fca5a5';
+        el.style.borderColor = 'rgba(248,113,113,0.45)';
+    }
+
+    function hideSyncIndicator() {
+        const el = document.getElementById('dt-sync-indicator');
+        if (el) el.style.opacity = '0';
+    }
+
+    function startFreshnessEscalation(onTimeout) {
+        if (hasVerifiedData || freshnessTimerId) return;
+        freshnessTimerId = setTimeout(() => {
+            freshnessTimerId = null;
+            if (!hasVerifiedData) onTimeout();
+        }, FRESHNESS_TIMEOUT_MS);
+    }
+
+    function markServerVerified() {
+        hasVerifiedData = true;
+        if (freshnessTimerId) {
+            clearTimeout(freshnessTimerId);
+            freshnessTimerId = null;
+        }
+        hideSyncIndicator();
+    }
+
+    function cachedBundleHasContent(data) {
+        if (!data) return false;
+        if (Array.isArray(data.teams) && data.teams.length) return true;
+        return !!(data.points && Object.keys(data.points).length);
     }
 
     function showFreshnessWarning(message, tone) {
@@ -11860,19 +11957,50 @@
             // (1 Read pro Seitenaufruf gespart).
             await DreamTeamCache.bootstrap({
                 ...CACHE_OPTS,
+                // Cached-first: letzter lokaler Stand sofort rendern, waehrend
+                // die Server-Bestaetigung im Hintergrund laeuft (siehe
+                // Helper-Block oben). Punkte ticken ohnehin nur alle 30 s bis
+                // 5 min – ein kurz sichtbarer letzter Stand ist besser als
+                // sekundenlange Skeletons.
+                renderCached: true,
                 onCachedReady: (data, info) => {
-                    if (!isServerVerifiedCacheInfo(info)) {
-                        showFreshnessWarning('Daten konnten noch nicht frisch vom Server bestaetigt werden.');
+                    if (isServerVerifiedCacheInfo(info)) {
+                        markServerVerified();
+                        clearFreshnessWarning();
+                        render(data);
                         return;
                     }
-                    clearFreshnessWarning();
-                    render(data);
+                    if (cachedBundleHasContent(data)) {
+                        try {
+                            render(data);
+                            showSyncIndicator();
+                        } catch (err) {
+                            console.warn('[index] Cached-Render fehlgeschlagen:', err);
+                        }
+                    }
+                    startFreshnessEscalation(() => {
+                        if (_lastRenderedData) {
+                            showStaleNotice('Warte auf Serverbestaetigung …');
+                        } else {
+                            hideSyncIndicator();
+                            showFreshnessWarning('Daten konnten noch nicht frisch vom Server bestaetigt werden.');
+                        }
+                    });
                 },
                 onUpdate: (data, info) => {
                     if (!isServerVerifiedCacheInfo(info)) {
-                        showFreshnessWarning('Offline oder Server nicht erreichbar. Alte Browserdaten werden nicht als aktueller Stand angezeigt.');
+                        // Refresh wirklich fehlgeschlagen (offline/Fallback):
+                        // bereits gerenderten Stand stehen lassen, Hinweis
+                        // nicht-destruktiv anzeigen.
+                        if (_lastRenderedData) {
+                            showStaleNotice('Offline – angezeigt wird der letzte lokale Stand.');
+                        } else {
+                            hideSyncIndicator();
+                            showFreshnessWarning('Offline oder Server nicht erreichbar. Es liegen noch keine lokalen Daten vor.');
+                        }
                         return;
                     }
+                    markServerVerified();
                     clearFreshnessWarning();
                     render(data);
                 },
@@ -11887,6 +12015,13 @@
                         && APP.recoverFromBrokenPreview()) {
                         return; // Reload läuft bereits – keine Fehlermeldung.
                     }
+                    if (_lastRenderedData && !hasVerifiedData) {
+                        // Cache-Stand ist sichtbar → nicht-destruktiver Hinweis
+                        // statt grossem Fehlerblock ueber dem Inhalt.
+                        showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+                        return;
+                    }
+                    hideSyncIndicator();
                     reportDataLoadFailure();
                 }
             });
