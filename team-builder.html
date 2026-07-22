@@ -868,11 +868,12 @@
 
         /* Erreichte Punkte je Spieler (nur nach Turnierstart). Oben mittig,
            zwischen Captain-„C" (links) und Entfernen-„✖" (rechts). */
+        /* Erreichte Punkte oben LINKS (analog zur Teams-Ansicht). */
         .builder-card-pts {
             position: absolute;
             top: 8px;
-            left: 50%;
-            transform: translateX(-50%) translateZ(30px);
+            left: 8px;
+            transform: translateZ(30px);
             z-index: 29;
             padding: 2px 9px;
             border-radius: 999px;
@@ -888,12 +889,13 @@
             -webkit-backface-visibility: hidden;
             pointer-events: none;
         }
-        .bench-slots .builder-card-pts { top: 4px; font-size: 10px; padding: 1px 7px; }
+        .bench-slots .builder-card-pts { top: 4px; left: 4px; font-size: 10px; padding: 1px 7px; }
 
-        /* Transfer-„T"-Badge oben links (CL: Captain-Ecke ist frei). */
+        /* Transfer-„T"-Badge oben links, direkt UNTER den Punkten (beide oben
+           links, kein Konflikt; ✖ bleibt oben rechts). */
         .builder-transfer-badge {
             position: absolute;
-            top: 8px; left: 8px;
+            top: 40px; left: 8px;
             width: 26px; height: 26px;
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
@@ -908,7 +910,7 @@
             -webkit-backface-visibility: hidden;
             pointer-events: none;
         }
-        .bench-slots .builder-transfer-badge { width: 22px; height: 22px; font-size: 11px; }
+        .bench-slots .builder-transfer-badge { top: 28px; left: 4px; width: 22px; height: 22px; font-size: 11px; }
 
         /* Avatar */
         .avatar-wrapper {
@@ -4823,9 +4825,11 @@
         return window.TransferUtils.remainingTransfers(cfg, (loadedTransfers || []).length);
     }
 
-    // Transfer möglich? Feature aktiv + gespeichertes Team + Transfers übrig.
+    // Transfer-Panel anzeigen? Feature aktiv + gespeichertes Team. Auch wenn
+    // keine Transfers mehr übrig sind, zeigen wir das Panel (mit „aufgebraucht"),
+    // statt der generischen „Einreichung gesperrt"-Ansicht.
     function isTransferEligible() {
-        return !!(getTransferCfg() && editingTeamId && transferRemaining() > 0);
+        return !!(getTransferCfg() && editingTeamId);
     }
 
     // Pitch editierbar? Vor Turnierstart immer; nach Start nur im Transfer-Modus.
@@ -4855,7 +4859,7 @@
     }
 
     function enterTransferMode() {
-        if (!isTransferEligible()) return;
+        if (!isTransferEligible() || transferRemaining() <= 0) return;
         transferMode = true;
         renderAllSlots();
         renderMobileBuilder();
@@ -4893,10 +4897,8 @@
         const idleNote = document.getElementById('transfer-idle-note');
         const maxEl = document.getElementById('transfer-max');
         if (maxEl) maxEl.textContent = String(cfg.maxPlayersPerTransfer);
-        if (idleNote) idleNote.textContent = `Das Turnier läuft. Du kannst dein Team noch per Transfer anpassen – bis zu ${cfg.maxPlayersPerTransfer} Spieler pro Transfer.`;
 
         const startBtn = document.getElementById('transfer-start-btn');
-        if (startBtn) startBtn.disabled = transferRemaining() <= 0;
 
         if (transferMode) {
             if (idle) idle.style.display = 'none';
@@ -4928,6 +4930,20 @@
         } else {
             if (idle) idle.style.display = '';
             if (active) active.style.display = 'none';
+            const remaining = transferRemaining();
+            // Transfers aufgebraucht → „Transfer vornehmen" ausblenden und einen
+            // eigenen Hinweis zeigen, statt der generischen Einreichungs-Sperre.
+            if (startBtn) startBtn.style.display = remaining > 0 ? '' : 'none';
+            if (idleNote) {
+                idleNote.textContent = remaining > 0
+                    ? `Das Turnier läuft. Du kannst dein Team noch per Transfer anpassen – bis zu ${cfg.maxPlayersPerTransfer} Spieler pro Transfer.`
+                    : `Alle Transfers aufgebraucht (${cfg.totalTransfers}/${cfg.totalTransfers}). Dein Team ist für den Rest der Saison fixiert.`;
+            }
+            const remPill = document.getElementById('transfer-remaining');
+            if (remPill) {
+                remPill.style.background = remaining > 0 ? 'rgba(2,132,199,0.15)' : 'rgba(180,83,9,0.18)';
+                remPill.style.color = remaining > 0 ? '#0369a1' : '#b45309';
+            }
         }
     }
 
