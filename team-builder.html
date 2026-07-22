@@ -866,6 +866,30 @@
             box-shadow: 0 0 10px rgba(239,68,68,0.4), 0 2px 6px rgba(0,0,0,0.4);
         }
 
+        /* Erreichte Punkte je Spieler (nur nach Turnierstart). Oben mittig,
+           zwischen Captain-„C" (links) und Entfernen-„✖" (rechts). */
+        .builder-card-pts {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%) translateZ(30px);
+            z-index: 29;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 11px;
+            line-height: 1.5;
+            white-space: nowrap;
+            background: rgba(16,185,129,0.92);
+            color: #04120c;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            pointer-events: none;
+        }
+        .bench-slots .builder-card-pts { top: 4px; font-size: 10px; padding: 1px 7px; }
+
         /* Avatar */
         .avatar-wrapper {
             width: 78px;
@@ -2855,6 +2879,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
 <script src="country-aliases.js"></script>
 <script src="data.js"></script>
+<script src="points-utils.js"></script>
 <script src="transfer-utils.js"></script>
 <script src="cache.js"></script>
 <!-- Lazy-Registration auth flow -->
@@ -3650,10 +3675,16 @@
             ? `<div class="orphan-badge" title="Spieler nicht mehr im aktuellen Kader – bitte ersetzen">Bitte ersetzen</div>`
             : '';
 
+        // Erreichte Punkte – nur nach Turnierstart (davor haben alle 0) und
+        // sobald die Punkte geladen sind. Hilft bei der Transfer-Entscheidung.
+        const ptsHtml = (isTournamentStarted() && builderPointsMap && !isOrphan)
+            ? `<div class="builder-card-pts" title="Bisher erreichte Punkte">${Number(builderPointsMap[String(player.id)] || 0)} Pkt.</div>`
+            : '';
+
         const innerHtml = isBench
             ? `<div class="bench-btn-row">${captainBtn}${removeBtn}</div>
-                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${orphanBadge}`
-            : `${captainBtn}${removeBtn}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
+                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${ptsHtml}${orphanBadge}`
+            : `${captainBtn}${removeBtn}${ptsHtml}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
 
         return `
             <div class="slot-wrapper${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
@@ -3761,6 +3792,9 @@
                     const orphanTag = isOrphan
                         ? ' <span class="orphan-tag" title="Spieler nicht mehr im aktuellen Kader – bitte ersetzen">Ersetzen</span>'
                         : '';
+                    const mPtsHtml = (isTournamentStarted() && builderPointsMap && !isOrphan)
+                        ? `<span style="margin-left:auto;font-weight:800;color:#059669;white-space:nowrap;">${Number(builderPointsMap[String(player.id)] || 0)} Pkt.</span>`
+                        : '';
                     return `
                         <div class="mobile-slot-row${isActive ? ' is-active' : ''}${isOrphan ? ' is-orphan' : ''}" data-slot-id="${escapeHtml(slotId)}" data-action="open-slot" role="button" tabindex="0" aria-label="${escapeHtml(player.name)} – Slot öffnen${isOrphan ? ' (bitte ersetzen)' : ''}">
                             <div class="mobile-slot-avatar">
@@ -3773,6 +3807,7 @@
                                     <span>${escapeHtml(player.nation)}</span>
                                     ${player.clubLogo ? `<img src="${escapeHtml(player.clubLogo)}" class="club" alt="${escapeHtml(player.club)}" loading="lazy">` : ''}
                                     <span>${escapeHtml(player.club)}</span>
+                                    ${mPtsHtml}
                                 </div>
                             </div>
                             <div class="mobile-slot-actions">
@@ -4700,6 +4735,39 @@
     let transferBaselineCaptain = null;   // Kapitän des gespeicherten Teams
     let loadedTransfers         = [];     // bereits verbrauchte Transfers (aus dem Doc)
     let loadedInitialCaptain    = null;   // Kapitän des Start-15 (aus dem Doc)
+    let builderPointsMap        = null;   // { playerId: totalPoints } – erst nach Turnierstart geladen
+    let builderPointsLoading    = false;
+
+    // Bereits erreichte Spieler-Punkte laden (nur nach Turnierstart sinnvoll –
+    // davor haben alle 0). Einmaliger Bundle-Load; danach Karten neu rendern,
+    // damit die Punkte auf den Spielerkarten erscheinen (Transfer-Entscheidung).
+    async function loadBuilderPoints() {
+        if (builderPointsMap || builderPointsLoading) return;
+        if (!isTournamentStarted()) return;
+        if (!window.DreamTeamCache || typeof DreamTeamCache.loadBundle !== 'function') return;
+        if (!window.DreamTeamPoints || typeof DreamTeamPoints.getPlayerTotal !== 'function') return;
+        builderPointsLoading = true;
+        try {
+            const bundle = await DreamTeamCache.loadBundle({
+                db,
+                year: TOURNAMENT_YEAR,
+                allowEmptyPoints: true,
+                allowEmptyFixtures: true,
+                includeFixtures: false,
+                log: false
+            });
+            const points = (bundle && bundle.data && bundle.data.points) || {};
+            const map = {};
+            Object.keys(points).forEach(id => { map[String(id)] = DreamTeamPoints.getPlayerTotal(points[id]); });
+            builderPointsMap = map;
+            renderAllSlots();
+            renderMobileBuilder();
+        } catch (e) {
+            console.warn('[TeamBuilder] Spieler-Punkte konnten nicht geladen werden:', e);
+        } finally {
+            builderPointsLoading = false;
+        }
+    }
 
     function getTransferCfg() {
         return (window.TransferUtils && typeof window.TransferUtils.getTransferConfig === 'function')
@@ -5285,6 +5353,9 @@
        ========================================================= */
     function applyTournamentClosedState() {
         const closed = isTournamentStarted();
+        // Nach Turnierstart die bereits erreichten Spieler-Punkte laden (einmalig),
+        // damit sie auf den Karten erscheinen.
+        if (closed) loadBuilderPoints();
         // Nach Turnierstart: statt reiner Sperre das Transferfenster anbieten,
         // wenn der Nutzer ein gespeichertes Team hat und noch Transfers übrig
         // sind (CL). Sonst wie bisher die Einreichungs-Sperre.
