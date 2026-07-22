@@ -2733,8 +2733,19 @@
         };
     }
 
-    function enrichTeams(rawTeams, playerPointsMap, playerMatchPoints, nationLifecycle) {
+    function enrichTeams(rawTeams, playerPointsMap, playerMatchPoints, nationLifecycle, fixtures) {
         const teams = Array.isArray(rawTeams) ? rawTeams : [];
+
+        // Anpfiff je Spiel (ms) für die zeitbasierte Transfer-Wertung – gecacht.
+        const kickoffCache = Object.create(null);
+        function kickoffMsForMatch(matchId) {
+            const key = String(matchId);
+            if (key in kickoffCache) return kickoffCache[key];
+            const fx = findFixtureByMatchId(fixtures || {}, matchId);
+            const ms = getFixtureKickoffMs(fx);
+            kickoffCache[key] = ms;
+            return ms;
+        }
 
         return teams.map(team => {
             const mergedPlayers = (team.players || []).map((p, idx) => {
@@ -2770,7 +2781,26 @@
 
             mergedPlayers.sort((a, b) => b.pts - a.pts);
 
-            const totalScore = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+            // Gesamtpunkte: Teams MIT Transfers zeitbasiert werten (altes 15 bis
+            // zum Transfer, neues 15 danach – Kapitän ×2 je Segment). Teams OHNE
+            // Transfers (WM immer, CL bis zum ersten Transfer) nutzen die
+            // bisherige Skalar-Summe → Ergebnis identisch, aber günstiger.
+            const hasTransfers = !!(window.TransferUtils
+                && typeof window.TransferUtils.managerTotalOverTime === "function"
+                && Array.isArray(team.transfers) && team.transfers.length);
+            let totalScore;
+            if (hasTransfers) {
+                totalScore = window.TransferUtils.managerTotalOverTime({
+                    currentTeamIds: mergedPlayers.map(p => String(p.id)),
+                    transfers: team.transfers,
+                    initialCaptain: team.initialCaptain || (mergedPlayers.find(p => p.isCaptain) || {}).id || null,
+                    playerMatchPoints: playerMatchPoints || {},
+                    getKickoffMs: kickoffMsForMatch,
+                    captainMultiplier: 2
+                });
+            } else {
+                totalScore = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+            }
             const totalPlayedMatches = mergedPlayers.reduce((sum, p) => sum + p.matchCount, 0);
             // "Spieler noch im Turnier": Anzahl der Spieler, deren Nation
             // noch nicht ausgeschieden ist. Die Elimination wird zentral
@@ -3003,7 +3033,7 @@
         const nationLifecycle = (APP && typeof APP.getNationStatus === "function")
             ? APP.getNationStatus(data.fixtures || {})
             : null;
-        const enrichedTeams = enrichTeams(data.teams || [], playerPointsMap, scopedPlayerMatchPoints, nationLifecycle);
+        const enrichedTeams = enrichTeams(data.teams || [], playerPointsMap, scopedPlayerMatchPoints, nationLifecycle, data.fixtures || {});
         return {
             ...computeRankingsWithHistory(enrichedTeams, matchIds),
             rawMatchIds
