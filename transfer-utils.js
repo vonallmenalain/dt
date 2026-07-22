@@ -251,7 +251,11 @@
    *   captainMultiplier: number (default 2, wie bestehend hart ×2)
    * } → number
    */
-  function managerTotalOverTime(params) {
+  // Wie managerTotalOverTime, liefert aber zusätzlich die Aufschlüsselung je
+  // Spieler (gefensterte Punkte) und die Liste aller je besessenen Spieler –
+  // Basis für die Team-Detail-Ansicht (inkl. ausgetauschter Spieler).
+  // → { total, perPlayer: { [id]: pts }, everOwned: [id], currentSet: {id:true} }
+  function managerBreakdownOverTime(params) {
     var p = params || {};
     var currentIds = normalizeIds(p.currentTeamIds);
     var currentSet = {};
@@ -263,19 +267,29 @@
     var getKick = typeof p.getKickoffMs === 'function' ? p.getKickoffMs : function () { return null; };
 
     var total = 0;
-    Object.keys(windows).forEach(function (playerId) {
+    var perPlayer = {};
+    var everOwned = Object.keys(windows);
+    everOwned.forEach(function (playerId) {
       var matches = pmp[playerId];
-      if (!matches || typeof matches !== 'object') return;
-      Object.keys(matches).forEach(function (matchId) {
-        var base = Number(matches[matchId]) || 0;
-        if (!base) return;
-        var kick = getKick(matchId);
-        if (!isOwnedAt(windows, playerId, kick, currentSet)) return;
-        var isCap = String(captainAt(kick)) === String(playerId);
-        total += isCap ? base * mult : base;
-      });
+      var sum = 0;
+      if (matches && typeof matches === 'object') {
+        Object.keys(matches).forEach(function (matchId) {
+          var base = Number(matches[matchId]) || 0;
+          if (!base) return;
+          var kick = getKick(matchId);
+          if (!isOwnedAt(windows, playerId, kick, currentSet)) return;
+          var isCap = String(captainAt(kick)) === String(playerId);
+          sum += isCap ? base * mult : base;
+        });
+      }
+      perPlayer[playerId] = sum;
+      total += sum;
     });
-    return total;
+    return { total: total, perPlayer: perPlayer, everOwned: everOwned, currentSet: currentSet };
+  }
+
+  function managerTotalOverTime(params) {
+    return managerBreakdownOverTime(params).total;
   }
 
   var api = {
@@ -288,7 +302,8 @@
     computeOwnershipWindows: computeOwnershipWindows,
     isOwnedAt: isOwnedAt,
     buildCaptainAt: buildCaptainAt,
-    managerTotalOverTime: managerTotalOverTime
+    managerTotalOverTime: managerTotalOverTime,
+    managerBreakdownOverTime: managerBreakdownOverTime
   };
 
   if (typeof module !== 'undefined' && module.exports) {

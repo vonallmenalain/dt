@@ -2533,6 +2533,7 @@
 <script src="badge-catalog.js"></script>
 <script src="data.js?v=2026-06-23-freshness-1"></script>
 <script src="points-utils.js?v=2026-06-23-freshness-1"></script>
+<script src="transfer-utils.js?v=2026-06-23-freshness-1"></script>
 <script src="cache.js?v=2026-06-23-freshness-1"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
 <link rel="stylesheet" href="auth-modal.css?v=2026-06-23-freshness-1">
@@ -3269,8 +3270,49 @@
         return String(a && a.manager || '').localeCompare(String(b && b.manager || ''), 'de');
     }
 
+    // Anpfiff je Spiel (ms) für die zeitbasierte Transfer-Wertung.
+    function teamsFixtureKickoffMs(fixture) {
+        if (!fixture || typeof fixture !== 'object') return null;
+        const ts = Number(fixture.kickoffTimestamp);
+        if (Number.isFinite(ts) && ts > 0) return ts > 10000000000 ? ts : ts * 1000;
+        const raw = fixture.kickoffIso || fixture.date || fixture.datetime || fixture.kickoff || '';
+        if (raw) { const p = Date.parse(raw); if (Number.isFinite(p)) return p; }
+        return null;
+    }
+    function teamsFindFixture(fixtures, matchId) {
+        const map = fixtures || {};
+        const direct = map[matchId] || map[String(matchId)];
+        if (direct && typeof direct === 'object') return direct;
+        const target = String(matchId);
+        for (const fx of Object.values(map)) {
+            if (fx && typeof fx === 'object' && String(fx.fixtureId) === target) return fx;
+        }
+        return null;
+    }
+
     function enrichTeamsWithScores(rawTeams) {
         const teams = Array.isArray(rawTeams) ? rawTeams : [];
+
+        // Geteilter Kontext für die zeitbasierte Wertung (nur bei Bedarf gebaut):
+        // Punkte je Spiel je Spieler + Anpfiff je Spiel (gecacht).
+        const TU = window.TransferUtils, DP = window.DreamTeamPoints;
+        let sharedPmp = null, kickoffFn = null;
+        function ensureTransferScoring() {
+            if (sharedPmp) return;
+            sharedPmp = {};
+            if (DP && typeof DP.getPlayerMatchTotals === 'function') {
+                Object.keys(playerPointDocs || {}).forEach(id => {
+                    sharedPmp[id] = DP.getPlayerMatchTotals(playerPointDocs[id]);
+                });
+            }
+            const cache = Object.create(null);
+            kickoffFn = (matchId) => {
+                const key = String(matchId);
+                if (key in cache) return cache[key];
+                cache[key] = teamsFixtureKickoffMs(teamsFindFixture(fixturesData, matchId));
+                return cache[key];
+            };
+        }
 
         return teams.map(team => {
             const mergedPlayers = (team.players || []).map((p, idx) => {
@@ -3312,7 +3354,46 @@
                 };
             }).sort((a, b) => a.slotNum - b.slotNum);
 
-            const teamTotal = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+            // Zeitbasierte Transfer-Wertung: für Teams MIT Transfers zählen
+            // Spieler nur, solange sie im Team waren. Die aktuellen Spieler
+            // erhalten ihre gefensterten Punkte; ausgetauschte Spieler werden
+            // separat ausgewiesen (ihre Punkte bis zum Transfer sind im Total).
+            let teamTotal;
+            let transferredOut = [];
+            const hasTransferFreeze = !!(TU && typeof TU.managerBreakdownOverTime === 'function'
+                && Array.isArray(team.transfers) && team.transfers.length);
+            if (hasTransferFreeze) {
+                ensureTransferScoring();
+                const currentIds = mergedPlayers.map(p => String(p.id));
+                const currentCaptain = (mergedPlayers.find(p => p.isCaptain) || {}).id || null;
+                const bd = TU.managerBreakdownOverTime({
+                    currentTeamIds: currentIds,
+                    transfers: team.transfers,
+                    initialCaptain: team.initialCaptain || currentCaptain,
+                    playerMatchPoints: sharedPmp,
+                    getKickoffMs: kickoffFn,
+                    captainMultiplier: 2
+                });
+                mergedPlayers.forEach(p => { p.pts = bd.perPlayer[String(p.id)] || 0; });
+                transferredOut = bd.everOwned
+                    .filter(id => !bd.currentSet[id])
+                    .map(id => {
+                        const fp = resolveStoredPlayer({ playerId: id });
+                        return {
+                            id,
+                            name: fp ? fp.Spielername : String(id),
+                            photo: fp ? (fp.Spielerfoto || '') : '',
+                            nation: fp ? (fp['Nationalteam.name'] || '?') : '?',
+                            club: fp ? (fp['Club.name'] || '') : '',
+                            pts: bd.perPlayer[id] || 0
+                        };
+                    })
+                    .filter(p => p.pts !== 0)
+                    .sort((a, b) => b.pts - a.pts);
+                teamTotal = bd.total;
+            } else {
+                teamTotal = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+            }
 
             const positionTotals = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0, BENCH: 0 };
 
@@ -3331,6 +3412,7 @@
                 ...team,
                 mergedPlayers,
                 totalScore: teamTotal,
+                transferredOut,
                 positionTotals,
                 captainPoints,
                 captainShare,

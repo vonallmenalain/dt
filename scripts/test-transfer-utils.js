@@ -152,4 +152,25 @@ const total2 = T.managerTotalOverTime({
 });
 assert.equal(total2, 20 + 3 + 14, 'Kapitän-Multiplikator folgt dem Freeze pro Segment.');
 
+/* ── 9) managerBreakdownOverTime (Aufschlüsselung inkl. Ausgetauschte) ── */
+const bd = T.managerBreakdownOverTime({
+  currentTeamIds: ['A', 'C', 'D'],
+  transfers: [{ at: 100, out: ['B'], in: ['D'], captain: 'A' }],
+  initialCaptain: 'A',
+  playerMatchPoints: {
+    A: { m1: 10, m2: 10 },
+    B: { m1: 5, m2: 5 },
+    C: { m1: 1, m2: 1 },
+    D: { m0: 99, m2: 20 }
+  },
+  getKickoffMs: (id) => ({ m0: 50, m1: 50, m2: 150 }[id]),
+  captainMultiplier: 2
+});
+assert.equal(bd.total, 67, 'Breakdown-Total stimmt mit managerTotalOverTime überein.');
+assert.equal(bd.perPlayer.A, 40, 'A: Kapitän ×2 über beide Spiele.');
+assert.equal(bd.perPlayer.B, 5, 'B (ausgetauscht): nur Punkte bis zum Transfer.');
+assert.equal(bd.perPlayer.C, 2, 'C: unverändert.');
+assert.equal(bd.perPlayer.D, 20, 'D (geholt): nur Punkte ab dem Transfer.');
+assert.ok(bd.everOwned.includes('B') && !bd.currentSet.B, 'B ist ausgetauscht (nicht mehr aktuell).');
+
 console.log('transfer-utils tests passed');

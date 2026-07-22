@@ -2778,6 +2778,27 @@
             </div>
         </div>
 
+        <!-- CL-Transferfenster: nach Turnierstart darf ein bereits eingereichtes
+             Team per Transfer angepasst werden (siehe transfer-utils.js). -->
+        <div class="transfer-panel" id="transfer-panel" style="display:none; margin:0 0 16px; padding:16px 18px; border:1px solid rgba(56,189,248,0.45); border-radius:14px; background:rgba(2,132,199,0.10);">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                <span style="font-weight:800; font-size:1.05em; color:#0369a1;">🔄 Transferfenster</span>
+                <span id="transfer-remaining" style="font-weight:700; font-size:0.9em; padding:3px 10px; border-radius:999px; background:rgba(2,132,199,0.15); color:#0369a1;"></span>
+            </div>
+            <div id="transfer-idle">
+                <p class="transfer-note" id="transfer-idle-note" style="margin:0 0 12px; color:#334155; font-size:0.95em;"></p>
+                <button type="button" class="submit-btn" id="transfer-start-btn">🔄 Transfer vornehmen</button>
+            </div>
+            <div id="transfer-active" style="display:none;">
+                <p class="transfer-note" style="margin:0 0 6px; color:#334155; font-size:0.95em;">Geänderte Spieler: <strong id="transfer-changes">0</strong> / <span id="transfer-max">3</span> — beim Bestätigen wird <strong>1 Transfer</strong> verbraucht.</p>
+                <p id="transfer-warn" style="display:none; margin:0 0 10px; color:#b45309; font-weight:600; font-size:0.9em;"></p>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <button type="button" class="submit-btn" id="transfer-confirm-btn" disabled style="flex:1 1 220px;">✓ Transfer bestätigen</button>
+                    <button type="button" id="transfer-cancel-btn" style="flex:0 0 auto; cursor:pointer; border:1px solid rgba(100,116,139,0.5); background:transparent; color:#475569; border-radius:10px; padding:10px 16px; font-weight:700;">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+
         <div class="submit-card" id="submit-card">
             <div class="submit-header">
                 <h3 class="submit-title">Team abschicken</h3>
@@ -2834,6 +2855,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
 <script src="country-aliases.js"></script>
 <script src="data.js"></script>
+<script src="transfer-utils.js"></script>
 <script src="cache.js"></script>
 <!-- Lazy-Registration auth flow -->
 <link rel="stylesheet" href="auth-modal.css">
@@ -4034,6 +4056,10 @@
        OPEN SLOT PICKER
        ========================================================= */
     function openSlotPicker(slotId) {
+        if (!isBuilderEditable()) {
+            showToast('⛔ Nach Turnierstart nur über „🔄 Transfer vornehmen".');
+            return;
+        }
         currentEditingSlotId = String(slotId);
 
         if (isMobileView()) {
@@ -4058,6 +4084,7 @@
        SELECT PLAYER
        ========================================================= */
     function selectPlayer(playerId) {
+        if (!isBuilderEditable()) return;
         const slotId = currentEditingSlotId;
         if (!slotId) return;
 
@@ -4107,6 +4134,7 @@
                 /* Show next-slot shortcut */
                 showNextSlotAction(slotId);
             }, 80);
+            if (transferMode) updateTransferUI();
             return;
         }
 
@@ -4135,6 +4163,8 @@
             glowSlot(nextSlot.id);
             scrollSlotIntoView(nextSlot.id);
         }
+
+        if (transferMode) updateTransferUI();
     }
 
     window.selectPlayer = selectPlayer;
@@ -4143,6 +4173,10 @@
        REMOVE PLAYER
        ========================================================= */
     function removePlayer(slotId) {
+        if (!isBuilderEditable()) {
+            showToast('⛔ Nach Turnierstart nur über „🔄 Transfer vornehmen".');
+            return;
+        }
         const existingPlayerId = getSlotPlayerId(slotId);
         if (existingPlayerId && String(existingPlayerId) === String(selectedCaptainId)) {
             selectedCaptainId = null;
@@ -4161,6 +4195,8 @@
         if (isMobileView()) {
             scrollSlotIntoView(slotId);
         }
+
+        if (transferMode) updateTransferUI();
     }
 
     window.removePlayer = removePlayer;
@@ -4169,6 +4205,10 @@
        SET CAPTAIN
        ========================================================= */
     function setCaptain(playerId) {
+        if (!isBuilderEditable()) {
+            showToast('⛔ Nach Turnierstart nur über „🔄 Transfer vornehmen".');
+            return;
+        }
         if (!Object.values(selectedTeam).map(String).includes(String(playerId))) return;
         const cap = getPlayerById(playerId);
         if (cap && cap.isOrphan) {
@@ -4183,6 +4223,7 @@
         validateForm();
         saveStateToLocal();
         updateStatusBar();
+        if (transferMode) updateTransferUI();
 
         showToast(`👑 Captain: ${cap ? cap.name : 'gesetzt'}`, 'captain');
 
@@ -4205,6 +4246,10 @@
        CLEAR TEAM
        ========================================================= */
     function clearTeam() {
+        if (isTournamentStarted()) {
+            showToast('⛔ Nach Turnierstart nicht möglich.');
+            return;
+        }
         selectedTeam       = {};
         selectedCaptainId  = null;
         currentEditingSlotId = getFirstAvailableSlotId();
@@ -4618,6 +4663,184 @@
     let editingTeamId  = null;   // Firestore doc id if user is in edit mode
     let pendingFinalize = false; // guard against concurrent finalize attempts
 
+    /* =========================================================
+       CL-TRANSFERFENSTER
+       Nach Turnierstart darf ein bereits eingereichtes Team per Transfer
+       angepasst werden (max. maxPlayersPerTransfer Spieler pro Transfer,
+       begrenzte Anzahl pro Saison – siehe CL_TRANSFERS/transfer-utils.js).
+       Historie (transfers + initialCaptain) landet im Team-Doc; die
+       zeitbasierte Wertung (Freeze) erfolgt in transfer-utils.js.
+       ========================================================= */
+    let transferMode            = false;  // aktiver Transfer-Bearbeitungsmodus
+    let transferBaselineTeam    = null;   // { slotId: playerId } des gespeicherten Teams
+    let transferBaselineCaptain = null;   // Kapitän des gespeicherten Teams
+    let loadedTransfers         = [];     // bereits verbrauchte Transfers (aus dem Doc)
+    let loadedInitialCaptain    = null;   // Kapitän des Start-15 (aus dem Doc)
+
+    function getTransferCfg() {
+        return (window.TransferUtils && typeof window.TransferUtils.getTransferConfig === 'function')
+            ? window.TransferUtils.getTransferConfig(window.APP_CONFIG)
+            : null;
+    }
+
+    function transferRemaining() {
+        const cfg = getTransferCfg();
+        if (!cfg) return 0;
+        return window.TransferUtils.remainingTransfers(cfg, (loadedTransfers || []).length);
+    }
+
+    // Transfer möglich? Feature aktiv + gespeichertes Team + Transfers übrig.
+    function isTransferEligible() {
+        return !!(getTransferCfg() && editingTeamId && transferRemaining() > 0);
+    }
+
+    // Pitch editierbar? Vor Turnierstart immer; nach Start nur im Transfer-Modus.
+    function isBuilderEditable() {
+        return !isTournamentStarted() || transferMode;
+    }
+
+    // Diff des aktuellen Teams gegenüber dem gespeicherten (Baseline).
+    function computeTransferDiff() {
+        const baselineIds = transferBaselineTeam ? Object.values(transferBaselineTeam).map(String) : [];
+        const baseSet = new Set(baselineIds);
+        const currentIds = Object.values(selectedTeam).map(String);
+        const curSet = new Set(currentIds);
+        const out = baselineIds.filter(id => !curSet.has(id));
+        const inc = currentIds.filter(id => !baseSet.has(id));
+        return { out, in: inc, currentIds };
+    }
+
+    function enterTransferMode() {
+        if (!isTransferEligible()) return;
+        transferMode = true;
+        renderAllSlots();
+        renderMobileBuilder();
+        updateTransferUI();
+        const cfg = getTransferCfg();
+        showToast(`🔄 Transfer-Modus: tausche bis zu ${cfg ? cfg.maxPlayersPerTransfer : 3} Spieler und bestätige.`);
+    }
+
+    function cancelTransferMode() {
+        transferMode = false;
+        if (transferBaselineTeam) {
+            selectedTeam      = { ...transferBaselineTeam };
+            selectedCaptainId = transferBaselineCaptain;
+        }
+        renderAllSlots();
+        renderMobileBuilder();
+        updatePickerHeader();
+        renderPickerPlayers(true);
+        validateForm();
+        updateTransferUI();
+        showToast('Transfer abgebrochen – dein Team ist unverändert.');
+    }
+
+    // Spiegelt Rest-Transfers, Änderungszähler und Button-Zustände wider.
+    function updateTransferUI() {
+        const cfg = getTransferCfg();
+        const panel = document.getElementById('transfer-panel');
+        if (!panel || !cfg) return;
+
+        const remainingEl = document.getElementById('transfer-remaining');
+        if (remainingEl) remainingEl.textContent = `Transfers übrig: ${transferRemaining()}/${cfg.totalTransfers}`;
+
+        const idle = document.getElementById('transfer-idle');
+        const active = document.getElementById('transfer-active');
+        const idleNote = document.getElementById('transfer-idle-note');
+        const maxEl = document.getElementById('transfer-max');
+        if (maxEl) maxEl.textContent = String(cfg.maxPlayersPerTransfer);
+        if (idleNote) idleNote.textContent = `Das Turnier läuft. Du kannst dein Team noch per Transfer anpassen – bis zu ${cfg.maxPlayersPerTransfer} Spieler pro Transfer.`;
+
+        const startBtn = document.getElementById('transfer-start-btn');
+        if (startBtn) startBtn.disabled = transferRemaining() <= 0;
+
+        if (transferMode) {
+            if (idle) idle.style.display = 'none';
+            if (active) active.style.display = '';
+
+            const { out, in: inc } = computeTransferDiff();
+            const changesEl = document.getElementById('transfer-changes');
+            if (changesEl) changesEl.textContent = String(out.length);
+
+            const count = Object.keys(selectedTeam).length;
+            const captainPlayer = selectedCaptainId != null ? getPlayerById(selectedCaptainId) : null;
+            const hasValidCaptain = selectedCaptainId != null
+                && Object.values(selectedTeam).map(String).includes(String(selectedCaptainId))
+                && !!(captainPlayer && !captainPlayer.isOrphan);
+            const orphanInTeam = getSelectedOrphanPlayers().length > 0;
+            const okCount = out.length === inc.length && out.length >= 1 && out.length <= cfg.maxPlayersPerTransfer;
+
+            const confirmBtn = document.getElementById('transfer-confirm-btn');
+            if (confirmBtn) confirmBtn.disabled = !(count === 15 && hasValidCaptain && okCount && !orphanInTeam);
+
+            const warnEl = document.getElementById('transfer-warn');
+            if (warnEl) {
+                let msg = '';
+                if (out.length > cfg.maxPlayersPerTransfer) msg = `Zu viele Wechsel: ${out.length} (max. ${cfg.maxPlayersPerTransfer}). Bitte reduzieren.`;
+                else if (count === 15 && out.length === 0) msg = 'Noch keine Änderung – tausche mindestens einen Spieler.';
+                warnEl.textContent = msg;
+                warnEl.style.display = msg ? 'block' : 'none';
+            }
+        } else {
+            if (idle) idle.style.display = '';
+            if (active) active.style.display = 'none';
+        }
+    }
+
+    async function confirmTransfer() {
+        if (!transferMode) return;
+        const cfg = getTransferCfg();
+        if (!cfg) return;
+
+        const managerNameVal = dom.managerName ? dom.managerName.value.trim() : '';
+        const { out, in: inc } = computeTransferDiff();
+
+        const check = window.TransferUtils.validateTransfer({
+            config: cfg,
+            usedTransfers: (loadedTransfers || []).length,
+            currentTeamIds: transferBaselineTeam ? Object.values(transferBaselineTeam).map(String) : [],
+            outPlayers: out,
+            inPlayers: inc
+        });
+        if (!check.ok) { showToast('⚠️ ' + check.error); return; }
+
+        const count = Object.keys(selectedTeam).length;
+        const hasValidCaptain = selectedCaptainId != null
+            && Object.values(selectedTeam).map(String).includes(String(selectedCaptainId))
+            && getSelectedOrphanPlayers().length === 0;
+        if (count !== 15 || !hasValidCaptain) {
+            showToast('⚠️ Bitte vervollständige dein Team (15 Spieler, gültiger Captain).');
+            return;
+        }
+
+        const confirmBtn = document.getElementById('transfer-confirm-btn');
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '⏳ Speichere…'; }
+
+        try {
+            const entry = {
+                at: Date.now(),
+                out: out.map(String),
+                in: inc.map(String),
+                captain: String(selectedCaptainId)
+            };
+            const transfers = (loadedTransfers || []).concat([entry]);
+            const initialCaptain = loadedInitialCaptain || transferBaselineCaptain || null;
+
+            const payload = buildTeamPayload(managerNameVal);
+            payload.transfers = transfers;
+            if (initialCaptain != null) payload.initialCaptain = String(initialCaptain);
+
+            transferMode = false; // während des Speicherns keine weiteren Edits
+            await persistPayload(payload);
+        } catch (e) {
+            console.error('[TeamBuilder] Transfer fehlgeschlagen:', e);
+            showToast('⚠️ Transfer konnte nicht gespeichert werden. Bitte Verbindung prüfen.');
+            transferMode = true;
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '✓ Transfer bestätigen'; }
+            updateTransferUI();
+        }
+    }
+
     /** Build the canonical Firestore payload from the current builder state.
      *
      * Note: Wir speichern bewusst einen kleinen *Snapshot* der Anzeigedaten
@@ -4744,6 +4967,14 @@
             selectedCaptainId = newCaptain;
             if (dom.managerName) dom.managerName.value = data.manager || '';
 
+            /* Transfer-Baseline + bereits verbrauchte Transfers merken, damit
+               ein späterer Transfer den Diff (raus/rein) korrekt bilden kann. */
+            transferBaselineTeam    = { ...newTeam };
+            transferBaselineCaptain = newCaptain;
+            loadedTransfers         = Array.isArray(data.transfers) ? data.transfers : [];
+            loadedInitialCaptain    = data.initialCaptain || null;
+            transferMode            = false;
+
             renderAllSlots();
             renderMobileBuilder();
             updatePickerHeader();
@@ -4751,6 +4982,8 @@
             saveStateToLocal();
             validateForm();
             setSubmitDefaultLabel();
+            /* Nach Laden ggf. das Transferfenster einblenden (Post-Start). */
+            if (typeof applyTournamentClosedState === 'function') applyTournamentClosedState();
 
             if (orphanList.length) {
                 showBuilderNotice(buildRosterNotice(orphanList), 'roster-warning');
@@ -5028,8 +5261,16 @@
        ========================================================= */
     function applyTournamentClosedState() {
         const closed = isTournamentStarted();
+        // Nach Turnierstart: statt reiner Sperre das Transferfenster anbieten,
+        // wenn der Nutzer ein gespeichertes Team hat und noch Transfers übrig
+        // sind (CL). Sonst wie bisher die Einreichungs-Sperre.
+        const eligible = closed && isTransferEligible();
         const banner = document.getElementById('tournament-closed-banner');
-        if (banner) banner.style.display = closed ? 'flex' : 'none';
+        if (banner) banner.style.display = (closed && !eligible) ? 'flex' : 'none';
+
+        const transferPanel = document.getElementById('transfer-panel');
+        if (transferPanel) transferPanel.style.display = eligible ? 'block' : 'none';
+        if (dom.submitCard) dom.submitCard.style.display = eligible ? 'none' : '';
 
         if (dom.submitBtn) {
             if (closed) {
@@ -5058,6 +5299,8 @@
         if (!closed) {
             validateForm();
         }
+
+        if (eligible) updateTransferUI();
     }
 
     /**
@@ -5213,6 +5456,14 @@
         /* Button events */
         if (dom.clearTeamBtn) dom.clearTeamBtn.addEventListener('click', clearTeam);
         if (dom.submitBtn)    dom.submitBtn.addEventListener('click', submitTeam);
+
+        /* CL-Transferfenster */
+        const transferStartBtn = document.getElementById('transfer-start-btn');
+        if (transferStartBtn) transferStartBtn.addEventListener('click', enterTransferMode);
+        const transferConfirmBtn = document.getElementById('transfer-confirm-btn');
+        if (transferConfirmBtn) transferConfirmBtn.addEventListener('click', confirmTransfer);
+        const transferCancelBtn = document.getElementById('transfer-cancel-btn');
+        if (transferCancelBtn) transferCancelBtn.addEventListener('click', cancelTransferMode);
 
         /* Manager name */
         if (dom.managerName) {
