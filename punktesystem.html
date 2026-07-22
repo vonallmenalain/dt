@@ -545,6 +545,32 @@
         introEl.textContent = `So sammeln deine Spieler Punkte für dein DreamTeam.`;
     }
 
+    /* Hinweis-Box & Hero-Meta turnierabhängig.
+       - WM 2026 (Captain ×2): statischer Captain-Hinweis + Meta „1 Captain /
+         pro Nation" bleiben unverändert (nichts zu tun).
+       - CL (kein Captain, club-zentriert): der Captain-Hinweis wird durch den
+         Finalrunden-Wertungshinweis ersetzt, und die Meta verliert „1 Captain"
+         und spricht von „pro Club". */
+    if (APP.captainEnabled === false) {
+        const entityNoun = APP.primaryEntity === "club" ? "Club" : "Nation";
+
+        const metaEl = document.getElementById("page-meta");
+        if (metaEl) {
+            metaEl.innerHTML = `15 Spieler&nbsp;&nbsp;·&nbsp;&nbsp;Maximal 1 Spieler pro ${entityNoun}`;
+        }
+
+        const noticeEl = document.querySelector(".captain-notice");
+        if (noticeEl) {
+            noticeEl.setAttribute("aria-label", "Hinweis zur Wertung in der Finalrunde");
+            noticeEl.innerHTML = `
+                <span class="captain-badge" aria-hidden="true">🏆</span>
+                <div class="captain-text">
+                    <div>In der <strong>Finalrunde</strong> werden die Punkte nach regulärer Spielzeit oder nach Verlängerung gewertet (<strong>ohne Elfmeterschiessen</strong>).</div>
+                </div>
+            `;
+        }
+    }
+
     function pointClass(value) {
         return value >= 0 ? "pts-pos" : "pts-neg";
     }
