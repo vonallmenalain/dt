@@ -122,8 +122,25 @@ service cloud.firestore {
                 'players',
                 'status',
                 'timestamp',
-                'updatedAt'
+                'updatedAt',
+                // CL-Transferfenster (optional; WM setzt diese Felder nie):
+                // Historie der Transfers + Kapitaen des Start-15 fuer die
+                // zeitbasierte Wertung. Innere Struktur prueft der Client;
+                // hier nur Typ + Obergrenze (max. 2 Transfers/Saison).
+                'transfers',
+                'initialCaptain'
              ])
+          && (
+                !('transfers' in request.resource.data)
+                || (
+                    request.resource.data.transfers is list
+                    && request.resource.data.transfers.size() <= 2
+                )
+             )
+          && (
+                !('initialCaptain' in request.resource.data)
+                || request.resource.data.initialCaptain is string
+             )
           && request.resource.data.userId is string
           && request.resource.data.userId.size() >= 1
           && request.resource.data.userId.size() <= 128
