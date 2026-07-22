@@ -77,6 +77,9 @@
   // 2) Manuelle Positions-Overrides (synchron) – stellt `window.POSITION_OVERRIDES` bereit.
   document.write('<script src="position-overrides.js"><\/script>');
 
+  // 2b) Manuelle Namens-Overrides (synchron) – stellt `window.NAME_OVERRIDES` bereit.
+  document.write('<script src="name-overrides.js"><\/script>');
+
   // 3) Overrides direkt anwenden, BEVOR weitere App-Skripte playersData lesen.
   //    Wir mutieren die Array-Einträge in place: `const playersData = [...]`
   //    in den per-Turnier-Daten verbietet zwar Reassignment der Variable,
@@ -125,6 +128,46 @@
       '} catch (err) {' +
         'try { console.warn("[data.js] Position-Overrides konnten nicht angewendet werden:", err); } catch(_) {}' +
         'window.__POSITION_OVERRIDES_APPLIED__ = { tournament: activeKey, count: 0, error: String(err && err.message || err) };' +
+      '}' +
+    '})(' + serializedKey + ');<\/script>'
+  );
+
+  // 3b) Namens-Overrides direkt anwenden (nach den Positions-Overrides, vor
+  //     dem Club-Remap – Namen sind davon unabhängig). Setzt `Spielername`
+  //     und sichert den Originalwert einmalig in `SpielernameOriginal`.
+  document.write(
+    '<script>(function(activeKey){' +
+      'try {' +
+        'var data = (typeof playersData !== "undefined" && Array.isArray(playersData)) ? playersData : null;' +
+        'if (!data) { window.__NAME_OVERRIDES_APPLIED__ = { tournament: activeKey, count: 0, reason: "no playersData" }; return; }' +
+        'var all = (window.NAME_OVERRIDES && typeof window.NAME_OVERRIDES === "object") ? window.NAME_OVERRIDES : {};' +
+        'var raw = (all[activeKey] && typeof all[activeKey] === "object") ? all[activeKey] : {};' +
+        'var lookup = {};' +
+        'var ids = Object.keys(raw);' +
+        'for (var k=0;k<ids.length;k++) {' +
+          'var v = raw[ids[k]];' +
+          'if (v != null && String(v).trim()) lookup[String(ids[k])] = String(v).trim();' +
+        '}' +
+        'var applied = 0;' +
+        'var noop = 0;' +
+        'for (var i=0;i<data.length;i++) {' +
+          'var p = data[i];' +
+          'if (!p) continue;' +
+          'var pid = (p["player.id"] != null) ? String(p["player.id"]) : "";' +
+          'if (!pid) continue;' +
+          'var target = lookup[pid];' +
+          'if (!target) continue;' +
+          'var current = (p.Spielername == null) ? "" : String(p.Spielername);' +
+          'if (current === target) { noop++; continue; }' +
+          'if (typeof p.SpielernameOriginal === "undefined") { p.SpielernameOriginal = p.Spielername; }' +
+          'p.Spielername = target;' +
+          'applied++;' +
+        '}' +
+        'window.__NAME_OVERRIDES_APPLIED__ = { tournament: activeKey, count: applied, noop: noop, total: ids.length };' +
+        'try { if (applied || ids.length) console.log("[data.js] Namens-Overrides für " + activeKey + ": " + applied + " angewendet, " + noop + " bereits identisch (von " + ids.length + " Einträgen)."); } catch(_) {}' +
+      '} catch (err) {' +
+        'try { console.warn("[data.js] Namens-Overrides konnten nicht angewendet werden:", err); } catch(_) {}' +
+        'window.__NAME_OVERRIDES_APPLIED__ = { tournament: activeKey, count: 0, error: String(err && err.message || err) };' +
       '}' +
     '})(' + serializedKey + ');<\/script>'
   );
