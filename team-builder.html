@@ -890,6 +890,26 @@
         }
         .bench-slots .builder-card-pts { top: 4px; font-size: 10px; padding: 1px 7px; }
 
+        /* Transfer-„T"-Badge oben links (CL: Captain-Ecke ist frei). */
+        .builder-transfer-badge {
+            position: absolute;
+            top: 8px; left: 8px;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: 900; font-size: 12px;
+            z-index: 30;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: #fff;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 10px rgba(56,189,248,0.5), 0 2px 6px rgba(0,0,0,0.4);
+            transform: translateZ(30px);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            pointer-events: none;
+        }
+        .bench-slots .builder-transfer-badge { width: 22px; height: 22px; font-size: 11px; }
+
         /* Avatar */
         .avatar-wrapper {
             width: 78px;
@@ -2649,7 +2669,7 @@
                     Baue dein <span class="gold-text" id="hero-tournament-label">&nbsp;</span> <span class="accent">DreamTeam</span>
                 </h1>
                 <p class="builder-hero-subtitle">
-                    15 Spieler &nbsp;·&nbsp; 1 Captain &nbsp;·&nbsp; Maximal 1 Spieler pro <span id="entity-rule-noun">Nation</span>
+                    15 Spieler <span id="hero-captain-rule">&nbsp;·&nbsp; 1 Captain</span> &nbsp;·&nbsp; Maximal 1 Spieler pro <span id="entity-rule-noun">Nation</span>
                 </p>
             </div>
             <div class="builder-hero-actions">
@@ -2898,6 +2918,11 @@
     const APP = window.APP_CONFIG;
     if (!APP) throw new Error('APP_CONFIG fehlt.');
 
+    // Captain-Feature: WM ja, CL nein (siehe tournament-config.js). Bei
+    // deaktiviertem Captain entfällt die Captain-Wahl komplett (kein Knopf,
+    // keine Pflicht, kein isCaptain im gespeicherten Team, kein ×2).
+    const CAPTAIN_ENABLED = !(APP && APP.captainEnabled === false);
+
     const sourcePlayers =
         (typeof playersData !== 'undefined' && Array.isArray(playersData)) ? playersData : [];
     if (!sourcePlayers.length) throw new Error('playersData fehlt oder ist leer.');
@@ -2949,6 +2974,10 @@
         if (filterSelect) filterSelect.setAttribute('aria-label', `Nach ${primaryEntityNoun()} filtern`);
         const filterAll = document.getElementById('picker-nation-filter-all');
         if (filterAll) filterAll.textContent = isClub ? '🌍 Alle Clubs' : '🌍 Alle Länder';
+
+        // Ohne Captain-Feature (CL) den „· 1 Captain"-Hinweis ausblenden.
+        const capRule = document.getElementById('hero-captain-rule');
+        if (capRule && !CAPTAIN_ENABLED) capRule.style.display = 'none';
     })();
 
     /* =========================================================
@@ -3517,9 +3546,9 @@
         const orphanPlayers = getSelectedOrphanPlayers();
         const orphanCount = orphanPlayers.length;
         const captainPlayer = selectedCaptainId !== null ? getPlayerById(selectedCaptainId) : null;
-        const hasValidCaptain = selectedCaptainId !== null
+        const hasValidCaptain = !CAPTAIN_ENABLED || (selectedCaptainId !== null
             && teamPlayerIds.includes(String(selectedCaptainId))
-            && !!(captainPlayer && !captainPlayer.isOrphan);
+            && !!(captainPlayer && !captainPlayer.isOrphan));
 
         /* Progress */
         const pct = Math.round((count / 15) * 100);
@@ -3536,9 +3565,11 @@
             dom.dsbPlayersPill.className = `dsb-pill ${orphanCount ? 'roster-warning' : 'players'}`;
         }
 
-        /* Captain pill */
+        /* Captain pill – bei Turnieren ohne Captain (CL) komplett ausblenden. */
         if (dom.dsbCaptainPill) {
-            if (hasValidCaptain) {
+            if (!CAPTAIN_ENABLED) {
+                dom.dsbCaptainPill.style.display = 'none';
+            } else if (hasValidCaptain) {
                 dom.dsbCaptainPill.textContent = captainPlayer ? `👑 ${captainPlayer.name}` : '👑 Captain gewählt';
                 dom.dsbCaptainPill.className = 'dsb-pill captain-ok';
             } else {
@@ -3588,11 +3619,13 @@
             hints.push({ text: `${remaining} Slot${remaining !== 1 ? 's' : ''} noch offen`, cls: remaining > 0 ? 'warn' : 'ok' });
         }
 
-        if (hasValidCaptain) {
-            const cap = getPlayerById(selectedCaptainId);
-            hints.push({ text: `✓ Captain: ${cap ? cap.name : 'gesetzt'}`, cls: 'ok' });
-        } else if (count === 15) {
-            hints.push({ text: '⚠️ Captain fehlt', cls: 'warn' });
+        if (CAPTAIN_ENABLED) {
+            if (hasValidCaptain) {
+                const cap = getPlayerById(selectedCaptainId);
+                hints.push({ text: `✓ Captain: ${cap ? cap.name : 'gesetzt'}`, cls: 'ok' });
+            } else if (count === 15) {
+                hints.push({ text: '⚠️ Captain fehlt', cls: 'warn' });
+            }
         }
 
         if (orphanCount > 0) {
@@ -3641,12 +3674,21 @@
 
         const isBench = slot.cont === 'bench-slots';
 
-        const captainBtn = `<button type="button"
+        // Captain-Knopf nur bei Turnieren mit Captain-Feature (WM), nicht CL.
+        const captainBtn = CAPTAIN_ENABLED
+            ? `<button type="button"
                         class="builder-captain-btn${isCaptain ? ' active' : ''}"
                         title="${isCaptain ? 'Dein Captain!' : 'Zum Captain ernennen'}"
                         data-action="set-captain"
                         data-player-id="${escapeHtml(player.id)}"
-                        aria-label="${isCaptain ? 'Captain: ' : 'Captain ernennen: '}${escapeHtml(player.name)}">C</button>`;
+                        aria-label="${isCaptain ? 'Captain: ' : 'Captain ernennen: '}${escapeHtml(player.name)}">C</button>`
+            : '';
+
+        // „T"-Badge oben links für in dieser Transfer-Session neu geholte
+        // Spieler (nur wenn ohne Captain, sonst belegt „C" die linke Ecke).
+        const transferBadge = (!CAPTAIN_ENABLED && isBuilderTransferIn(player.id))
+            ? `<div class="builder-transfer-badge" title="In das Team transferiert">T</div>`
+            : '';
 
         const removeBtn = `<button type="button"
                         class="builder-remove-btn"
@@ -3683,8 +3725,8 @@
 
         const innerHtml = isBench
             ? `<div class="bench-btn-row">${captainBtn}${removeBtn}</div>
-                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${ptsHtml}${orphanBadge}`
-            : `${captainBtn}${removeBtn}${ptsHtml}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
+                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${transferBadge}${ptsHtml}${orphanBadge}`
+            : `${captainBtn}${removeBtn}${transferBadge}${ptsHtml}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
 
         return `
             <div class="slot-wrapper${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">
@@ -3811,11 +3853,11 @@
                                 </div>
                             </div>
                             <div class="mobile-slot-actions">
-                                <button type="button"
+                                ${CAPTAIN_ENABLED ? `<button type="button"
                                     class="mobile-captain-btn${isCaptain ? ' active' : ''}"
                                     data-action="set-captain"
                                     data-player-id="${escapeHtml(player.id)}"
-                                    aria-label="${isCaptain ? 'Captain entfernen' : 'Zum Captain machen'}: ${escapeHtml(player.name)}">C</button>
+                                    aria-label="${isCaptain ? 'Captain entfernen' : 'Zum Captain machen'}: ${escapeHtml(player.name)}">C</button>` : ''}
                                 <button type="button"
                                     class="mobile-remove-btn"
                                     data-action="remove-player"
@@ -4345,14 +4387,14 @@
          * player has been removed from the kader — must be re-assigned
          * before the team can be saved, otherwise the captain bonus would
          * permanently apply to a 0-points slot. */
-        let hasValidCaptain = false;
-        if (selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId))) {
+        let hasValidCaptain = !CAPTAIN_ENABLED;
+        if (CAPTAIN_ENABLED && selectedCaptainId !== null && teamPlayerIds.includes(String(selectedCaptainId))) {
             const captainPlayer = getPlayerById(selectedCaptainId);
             hasValidCaptain = !!(captainPlayer && !captainPlayer.isOrphan);
         }
 
         if (dom.captainWarning) {
-            dom.captainWarning.style.display = (!hasValidCaptain && count === 15) ? 'block' : 'none';
+            dom.captainWarning.style.display = (CAPTAIN_ENABLED && !hasValidCaptain && count === 15) ? 'block' : 'none';
         }
 
         const hasDuplicateWarning = dom.duplicateWarning && dom.duplicateWarning.style.display === 'block';
@@ -4802,6 +4844,16 @@
         return { out, in: inc, currentIds };
     }
 
+    // Ist dieser Spieler in der laufenden Transfer-Session NEU ins Team gekommen?
+    // Vergleich rein per Spieler-ID → ein nur verschobener oder versehentlich
+    // entfernter und wieder eingefügter Spieler gilt nicht als „neu".
+    function isBuilderTransferIn(playerId) {
+        if (!transferMode || !transferBaselineTeam) return false;
+        const id = String(playerId);
+        if (Object.values(transferBaselineTeam).map(String).indexOf(id) !== -1) return false;
+        return Object.values(selectedTeam).map(String).indexOf(id) !== -1;
+    }
+
     function enterTransferMode() {
         if (!isTransferEligible()) return;
         transferMode = true;
@@ -4856,9 +4908,9 @@
 
             const count = Object.keys(selectedTeam).length;
             const captainPlayer = selectedCaptainId != null ? getPlayerById(selectedCaptainId) : null;
-            const hasValidCaptain = selectedCaptainId != null
+            const hasValidCaptain = !CAPTAIN_ENABLED || (selectedCaptainId != null
                 && Object.values(selectedTeam).map(String).includes(String(selectedCaptainId))
-                && !!(captainPlayer && !captainPlayer.isOrphan);
+                && !!(captainPlayer && !captainPlayer.isOrphan));
             const orphanInTeam = getSelectedOrphanPlayers().length > 0;
             const okCount = out.length === inc.length && out.length >= 1 && out.length <= cfg.maxPlayersPerTransfer;
 
@@ -4897,11 +4949,13 @@
         if (!check.ok) { showToast('⚠️ ' + check.error); return; }
 
         const count = Object.keys(selectedTeam).length;
-        const hasValidCaptain = selectedCaptainId != null
-            && Object.values(selectedTeam).map(String).includes(String(selectedCaptainId))
-            && getSelectedOrphanPlayers().length === 0;
-        if (count !== 15 || !hasValidCaptain) {
-            showToast('⚠️ Bitte vervollständige dein Team (15 Spieler, gültiger Captain).');
+        const captainOk = !CAPTAIN_ENABLED || (selectedCaptainId != null
+            && Object.values(selectedTeam).map(String).includes(String(selectedCaptainId)));
+        const noOrphans = getSelectedOrphanPlayers().length === 0;
+        if (count !== 15 || !captainOk || !noOrphans) {
+            showToast(CAPTAIN_ENABLED
+                ? '⚠️ Bitte vervollständige dein Team (15 Spieler, gültiger Captain).'
+                : '⚠️ Bitte vervollständige dein Team (15 Spieler).');
             return;
         }
 
@@ -4913,10 +4967,10 @@
                 at: Date.now(),
                 out: out.map(String),
                 in: inc.map(String),
-                captain: String(selectedCaptainId)
+                captain: CAPTAIN_ENABLED ? String(selectedCaptainId) : null
             };
             const transfers = (loadedTransfers || []).concat([entry]);
-            const initialCaptain = loadedInitialCaptain || transferBaselineCaptain || null;
+            const initialCaptain = CAPTAIN_ENABLED ? (loadedInitialCaptain || transferBaselineCaptain || null) : null;
 
             const payload = buildTeamPayload(managerNameVal);
             payload.transfers = transfers;
@@ -4955,7 +5009,7 @@
                 club:      player.club || '',
                 clubLogo:  player.clubLogo || '',
                 flag:      player.flag || '',
-                isCaptain: String(player.id) === String(selectedCaptainId)
+                isCaptain: CAPTAIN_ENABLED && String(player.id) === String(selectedCaptainId)
             };
         });
         return {
@@ -5226,9 +5280,9 @@
         const teamPlayerIds = Object.values(selectedTeam).map(String);
         const orphanPlayers = getSelectedOrphanPlayers();
         const captainPlayer = selectedCaptainId !== null ? getPlayerById(selectedCaptainId) : null;
-        const hasValidCaptain = selectedCaptainId !== null
+        const hasValidCaptain = !CAPTAIN_ENABLED || (selectedCaptainId !== null
             && teamPlayerIds.includes(String(selectedCaptainId))
-            && !!(captainPlayer && !captainPlayer.isOrphan);
+            && !!(captainPlayer && !captainPlayer.isOrphan));
 
         if (!(count === 15 && isFullName && hasValidCaptain && orphanPlayers.length === 0)) {
             if (orphanPlayers.length) {

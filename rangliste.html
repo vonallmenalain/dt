@@ -2224,6 +2224,8 @@
 
 <script>
     const APP = window.APP_CONFIG;
+    // Captain-Feature aktiv? (WM ja, CL nein – siehe tournament-config.js)
+    const CAPTAIN_ENABLED = !(APP && APP.captainEnabled === false);
 
     if (!APP) {
         throw new Error("APP_CONFIG fehlt. Lade tournament-config.js vor rangliste.html.");
@@ -2757,7 +2759,9 @@
                     : (p.playerId != null ? String(p.playerId) : `fallback-${idx}-${Math.random()}`);
                 const basePts = fullP ? (playerPointsMap[playerId] || 0) : 0;
                 const isOrphan = !fullP;
-                const finalPts = p.isCaptain ? basePts * 2 : basePts;
+                // Captain nur bei Turnieren mit Captain-Feature (WM), nicht CL.
+                const isCap = CAPTAIN_ENABLED && !!p.isCaptain;
+                const finalPts = isCap ? basePts * 2 : basePts;
                 const matchesMap = fullP ? (playerMatchPoints[playerId] || {}) : {};
                 const matchCount = Object.keys(matchesMap).length;
 
@@ -2766,7 +2770,7 @@
                     name: fullP ? fullP.Spielername : (p.name || "Unbekannt"),
                     pts: finalPts,
                     basePts,
-                    isCaptain: !!p.isCaptain,
+                    isCaptain: isCap,
                     // Wenn der Spieler nicht mehr im aktuellen Kader auftaucht
                     // (z.B. nach einem Kader-Update), greifen wir auf den im
                     // Team-Doc gespeicherten Snapshot zurück. So bleiben Foto
@@ -2797,7 +2801,7 @@
                     initialCaptain: team.initialCaptain || (mergedPlayers.find(p => p.isCaptain) || {}).id || null,
                     playerMatchPoints: playerMatchPoints || {},
                     getKickoffMs: kickoffMsForMatch,
-                    captainMultiplier: 2
+                    captainMultiplier: CAPTAIN_ENABLED ? 2 : 1
                 });
             } else {
                 totalScore = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
