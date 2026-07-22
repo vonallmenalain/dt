@@ -15,8 +15,35 @@
  *    zuverlässig verschwinden.
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
+ *
+ *  Fetch-Strategie (Performance-Überarbeitung):
+ *  - Navigationen (HTML): network-first mit kurzem Timeout. Das HTML bleibt
+ *    damit immer frisch (Netlify liefert per ETag billige 304er), aber bei
+ *    schlechtem Empfang erscheint nach NAV_TIMEOUT_MS der letzte gute
+ *    Cache-Stand statt eines weissen Bildschirms.
+ *  - Assets MIT `?v=`-Parameter (styles.css, nav.js, cache.js, …):
+ *    cache-first. Der Versions-Parameter IST die Inhalts-Identität – eine
+ *    neue Version bekommt eine neue URL und damit automatisch einen
+ *    frischen Download. Bereits gecachte Versionen kommen ohne jeden
+ *    Netz-Roundtrip aus dem Cache (grösster Gewinn beim Seitenwechsel).
+ *  - Assets OHNE `?v=` (admin.js, auth.js, data-*.js, …): network-first mit
+ *    Timeout. Sie bleiben dank ETag-Revalidierung (304) frisch, kosten
+ *    online aber nur noch einen parallelen Roundtrip statt eines vollen
+ *    Downloads; offline/langsam greift der Cache.
+ *  - Bilder: stale-while-revalidate (unverändert).
+ *
+ *  Der frühere `bypassHttpCache`-Zwang (cache:'reload' für alle kritischen
+ *  Assets) ist bewusst entfernt: Er hat bei JEDEM Seitenwechsel alle
+ *  HTML/JS/CSS-Dateien komplett neu über das Netz geladen und war die
+ *  Hauptursache für mehrsekündige Navigationszeiten. Deploy-Frischheit ist
+ *  weiterhin garantiert: Beim Deploy wird CACHE_VERSION (zusammen mit den
+ *  `?v=`-Parametern in den HTML-Seiten) erhöht → neuer SW installiert die
+ *  App-Shell mit cache:'no-cache' frisch, aktiviert sich per skipWaiting,
+ *  und nav.js lädt die Seite beim controllerchange einmal neu.
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-06-23-freshness-1';
+const CACHE_VERSION = 'v2026-07-22-phase1-1';
+const NAV_TIMEOUT_MS = 2500;
+const ASSET_TIMEOUT_MS = 3000;
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
@@ -40,9 +67,14 @@ const APP_SHELL = [
   './country-aliases.js',
   './data.js',
   './data-wm2026.js',
+  './data-cl2526.js',
   './position-overrides.js',
+  './name-overrides.js',
   './points-utils.js',
+  './transfer-utils.js',
   './cache.js',
+  './theme-cl.css',
+  './liga-tabelle.html',
   './Icons/site.webmanifest',
   './Icons/favicon.ico',
   './Icons/android-chrome-192x192.png',
@@ -100,29 +132,51 @@ self.addEventListener('activate', event => {
  *   3. Cache leer → trotzdem auf Netzwerk warten (besser etwas spaet als gar nichts).
  *   4. Netzwerk komplett aus → Cache, sonst Index-Fallback.
  */
-function fetchAndCache(request, options = {}) {
-  const networkRequest = options.bypassHttpCache
-    ? new Request(request, { cache: 'reload' })
-    : request;
+/**
+ * Cache-Key für Navigationen: Query-Parameter (z.B. ?manager=…,
+ * ?tournament=…) beeinflussen bei statischem Hosting den HTML-Inhalt
+ * nicht – sie werden rein client-seitig ausgewertet. Ohne Normalisierung
+ * würde jede Query-Variante als eigener Cache-Eintrag wachsen.
+ */
+function normalizedCacheKey(request) {
+  const url = new URL(request.url);
+  url.search = '';
+  return url.href;
+}
 
-  return fetch(networkRequest).then((response) => {
+function fetchAndCache(request, options = {}) {
+  return fetch(request).then((response) => {
     if (response && response.ok) {
       const copy = response.clone();
-      caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      const key = options.cacheKey || request;
+      caches.open(CACHE_NAME).then((cache) => cache.put(key, copy));
     }
     return response;
   });
 }
 
-async function networkOnlyWithOfflineFallback(request, options = {}) {
+/**
+ * cache-first für Assets mit `?v=`-Parameter: Die URL identifiziert den
+ * Inhalt eindeutig (Cache-Buster-Konvention der App). Ist die exakte URL
+ * gecacht, gibt es keinen Netz-Roundtrip; ein Versionssprung erzeugt eine
+ * neue URL und lädt automatisch frisch. Fällt das Netz beim Erst-Download
+ * aus, dient die beim install vorgecachte, unversionierte Kopie derselben
+ * Datei als Offline-Fallback.
+ */
+async function cacheFirstVersioned(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const exact = await cache.match(request);
+  if (exact) return exact;
+
   try {
-    return await fetchAndCache(request, options);
-  } catch (error) {
-    const exactCached = await caches.match(request);
-    if (exactCached) return exactCached;
-    if (options.navigationFallback) {
-      return (await caches.match('./index.html')) || Response.error();
+    const response = await fetch(request);
+    if (response && response.ok) {
+      await cache.put(request, response.clone());
     }
+    return response;
+  } catch (error) {
+    const fallback = await cache.match(request, { ignoreSearch: true });
+    if (fallback) return fallback;
     return Response.error();
   }
 }
@@ -159,14 +213,18 @@ async function networkFirstWithTimeout(request, timeoutMs = 3000, matchOptions =
     return cached;
   }
 
-  // Kein Cache vorhanden → wir muessen warten. Falls das Netzwerk komplett
-  // ausfaellt, fallen wir zumindest auf die index.html (App-Shell) zurueck,
-  // damit nicht der nackte Browser-Offline-Screen erscheint.
+  // Kein Cache vorhanden → wir muessen warten. Faellt das Netzwerk komplett
+  // aus, dient bei Navigationen die index.html (App-Shell) als letzter
+  // Fallback, damit nicht der nackte Browser-Offline-Screen erscheint.
+  // Fuer Sub-Ressourcen (JS/CSS) waere index.html eine falsche Antwort.
   clearTimeout(timeoutId);
   try {
     return await networkPromise;
   } catch (error) {
-    return (await caches.match('./index.html')) || Response.error();
+    if (request.mode === 'navigate') {
+      return (await caches.match('./index.html')) || Response.error();
+    }
+    return Response.error();
   }
 }
 
@@ -205,17 +263,26 @@ self.addEventListener('fetch', event => {
   const isImageAsset = /\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$/.test(pathname);
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkOnlyWithOfflineFallback(request, {
-      bypassHttpCache: true,
-      navigationFallback: true
-    }));
+    // HTML bleibt network-first (frisches Markup inkl. neuer `?v=`-Referenzen
+    // nach einem Deploy); der Cache-Fallback greift per Timeout bei
+    // schlechtem Empfang. ignoreSearch, damit z.B. teams.html?manager=X den
+    // gecachten teams.html-Stand als Fallback nutzt.
+    event.respondWith(networkFirstWithTimeout(
+      request,
+      NAV_TIMEOUT_MS,
+      { ignoreSearch: true },
+      { cacheKey: normalizedCacheKey(request) }
+    ));
     return;
   }
 
   if (isCriticalAsset) {
-    event.respondWith(networkOnlyWithOfflineFallback(request, {
-      bypassHttpCache: true
-    }));
+    const isVersioned = url.searchParams.has('v');
+    if (isVersioned) {
+      event.respondWith(cacheFirstVersioned(request));
+    } else {
+      event.respondWith(networkFirstWithTimeout(request, ASSET_TIMEOUT_MS));
+    }
     return;
   }
 

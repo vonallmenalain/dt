@@ -25,6 +25,15 @@
         s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;--green-bg-1:#0a1633;--green-bg-2:#081029;--green-bg-3:#0a1633;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart,[data-tournament^="cl"] #indexHomePreStart{background:#0a1633;}';
         (document.head||d).appendChild(s);
       }
+      // Kaderdatei-Preload: data.js laedt sie spaeter synchron via
+      // document.write – der Preload startet den Download schon jetzt,
+      // parallel zum HTML-Parsing. Spiegel der dataReady-Turniere aus
+      // tournament-config.js (dort nachziehen, wenn ein Turnier dazukommt);
+      // bei Abweichung kostet es nur einen unnoetigen Request.
+      var df=(k==="cl2526")?"data-cl2526.js":"data-wm2026.js";
+      var pl=document.createElement("link");
+      pl.rel="preload";pl.as="script";pl.href=df;
+      (document.head||d).appendChild(pl);
     }catch(e){}})();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -34,7 +43,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-<link rel="manifest" href="Icons/site.webmanifest?v=2026-06-23-freshness-1">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-22-phase1-1">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -52,16 +61,19 @@
     <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
-    <!-- Firebase-Compat-SDK früh und parallel zum HTML-Parsing laden. -->
-    <!-- Firebase-Compat-SDK SYNCHRON laden – Inline-Body-Skripte rufen
-         `APP.getDb()` zum Top-Level-Auswertungszeitpunkt auf, ein `defer`
-         würde diesen Aufruf vor dem Firebase-Boot ausführen und damit
-         "Firebase SDK ist noch nicht geladen." werfen. -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase-Compat-SDK: Download startet dank preload sofort und
+         parallel zum HTML-Parsing; die eigentlichen <script>-Tags stehen
+         am Body-Ende direkt VOR tournament-config.js. So blockiert das
+         SDK nicht mehr den First Paint, aber die Ausführungs-Reihenfolge
+         (firebase → APP_CONFIG → App-Skripte) bleibt exakt wie bisher –
+         inklusive der Inline-Body-Skripte, die `APP.getDb()` auf
+         Top-Level aufrufen. Bewusst KEIN `defer`: das hat frueher zu
+         einer "Firebase SDK noch nicht geladen"-Regression gefuehrt. -->
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
+    <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
-<link rel="stylesheet" href="styles.css?v=2026-06-23-freshness-1">
+<link rel="stylesheet" href="styles.css?v=2026-07-22-phase1-1">
 
     <style>
         /* =====================================================
@@ -2265,17 +2277,23 @@
     </div>
 </div>
 
-<script src="tournament-config.js?v=2026-06-23-freshness-1"></script>
-<script src="nav.js?v=2026-06-23-freshness-1"></script>
+<!-- Firebase-Compat-SDK: per preload im <head> bereits heruntergeladen,
+     hier nur noch ausgefuehrt – VOR tournament-config.js, damit
+     APP.getDb() und alle nachfolgenden Skripte firebase sicher sehen. -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="tournament-config.js?v=2026-07-22-phase1-1"></script>
+<script src="nav.js?v=2026-07-22-phase1-1"></script>
 
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="data.js?v=2026-06-23-freshness-1"></script>
-<script src="points-utils.js?v=2026-06-23-freshness-1"></script>
-<script src="transfer-utils.js?v=2026-06-23-freshness-1"></script>
-<script src="cache.js?v=2026-06-23-freshness-1"></script>
+<script src="data.js?v=2026-07-22-phase1-1"></script>
+<script src="points-utils.js?v=2026-07-22-phase1-1"></script>
+<script src="transfer-utils.js?v=2026-07-22-phase1-1"></script>
+<script src="cache.js?v=2026-07-22-phase1-1"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css?v=2026-06-23-freshness-1">
+<link rel="stylesheet" href="auth-modal.css?v=2026-07-22-phase1-1">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
@@ -4516,6 +4534,72 @@
         return !!(info && info.verifiedFromServer === true && info.stale !== true);
     }
 
+    /* =========================================================
+       CACHED-FIRST RENDERING
+       Der letzte lokale Cache-Stand wird sofort angezeigt, die
+       Server-Bestaetigung laeuft im Hintergrund (dezenter Pill
+       unten). Zur sichtbaren Warnung eskalieren wir erst, wenn
+       nach FRESHNESS_TIMEOUT_MS keine serververifizierten Daten
+       angekommen sind – oder ein Refresh wirklich fehlschlaegt.
+       ========================================================= */
+    const FRESHNESS_TIMEOUT_MS = 5000;
+    let freshnessTimerId = null;
+    let hasVerifiedData = false;
+
+    function showSyncIndicator(message) {
+        let el = document.getElementById('dt-sync-indicator');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'dt-sync-indicator';
+            el.setAttribute('role', 'status');
+            document.body.appendChild(el);
+        }
+        el.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);'
+            + 'z-index:1200;padding:6px 14px;border-radius:999px;font-size:0.78rem;'
+            + 'letter-spacing:0.02em;color:var(--text-muted,#cbd5e1);'
+            + 'background:rgba(10,14,26,0.85);border:1px solid rgba(255,255,255,0.14);'
+            + 'pointer-events:none;opacity:1;transition:opacity .25s ease;';
+        el.textContent = message || 'Daten werden aktualisiert …';
+        return el;
+    }
+
+    /* Nicht-destruktive Variante fuer "Offline/veraltet"-Hinweise, wenn
+       bereits Inhalt sichtbar ist (die harten Fehlerpfade der Seite wuerden
+       den gerenderten Stand ersetzen). */
+    function showStaleNotice(message) {
+        const el = showSyncIndicator(message);
+        el.style.color = '#fca5a5';
+        el.style.borderColor = 'rgba(248,113,113,0.45)';
+    }
+
+    function hideSyncIndicator() {
+        const el = document.getElementById('dt-sync-indicator');
+        if (el) el.style.opacity = '0';
+    }
+
+    function startFreshnessEscalation(onTimeout) {
+        if (hasVerifiedData || freshnessTimerId) return;
+        freshnessTimerId = setTimeout(() => {
+            freshnessTimerId = null;
+            if (!hasVerifiedData) onTimeout();
+        }, FRESHNESS_TIMEOUT_MS);
+    }
+
+    function markServerVerified() {
+        hasVerifiedData = true;
+        if (freshnessTimerId) {
+            clearTimeout(freshnessTimerId);
+            freshnessTimerId = null;
+        }
+        hideSyncIndicator();
+    }
+
+    function cachedBundleHasContent(data) {
+        if (!data) return false;
+        if (Array.isArray(data.teams) && data.teams.length) return true;
+        return !!(data.points && Object.keys(data.points).length);
+    }
+
     function showFreshnessError(message) {
         const el = document.getElementById("loading");
         if (!el) return;
@@ -4656,18 +4740,43 @@
             if (!metaUnsubscribe) {
                 metaUnsubscribe = await DreamTeamCache.bootstrap({
                     ...CACHE_OPTIONS,
+                    // Cached-first: letzter lokaler Stand sofort rendern,
+                    // Server-Bestaetigung laeuft im Hintergrund (Pill unten).
+                    renderCached: true,
                     onCachedReady: (data, info) => {
-                        if (!isServerVerifiedCacheInfo(info)) {
-                            showFreshnessError(`Rangliste fuer ${TOURNAMENT_LABEL} wartet auf frische Serverdaten.`);
+                        if (isServerVerifiedCacheInfo(info)) {
+                            markServerVerified();
+                            applyRankingData(data);
                             return;
                         }
-                        applyRankingData(data);
+                        if (cachedBundleHasContent(data)) {
+                            try {
+                                applyRankingData(data);
+                                showSyncIndicator();
+                            } catch (err) {
+                                console.warn('[rangliste] Cached-Render fehlgeschlagen:', err);
+                            }
+                        }
+                        startFreshnessEscalation(() => {
+                            if (hasRenderedOnce) {
+                                showStaleNotice('Warte auf Serverbestaetigung …');
+                            } else {
+                                hideSyncIndicator();
+                                showFreshnessError(`Rangliste fuer ${TOURNAMENT_LABEL} wartet auf frische Serverdaten.`);
+                            }
+                        });
                     },
                     onUpdate: (data, info) => {
                         if (!isServerVerifiedCacheInfo(info)) {
-                            showFreshnessError('Offline oder Server nicht erreichbar. Alte Ranglisten-/Punktedaten werden nicht als aktueller Stand angezeigt.');
+                            if (hasRenderedOnce) {
+                                showStaleNotice('Offline – angezeigt wird der letzte lokale Stand.');
+                            } else {
+                                hideSyncIndicator();
+                                showFreshnessError('Offline oder Server nicht erreichbar. Es liegen noch keine lokalen Daten vor.');
+                            }
                             return;
                         }
+                        markServerVerified();
                         if (isMetaRefreshRunning) return;
                         isMetaRefreshRunning = true;
                         try {
@@ -4678,10 +4787,15 @@
                     },
                     onError: (err) => {
                         console.error("Meta-Listener Fehler:", err);
-                        showFreshnessError(`Aktuelle Ranglistendaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
-                        if (!hasRenderedOnce) {
-                            document.getElementById("loading").innerHTML = `<span style="font-size:1.5rem;opacity:0.4;">⚠️</span> Fehler beim Berechnen der Rangliste für ${escapeHtml(TOURNAMENT_LABEL)}.`;
+                        if (hasRenderedOnce) {
+                            // Inhalt ist sichtbar → nicht-destruktiver Hinweis
+                            // statt erneutem Einblenden des Loading-Blocks.
+                            showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+                            return;
                         }
+                        hideSyncIndicator();
+                        showFreshnessError(`Aktuelle Ranglistendaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
+                        document.getElementById("loading").innerHTML = `<span style="font-size:1.5rem;opacity:0.4;">⚠️</span> Fehler beim Berechnen der Rangliste für ${escapeHtml(TOURNAMENT_LABEL)}.`;
                     }
                 });
             }

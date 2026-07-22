@@ -1,0 +1,20 @@
+# =============================================================================
+# Netlify-Konfiguration – Caching.
+#
+# HTML/JS/CSS behalten bewusst Netlifys Default-Verhalten
+# (ETag + `max-age=0, must-revalidate` → billige 304-Revalidierung):
+# Zusammen mit dem Service Worker (cache-first fuer `?v=`-versionierte
+# Assets, network-first mit Cache-Fallback fuer den Rest) ist das der
+# gewollte Frische-Mechanismus. KEINE langen Cache-Header fuer JS/CSS
+# setzen – viele Dateien (admin.js, auth.js, data-*.js, …) werden ohne
+# Versions-Parameter eingebunden und wuerden sonst nach einem Deploy
+# tagelang veraltet ausgeliefert.
+#
+# Nur echte Langzeit-Assets (App-Icons) bekommen lange Cache-Header;
+# sie aendern sich praktisch nie und haben keinen Code-Einfluss.
+# =============================================================================
+
+[[headers]]
+  for = "/Icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
