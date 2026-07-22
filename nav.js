@@ -579,14 +579,16 @@ function initNavAuth(APP) {
 }
 
 /* =========================================================================
- *  Vorschau-Hinweisbanner.
+ *  Vorschau-Hinweis (kompakter Dev-Pill oben links).
  *
  *  Sobald eine Admin-VORSCHAU aktiv ist (Preview-Kanal, siehe
- *  tournament-config.js), einen deutlich sichtbaren, festen Hinweis mit
- *  1-Klick-Ausstieg einblenden. So lässt sich eine Vorschau nie mit der
- *  echten Produktiv-Seite verwechseln – unabhängig davon, ob der (Admin-
- *  gate-abhängige) Turnier-Switcher gerade sichtbar ist. Rein additiv:
- *  ohne aktive Vorschau ist dies ein No-op (die WM ist nie betroffen).
+ *  tournament-config.js), einen dezenten, festen Hinweis mit 1-Klick-Ausstieg
+ *  oben links einblenden – im Stil der übrigen Dev-Knöpfe. So lässt sich eine
+ *  Vorschau nie mit der echten Produktiv-Seite verwechseln, ohne dass der
+ *  Hinweis (wie der frühere Balken am unteren Rand) auf Mobil die untere
+ *  Bereichsleiste (.bottom-nav: Dashboard/Analyse/…) überdeckt. Unabhängig
+ *  davon, ob der (Admin-gate-abhängige) Turnier-Switcher sichtbar ist. Rein
+ *  additiv: ohne aktive Vorschau ein No-op (die WM ist nie betroffen).
  * ========================================================================= */
 function buildPreviewBadge(APP) {
     if (!APP || typeof APP.isPreviewActive !== 'function' || !APP.isPreviewActive()) return;
@@ -604,30 +606,50 @@ function buildPreviewBadge(APP) {
         if (def && def.shortLabel) backLabel = def.shortLabel;
     } catch (_) { /* keep default */ }
 
+    // Volltext bleibt für Screenreader / Hover erhalten – der sichtbare Pill
+    // ist bewusst kompakt gehalten.
+    const fullText = `🔧 Admin-Vorschau aktiv: ${previewLabel} – nicht die öffentliche Seite. Zur ${backLabel} zurück.`;
+
     const bar = document.createElement('div');
     bar.id = 'dt-preview-badge';
     bar.setAttribute('role', 'status');
+    bar.setAttribute('aria-label', fullText);
+    bar.title = fullText;
+    // Kompakter Dev-Pill oben links statt breitem Balken am unteren Rand: so
+    // stört er weder das Layout noch – auf Mobil – die untere Bereichsleiste
+    // (.bottom-nav für Dashboard/Analyse/…). Optik im Stil der übrigen
+    // Dev-Knöpfe (dunkel, transluzent, Amber-Akzent als Vorschau-Signal).
     bar.style.cssText = [
-        'position:fixed', 'left:0', 'right:0', 'bottom:0', 'z-index:2147483000',
-        'display:flex', 'align-items:center', 'justify-content:center',
-        'gap:12px', 'flex-wrap:wrap', 'padding:8px 14px',
-        'background:#b45309', 'color:#fff',
-        'font:600 13px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
-        'box-shadow:0 -2px 12px rgba(0,0,0,.35)', 'text-align:center'
+        'position:fixed', 'top:8px', 'left:8px', 'z-index:2147483000',
+        'display:inline-flex', 'align-items:center', 'gap:8px',
+        'max-width:min(92vw,360px)', 'padding:4px 8px', 'border-radius:6px',
+        'background:rgba(0,0,0,0.62)', 'border:1px solid rgba(251,191,36,0.55)',
+        'color:rgba(251,191,36,0.95)',
+        'font:700 11px/1.4 monospace,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+        'box-shadow:0 2px 10px rgba(0,0,0,.35)',
+        'user-select:none', '-webkit-user-select:none'
     ].join(';');
 
     const text = document.createElement('span');
-    text.textContent = `🔧 Admin-Vorschau aktiv: ${previewLabel} – nicht die öffentliche Seite.`;
+    text.textContent = `🔧 Vorschau: ${previewLabel}`;
+    text.style.cssText = [
+        'min-width:0', 'overflow:hidden', 'text-overflow:ellipsis', 'white-space:nowrap'
+    ].join(';');
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.textContent = `↩ Zur ${backLabel} zurück`;
+    btn.textContent = '↩';
+    btn.setAttribute('aria-label', `Zur ${backLabel} zurück`);
+    btn.title = `Zur ${backLabel} zurück`;
     btn.style.cssText = [
-        'cursor:pointer', 'border:0', 'border-radius:6px', 'padding:6px 12px',
-        'background:#fff', 'color:#7c2d12',
-        'font:700 13px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
+        'flex:0 0 auto', 'cursor:pointer', 'border:0', 'border-radius:4px',
+        'padding:2px 7px', 'background:rgba(251,191,36,0.18)',
+        'color:rgba(251,191,36,0.95)',
+        'font:800 12px/1 monospace,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
         'white-space:nowrap'
     ].join(';');
+    btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(251,191,36,0.30)'; });
+    btn.addEventListener('mouseleave', () => { btn.style.background = 'rgba(251,191,36,0.18)'; });
     btn.addEventListener('click', () => {
         try {
             if (typeof APP.clearPreview === 'function') { APP.clearPreview(); return; }
@@ -641,6 +663,30 @@ function buildPreviewBadge(APP) {
     bar.appendChild(text);
     bar.appendChild(btn);
     (document.body || document.documentElement).appendChild(bar);
+
+    // Nicht mit den übrigen Dev-Knöpfen oben links kollidieren: ist dort etwas
+    // sichtbar (#dev-index-toggle, Sync-Link, Turnier-Switcher), rutscht der
+    // Pill in die Zeile darunter; sonst bleibt er bei top:8px.
+    function placePreviewBadge() {
+        let bottom = 0;
+        ['dev-index-toggle', 'admin-sync-monitor-link', 'dev-tournament-switcher', 'dev-tournament-toggle']
+            .forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                let cs;
+                try { cs = window.getComputedStyle(el); } catch (_) { return; }
+                if (!cs || cs.visibility === 'hidden' || cs.display === 'none') return;
+                const r = el.getBoundingClientRect();
+                if (!r || !r.width || r.left > 240) return; // nur die linke Knopfleiste
+                bottom = Math.max(bottom, r.bottom);
+            });
+        bar.style.top = `${bottom > 0 ? Math.round(bottom + 6) : 8}px`;
+    }
+    placePreviewBadge();
+    // Die Dev-Knöpfe werden erst nach dem Admin-Gate sichtbar (asynchron) –
+    // daher ein paar Nachmessungen plus Reflow bei Resize.
+    [0, 250, 600, 1200].forEach((ms) => setTimeout(placePreviewBadge, ms));
+    window.addEventListener('resize', placePreviewBadge);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
