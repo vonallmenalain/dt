@@ -7296,7 +7296,8 @@
             initialCaptain: team.initialCaptain || teamCurrentCaptainId(team),
             playerMatchPoints: transferScoreCtx.playerMatchPoints,
             getKickoffMs: transferScoreCtx.getKickoffMs,
-            captainMultiplier: 2
+            // CL hat keinen Captain → kein ×2 (WM behält ×2).
+            captainMultiplier: (window.APP_CONFIG && window.APP_CONFIG.captainEnabled === false) ? 1 : 2
         });
     }
 
@@ -11595,6 +11596,11 @@
     }
 
     function render(data, options = {}) {
+        // CL hat kein Captain-Feature: gespeicherte Captain-Flags (z. B. aus
+        // Alt-Teams) hier zentral entfernen, damit weder ×2 noch „C" greifen.
+        if (window.APP_CONFIG && window.APP_CONFIG.captainEnabled === false && data && Array.isArray(data.teams)) {
+            data.teams.forEach(t => { if (t && Array.isArray(t.players)) t.players.forEach(p => { if (p) p.isCaptain = false; }); });
+        }
         _lastRenderedData = data;
         const signature = getRenderSignature(data);
         if (!options.force && signature && signature === _lastRenderSignature) {

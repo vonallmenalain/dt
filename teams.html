@@ -1630,11 +1630,11 @@
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
-        /* Transfer-Badge „T" (analog zum Captain-„C", aber oben RECHTS,
-           damit es nicht mit dem Captain-Badge oben links kollidiert). */
+        /* Transfer-Badge „T" oben LINKS. In der CL gibt es keinen Captain,
+           daher ist die linke Ecke frei (die Punkte stehen oben rechts). */
         .transfer-badge {
             position: absolute;
-            top: 8px; right: 8px;
+            top: 8px; left: 8px;
             background: linear-gradient(135deg, #38bdf8, #0284c7);
             color: #fff;
             width: 24px; height: 24px;
@@ -1653,7 +1653,7 @@
             -webkit-backface-visibility: hidden;
         }
             .player-card:hover .transfer-badge { transform: translateZ(58px) scale(1.1); }
-            .mobile-card-wrapper .transfer-badge { width: 20px; height: 20px; font-size: 10px; top: 5px; right: 5px; }
+            .mobile-card-wrapper .transfer-badge { width: 20px; height: 20px; font-size: 10px; top: 5px; left: 5px; }
 
         /* Ausgetauschte Spieler (unter dem Team) */
         .transferred-out-section {
@@ -2623,6 +2623,8 @@
     let playerPointsData = {};
     let playerPointDocs = {};
     let fixturesData = {};
+    // Captain-Feature aktiv? (WM ja, CL nein – siehe tournament-config.js)
+    const CAPTAIN_ENABLED = !(window.APP_CONFIG && window.APP_CONFIG.captainEnabled === false);
     // Fixture-basierter Nationen-Lebenszyklus (siehe APP_CONFIG.getNationStatus).
     // Bestimmt, welche Spieler noch im Turnier sind (Nation nicht ausgeschieden).
     let nationLifecycle = null;
@@ -3379,7 +3381,11 @@
                 // nicht mehr im aktuellen Kader gefunden wird.
                 const pos = normalizePosition((fullP && fullP.Position) || p.pos || 'UNKNOWN');
                 const basePts = fullP ? (playerPointsData[fullP['player.id']] || 0) : 0;
-                const finalPts = p.isCaptain ? basePts * 2 : basePts;
+                // Captain nur, wenn das Turnier ihn nutzt (WM). In der CL gibt
+                // es keinen Captain → kein ×2 und kein „C"-Badge, auch nicht bei
+                // Alt-Teams mit gespeichertem Captain.
+                const isCap = CAPTAIN_ENABLED && !!p.isCaptain;
+                const finalPts = isCap ? basePts * 2 : basePts;
 
                 // Stored-XSS-Härtung: Anzeigewerte stammen primär aus den
                 // kanonischen Spielerdaten (data-wm2026.js). Wenn der Spieler
@@ -3395,7 +3401,7 @@
                     pos,
                     slotNum,
                     pts: finalPts,
-                    isCaptain: !!p.isCaptain,
+                    isCaptain: isCap,
                     photo: fullP ? fullP.Spielerfoto : (p.photo || 'https://via.placeholder.com/100'),
                     nation: fullP ? fullP['Nationalteam.name'] : (p.nation || '?'),
                     flag: fullP ? fullP['Nationalteam.logo'] : (p.flag || ''),
@@ -3418,24 +3424,30 @@
             if (hasTransferFreeze) {
                 ensureTransferScoring();
                 const currentIds = mergedPlayers.map(p => String(p.id));
-                const currentCaptain = (mergedPlayers.find(p => p.isCaptain) || {}).id || null;
+                const currentSet = new Set(currentIds);
+                const currentCaptain = CAPTAIN_ENABLED ? ((mergedPlayers.find(p => p.isCaptain) || {}).id || null) : null;
                 const bd = TU.managerBreakdownOverTime({
                     currentTeamIds: currentIds,
                     transfers: team.transfers,
                     initialCaptain: team.initialCaptain || currentCaptain,
                     playerMatchPoints: sharedPmp,
                     getKickoffMs: kickoffFn,
-                    captainMultiplier: 2
+                    captainMultiplier: CAPTAIN_ENABLED ? 2 : 1
                 });
                 mergedPlayers.forEach(p => { p.pts = bd.perPlayer[String(p.id)] || 0; });
-                // Transferierte-IN markieren: aktuell im Team, aber nicht im Start-15.
-                const initialIds = (typeof TU.reconstructInitialTeamIds === 'function')
-                    ? new Set(TU.reconstructInitialTeamIds(mergedPlayers.map(p => String(p.id)), team.transfers).map(String))
-                    : new Set(mergedPlayers.map(p => String(p.id)));
+                // Start-15 rekonstruieren. „transferiert-IN" = aktuell im Team,
+                // aber NICHT im Start-15. „ausgetauscht" = im Start-15, aber NICHT
+                // mehr aktuell. Beide Mengen sind gleich gross (Teamgrösse konstant)
+                // → gleich viele „T"-Badges wie ausgetauschte Spieler. Ein nur
+                // verschobener oder raus-und-wieder-rein gesetzter Spieler bleibt
+                // in beiden Mengen und zählt daher NICHT als Transfer.
+                const initialIdsArr = (typeof TU.reconstructInitialTeamIds === 'function')
+                    ? TU.reconstructInitialTeamIds(currentIds, team.transfers).map(String)
+                    : currentIds.slice();
+                const initialIds = new Set(initialIdsArr);
                 mergedPlayers.forEach(p => { p.isTransferIn = !initialIds.has(String(p.id)); });
-                // Ausgetauschte Spieler (zählen bis zum Transfer) als Karten-Daten.
-                transferredOut = bd.everOwned
-                    .filter(id => !bd.currentSet[id])
+                transferredOut = initialIdsArr
+                    .filter(id => !currentSet.has(id))
                     .map(id => {
                         const fp = resolveStoredPlayer({ playerId: id });
                         return {
@@ -3454,7 +3466,6 @@
                             slotNum: -1
                         };
                     })
-                    .filter(p => p.pts !== 0)
                     .sort((a, b) => b.pts - a.pts);
                 teamTotal = bd.total;
             } else {

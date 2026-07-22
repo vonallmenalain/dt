@@ -470,6 +470,7 @@ const APP_CONFIG = (() => {
       // Captain-Multiplikator: CL soll 1.5× statt 2×. Wird in M4 von den
       // CL-Views konsumiert (die WM-Views bleiben bei hartkodiertem 2×).
       captainMultiplier: 1.5,
+      captainEnabled: false,
 
       // Transfer-Feature (siehe CL_TRANSFERS): 2 Transfers für die ganze
       // CL, je bis zu 3 Spieler, jederzeit. Konsumiert von transfer-utils.js.
@@ -513,6 +514,7 @@ const APP_CONFIG = (() => {
       structure: "league",
       primaryEntity: "club",
       captainMultiplier: 1.5,
+      captainEnabled: false,
 
       // Abgeschlossene Saison: API-Football Liga-ID 2, Saison-Startjahr 2025.
       api: {
@@ -2218,6 +2220,13 @@ const APP_CONFIG = (() => {
     get primaryEntity() {
       var pe = getActiveTournament().primaryEntity;
       return pe === "club" ? "club" : "nation";
+    },
+
+    // Captain-Feature: WM nutzt einen Captain (×2), die CL bewusst NICHT.
+    // Default true; nur wenn ein Turnier `captainEnabled: false` setzt, ist
+    // die Captain-Wahl (und der ×2-Multiplikator) deaktiviert.
+    get captainEnabled() {
+      return getActiveTournament().captainEnabled !== false;
     },
 
     get type() {
