@@ -2625,7 +2625,7 @@
                     Baue dein <span class="gold-text" id="hero-tournament-label">&nbsp;</span> <span class="accent">DreamTeam</span>
                 </h1>
                 <p class="builder-hero-subtitle">
-                    15 Spieler &nbsp;·&nbsp; 1 Captain &nbsp;·&nbsp; Maximal 1 Spieler pro Nation
+                    15 Spieler &nbsp;·&nbsp; 1 Captain &nbsp;·&nbsp; Maximal 1 Spieler pro <span id="entity-rule-noun">Nation</span>
                 </p>
             </div>
             <div class="builder-hero-actions">
@@ -2724,7 +2724,7 @@
                             <button type="button" id="clear-picker-search" class="clear-input-btn" aria-label="Suche löschen">×</button>
                         </div>
                         <select id="picker-nation-filter" class="picker-select" aria-label="Nach Nation filtern">
-                            <option value="ALL">🌍 Alle Länder</option>
+                            <option value="ALL" id="picker-nation-filter-all">🌍 Alle Länder</option>
                         </select>
                         <button type="button" id="clear-picker-filters" class="picker-clear-btn">Filter zurücksetzen</button>
                     </div>
@@ -2901,6 +2901,30 @@
     /* Update hero tournament label */
     const heroLabelEl = document.getElementById('hero-tournament-label');
     if (heroLabelEl) heroLabelEl.textContent = APP.shortLabel || 'DreamTeam';
+
+    /* Primär-Entität des Turniers: WM ist nations-, die CL club-zentriert
+       (siehe primaryEntity in tournament-config.js). Die „1 pro X"-Regel und
+       die zugehörigen Labels heissen daher bei der CL „Club" statt „Nation". */
+    function primaryEntityNoun() {
+        return (window.APP_CONFIG && window.APP_CONFIG.primaryEntity === 'club') ? 'Club' : 'Nation';
+    }
+    function primaryEntityNounPlural() {
+        return (window.APP_CONFIG && window.APP_CONFIG.primaryEntity === 'club') ? 'Clubs' : 'Nationen';
+    }
+
+    (function applyEntityLabels() {
+        const isClub = (window.APP_CONFIG && window.APP_CONFIG.primaryEntity === 'club');
+        const ruleNoun = document.getElementById('entity-rule-noun');
+        if (ruleNoun) ruleNoun.textContent = primaryEntityNoun();
+
+        const flags = document.getElementById('dsb-nations-flags');
+        if (flags) flags.setAttribute('aria-label', `Gewählte ${primaryEntityNounPlural()}`);
+
+        const filterSelect = document.getElementById('picker-nation-filter');
+        if (filterSelect) filterSelect.setAttribute('aria-label', `Nach ${primaryEntityNoun()} filtern`);
+        const filterAll = document.getElementById('picker-nation-filter-all');
+        if (filterAll) filterAll.textContent = isClub ? '🌍 Alle Clubs' : '🌍 Alle Länder';
+    })();
 
     /* =========================================================
        SLOT DEFINITIONS
@@ -3890,7 +3914,7 @@
         let reason = '';
         if (!isSamePlayer) {
             if (isWrongPos)      reason = 'Falsche Position';
-            else if (isNationBlocked) reason = 'Nation bereits gewählt';
+            else if (isNationBlocked) reason = `${primaryEntityNoun()} bereits gewählt`;
             else if (isPlayerBlocked) reason = 'Bereits im Team';
         }
 
