@@ -7221,7 +7221,88 @@
         return result;
     }
 
+    /* ── Zeitbasierte Transfer-Wertung (Freeze) ──────────────────────────
+       Für Teams MIT Transfers zählen Spieler nur, solange sie im Team waren
+       (altes 15 bis zum Transfer, neues 15 danach). Der Kontext (Punkte je
+       Spiel + Anpfiff je Spiel) wird pro Render einmalig gebaut; getTeamTotal
+       und champEnrichTeams nutzen ihn, ohne dass jede Aufrufstelle ihn
+       durchreichen muss. Teams OHNE Transfers → bisherige Skalar-Summe. */
+    let transferScoreCtx = null;
+
+    function tsFixtureKickoffMs(fixture) {
+        if (!fixture || typeof fixture !== 'object') return null;
+        const ts = Number(fixture.kickoffTimestamp);
+        if (Number.isFinite(ts) && ts > 0) return ts > 10000000000 ? ts : ts * 1000;
+        const raw = fixture.kickoffIso || fixture.date || fixture.datetime || fixture.kickoff || '';
+        if (raw) { const p = Date.parse(raw); if (Number.isFinite(p)) return p; }
+        return null;
+    }
+
+    function tsFindFixture(fixtures, matchId) {
+        const map = fixtures || {};
+        const direct = map[matchId] || map[String(matchId)];
+        if (direct && typeof direct === 'object') return direct;
+        const target = String(matchId);
+        for (const fx of Object.values(map)) {
+            if (fx && typeof fx === 'object' && String(fx.fixtureId) === target) return fx;
+        }
+        return null;
+    }
+
+    function buildTransferScoreCtx(data) {
+        const rawPoints = (data && data.points) || {};
+        const fixtures = (data && data.fixtures) || {};
+        const pmp = {};
+        const DP = window.DreamTeamPoints;
+        if (DP && typeof DP.getPlayerMatchTotals === 'function') {
+            Object.keys(rawPoints).forEach(id => { pmp[String(id)] = DP.getPlayerMatchTotals(rawPoints[id]); });
+        }
+        const cache = Object.create(null);
+        const getKickoffMs = (matchId) => {
+            const key = String(matchId);
+            if (key in cache) return cache[key];
+            const ms = tsFixtureKickoffMs(tsFindFixture(fixtures, matchId));
+            cache[key] = ms;
+            return ms;
+        };
+        return { playerMatchPoints: pmp, getKickoffMs };
+    }
+
+    function teamResolvedIds(team) {
+        return (team.players || []).map(tp => {
+            const full = resolvePlayer(tp);
+            return full ? String(full['player.id']) : String(tp.playerId || '');
+        });
+    }
+
+    function teamCurrentCaptainId(team) {
+        const capTp = (team.players || []).find(tp => tp && tp.isCaptain);
+        if (!capTp) return null;
+        const full = resolvePlayer(capTp);
+        return full ? String(full['player.id']) : String(capTp.playerId || '');
+    }
+
+    function teamHasTransfers(team) {
+        return !!(window.TransferUtils
+            && typeof window.TransferUtils.managerTotalOverTime === 'function'
+            && team && Array.isArray(team.transfers) && team.transfers.length);
+    }
+
+    function teamTotalOverTime(team) {
+        return window.TransferUtils.managerTotalOverTime({
+            currentTeamIds: teamResolvedIds(team),
+            transfers: team.transfers,
+            initialCaptain: team.initialCaptain || teamCurrentCaptainId(team),
+            playerMatchPoints: transferScoreCtx.playerMatchPoints,
+            getKickoffMs: transferScoreCtx.getKickoffMs,
+            captainMultiplier: 2
+        });
+    }
+
     function getTeamTotal(team, ptMap) {
+        if (teamHasTransfers(team) && transferScoreCtx) {
+            return teamTotalOverTime(team);
+        }
         return (team.players || []).reduce((sum, tp) => {
             const full = resolvePlayer(tp);
             const id = full ? String(full['player.id']) : String(tp.playerId || '');
@@ -8406,6 +8487,7 @@
        ========================================================= */
     function renderPreStartHome(data) {
         const teams = Array.isArray(data.teams) ? data.teams : [];
+        transferScoreCtx = buildTransferScoreCtx(data);
         const ptMap = computeTotalPoints(data.points);
 
         // Hero stats
@@ -10614,7 +10696,9 @@
             });
 
             mergedPlayers.sort((a, b) => b.pts - a.pts);
-            const totalScore = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+            const totalScore = (teamHasTransfers(team) && transferScoreCtx)
+                ? teamTotalOverTime(team)
+                : mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
 
             return { ...team, manager: team.manager || 'Unbekannt', mergedPlayers, totalScore };
         });
@@ -10858,6 +10942,7 @@
        ========================================================= */
     function renderPostStartHome(data) {
         const teams = Array.isArray(data.teams) ? data.teams : [];
+        transferScoreCtx = buildTransferScoreCtx(data);
         const ptMap = computeTotalPoints(data.points);
 
         const topPlayers = [...playersData]
