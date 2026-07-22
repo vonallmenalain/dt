@@ -20,15 +20,18 @@
         body { background: var(--cl-background, #0a1633); color: var(--cl-text, #dce8ff); }
         .lt-page { max-width: 860px; margin: 0 auto; padding: 16px 12px 96px; }
         .lt-head { margin: 8px 4px 16px; }
-        .lt-title { font-size: 1.5em; font-weight: 900; margin: 0; letter-spacing: -0.5px; }
-        .lt-title .accent { color: var(--cl-accent, #7db4ff); }
+        .lt-title { font-size: 1.5em; font-weight: 900; margin: 0; letter-spacing: -0.5px; color: var(--cl-accent, #7db4ff); }
+        /* „Ligatabelle" ist EIN Wort → durchgehend eine Farbe (nicht zweifarbig). */
+        .lt-title .accent { color: inherit; }
         .lt-sub { color: var(--cl-text-muted, #9db6e8); font-size: 0.9em; margin: 4px 0 0; }
 
         .lt-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 12px 4px 14px; font-size: 0.78em; color: var(--cl-text-muted, #9db6e8); }
         .lt-legend span { display: inline-flex; align-items: center; gap: 6px; }
         .lt-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-        .dot-r16 { background: #35c27a; }
-        .dot-po { background: #e0a03d; }
+        /* Zonen: kein Grün/Gold mehr – direkt qualifiziert = dunkelblau,
+           Playoff = hellblau, ausgeschieden = rot (bleibt als Warnfarbe). */
+        .dot-r16 { background: #3d8bff; }
+        .dot-po { background: #7db4ff; }
         .dot-out { background: #d15a6a; }
 
         .lt-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(125,180,255,0.14); }
@@ -46,8 +49,8 @@
         .lt-club-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
         .lt-pts { font-weight: 900; color: var(--cl-accent, #7db4ff); }
         .lt-zone { width: 4px; padding: 0 !important; }
-        .zone-r16 { background: #35c27a; }
-        .zone-po { background: #e0a03d; }
+        .zone-r16 { background: #3d8bff; }
+        .zone-po { background: #7db4ff; }
         .zone-out { background: #d15a6a; }
 
         .lt-empty { text-align: center; padding: 48px 16px; color: var(--cl-text-muted, #9db6e8); }

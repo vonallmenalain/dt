@@ -9,8 +9,8 @@
  * ============================================================================= */
 
 :root {
-    --dt-auth-primary:        #28a745;
-    --dt-auth-primary-hover:  #2fbd54;
+    --dt-auth-primary:        var(--green-accent, #28a745);
+    --dt-auth-primary-hover:  var(--green-bright, #2fbd54);
     --dt-auth-bg:             #161b22;
     --dt-auth-surface:        #1f2630;
     --dt-auth-surface-2:      #262d39;
@@ -19,7 +19,7 @@
     --dt-auth-text:           #e6edf3;
     --dt-auth-muted:          #9ba9b7;
     --dt-auth-danger:         #ff6b6b;
-    --dt-auth-warning:        #ffc857;
+    --dt-auth-warning:        var(--gold-warm, #ffc857);
     --dt-auth-radius:         14px;
     --dt-auth-radius-sm:      10px;
     --dt-auth-shadow:         0 24px 60px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.35);
@@ -65,7 +65,7 @@
 
 .dt-auth-nav-icon:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.45);
+    box-shadow: 0 0 0 3px rgba(var(--rgb-green-2, 40, 167, 69), 0.45);
 }
 
 .dt-auth-nav-icon-glyph {
@@ -92,7 +92,7 @@
     height: 10px;
     border-radius: 50%;
     background: #8a96a3;
-    border: 2px solid #1b3a27;
+    border: 2px solid var(--green-navdark, #1b3a27);
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -106,27 +106,27 @@
 
 /* Signed-in & verified: green accent + green pip. */
 .dt-auth-nav-icon[data-state="verified"] {
-    color: #4ade80;
-    border-color: rgba(74, 222, 128, 0.55);
-    background: rgba(74, 222, 128, 0.12);
+    color: var(--green-light, #4ade80);
+    border-color: rgba(var(--rgb-green-light, 74, 222, 128), 0.55);
+    background: rgba(var(--rgb-green-light, 74, 222, 128), 0.12);
 }
 .dt-auth-nav-icon[data-state="verified"]:hover {
-    background: rgba(74, 222, 128, 0.22);
-    border-color: rgba(74, 222, 128, 0.75);
-    color: #6ee7a0;
+    background: rgba(var(--rgb-green-light, 74, 222, 128), 0.22);
+    border-color: rgba(var(--rgb-green-light, 74, 222, 128), 0.75);
+    color: var(--green-mint, #6ee7a0);
 }
 .dt-auth-nav-icon[data-state="verified"] .dt-auth-nav-icon-status {
-    background: #28a745;
+    background: var(--green-accent, #28a745);
 }
 
 /* Signed-in but not verified yet: amber accent. */
 .dt-auth-nav-icon[data-state="unverified"] {
-    color: #ffc857;
-    border-color: rgba(255, 200, 87, 0.55);
-    background: rgba(255, 200, 87, 0.12);
+    color: var(--gold-warm, #ffc857);
+    border-color: rgba(var(--rgb-gold-amber, 255, 200, 87), 0.55);
+    background: rgba(var(--rgb-gold-amber, 255, 200, 87), 0.12);
 }
 .dt-auth-nav-icon[data-state="unverified"] .dt-auth-nav-icon-status {
-    background: #ffc857;
+    background: var(--gold-warm, #ffc857);
 }
 
 /* Dropdown menu shown when a verified user clicks the icon. */
@@ -193,7 +193,7 @@
 }
 
 .dt-auth-nav-dropdown-item:hover {
-    background: rgba(74, 222, 128, 0.14);
+    background: rgba(var(--rgb-green-light, 74, 222, 128), 0.14);
     color: #ffffff;
 }
 
@@ -351,7 +351,7 @@
 .dt-auth-input:focus {
     outline: none;
     border-color: var(--dt-auth-primary);
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.22);
+    box-shadow: 0 0 0 3px rgba(var(--rgb-green-2, 40, 167, 69), 0.22);
     background: var(--dt-auth-surface-2);
 }
 .dt-auth-input::placeholder { color: #6b7785; }
@@ -404,9 +404,9 @@
     margin: 0 0 14px;
     padding: 12px 14px;
     border-radius: var(--dt-auth-radius-sm);
-    background: rgba(40, 167, 69, 0.10);
-    border: 1px solid rgba(40, 167, 69, 0.35);
-    color: #c9f0d4;
+    background: rgba(var(--rgb-green-2, 40, 167, 69), 0.10);
+    border: 1px solid rgba(var(--rgb-green-2, 40, 167, 69), 0.35);
+    color: var(--green-pale, #c9f0d4);
     font-size: 13px;
     line-height: 1.45;
 }
@@ -444,7 +444,7 @@
 .dt-auth-tab.is-active {
     background: var(--dt-auth-primary);
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35);
+    box-shadow: 0 4px 12px rgba(var(--rgb-green-2, 40, 167, 69), 0.35);
 }
 
 .dt-auth-submit {
@@ -460,7 +460,7 @@
     letter-spacing: 0.2px;
     cursor: pointer;
     transition: transform 0.12s ease, box-shadow 0.15s ease, opacity 0.2s ease;
-    box-shadow: 0 6px 18px rgba(40, 167, 69, 0.35);
+    box-shadow: 0 6px 18px rgba(var(--rgb-green-2, 40, 167, 69), 0.35);
 }
 .dt-auth-submit:hover:not(:disabled) { transform: translateY(-1px); }
 .dt-auth-submit:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }

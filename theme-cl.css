@@ -33,6 +33,60 @@
   --primary: var(--cl-primary);
   --dark: var(--cl-surface);
   --light: var(--cl-background);
+
+  /* ── Grün/Gold → Blau ────────────────────────────────────────────────
+   * Die Views definieren ihr Grün/Gold als Variablen (Originalwerte = WM).
+   * Hier werden GENAU diese Variablen im CL-Scope auf die Blau-Palette
+   * umgelenkt – dadurch werden alle grün/gold gefärbten Texte, Ränder,
+   * Verläufe, Schatten und Flächen blau, ohne die (eingefrorene) WM zu
+   * berühren. Zwei Text-Blautöne wie in der Navbar: Hellblau (--cl-accent)
+   * und etwas dunkleres Blau (--cl-primary). */
+  --green-light: var(--cl-accent);     /* hellblau  (war Haupt-Grünton) */
+  --green-main: var(--cl-primary);     /* dunkleres Blau */
+  --green-deep: var(--cl-primary);
+  --green-accent: var(--cl-primary);
+  --green-glow: rgba(61, 139, 255, 0.35);
+  --gold: var(--cl-accent);            /* Gold → Hellblau */
+  --gold-light: #a9cbff;
+  --gold-dark: var(--cl-primary);
+  --gold-amber: var(--cl-primary);
+  --gold-amber2: #2f6fd0;
+  /* RGB-Tripel (für rgba(var(--…), α)-Verläufe/Schatten) → Blau-Tripel. */
+  --rgb-green-1: 61, 139, 255;         /* = --cl-primary */
+  --rgb-green-2: 61, 139, 255;
+  --rgb-green-3: 125, 180, 255;        /* = --cl-accent */
+  --rgb-gold: 125, 180, 255;
+  --rgb-amber: 61, 139, 255;
+
+  /* Weitere Grün-/Gold-/Gelb-Töne (2. Durchgang) → Blau. */
+  --rgb-green-light: 125, 180, 255;    /* helles Grün (#4ade80) → Hellblau */
+  --rgb-gold-light: 125, 180, 255;
+  --rgb-yellow: 125, 180, 255;
+  --rgb-orange: 61, 139, 255;
+  --rgb-green-dark: 15, 28, 61;        /* dunkles Grün → dunkles Blau */
+  --rgb-green-darker: 8, 15, 27;
+  --rgb-amber-d1: 15, 28, 61;
+  --rgb-amber-d2: 18, 32, 66;
+  --rgb-amber-d3: 14, 24, 48;
+  --gold-cream: #a9cbff;
+  --yellow-pale: #a9cbff;
+  --yellow-paler: #cfe0ff;
+  --green-dark: var(--cl-primary);
+
+  /* Auth-Modal-Töne (auth-modal.css nutzt var(--…, Original) mit Fallback). */
+  --green-bright: var(--cl-primary);
+  --green-mint: var(--cl-accent);
+  --green-pale: #cfe0ff;
+  --green-navdark: #10265a;
+  --gold-warm: var(--cl-accent);
+  --rgb-gold-amber: 125, 180, 255;
+
+  /* Fussball-„Rasen" (grüne Streifen) → blaues Spielfeld, Streifen-Tiefe bleibt. */
+  --pitch-a: #16346f;
+  --pitch-b: #1a3f82;
+  --pitch-c: #1f4d96;
+  --pitch-d: #10265a;
+  --pitch-e: #14356f;
 }
 
 /* ── Seite ──────────────────────────────────────────────────────────── */
@@ -165,10 +219,53 @@
     linear-gradient(180deg, #050a14 0%, #08142a 40%, #0a1633 100%);
 }
 
-/* Grüner Hero-Titel-Akzent („DreamTeam") → CL-Blau. Der Gold-Akzent
- * (`.gold-text`) bleibt: Gold passt als Pokal-Farbe auch zur CL. */
-[data-tournament^="cl"] .hero-title .accent {
-  background: linear-gradient(135deg, #7db4ff, #3d8bff, #1f6fe0);
-  -webkit-background-clip: text;
-  background-clip: text;
+/* ── Zweifarbige Titel „entzweifarben" (nur CL) ──────────────────────────
+ * Die Views setzen Titel-Wörter über Verlaufs-Text (`background: linear-
+ * gradient(...)` + `background-clip: text` + `-webkit-text-fill-color:
+ * transparent`) – dadurch schimmert ein Wort mehrfarbig. Gewünscht ist EINE
+ * Farbe pro Wort. Hier wird der Verlauf entfernt und pro Span eine solide
+ * Blau-Farbe gesetzt:
+ *   • `.gold-text`  → Hellblau  (--cl-accent)  – wie „Champions League" in der Navbar
+ *   • `.accent`     → dunkleres Blau (--cl-primary) – wie „DreamTeam" in der Navbar
+ * Ausnahme Punktesystem: „Punkte"+„system" ist EIN Wort (zwei Spans) → beide
+ * bekommen dieselbe Farbe, damit das Wort nicht zweifarbig ist. */
+[data-tournament^="cl"] .hero-title .gold-text,
+[data-tournament^="cl"] .champ-title .gold-text,
+[data-tournament^="cl"] .builder-hero-title .gold-text,
+[data-tournament^="cl"] .teams-hero-title .gold-text,
+[data-tournament^="cl"] .rl-hero-title .gold-text {
+  background: none;
+  color: var(--cl-accent);
+  -webkit-text-fill-color: var(--cl-accent);
+}
+
+[data-tournament^="cl"] .hero-title .accent,
+[data-tournament^="cl"] .champ-title .accent,
+[data-tournament^="cl"] .builder-hero-title .accent,
+[data-tournament^="cl"] .teams-hero-title .accent,
+[data-tournament^="cl"] .rl-hero-title .accent {
+  background: none;
+  color: var(--cl-primary);
+  -webkit-text-fill-color: var(--cl-primary);
+}
+
+/* Punktesystem: „Punktesystem" = ein Wort → beide Spans gleiche Farbe. */
+[data-tournament^="cl"] .ps-hero-title .accent,
+[data-tournament^="cl"] .ps-hero-title .gold-text {
+  background: none;
+  color: var(--cl-accent);
+  -webkit-text-fill-color: var(--cl-accent);
+}
+
+/* Weitere einzelne Verlaufs-Text-Elemente → eine solide Farbe. */
+[data-tournament^="cl"] .tcc-section-title {
+  background: none;
+  color: var(--cl-accent);
+  -webkit-text-fill-color: var(--cl-accent);
+}
+
+[data-tournament^="cl"] .total-points-display {
+  background: none;
+  color: var(--cl-primary);
+  -webkit-text-fill-color: var(--cl-primary);
 }
