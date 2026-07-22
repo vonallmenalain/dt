@@ -618,13 +618,14 @@ function buildPreviewBadge(APP) {
     // Kompakter Dev-Pill oben links statt breitem Balken am unteren Rand: so
     // stört er weder das Layout noch – auf Mobil – die untere Bereichsleiste
     // (.bottom-nav für Dashboard/Analyse/…). Optik im Stil der übrigen
-    // Dev-Knöpfe (dunkel, transluzent, Amber-Akzent als Vorschau-Signal).
+    // Dev-Knöpfe (dunkel, transluzent, Blau-Akzent als Vorschau-Signal –
+    // passend zum CL-Theme; erkennbar bleibt der Pill über 🔧 + „Vorschau").
     bar.style.cssText = [
         'position:fixed', 'top:8px', 'left:8px', 'z-index:2147483000',
         'display:inline-flex', 'align-items:center', 'gap:8px',
         'max-width:min(92vw,360px)', 'padding:4px 8px', 'border-radius:6px',
-        'background:rgba(0,0,0,0.62)', 'border:1px solid rgba(251,191,36,0.55)',
-        'color:rgba(251,191,36,0.95)',
+        'background:rgba(0,0,0,0.62)', 'border:1px solid rgba(125,180,255,0.55)',
+        'color:rgba(125,180,255,0.95)',
         'font:700 11px/1.4 monospace,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
         'box-shadow:0 2px 10px rgba(0,0,0,.35)',
         'user-select:none', '-webkit-user-select:none'
@@ -643,13 +644,13 @@ function buildPreviewBadge(APP) {
     btn.title = `Zur ${backLabel} zurück`;
     btn.style.cssText = [
         'flex:0 0 auto', 'cursor:pointer', 'border:0', 'border-radius:4px',
-        'padding:2px 7px', 'background:rgba(251,191,36,0.18)',
-        'color:rgba(251,191,36,0.95)',
+        'padding:2px 7px', 'background:rgba(125,180,255,0.18)',
+        'color:rgba(125,180,255,0.95)',
         'font:800 12px/1 monospace,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
         'white-space:nowrap'
     ].join(';');
-    btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(251,191,36,0.30)'; });
-    btn.addEventListener('mouseleave', () => { btn.style.background = 'rgba(251,191,36,0.18)'; });
+    btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(125,180,255,0.30)'; });
+    btn.addEventListener('mouseleave', () => { btn.style.background = 'rgba(125,180,255,0.18)'; });
     btn.addEventListener('click', () => {
         try {
             if (typeof APP.clearPreview === 'function') { APP.clearPreview(); return; }

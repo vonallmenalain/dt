@@ -2,6 +2,31 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <!-- FOUC-Schutz: aktives Turnier früh bestimmen und – nur für die CL –
+         Blau (Hintergrund + Grün/Gold→Blau-Variablen) noch vor dem ersten
+         Paint anwenden. Spiegelt die Auflösung aus tournament-config.js; die
+         volle Logik (theme-cl.css) folgt direkt danach. WM: es wird nur
+         data-tournament gesetzt – das Aussehen bleibt unverändert. -->
+    <script>
+    (function(){try{
+      var h=(location.hostname||"").toLowerCase();
+      var q=new URLSearchParams(location.search);
+      function L(n){try{return localStorage.getItem(n);}catch(e){return null;}}
+      // Gleiche Reihenfolge wie resolveTournamentKey() in tournament-config.js:
+      // Preview > URL(?tournament) > Dev-Override > Domain > Fallback.
+      var k=q.get("preview")||L("dreamteam_preview_"+h)||q.get("tournament")||L("dreamteam_dev_override_"+h)||({"dt.alae.app":"wm2026"})[h]||"wm2026";
+      k=String(k).trim().toLowerCase();
+      var d=document.documentElement;
+      d.setAttribute("data-tournament",k);
+      if(/^cl/.test(k)){
+        d.style.background="#0a1633";
+        var s=document.createElement("style");
+        s.id="cl-critical-theme";
+        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart{background:#0a1633;}';
+        (document.head||d).appendChild(s);
+      }
+    }catch(e){}})();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="view-transition" content="same-origin">
     <meta name="description" content="DreamTeam Teams – Alle Teilnehmer-Teams auf einen Blick.">
@@ -48,7 +73,42 @@
            ROOT & GLOBAL
            ===================================================== */
         :root {
-            --green-glow: rgba(40, 167, 69, 0.45);
+            /* CL-Theming: Grün/Gold als Variablen (Originalwerte = WM);
+               im CL-Scope lenkt theme-cl.css sie auf Blau um. */
+            --green-light: #4ade80;
+            --green-main: #22c55e;
+            --green-deep: #16a34a;
+            --green-accent: #28a745;
+            --gold: #ffd700;
+            --gold-light: #fbbf24;
+            --gold-dark: #e5a800;
+            --gold-amber: #ffb300;
+            --gold-amber2: #f59e0b;
+            --rgb-green-1: 34, 197, 94;
+            --rgb-green-2: 40, 167, 69;
+            --rgb-green-3: 22, 163, 74;
+            --rgb-gold: 255, 215, 0;
+            --rgb-amber: 255, 193, 7;
+            --rgb-green-light: 74, 222, 128;
+            --rgb-gold-light: 251, 191, 36;
+            --rgb-yellow: 250, 204, 21;
+            --rgb-orange: 255, 153, 0;
+            --rgb-green-dark: 6, 78, 59;
+            --rgb-green-darker: 7, 26, 10;
+            --rgb-amber-d1: 74, 57, 11;
+            --rgb-amber-d2: 92, 64, 16;
+            --rgb-amber-d3: 70, 44, 30;
+            --gold-cream: #fde68a;
+            --yellow-pale: #fef08a;
+            --yellow-paler: #fef9c3;
+            --green-dark: #15803d;
+            --pitch-a: #1a5c26;
+            --pitch-b: #1b6b2a;
+            --pitch-c: #1d7530;
+            --pitch-d: #174e22;
+            --pitch-e: #1b6424;
+
+            --green-glow: rgba(var(--rgb-green-2), 0.45);
             --gold: #ffd700;
             --gold-dark: #e5a800;
             --glass-bg: rgba(255, 255, 255, 0.06);
@@ -90,7 +150,7 @@
 
         body > nav.navbar .nav-links a:hover,
         body > nav.navbar .nav-links a.active {
-            background: rgba(34,197,94,0.2) !important;
+            background: rgba(var(--rgb-green-1), 0.2) !important;
             color: var(--green-light) !important;
         }
 
@@ -154,8 +214,8 @@
         }
 
         @keyframes heroPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4), 0 8px 32px rgba(34,197,94,0.3); }
-            50%       { box-shadow: 0 0 0 10px rgba(34,197,94,0.0), 0 8px 32px rgba(34,197,94,0.45); }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(var(--rgb-green-1), 0.4), 0 8px 32px rgba(var(--rgb-green-1), 0.3); }
+            50%       { box-shadow: 0 0 0 10px rgba(var(--rgb-green-1), 0.0), 0 8px 32px rgba(var(--rgb-green-1), 0.45); }
         }
 
         /* =====================================================
@@ -174,9 +234,9 @@
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse 80% 50% at 50% 100%, rgba(40,167,69,0.28) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 10% 10%, rgba(255,215,0,0.04) 0%, transparent 50%),
-                radial-gradient(ellipse 60% 40% at 90% 5%, rgba(40,167,69,0.1) 0%, transparent 50%),
+                radial-gradient(ellipse 80% 50% at 50% 100%, rgba(var(--rgb-green-2), 0.28) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 10% 10%, rgba(var(--rgb-gold), 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 90% 5%, rgba(var(--rgb-green-2), 0.1) 0%, transparent 50%),
                 linear-gradient(180deg, #050a0e 0%, #0d1117 25%, #0d1f10 100%);
             z-index: -1;
             pointer-events: none;
@@ -212,8 +272,8 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(40,167,69,0.15);
-            border: 1px solid rgba(40,167,69,0.35);
+            background: rgba(var(--rgb-green-2), 0.15);
+            border: 1px solid rgba(var(--rgb-green-2), 0.35);
             color: var(--green-light);
             font-size: 0.72rem;
             font-weight: 700;
@@ -233,14 +293,14 @@
         }
 
         .teams-hero-title .accent {
-            background: linear-gradient(135deg, #4ade80, #22c55e);
+            background: linear-gradient(135deg, var(--green-light), var(--green-main));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
         .teams-hero-title .gold-text {
-            background: linear-gradient(135deg, var(--gold), #fbbf24);
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -275,14 +335,14 @@
         }
 
         .hero-stat-pill.teams-count {
-            background: rgba(74,222,128,0.12);
-            border: 1px solid rgba(74,222,128,0.25);
+            background: rgba(var(--rgb-green-light), 0.12);
+            border: 1px solid rgba(var(--rgb-green-light), 0.25);
             color: var(--green-light);
         }
 
         .hero-stat-pill.current-manager {
-            background: rgba(255,215,0,0.1);
-            border: 1px solid rgba(255,215,0,0.25);
+            background: rgba(var(--rgb-gold), 0.1);
+            border: 1px solid rgba(var(--rgb-gold), 0.25);
             color: var(--gold);
         }
 
@@ -371,9 +431,9 @@
         .search-box::placeholder { color: var(--text-muted); }
 
         .search-box:focus {
-            border-color: rgba(74,222,128,0.45);
-            background: rgba(74,222,128,0.06);
-            box-shadow: 0 0 0 3px rgba(74,222,128,0.1);
+            border-color: rgba(var(--rgb-green-light), 0.45);
+            background: rgba(var(--rgb-green-light), 0.06);
+            box-shadow: 0 0 0 3px rgba(var(--rgb-green-light), 0.1);
         }
 
         .manager-list {
@@ -417,18 +477,18 @@
 
         @media (hover: hover) and (pointer: fine) {
             .manager-item:hover {
-                background: rgba(74,222,128,0.07);
-                border-color: rgba(74,222,128,0.2);
+                background: rgba(var(--rgb-green-light), 0.07);
+                border-color: rgba(var(--rgb-green-light), 0.2);
                 color: var(--text-main);
                 transform: translateX(4px);
             }
         }
 
         .manager-item.active {
-            background: rgba(34,197,94,0.14);
-            border-color: rgba(34,197,94,0.4);
+            background: rgba(var(--rgb-green-1), 0.14);
+            border-color: rgba(var(--rgb-green-1), 0.4);
             color: var(--green-light);
-            box-shadow: 0 0 16px rgba(34,197,94,0.12), inset 0 0 0 1px rgba(34,197,94,0.08);
+            box-shadow: 0 0 16px rgba(var(--rgb-green-1), 0.12), inset 0 0 0 1px rgba(var(--rgb-green-1), 0.08);
         }
 
         .manager-item-rank {
@@ -485,7 +545,7 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(74,222,128,0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(var(--rgb-green-light), 0.3), transparent);
         }
 
         .team-header {
@@ -554,9 +614,9 @@
 
         .rank-display-link:hover {
             transform: translateY(-2px);
-            border-color: rgba(74,222,128,0.4);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 16px rgba(74,222,128,0.12);
-            background: rgba(74,222,128,0.08);
+            border-color: rgba(var(--rgb-green-light), 0.4);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 16px rgba(var(--rgb-green-light), 0.12);
+            background: rgba(var(--rgb-green-light), 0.08);
         }
 
         /* "Spieler noch im Turnier"-Indikator neben dem Rang. Optisch an
@@ -575,7 +635,7 @@
 
         .alive-display[hidden] { display: none; }
 
-        .alive-display .rank-display-value { color: #fbbf24; }
+        .alive-display .rank-display-value { color: var(--gold-light); }
 
         .rank-display-icon { font-size: 18px; line-height: 1; }
 
@@ -663,13 +723,13 @@
 
         .manager-award.club    { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-main); }
         .manager-award.gk      { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
-        .manager-award.def     { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.25); color: var(--green-light); }
+        .manager-award.def     { background: rgba(var(--rgb-green-light), 0.12); border: 1px solid rgba(var(--rgb-green-light), 0.25); color: var(--green-light); }
         .manager-award.mid     { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.25); color: #c4b5fd; }
-        .manager-award.att     { background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.25); color: #fbbf24; }
-        .manager-award.captain { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3); color: var(--gold); }
+        .manager-award.att     { background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.25); color: var(--gold-light); }
+        .manager-award.captain { background: rgba(var(--rgb-gold), 0.12); border: 1px solid rgba(var(--rgb-gold), 0.3); color: var(--gold); }
         .manager-award.bench   { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); }
         .manager-award.scouting { background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25); color: #67e8f9; }
-        .manager-award.perfect  { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; }
+        .manager-award.perfect  { background: rgba(var(--rgb-gold-light), 0.1); border: 1px solid rgba(var(--rgb-gold-light), 0.25); color: var(--gold-light); }
         .manager-award.instinct { background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.25); color: #d8b4fe; }
         .manager-award.roster   { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
         .manager-award.noappearance,
@@ -683,7 +743,7 @@
         .manager-award.currentrankbronze,
         .manager-award.currenttop5,
         .manager-award.currenttop10,
-        .manager-award[class*="roundrank_"] { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3); color: var(--gold); }
+        .manager-award[class*="roundrank_"] { background: rgba(var(--rgb-gold), 0.12); border: 1px solid rgba(var(--rgb-gold), 0.3); color: var(--gold); }
 
         @media (hover: hover) and (pointer: fine) {
             .manager-award:hover {
@@ -731,7 +791,7 @@
             background:
                 linear-gradient(180deg, rgba(28,35,51,0.96), rgba(13,17,23,0.96)),
                 rgba(22,27,34,0.96);
-            box-shadow: 0 24px 80px rgba(0,0,0,0.58), 0 0 0 1px rgba(74,222,128,0.05);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.58), 0 0 0 1px rgba(var(--rgb-green-light), 0.05);
             opacity: 0;
             transform: translateY(8px) scale(0.96);
             transition: opacity 220ms var(--badge-modal-ease), transform 220ms var(--badge-modal-ease);
@@ -853,8 +913,8 @@
         }
 
         .badge-catalog-card[data-tone="positive"] {
-            --badge-tone: rgba(74,222,128,0.62);
-            --badge-tone-soft: rgba(34,197,94,0.10);
+            --badge-tone: rgba(var(--rgb-green-light), 0.62);
+            --badge-tone-soft: rgba(var(--rgb-green-1), 0.10);
         }
 
         .badge-catalog-card[data-tone="negative"] {
@@ -868,8 +928,8 @@
         }
 
         .badge-catalog-card[data-tone="funny"] {
-            --badge-tone: rgba(251,191,36,0.62);
-            --badge-tone-soft: rgba(251,191,36,0.10);
+            --badge-tone: rgba(var(--rgb-gold-light), 0.62);
+            --badge-tone-soft: rgba(var(--rgb-gold-light), 0.10);
         }
 
         .badge-catalog-card.is-current {
@@ -951,8 +1011,8 @@
             flex: 0 0 auto;
             border-radius: 999px;
             padding: 4px 7px;
-            background: rgba(74,222,128,0.12);
-            border: 1px solid rgba(74,222,128,0.26);
+            background: rgba(var(--rgb-green-light), 0.12);
+            border: 1px solid rgba(var(--rgb-green-light), 0.26);
             color: #bbf7d0;
             font-size: 0.66rem;
             font-weight: 900;
@@ -1059,8 +1119,8 @@
 
         @media (hover: hover) and (pointer: fine) {
             .badge-manager-link:hover {
-                background: rgba(74,222,128,0.10);
-                border-color: rgba(74,222,128,0.28);
+                background: rgba(var(--rgb-green-light), 0.10);
+                border-color: rgba(var(--rgb-green-light), 0.28);
             }
         }
 
@@ -1241,7 +1301,7 @@
             text-align: center;
             border-radius: 20px;
             background:
-                radial-gradient(120% 80% at 50% 0%, rgba(34,197,94,0.10), transparent 60%),
+                radial-gradient(120% 80% at 50% 0%, rgba(var(--rgb-green-1), 0.10), transparent 60%),
                 rgba(0,0,0,0.30);
             border: 1px solid rgba(255,255,255,0.08);
             box-shadow: 0 8px 24px rgba(0,0,0,0.25);
@@ -1254,7 +1314,7 @@
             font-size: 3rem;
             display: block;
             margin-bottom: 14px;
-            filter: drop-shadow(0 0 12px rgba(34,197,94,0.45));
+            filter: drop-shadow(0 0 12px rgba(var(--rgb-green-1), 0.45));
         }
         #team-lock-placeholder .lock-title {
             font-size: 1.35rem;
@@ -1330,12 +1390,12 @@
         .header-pitch {
             flex: 1;
             text-align: center;
-            color: rgba(74,222,128,0.75);
+            color: rgba(var(--rgb-green-light), 0.75);
             font-size: 0.72rem;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 3px;
-            border-bottom: 2px solid rgba(74,222,128,0.25);
+            border-bottom: 2px solid rgba(var(--rgb-green-light), 0.25);
             padding-bottom: 8px;
         }
 
@@ -1343,12 +1403,12 @@
             flex: none;
             width: 250px;
             text-align: center;
-            color: rgba(255,215,0,0.6);
+            color: rgba(var(--rgb-gold), 0.6);
             font-size: 0.72rem;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 3px;
-            border-bottom: 2px dashed rgba(255,215,0,0.2);
+            border-bottom: 2px dashed rgba(var(--rgb-gold), 0.2);
             padding-bottom: 8px;
         }
 
@@ -1409,10 +1469,10 @@
 
         /* Alternating green pitch rows */
         .pos-row:nth-child(odd) .pitch-zone {
-            background: linear-gradient(160deg, #1a5c26, #1b6b2a, #1d7530);
+            background: linear-gradient(160deg, var(--pitch-a), var(--pitch-b), var(--pitch-c));
         }
         .pos-row:nth-child(even) .pitch-zone {
-            background: linear-gradient(160deg, #174e22, #1b6424, #1a5c26);
+            background: linear-gradient(160deg, var(--pitch-d), var(--pitch-e), var(--pitch-a));
         }
 
         /* First row rounded top */
@@ -1459,7 +1519,7 @@
             padding: 20px 14px;
             box-sizing: border-box;
             background: rgba(255,255,255,0.025);
-            border-left: 2px solid rgba(255,215,0,0.15);
+            border-left: 2px solid rgba(var(--rgb-gold), 0.15);
             border-right: 1px solid rgba(255,255,255,0.06);
         }
 
@@ -1481,7 +1541,7 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);
+            background: linear-gradient(90deg, transparent, rgba(var(--rgb-gold), 0.4), transparent);
         }
 
         .cards-container {
@@ -1554,8 +1614,8 @@
 
         .player-card.is-captain {
             background: linear-gradient(135deg, #1c1a0e, #261e08);
-            border: 1.5px solid rgba(255,193,7,0.5);
-            box-shadow: 0 0 0 1px rgba(255,193,7,0.15), 0 8px 24px rgba(255,193,7,0.15), 0 8px 30px rgba(0,0,0,0.5);
+            border: 1.5px solid rgba(var(--rgb-amber), 0.5);
+            box-shadow: 0 0 0 1px rgba(var(--rgb-amber), 0.15), 0 8px 24px rgba(var(--rgb-amber), 0.15), 0 8px 30px rgba(0,0,0,0.5);
         }
 
         .player-card.is-orphan {
@@ -1593,13 +1653,13 @@
 
         @media (hover: hover) and (pointer: fine) {
             .player-card:hover {
-                box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(74,222,128,0.35) !important;
-                border-color: rgba(74,222,128,0.45) !important;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(var(--rgb-green-light), 0.35) !important;
+                border-color: rgba(var(--rgb-green-light), 0.45) !important;
             }
 
             .player-card.is-captain:hover {
-                box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,193,7,0.5) !important;
-                border-color: rgba(255,193,7,0.6) !important;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.65), 0 0 0 1px rgba(var(--rgb-amber), 0.5) !important;
+                border-color: rgba(var(--rgb-amber), 0.6) !important;
             }
 
             .player-card:hover .avatar-wrapper { transform: translateZ(44px); }
@@ -1613,7 +1673,7 @@
         .captain-badge {
             position: absolute;
             top: 8px; left: 8px;
-            background: linear-gradient(135deg, #ffd700, #ffb300);
+            background: linear-gradient(135deg, var(--gold), var(--gold-amber));
             color: #000;
             width: 24px; height: 24px;
             border-radius: 50%;
@@ -1623,7 +1683,7 @@
             font-weight: 900;
             font-size: 12px;
             border: 1.5px solid rgba(255,255,255,0.3);
-            box-shadow: 0 0 10px rgba(255,193,7,0.5), 0 2px 5px rgba(0,0,0,0.4);
+            box-shadow: 0 0 10px rgba(var(--rgb-amber), 0.5), 0 2px 5px rgba(0,0,0,0.4);
             z-index: 30;
             transform: translateZ(30px);
             transition: transform 0.3s ease;
@@ -1754,14 +1814,14 @@
         .card-pts {
             position: absolute;
             top: 8px; right: 8px;
-            background: rgba(34,197,94,0.85);
+            background: rgba(var(--rgb-green-1), 0.85);
             color: #fff;
             padding: 4px 8px;
             border-radius: 7px;
             font-size: 12px;
             font-weight: 800;
             z-index: 20;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(34,197,94,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(var(--rgb-green-1), 0.3);
             transform: translateZ(30px);
             transition: transform 0.3s ease;
             backface-visibility: hidden;
@@ -1774,13 +1834,13 @@
         }
 
         .player-card.is-captain .card-pts {
-            background: linear-gradient(135deg, #ffd700, #ff9900);
+            background: linear-gradient(135deg, var(--gold), #ff9900);
             color: #000;
             font-size: 14px;
             font-weight: 900;
             padding: 5px 9px;
             border: 1.5px solid rgba(255,255,255,0.25);
-            box-shadow: 0 0 12px rgba(255,193,7,0.5), 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 0 12px rgba(var(--rgb-amber), 0.5), 0 4px 10px rgba(0,0,0,0.4);
             transform: translateZ(35px);
         }
 
@@ -1809,8 +1869,8 @@
         }
 
         .mobile-picker-btn:active {
-            background: rgba(74,222,128,0.08);
-            border-color: rgba(74,222,128,0.3);
+            background: rgba(var(--rgb-green-light), 0.08);
+            border-color: rgba(var(--rgb-green-light), 0.3);
         }
 
         .mobile-picker-btn-left {
@@ -1958,8 +2018,8 @@
 
         .team-picker-search::placeholder { color: var(--text-muted); }
         .team-picker-search:focus {
-            border-color: rgba(74,222,128,0.4);
-            box-shadow: 0 0 0 3px rgba(74,222,128,0.1);
+            border-color: rgba(var(--rgb-green-light), 0.4);
+            box-shadow: 0 0 0 3px rgba(var(--rgb-green-light), 0.1);
         }
 
         .team-picker-list {
@@ -1993,13 +2053,13 @@
         }
 
         .team-picker-item:active {
-            background: rgba(74,222,128,0.12);
-            border-color: rgba(74,222,128,0.3);
+            background: rgba(var(--rgb-green-light), 0.12);
+            border-color: rgba(var(--rgb-green-light), 0.3);
         }
 
         .team-picker-item.active {
-            background: rgba(34,197,94,0.14);
-            border-color: rgba(34,197,94,0.4);
+            background: rgba(var(--rgb-green-1), 0.14);
+            border-color: rgba(var(--rgb-green-1), 0.4);
             color: var(--green-light);
         }
 
@@ -2060,10 +2120,10 @@
 
         /* Alternating pitch stripes */
         .mobile-pitch-field .mobile-section:nth-child(odd) {
-            background: linear-gradient(160deg, #1a5c26, #1b6b2a, #1d7530);
+            background: linear-gradient(160deg, var(--pitch-a), var(--pitch-b), var(--pitch-c));
         }
         .mobile-pitch-field .mobile-section:nth-child(even) {
-            background: linear-gradient(160deg, #174e22, #1b6424, #1a5c26);
+            background: linear-gradient(160deg, var(--pitch-d), var(--pitch-e), var(--pitch-a));
         }
 
         /* Spotlight on each row */
@@ -2088,7 +2148,7 @@
         /* Bench section sits below pitch with distinct styling */
         .mobile-bench-section {
             background: rgba(20, 26, 34, 0.95);
-            border: 2px solid rgba(255,215,0,0.18);
+            border: 2px solid rgba(var(--rgb-gold), 0.18);
             border-top: none;
             border-radius: 0 0 18px 18px;
         }
@@ -2138,7 +2198,7 @@
         }
 
         .mobile-bench-section .mobile-section-pts {
-            color: rgba(255,215,0,0.6);
+            color: rgba(var(--rgb-gold), 0.6);
         }
 
         /* ── Card grid inside each section ─────────────────── */

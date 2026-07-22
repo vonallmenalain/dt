@@ -2,6 +2,31 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <!-- FOUC-Schutz: aktives Turnier früh bestimmen und – nur für die CL –
+         Blau (Hintergrund + Grün/Gold→Blau-Variablen) noch vor dem ersten
+         Paint anwenden. Spiegelt die Auflösung aus tournament-config.js; die
+         volle Logik (theme-cl.css) folgt direkt danach. WM: es wird nur
+         data-tournament gesetzt – das Aussehen bleibt unverändert. -->
+    <script>
+    (function(){try{
+      var h=(location.hostname||"").toLowerCase();
+      var q=new URLSearchParams(location.search);
+      function L(n){try{return localStorage.getItem(n);}catch(e){return null;}}
+      // Gleiche Reihenfolge wie resolveTournamentKey() in tournament-config.js:
+      // Preview > URL(?tournament) > Dev-Override > Domain > Fallback.
+      var k=q.get("preview")||L("dreamteam_preview_"+h)||q.get("tournament")||L("dreamteam_dev_override_"+h)||({"dt.alae.app":"wm2026"})[h]||"wm2026";
+      k=String(k).trim().toLowerCase();
+      var d=document.documentElement;
+      d.setAttribute("data-tournament",k);
+      if(/^cl/.test(k)){
+        d.style.background="#0a1633";
+        var s=document.createElement("style");
+        s.id="cl-critical-theme";
+        s.textContent=':root[data-tournament^="cl"]{--green-light:#7db4ff;--green-main:#3d8bff;--green-deep:#3d8bff;--green-accent:#3d8bff;--green-glow:rgba(61,139,255,.35);--gold:#7db4ff;--gold-light:#a9cbff;--gold-dark:#3d8bff;--gold-amber:#3d8bff;--gold-amber2:#2f6fd0;--rgb-green-1:61,139,255;--rgb-green-2:61,139,255;--rgb-green-3:125,180,255;--rgb-gold:125,180,255;--rgb-amber:61,139,255;--primary:#3d8bff;--cl-primary:#3d8bff;--cl-accent:#7db4ff;--cl-background:#0a1633;--cl-surface:#132347;--cl-surface-alt:#0f1c3d;--cl-text:#dce8ff;--cl-text-muted:#9db6e8;}html[data-tournament^="cl"] body{background-color:#0a1633;color:#dce8ff;}[data-tournament^="cl"] .hero::before,[data-tournament^="cl"] #indexHomePostStart{background:#0a1633;}';
+        (document.head||d).appendChild(s);
+      }
+    }catch(e){}})();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>DreamTeam - Punktesystem</title>
     <meta name="theme-color" content="#28a745">
@@ -40,6 +65,36 @@
            ROOT & GLOBAL – DARK DREAMTEAM THEME
            ===================================================== */
         :root {
+            /* CL-Theming: Grün/Gold als Variablen (Originalwerte = WM);
+               im CL-Scope lenkt theme-cl.css sie auf Blau um. */
+            --green-light: #4ade80;
+            --green-main: #22c55e;
+            --green-deep: #16a34a;
+            --green-accent: #28a745;
+            --gold: #ffd700;
+            --gold-light: #fbbf24;
+            --gold-dark: #e5a800;
+            --gold-amber: #ffb300;
+            --gold-amber2: #f59e0b;
+            --rgb-green-1: 34, 197, 94;
+            --rgb-green-2: 40, 167, 69;
+            --rgb-green-3: 22, 163, 74;
+            --rgb-gold: 255, 215, 0;
+            --rgb-amber: 255, 193, 7;
+            --rgb-green-light: 74, 222, 128;
+            --rgb-gold-light: 251, 191, 36;
+            --rgb-yellow: 250, 204, 21;
+            --rgb-orange: 255, 153, 0;
+            --rgb-green-dark: 6, 78, 59;
+            --rgb-green-darker: 7, 26, 10;
+            --rgb-amber-d1: 74, 57, 11;
+            --rgb-amber-d2: 92, 64, 16;
+            --rgb-amber-d3: 70, 44, 30;
+            --gold-cream: #fde68a;
+            --yellow-pale: #fef08a;
+            --yellow-paler: #fef9c3;
+            --green-dark: #15803d;
+
             --gold: #ffd700;
             --gold-dark: #e5a800;
             --gold-light: #fbbf24;
@@ -55,7 +110,7 @@
             --text-muted: #8b949e;
             --green-main: #22c55e;
             --green-light: #4ade80;
-            --green-glow: rgba(34, 197, 94, 0.35);
+            --green-glow: rgba(var(--rgb-green-1), 0.35);
             --red-main: #ef4444;
             --red-light: #f87171;
             --red-glow: rgba(239, 68, 68, 0.25);
@@ -84,7 +139,7 @@
 
         body > nav.navbar .nav-links a:hover,
         body > nav.navbar .nav-links a.active {
-            background: rgba(34,197,94,0.2) !important;
+            background: rgba(var(--rgb-green-1), 0.2) !important;
             color: var(--green-light) !important;
         }
 
@@ -122,9 +177,9 @@
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse 90% 55% at 50% 100%, rgba(34,197,94,0.28) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 15% 5%, rgba(255,215,0,0.06) 0%, transparent 50%),
-                radial-gradient(ellipse 60% 40% at 85% 5%, rgba(34,197,94,0.10) 0%, transparent 50%),
+                radial-gradient(ellipse 90% 55% at 50% 100%, rgba(var(--rgb-green-1), 0.28) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 15% 5%, rgba(var(--rgb-gold), 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 85% 5%, rgba(var(--rgb-green-1), 0.10) 0%, transparent 50%),
                 linear-gradient(180deg, #050a0e 0%, #0d1117 30%, #0d1f10 100%);
             z-index: -1;
             pointer-events: none;
@@ -144,8 +199,8 @@
         }
 
         @keyframes glowPulse {
-            0%, 100% { box-shadow: 0 0 16px rgba(34,197,94,0.18); }
-            50%       { box-shadow: 0 0 32px rgba(34,197,94,0.36); }
+            0%, 100% { box-shadow: 0 0 16px rgba(var(--rgb-green-1), 0.18); }
+            50%       { box-shadow: 0 0 32px rgba(var(--rgb-green-1), 0.36); }
         }
 
         /* =====================================================
@@ -163,8 +218,8 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(34,197,94,0.14);
-            border: 1px solid rgba(34,197,94,0.35);
+            background: rgba(var(--rgb-green-1), 0.14);
+            border: 1px solid rgba(var(--rgb-green-1), 0.35);
             color: var(--green-light);
             font-size: 0.72rem;
             font-weight: 700;
@@ -244,8 +299,8 @@
             font-size: 1.05rem;
             letter-spacing: 0.5px;
             box-shadow:
-                0 0 0 2px rgba(255, 215, 0, 0.25),
-                0 4px 12px rgba(255, 215, 0, 0.25);
+                0 0 0 2px rgba(var(--rgb-gold), 0.25),
+                0 4px 12px rgba(var(--rgb-gold), 0.25);
         }
 
         .captain-notice .captain-text {
@@ -325,11 +380,11 @@
         @media (hover: hover) and (pointer: fine) {
             .rule-card:hover {
                 transform: translateY(-4px);
-                border-color: rgba(74,222,128,0.22);
+                border-color: rgba(var(--rgb-green-light), 0.22);
                 box-shadow:
-                    0 0 0 1px rgba(74,222,128,0.10),
+                    0 0 0 1px rgba(var(--rgb-green-light), 0.10),
                     0 12px 32px rgba(0,0,0,0.4),
-                    0 0 20px rgba(34,197,94,0.08);
+                    0 0 20px rgba(var(--rgb-green-1), 0.08);
             }
 
             .rule-card::before {
@@ -405,8 +460,8 @@
            POINT BADGES
            ===================================================== */
         .pts-pos {
-            background: rgba(34,197,94,0.15);
-            border: 1px solid rgba(34,197,94,0.30);
+            background: rgba(var(--rgb-green-1), 0.15);
+            border: 1px solid rgba(var(--rgb-green-1), 0.30);
             color: var(--green-light);
             font-weight: 700;
             font-size: 0.85rem;
@@ -420,8 +475,8 @@
         }
 
         .pts-pos:hover {
-            background: rgba(34,197,94,0.25);
-            box-shadow: 0 0 10px rgba(34,197,94,0.25);
+            background: rgba(var(--rgb-green-1), 0.25);
+            box-shadow: 0 0 10px rgba(var(--rgb-green-1), 0.25);
         }
 
         .pts-neg {

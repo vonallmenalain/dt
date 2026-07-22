@@ -2727,6 +2727,19 @@ if (typeof window !== "undefined") {
           __link.href = "theme-cl.css";
           __head.appendChild(__link);
         }
+
+        // (3) Browser-/Statusleisten-Farbe (theme-color) auf die Turnier-
+        //     Hintergrundfarbe setzen – sonst bliebe die (grüne) WM-Farbe
+        //     aus dem statischen <meta> stehen. Nur für Turniere MIT Theme.
+        if (__theme.background) {
+          var __tc = document.querySelector('meta[name="theme-color"]');
+          if (!__tc) {
+            __tc = document.createElement("meta");
+            __tc.setAttribute("name", "theme-color");
+            __head.appendChild(__tc);
+          }
+          __tc.setAttribute("content", __theme.background);
+        }
       }
     }
   } catch (_) { /* DOM nicht verfügbar – ignorieren */ }
