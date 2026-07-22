@@ -123,11 +123,172 @@
     return kept.concat(normalizeIds(inPlayers));
   }
 
+  /* ===========================================================================
+   *  Zeitbasierte Punkte-Zuordnung (Transfer-Freeze).
+   *
+   *  Ein Team hat über die Saison eine Historie: das Start-15 gilt bis zum
+   *  ersten Transfer, danach das getauschte 15 usw. Punkte fallen pro Spiel
+   *  (mit Anpfiff-Zeitpunkt) an. Ein Spieler zählt für ein Spiel nur, wenn er
+   *  zum ANPFIFF dieses Spiels im Team war (altes Team vor dem Transfer, neues
+   *  Team ab dem Transfer). Das ist der „Freeze": vorher altes, nachher neues
+   *  Team – exakt zum Transfer-Zeitpunkt (`transfer.at`, ms).
+   *
+   *  Ein Transfer-Eintrag: { at:<ms>, out:[ids], in:[ids], captain:<id|null> }
+   *  wobei `captain` der Kapitän NACH diesem Transfer ist.
+   * ========================================================================= */
+  function normalizeTransfers(transfers) {
+    if (!Array.isArray(transfers)) return [];
+    return transfers
+      .map(function (t) {
+        if (!t || typeof t !== 'object') return null;
+        var at = Number(t.at);
+        return {
+          at: Number.isFinite(at) ? at : 0,
+          out: normalizeIds(t.out),
+          in: normalizeIds(t.in),
+          captain: (t.captain != null && String(t.captain)) ? String(t.captain) : null
+        };
+      })
+      .filter(Boolean)
+      .sort(function (a, b) { return a.at - b.at; });
+  }
+
+  // Rekonstruiert das Start-Team (vor allen Transfers) aus dem AKTUELLEN Team
+  // und der Transfer-Liste (Transfers rückwärts rückgängig machen).
+  function reconstructInitialTeamIds(currentTeamIds, transfers) {
+    var ids = normalizeIds(currentTeamIds);
+    var ts = normalizeTransfers(transfers);
+    for (var i = ts.length - 1; i >= 0; i--) {
+      var t = ts[i];
+      var inSet = {};
+      t.in.forEach(function (id) { inSet[id] = true; });
+      ids = ids.filter(function (id) { return !inSet[id]; });
+      t.out.forEach(function (id) { if (ids.indexOf(id) === -1) ids.push(id); });
+    }
+    return ids;
+  }
+
+  // Besitz-Fenster je Spieler: { [playerId]: [{from, to}] } in ms.
+  // `from === null` = seit Beginn, `to === null` = offen (bis jetzt).
+  // Halb-offenes Intervall [from, to): ein Spiel zum Zeitpunkt t gehört dem
+  // NEUEN Team, wenn t === transfer.at (Transfer wirkt ab dem Zeitpunkt).
+  function computeOwnershipWindows(currentTeamIds, transfers) {
+    var ts = normalizeTransfers(transfers);
+    var initial = reconstructInitialTeamIds(currentTeamIds, transfers);
+    var open = {};
+    var windows = {};
+    function ensure(id) { if (!windows[id]) windows[id] = []; return windows[id]; }
+    initial.forEach(function (id) { open[id] = null; });
+    ts.forEach(function (t) {
+      t.out.forEach(function (id) {
+        if (Object.prototype.hasOwnProperty.call(open, id)) {
+          ensure(id).push({ from: open[id], to: t.at });
+          delete open[id];
+        }
+      });
+      t.in.forEach(function (id) {
+        if (!Object.prototype.hasOwnProperty.call(open, id)) open[id] = t.at;
+      });
+    });
+    Object.keys(open).forEach(function (id) {
+      ensure(id).push({ from: open[id], to: null });
+    });
+    return windows;
+  }
+
+  function inWindow(win, tMs) {
+    var afterFrom = (win.from == null) || (tMs >= win.from);
+    var beforeTo = (win.to == null) || (tMs < win.to);
+    return afterFrom && beforeTo;
+  }
+
+  // War `playerId` zum Anpfiff (kickoffMs) im Team? Ohne bekannten Anpfiff
+  // (kickoffMs null) Fallback auf „ist aktuell im Team" (currentTeamSet).
+  function isOwnedAt(windows, playerId, kickoffMs, currentTeamSet) {
+    var id = String(playerId);
+    var wins = windows[id];
+    if (!wins || !wins.length) return false;
+    if (kickoffMs == null || !Number.isFinite(Number(kickoffMs))) {
+      return !!(currentTeamSet && currentTeamSet[id]);
+    }
+    var t = Number(kickoffMs);
+    for (var i = 0; i < wins.length; i++) {
+      if (inWindow(wins[i], t)) return true;
+    }
+    return false;
+  }
+
+  // Liefert eine Funktion captainAt(tMs) → Kapitän-ID zum Zeitpunkt.
+  // Segment 0 (vor dem ersten Transfer) = initialCaptain; ab transfer[i].at
+  // gilt transfer[i].captain.
+  function buildCaptainAt(initialCaptain, transfers) {
+    var ts = normalizeTransfers(transfers);
+    var init = (initialCaptain != null && String(initialCaptain)) ? String(initialCaptain) : null;
+    return function captainAt(tMs) {
+      var cap = init;
+      var t = Number(tMs);
+      var known = Number.isFinite(t);
+      for (var i = 0; i < ts.length; i++) {
+        if (!known) { cap = ts[i].captain || cap; continue; }
+        if (t >= ts[i].at) cap = ts[i].captain || cap;
+        else break;
+      }
+      return cap;
+    };
+  }
+
+  /**
+   * Zeitbasierte Manager-Gesamtpunkte für ein Team MIT Transfers.
+   * (Für Teams ohne Transfers weiter die bestehende Skalar-Summe nutzen –
+   * dieses Ergebnis ist dort identisch, aber teurer.)
+   *
+   * params: {
+   *   currentTeamIds:    [id]                       aktuelle 15
+   *   transfers:         [{at,out,in,captain}]
+   *   initialCaptain:    id                          Kapitän von Segment 0
+   *   playerMatchPoints: { [playerId]: { [matchId]: basePts } }  Basis-Punkte je Spiel
+   *   getKickoffMs:      (matchId) => number|null    Anpfiff in ms
+   *   captainMultiplier: number (default 2, wie bestehend hart ×2)
+   * } → number
+   */
+  function managerTotalOverTime(params) {
+    var p = params || {};
+    var currentIds = normalizeIds(p.currentTeamIds);
+    var currentSet = {};
+    currentIds.forEach(function (id) { currentSet[id] = true; });
+    var windows = computeOwnershipWindows(currentIds, p.transfers);
+    var captainAt = buildCaptainAt(p.initialCaptain, p.transfers);
+    var mult = Number.isFinite(Number(p.captainMultiplier)) ? Number(p.captainMultiplier) : 2;
+    var pmp = p.playerMatchPoints || {};
+    var getKick = typeof p.getKickoffMs === 'function' ? p.getKickoffMs : function () { return null; };
+
+    var total = 0;
+    Object.keys(windows).forEach(function (playerId) {
+      var matches = pmp[playerId];
+      if (!matches || typeof matches !== 'object') return;
+      Object.keys(matches).forEach(function (matchId) {
+        var base = Number(matches[matchId]) || 0;
+        if (!base) return;
+        var kick = getKick(matchId);
+        if (!isOwnedAt(windows, playerId, kick, currentSet)) return;
+        var isCap = String(captainAt(kick)) === String(playerId);
+        total += isCap ? base * mult : base;
+      });
+    });
+    return total;
+  }
+
   var api = {
     getTransferConfig: getTransferConfig,
     remainingTransfers: remainingTransfers,
     validateTransfer: validateTransfer,
-    applyTransfer: applyTransfer
+    applyTransfer: applyTransfer,
+    normalizeTransfers: normalizeTransfers,
+    reconstructInitialTeamIds: reconstructInitialTeamIds,
+    computeOwnershipWindows: computeOwnershipWindows,
+    isOwnedAt: isOwnedAt,
+    buildCaptainAt: buildCaptainAt,
+    managerTotalOverTime: managerTotalOverTime
   };
 
   if (typeof module !== 'undefined' && module.exports) {

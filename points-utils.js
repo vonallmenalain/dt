@@ -196,11 +196,31 @@
     return finiteNumber(normalized && normalized.totalPoints, 0);
   }
 
+  // Punkte je EINZELSPIEL für einen Spieler: { [matchId]: total }.
+  // Basis für die zeitbasierte Transfer-Wertung (transfer-utils.js): dort wird
+  // je Spiel entschieden, ob der Spieler zum Anpfiff im Team war. Liest die
+  // rohen `Spiel_<id>`-Einträge (in roh- wie normalisierten Dokumenten vorhanden).
+  function getPlayerMatchTotals(pointDoc, options = {}) {
+    const out = {};
+    if (!pointDoc || typeof pointDoc !== 'object' || Array.isArray(pointDoc)) return out;
+    const ruleKeys = Array.isArray(options.ruleKeys) && options.ruleKeys.length
+      ? options.ruleKeys
+      : getRuleKeys();
+    Object.entries(pointDoc).forEach(([key, value]) => {
+      if (!key.startsWith('Spiel_') || !value || typeof value !== 'object' || Array.isArray(value)) return;
+      const total = getFixtureTotal(value, ruleKeys);
+      const matchId = getFixtureMatchId(key, value);
+      if (matchId) out[matchId] = (out[matchId] || 0) + total;
+    });
+    return out;
+  }
+
   const api = {
     getRuleKeys,
     getFixtureTotal,
     getFixtureMatchId,
     getPlayerTotal,
+    getPlayerMatchTotals,
     normalizePlayerPointDocument,
     normalizePointsMap
   };
