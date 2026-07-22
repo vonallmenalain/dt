@@ -1630,6 +1630,53 @@
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
+        /* Transfer-Badge „T" (analog zum Captain-„C", aber oben RECHTS,
+           damit es nicht mit dem Captain-Badge oben links kollidiert). */
+        .transfer-badge {
+            position: absolute;
+            top: 8px; right: 8px;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: #fff;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 12px;
+            border: 1.5px solid rgba(255,255,255,0.35);
+            box-shadow: 0 0 10px rgba(56,189,248,0.5), 0 2px 5px rgba(0,0,0,0.4);
+            z-index: 30;
+            transform: translateZ(30px);
+            transition: transform 0.3s ease;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+            .player-card:hover .transfer-badge { transform: translateZ(58px) scale(1.1); }
+            .mobile-card-wrapper .transfer-badge { width: 20px; height: 20px; font-size: 10px; top: 5px; right: 5px; }
+
+        /* Ausgetauschte Spieler (unter dem Team) */
+        .transferred-out-section {
+            margin: 18px auto 0;
+            max-width: 1100px;
+            padding: 14px 16px;
+            border: 1px dashed rgba(148,163,184,0.4);
+            border-radius: 14px;
+            background: rgba(15,23,42,0.03);
+        }
+        body.dark-page .transferred-out-section { background: rgba(148,163,184,0.06); }
+        .transferred-out-head {
+            font-weight: 800;
+            margin-bottom: 12px;
+            font-size: 1.02em;
+        }
+        .transferred-out-sub { font-weight: 500; opacity: 0.7; font-size: 0.85em; }
+        .transferred-out-section .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
 
         .avatar-wrapper {
             width: 92px; height: 92px;
@@ -2486,6 +2533,12 @@
                         </div>
                         <div class="mobile-section-cards" id="mobile-bench-all"></div>
                     </div>
+                </div>
+
+                <!-- Ausgetauschte Spieler (nur bei CL-Teams mit Transfer) -->
+                <div class="transferred-out-section" id="transferred-out-section" style="display:none;">
+                    <div class="transferred-out-head">🔄 Ausgetauschte Spieler <span class="transferred-out-sub">– Punkte bis zum Transfer</span></div>
+                    <div class="cards-container" id="transferred-out-cards"></div>
                 </div>
 
             </div>
@@ -3375,6 +3428,12 @@
                     captainMultiplier: 2
                 });
                 mergedPlayers.forEach(p => { p.pts = bd.perPlayer[String(p.id)] || 0; });
+                // Transferierte-IN markieren: aktuell im Team, aber nicht im Start-15.
+                const initialIds = (typeof TU.reconstructInitialTeamIds === 'function')
+                    ? new Set(TU.reconstructInitialTeamIds(mergedPlayers.map(p => String(p.id)), team.transfers).map(String))
+                    : new Set(mergedPlayers.map(p => String(p.id)));
+                mergedPlayers.forEach(p => { p.isTransferIn = !initialIds.has(String(p.id)); });
+                // Ausgetauschte Spieler (zählen bis zum Transfer) als Karten-Daten.
                 transferredOut = bd.everOwned
                     .filter(id => !bd.currentSet[id])
                     .map(id => {
@@ -3384,8 +3443,15 @@
                             name: fp ? fp.Spielername : String(id),
                             photo: fp ? (fp.Spielerfoto || '') : '',
                             nation: fp ? (fp['Nationalteam.name'] || '?') : '?',
+                            flag: fp ? (fp['Nationalteam.logo'] || '') : '',
                             club: fp ? (fp['Club.name'] || '') : '',
-                            pts: bd.perPlayer[id] || 0
+                            clubLogo: fp ? (fp['Club.logo'] || '') : '',
+                            pos: fp ? normalizePosition(fp.Position) : 'UNKNOWN',
+                            pts: bd.perPlayer[id] || 0,
+                            isCaptain: false,
+                            isOrphan: !fp,
+                            isTransferOut: true,
+                            slotNum: -1
                         };
                     })
                     .filter(p => p.pts !== 0)
@@ -4043,6 +4109,7 @@
         const capClass  = mergedP.isCaptain ? 'is-captain' : '';
         const orphanClass = mergedP.isOrphan ? 'is-orphan' : '';
         const capBadge  = mergedP.isCaptain ? '<div class="captain-badge" title="Captain: Erhält doppelte Punkte!">C</div>' : '';
+        const transferBadge = mergedP.isTransferIn ? '<div class="transfer-badge" title="In das Team transferiert">T</div>' : '';
         const orphanBadge = mergedP.isOrphan ? '<div class="orphan-card-badge" title="Spielerdaten konnten nicht mehr zugeordnet werden">Spielerdaten fehlen</div>' : '';
         const ptsId     = `pts-${mergedP.id}-${mergedP.slotNum}`;
 
@@ -4070,6 +4137,7 @@
             <div class="${safeWrapperCls}" style="${safeAnimStyle}">
                 <a href="${safeAnalysisUrl}" class="player-card ${safeCapClass} ${safeOrphanClass}">
                     ${capBadge}
+                    ${transferBadge}
                     ${orphanBadge}
                     <div class="card-pts ${safePtsClass}" id="${safePtsId}">${safeSignPts}</div>
                     <div class="avatar-wrapper"><img src="${safePhoto}" class="card-avatar" alt="${safeName}" loading="lazy" width="92" height="92"></div>
@@ -4083,10 +4151,31 @@
         `;
     }
 
+    /* Rendert die ausgetauschten Spieler als Karten unter dem Team (nur bei
+       CL-Teams mit Transfer). Reuset buildCardHtml (zeigt Punkte); ohne
+       Punkte-Animation, der Wert steht direkt in der Karte. */
+    function renderTransferredOut(team) {
+        const section = document.getElementById('transferred-out-section');
+        const container = document.getElementById('transferred-out-cards');
+        if (!section || !container) return;
+        const list = (team && Array.isArray(team.transferredOut)) ? team.transferredOut : [];
+        if (!list.length) {
+            section.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+        container.innerHTML = list.map((p, i) => buildCardHtml(p, i, 'card-wrapper')).join('');
+        section.style.display = '';
+    }
+
     /* =====================================================
        CLEAR BOARD
        ===================================================== */
     function clearBoard() {
+        const outSection = document.getElementById('transferred-out-section');
+        if (outSection) outSection.style.display = 'none';
+        const outCards = document.getElementById('transferred-out-cards');
+        if (outCards) outCards.innerHTML = '';
         const desktopIds = ['row-GK', 'row-DEF', 'row-MID', 'row-ATT', 'bench-GK', 'bench-DEF', 'bench-MID', 'bench-ATT'];
         const mobileIds  = ['mobile-row-GK', 'mobile-row-DEF', 'mobile-row-MID', 'mobile-row-ATT', 'mobile-bench-all'];
 
@@ -4365,6 +4454,8 @@
 
             cardDelayCount++;
         });
+
+        renderTransferredOut(team);
 
         // Set CSS grid columns for each mobile section based on player count
         const mobileColMap = {
