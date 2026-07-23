@@ -1296,13 +1296,17 @@
 
         combinedPointsBox.innerHTML = '';
         gameBox.innerHTML = '';
-        awardBox.innerHTML = '';
-
-        if (captainedBy.length > 0) {
-            awardBox.innerHTML += `<div class="award-badge award-captain" title="Als Captain gewählt von: ${escapeHtml(captainedBy.join(', '))}">👑 Captain</div>`;
-        }
-        if (perfectTeamIds.has(String(player['player.id']))) {
-            awardBox.innerHTML += `<a href="index.html" class="award-badge award-perfect" style="text-decoration:none;" title="Dieser Spieler hat es ins theoretische PerfectTeam geschafft.">🏆 PerfectTeam</a>`;
+        // Auszeichnungen wurden aus der Spielerübersicht entfernt (bewusst
+        // minimalistisch). Der Container ist optional – Guard, falls doch mal
+        // wieder eingebunden.
+        if (awardBox) {
+            awardBox.innerHTML = '';
+            if (captainedBy.length > 0) {
+                awardBox.innerHTML += `<div class="award-badge award-captain" title="Als Captain gewählt von: ${escapeHtml(captainedBy.join(', '))}">👑 Captain</div>`;
+            }
+            if (perfectTeamIds.has(String(player['player.id']))) {
+                awardBox.innerHTML += `<a href="index.html" class="award-badge award-perfect" style="text-decoration:none;" title="Dieser Spieler hat es ins theoretische PerfectTeam geschafft.">🏆 PerfectTeam</a>`;
+            }
         }
 
         if (ptsDoc) {
