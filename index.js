@@ -4564,6 +4564,7 @@
                     <span class="cltm-modal-name">${champEscapeHtml(manager.manager || 'Unbekannt')}</span>
                     <span class="cltm-modal-pts">${cltmFormatPts(manager.totalScore)} <small>Pkt</small></span>
                 </div>
+                <span class="cltm-head-break" aria-hidden="true"></span>
                 <div class="pt-toggle cltm-mode-toggle" role="tablist" aria-label="Spieler-Sortierung">
                     <button type="button" class="pt-toggle-btn active" data-mode="position" role="tab" aria-selected="true">Position</button>
                     <button type="button" class="pt-toggle-btn" data-mode="points" role="tab" aria-selected="false">Punkte</button>
@@ -4737,6 +4738,27 @@
         try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; }
     }
 
+    // Harter Body-Scroll-Lock (auch iOS Safari): Body wird per
+    // `position: fixed` eingefroren; `top: -scrollY` hält die Seite optisch
+    // an Ort, beim Entsperren wird die Scroll-Position wiederhergestellt.
+    // Die FLIP-Messungen (getBoundingClientRect) bleiben dadurch korrekt,
+    // weil sich die Viewport-Positionen nicht verändern.
+    let cltmLockScrollY = 0;
+
+    function cltmLockBody() {
+        if (document.body.classList.contains('cltm-lock')) return;
+        cltmLockScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.body.style.top = `-${cltmLockScrollY}px`;
+        document.body.classList.add('cltm-lock');
+    }
+
+    function cltmUnlockBody() {
+        if (!document.body.classList.contains('cltm-lock')) return;
+        document.body.classList.remove('cltm-lock');
+        document.body.style.top = '';
+        window.scrollTo(0, cltmLockScrollY);
+    }
+
     function cltmEnsureOverlay() {
         if (cltmOverlay) return;
         cltmOverlay = document.createElement('div');
@@ -4799,7 +4821,7 @@
         cltmModal.innerHTML = cltmModalHtml(manager, rank, rankCls);
         cltmBindImgFallbacks(cltmModal);
 
-        document.body.classList.add('cltm-lock');
+        cltmLockBody();
         cltmOverlay.hidden = false;
         if (tileEl) tileEl.classList.add('cltm-src-hidden');
 
@@ -4862,7 +4884,7 @@
             cltmOverlay.hidden = true;
             cltmOverlay.classList.remove('is-open', 'is-closing', 'is-settled');
             cltmModal.style.transform = '';
-            document.body.classList.remove('cltm-lock');
+            cltmUnlockBody();
             document.querySelectorAll('.cltm-tile.cltm-src-hidden').forEach((el) => el.classList.remove('cltm-src-hidden'));
             if (cltmLastTrigger && document.contains(cltmLastTrigger)) {
                 try { cltmLastTrigger.focus({ preventScroll: true }); } catch (_) {}

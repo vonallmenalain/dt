@@ -6292,6 +6292,14 @@
            behält aber ihren Platz (Expand-Illusion wie bei Aceternity). */
         .cltm-tile.cltm-src-hidden { visibility: hidden; }
 
+        /* Skeleton-Kacheln (index.html): gleiche Geometrie wie .cltm-tile,
+           damit die Sektion ihre Fläche schon vor dem Daten-Render belegt
+           und beim Eintreffen der Top-10 nichts nach unten rutscht. */
+        .cltm-tile-skel {
+            aspect-ratio: 1 / 1;
+            border-radius: 18px;
+        }
+
         @keyframes cltm-tile-in {
             from { opacity: 0; transform: translateY(14px); }
             to   { opacity: 1; transform: none; }
@@ -6403,7 +6411,18 @@
         }
 
         /* ── Overlay + Expand-Detailkarte ────────────────────────────── */
-        body.cltm-lock { overflow: hidden; }
+        /* Harter Scroll-Lock: `overflow: hidden` allein reicht auf iOS
+           Safari nicht – der Hintergrund scrollt beim Wischen im Popup
+           sichtbar mit. `position: fixed` friert den Body komplett ein;
+           index.js kompensiert die Scroll-Position über `top: -scrollY`
+           und stellt sie beim Schliessen wieder her. */
+        body.cltm-lock {
+            position: fixed;
+            left: 0;
+            right: 0;
+            width: 100%;
+            overflow: hidden;
+        }
 
         .cltm-overlay {
             position: fixed;
@@ -6434,7 +6453,10 @@
         .cltm-modal {
             position: relative;
             z-index: 1;
-            width: min(1232px, 100%);
+            /* Nur so breit, dass 5 Chips (4 Starter + Bank) in eine Reihe
+               passen: Gutter 44 + 4×~117 Chips + Gaps + Bank-Spalte + Body-
+               Padding – die Chip-Layout-Engine füllt die Breite dann exakt. */
+            width: min(760px, 100%);
             max-height: min(90vh, 900px);
             display: flex;
             flex-direction: column;
@@ -6481,15 +6503,24 @@
         }
         .cltm-mode-toggle { flex-shrink: 0; }
         .cltm-mode-toggle .pt-toggle-btn { min-height: 38px; }
-        /* Schmale Screens: Toggle in eigene Zeile, damit der Manager-Name
-           im Kopf nicht bis zur Unkenntlichkeit gekürzt wird. */
+        /* Flex-Zeilenumbruch-Helfer: bricht auf schmalen Screens die Zeile
+           VOR dem Toggle, ohne dass der Toggle-Pill selbst auf volle Breite
+           gestreckt wird (er bleibt so breit wie seine beiden Buttons). */
+        .cltm-head-break { display: none; }
+        /* Schmale Screens: Toggle in eigene Zeile (zentriert, intrinsische
+           Breite), damit der Manager-Name im Kopf nicht bis zur
+           Unkenntlichkeit gekürzt wird. */
         @media (max-width: 640px) {
             .cltm-modal-head { row-gap: 8px; }
+            .cltm-head-break {
+                display: block;
+                flex-basis: 100%;
+                height: 0;
+                order: 4;
+            }
             .cltm-mode-toggle {
                 order: 5;
-                flex-basis: 100%;
-                display: flex;
-                justify-content: center;
+                margin: 0 auto;
             }
         }
         .cltm-close {
@@ -6521,6 +6552,9 @@
             /* Verhindert den Breiten-Sprung, wenn während der Expand-
                Animation die Scrollbar auftaucht (Chip-Layout misst clientWidth). */
             scrollbar-gutter: stable;
+            /* Scroll-Kette kappen: am Ende des Popup-Scrollens darf der
+               Schwung nicht auf den Hintergrund übergehen. */
+            overscroll-behavior: contain;
             opacity: 0;
             transition: opacity 0.3s ease 0.14s;
         }
