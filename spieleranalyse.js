@@ -6843,6 +6843,26 @@
         return !!(info && info.verifiedFromServer === true && info.stale !== true);
     }
 
+    /* In einer bewusst aktivierten Admin-Vorschau (z. B. CL-Test cl2526)
+       liegen fuer das Turnier oft schlicht noch keine Live-Daten vor – das
+       ist KEIN Server-/App-Fehler. Analog zu index.html zeigen wir dann
+       einen ruhigen Hinweis statt der roten Fehlermeldung. */
+    function isPreviewWithoutLiveData() {
+        try {
+            return !!(APP && typeof APP.isPreviewActive === 'function' && APP.isPreviewActive());
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function showPreviewNoDataNotice() {
+        const list = document.getElementById('player-list');
+        if (list) {
+            list.innerHTML = `<div class="list-empty">🔭 Vorschau: Fuer ${escapeHtml(TOURNAMENT_LABEL)} liegen noch keine Live-Daten vor.</div>`;
+        }
+    }
+
+
     /* =========================================================
        CACHED-FIRST RENDERING
        Der letzte lokale Cache-Stand wird sofort angezeigt, die
@@ -7129,6 +7149,9 @@
                         startFreshnessEscalation(() => {
                             if (hasRenderedOnce) {
                                 showStaleNotice('Warte auf Serverbestaetigung …');
+                            } else if (isPreviewWithoutLiveData()) {
+                                hideSyncIndicator();
+                                showPreviewNoDataNotice();
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError(`Spieleranalyse fuer ${TOURNAMENT_LABEL} wartet auf frische Serverdaten.`);
@@ -7139,6 +7162,9 @@
                         if (!isServerVerifiedCacheInfo(info)) {
                             if (hasRenderedOnce) {
                                 showStaleNotice('Offline – angezeigt wird der letzte lokale Stand.');
+                            } else if (isPreviewWithoutLiveData()) {
+                                hideSyncIndicator();
+                                showPreviewNoDataNotice();
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError('Offline oder Server nicht erreichbar. Es liegen noch keine lokalen Daten vor.');
@@ -7159,10 +7185,16 @@
                         if (hasRenderedOnce) {
                             // Inhalt ist sichtbar → nicht-destruktiver Hinweis
                             // statt Ersetzen der Spielerliste.
-                            showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+                            showStaleNotice(isPreviewWithoutLiveData()
+                                ? 'Vorschau: keine Live-Daten – letzter lokaler Stand.'
+                                : 'Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
                             return;
                         }
                         hideSyncIndicator();
+                        if (isPreviewWithoutLiveData()) {
+                            showPreviewNoDataNotice();
+                            return;
+                        }
                         showFreshnessError('Aktuelle Analyse-Daten konnten nicht vom Server geladen werden.');
                         document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
                     }
@@ -7170,8 +7202,12 @@
             }
         } catch (e) {
             console.error(e);
-            showFreshnessError('Aktuelle Analyse-Daten konnten nicht vom Server geladen werden.');
-            if (!hasRenderedOnce) {
+            if (hasRenderedOnce) {
+                showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+            } else if (isPreviewWithoutLiveData()) {
+                showPreviewNoDataNotice();
+            } else {
+                showFreshnessError('Aktuelle Analyse-Daten konnten nicht vom Server geladen werden.');
                 document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
             }
         }
