@@ -1314,6 +1314,23 @@
         const container = $('tile-' + (prefix || '') + 'top-clubs');
         if (!container) return;
 
+        // CL (club-zentriert): der Remap in data.js legt die Nationalität ins
+        // sekundäre Feld (Club.name) – diese Kachel zeigt dort also Länder,
+        // nicht Vereine. Titel/Icon/aria entsprechend beschriften.
+        const secPlural = (window.APP_CONFIG && window.APP_CONFIG.primaryEntity === 'club') ? 'Länder' : 'Vereine';
+        container.setAttribute('aria-label', `Meistgewählte ${secPlural}`);
+        const gtile = container.closest('.gtile');
+        const titleEl = gtile && gtile.querySelector('.gtile-title');
+        if (titleEl) {
+            const icon = titleEl.querySelector('.gtile-title-icon');
+            if (icon) icon.textContent = (secPlural === 'Länder') ? '🌍' : '🏢';
+            titleEl.childNodes.forEach((node) => {
+                if (node.nodeType === 3 && /Beliebteste/.test(node.nodeValue || '')) {
+                    node.nodeValue = ` Beliebteste ${secPlural}`;
+                }
+            });
+        }
+
         const clubCounts = {};
         teams.forEach((t) => {
             (t.players || []).forEach((tp) => {
