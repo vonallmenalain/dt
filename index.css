@@ -6206,30 +6206,47 @@
         }
 
         /* ================================================================
-           CL: TOP-10-MANAGER – kompakte Liste + Expand-Detailkarte
+           CL: TOP-10-MANAGER – Kachel-Grid + Expand-Detailkarte
            Namespace `cltm-`. Nur in der CL sichtbar (index.js blendet
            #clTopManagers ein und entfernt dafür die Champ-Stage); die WM
            behält das Podest. Farbwelt über die --cl-*-Variablen (mit
            Fallbacks auf die CL-Palette), Medaillenfarben fest kodiert.
+
+           Performance-Prinzip: Öffnen/Schliessen und der Positions-/
+           Punkte-Wechsel animieren ausschliesslich transform + opacity
+           (Compositor). Der Backdrop-Blur wird erst NACH der Expand-
+           Animation zugeschaltet (`.is-settled`) – backdrop-filter
+           während einer Animation ist der häufigste Ruckel-Verursacher.
            ================================================================ */
         .cltm-stage {
             position: relative;
             z-index: 2;
-            width: min(94vw, 680px);
+            width: 100%;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 10px 0 6px;
+            padding: 10px 16px 6px;
             box-sizing: border-box;
+        }
+        @media (min-width: 720px) {
+            .cltm-stage { padding: 10px 24px 6px; }
         }
         .cltm-stage[hidden] { display: none; }
 
         .cltm-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 8px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 10px;
+        }
+        @media (max-width: 980px) {
+            .cltm-list { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        }
+        @media (max-width: 640px) {
+            .cltm-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         }
 
         .cltm-empty {
+            grid-column: 1 / -1;
             text-align: center;
             padding: 26px 16px;
             border-radius: 16px;
@@ -6238,56 +6255,66 @@
             color: var(--cl-text-muted, #9db6e8);
         }
 
-        /* ── Manager-Zeile (Kurzansicht) ─────────────────────────────── */
-        .cltm-card {
-            display: grid;
-            grid-template-columns: 40px minmax(0, 1fr) auto auto;
+        /* ── Manager-Kachel (Kurzansicht) ────────────────────────────── */
+        .cltm-tile {
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 16px;
+            justify-content: space-between;
+            gap: 6px;
+            aspect-ratio: 1 / 1;
+            padding: 12px 10px;
+            border-radius: 18px;
             box-sizing: border-box;
             background: linear-gradient(165deg, var(--cl-surface, #132347) 0%, var(--cl-surface-alt, #0f1c3d) 100%);
             border: 1px solid rgba(125, 180, 255, 0.16);
             color: inherit;
             font-family: inherit;
-            text-align: left;
+            text-align: center;
             cursor: pointer;
             opacity: 0;
-            animation: cltm-card-in 0.5s cubic-bezier(0.22, 0.85, 0.4, 1.05) forwards;
-            animation-delay: calc(var(--cltm-i, 0) * 60ms);
+            animation: cltm-tile-in 0.5s cubic-bezier(0.22, 0.85, 0.4, 1.05) forwards;
+            animation-delay: calc(var(--cltm-i, 0) * 50ms);
             transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
         }
         @media (hover: hover) and (pointer: fine) {
-            .cltm-card:hover {
-                transform: translateY(-2px);
+            .cltm-tile:hover {
+                transform: translateY(-3px);
                 border-color: rgba(125, 180, 255, 0.45);
-                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+                box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
             }
         }
-        .cltm-card:focus-visible {
+        .cltm-tile:focus-visible {
             outline: 2px solid var(--cl-accent, #7db4ff);
             outline-offset: 2px;
         }
-        /* Ursprungs-Zeile bleibt während offener Detailkarte unsichtbar,
+        /* Ursprungs-Kachel bleibt während offener Detailkarte unsichtbar,
            behält aber ihren Platz (Expand-Illusion wie bei Aceternity). */
-        .cltm-card.cltm-src-hidden { visibility: hidden; }
+        .cltm-tile.cltm-src-hidden { visibility: hidden; }
 
-        @keyframes cltm-card-in {
+        @keyframes cltm-tile-in {
             from { opacity: 0; transform: translateY(14px); }
             to   { opacity: 1; transform: none; }
         }
 
+        .cltm-tile-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+            max-width: 100%;
+        }
+
         .cltm-rank {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 1rem;
+            font-size: 0.95rem;
             background: rgba(255, 255, 255, 0.08);
             color: var(--cl-text-muted, #9db6e8);
             flex-shrink: 0;
@@ -6308,29 +6335,46 @@
 
         .cltm-name {
             min-width: 0;
+            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             font-weight: 800;
-            font-size: 1.02rem;
+            font-size: clamp(0.9rem, 1.6vw, 1.05rem);
             letter-spacing: -0.01em;
+        }
+
+        .cltm-tile-pts {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            font-weight: 900;
+            font-size: clamp(1.1rem, 2vw, 1.35rem);
+            color: #fff;
+            white-space: nowrap;
+        }
+        .cltm-tile-pts small {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--cl-text-muted, #9db6e8);
         }
 
         .cltm-top3 {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
+            justify-content: center;
+            gap: clamp(6px, 1vw, 12px);
         }
         .cltm-top3-player {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 2px;
-            width: 38px;
+            width: 40px;
         }
         .cltm-top3-avatar {
-            width: 34px;
-            height: 34px;
+            width: clamp(30px, 3.2vw, 38px);
+            height: clamp(30px, 3.2vw, 38px);
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid rgba(125, 180, 255, 0.4);
@@ -6358,21 +6402,6 @@
             white-space: nowrap;
         }
 
-        .cltm-pts {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
-            font-weight: 900;
-            font-size: 1.15rem;
-            color: #fff;
-            white-space: nowrap;
-        }
-        .cltm-pts small {
-            font-size: 0.62rem;
-            font-weight: 700;
-            color: var(--cl-text-muted, #9db6e8);
-        }
-
         /* ── Overlay + Expand-Detailkarte ────────────────────────────── */
         body.cltm-lock { overflow: hidden; }
 
@@ -6383,7 +6412,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 18px;
+            padding: 16px;
             box-sizing: border-box;
         }
         .cltm-overlay[hidden] { display: none; }
@@ -6391,28 +6420,31 @@
         .cltm-backdrop {
             position: absolute;
             inset: 0;
-            background: rgba(4, 10, 26, 0.62);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            background: rgba(3, 8, 22, 0.74);
             opacity: 0;
-            transition: opacity 0.32s ease;
+            transition: opacity 0.3s ease;
         }
         .cltm-overlay.is-open .cltm-backdrop { opacity: 1; }
+        /* Blur erst nach abgeschlossener Expand-Animation (billiger). */
+        .cltm-overlay.is-settled .cltm-backdrop {
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+        }
 
         .cltm-modal {
             position: relative;
             z-index: 1;
-            width: min(560px, 100%);
-            max-height: min(86vh, 780px);
+            width: min(1232px, 100%);
+            max-height: min(90vh, 900px);
             display: flex;
             flex-direction: column;
-            border-radius: 22px;
+            border-radius: 24px;
             background: linear-gradient(170deg, var(--cl-surface, #132347), var(--cl-surface-alt, #0f1c3d));
             border: 1px solid rgba(125, 180, 255, 0.28);
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
             overflow: hidden;
             will-change: transform;
-            transition: transform 0.5s cubic-bezier(0.22, 0.85, 0.32, 1.02), opacity 0.3s ease 0.12s;
+            transition: transform 0.48s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.26s ease 0.1s;
         }
         .cltm-overlay.is-closing .cltm-modal { opacity: 0; }
 
@@ -6420,9 +6452,10 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 16px;
+            padding: 13px 16px;
             border-bottom: 1px solid rgba(125, 180, 255, 0.15);
             flex-shrink: 0;
+            flex-wrap: wrap;
         }
         .cltm-modal-title {
             display: flex;
@@ -6446,9 +6479,22 @@
             font-weight: 700;
             color: var(--cl-text-muted, #9db6e8);
         }
+        .cltm-mode-toggle { flex-shrink: 0; }
+        .cltm-mode-toggle .pt-toggle-btn { min-height: 38px; }
+        /* Schmale Screens: Toggle in eigene Zeile, damit der Manager-Name
+           im Kopf nicht bis zur Unkenntlichkeit gekürzt wird. */
+        @media (max-width: 640px) {
+            .cltm-modal-head { row-gap: 8px; }
+            .cltm-mode-toggle {
+                order: 5;
+                flex-basis: 100%;
+                display: flex;
+                justify-content: center;
+            }
+        }
         .cltm-close {
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             border: 1px solid rgba(255, 255, 255, 0.18);
             background: rgba(255, 255, 255, 0.06);
@@ -6467,189 +6513,201 @@
             outline-offset: 2px;
         }
 
-        /* Innenleben blendet leicht verzögert ein, während die Karte wächst. */
+        /* Innenleben blendet leicht verzögert ein, während die Karte wächst
+           (nur Opacity – kein zusätzliches Layout/Painting während des FLIP). */
         .cltm-modal-body {
-            padding: 14px 14px 16px;
+            padding: 12px 18px 18px;
             overflow-y: auto;
+            /* Verhindert den Breiten-Sprung, wenn während der Expand-
+               Animation die Scrollbar auftaucht (Chip-Layout misst clientWidth). */
+            scrollbar-gutter: stable;
             opacity: 0;
-            transform: translateY(8px);
-            transition: opacity 0.3s ease 0.16s, transform 0.3s ease 0.16s;
+            transition: opacity 0.3s ease 0.14s;
         }
-        .cltm-overlay.is-open .cltm-modal-body {
-            opacity: 1;
-            transform: none;
+        @media (max-width: 640px) {
+            .cltm-modal-body { padding: 10px 10px 14px; }
         }
+        .cltm-overlay.is-open .cltm-modal-body { opacity: 1; }
         .cltm-overlay.is-closing .cltm-modal-body {
             opacity: 0;
-            transition: opacity 0.16s ease;
+            transition: opacity 0.14s ease;
         }
 
-        /* ── Mini-Fussballfeld (Tor → Abwehr → Mittelfeld → Sturm) ──── */
-        .cltm-pitch {
+        /* ── Spieler-Bereich (JS-Layout, animierte Chips) ────────────── */
+        .cltm-players {
             position: relative;
-            border-radius: 16px;
-            padding: 14px 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            background:
-                repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 42px, rgba(255, 255, 255, 0) 42px 84px),
-                linear-gradient(180deg, #14532d, #166534 55%, #14532d);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            overflow: hidden;
+            transition: height 0.55s cubic-bezier(0.22, 0.9, 0.24, 1);
         }
-        /* Mittellinie + Mittelkreis als dezente Feld-Markierung. */
-        .cltm-pitch::before {
-            content: '';
+        .cltm-players > .cltm-chip {
             position: absolute;
-            left: 6%;
-            right: 6%;
-            top: 50%;
-            border-top: 2px solid rgba(255, 255, 255, 0.22);
-            pointer-events: none;
+            left: 0;
+            top: 0;
+            transition: transform 0.55s cubic-bezier(0.22, 0.9, 0.24, 1);
+            will-change: transform;
         }
-        .cltm-pitch::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 64px;
-            height: 64px;
-            border: 2px solid rgba(255, 255, 255, 0.22);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-
-        .cltm-pitch-row {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            justify-content: center;
-            gap: clamp(4px, 2vw, 14px);
+        .cltm-players.cltm-no-anim,
+        .cltm-players.cltm-no-anim > .cltm-chip {
+            transition: none !important;
         }
 
         .cltm-chip {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
-            width: clamp(64px, 19vw, 88px);
-            padding: 6px 3px 5px;
-            border-radius: 12px;
+            gap: 3px;
+            padding: 8px 4px 7px;
+            border-radius: 14px;
             box-sizing: border-box;
-            background: rgba(0, 0, 0, 0.28);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(125, 180, 255, 0.18);
+            color: inherit;
             font-family: inherit;
             cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+            transition: border-color 0.2s ease, background 0.2s ease;
         }
+        /* Kein transform beim Hover: die Position der Feld-Chips lebt im
+           transform – ein Hover-Transform würde sie verschieben. */
         @media (hover: hover) and (pointer: fine) {
             .cltm-chip:hover {
-                transform: translateY(-2px);
-                border-color: rgba(255, 255, 255, 0.42);
-                background: rgba(0, 0, 0, 0.42);
+                border-color: rgba(125, 180, 255, 0.55);
+                background: rgba(255, 255, 255, 0.09);
             }
         }
         .cltm-chip:focus-visible {
-            outline: 2px solid #fff;
+            outline: 2px solid var(--cl-accent, #7db4ff);
             outline-offset: 2px;
         }
         .cltm-chip-avatar {
-            width: 34px;
-            height: 34px;
+            position: relative;
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+        }
+        .cltm-chip-avatar > img,
+        .cltm-chip-avatar > .cltm-avatar-fallback {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.12);
+            object-fit: cover;
+            object-position: top;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
         }
-        .cltm-chip-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: top;
+        .cltm-chip-club {
+            position: absolute;
+            right: -5px;
+            bottom: -3px;
+            width: 19px;
+            height: 19px;
+            border-radius: 50%;
+            background: var(--cl-surface-alt, #0f1c3d);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .cltm-chip-club img {
+            width: 13px;
+            height: 13px;
+            object-fit: contain;
             display: block;
         }
-        .cltm-chip .cltm-avatar-fallback { color: rgba(255, 255, 255, 0.75); }
         .cltm-chip-name {
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            font-size: 0.6rem;
+            font-size: 0.62rem;
             font-weight: 700;
         }
         .cltm-chip-pts {
-            font-size: 0.68rem;
+            font-size: 0.74rem;
             font-weight: 900;
-            color: #fde68a;
+            color: var(--cl-accent, #7db4ff);
         }
-
-        /* ── Bank (Slots 11–14) ──────────────────────────────────────── */
-        .cltm-bench {
-            margin-top: 10px;
-            border-radius: 14px;
-            border: 1px dashed rgba(125, 180, 255, 0.32);
-            padding: 8px 8px 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        .cltm-chip-bench {
+            border-style: dashed;
             background: rgba(255, 255, 255, 0.03);
         }
-        .cltm-bench-label {
-            font-size: 0.66rem;
+
+        /* Dekor: Reihen-Labels, Bank-Beschriftung, Trennlinie. */
+        .cltm-row-label,
+        .cltm-bench-caption {
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 0.6rem;
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--cl-text-muted, #9db6e8);
+            text-align: center;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
-        .cltm-bench-row {
+        .cltm-row-label {
+            width: 38px;
+            text-align: left;
+        }
+        .cltm-bench-divider {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            border-left: 1px dashed rgba(125, 180, 255, 0.35);
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .cltm-players.mode-points .cltm-row-label,
+        .cltm-players.mode-points .cltm-bench-caption,
+        .cltm-players.mode-points .cltm-bench-divider,
+        .cltm-players:not(.cltm-inrow) .cltm-row-label,
+        .cltm-players:not(.cltm-inrow) .cltm-bench-divider {
+            opacity: 0;
+        }
+
+        /* ── Transfers (ausgetauschte Spieler) ───────────────────────── */
+        .cltm-transfers {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(125, 180, 255, 0.14);
+        }
+        .cltm-transfers-label {
+            display: block;
+            text-align: center;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--cl-text-muted, #9db6e8);
+            margin-bottom: 8px;
+        }
+        .cltm-transfers-row {
             display: flex;
-            justify-content: center;
-            gap: clamp(4px, 2vw, 14px);
             flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
-        .cltm-bench .cltm-chip {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(125, 180, 255, 0.22);
+        .cltm-transfers-row .cltm-chip { width: 96px; }
+        .cltm-chip-out {
+            opacity: 0.78;
+            border-style: dashed;
         }
-        .cltm-bench .cltm-chip-pts { color: var(--cl-accent, #7db4ff); }
 
         .cltm-modal-actions {
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
-        /* ── Mobile Feintuning ───────────────────────────────────────── */
-        @media (max-width: 560px) {
-            .cltm-card {
-                grid-template-columns: 34px minmax(0, 1fr) auto auto;
-                gap: 8px;
-                padding: 9px 10px;
-                border-radius: 14px;
-            }
-            .cltm-rank { width: 32px; height: 32px; border-radius: 10px; font-size: 0.9rem; }
-            .cltm-name { font-size: 0.92rem; }
-            .cltm-top3 { gap: 6px; }
-            .cltm-top3-player { width: 32px; }
-            .cltm-top3-avatar { width: 28px; height: 28px; }
-            .cltm-top3-pts { font-size: 0.58rem; }
-            .cltm-pts { font-size: 1rem; }
-            .cltm-overlay { padding: 12px; }
-            .cltm-modal-body { padding: 12px 10px 14px; }
-            .cltm-chip { width: clamp(58px, 20vw, 74px); }
-            .cltm-chip-avatar { width: 30px; height: 30px; }
+            margin-top: 14px;
         }
 
         /* ── Reduzierte Bewegung: nur Ein-/Ausblenden, keine Transforms ── */
         @media (prefers-reduced-motion: reduce) {
-            .cltm-card {
+            .cltm-tile {
                 animation: none;
                 opacity: 1;
                 transition: none;
@@ -6660,11 +6718,12 @@
             .cltm-overlay:not(.is-open) .cltm-modal { opacity: 0; }
             .cltm-modal-body {
                 opacity: 1 !important;
-                transform: none !important;
                 transition: none;
             }
             .cltm-backdrop { transition: opacity 0.2s ease; }
+            .cltm-players,
+            .cltm-players > .cltm-chip {
+                transition: none !important;
+            }
             .cltm-chip, .cltm-close { transition: none; }
         }
-
-    

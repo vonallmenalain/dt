@@ -4110,17 +4110,75 @@
                     // (0–14) für die Feld-Aufstellung der CL-Detailkarte.
                     pos: champNormalizePos((fullP && fullP.Position) || p.pos),
                     slotNum: p.slot ? parseInt(String(p.slot).replace('slot-', ''), 10) : -1,
+                    // WICHTIG: `Nationalteam.*` sind die PRIMÄREN Anzeigefelder
+                    // (siehe data.js Club-Remap): in der CL steckt dort der
+                    // KLUB (Name+Logo), bei der WM die Nation. `Club.logo`
+                    // wäre in der CL die Flagge – genau der Fehler, den schon
+                    // das Karussell hatte.
+                    club: fullP ? (fullP['Nationalteam.name'] || '') : (p.club || ''),
+                    clubLogo: fullP ? (fullP['Nationalteam.logo'] || '') : (p.clubLogo || ''),
                     matchPoints: matchesMap,
                     matchCount: Object.keys(matchesMap).length
                 };
             });
 
-            mergedPlayers.sort((a, b) => b.pts - a.pts);
-            const totalScore = (teamHasTransfers(team) && transferScoreCtx)
-                ? teamTotalOverTime(team)
-                : mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+            // Zeitbasierte Transfer-Wertung (wie teams.js): für Teams MIT
+            // Transfers zählen Spieler nur, solange sie im Team waren. Die
+            // aktuellen Spieler bekommen ihre gefensterten Punkte, die
+            // ausgetauschten werden separat ausgewiesen (transferredOut, für
+            // den Transfers-Block der CL-Detailkarte). bd.total entspricht
+            // exakt dem bisherigen teamTotalOverTime() – Ranking unverändert.
+            // WM-Teams haben keine Transfers → kompletter Block ist dort ein
+            // No-op und das Podest rechnet wie bisher.
+            let totalScore;
+            let transferredOut = [];
+            const TU = window.TransferUtils;
+            const hasFreeze = teamHasTransfers(team) && transferScoreCtx
+                && TU && typeof TU.managerBreakdownOverTime === 'function';
+            if (hasFreeze) {
+                const currentIds = mergedPlayers.map((p) => String(p.id));
+                const currentSet = new Set(currentIds);
+                const currentCaptain = (mergedPlayers.find((p) => p.isCaptain) || {}).id || null;
+                const bd = TU.managerBreakdownOverTime({
+                    currentTeamIds: currentIds,
+                    transfers: team.transfers,
+                    initialCaptain: team.initialCaptain || currentCaptain,
+                    playerMatchPoints: transferScoreCtx.playerMatchPoints,
+                    getKickoffMs: transferScoreCtx.getKickoffMs,
+                    // CL hat keinen Captain → kein ×2 (WM behält ×2).
+                    captainMultiplier: (window.APP_CONFIG && window.APP_CONFIG.captainEnabled === false) ? 1 : 2
+                });
+                mergedPlayers.forEach((p) => { p.pts = bd.perPlayer[String(p.id)] || 0; });
+                const initialIdsArr = (typeof TU.reconstructInitialTeamIds === 'function')
+                    ? TU.reconstructInitialTeamIds(currentIds, team.transfers).map(String)
+                    : currentIds.slice();
+                transferredOut = initialIdsArr
+                    .filter((id) => !currentSet.has(id))
+                    .map((id) => {
+                        const fp = getPlayerById(id);
+                        return {
+                            id,
+                            name: fp ? fp.Spielername : String(id),
+                            pts: bd.perPlayer[id] || 0,
+                            isCaptain: false,
+                            photo: fp ? (fp.Spielerfoto || '') : '',
+                            nation: fp ? (fp['Nationalteam.name'] || '?') : '?',
+                            pos: fp ? champNormalizePos(fp.Position) : 'UNKNOWN',
+                            slotNum: -1,
+                            // Primäre Anzeigefelder (CL → Klub), s. Kommentar oben.
+                            club: fp ? (fp['Nationalteam.name'] || '') : '',
+                            clubLogo: fp ? (fp['Nationalteam.logo'] || '') : ''
+                        };
+                    })
+                    .sort((a, b) => b.pts - a.pts);
+                totalScore = bd.total;
+            } else {
+                totalScore = mergedPlayers.reduce((sum, p) => sum + p.pts, 0);
+            }
 
-            return { ...team, manager: team.manager || 'Unbekannt', mergedPlayers, totalScore };
+            mergedPlayers.sort((a, b) => b.pts - a.pts);
+
+            return { ...team, manager: team.manager || 'Unbekannt', mergedPlayers, totalScore, transferredOut };
         });
     }
 
@@ -4358,33 +4416,44 @@
     }
 
     /* =========================================================
-       CL: TOP-10-MANAGER – kompakte Liste + Expand-Detailkarte
+       CL: TOP-10-MANAGER – Kachel-Grid + Expand-Detailkarte
        Ersetzt in der CL die Champ-Stage (Podest). Nutzt exakt
        dieselbe Ranking-Pipeline (buildChampRanking) wie das
        WM-Podest bzw. rangliste.html, damit Reihenfolge und
        Punkte überall übereinstimmen. Eigener Namespace `cltm-`.
 
-       Interaktion („Expandable Card"): Klick auf eine Manager-
-       Zeile expandiert sie mit einer FLIP-Animation (von der
-       Zeilen-Position zur zentrierten Detailkarte). Die Detail-
-       karte zeigt ein kleines Fussballfeld mit allen 15 Spielern
-       (Slots des Team-Builders: 0 Tor, 1–3 Abwehr, 4–7 Mittelfeld,
-       8–10 Sturm, 11–14 Bank) samt Punkten.
+       Aufbau:
+       • Top-10 als quadratische Kacheln (Rang + Name, Punkte,
+         3 punktbeste Spieler).
+       • Klick expandiert die Kachel per FLIP-Animation zur
+         zentrierten Detailkarte (gleiche Breite wie die übrigen
+         Dashboard-Bereiche). Darin alle 15 Spieler als Chips
+         (Foto, Name, Punkte, Klublogo), per Toggle „Position |
+         Punkte" umsortierbar – die Chips sind absolut positioniert
+         und wandern rein über transform-Transitions (Compositor,
+         kein Layout-Thrash) zwischen beiden Ansichten.
+       • Positions-Ansicht: Reihen Tor/Abwehr/Mittelfeld/Sturm;
+         der jeweilige Bank-Spieler (Slots 11–14) sitzt auf der
+         gleichen Höhe in einer eigenen Spalte rechts (auf schmalen
+         Screens rutscht die Bank als eigene Reihe nach unten).
+       • Transfers (ausgetauschte Spieler) als eigener Block unten.
        ========================================================= */
     const CLTM_MAX = 10;
 
+    // Slot-Schema des Team-Builders: 0 Tor, 1–3 Abwehr, 4–7 Mittelfeld,
+    // 8–10 Sturm; Bank: 11 Tor, 12 Abwehr, 13 Mittelfeld, 14 Sturm.
     const CLTM_ROWS = [
-        { key: 'GOALKEEPER', label: 'Tor',        firstSlot: 0,  lastSlot: 0 },
-        { key: 'DEFENDER',   label: 'Abwehr',     firstSlot: 1,  lastSlot: 3 },
-        { key: 'MIDFIELDER', label: 'Mittelfeld', firstSlot: 4,  lastSlot: 7 },
-        { key: 'ATTACKER',   label: 'Sturm',      firstSlot: 8,  lastSlot: 10 }
+        { key: 'GOALKEEPER', label: 'TOR', firstSlot: 0, lastSlot: 0,  benchSlot: 11 },
+        { key: 'DEFENDER',   label: 'ABW', firstSlot: 1, lastSlot: 3,  benchSlot: 12 },
+        { key: 'MIDFIELDER', label: 'MF',  firstSlot: 4, lastSlot: 7,  benchSlot: 13 },
+        { key: 'ATTACKER',   label: 'ST',  firstSlot: 8, lastSlot: 10, benchSlot: 14 }
     ];
 
     function cltmFormatPts(value) {
         return Math.round(Number(value) || 0).toLocaleString('de-DE');
     }
 
-    // Kurzform für die schmalen Feld-Chips: „Erling Braut Haaland" → „E. Haaland".
+    // Kurzform für die schmalen Chips: „Erling Braut Haaland" → „E. Haaland".
     function cltmShortPlayerName(fullName) {
         const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
         if (!parts.length) return 'Unbekannt';
@@ -4396,7 +4465,7 @@
     function cltmAvatarHtml(p) {
         const fallback = champEscapeHtml(champInitials(p.name));
         if (p.photo && /^https?:/i.test(p.photo)) {
-            return `<img src="${champEscapeHtml(p.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="${fallback}">`;
+            return `<img src="${champEscapeHtml(p.photo)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fallback="${fallback}">`;
         }
         return `<span class="cltm-avatar-fallback" aria-hidden="true">${fallback}</span>`;
     }
@@ -4411,72 +4480,258 @@
                 img.replaceWith(span);
             }, { once: true });
         });
+        // Klublogos: bei Ladefehler das ganze Badge entfernen statt eines
+        // kaputten Bild-Platzhalters.
+        rootEl.querySelectorAll('.cltm-chip-club img').forEach((img) => {
+            img.addEventListener('error', () => {
+                const badge = img.closest('.cltm-chip-club');
+                if (badge) badge.remove();
+            }, { once: true });
+        });
     }
 
-    // Alle 15 Spieler in Feld-Reihen (Tor/Abwehr/Mittelfeld/Sturm) + Bank
-    // gruppieren. Primär über die Team-Builder-Slots; Spieler ohne gültigen
-    // Slot (Alt-Daten) werden über ihre Position einsortiert.
+    // Reihen (Tor/Abwehr/Mittelfeld/Sturm) mit Startern + zugehörigem
+    // Bank-Spieler. Spieler ohne gültigen Slot (Alt-Daten) werden über
+    // ihre Position als Starter einsortiert.
     function cltmGroupPlayers(manager) {
-        const rows = CLTM_ROWS.map((row) => ({ key: row.key, label: row.label, players: [] }));
-        const bench = [];
+        const rows = CLTM_ROWS.map((row) => ({ key: row.key, label: row.label, starters: [], bench: null }));
         const noSlot = [];
 
         (manager.mergedPlayers || []).forEach((p) => {
             const n = Number(p.slotNum);
             if (!Number.isFinite(n) || n < 0 || n > 14) { noSlot.push(p); return; }
-            if (n >= 11) { bench.push({ p, n }); return; }
-            const rowIdx = CLTM_ROWS.findIndex((row) => n >= row.firstSlot && n <= row.lastSlot);
-            rows[rowIdx >= 0 ? rowIdx : 2].players.push({ p, n });
+            const rowIdx = CLTM_ROWS.findIndex((row) => (n >= row.firstSlot && n <= row.lastSlot) || n === row.benchSlot);
+            const row = rows[rowIdx >= 0 ? rowIdx : 2];
+            if (n >= 11 && !row.bench) row.bench = p;
+            else row.starters.push({ p, n });
         });
 
         noSlot.forEach((p) => {
             const row = rows.find((r) => r.key === p.pos) || rows[2];
-            row.players.push({ p, n: 99 });
+            row.starters.push({ p, n: 99 });
         });
 
         rows.forEach((row) => {
-            row.players.sort((a, b) => a.n - b.n);
-            row.players = row.players.map((x) => x.p);
+            row.starters.sort((a, b) => a.n - b.n);
+            row.starters = row.starters.map((x) => x.p);
         });
-        bench.sort((a, b) => a.n - b.n);
 
-        return { rows, bench: bench.map((x) => x.p) };
+        return { rows };
     }
 
-    function cltmChipHtml(p) {
+    function cltmChipHtml(p, extraCls) {
         const safeName = champEscapeHtml(p.name || 'Unbekannt');
         const ptsText = cltmFormatPts(p.pts);
+        const clubBadge = (p.clubLogo && /^https?:/i.test(p.clubLogo))
+            ? `<span class="cltm-chip-club"><img src="${champEscapeHtml(p.clubLogo)}" alt="" loading="lazy" decoding="async"></span>`
+            : '';
         return `
-            <button type="button" class="cltm-chip" data-action="player"
-                    data-player-id="${champEscapeHtml(p.id != null ? String(p.id) : '')}"
+            <button type="button" class="cltm-chip${extraCls ? ' ' + extraCls : ''}" data-action="player"
+                    data-pid="${champEscapeHtml(p.id != null ? String(p.id) : '')}"
                     data-player-name="${safeName}"
                     aria-label="Spieler ${safeName}, ${ptsText} Punkte. Spieleranalyse öffnen.">
-                <span class="cltm-chip-avatar" aria-hidden="true">${cltmAvatarHtml(p)}</span>
+                <span class="cltm-chip-avatar" aria-hidden="true">
+                    ${cltmAvatarHtml(p)}
+                    ${clubBadge}
+                </span>
                 <span class="cltm-chip-name">${champEscapeHtml(cltmShortPlayerName(p.name))}</span>
                 <span class="cltm-chip-pts">${ptsText}</span>
             </button>`;
     }
 
-    function cltmPitchHtml(manager) {
-        const { rows, bench } = cltmGroupPlayers(manager);
-        const rowsHtml = rows.map((row) => `
-            <div class="cltm-pitch-row" role="group" aria-label="${row.label}">
-                ${row.players.map(cltmChipHtml).join('')}
-            </div>`).join('');
-        const benchHtml = bench.length ? `
-            <div class="cltm-bench" role="group" aria-label="Bank">
-                <span class="cltm-bench-label">Bank</span>
-                <div class="cltm-bench-row">${bench.map(cltmChipHtml).join('')}</div>
+    function cltmModalHtml(manager, rank, rankCls) {
+        const { rows } = cltmGroupPlayers(manager);
+        const chipsHtml = rows.map((row) =>
+            row.starters.map((p) => cltmChipHtml(p)).join('')
+            + (row.bench ? cltmChipHtml(row.bench, 'cltm-chip-bench') : '')
+        ).join('');
+
+        const labelsHtml = rows.map((row, i) =>
+            `<span class="cltm-row-label" data-row="${i}" aria-hidden="true">${row.label}</span>`
+        ).join('');
+
+        const outs = Array.isArray(manager.transferredOut) ? manager.transferredOut : [];
+        const transfersHtml = outs.length ? `
+            <div class="cltm-transfers">
+                <span class="cltm-transfers-label">Transfers</span>
+                <div class="cltm-transfers-row">${outs.map((p) => cltmChipHtml(p, 'cltm-chip-out')).join('')}</div>
             </div>` : '';
-        return `<div class="cltm-pitch">${rowsHtml}</div>${benchHtml}`;
+
+        return `
+            <div class="cltm-modal-head">
+                <span class="cltm-rank ${rankCls}">${rank || '–'}</span>
+                <div class="cltm-modal-title">
+                    <span class="cltm-modal-name">${champEscapeHtml(manager.manager || 'Unbekannt')}</span>
+                    <span class="cltm-modal-pts">${cltmFormatPts(manager.totalScore)} <small>Pkt</small></span>
+                </div>
+                <div class="pt-toggle cltm-mode-toggle" role="tablist" aria-label="Spieler-Sortierung">
+                    <button type="button" class="pt-toggle-btn active" data-mode="position" role="tab" aria-selected="true">Position</button>
+                    <button type="button" class="pt-toggle-btn" data-mode="points" role="tab" aria-selected="false">Punkte</button>
+                </div>
+                <button type="button" class="cltm-close" data-cltm-close aria-label="Detailkarte schliessen">✕</button>
+            </div>
+            <div class="cltm-modal-body">
+                <div class="cltm-players">
+                    ${chipsHtml}
+                    ${labelsHtml}
+                    <span class="cltm-bench-caption" aria-hidden="true">Bank</span>
+                    <span class="cltm-bench-divider" aria-hidden="true"></span>
+                </div>
+                ${transfersHtml}
+                <div class="cltm-modal-actions">
+                    <a class="btn-pill" href="teams.html?manager=${encodeURIComponent(manager.manager || '')}">🛡️ Team ansehen</a>
+                    <a class="btn-pill" href="rangliste.html">🏆 Zur Rangliste</a>
+                </div>
+            </div>
+        `;
+    }
+
+    /* ── Chip-Layout-Engine (Positions-/Punkte-Ansicht) ─────────────────
+       Alle 15 Chips sind absolut positioniert und werden hier rein über
+       transform: translate3d(...) platziert. Ein Moduswechsel ändert nur
+       die Transforms – die CSS-Transition animiert die Chips flüssig auf
+       ihre neuen Plätze (FLIP ohne Layout-Arbeit pro Frame). */
+    let cltmModalManager = null;    // Manager-Objekt der offenen Detailkarte
+    let cltmMode = 'position';
+
+    function cltmChipElements() {
+        return cltmModal ? Array.from(cltmModal.querySelectorAll('.cltm-players > .cltm-chip')) : [];
+    }
+
+    function cltmLayoutPlayers(animate) {
+        if (!cltmModal || !cltmModalManager) return;
+        const wrap = cltmModal.querySelector('.cltm-players');
+        if (!wrap) return;
+        const chips = cltmChipElements();
+        if (!chips.length) { wrap.style.height = '0px'; return; }
+
+        const W = wrap.clientWidth;
+        if (!W) return;
+        const inRow = W >= 620;                       // Bank rechts in der Reihe?
+        const gap = inRow ? Math.min(18, Math.max(10, Math.floor(W * 0.014))) : 8;
+        const gutter = inRow ? 44 : 0;                // Platz für TOR/ABW/MF/ST
+        const benchSep = inRow ? 30 : 0;              // Abstand Feld ↔ Bank-Spalte
+        const chipW = inRow
+            ? Math.min(118, Math.floor((W - gutter - benchSep - 5 * gap) / 5))
+            : Math.min(96, Math.floor((W - 3 * gap) / 4));
+
+        if (!animate) wrap.classList.add('cltm-no-anim');
+
+        const byId = new Map();
+        chips.forEach((c) => { c.style.width = chipW + 'px'; byId.set(c.dataset.pid, c); });
+        const chipH = chips[0].offsetHeight;
+
+        const caption = wrap.querySelector('.cltm-bench-caption');
+        const divider = wrap.querySelector('.cltm-bench-divider');
+        const labelEl = (i) => wrap.querySelector(`.cltm-row-label[data-row="${i}"]`);
+        const place = (el, x, y) => {
+            if (el) el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+        };
+
+        const rowGap = inRow ? 16 : 12;
+        let height = 0;
+
+        if (cltmMode === 'points') {
+            // mergedPlayers ist bereits nach Punkten absteigend sortiert.
+            const cols = inRow ? 5 : 4;
+            const sorted = cltmModalManager.mergedPlayers || [];
+            const rowsCount = Math.max(1, Math.ceil(sorted.length / cols));
+            sorted.forEach((p, i) => {
+                const chip = byId.get(String(p.id));
+                if (!chip) return;
+                const r = Math.floor(i / cols);
+                const inThisRow = Math.min(cols, sorted.length - r * cols);
+                const rowW = inThisRow * chipW + (inThisRow - 1) * gap;
+                place(chip, (W - rowW) / 2 + (i % cols) * (chipW + gap), 4 + r * (chipH + rowGap));
+            });
+            height = 4 + rowsCount * chipH + (rowsCount - 1) * rowGap + 6;
+        } else {
+            const { rows } = cltmGroupPlayers(cltmModalManager);
+            if (inRow) {
+                const topPad = 26;                    // Platz für „Bank"-Beschriftung
+                const benchX = W - chipW;
+                const areaW = benchX - benchSep - gutter;
+                rows.forEach((row, r) => {
+                    const y = topPad + r * (chipH + rowGap);
+                    const n = row.starters.length;
+                    const rowW = n * chipW + Math.max(0, n - 1) * gap;
+                    row.starters.forEach((p, i) => {
+                        place(byId.get(String(p.id)), gutter + (areaW - rowW) / 2 + i * (chipW + gap), y);
+                    });
+                    if (row.bench) place(byId.get(String(row.bench.id)), benchX, y);
+                    place(labelEl(r), 0, y + chipH / 2 - 9);
+                });
+                height = topPad + rows.length * chipH + (rows.length - 1) * rowGap + 6;
+                if (caption) {
+                    caption.style.width = chipW + 'px';
+                    place(caption, benchX, 2);
+                }
+                if (divider) {
+                    divider.style.height = Math.max(0, height - 12) + 'px';
+                    place(divider, benchX - Math.round(benchSep / 2), 4);
+                }
+            } else {
+                // Schmale Screens: Bank als eigene Reihe unterhalb des Feldes.
+                const benchList = rows.map((row) => row.bench).filter(Boolean);
+                rows.forEach((row, r) => {
+                    const y = 4 + r * (chipH + rowGap);
+                    const n = row.starters.length;
+                    const rowW = n * chipW + Math.max(0, n - 1) * gap;
+                    row.starters.forEach((p, i) => {
+                        place(byId.get(String(p.id)), (W - rowW) / 2 + i * (chipW + gap), y);
+                    });
+                    place(labelEl(r), 0, y + chipH / 2 - 9);
+                });
+                const benchLabelY = 4 + rows.length * (chipH + rowGap);
+                const benchY = benchLabelY + 20;
+                const n = benchList.length;
+                const rowW = n * chipW + Math.max(0, n - 1) * gap;
+                benchList.forEach((p, i) => {
+                    place(byId.get(String(p.id)), (W - rowW) / 2 + i * (chipW + gap), benchY);
+                });
+                if (caption) {
+                    caption.style.width = W + 'px';
+                    place(caption, 0, benchLabelY - 2);
+                }
+                height = n ? benchY + chipH + 6 : benchLabelY + 2;
+            }
+        }
+
+        wrap.style.height = Math.ceil(height) + 'px';
+        wrap.classList.toggle('mode-points', cltmMode === 'points');
+        wrap.classList.toggle('cltm-inrow', inRow);
+
+        if (!animate) {
+            void wrap.offsetWidth;                    // Layout ohne Transition anwenden
+            wrap.classList.remove('cltm-no-anim');
+        }
+    }
+
+    function cltmSetMode(mode) {
+        if (!cltmModal || mode === cltmMode) return;
+        cltmMode = mode;
+
+        // Sanfter Stagger: Chips starten minimal versetzt, wirkt organischer.
+        const chips = cltmChipElements();
+        chips.forEach((c, i) => { c.style.transitionDelay = Math.min(i * 14, 180) + 'ms'; });
+        cltmLayoutPlayers(true);
+        setTimeout(() => { chips.forEach((c) => { c.style.transitionDelay = ''; }); }, 950);
+
+        cltmModal.querySelectorAll('.cltm-mode-toggle .pt-toggle-btn').forEach((btn) => {
+            const active = btn.dataset.mode === mode;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
     }
 
     /* ── Expand-Detailkarte (Overlay + FLIP-Animation) ──────────────── */
     let cltmOverlay = null;
     let cltmModal = null;
     let cltmOpenKey = null;      // Manager-Name der offenen Detailkarte
-    let cltmLastTrigger = null;  // Karte, die den Dialog geöffnet hat (Fokus-Rückgabe)
+    let cltmLastTrigger = null;  // Kachel, die den Dialog geöffnet hat (Fokus-Rückgabe)
     let cltmClosing = false;
+    let cltmSettleTimer = null;
+    let cltmResizeTimer = null;
 
     function cltmPrefersReducedMotion() {
         try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; }
@@ -4496,9 +4751,11 @@
 
         cltmOverlay.addEventListener('click', (ev) => {
             if (ev.target.closest('[data-cltm-close]')) { cltmClose(); return; }
+            const modeBtn = ev.target.closest('.cltm-mode-toggle [data-mode]');
+            if (modeBtn) { cltmSetMode(modeBtn.dataset.mode); return; }
             const chip = ev.target.closest('[data-action="player"]');
             if (chip) {
-                champOpenPlayerAnalysis({ id: chip.dataset.playerId || '', name: chip.dataset.playerName || '' });
+                champOpenPlayerAnalysis({ id: chip.dataset.pid || '', name: chip.dataset.playerName || '' });
             }
         });
 
@@ -4516,61 +4773,77 @@
         document.addEventListener('keydown', (ev) => {
             if (ev.key === 'Escape' && cltmOpenKey !== null) cltmClose();
         });
+
+        // Chips bei Fenster-Resize ohne Animation neu platzieren.
+        window.addEventListener('resize', () => {
+            if (!cltmOverlay || cltmOverlay.hidden) return;
+            if (cltmResizeTimer) clearTimeout(cltmResizeTimer);
+            cltmResizeTimer = setTimeout(() => {
+                cltmResizeTimer = null;
+                cltmLayoutPlayers(false);
+            }, 120);
+        });
     }
 
-    function cltmOpen(manager, cardEl) {
+    function cltmOpen(manager, tileEl) {
         cltmEnsureOverlay();
         if (cltmClosing) return;
         cltmOpenKey = manager.manager || '';
-        cltmLastTrigger = cardEl || null;
+        cltmModalManager = manager;
+        cltmMode = 'position';
+        cltmLastTrigger = tileEl || null;
 
         const rank = getDisplayedManagerRank(manager, 0);
         const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
         cltmModal.setAttribute('aria-label', `Platz ${rank || '–'}: ${manager.manager || 'Unbekannt'}, ${cltmFormatPts(manager.totalScore)} Punkte`);
-        cltmModal.innerHTML = `
-            <div class="cltm-modal-head">
-                <span class="cltm-rank ${rankCls}">${rank || '–'}</span>
-                <div class="cltm-modal-title">
-                    <span class="cltm-modal-name">${champEscapeHtml(manager.manager || 'Unbekannt')}</span>
-                    <span class="cltm-modal-pts">${cltmFormatPts(manager.totalScore)} <small>Pkt</small></span>
-                </div>
-                <button type="button" class="cltm-close" data-cltm-close aria-label="Detailkarte schliessen">✕</button>
-            </div>
-            <div class="cltm-modal-body">
-                ${cltmPitchHtml(manager)}
-                <div class="cltm-modal-actions">
-                    <a class="btn-pill" href="teams.html?manager=${encodeURIComponent(manager.manager || '')}">🛡️ Team ansehen</a>
-                    <a class="btn-pill" href="rangliste.html">🏆 Zur Rangliste</a>
-                </div>
-            </div>
-        `;
+        cltmModal.innerHTML = cltmModalHtml(manager, rank, rankCls);
         cltmBindImgFallbacks(cltmModal);
 
         document.body.classList.add('cltm-lock');
         cltmOverlay.hidden = false;
-        if (cardEl) cardEl.classList.add('cltm-src-hidden');
+        if (tileEl) tileEl.classList.add('cltm-src-hidden');
 
-        // FLIP: Startzustand = Geometrie der angeklickten Zeile, Endzustand =
+        // Chips sofort (ohne Transition) in der Positions-Ansicht platzieren.
+        cltmLayoutPlayers(false);
+
+        // FLIP: Startzustand = Geometrie der angeklickten Kachel, Endzustand =
         // zentrierte Detailkarte. Transform wird invertiert gesetzt und dann
-        // auf identity transitioniert („die Karte wächst aus der Zeile").
-        if (!cltmPrefersReducedMotion() && cardEl) {
-            const from = cardEl.getBoundingClientRect();
+        // auf identity transitioniert („die Kachel wächst zur Karte").
+        const reduced = cltmPrefersReducedMotion();
+        if (!reduced && tileEl) {
+            const from = tileEl.getBoundingClientRect();
             const to = cltmModal.getBoundingClientRect();
             const sx = from.width / Math.max(to.width, 1);
             const sy = from.height / Math.max(to.height, 1);
             const dx = from.left - to.left;
             const dy = from.top - to.top;
             cltmModal.style.transformOrigin = 'top left';
-            cltmModal.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
-            void cltmModal.offsetWidth; // Reflow: Start-Transform rendern lassen
+            cltmModal.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${sx}, ${sy})`;
         } else {
             cltmModal.style.transform = '';
         }
 
+        // Doppel-rAF: der Browser rendert garantiert einen Frame im
+        // Startzustand, bevor die Transition beginnt – ohne diesen Schritt
+        // wird der erste Frame gern übersprungen und der Start wirkt ruckig.
         requestAnimationFrame(() => {
-            cltmOverlay.classList.add('is-open');
-            cltmModal.style.transform = '';
+            requestAnimationFrame(() => {
+                cltmOverlay.classList.add('is-open');
+                cltmModal.style.transform = '';
+            });
         });
+
+        // Backdrop-Blur erst NACH der Transform-Animation zuschalten
+        // (`is-settled`): backdrop-filter während der Animation ist der
+        // häufigste Ruckel-Verursacher, danach kostet er nur einen Frame.
+        const settle = (ev) => {
+            if (ev && (ev.target !== cltmModal || ev.propertyName !== 'transform')) return;
+            cltmModal.removeEventListener('transitionend', settle);
+            if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
+            if (!cltmOverlay.hidden && cltmOpenKey !== null) cltmOverlay.classList.add('is-settled');
+        };
+        cltmModal.addEventListener('transitionend', settle);
+        cltmSettleTimer = setTimeout(() => settle({ target: cltmModal, propertyName: 'transform' }), 700);
 
         const closeBtn = cltmModal.querySelector('.cltm-close');
         if (closeBtn) setTimeout(() => { try { closeBtn.focus({ preventScroll: true }); } catch (_) {} }, 80);
@@ -4581,47 +4854,50 @@
         const key = cltmOpenKey;
         cltmOpenKey = null;
         cltmClosing = true;
+        if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
 
         const finish = () => {
             cltmClosing = false;
+            cltmModalManager = null;
             cltmOverlay.hidden = true;
-            cltmOverlay.classList.remove('is-open', 'is-closing');
+            cltmOverlay.classList.remove('is-open', 'is-closing', 'is-settled');
             cltmModal.style.transform = '';
             document.body.classList.remove('cltm-lock');
-            document.querySelectorAll('.cltm-card.cltm-src-hidden').forEach((el) => el.classList.remove('cltm-src-hidden'));
+            document.querySelectorAll('.cltm-tile.cltm-src-hidden').forEach((el) => el.classList.remove('cltm-src-hidden'));
             if (cltmLastTrigger && document.contains(cltmLastTrigger)) {
                 try { cltmLastTrigger.focus({ preventScroll: true }); } catch (_) {}
             }
             cltmLastTrigger = null;
         };
 
-        // Die Ursprungs-Zeile kann durch ein Daten-Re-Render ersetzt worden
+        // Die Ursprungs-Kachel kann durch ein Daten-Re-Render ersetzt worden
         // sein → frisch über den Manager-Namen suchen (Fallback: nur Fade).
-        let cardEl = null;
+        let tileEl = null;
         if (key) {
             try {
                 const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(key) : key.replace(/"/g, '\\"');
-                cardEl = document.querySelector(`.cltm-card[data-manager="${esc}"]`);
-            } catch (_) { cardEl = null; }
+                tileEl = document.querySelector(`.cltm-tile[data-manager="${esc}"]`);
+            } catch (_) { tileEl = null; }
         }
 
+        // Blur sofort weg (billig), dann rein Compositor-Animation zurück.
+        cltmOverlay.classList.remove('is-settled');
         cltmOverlay.classList.add('is-closing');
         cltmOverlay.classList.remove('is-open');
 
-        if (!cltmPrefersReducedMotion() && cardEl) {
-            const to = cardEl.getBoundingClientRect();
+        if (!cltmPrefersReducedMotion() && tileEl) {
+            const to = tileEl.getBoundingClientRect();
             const from = cltmModal.getBoundingClientRect();
             const sx = to.width / Math.max(from.width, 1);
             const sy = to.height / Math.max(from.height, 1);
             const dx = to.left - from.left;
             const dy = to.top - from.top;
             cltmModal.style.transformOrigin = 'top left';
-            cltmModal.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+            cltmModal.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${sx}, ${sy})`;
         }
 
-        // transitionend bubbelt auch von Kind-Transitions (.cltm-modal-body)
-        // hoch → nur auf Transitions des Modals selbst reagieren, sonst
-        // würde die Rück-Animation nach ~160 ms hart abgeschnitten.
+        // transitionend bubbelt auch von Kind-Transitions hoch → nur auf
+        // Transitions des Modals selbst reagieren.
         let done = false;
         const onEnd = (ev) => {
             if (ev && ev.target !== cltmModal) return;
@@ -4631,10 +4907,10 @@
             finish();
         };
         cltmModal.addEventListener('transitionend', onEnd);
-        setTimeout(() => onEnd({ target: cltmModal }), 560); // Fallback, falls transitionend ausbleibt
+        setTimeout(() => onEnd({ target: cltmModal }), 620); // Fallback, falls transitionend ausbleibt
     }
 
-    /* ── Top-10-Liste ───────────────────────────────────────────────── */
+    /* ── Top-10-Kachel-Grid ─────────────────────────────────────────── */
     let cltmSignature = null;
 
     function cltmSignatureOf(rankedManagers) {
@@ -4646,6 +4922,7 @@
                 rank: getDisplayedManagerRank(m, idx + 1),
                 manager: m.manager || 'Unbekannt',
                 totalScore: Number(m.totalScore) || 0,
+                outs: (m.transferredOut || []).map((p) => String(p.id ?? '')),
                 players: (m.mergedPlayers || []).map((p) => [
                     String(p.id ?? ''),
                     Number(p.pts) || 0,
@@ -4679,16 +4956,19 @@
             const top3 = (m.mergedPlayers || []).filter((p) => Number.isFinite(p.pts)).slice(0, 3);
             const shortName = champShortManagerName(m.manager, duplicateFirstNames);
 
-            const card = document.createElement('button');
-            card.type = 'button';
-            card.className = 'cltm-card';
-            card.dataset.manager = m.manager || '';
-            card.style.setProperty('--cltm-i', String(idx));
-            card.setAttribute('aria-haspopup', 'dialog');
-            card.setAttribute('aria-label', `Platz ${rank}: ${m.manager || 'Unbekannt'}, ${cltmFormatPts(m.totalScore)} Punkte. Detailkarte öffnen.`);
-            card.innerHTML = `
-                <span class="cltm-rank ${rankCls}">${rank}</span>
-                <span class="cltm-name">${champEscapeHtml(shortName)}</span>
+            const tile = document.createElement('button');
+            tile.type = 'button';
+            tile.className = 'cltm-tile';
+            tile.dataset.manager = m.manager || '';
+            tile.style.setProperty('--cltm-i', String(idx));
+            tile.setAttribute('aria-haspopup', 'dialog');
+            tile.setAttribute('aria-label', `Platz ${rank}: ${m.manager || 'Unbekannt'}, ${cltmFormatPts(m.totalScore)} Punkte. Detailkarte öffnen.`);
+            tile.innerHTML = `
+                <span class="cltm-tile-head">
+                    <span class="cltm-rank ${rankCls}">${rank}</span>
+                    <span class="cltm-name">${champEscapeHtml(shortName)}</span>
+                </span>
+                <span class="cltm-tile-pts">${cltmFormatPts(m.totalScore)}<small>Pkt</small></span>
                 <span class="cltm-top3" aria-hidden="true">
                     ${top3.map((p) => `
                         <span class="cltm-top3-player" title="${champEscapeHtml(p.name || '')}">
@@ -4696,19 +4976,18 @@
                             <span class="cltm-top3-pts">${cltmFormatPts(p.pts)}</span>
                         </span>`).join('')}
                 </span>
-                <span class="cltm-pts">${cltmFormatPts(m.totalScore)}<small>Pkt</small></span>
             `;
-            card.addEventListener('click', () => cltmOpen(m, card));
-            list.appendChild(card);
+            tile.addEventListener('click', () => cltmOpen(m, tile));
+            list.appendChild(tile);
         });
 
         cltmBindImgFallbacks(list);
 
         // Kommt während offener Detailkarte ein Re-Render, bleibt die
-        // Ursprungs-Zeile des offenen Managers unsichtbar (Expand-Illusion).
+        // Ursprungs-Kachel des offenen Managers unsichtbar (Expand-Illusion).
         if (cltmOpenKey !== null) {
-            const openCard = Array.from(list.children).find((el) => el.dataset && el.dataset.manager === cltmOpenKey);
-            if (openCard) openCard.classList.add('cltm-src-hidden');
+            const openTile = Array.from(list.children).find((el) => el.dataset && el.dataset.manager === cltmOpenKey);
+            if (openTile) openTile.classList.add('cltm-src-hidden');
         }
     }
 
