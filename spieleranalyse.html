@@ -187,65 +187,74 @@
                     <div class="player-hero-card" id="player-hero-card" aria-label="Spielerprofil">
                         <div class="player-hero-inner">
 
-                            <!-- Portrait stage: big photo + score pill -->
+                            <!-- Portrait stage: compact photo -->
                             <div class="player-portrait-stage">
                                 <div class="player-photo-frame player-photo-shell" id="player-photo-frame">
                                     <img src="" id="detail-photo"
                                          class="player-main-photo"
                                          alt="Spielerfoto"
-                                         width="280" height="280"
+                                         width="180" height="180"
                                          loading="eager">
                                     <span class="player-photo-placeholder" aria-hidden="true"></span>
                                 </div>
-                                <div id="detail-total-pts" class="player-score-pill zero" aria-live="polite">0 Pkt.</div>
                             </div>
 
-                            <!-- Identity: name, nation, club, meta -->
+                            <!-- Identity: name, affiliations, meta, awards -->
                             <div class="player-identity">
                                 <div class="player-identity-top">
-                                    <div class="player-position-pill" id="detail-position" aria-label="Position">–</div>
-                                    <h2 id="detail-name">Spielername</h2>
+                                    <div class="player-identity-head">
+                                        <div class="player-position-pill" id="detail-position" aria-label="Position">–</div>
+                                        <h2 id="detail-name">Spielername</h2>
+                                    </div>
+
+                                    <!-- Score: prominent, top-right -->
+                                    <div class="player-score-stage">
+                                        <div id="detail-total-pts" class="player-score-pill zero" aria-live="polite">0 Pkt.</div>
+                                        <div class="player-score-caption">Gesamtpunkte</div>
+                                    </div>
                                 </div>
 
-                                <!-- Nation & Club -->
-                                <div class="player-flag-club-row">
-                                    <!-- Nation tile (id preserved for onclick JS) -->
-                                    <div class="player-flag-card" id="tile-nation"
+                                <!-- Affiliations: primary (Club/Nation) big, secondary small -->
+                                <div class="player-affiliations">
+                                    <!-- Primary tile (id preserved for onclick JS) -->
+                                    <div class="player-affil player-affil-primary" id="tile-nation"
+                                         role="button" tabindex="0"
+                                         title="Alle Spieler dieses Teams anzeigen"
+                                         aria-label="Team filtern">
+                                        <span class="paf-crest">
+                                            <img id="detail-nation-flag" src="" alt="Wappen" width="44" height="44">
+                                        </span>
+                                        <span class="paf-name" id="detail-nation-name">–</span>
+                                    </div>
+
+                                    <!-- Secondary tile (id preserved for onclick JS) -->
+                                    <div class="player-affil player-affil-secondary" id="tile-club"
                                          role="button" tabindex="0"
                                          title="Alle Spieler dieses Landes anzeigen"
-                                         aria-label="Nationalteam filtern">
-                                        <img id="detail-nation-flag" src="" alt="Nationalfahne" width="44" height="30">
-                                        <div class="player-flag-info">
-                                            <div id="detail-nation-name">–</div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Club tile (id preserved for onclick JS) -->
-                                    <div class="player-club-card" id="tile-club"
-                                         role="button" tabindex="0"
-                                         title="Alle Spieler dieses Vereins anzeigen"
-                                         aria-label="Verein filtern">
-                                        <img id="detail-club-logo" src="" alt="Vereinslogo" width="32" height="32">
-                                        <div class="player-club-info">
-                                            <div id="detail-club-name">–</div>
-                                        </div>
+                                         aria-label="Land filtern">
+                                        <span class="paf-crest">
+                                            <img id="detail-club-logo" src="" alt="Fahne" width="26" height="26">
+                                        </span>
+                                        <span class="paf-name" id="detail-club-name">–</span>
                                     </div>
                                 </div>
 
-                                <!-- Meta pills -->
-                                <div class="player-meta-grid">
-                                    <div class="player-meta-pill">
-                                        <div class="pmp-label">Geburtsdatum</div>
-                                        <div class="pmp-value" id="detail-dob">–</div>
-                                    </div>
-                                    <div class="player-meta-pill">
-                                        <div class="pmp-label">Grösse</div>
-                                        <div class="pmp-value" id="detail-height">–</div>
-                                    </div>
-                                    <div class="player-meta-pill">
-                                        <div class="pmp-label">Gewicht</div>
-                                        <div class="pmp-value" id="detail-weight">–</div>
-                                    </div>
+                                <!-- Meta line: subtle, secondary info -->
+                                <div class="player-meta-line" aria-label="Steckbrief">
+                                    <span class="pml-item">
+                                        <span class="pml-ico" aria-hidden="true">🎂</span>
+                                        <span class="pml-value" id="detail-dob">–</span>
+                                    </span>
+                                    <span class="pml-sep" aria-hidden="true"></span>
+                                    <span class="pml-item">
+                                        <span class="pml-ico" aria-hidden="true">📏</span>
+                                        <span class="pml-value" id="detail-height">–</span>
+                                    </span>
+                                    <span class="pml-sep" aria-hidden="true"></span>
+                                    <span class="pml-item">
+                                        <span class="pml-ico" aria-hidden="true">⚖️</span>
+                                        <span class="pml-value" id="detail-weight">–</span>
+                                    </span>
                                 </div>
 
                                 <!-- Awards -->
