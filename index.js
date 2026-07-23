@@ -1863,6 +1863,27 @@
         });
     }
 
+    // CL-Version: Pre-Start-Dashboard abspecken – „Beliebteste Länder"
+    // (tile-top-clubs), „Scouting Barometer" und „Team-Altersstruktur"
+    // entfallen komplett. Läuft nach der Captain-Watch-Entfernung, damit
+    // leer gewordene Reihen (und zuletzt der ganze Dashboard-Bereich)
+    // mit aufgeräumt werden. Die WM-Ansicht (type ≠ CL) bleibt unberührt.
+    if (APP && String(APP.type || '').toUpperCase() === 'CL') {
+        ['tile-top-clubs', 'tile-scouting-barometer', 'tile-age-structure'].forEach((id) => {
+            const inner = $(id);
+            const gtile = inner && inner.closest('.gtile');
+            const row = gtile && gtile.parentElement;
+            if (gtile) gtile.remove();
+            if (row && row.children.length === 0) {
+                row.remove();
+            } else if (row && row.children.length === 1) {
+                row.style.gridTemplateColumns = '1fr';
+            }
+        });
+        const preDashboard = $('dashboard-area');
+        if (preDashboard && preDashboard.children.length === 0) preDashboard.remove();
+    }
+
     /* =========================================================
        PRE START HERO CARDS – MANUELL KONFIGURIERTE SPIELER
        ========================================================= */
