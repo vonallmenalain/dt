@@ -351,6 +351,17 @@
  * behält ihr Podest unverändert. */
 [data-tournament^="cl"] .champ-stage { display: none; }
 
+/* ── Scrollbar-Platz permanent reservieren (nur CL) ──────────────────────
+ * Beim Öffnen der Top-Manager-Detailkarte wird der Body eingefroren
+ * (body.cltm-lock, position: fixed) – dabei verschwindet auf Desktops mit
+ * klassischer Scrollleiste (Windows) die Browser-Scrollbar, die Seite wird
+ * ~15px breiter und beim Schliessen ruckt alles wieder nach links.
+ * `scrollbar-gutter: stable` reserviert die Scrollbar-Spur dauerhaft, die
+ * Layout-Breite bleibt in beiden Zuständen identisch → kein Shift mehr.
+ * Auf Overlay-Scrollbar-Systemen (macOS/iOS/Android) ist die Regel ein
+ * No-op; ältere Browser ohne Support ignorieren sie schadlos. */
+html[data-tournament^="cl"] { scrollbar-gutter: stable; }
+
 /* ── Startseite VOR Start (CL): Hero aufgeräumt / kompakter ──────────────
  * In der CL-Version soll die Pre-Start-Startseite ohne Scrollen auf Mobile
  * passen. Deshalb entfallen im Hero der Claim-Text („15 Spieler. … Drafte
