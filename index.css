@@ -6444,10 +6444,28 @@
             transition: opacity 0.4s ease;
         }
         .cltm-overlay.is-open .cltm-backdrop { opacity: 1; }
-        /* Blur erst nach abgeschlossener Expand-Animation (billiger). */
-        .cltm-overlay.is-settled .cltm-backdrop {
+
+        /* Blur als eigene Ebene mit weichem Ein-/Ausblenden. Der Blur selbst
+           ist konstant – animiert wird nur die OPACITY der Ebene:
+           • Einblenden erst NACH der Morph-Animation (`is-settled`), wenn
+             sonst nichts mehr animiert → kein Ruckel-Risiko, kein hartes
+             „Aufblitzen" des scharfen/unscharfen Hintergrunds.
+           • Ausblenden beim Schliessen schnell (0.22s) über den statischen,
+             eingefrorenen Hintergrund – der Blur-Input ändert sich dabei
+             nicht, nur seine Deckkraft. */
+        .cltm-blur {
+            position: absolute;
+            inset: 0;
             backdrop-filter: blur(7px);
             -webkit-backdrop-filter: blur(7px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.45s ease;
+        }
+        .cltm-overlay.is-settled .cltm-blur { opacity: 1; }
+        .cltm-overlay.is-closing .cltm-blur {
+            opacity: 0;
+            transition: opacity 0.22s ease;
         }
 
         .cltm-modal {
@@ -6773,6 +6791,7 @@
                 transition: opacity 0.25s ease;
             }
             .cltm-ghost { display: none !important; }
+            .cltm-blur { transition: none; }
             .cltm-backdrop { transition: opacity 0.2s ease; }
             .cltm-players,
             .cltm-players > .cltm-chip {
