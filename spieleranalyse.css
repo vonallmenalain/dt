@@ -5940,11 +5940,13 @@ table.clt tbody tr:hover td { background: rgba(125, 180, 255, 0.06); }
     display: flex;
     align-items: stretch;
     gap: 14px;
-    min-width: 880px;
+    min-width: min-content;
 }
 .clb-col {
     flex: 1 0 auto;
-    min-width: 172px;
+    /* Genug Breite, damit auch lange Klubnamen (z. B. „Paris Saint Germain",
+       „Borussia Dortmund") komplett und ohne Abschneiden passen. */
+    min-width: 210px;
     display: flex;
     flex-direction: column;
 }
@@ -6039,9 +6041,10 @@ button.clb-slot--pick:hover { background: rgba(125, 180, 255, 0.16); border-colo
 }
 
 @media (max-width: 560px) {
-    /* Runden breit genug lassen, damit der volle Klubname ohne Abschneiden
-       passt – der Baum bleibt horizontal scrollbar. */
+    /* Auf dem Handy gibt es keinen Flex-Platz zum Wachsen – die Runden also
+       bewusst DEUTLICH breiter halten, damit der komplette Klubname passt.
+       Der Baum bleibt horizontal scrollbar. */
     .clb-cols { gap: 10px; }
-    .clb-col { min-width: 168px; }
+    .clb-col { min-width: 248px; }
     .clt-status { padding: 2px 6px; font-size: 0.66em; }
 }
