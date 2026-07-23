@@ -1410,11 +1410,15 @@
                 </div>
             `;
 
-            if (countGoals >= 2)   awardBox.innerHTML += `<div class="award-badge award-goleador" title="Wird ab 2 Toren im Turnier verliehen.">🔥 Goleador</div>`;
-            if (countAssists >= 2) awardBox.innerHTML += `<div class="award-badge award-spielmacher" title="Wird ab 2 Assists im Turnier verliehen.">🎯 Spielmacher</div>`;
-            if (countSubbedIn >= 2) awardBox.innerHTML += `<div class="award-badge award-joker" title="Wird ab 2 Einwechslungen als Joker verliehen.">🃏 Super-Joker</div>`;
-            if (countRed >= 1 || countYellow >= 2) awardBox.innerHTML += `<div class="award-badge award-hitzkopf" title="Wird bei einer Roten oder ab 2 Gelben Karten verliehen.">🛑 Hitzkopf</div>`;
-            if (countErrors >= 1) awardBox.innerHTML += `<div class="award-badge award-pechvogel" title="Wird bei Eigentoren oder verschossenen/verursachten Elfmetern verliehen.">🤕 Pechvogel</div>`;
+            // Auszeichnungen sind aus der Spielerübersicht entfernt – der
+            // Container existiert nur noch optional (siehe Guard oben).
+            if (awardBox) {
+                if (countGoals >= 2)   awardBox.innerHTML += `<div class="award-badge award-goleador" title="Wird ab 2 Toren im Turnier verliehen.">🔥 Goleador</div>`;
+                if (countAssists >= 2) awardBox.innerHTML += `<div class="award-badge award-spielmacher" title="Wird ab 2 Assists im Turnier verliehen.">🎯 Spielmacher</div>`;
+                if (countSubbedIn >= 2) awardBox.innerHTML += `<div class="award-badge award-joker" title="Wird ab 2 Einwechslungen als Joker verliehen.">🃏 Super-Joker</div>`;
+                if (countRed >= 1 || countYellow >= 2) awardBox.innerHTML += `<div class="award-badge award-hitzkopf" title="Wird bei einer Roten oder ab 2 Gelben Karten verliehen.">🛑 Hitzkopf</div>`;
+                if (countErrors >= 1) awardBox.innerHTML += `<div class="award-badge award-pechvogel" title="Wird bei Eigentoren oder verschossenen/verursachten Elfmetern verliehen.">🤕 Pechvogel</div>`;
+            }
 
             if (gamesArray.length > 0) {
                 gamesArray.sort((a, b) => Number(a.MatchID) - Number(b.MatchID));
