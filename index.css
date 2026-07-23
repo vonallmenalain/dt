@@ -5134,14 +5134,16 @@
             overflow: visible;
             text-overflow: clip;
         }
-        /* Clublogo gross unter dem Profilbild, Clubname klein zentriert darunter */
-        .tcc-club-logo-wrap {
+        /* Badge gross unter dem Profilbild, Label klein zentriert darunter.
+           Inhalt ist turnierabhängig (primäre Entität, siehe data.js-Remap):
+           WM → Nationalflagge/-wappen + Nation, CL → Klublogo + Klubname. */
+        .tcc-badge-wrap {
             width: 100%;
             display: grid;
             place-items: center;
             margin-top: 2px;
         }
-        .tcc-club-logo {
+        .tcc-badge-img {
             width: clamp(40px, 12vw, 62px);
             height: clamp(40px, 12vw, 62px);
             object-fit: contain;
@@ -5149,7 +5151,7 @@
             filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
             pointer-events: none;
         }
-        .tcc-club-name {
+        .tcc-badge-label {
             width: 100%;
             max-width: 100%;
             font-size: 0.72rem;
@@ -5340,8 +5342,8 @@
                 overflow: visible;
                 text-overflow: clip;
             }
-            .tcc-club-logo { width: clamp(36px, 13vw, 50px); height: clamp(36px, 13vw, 50px); }
-            .tcc-club-name { font-size: 0.64rem; line-height: 1.15; }
+            .tcc-badge-img { width: clamp(36px, 13vw, 50px); height: clamp(36px, 13vw, 50px); }
+            .tcc-badge-label { font-size: 0.64rem; line-height: 1.15; }
             .tcc-drafts { font-size: 0.62rem; padding: 4px 8px; gap: 4px; }
         }
 

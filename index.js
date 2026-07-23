@@ -4444,14 +4444,21 @@
             .toLowerCase()
             .trim();
 
+        // WICHTIG – Anzeige-Konvention der App (siehe data.js, Schritt 4
+        // „Club-zentrierter Remap"): `Nationalteam.*` sind die PRIMÄREN
+        // Anzeigefelder. Bei der WM (primaryEntity "nation") stecken dort
+        // Nation + Flagge. Bei CL-Turnieren (primaryEntity "club") schiebt
+        // data.js zur Ladezeit den KLUB in diese Felder (und die Nation in
+        // `Club.*`). Wer hier `Club.logo` liest, bekommt in der CL also die
+        // FLAGGE – genau dieser Fehler hat im Karussell Flaggen statt
+        // Klublogos angezeigt. Deshalb liest das Karussell ausschliesslich
+        // die primären Felder: WM → Flagge+Nation, CL → Klublogo+Klubname.
         function normalizePlayer(raw) {
             return {
                 id: String(raw['player.id']),
                 name: raw.Spielername,
-                country: raw['Nationalteam.name'] || '',
-                countryFlag: raw['Nationalteam.logo'] || '',
-                club: raw['Club.name'] || '',
-                clubLogo: raw['Club.logo'] || '',
+                badgeLabel: raw['Nationalteam.name'] || '',
+                badgeLogo: raw['Nationalteam.logo'] || '',
                 img: raw.Spielerfoto || ''
             };
         }
@@ -4666,13 +4673,14 @@
                     position: star.position || ''
                 };
             }
+            // Fallback ohne Datensatztreffer: kein Logo verfügbar – als Label
+            // dient die Nation aus der Star-Liste (das Badge-Bild entfällt,
+            // renderPlayerCard rendert das <img> nur bei vorhandenem Logo).
             return {
                 id: buildStaticPlayerId(star.name),
                 name: star.name,
-                country: star.nation || '',
-                countryFlag: '',
-                club: star.position || '',
-                clubLogo: '',
+                badgeLabel: star.nation || '',
+                badgeLogo: '',
                 img: '',
                 nation: star.nation || '',
                 position: star.position || ''
@@ -4793,10 +4801,10 @@
                 </div>
                 <div class="tcc-player-info">
                     <h3 class="tcc-player-name">${escapeHtml(p.name)}</h3>
-                    ${p.clubLogo ? `<div class="tcc-club-logo-wrap">
-                        <img class="tcc-club-logo" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}">
+                    ${p.badgeLogo ? `<div class="tcc-badge-wrap">
+                        <img class="tcc-badge-img" loading="lazy" src="${escapeHtml(p.badgeLogo)}" alt="${escapeHtml(p.badgeLabel)}">
                     </div>` : ''}
-                    <div class="tcc-club-name">${escapeHtml(p.club)}</div>
+                    <div class="tcc-badge-label">${escapeHtml(p.badgeLabel)}</div>
                 </div>
                 <div class="tcc-card-dim" aria-hidden="true"></div>
             `;
