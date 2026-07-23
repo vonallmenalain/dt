@@ -56,6 +56,13 @@ function registerServiceWorker() {
         return;
     }
 
+    // Nach einem Deploy uebernimmt der neue SW per skipWaiting die Kontrolle
+    // (controllerchange). Damit der Nutzer sofort frische Assets sieht, laden
+    // wir die Seite dann EINMAL neu. Wichtig: nur ein einziges Mal pro
+    // Tab-Session – sonst kann es (z. B. bei voruebergehend inkonsistenten
+    // Deploys, die abwechselnd zwei SW-Versionen ausliefern) zu einer
+    // Reload-Schleife kommen, bei der die Animation staendig neu nachlaedt.
+    const SW_RELOAD_FLAG = 'dreamteam_sw_reloaded';
     let reloadAfterControllerChange = !!navigator.serviceWorker.controller;
     let controllerReloadStarted = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -64,7 +71,14 @@ function registerServiceWorker() {
             return;
         }
 
+        // Bereits in dieser Tab-Session einmal wegen SW-Wechsel neu geladen?
+        // Dann NICHT erneut neu laden (verhindert die Reload-Schleife).
+        let alreadyReloaded = false;
+        try { alreadyReloaded = window.sessionStorage.getItem(SW_RELOAD_FLAG) === '1'; } catch (_) {}
+        if (alreadyReloaded) return;
+
         controllerReloadStarted = true;
+        try { window.sessionStorage.setItem(SW_RELOAD_FLAG, '1'); } catch (_) {}
         window.location.reload();
     });
 
