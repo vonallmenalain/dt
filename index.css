@@ -1735,38 +1735,6 @@
             color: rgba(var(--rgb-green-light), 0.85);
         }
 
-        .admin-sync-monitor-link {
-            position: fixed;
-            top: 8px;
-            left: 116px;
-            z-index: 9999;
-            font-size: 11px;
-            font-family: monospace;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid rgba(56, 189, 248, 0.42);
-            background: rgba(0, 0, 0, 0.55);
-            color: rgba(186, 230, 253, 0.86);
-            cursor: pointer;
-            opacity: 0.55;
-            transition: opacity 0.2s ease, background 0.2s ease;
-            line-height: 1.4;
-            text-decoration: none;
-            user-select: none;
-            -webkit-user-select: none;
-            visibility: hidden;
-        }
-
-        .admin-sync-monitor-link.is-admin-visible {
-            visibility: visible;
-        }
-
-        .admin-sync-monitor-link:hover {
-            opacity: 0.9;
-            background: rgba(0, 0, 0, 0.8);
-        }
-
         /* ===================================================
            MANAGER LIST (team count expanded)
            =================================================== */

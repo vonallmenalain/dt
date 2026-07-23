@@ -95,30 +95,6 @@
         const storedMode = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
         btn.textContent = DEV_LABELS[storedMode] || DEV_LABELS.auto;
         btn.dataset.mode = storedMode;
-        requestAnimationFrame(positionAdminMonitorLink);
-    }
-
-    function updateAdminMonitorHref() {
-        const link = document.getElementById("admin-sync-monitor-link");
-        if (!link) return;
-        try {
-            const APP = window.APP_CONFIG;
-            const url = new URL("adm-sync-monitor.html", window.location.href);
-            if (APP && APP.key) url.searchParams.set("tournament", APP.key);
-            link.href = `${url.pathname.split("/").pop() || "adm-sync-monitor.html"}${url.search || ""}`;
-        } catch (_) {
-            link.href = "adm-sync-monitor.html";
-        }
-    }
-
-    function positionAdminMonitorLink() {
-        const btn = document.getElementById("dev-index-toggle");
-        const link = document.getElementById("admin-sync-monitor-link");
-        if (!btn || !link) return;
-        const rect = btn.getBoundingClientRect();
-        if (!rect || !rect.width) return;
-        link.style.left = `${Math.round(rect.right + 6)}px`;
-        link.style.top = `${Math.round(rect.top)}px`;
     }
 
     /**
@@ -264,9 +240,6 @@
         if (!btn) return;
 
         updateDevToggleLabel();
-        updateAdminMonitorHref();
-        positionAdminMonitorLink();
-        window.addEventListener("resize", positionAdminMonitorLink);
 
         btn.addEventListener("click", () => {
             const current = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
@@ -292,15 +265,6 @@
             // Bug: `style.display = ''` liess den Knopf für Admins
             // weiterhin verborgen, weil der CSS-Default selbst `none` war).
             btn.classList.toggle("is-admin-visible", !!isAdmin);
-            const monitorLink = document.getElementById("admin-sync-monitor-link");
-            if (monitorLink) {
-                monitorLink.classList.toggle("is-admin-visible", !!isAdmin);
-                if (isAdmin) {
-                    updateAdminMonitorHref();
-                    positionAdminMonitorLink();
-                    setTimeout(positionAdminMonitorLink, 0);
-                }
-            }
         }
 
         function hookAdmin() {
