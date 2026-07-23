@@ -5059,9 +5059,11 @@
         let height;
 
         if (view === 'top') {
-            const s1 = g.p * 1.3;
-            const s2 = g.p * 1.1;
-            const s3 = g.p;
+            // Ganzzahlige Kachelbreiten + additiv aufgebaute Positionen:
+            // so sind alle Abstände exakt g.gap (keine ±1px-Rundungsfehler).
+            const s1 = Math.round(g.p * 1.3);
+            const s2 = Math.round(g.p * 1.1);
+            const s3 = Math.round(g.p);
             const podW = s2 + s1 + s3 + 2 * g.gap;
             const podX = (W - podW) / 2;
             const podH = s1;
@@ -5071,32 +5073,36 @@
             if (count > 2) pos[2] = { x: podX + s2 + g.gap + s1 + g.gap, y: podH - s3, w: s3 };
 
             const n = Math.min(g.rowCols, Math.max(0, count - 3));
+            const rI = Math.floor(g.r);
             const rowY = podH + g.gap * 1.4;
-            const rowW = n * g.r + Math.max(0, n - 1) * g.gap;
+            const rowW = n * rI + Math.max(0, n - 1) * g.gap;
             const rowX = (W - rowW) / 2;
             for (let i = 0; i < n; i++) {
-                pos[3 + i] = { x: rowX + i * (g.r + g.gap), y: rowY, w: g.r };
+                pos[3 + i] = { x: rowX + i * (rI + g.gap), y: rowY, w: rI };
             }
             // Ausgeblendete Ränge (hinter der Reihe) parken unsichtbar
             // zentriert in der Reihe – so haben ALLE Kacheln stets eine
             // Geometrie und bleiben innerhalb der Bühnen-Höhe (kein
             // unsichtbares Aufblähen der Seiten-Scrollhöhe).
             for (let i = 3 + n; i < count; i++) {
-                pos[i] = { x: (W - g.r) / 2, y: n > 0 ? rowY : 0, w: g.r };
+                pos[i] = { x: (W - rI) / 2, y: n > 0 ? rowY : 0, w: rI };
             }
             height = (n > 0 ? rowY + g.r : podH) + 4;
             return { pos, height, topCount: g.topCount };
         }
 
+        const aI = Math.floor(g.a);
+        const gridW = g.allCols * aI + (g.allCols - 1) * g.gap;
+        const startX = (W - gridW) / 2;
         for (let i = 0; i < count; i++) {
             pos[i] = {
-                x: (i % g.allCols) * (g.a + g.gap),
-                y: Math.floor(i / g.allCols) * (g.a + g.gap),
-                w: g.a
+                x: startX + (i % g.allCols) * (aI + g.gap),
+                y: Math.floor(i / g.allCols) * (aI + g.gap),
+                w: aI
             };
         }
         const rows = Math.max(1, Math.ceil(count / g.allCols));
-        height = rows * g.a + (rows - 1) * g.gap + 4;
+        height = rows * aI + (rows - 1) * g.gap + 4;
         return { pos, height, topCount: g.topCount };
     }
 
@@ -5122,7 +5128,7 @@
 
         const { pos, height, topCount } = cltmComputeTileLayout(W, cltmView, tiles.length);
         const place = (tile, x, y, scale) => {
-            tile.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`
+            tile.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`
                 + (scale && scale !== 1 ? ` scale(${scale})` : '');
         };
         // Breite/Höhe + --tw setzen: über --tw skalieren ALLE Innengrössen

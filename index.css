@@ -6453,11 +6453,20 @@
         .cltm-overlay {
             position: fixed;
             inset: 0;
-            z-index: 1200;
+            /* 100vw schliesst die reservierte Scrollbar-Rinne mit ein –
+               ohne das blieb rechts ein unabgedunkelter Streifen sichtbar,
+               solange das Popup offen ist (Body eingefroren → keine
+               Scrollbar, aber scrollbar-gutter reserviert die Spur). */
+            width: 100vw;
+            right: auto;
+            /* Über der mobilen Bereichsleiste (.bottom-nav, z-index 1500):
+               das Popup deckt die ganze App ab, die Aktions-Buttons unten
+               bleiben klickbar. */
+            z-index: 1600;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 16px;
+            padding: max(14px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
             box-sizing: border-box;
         }
         .cltm-overlay[hidden] { display: none; }
@@ -6502,6 +6511,7 @@
                Padding – die Chip-Layout-Engine füllt die Breite dann exakt. */
             width: min(760px, 100%);
             max-height: min(90vh, 900px);
+            max-height: min(92dvh, 900px);
             display: flex;
             flex-direction: column;
             border-radius: 24px;
@@ -6540,6 +6550,14 @@
         }
         .cltm-ghost.is-out { opacity: 0; }
         .cltm-ghost.is-in { opacity: 0; }
+        /* Inhalt des Ghosts (Rang, Name, Punkte, Avatare) wird beim
+           Aufwachsen SOFORT ausgeblendet – nur die leere Kachel-Hülle
+           morpht. So ist nie ein verzerrt skalierter Name sichtbar.
+           Beim Schliessen blendet der Inhalt erst kurz vor der Landung
+           auf der Kachel wieder ein (dann ist die Skalierung ≈ 1). */
+        .cltm-ghost > * { transition: opacity 0.16s ease 0.34s; }
+        .cltm-ghost.is-out > * { opacity: 0; transition: opacity 0.09s ease; }
+        .cltm-ghost.is-in > * { opacity: 0; transition: opacity 0.1s ease; }
 
         .cltm-modal-head {
             display: flex;
