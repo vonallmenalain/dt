@@ -772,8 +772,6 @@
         const isActive  = String(slot.id) === String(currentEditingSlotId);
         const isOrphan  = !!player.isOrphan;
 
-        const isBench = slot.cont === 'bench-slots';
-
         // Captain-Knopf nur bei Turnieren mit Captain-Feature (WM), nicht CL.
         const captainBtn = CAPTAIN_ENABLED
             ? `<button type="button"
@@ -828,10 +826,10 @@
             ptsHtml = `<div class="builder-card-pts ${ptsCls}" title="Bisher erreichte Punkte">${ptsSign}${rawPts}</div>`;
         }
 
-        const innerHtml = isBench
-            ? `<div class="bench-btn-row">${captainBtn}${removeBtn}</div>
-                    <div class="bench-content-row">${avatarHtml}${cardInfoHtml}</div>${transferBadge}${ptsHtml}${orphanBadge}`
-            : `${captainBtn}${removeBtn}${transferBadge}${ptsHtml}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
+        // Ersatzbank-Karten sehen identisch aus wie Feldspieler-Karten
+        // (gleiche Größe, gleiches Layout) – sie erhalten die vollen Punkte,
+        // deshalb sollen sie nicht kleiner wirken.
+        const innerHtml = `${captainBtn}${removeBtn}${transferBadge}${ptsHtml}${avatarHtml}${cardInfoHtml}${orphanBadge}`;
 
         return `
             <div class="slot-wrapper${isActive ? ' is-active' : ''}" data-slot-id="${escapeHtml(slot.id)}" data-action="open-slot">

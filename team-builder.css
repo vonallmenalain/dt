@@ -558,34 +558,55 @@
            ===================================================== */
         .bench-outer {
             flex: none;
-            width: 230px;
+            width: 224px;
         }
 
+        /* Die Ersatzbank spiegelt exakt das vertikale Raster des Spielfelds:
+           gleiches Kartenformat, gleiche Reihenhöhe und gleicher Abstand.
+           Dadurch liegt jeder Ersatzspieler auf derselben Höhe wie seine
+           Position (Tor neben Tor, Verteidigung neben Verteidigung, …) und
+           die Karten sind nicht mehr kleiner – alle 15 Spieler geben die
+           vollen Punkte. */
         .bench-glass {
             background: rgba(255,255,255,0.04);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 18px 16px;
+            /* 16px oben + 28px in .bench-slots = 44px, identisch zum Spielfeld
+               (pitch-glass-frame 16 + pitch-container 28). */
+            padding: 16px;
             box-sizing: border-box;
-            position: sticky;
-            top: 96px;
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
         }
 
-        .bench-title {
+        /* Vertikale „Ersatzbank"-Beschriftung links – im Stil der
+           Positions-Badges auf dem Spielfeld. */
+        .bench-label-col {
+            width: 22px;
+            flex-shrink: 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
-            margin: 0 0 16px;
-            font-size: 0.78rem;
-            font-weight: 800;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .bench-label {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
             color: var(--text-muted);
+            font-weight: 800;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 3px;
+            user-select: none;
         }
 
         .bench-title-icon {
             width: 4px;
-            height: 14px;
+            flex: 1;
+            min-height: 14px;
             background: linear-gradient(180deg, var(--gold), var(--gold-dark));
             border-radius: 2px;
             flex-shrink: 0;
@@ -594,8 +615,14 @@
         .bench-slots {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            width: 100%;
+            /* 28px Reihenabstand = margin-bottom der .pitch-row-group */
+            gap: 28px;
+            /* 28px oben/unten, damit die erste Karte exakt auf Höhe der
+               Tor-Reihe beginnt und die Panels gleich hoch enden
+               (siehe Kommentar an .bench-glass). */
+            padding: 28px 0;
+            flex: 1;
+            min-width: 0;
             align-items: center;
         }
 
@@ -609,10 +636,10 @@
             flex-shrink: 0;
         }
 
-        /* Bench slots are smaller */
+        /* Ersatzbank-Karten haben exakt dasselbe Format wie Feldspieler. */
         .bench-slots .slot-wrapper {
-            width: 180px;
-            height: 120px;
+            width: 160px;
+            height: 235px;
         }
 
         .slot-wrapper.is-active .empty-slot,
@@ -662,16 +689,6 @@
 
         .empty-slot:hover .add-icon {
             opacity: 1;
-        }
-
-        /* Bench empty slot */
-        .bench-slots .empty-slot {
-            font-size: 10px;
-        }
-
-        .bench-slots .empty-slot .add-icon {
-            font-size: 16px;
-            margin-bottom: 4px;
         }
 
         /* =====================================================
@@ -895,7 +912,6 @@
             background: rgba(239,68,68,0.85);
             box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 8px rgba(239,68,68,0.3);
         }
-        .bench-slots .builder-card-pts { top: 4px; right: 4px; font-size: 10px; padding: 2px 6px; }
 
         /* Ausgetauschte Spieler unter dem Feld (analog zur Teams-Ansicht). */
         .builder-transferred-out {
@@ -952,7 +968,6 @@
             -webkit-backface-visibility: hidden;
             pointer-events: none;
         }
-        .bench-slots .builder-transfer-badge { top: 28px; left: 4px; width: 22px; height: 22px; font-size: 11px; }
 
         /* Avatar */
         .avatar-wrapper {
@@ -1034,103 +1049,6 @@
             height: 15px;
             object-fit: contain;
             box-shadow: none;
-        }
-
-        /* Bench player cards are horizontal */
-        /* Bench card: column layout — buttons row on top, content row below */
-        .bench-slots .builder-player-card {
-            flex-direction: column;
-            padding: 6px 8px 8px;
-            align-items: stretch;
-            gap: 0;
-            justify-content: flex-start;
-        }
-
-        /* Top row: captain + remove buttons aligned left */
-        .bench-slots .builder-player-card .bench-btn-row {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 5px;
-            flex-shrink: 0;
-        }
-
-        .bench-slots .builder-player-card .builder-captain-btn {
-            position: static;
-            transform: none;
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            font-size: 9px;
-            border-radius: 50%;
-        }
-
-        .bench-slots .builder-player-card .builder-remove-btn {
-            position: static;
-            transform: none;
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            font-size: 10px;
-            border-radius: 50%;
-        }
-
-        /* Bottom row: avatar left, info right */
-        .bench-slots .builder-player-card .bench-content-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 7px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .bench-slots .builder-player-card .avatar-wrapper {
-            width: 44px;
-            height: 44px;
-            flex-shrink: 0;
-            margin-bottom: 0;
-            transform: none !important;
-            align-self: flex-start;
-        }
-
-        .bench-slots .builder-player-card .card-info {
-            align-items: flex-start;
-            padding: 0;
-            flex: 1;
-            min-width: 0;
-            transform: none !important;
-        }
-
-        .bench-slots .builder-player-card .card-name {
-            font-size: 11px;
-            min-height: auto;
-            text-align: left;
-            justify-content: flex-start;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            display: block;
-        }
-
-        .bench-slots .builder-player-card .card-sub-info {
-            justify-content: flex-start;
-            font-size: 9px;
-            margin-bottom: 1px;
-            flex-wrap: nowrap;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .bench-slots .builder-player-card .card-sub-info span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .bench-slots .empty-slot {
-            height: 100%;
         }
 
         /* =====================================================
@@ -2607,11 +2525,6 @@
                 height: auto !important;
             }
 
-            .bench-glass {
-                position: relative;
-                top: auto;
-            }
-
             .team-builder-shell {
                 flex-wrap: nowrap;
                 overflow-x: auto;
@@ -2624,10 +2537,6 @@
 
             .pitch-container {
                 min-width: 680px;
-            }
-
-            .bench-outer {
-                width: 200px;
             }
         }
 
