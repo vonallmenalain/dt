@@ -1381,11 +1381,14 @@
 
         .match-header:hover { background: rgba(255,255,255,0.03); }
 
+        /* 3 feste Spalten (Team | Resultat | Team): so stehen die
+           Resultat-Pillen aller Karten exakt untereinander, egal wie
+           lang die Teamnamen sind. */
         .match-duel {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             align-items: center;
-            justify-content: flex-start;
-            gap: 12px;
+            column-gap: 12px;
             min-width: 0;
             flex: 1;
             overflow: visible;
@@ -1393,14 +1396,24 @@
 
         .match-side {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 7px;
             min-width: 0;
+            max-width: 100%;
         }
 
         .match-side.right .match-side-name { order: 1; }
         .match-side.right .match-flag { order: 2; }
-        .match-side.right { text-align: right; }
+        .match-side.right {
+            text-align: right;
+            justify-self: end;
+        }
+
+        /* Tor-Chips pro Team: nur in der mobilen Stapel-Ansicht sichtbar. */
+        .match-side-goal { display: none; }
+
+        /* "Spiel N"-Label: nur in der mobilen Fusszeile sichtbar. */
+        .match-meta-label { display: none; }
 
         .match-side-copy {
             display: flex;
@@ -1550,6 +1563,33 @@
             flex-shrink: 0;
         }
 
+        /* Club-Turniere (CL): statt Landesfahnen stehen hier Vereinswappen.
+           Die duerfen nicht in den Flaggen-Kasten gequetscht/beschnitten
+           werden – quadratisch, "contain", ohne Rahmen. */
+        :root[data-tournament^="cl"] .match-flag {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        /* Mittelspalte: Resultat-Pill, bei Live-Spielen mit Live-Badge
+           darunter – so bleibt die Resultat-Spalte auch waehrend eines
+           Live-Spiels exakt buendig mit den anderen Karten. */
+        .match-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            justify-self: center;
+            min-width: 0;
+        }
+
+        /* Das Live-Badge in der Fusszeile ist nur fuer Mobile gedacht. */
+        .match-summary-right .match-live-indicator { display: none; }
+
         .match-score {
             font-weight: 900;
             font-size: 0.95rem;
@@ -1557,6 +1597,7 @@
             border-radius: 999px;
             border: 1px solid transparent;
             min-width: 78px;
+            box-sizing: border-box;
             text-align: center;
             flex-shrink: 0;
         }
@@ -1631,6 +1672,12 @@
             border: 1px solid rgba(var(--rgb-green-1), 0.25);
             padding: 4px 10px;
             border-radius: 8px;
+            /* Einheitliche Breite, damit die Punkte-Badges aller Karten
+               buendig untereinander stehen. */
+            min-width: 74px;
+            box-sizing: border-box;
+            text-align: center;
+            flex-shrink: 0;
         }
 
         .match-total.neg {
@@ -5713,73 +5760,127 @@
 
             .games-teams-grid { grid-template-columns: 1fr; }
 
+            /* Gespielte Spiele (eingeklappt): mobil als Stapel – eine Zeile
+               pro Team (Logo · Name · Tore), darunter eine Fusszeile mit
+               Spiel-Nr., Live-Status, Punkten und Pfeil. Lange Namen wie
+               "Paris Saint-Germain" werden sauber gekuerzt und koennen das
+               Resultat nicht mehr ueberdecken. */
             .match-header {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 10px;
-            }
-
-            .match-side {
-                flex: 1 1 0;
+                gap: 8px;
+                padding: 12px 14px;
             }
 
             .match-duel {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) minmax(64px, auto) minmax(0, 1fr);
-                align-items: center;
-                column-gap: 8px;
-                row-gap: 6px;
+                grid-template-columns: minmax(0, 1fr);
+                row-gap: 2px;
                 width: 100%;
             }
 
-            .match-side {
-                min-width: 0;
-                align-items: center;
-            }
+            /* Das kombinierte Resultat-Pill entfaellt – die Tore stehen
+               als Chip in der jeweiligen Team-Zeile. Das Live-Badge
+               wandert dafuer in die Fusszeile. */
+            .match-center { display: none; }
+            .match-summary-right .match-live-indicator { display: inline-flex; }
 
+            .match-side,
             .match-side.right {
-                justify-content: flex-end;
-            }
-
-            .match-side-copy > .match-goals-list {
-                display: none;
-            }
-
-            .match-goals-strip {
-                grid-column: 1 / 4;
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-                gap: 10px;
-                align-items: start;
-            }
-
-            .match-goals-strip-side {
+                grid-template-columns: 28px minmax(0, 1fr) auto;
+                align-items: center;
+                column-gap: 9px;
+                width: 100%;
                 min-width: 0;
+                text-align: left;
+                justify-self: stretch;
             }
 
-            .match-goals-strip-side.right .match-goals-list {
-                align-items: flex-end;
-                text-align: right;
-            }
-
-            .match-goals-strip .match-goals-list {
-                max-width: 100%;
-                font-size: 0.66rem;
-                line-height: 1.18;
-                gap: 2px;
-            }
-
-            .match-score {
+            .match-side .match-flag {
+                grid-column: 1;
+                grid-row: 1;
+                order: 0;
                 justify-self: center;
-                min-width: 62px;
+            }
+
+            .match-side .match-side-copy,
+            .match-side.right .match-side-copy {
+                grid-column: 2;
+                grid-row: 1;
+                align-items: flex-start;
+            }
+
+            .match-side .match-side-goal {
+                grid-column: 3;
+                grid-row: 1;
+            }
+
+            /* Wichtig: block statt flex, sonst greift text-overflow
+               (…) beim Kuerzen langer Namen nicht. */
+            .match-side .match-country-btn {
+                display: block;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                min-height: 0;
+                padding: 13px 0;
+                text-align: left;
+            }
+
+            .match-side-goal {
+                display: inline-block;
+                min-width: 34px;
                 padding: 4px 8px;
-                font-size: 0.86rem;
+                border-radius: 8px;
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                font-weight: 900;
+                font-size: 0.92rem;
+                line-height: 1.2;
+                text-align: center;
+                color: var(--text-main);
+                font-variant-numeric: tabular-nums;
+                box-sizing: border-box;
+            }
+
+            .match-side.is-winner .match-side-goal {
+                border-color: rgba(255,255,255,0.30);
+                background: rgba(255,255,255,0.08);
+            }
+
+            .match-side.is-loser .match-side-name,
+            .match-side.is-loser .match-side-goal {
+                opacity: 0.72;
             }
 
             .match-summary-right {
-                justify-content: space-between;
+                width: 100%;
+                min-width: 0;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 6px 10px;
                 margin-left: 0;
+                /* Auf sehr schmalen Screens (Live-Badge + Spiel-Nr. +
+                   Punkte) kontrolliert umbrechen statt ueberlaufen. */
                 flex-wrap: wrap;
+                border-top: 1px solid var(--glass-border);
+                padding-top: 9px;
+            }
+
+            .match-meta-label {
+                display: inline-block;
+                font-size: 0.68rem;
+                font-weight: 800;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                white-space: nowrap;
+            }
+
+            .match-summary-right .match-total {
+                margin-left: auto;
+                font-size: 0.9rem;
             }
 
             .games-match-header {

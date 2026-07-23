@@ -1464,12 +1464,20 @@
                     const leftNationEncoded  = encodeURIComponent(matchVisual.leftName);
                     const rightNationEncoded = encodeURIComponent(matchVisual.rightName);
 
+                    // Sieger/Verlierer pro Seite markieren – die mobile
+                    // Stapel-Ansicht hebt damit den Gewinner hervor.
+                    const leftGoalsNum  = Number(matchVisual.leftGoals);
+                    const rightGoalsNum = Number(matchVisual.rightGoals);
+                    const hasScore = Number.isFinite(leftGoalsNum) && Number.isFinite(rightGoalsNum);
+                    const leftSideClass  = hasScore ? (leftGoalsNum > rightGoalsNum ? ' is-winner' : (leftGoalsNum < rightGoalsNum ? ' is-loser' : '')) : '';
+                    const rightSideClass = hasScore ? (rightGoalsNum > leftGoalsNum ? ' is-winner' : (rightGoalsNum < leftGoalsNum ? ' is-loser' : '')) : '';
+
                     const card = document.createElement('div');
                     card.className = `match-card${liveInfo ? ' is-live' : ''}`;
                     card.innerHTML = `
                         <div class="match-header" onclick="toggleDetails(this)">
                             <div class="match-duel">
-                                <div class="match-side">
+                                <div class="match-side${leftSideClass}">
                                     ${leftFlagHtml}
                                     <div class="match-side-copy">
                                     <button class="match-country-btn match-side-name" type="button"
@@ -1478,11 +1486,15 @@
                                         ${escapeHtml(matchVisual.leftName)}
                                     </button>
                                     </div>
+                                    <span class="match-side-goal">${matchVisual.leftGoals}</span>
                                 </div>
-                                <div class="match-score ${matchVisual.resultClass}">
-                                    ${matchVisual.leftGoals} : ${matchVisual.rightGoals}
+                                <div class="match-center">
+                                    <div class="match-score ${matchVisual.resultClass}">
+                                        ${matchVisual.leftGoals} : ${matchVisual.rightGoals}
+                                    </div>
+                                    ${liveIndicatorHtml}
                                 </div>
-                                <div class="match-side right">
+                                <div class="match-side right${rightSideClass}">
                                     <div class="match-side-copy">
                                     <button class="match-country-btn match-side-name" type="button"
                                             onclick="event.stopPropagation(); openGamesViewWithNation(decodeURIComponent('${rightNationEncoded}'), '${matchNumber || ''}')"
@@ -1491,9 +1503,11 @@
                                     </button>
                                     </div>
                                     ${rightFlagHtml}
+                                    <span class="match-side-goal">${matchVisual.rightGoals}</span>
                                 </div>
                             </div>
                             <div class="match-summary-right">
+                                ${matchNumber ? `<span class="match-meta-label">Spiel ${matchNumber}</span>` : ''}
                                 ${liveIndicatorHtml}
                                 <div class="match-total ${val.TotalPunkte < 0 ? 'neg' : ''}">${val.TotalPunkte > 0 ? '+' : ''}${val.TotalPunkte} Pkt.</div>
                                 <span class="toggle-icon" aria-hidden="true">▼</span>
