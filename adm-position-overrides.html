@@ -636,6 +636,19 @@
         throw new Error('APP_CONFIG fehlt.');
     }
 
+    // WM ist nations-, die CL club-zentriert (primaryEntity). Beschriftungen
+    // der primären Gruppierung heissen bei der CL „Club" statt „Land".
+    const ENTITY_NOUN = APP.primaryEntity === 'club' ? 'Club' : 'Land';
+    const ENTITY_NOUN_PLURAL = APP.primaryEntity === 'club' ? 'Clubs' : 'Länder';
+    try {
+        const nationLabel = document.querySelector('label[for="nationFilter"]');
+        if (nationLabel) nationLabel.textContent = ENTITY_NOUN;
+        if (APP.primaryEntity === 'club') {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.setAttribute('placeholder', 'Suche nach Name, Club oder Position...');
+        }
+    } catch (_) { /* Beschriftung bleibt statisch */ }
+
     if (!rawPlayers.length) {
         alert('playersData aus data.js konnte nicht geladen werden oder ist leer.');
         throw new Error('playersData fehlt.');
@@ -897,7 +910,7 @@
     function populateNationFilter() {
         const nations = Array.from(new Set(players.map(p => p._nation).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'de'));
         els.nationFilter.innerHTML = [
-            '<option value="ALL">Alle Länder</option>',
+            `<option value="ALL">Alle ${ENTITY_NOUN_PLURAL}</option>`,
             ...nations.map(nation => `<option value="${escapeHtml(nation)}">${escapeHtml(nation)}</option>`)
         ].join('');
         els.nationFilter.value = 'ALL';
@@ -1118,7 +1131,7 @@
 
             <div class="meta-grid">
                 <div class="meta-box">
-                    <div class="label">Land</div>
+                    <div class="label">${ENTITY_NOUN}</div>
                     <div class="value">${escapeHtml(player._nation || '-')}</div>
                 </div>
                 <div class="meta-box">

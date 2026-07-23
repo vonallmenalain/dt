@@ -16,6 +16,13 @@
     const PAGE_TITLE_PREFIX = APP.pageTitlePrefix;
     const PLAYER_BATCH_SIZE = 20;
 
+    // WM ist nations-, die CL club-zentriert (primaryEntity). Der Club-Remap in
+    // data.js legt bei der CL den Klub in die primären Anzeigefelder – die
+    // primäre Gruppierung/Filterung heisst dort also „Club" statt „Land".
+    const IS_CLUB_ENTITY = APP.primaryEntity === 'club';
+    function entWord() { return IS_CLUB_ENTITY ? 'Club' : 'Land'; }
+    function entWordPlural() { return IS_CLUB_ENTITY ? 'Clubs' : 'Länder'; }
+
     document.title = `${PAGE_TITLE_PREFIX} - Analyse`;
 
     /* =========================================================
@@ -449,7 +456,7 @@
             if (currentScheduleNationFilter && currentScheduleNationFilter !== 'ALL') {
                 return { text: currentScheduleNationFilter, flag: getNationFlag(currentScheduleNationFilter), prefix: '🌍' };
             }
-            return { text: 'Land suchen', flag: '', prefix: '🌍' };
+            return { text: `${entWord()} suchen`, flag: '', prefix: '🌍' };
         }
         if (currentView === 'tournament') {
             return { text: 'Turnier', flag: '', prefix: '🏆' };
@@ -1543,7 +1550,7 @@
         if (!list) return;
 
         if (!scheduleNationList.length) {
-            list.innerHTML = '<div class="sidebar-empty">Keine Länder gefunden.</div>';
+            list.innerHTML = `<div class="sidebar-empty">Keine ${entWordPlural()} gefunden.</div>`;
             return;
         }
 
@@ -1557,7 +1564,7 @@
                         ? `<img src="${escapeHtml(flag)}" class="games-country-flag-small" alt="${escapeHtml(nation)}" loading="lazy">`
                         : `<span class="games-country-flag-small" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
                 })();
-            const label = isAll ? 'Alle Länder' : nation;
+            const label = isAll ? `Alle ${entWordPlural()}` : nation;
             const isActive = currentScheduleNationFilter === nation;
             const nationEncoded = encodeURIComponent(nation);
             return `
@@ -2440,7 +2447,7 @@
 
         const note = hasMatchData
             ? ''
-            : `<div class="sc-expanded-note">Noch keine Spielpunkte erfasst – angezeigt sind die gedrafteten Spieler der Nationen, sortiert nach Position.</div>`;
+            : `<div class="sc-expanded-note">Noch keine Spielpunkte erfasst – angezeigt sind die gedrafteten Spieler der ${IS_CLUB_ENTITY ? 'Clubs' : 'Nationen'}, sortiert nach Position.</div>`;
 
         return `<div class="sc-expanded-body">
             <div class="sc-expanded-grid">
@@ -2588,7 +2595,7 @@
             };
             const statusText = filterLabels[currentScheduleStatusFilter] || '';
             const emptyLabel = currentScheduleNationFilter !== 'ALL'
-                ? `Keine ${statusText ? statusText + ' ' : ''}Spiele fuer dieses Land gefunden.`
+                ? `Keine ${statusText ? statusText + ' ' : ''}Spiele ${IS_CLUB_ENTITY ? 'für diesen Club' : 'fuer dieses Land'} gefunden.`
                 : `Keine ${statusText ? statusText + ' ' : ''}Spiele gefunden.`;
             el.innerHTML = `<div class="schedule-empty-state">
                 <div style="font-size:2rem;margin-bottom:10px;">🔍</div>
@@ -6570,8 +6577,8 @@
         const rows = [
             { label: 'Gesamtpunkte', a: a.totalPoints, b: b.totalPoints, cmp: cmpNum },
             { label: 'Position', a: a.positionLabel, b: b.positionLabel, cmp: () => 'draw' },
-            { label: 'Nation', a: a.nation, b: b.nation, cmp: () => 'draw' },
-            { label: 'Club', a: a.club, b: b.club, cmp: () => 'draw' },
+            { label: IS_CLUB_ENTITY ? 'Club' : 'Nation', a: a.nation, b: b.nation, cmp: () => 'draw' },
+            { label: IS_CLUB_ENTITY ? 'Land' : 'Club', a: a.club, b: b.club, cmp: () => 'draw' },
             { label: 'Tore', a: a.goals, b: b.goals, cmp: cmpNum },
             { label: 'Assists', a: a.assists, b: b.assists, cmp: cmpNum },
             { label: 'Spiele (≈)', a: a.games, b: b.games, cmp: cmpNum },
@@ -6839,7 +6846,7 @@
                 </div>
                 <div class="analysis-card-body">
                     ${topMissed.length === 0
-                        ? `<div style="color:var(--text-muted);font-style:italic;text-align:center;">Du hast aus jedem Land den besten positionsgleichen Spieler gewählt – starke Auswahl!</div>`
+                        ? `<div style="color:var(--text-muted);font-style:italic;text-align:center;">Du hast aus jedem ${entWord()} den besten positionsgleichen Spieler gewählt – starke Auswahl!</div>`
                         : `<div class="cmp-alt-list">${topMissed.map(item => `
                             <div class="cmp-alt-row">
                                 <div class="cmp-alt-side">
@@ -6855,7 +6862,7 @@
                                     ${renderAltAvatar(item.bestSamePos.photo, item.bestSamePos.name, item.bestSamePos.id)}
                                     <div class="cmp-alt-info">
                                         <div class="cmp-alt-name is-best">${cmpPlayerLink(item.bestSamePos.name, escapeHtml(item.bestSamePos.name), '', item.bestSamePos.id)}</div>
-                                        <div class="cmp-alt-meta">gleiche Nation &amp; Position</div>
+                                        <div class="cmp-alt-meta">${IS_CLUB_ENTITY ? 'gleicher Club' : 'gleiche Nation'} &amp; Position</div>
                                         <div class="cmp-alt-pts is-best">${item.bestSamePos.pts} Pkt.</div>
                                     </div>
                                 </div>
@@ -7670,8 +7677,50 @@
         document.body.classList.toggle('teams-locked', isTeamsLocked());
     }
 
+    // Statische „Land/Länder"-Beschriftungen der Analyse-Seite bei
+    // club-zentrierten Turnieren (CL) auf „Club" umstellen. Für die WM
+    // (nations-zentriert) ein No-op.
+    function localizeEntityNouns() {
+        if (!IS_CLUB_ENTITY) return;
+        const setAttr = (el, a, v) => { if (el) el.setAttribute(a, v); };
+
+        // Spielerliste: Suche + Primär-Filter (in der CL = Club-Filter).
+        setAttr(document.getElementById('search-input'), 'placeholder', '🔍 Name oder Club...');
+        const nf = document.getElementById('nation-filter');
+        if (nf) {
+            nf.setAttribute('aria-label', 'Club filtern');
+            const all = nf.querySelector('option[value="ALL"]');
+            if (all) all.textContent = 'Alle Clubs';
+        }
+
+        // Spielplan-Sidebar.
+        const reset = document.getElementById('schedule-reset-filters');
+        if (reset) { reset.textContent = 'Club zurücksetzen'; reset.setAttribute('aria-label', 'Club zurücksetzen'); }
+        setAttr(document.getElementById('schedule-sort-name'), 'aria-label', 'Clubs alphabetisch sortieren');
+        setAttr(document.getElementById('schedule-sort-az'), 'aria-label', 'Clubs nach Name sortieren');
+        const list = document.getElementById('schedule-country-list');
+        if (list) {
+            list.setAttribute('aria-label', 'Clubliste für Spielplan');
+            const empty = list.querySelector('.sidebar-empty');
+            if (empty && /Lade\s+Länder/i.test(empty.textContent || '')) empty.textContent = 'Lade Clubs... ⏳';
+        }
+        document.querySelectorAll('.sidebar-mini-title').forEach(el => {
+            if ((el.textContent || '').trim() === 'Nach Land filtern') el.textContent = 'Nach Club filtern';
+        });
+
+        // Spieler-Detail: die (primäre) „Nationalteam"-Kachel zeigt in der CL
+        // den Klub – Beschriftungen entsprechend anpassen.
+        const tileNation = document.getElementById('tile-nation');
+        if (tileNation) {
+            tileNation.setAttribute('title', 'Alle Spieler dieses Clubs anzeigen');
+            tileNation.setAttribute('aria-label', 'Club filtern');
+        }
+        setAttr(document.getElementById('detail-nation-flag'), 'alt', 'Vereinslogo');
+    }
+
     async function init() {
         applyAnalysisLockState();
+        localizeEntityNouns();
 
         // Live-Umschaltung exakt zum DREAMTEAM_START: rerender, damit
         // "Gewählt von …" und Captain-Badges erscheinen, sobald der
