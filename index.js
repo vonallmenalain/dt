@@ -4793,9 +4793,9 @@
                 </div>
                 <div class="tcc-player-info">
                     <h3 class="tcc-player-name">${escapeHtml(p.name)}</h3>
-                    <div class="tcc-club-logo-wrap">
+                    ${p.clubLogo ? `<div class="tcc-club-logo-wrap">
                         <img class="tcc-club-logo" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}">
-                    </div>
+                    </div>` : ''}
                     <div class="tcc-club-name">${escapeHtml(p.club)}</div>
                 </div>
                 <div class="tcc-card-dim" aria-hidden="true"></div>
