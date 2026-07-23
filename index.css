@@ -6205,4 +6205,466 @@
             .manager-player-orb { opacity: 1 !important; transform: scale(1) !important; }
         }
 
+        /* ================================================================
+           CL: TOP-10-MANAGER – kompakte Liste + Expand-Detailkarte
+           Namespace `cltm-`. Nur in der CL sichtbar (index.js blendet
+           #clTopManagers ein und entfernt dafür die Champ-Stage); die WM
+           behält das Podest. Farbwelt über die --cl-*-Variablen (mit
+           Fallbacks auf die CL-Palette), Medaillenfarben fest kodiert.
+           ================================================================ */
+        .cltm-stage {
+            position: relative;
+            z-index: 2;
+            width: min(94vw, 680px);
+            margin: 0 auto;
+            padding: 10px 0 6px;
+            box-sizing: border-box;
+        }
+        .cltm-stage[hidden] { display: none; }
+
+        .cltm-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .cltm-empty {
+            text-align: center;
+            padding: 26px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--cl-text-muted, #9db6e8);
+        }
+
+        /* ── Manager-Zeile (Kurzansicht) ─────────────────────────────── */
+        .cltm-card {
+            display: grid;
+            grid-template-columns: 40px minmax(0, 1fr) auto auto;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            box-sizing: border-box;
+            background: linear-gradient(165deg, var(--cl-surface, #132347) 0%, var(--cl-surface-alt, #0f1c3d) 100%);
+            border: 1px solid rgba(125, 180, 255, 0.16);
+            color: inherit;
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+            opacity: 0;
+            animation: cltm-card-in 0.5s cubic-bezier(0.22, 0.85, 0.4, 1.05) forwards;
+            animation-delay: calc(var(--cltm-i, 0) * 60ms);
+            transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .cltm-card:hover {
+                transform: translateY(-2px);
+                border-color: rgba(125, 180, 255, 0.45);
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            }
+        }
+        .cltm-card:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: 2px;
+        }
+        /* Ursprungs-Zeile bleibt während offener Detailkarte unsichtbar,
+           behält aber ihren Platz (Expand-Illusion wie bei Aceternity). */
+        .cltm-card.cltm-src-hidden { visibility: hidden; }
+
+        @keyframes cltm-card-in {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .cltm-rank {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--cl-text-muted, #9db6e8);
+            flex-shrink: 0;
+        }
+        .cltm-rank.r1 {
+            background: linear-gradient(135deg, #fde68a, #ffd700 55%, #e5a800);
+            color: #241a00;
+            box-shadow: 0 4px 14px rgba(255, 215, 0, 0.35);
+        }
+        .cltm-rank.r2 {
+            background: linear-gradient(135deg, #f1f5f9, #c7ced9 55%, #9ca3af);
+            color: #1f2430;
+        }
+        .cltm-rank.r3 {
+            background: linear-gradient(135deg, #fcd9b8, #e8a06a 55%, #c2703d);
+            color: #2b1608;
+        }
+
+        .cltm-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 800;
+            font-size: 1.02rem;
+            letter-spacing: -0.01em;
+        }
+
+        .cltm-top3 {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .cltm-top3-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            width: 38px;
+        }
+        .cltm-top3-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid rgba(125, 180, 255, 0.4);
+            background: var(--cl-surface-alt, #0f1c3d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cltm-top3-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+            display: block;
+        }
+        .cltm-avatar-fallback {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .cltm-top3-pts {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: var(--cl-accent, #7db4ff);
+            white-space: nowrap;
+        }
+
+        .cltm-pts {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            font-weight: 900;
+            font-size: 1.15rem;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .cltm-pts small {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+
+        /* ── Overlay + Expand-Detailkarte ────────────────────────────── */
+        body.cltm-lock { overflow: hidden; }
+
+        .cltm-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            box-sizing: border-box;
+        }
+        .cltm-overlay[hidden] { display: none; }
+
+        .cltm-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 10, 26, 0.62);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            transition: opacity 0.32s ease;
+        }
+        .cltm-overlay.is-open .cltm-backdrop { opacity: 1; }
+
+        .cltm-modal {
+            position: relative;
+            z-index: 1;
+            width: min(560px, 100%);
+            max-height: min(86vh, 780px);
+            display: flex;
+            flex-direction: column;
+            border-radius: 22px;
+            background: linear-gradient(170deg, var(--cl-surface, #132347), var(--cl-surface-alt, #0f1c3d));
+            border: 1px solid rgba(125, 180, 255, 0.28);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            will-change: transform;
+            transition: transform 0.5s cubic-bezier(0.22, 0.85, 0.32, 1.02), opacity 0.3s ease 0.12s;
+        }
+        .cltm-overlay.is-closing .cltm-modal { opacity: 0; }
+
+        .cltm-modal-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(125, 180, 255, 0.15);
+            flex-shrink: 0;
+        }
+        .cltm-modal-title {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex: 1;
+        }
+        .cltm-modal-name {
+            font-weight: 900;
+            font-size: 1.15rem;
+            letter-spacing: -0.01em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .cltm-modal-pts {
+            font-weight: 800;
+            color: var(--cl-accent, #7db4ff);
+        }
+        .cltm-modal-pts small {
+            font-weight: 700;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .cltm-close {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.06);
+            color: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .cltm-close:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        .cltm-close:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: 2px;
+        }
+
+        /* Innenleben blendet leicht verzögert ein, während die Karte wächst. */
+        .cltm-modal-body {
+            padding: 14px 14px 16px;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s ease 0.16s, transform 0.3s ease 0.16s;
+        }
+        .cltm-overlay.is-open .cltm-modal-body {
+            opacity: 1;
+            transform: none;
+        }
+        .cltm-overlay.is-closing .cltm-modal-body {
+            opacity: 0;
+            transition: opacity 0.16s ease;
+        }
+
+        /* ── Mini-Fussballfeld (Tor → Abwehr → Mittelfeld → Sturm) ──── */
+        .cltm-pitch {
+            position: relative;
+            border-radius: 16px;
+            padding: 14px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background:
+                repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 42px, rgba(255, 255, 255, 0) 42px 84px),
+                linear-gradient(180deg, #14532d, #166534 55%, #14532d);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            overflow: hidden;
+        }
+        /* Mittellinie + Mittelkreis als dezente Feld-Markierung. */
+        .cltm-pitch::before {
+            content: '';
+            position: absolute;
+            left: 6%;
+            right: 6%;
+            top: 50%;
+            border-top: 2px solid rgba(255, 255, 255, 0.22);
+            pointer-events: none;
+        }
+        .cltm-pitch::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 64px;
+            height: 64px;
+            border: 2px solid rgba(255, 255, 255, 0.22);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .cltm-pitch-row {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            gap: clamp(4px, 2vw, 14px);
+        }
+
+        .cltm-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            width: clamp(64px, 19vw, 88px);
+            padding: 6px 3px 5px;
+            border-radius: 12px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #fff;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .cltm-chip:hover {
+                transform: translateY(-2px);
+                border-color: rgba(255, 255, 255, 0.42);
+                background: rgba(0, 0, 0, 0.42);
+            }
+        }
+        .cltm-chip:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+        .cltm-chip-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cltm-chip-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+            display: block;
+        }
+        .cltm-chip .cltm-avatar-fallback { color: rgba(255, 255, 255, 0.75); }
+        .cltm-chip-name {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.6rem;
+            font-weight: 700;
+        }
+        .cltm-chip-pts {
+            font-size: 0.68rem;
+            font-weight: 900;
+            color: #fde68a;
+        }
+
+        /* ── Bank (Slots 11–14) ──────────────────────────────────────── */
+        .cltm-bench {
+            margin-top: 10px;
+            border-radius: 14px;
+            border: 1px dashed rgba(125, 180, 255, 0.32);
+            padding: 8px 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .cltm-bench-label {
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .cltm-bench-row {
+            display: flex;
+            justify-content: center;
+            gap: clamp(4px, 2vw, 14px);
+            flex-wrap: wrap;
+        }
+        .cltm-bench .cltm-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(125, 180, 255, 0.22);
+        }
+        .cltm-bench .cltm-chip-pts { color: var(--cl-accent, #7db4ff); }
+
+        .cltm-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        /* ── Mobile Feintuning ───────────────────────────────────────── */
+        @media (max-width: 560px) {
+            .cltm-card {
+                grid-template-columns: 34px minmax(0, 1fr) auto auto;
+                gap: 8px;
+                padding: 9px 10px;
+                border-radius: 14px;
+            }
+            .cltm-rank { width: 32px; height: 32px; border-radius: 10px; font-size: 0.9rem; }
+            .cltm-name { font-size: 0.92rem; }
+            .cltm-top3 { gap: 6px; }
+            .cltm-top3-player { width: 32px; }
+            .cltm-top3-avatar { width: 28px; height: 28px; }
+            .cltm-top3-pts { font-size: 0.58rem; }
+            .cltm-pts { font-size: 1rem; }
+            .cltm-overlay { padding: 12px; }
+            .cltm-modal-body { padding: 12px 10px 14px; }
+            .cltm-chip { width: clamp(58px, 20vw, 74px); }
+            .cltm-chip-avatar { width: 30px; height: 30px; }
+        }
+
+        /* ── Reduzierte Bewegung: nur Ein-/Ausblenden, keine Transforms ── */
+        @media (prefers-reduced-motion: reduce) {
+            .cltm-card {
+                animation: none;
+                opacity: 1;
+                transition: none;
+            }
+            .cltm-modal {
+                transition: opacity 0.25s ease;
+            }
+            .cltm-overlay:not(.is-open) .cltm-modal { opacity: 0; }
+            .cltm-modal-body {
+                opacity: 1 !important;
+                transform: none !important;
+                transition: none;
+            }
+            .cltm-backdrop { transition: opacity 0.2s ease; }
+            .cltm-chip, .cltm-close { transition: none; }
+        }
+
     

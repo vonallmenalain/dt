@@ -43,7 +43,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-23-phase2-13">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-23-topmanager-14">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -74,7 +74,7 @@
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
-<link rel="stylesheet" href="styles.css?v=2026-07-23-phase2-13">
+<link rel="stylesheet" href="styles.css?v=2026-07-23-topmanager-14">
 
     <!-- =====================================================
          PRE/POST-START VIEW DECIDER (synchron, FOUC-frei)
@@ -157,7 +157,7 @@
     })();
     </script>
 
-    <link rel="stylesheet" href="index.css?v=2026-07-23-phase2-13">
+    <link rel="stylesheet" href="index.css?v=2026-07-23-topmanager-14">
 </head>
 <body data-nav-style="hero">
 
@@ -347,6 +347,25 @@
         </div>
     </section>
 
+    <!-- =====================================================================
+         CL: „Top Manager" – kompakte Top-10-Liste mit Expand-Karte.
+         Ersetzt in der CL-Version die Champ-Stage (Podest) oben; index.js
+         entfernt dort die Champ-Stage und blendet diese Sektion ein. In der
+         WM bleibt sie versteckt (hidden) bzw. wird entfernt – das Podest der
+         WM 2026 bleibt unangetastet. Klick auf einen Manager öffnet eine
+         zentrierte Detail-Karte (flüssige Expand-Animation) mit einem kleinen
+         Fussballfeld und allen 15 Spielern samt Punkten.
+         ===================================================================== -->
+    <section class="cltm-stage" id="clTopManagers" aria-label="Top Manager" hidden>
+        <header class="champ-header">
+            <h2 class="champ-title">
+                <span class="gold-text">Top</span>
+                <span class="accent">Manager</span>
+            </h2>
+        </header>
+        <div class="cltm-list" id="clTopManagersList" aria-live="polite"></div>
+    </section>
+
     <!-- Quick nav pills (Auswahl: Rangliste, Spieler, Teams, Punkte) -->
     <div class="post-hero-pills" style="margin-top: 22px; margin-bottom: 8px;">
         <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
@@ -532,19 +551,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="tournament-config.js?v=2026-07-23-phase2-13"></script>
-<script src="nav.js?v=2026-07-23-phase2-13"></script>
+<script src="tournament-config.js?v=2026-07-23-topmanager-14"></script>
+<script src="nav.js?v=2026-07-23-topmanager-14"></script>
 <script src="country-aliases.js"></script>
-<script src="data.js?v=2026-07-23-phase2-13"></script>
-<script src="points-utils.js?v=2026-07-23-phase2-13"></script>
-<script src="transfer-utils.js?v=2026-07-23-phase2-13"></script>
-<script src="cache.js?v=2026-07-23-phase2-13"></script>
+<script src="data.js?v=2026-07-23-topmanager-14"></script>
+<script src="points-utils.js?v=2026-07-23-topmanager-14"></script>
+<script src="transfer-utils.js?v=2026-07-23-topmanager-14"></script>
+<script src="cache.js?v=2026-07-23-topmanager-14"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css?v=2026-07-23-phase2-13">
+<link rel="stylesheet" href="auth-modal.css?v=2026-07-23-topmanager-14">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
 
-<script src="index.js?v=2026-07-23-phase2-13"></script>
+<script src="index.js?v=2026-07-23-topmanager-14"></script>
 </body>
 </html>

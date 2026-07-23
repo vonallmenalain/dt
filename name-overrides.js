@@ -17,6 +17,8 @@ window.NAME_OVERRIDES = {
         2489:  "Luis Díaz",         // war: Luis Fernando Díaz
         19617: "Michael Olise",     // war: Michael Akpovie Olise
         153:   "Ousmane Dembélé",   // war: Masour Ousmane Dembélé
-        756:   "Federico Valverde"  // war: Federico Santiago Valverde
+        756:   "Federico Valverde", // war: Federico Santiago Valverde
+        307123: "Nico O'Reilly",    // war: Nico O&apos;Reilly (HTML-Entität aus der API)
+        19030:  "Matt O'Riley"      // war: Matthew Sean O&apos;Riley (HTML-Entität aus der API)
     }
 };

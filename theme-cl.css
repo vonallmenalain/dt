@@ -343,6 +343,14 @@
 /* Kein Titel („Stars der …") über dem Spieler-Karussell in der CL. */
 [data-tournament^="cl"] #indexTestCarouselTitle { display: none; }
 
+/* ── Startseite NACH Start (CL): Champ-Stage (Podest) komplett aus ───────
+ * Die CL nutzt statt des animierten Podests die kompakte Top-10-Liste
+ * (#clTopManagers, siehe index.js → renderClTopManagers). index.js entfernt
+ * die Champ-Stage beim Boot aus dem DOM; diese Regel verhindert zusätzlich
+ * jeden Pre-Boot-Flash (z. B. den „Top Manager"-Titel des Podests). Die WM
+ * behält ihr Podest unverändert. */
+[data-tournament^="cl"] .champ-stage { display: none; }
+
 /* ── Startseite VOR Start (CL): Hero aufgeräumt / kompakter ──────────────
  * In der CL-Version soll die Pre-Start-Startseite ohne Scrollen auf Mobile
  * passen. Deshalb entfallen im Hero der Claim-Text („15 Spieler. … Drafte
