@@ -1771,7 +1771,8 @@
 
         const active = computeActivePlayers(team);
         valueEl.textContent = `${active}/${total}`;
-        wrap.title = `Spieler noch im Turnier: ${active} von ${total} (Nation nicht ausgeschieden)`;
+        const aliveNoun = (APP && APP.primaryEntity === 'club') ? 'Club' : 'Nation';
+        wrap.title = `Spieler noch im Turnier: ${active} von ${total} (${aliveNoun} nicht ausgeschieden)`;
         wrap.hidden = false;
     }
 
@@ -2115,6 +2116,12 @@
     async function init() {
         applyTeamsLockState();
         scheduleTeamsAutoReveal();
+
+        // CL (club-zentriert): „Nation"-Tooltip der Aktiv-Anzeige auf „Club".
+        if (APP && APP.primaryEntity === 'club') {
+            const aliveEl = document.getElementById('display-alive');
+            if (aliveEl) aliveEl.setAttribute('title', 'Spieler, deren Club noch nicht aus dem Turnier ausgeschieden ist');
+        }
 
         // Wenn ein Admin den Dev-Override umstellt, ändert sich
         // isTeamsLocked() – wir reagieren live, ohne Page-Reload.

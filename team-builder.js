@@ -68,6 +68,10 @@
         const filterAll = document.getElementById('picker-nation-filter-all');
         if (filterAll) filterAll.textContent = isClub ? '🌍 Alle Clubs' : '🌍 Alle Länder';
 
+        // Sucht-Placeholder ohne „Land"-Wording in der CL.
+        const search = document.getElementById('picker-search');
+        if (search && isClub) search.setAttribute('placeholder', '🔍 Spieler oder Club suchen…');
+
         // Ohne Captain-Feature (CL) den „· 1 Captain"-Hinweis ausblenden.
         const capRule = document.getElementById('hero-captain-rule');
         if (capRule && !CAPTAIN_ENABLED) capRule.style.display = 'none';
@@ -737,7 +741,10 @@
         const currentValue = dom.pickerNationFilter.value || 'ALL';
         const selectedNations = getSelectedNationNames();
 
-        dom.pickerNationFilter.innerHTML = '<option value="ALL">🌍 Alle Länder</option>' +
+        const allOptionLabel = (window.APP_CONFIG && window.APP_CONFIG.primaryEntity === 'club')
+            ? '🌍 Alle Clubs'
+            : '🌍 Alle Länder';
+        dom.pickerNationFilter.innerHTML = `<option value="ALL">${allOptionLabel}</option>` +
             allNations.map(nation => {
                 const prefix = selectedNations.has(nation) ? '🔴 ' : '';
                 return `<option value="${escapeHtml(nation)}">${prefix}${escapeHtml(nation)}</option>`;
