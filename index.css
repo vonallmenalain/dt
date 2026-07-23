@@ -6232,21 +6232,36 @@
         }
         .cltm-stage[hidden] { display: none; }
 
+        /* Toolbar mit dezentem Ansichts-Toggle („Top | Alle"). */
+        .cltm-list-toolbar {
+            display: flex;
+            justify-content: flex-start;
+            margin: 2px 0 10px;
+        }
+        .cltm-view-toggle { opacity: 0.9; }
+        .cltm-view-toggle .pt-toggle-btn {
+            min-height: 30px;
+            padding: 4px 14px;
+            font-size: 0.72rem;
+        }
+
+        /* Kachel-Bühne: Kacheln sind absolut positioniert und werden von
+           der Layout-Engine (index.js → cltmLayoutTiles) rein über
+           transform platziert – Ansicht-Wechsel „Top | Alle" animieren wie
+           der Position/Punkte-Toggle im Popup (Karussell-Kurve + Stagger).
+           Höhe/min-height setzt die Engine (min-height reserviert die
+           Fläche unsichtbar, solange noch keine Daten da sind). */
         .cltm-list {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 14px;
-            margin-top: 10px;
+            position: relative;
+            margin-top: 2px;
+            transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        @media (max-width: 980px) {
-            .cltm-list { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-        }
-        @media (max-width: 640px) {
-            .cltm-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .cltm-list.cltm-no-anim,
+        .cltm-list.cltm-no-anim .cltm-tile {
+            transition: none !important;
         }
 
         .cltm-empty {
-            grid-column: 1 / -1;
             text-align: center;
             padding: 26px 16px;
             border-radius: 16px;
@@ -6255,16 +6270,24 @@
             color: var(--cl-text-muted, #9db6e8);
         }
 
-        /* ── Manager-Kachel (Kurzansicht) ────────────────────────────── */
+        /* ── Manager-Kachel ──────────────────────────────────────────────
+           Grösse kommt von der Engine (width/height + --tw inline); alle
+           Innengrössen skalieren über calc(var(--tw) * …) mit der Kachel-
+           breite – so passt derselbe Aufbau vom grossen Podest-Rang-1 bis
+           zur kleinen „Alle"-Kachel. WICHTIG: transform gehört der Engine –
+           Hover/Verstecken ändern nur Farben bzw. Opacity. */
         .cltm-tile {
+            --tw: 200px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform-origin: top left;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            gap: 6px;
-            aspect-ratio: 1 / 1;
-            padding: 12px 10px;
-            border-radius: 18px;
+            padding: calc(var(--tw) * 0.055) calc(var(--tw) * 0.04);
+            border-radius: clamp(12px, calc(var(--tw) * 0.08), 20px);
             box-sizing: border-box;
             background: linear-gradient(165deg, var(--cl-surface, #132347) 0%, var(--cl-surface-alt, #0f1c3d) 100%);
             border: 1px solid rgba(125, 180, 255, 0.16);
@@ -6272,14 +6295,14 @@
             font-family: inherit;
             text-align: center;
             cursor: pointer;
-            opacity: 0;
-            animation: cltm-tile-in 0.5s cubic-bezier(0.22, 0.85, 0.4, 1.05) forwards;
-            animation-delay: calc(var(--cltm-i, 0) * 50ms);
-            transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+            will-change: transform;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 0.35s ease,
+                        border-color 0.22s ease,
+                        box-shadow 0.22s ease;
         }
         @media (hover: hover) and (pointer: fine) {
             .cltm-tile:hover {
-                transform: translateY(-3px);
                 border-color: rgba(125, 180, 255, 0.45);
                 box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
             }
@@ -6288,32 +6311,26 @@
             outline: 2px solid var(--cl-accent, #7db4ff);
             outline-offset: 2px;
         }
+        /* Ausgeblendete Kacheln (Top-Ansicht: Ränge hinter der ersten
+           Reihe) – bleiben im DOM und faden beim Wechsel auf „Alle" ein. */
+        .cltm-tile.is-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
         /* Ursprungs-Kachel bleibt während offener Detailkarte unsichtbar,
            behält aber ihren Platz (Expand-Illusion wie bei Aceternity). */
         .cltm-tile.cltm-src-hidden { visibility: hidden; }
-
-        /* Skeleton-Kacheln (index.html): gleiche Geometrie wie .cltm-tile,
-           damit die Sektion ihre Fläche schon vor dem Daten-Render belegt
-           und beim Eintreffen der Top-10 nichts nach unten rutscht. */
-        .cltm-tile-skel {
-            aspect-ratio: 1 / 1;
-            border-radius: 18px;
-        }
-
-        @keyframes cltm-tile-in {
-            from { opacity: 0; transform: translateY(14px); }
-            to   { opacity: 1; transform: none; }
-        }
 
         .cltm-tile-head {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: calc(var(--tw) * 0.02);
             min-width: 0;
             max-width: 100%;
         }
 
+        /* Basis-Rang-Badge (auch im Kopf der Detailkarte verwendet). */
         .cltm-rank {
             width: 34px;
             height: 34px;
@@ -6326,6 +6343,12 @@
             background: rgba(255, 255, 255, 0.08);
             color: var(--cl-text-muted, #9db6e8);
             flex-shrink: 0;
+        }
+        .cltm-tile .cltm-rank {
+            width: clamp(20px, calc(var(--tw) * 0.145), 42px);
+            height: clamp(20px, calc(var(--tw) * 0.145), 42px);
+            border-radius: clamp(7px, calc(var(--tw) * 0.045), 13px);
+            font-size: clamp(11px, calc(var(--tw) * 0.07), 20px);
         }
         .cltm-rank.r1 {
             background: linear-gradient(135deg, #fde68a, #ffd700 55%, #e5a800);
@@ -6348,21 +6371,21 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             font-weight: 800;
-            font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+            font-size: clamp(10px, calc(var(--tw) * 0.075), 21px);
             letter-spacing: -0.01em;
         }
 
         .cltm-tile-pts {
             display: flex;
             align-items: baseline;
-            gap: 4px;
+            gap: calc(var(--tw) * 0.02);
             font-weight: 900;
-            font-size: clamp(1.1rem, 2vw, 1.35rem);
+            font-size: clamp(12px, calc(var(--tw) * 0.098), 28px);
             color: #fff;
             white-space: nowrap;
         }
         .cltm-tile-pts small {
-            font-size: 0.62rem;
+            font-size: clamp(8px, calc(var(--tw) * 0.045), 13px);
             font-weight: 700;
             color: var(--cl-text-muted, #9db6e8);
         }
@@ -6371,18 +6394,18 @@
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            gap: clamp(6px, 1vw, 12px);
+            gap: clamp(4px, calc(var(--tw) * 0.035), 14px);
         }
         .cltm-top3-player {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 2px;
-            width: 40px;
+            min-width: 0;
         }
         .cltm-top3-avatar {
-            width: clamp(30px, 3.2vw, 38px);
-            height: clamp(30px, 3.2vw, 38px);
+            width: clamp(20px, calc(var(--tw) * 0.16), 48px);
+            height: clamp(20px, calc(var(--tw) * 0.16), 48px);
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid rgba(125, 180, 255, 0.4);
@@ -6403,8 +6426,11 @@
             font-weight: 800;
             color: var(--cl-text-muted, #9db6e8);
         }
+        .cltm-tile .cltm-avatar-fallback {
+            font-size: clamp(7px, calc(var(--tw) * 0.05), 13px);
+        }
         .cltm-top3-pts {
-            font-size: 0.62rem;
+            font-size: clamp(8px, calc(var(--tw) * 0.048), 13px);
             font-weight: 800;
             color: var(--cl-accent, #7db4ff);
             white-space: nowrap;
@@ -6782,11 +6808,8 @@
 
         /* ── Reduzierte Bewegung: nur Ein-/Ausblenden, keine Transforms ── */
         @media (prefers-reduced-motion: reduce) {
-            .cltm-tile {
-                animation: none;
-                opacity: 1;
-                transition: none;
-            }
+            .cltm-tile { transition: opacity 0.2s ease; }
+            .cltm-list { transition: none; }
             .cltm-modal {
                 transition: opacity 0.25s ease;
             }

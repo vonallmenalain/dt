@@ -43,7 +43,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-23-topmanager-18">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-23-topmanager-19">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -74,7 +74,7 @@
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
-<link rel="stylesheet" href="styles.css?v=2026-07-23-topmanager-18">
+<link rel="stylesheet" href="styles.css?v=2026-07-23-topmanager-19">
 
     <!-- =====================================================
          PRE/POST-START VIEW DECIDER (synchron, FOUC-frei)
@@ -157,7 +157,7 @@
     })();
     </script>
 
-    <link rel="stylesheet" href="index.css?v=2026-07-23-topmanager-18">
+    <link rel="stylesheet" href="index.css?v=2026-07-23-topmanager-19">
 </head>
 <body data-nav-style="hero">
 
@@ -363,22 +363,21 @@
                 <span class="accent">Manager</span>
             </h2>
         </header>
-        <!-- Skeleton-Kacheln: reservieren die Grid-Fläche der Top-10 schon
-             beim ersten Paint, damit beim Eintreffen der Daten nichts nach
-             unten rutscht (Layout-Shift). renderClTopManagers ersetzt sie
-             beim ersten Daten-Render. -->
-        <div class="cltm-list" id="clTopManagersList" aria-live="polite">
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
-            <div class="cltm-tile-skel skel" aria-hidden="true"></div>
+        <!-- Dezenter Ansichts-Toggle: „Top" (Podest + eine Reihe) / „Alle"
+             (alle Manager als gleich grosse Kacheln). Der Wechsel animiert
+             wie der Position/Punkte-Toggle im Popup (Layout-Engine in
+             index.js → cltmLayoutTiles). -->
+        <div class="cltm-list-toolbar">
+            <div class="pt-toggle cltm-view-toggle" role="tablist" aria-label="Manager-Ansicht">
+                <button type="button" class="pt-toggle-btn active" data-view="top" role="tab" aria-selected="true">Top</button>
+                <button type="button" class="pt-toggle-btn" data-view="alle" role="tab" aria-selected="false">Alle</button>
+            </div>
         </div>
+        <!-- Kachel-Bühne: Kacheln sind absolut positioniert (JS-Layout).
+             Während des Ladens bleibt die Fläche leer, aber reserviert
+             (min-height via cltmReserveListHeight) – kein sichtbares
+             Skeleton-Raster und trotzdem kein Layout-Shift. -->
+        <div class="cltm-list" id="clTopManagersList" aria-live="polite"></div>
     </section>
 
     <!-- Quick nav pills (Auswahl: Rangliste, Spieler, Teams, Punkte) -->
@@ -566,19 +565,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="tournament-config.js?v=2026-07-23-topmanager-18"></script>
-<script src="nav.js?v=2026-07-23-topmanager-18"></script>
+<script src="tournament-config.js?v=2026-07-23-topmanager-19"></script>
+<script src="nav.js?v=2026-07-23-topmanager-19"></script>
 <script src="country-aliases.js"></script>
-<script src="data.js?v=2026-07-23-topmanager-18"></script>
-<script src="points-utils.js?v=2026-07-23-topmanager-18"></script>
-<script src="transfer-utils.js?v=2026-07-23-topmanager-18"></script>
-<script src="cache.js?v=2026-07-23-topmanager-18"></script>
+<script src="data.js?v=2026-07-23-topmanager-19"></script>
+<script src="points-utils.js?v=2026-07-23-topmanager-19"></script>
+<script src="transfer-utils.js?v=2026-07-23-topmanager-19"></script>
+<script src="cache.js?v=2026-07-23-topmanager-19"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css?v=2026-07-23-topmanager-18">
+<link rel="stylesheet" href="auth-modal.css?v=2026-07-23-topmanager-19">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
 
-<script src="index.js?v=2026-07-23-topmanager-18"></script>
+<script src="index.js?v=2026-07-23-topmanager-19"></script>
 </body>
 </html>

@@ -1872,6 +1872,27 @@
         if (champStage) champStage.remove();
         const clTopSection = $('clTopManagers');
         if (clTopSection) clTopSection.hidden = false;
+
+        // Ansichts-Toggle „Top | Alle" binden und die Fläche der Top-Ansicht
+        // schon vor dem Daten-Render unsichtbar reservieren (kein Skeleton-
+        // Raster, kein Layout-Shift). Funktionsdeklarationen sind gehoisted.
+        const viewToggle = document.querySelector('#clTopManagers .cltm-view-toggle');
+        if (viewToggle) {
+            viewToggle.addEventListener('click', (ev) => {
+                const btn = ev.target.closest('[data-view]');
+                if (btn) cltmSetView(btn.dataset.view);
+            });
+        }
+        cltmReserveListHeight();
+        window.addEventListener('resize', () => {
+            if (cltmListResizeTimer) clearTimeout(cltmListResizeTimer);
+            cltmListResizeTimer = setTimeout(() => {
+                cltmListResizeTimer = null;
+                const listEl = document.getElementById('clTopManagersList');
+                if (listEl && listEl.querySelector('.cltm-tile')) cltmLayoutTiles(false);
+                else cltmReserveListHeight();
+            }, 120);
+        });
     } else {
         // WM (bzw. Nicht-CL): die CL-Top-10-Sektion wird nie benutzt → weg.
         const clTopSection = $('clTopManagers');
@@ -4438,8 +4459,6 @@
          Screens rutscht die Bank als eigene Reihe nach unten).
        • Transfers (ausgetauschte Spieler) als eigener Block unten.
        ========================================================= */
-    const CLTM_MAX = 10;
-
     // Slot-Schema des Team-Builders: 0 Tor, 1–3 Abwehr, 4–7 Mittelfeld,
     // 8–10 Sturm; Bank: 11 Tor, 12 Abwehr, 13 Mittelfeld, 14 Sturm.
     const CLTM_ROWS = [
@@ -4630,6 +4649,11 @@
         };
 
         const rowGap = inRow ? 16 : 12;
+        // Desktop: konstante Bereichshöhe über BEIDE Ansichten (Position ist
+        // mit 4 Reihen + Bank-Beschriftung immer die höhere). So ändert der
+        // Position/Punkte-Toggle die Popup-Grösse nicht und es taucht keine
+        // Scrollbar auf; die Punkte-Reihen werden vertikal zentriert.
+        const fixedH = inRow ? (26 + 4 * chipH + 3 * rowGap + 6) : 0;
         let height = 0;
 
         if (cltmMode === 'points') {
@@ -4637,15 +4661,17 @@
             const cols = inRow ? 5 : 4;
             const sorted = cltmModalManager.mergedPlayers || [];
             const rowsCount = Math.max(1, Math.ceil(sorted.length / cols));
+            const contentH = 4 + rowsCount * chipH + (rowsCount - 1) * rowGap + 6;
+            const yPad = inRow ? Math.max(4, Math.floor((fixedH - contentH) / 2) + 4) : 4;
             sorted.forEach((p, i) => {
                 const chip = byId.get(String(p.id));
                 if (!chip) return;
                 const r = Math.floor(i / cols);
                 const inThisRow = Math.min(cols, sorted.length - r * cols);
                 const rowW = inThisRow * chipW + (inThisRow - 1) * gap;
-                place(chip, (W - rowW) / 2 + (i % cols) * (chipW + gap), 4 + r * (chipH + rowGap));
+                place(chip, (W - rowW) / 2 + (i % cols) * (chipW + gap), yPad + r * (chipH + rowGap));
             });
-            height = 4 + rowsCount * chipH + (rowsCount - 1) * rowGap + 6;
+            height = inRow ? fixedH : contentH;
         } else {
             const { rows } = cltmGroupPlayers(cltmModalManager);
             if (inRow) {
@@ -4834,6 +4860,12 @@
         ghost.style.top = rect.top + 'px';
         ghost.style.width = rect.width + 'px';
         ghost.style.height = rect.height + 'px';
+        // Der Klon erbt inline transform (Kachel-Position aus der Layout-
+        // Engine), Einblend-Opacity und Stagger-Delay – alles neutralisieren,
+        // der Ghost wird über left/top + eigene Transforms gesteuert.
+        ghost.style.transform = 'none';
+        ghost.style.opacity = '';
+        ghost.style.transitionDelay = '';
         cltmOverlay.appendChild(ghost);
         cltmGhost = ghost;
         return ghost;
@@ -4981,15 +5013,200 @@
         setTimeout(finish, CLTM_MOVE_MS + 60);
     }
 
-    /* ── Top-10-Kachel-Grid ─────────────────────────────────────────── */
+    /* ── Kachel-Bühne: „Top" (Podest + Reihe) / „Alle" ──────────────────
+       Gleiche Technik wie die Chips im Popup: Alle Kacheln sind absolut
+       positioniert und werden rein über transform platziert; ein Ansicht-
+       Wechsel ändert nur Transforms (FLIP mit Scale-Korrektur für die
+       Grössenänderung) – die CSS-Transition (Karussell-Kurve) animiert
+       die Kacheln flüssig auf ihre neuen Plätze.
+
+       „Top":  Podest oben (Rang 1 Mitte am grössten, Rang 2 links etwas
+               kleiner, Rang 3 rechts nochmals kleiner, unten bündig) +
+               eine Reihe ab Rang 4. Übrige Manager sind ausgeblendet.
+       „Alle": alle Manager als gleich grosse, kleinere Kacheln, der
+               Reihe nach ab Rang 1 oben links.
+       Die Kachel-Innengrössen skalieren über Container-Queries (cqw)
+       mit der Kachelbreite. */
     let cltmSignature = null;
+    let cltmView = 'top';                 // 'top' | 'alle'
+    let cltmTileManagers = [];            // aktuell gerenderte Manager (Rang-Reihenfolge)
+    let cltmTileLayout = new Map();       // manager → { x, y, w } (zuletzt angewandtes Layout)
+    let cltmListResizeTimer = null;
+
+    function cltmListEl() {
+        return document.getElementById('clTopManagersList');
+    }
+
+    // Geometrie je Container-Breite. Podest-Einheit p so gedeckelt, dass
+    // die drei Podest-Kacheln (1.3p / 1.1p / 1.0p) immer nebeneinander
+    // passen; die Reihen-Kacheln sind nie grösser als Rang 3.
+    function cltmSectionGeometry(W) {
+        const wide = W >= 900;
+        const mid = W >= 560 && W < 900;
+        const gap = wide ? 16 : (mid ? 14 : 10);
+        const rowCols = wide ? 5 : (mid ? 4 : 3);
+        const p = Math.min((W - (rowCols - 1) * gap) / rowCols, (W - 2 * gap) / 3.4);
+        const r = Math.min((W - (rowCols - 1) * gap) / rowCols, p);
+        const allCols = Math.max(rowCols, Math.floor((W + gap) / (160 + gap)));
+        const a = (W - (allCols - 1) * gap) / allCols;
+        return { gap, rowCols, r, p, allCols, a, topCount: 3 + rowCols };
+    }
+
+    // Layout für eine Ansicht: Position/Grösse je Rang-Index + Gesamthöhe.
+    function cltmComputeTileLayout(W, view, count) {
+        const g = cltmSectionGeometry(W);
+        const pos = [];
+        let height;
+
+        if (view === 'top') {
+            const s1 = g.p * 1.3;
+            const s2 = g.p * 1.1;
+            const s3 = g.p;
+            const podW = s2 + s1 + s3 + 2 * g.gap;
+            const podX = (W - podW) / 2;
+            const podH = s1;
+            // Rang 2 links, Rang 1 Mitte (grösste), Rang 3 rechts – unten bündig.
+            if (count > 1) pos[1] = { x: podX, y: podH - s2, w: s2 };
+            pos[0] = { x: podX + s2 + g.gap, y: 0, w: s1 };
+            if (count > 2) pos[2] = { x: podX + s2 + g.gap + s1 + g.gap, y: podH - s3, w: s3 };
+
+            const n = Math.min(g.rowCols, Math.max(0, count - 3));
+            const rowY = podH + g.gap * 1.4;
+            const rowW = n * g.r + Math.max(0, n - 1) * g.gap;
+            const rowX = (W - rowW) / 2;
+            for (let i = 0; i < n; i++) {
+                pos[3 + i] = { x: rowX + i * (g.r + g.gap), y: rowY, w: g.r };
+            }
+            // Ausgeblendete Ränge (hinter der Reihe) parken unsichtbar
+            // zentriert in der Reihe – so haben ALLE Kacheln stets eine
+            // Geometrie und bleiben innerhalb der Bühnen-Höhe (kein
+            // unsichtbares Aufblähen der Seiten-Scrollhöhe).
+            for (let i = 3 + n; i < count; i++) {
+                pos[i] = { x: (W - g.r) / 2, y: n > 0 ? rowY : 0, w: g.r };
+            }
+            height = (n > 0 ? rowY + g.r : podH) + 4;
+            return { pos, height, topCount: g.topCount };
+        }
+
+        for (let i = 0; i < count; i++) {
+            pos[i] = {
+                x: (i % g.allCols) * (g.a + g.gap),
+                y: Math.floor(i / g.allCols) * (g.a + g.gap),
+                w: g.a
+            };
+        }
+        const rows = Math.max(1, Math.ceil(count / g.allCols));
+        height = rows * g.a + (rows - 1) * g.gap + 4;
+        return { pos, height, topCount: g.topCount };
+    }
+
+    // Platz der Top-Ansicht schon VOR dem Daten-Render reservieren –
+    // unsichtbar (kein Skeleton-Raster), aber mit fester Höhe, damit beim
+    // Eintreffen der Daten nichts nach unten rutscht.
+    function cltmReserveListHeight() {
+        const list = cltmListEl();
+        if (!list || list.querySelector('.cltm-tile')) return;
+        const W = list.clientWidth;
+        if (!W) return;
+        const { height } = cltmComputeTileLayout(W, 'top', 8);
+        list.style.minHeight = Math.ceil(height) + 'px';
+    }
+
+    function cltmLayoutTiles(animate) {
+        const list = cltmListEl();
+        if (!list) return;
+        const tiles = Array.from(list.querySelectorAll('.cltm-tile'));
+        if (!tiles.length) return;
+        const W = list.clientWidth;
+        if (!W) return;
+
+        const { pos, height, topCount } = cltmComputeTileLayout(W, cltmView, tiles.length);
+        const place = (tile, x, y, scale) => {
+            tile.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`
+                + (scale && scale !== 1 ? ` scale(${scale})` : '');
+        };
+        // Breite/Höhe + --tw setzen: über --tw skalieren ALLE Innengrössen
+        // der Kachel (Fonts, Badges, Avatare) mit der Kachelbreite mit.
+        const size = (tile, w) => {
+            tile.style.width = w + 'px';
+            tile.style.height = w + 'px';
+            tile.style.setProperty('--tw', w + 'px');
+        };
+
+        // Pass 1 (nur animiert): Startzustände setzen – bereits sichtbare
+        // Kacheln an alter Position/Grösse (Scale-Korrektur für die neue
+        // Breite), neu erscheinende leicht verkleinert am Zielort.
+        if (animate) {
+            list.classList.add('cltm-no-anim');
+            tiles.forEach((tile, i) => {
+                const target = pos[i];
+                if (!target) return;
+                const key = tile.dataset.manager || String(i);
+                const prev = cltmTileLayout.get(key);
+                const wasHidden = tile.classList.contains('is-hidden');
+                size(tile, target.w);
+                if (prev && !wasHidden) {
+                    place(tile, prev.x, prev.y, prev.w / target.w);
+                } else {
+                    place(tile, target.x, target.y, 0.9);
+                }
+            });
+            void list.offsetWidth;
+            list.classList.remove('cltm-no-anim');
+        } else {
+            list.classList.add('cltm-no-anim');
+        }
+
+        // Pass 2: Zielzustände (bei animate laufen jetzt die Transitions).
+        const nextLayout = new Map();
+        tiles.forEach((tile, i) => {
+            const target = pos[i];
+            const key = tile.dataset.manager || String(i);
+            const hidden = cltmView === 'top' && i >= topCount;
+            if (!target) { tile.classList.add('is-hidden'); return; }
+            size(tile, target.w);
+            tile.classList.toggle('is-hidden', hidden);
+            place(tile, target.x, target.y, hidden ? 0.9 : 1);
+            nextLayout.set(key, target);
+        });
+        cltmTileLayout = nextLayout;
+
+        list.style.height = Math.ceil(height) + 'px';
+        list.style.minHeight = '';
+
+        if (!animate) {
+            void list.offsetWidth;
+            list.classList.remove('cltm-no-anim');
+        }
+    }
+
+    function cltmSetView(view) {
+        if (view !== 'top' && view !== 'alle') return;
+        if (view === cltmView) return;
+        cltmView = view;
+
+        const list = cltmListEl();
+        if (list && list.querySelector('.cltm-tile')) {
+            // Sanfter Stagger wie beim Position/Punkte-Toggle im Popup.
+            const tiles = Array.from(list.querySelectorAll('.cltm-tile'));
+            tiles.forEach((t, i) => { t.style.transitionDelay = Math.min(i * 14, 200) + 'ms'; });
+            cltmLayoutTiles(true);
+            setTimeout(() => { tiles.forEach((t) => { t.style.transitionDelay = ''; }); }, 1000);
+        }
+
+        document.querySelectorAll('.cltm-view-toggle .pt-toggle-btn').forEach((btn) => {
+            const active = btn.dataset.view === view;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+    }
 
     function cltmSignatureOf(rankedManagers) {
         const managers = Array.isArray(rankedManagers) ? rankedManagers : [];
         const duplicateFirstNames = Array.from(champDuplicateFirstNameKeys(managers)).sort();
         return JSON.stringify({
             duplicateFirstNames,
-            list: managers.slice(0, CLTM_MAX).map((m, idx) => ({
+            list: managers.map((m, idx) => ({
                 rank: getDisplayedManagerRank(m, idx + 1),
                 manager: m.manager || 'Unbekannt',
                 totalScore: Number(m.totalScore) || 0,
@@ -5004,23 +5221,28 @@
     }
 
     function renderClTopManagers(rankedManagers) {
-        const list = document.getElementById('clTopManagersList');
+        const list = cltmListEl();
         if (!list) return;
 
         const signature = cltmSignatureOf(rankedManagers);
         if (signature === cltmSignature) return;
         cltmSignature = signature;
 
-        const managers = (Array.isArray(rankedManagers) ? rankedManagers : []).slice(0, CLTM_MAX);
+        const managers = Array.isArray(rankedManagers) ? rankedManagers : [];
         const duplicateFirstNames = champDuplicateFirstNameKeys(rankedManagers);
 
+        cltmTileManagers = managers;
+        cltmTileLayout = new Map();
         list.innerHTML = '';
 
         if (!managers.length) {
+            list.style.height = '';
+            list.style.minHeight = '';
             list.innerHTML = '<div class="cltm-empty">Noch keine Teams vorhanden.</div>';
             return;
         }
 
+        const created = [];
         managers.forEach((m, idx) => {
             const rank = getDisplayedManagerRank(m, idx + 1);
             const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
@@ -5031,7 +5253,7 @@
             tile.type = 'button';
             tile.className = 'cltm-tile';
             tile.dataset.manager = m.manager || '';
-            tile.style.setProperty('--cltm-i', String(idx));
+            tile.style.opacity = '0';   // Erst-Einblendung unten (nur Opacity)
             tile.setAttribute('aria-haspopup', 'dialog');
             tile.setAttribute('aria-label', `Platz ${rank}: ${m.manager || 'Unbekannt'}, ${cltmFormatPts(m.totalScore)} Punkte. Detailkarte öffnen.`);
             tile.innerHTML = `
@@ -5050,14 +5272,28 @@
             `;
             tile.addEventListener('click', () => cltmOpen(m, tile));
             list.appendChild(tile);
+            created.push(tile);
         });
 
         cltmBindImgFallbacks(list);
+        cltmLayoutTiles(false);
+
+        // Erst-Einblendung: Positionen stehen bereits fest, die Kacheln
+        // faden nur gestaffelt ein (kein Layout-Shift, kein Raster-Pop).
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                created.forEach((t, i) => {
+                    t.style.transitionDelay = Math.min(i * 40, 500) + 'ms';
+                    t.style.opacity = '';
+                });
+                setTimeout(() => { created.forEach((t) => { t.style.transitionDelay = ''; }); }, 1400);
+            });
+        });
 
         // Kommt während offener Detailkarte ein Re-Render, bleibt die
         // Ursprungs-Kachel des offenen Managers unsichtbar (Expand-Illusion).
         if (cltmOpenKey !== null) {
-            const openTile = Array.from(list.children).find((el) => el.dataset && el.dataset.manager === cltmOpenKey);
+            const openTile = created.find((el) => el.dataset && el.dataset.manager === cltmOpenKey);
             if (openTile) openTile.classList.add('cltm-src-hidden');
         }
     }
