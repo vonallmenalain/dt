@@ -5000,8 +5000,8 @@
            verlangsamen oder das Layout brechen.
            =================================================================== */
         .test-carousel-copy {
-            --card-w: clamp(98px, 16.5vw, 128px);
-            --card-h: clamp(148px, 24.8vw, 188px);
+            --card-w: clamp(150px, 34vw, 230px);
+            --card-h: clamp(210px, 47vw, 322px);
             --blur: 14px;
             display: flex;
             flex-direction: column;
@@ -5022,46 +5022,71 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        /* ── Coverflow-Bühne: perspektivischer Container, transparenter
+              Hintergrund. Die aktive Karte steht aufrecht vorne, die
+              Nachbarn kippen in der Tiefe zurück (siehe render() in index.js). */
         .tcc-carousel {
             position: relative;
             z-index: 2;
-            width: min(66vw, 620px);
-            height: min(48svh, 360px);
+            width: min(92vw, 760px);
+            height: min(52svh, 400px);
             margin-top: 6px;
-            perspective: 1100px;
-            isolation: isolate;
-            touch-action: pan-y;
-            user-select: none;
-            cursor: grab;
-        }
-        .tcc-carousel:active { cursor: grabbing; }
-        .tcc-track {
-            position: absolute;
-            inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            perspective: 1600px;
+            perspective-origin: 50% 50%;
+            isolation: isolate;
+            overflow: hidden;
+            outline: none;
+            background: transparent;
+            touch-action: pan-y;
+            user-select: none;
+        }
+        .tcc-track {
+            position: relative;
+            width: var(--card-w);
+            height: var(--card-h);
             transform-style: preserve-3d;
-            will-change: transform;
         }
         .tcc-player-card {
             position: absolute;
+            left: 50%;
+            top: 50%;
             width: var(--card-w);
             height: var(--card-h);
-            border-radius: 20px;
+            /* Ausgangswert; index.js überschreibt transform pro Frame. */
+            transform: translate(-50%, -50%);
+            transform-origin: center center;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            border-radius: 22px;
             overflow: hidden;
-            padding: 9px;
+            padding: 11px;
             display: flex;
             flex-direction: column;
-            gap: 7px;
+            gap: 8px;
             background:
                 linear-gradient(165deg, rgba(29,39,59,0.95) 0%, rgba(19,27,43,0.96) 65%, rgba(13,18,31,0.98) 100%),
                 radial-gradient(circle at 20% 0%, rgba(var(--rgb-gold), 0.14), transparent 52%);
             border: 1px solid rgba(255,255,255,0.16);
-            box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 22px 55px rgba(0,0,0,0.55);
             backdrop-filter: blur(var(--blur));
-            transition: box-shadow 0.25s ease;
-            will-change: transform, opacity, filter;
+            will-change: transform, opacity;
+        }
+        .tcc-player-card.is-active {
+            box-shadow: 0 26px 60px rgba(0,0,0,0.6), 0 0 46px rgba(var(--rgb-gold), 0.22);
+            border-color: rgba(var(--rgb-gold), 0.4);
+        }
+        /* Abdunklungs-Overlay für inaktive Karten (Opazität via JS). */
+        .tcc-card-dim {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            opacity: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .tcc-player-photo-wrap {
             width: 78%;
