@@ -4766,6 +4766,7 @@
         cltmOverlay.hidden = true;
         cltmOverlay.innerHTML = `
             <div class="cltm-backdrop" data-cltm-close></div>
+            <div class="cltm-blur" aria-hidden="true"></div>
             <div class="cltm-modal" role="dialog" aria-modal="true" tabindex="-1"></div>
         `;
         document.body.appendChild(cltmOverlay);
@@ -4883,6 +4884,19 @@
             cltmModal.style.transform = '';
         }
 
+        // Nach der Morph-Animation: Ghost aufräumen und Blur-Ebene weich
+        // einblenden (`is-settled`). Bewusst ein FESTER Timer ab dem
+        // Transitionsstart statt `transitionend`: Chrome feuert auf dem
+        // Modal gelegentlich ein spurioses transform-transitionend mit
+        // elapsedTime 0 (~80 ms nach Start) – das hat den Settle-Zustand
+        // mitten in der Animation ausgelöst (sichtbares Blur-Aufblitzen).
+        // Die CSS-Dauer ist eine Konstante, der Timer ist deterministisch.
+        const settle = () => {
+            cltmSettleTimer = null;
+            cltmRemoveGhost();
+            if (!cltmOverlay.hidden && cltmOpenKey !== null) cltmOverlay.classList.add('is-settled');
+        };
+
         // Doppel-rAF: der Browser rendert garantiert einen Frame im
         // Startzustand, bevor die Transition beginnt – ohne diesen Schritt
         // wird der erste Frame gern übersprungen und der Start wirkt ruckig.
@@ -4894,22 +4908,9 @@
                     cltmGhost.style.transform = ghostTarget;
                     cltmGhost.classList.add('is-out');
                 }
+                cltmSettleTimer = setTimeout(settle, CLTM_MOVE_MS + 60);
             });
         });
-
-        // Nach der Morph-Animation: Ghost aufräumen und Backdrop-Blur
-        // zuschalten (`is-settled`) – backdrop-filter während der Animation
-        // ist der häufigste Ruckel-Verursacher, danach kostet er nur einen
-        // Frame.
-        const settle = (ev) => {
-            if (ev && (ev.target !== cltmModal || ev.propertyName !== 'transform')) return;
-            cltmModal.removeEventListener('transitionend', settle);
-            if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
-            cltmRemoveGhost();
-            if (!cltmOverlay.hidden && cltmOpenKey !== null) cltmOverlay.classList.add('is-settled');
-        };
-        cltmModal.addEventListener('transitionend', settle);
-        cltmSettleTimer = setTimeout(() => settle({ target: cltmModal, propertyName: 'transform' }), CLTM_MOVE_MS + 150);
 
         const closeBtn = cltmModal.querySelector('.cltm-close');
         if (closeBtn) setTimeout(() => { try { closeBtn.focus({ preventScroll: true }); } catch (_) {} }, 80);
@@ -4973,19 +4974,11 @@
             ghost.classList.remove('is-in');
         }
 
-        // transitionend bubbelt auch von Kind-Transitions hoch → nur auf die
-        // TRANSFORM-Transition des Modals selbst reagieren (die Opacity endet
-        // deutlich früher und würde die Rück-Animation hart abschneiden).
-        let done = false;
-        const onEnd = (ev) => {
-            if (ev && (ev.target !== cltmModal || (ev.propertyName && ev.propertyName !== 'transform'))) return;
-            if (done) return;
-            done = true;
-            cltmModal.removeEventListener('transitionend', onEnd);
-            finish();
-        };
-        cltmModal.addEventListener('transitionend', onEnd);
-        setTimeout(() => onEnd({ target: cltmModal }), CLTM_MOVE_MS + 150); // Fallback, falls transitionend ausbleibt
+        // Abschluss über FESTEN Timer statt `transitionend` (siehe Settle im
+        // Open-Pfad: spuriose transform-Events mit elapsedTime 0 würden die
+        // Rück-Animation sonst mitten im Flug hart beenden). Die CSS-Dauer
+        // ist konstant – der Timer trifft das Transitionsende zuverlässig.
+        setTimeout(finish, CLTM_MOVE_MS + 60);
     }
 
     /* ── Top-10-Kachel-Grid ─────────────────────────────────────────── */
