@@ -4804,10 +4804,18 @@
             return el;
         }
 
+        // Signatur der aktuell gerenderten Karten (Spieler-IDs in Reihenfolge).
+        // Dient dazu, ein unnoetiges Neu-Rendern beim Daten-Update zu vermeiden.
+        let lastRenderedSignature = null;
+        function itemsSignature(items) {
+            return (items || []).map((it) => it && it.id).join('|');
+        }
+
         function renderCarouselItems(items) {
             track.innerHTML = '';
             players = items;
             cards = [];
+            lastRenderedSignature = itemsSignature(items);
             if (!items.length) {
                 // Sollte dank Fallback nie eintreten – wir rendern bewusst keine
                 // sichtbare Fehlermeldung mehr, sondern lassen das Karussell leer
@@ -4839,6 +4847,14 @@
         // und die Karten neu gerendert.
         function refreshCarousel() {
             const { variant, items } = pickVariantAndItems(CARD_COUNT, currentVariant || null);
+            // Wenn sich weder die Variante noch die Karten-Reihenfolge geaendert
+            // haben, NICHT neu aufbauen. Sonst wird das Karussell beim ersten
+            // Daten-Update (Teams/Spieler zaehlen hoch) komplett neu gerendert
+            // und springt sichtbar zurueck auf die erste Karte – es sah aus, als
+            // wuerde die Animation ein zweites Mal „nachladen".
+            if (variant === currentVariant && itemsSignature(items) === lastRenderedSignature) {
+                return;
+            }
             if (variant !== currentVariant) {
                 currentVariant = variant;
                 setCarouselTitle(variant);
