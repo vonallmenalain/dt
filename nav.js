@@ -802,13 +802,10 @@ document.addEventListener("DOMContentLoaded", () => {
         { href: "punktesystem.html", label: "📊 Punktesystem", shortLabel: "Punkte", icon: "📊" }
     ];
 
-    // CL-spezifisch: Ligatabelle nur bei Ligaphasen-Turnieren einblenden.
-    // Für die WM (kein `structure: "league"`) unverändert.
-    try {
-        if (APP && APP.activeTournament && APP.activeTournament.structure === 'league') {
-            navItems.splice(3, 0, { href: "liga-tabelle.html", label: "📋 Ligatabelle", shortLabel: "Tabelle", icon: "📋" });
-        }
-    } catch (_) { /* nav bleibt ohne Ligatabelle */ }
+    // Die Ligatabelle ist KEIN eigenes Register mehr: Sie lebt jetzt in der
+    // Analyse unter „Turnier" → „Ligatabelle" (siehe spieleranalyse). Für die
+    // WM war hier ohnehin nichts; für die CL wird der frühere eigene
+    // Ligatabellen-Eintrag bewusst nicht mehr in die Navigation gehängt.
 
     const topNavLinks = navItems
         .map(item => `<a href="${withTournamentParam(item.href)}" class="nav-item"${navActionAttr(item)}>${item.label}</a>`)
