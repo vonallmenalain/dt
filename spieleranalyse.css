@@ -814,27 +814,15 @@
             opacity: 0.5;
         }
 
-        /* -- PLAYER IDENTITY SECTION -- */
+        /* -- PLAYER IDENTITY SECTION (centered between photo & crest) -- */
         .player-identity {
             flex: 1;
             min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-        }
-
-        .player-identity-top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .player-identity-head {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 0;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
         }
 
         .player-position-pill {
@@ -865,15 +853,7 @@
             letter-spacing: -0.6px;
         }
 
-        /* -- SCORE (prominent, top-right) -- */
-        .player-score-stage {
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 3px;
-        }
-
+        /* -- SCORE (prominent, centered under the name) -- */
         .player-score-pill {
             display: inline-flex;
             align-items: baseline;
@@ -908,17 +888,9 @@
         }
 
         /* -- AFFILIATIONS: bare logos floating over the card (Spielerkarten-Look) -- */
-        .player-affiliations {
-            display: flex;
-            align-items: center;
-            gap: 12px 20px;
-            flex-wrap: wrap;
-        }
-
         .player-affil {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
             cursor: pointer;
             min-width: 0;
             transition: transform 0.2s, opacity 0.2s;
@@ -942,27 +914,59 @@
             min-width: 0;
         }
 
-        /* Primary = headline team (Club in CL / Nation in WM): larger logo */
-        .player-affil-primary .paf-logo {
-            width: 46px;
-            height: 46px;
+        /* Primary = headline team (Club in CL / Nation in WM):
+           very big crest on the right side, name as small caption below */
+        .player-crest-stage {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-affil-primary {
+            flex-direction: column;
+            gap: 10px;
+            max-width: 180px;
+        }
+
+        .paf-logo-hero {
+            width: 130px;
+            height: 130px;
+            filter: drop-shadow(0 10px 24px rgba(0,0,0,0.5));
         }
 
         .player-affil-primary .paf-name {
-            font-size: 1.1rem;
-            font-weight: 800;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            max-width: 100%;
         }
 
-        /* Secondary = the other affiliation: smaller logo, muted label */
+        /* -- INFO ROW: secondary entity + self-explanatory values, one line -- */
+        .player-info-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+
+        .player-affil-secondary {
+            gap: 9px;
+        }
+
         .player-affil-secondary .paf-logo {
-            width: 30px;
-            height: 30px;
+            width: auto;
+            height: 20px;
+            max-width: 32px;
+            border-radius: 2px;
             filter: drop-shadow(0 3px 7px rgba(0,0,0,0.4));
         }
 
         .player-affil-secondary .paf-name {
             font-size: 0.88rem;
-            color: var(--text-muted);
         }
 
         .player-affil:hover {
@@ -977,28 +981,19 @@
             border-radius: 8px;
         }
 
-        /* -- META LINE: subtle, self-explanatory values -- */
-        .player-meta-line {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px 12px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .player-meta-line .pml-value {
+        .player-info-row .pml-value {
             font-weight: 600;
             color: var(--text-main);
             white-space: nowrap;
         }
 
-        .player-meta-line .pml-sep {
+        .player-info-row .pml-sep {
             width: 3px;
             height: 3px;
             border-radius: 50%;
             background: currentColor;
             opacity: 0.4;
+            flex-shrink: 0;
         }
 
         /* Awards row */
@@ -1079,12 +1074,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .player-hero-card.is-switching .player-identity {
+        .player-hero-card.is-switching .player-identity,
+        .player-hero-card.is-switching .player-crest-stage {
             opacity: 0.3;
             transition: opacity 0.15s;
         }
 
-        .player-hero-card:not(.is-switching) .player-identity {
+        .player-hero-card:not(.is-switching) .player-identity,
+        .player-hero-card:not(.is-switching) .player-crest-stage {
             opacity: 1;
             transition: opacity 0.3s 0.1s;
         }
@@ -5529,6 +5526,12 @@
                 width: 156px;
                 height: 156px;
             }
+
+            /* Crest scales with the photo – "ca. gleich gross" */
+            .paf-logo-hero {
+                width: 132px;
+                height: 132px;
+            }
         }
 
         @media (min-width: 1100px) {
@@ -5536,12 +5539,22 @@
                 width: 168px;
                 height: 168px;
             }
+
+            .paf-logo-hero {
+                width: 144px;
+                height: 144px;
+            }
         }
 
         @media (min-width: 1400px) {
             .player-photo-frame {
                 width: 180px;
                 height: 180px;
+            }
+
+            .paf-logo-hero {
+                width: 154px;
+                height: 154px;
             }
         }
 
@@ -5607,17 +5620,21 @@
 
             .mobile-filter-toggle { display: flex; }
 
-            /* Mobile hero: photo centered on top, everything else stacked */
+            /* Mobile hero: one centered column with even spacing.
+               Order: photo → position → name → points → big crest → info row.
+               display:contents lifts the identity children into the column
+               so the crest (a sibling) can slot in between points and row. */
             .player-hero-inner {
                 flex-direction: column;
                 align-items: center;
                 padding: 22px 16px 20px;
-                gap: 16px;
+                gap: 14px;
             }
 
             .player-portrait-stage {
                 width: 100%;
                 align-items: center;
+                order: 1;
             }
 
             .player-photo-frame {
@@ -5626,55 +5643,40 @@
                 border-radius: 20px;
             }
 
-            .player-identity {
-                width: 100%;
-                align-items: center;
-                text-align: center;
-                gap: 14px;
-            }
+            .player-identity { display: contents; }
 
-            #detail-name { font-size: clamp(1.5rem, 6vw, 2rem); }
+            .player-position-pill { order: 2; }
 
-            /* Stack: name block, then score centered below */
-            .player-identity-top {
-                width: 100%;
-                flex-direction: column;
-                align-items: center;
-                gap: 12px;
-            }
-
-            .player-identity-head {
-                width: 100%;
-                align-items: center;
-                text-align: center;
-            }
-
-            .player-position-pill,
             #detail-name {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .player-score-stage {
-                align-items: center;
+                order: 3;
+                font-size: clamp(1.5rem, 6vw, 2rem);
+                text-align: center;
+                max-width: 100%;
             }
 
             #detail-total-pts {
+                order: 4;
                 min-height: 44px;
                 align-items: center;
             }
 
-            .player-affiliations { justify-content: center; }
+            .player-crest-stage { order: 5; }
 
-            .player-affil { flex: 0 1 auto; max-width: 100%; }
+            /* Crest almost as big as the photo */
+            .paf-logo-hero {
+                width: clamp(112px, 34vw, 148px);
+                height: clamp(112px, 34vw, 148px);
+            }
+
+            .player-info-row {
+                order: 6;
+                justify-content: center;
+                max-width: 100%;
+            }
 
             .list-item { align-items: center; }
             .list-info { align-items: center; text-align: center; }
             .list-pts { min-width: 44px; text-align: center; }
-
-            .player-meta-line { justify-content: center; }
-
-            .awards-container { justify-content: center; }
 
             .analysis-header { padding: 14px 14px 0; }
 
@@ -5798,8 +5800,10 @@
         }
 
         @media (max-width: 480px) {
-            .player-affiliations { justify-content: center; column-gap: 16px; }
-            .player-affil { justify-content: center; }
+            .player-info-row { gap: 5px 8px; font-size: 0.8rem; }
+            .player-affil-secondary { gap: 7px; }
+            .player-affil-secondary .paf-logo { height: 17px; max-width: 28px; }
+            .player-affil-secondary .paf-name { font-size: 0.8rem; }
         }
 
         /* =====================================================

@@ -45,7 +45,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-23-phase2-12">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-23-phase2-15">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -72,9 +72,9 @@
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
-<link rel="stylesheet" href="styles.css?v=2026-07-23-phase2-12">
+<link rel="stylesheet" href="styles.css?v=2026-07-23-phase2-15">
 
-    <link rel="stylesheet" href="spieleranalyse.css?v=2026-07-23-phase2-12">
+    <link rel="stylesheet" href="spieleranalyse.css?v=2026-07-23-phase2-15">
 </head>
 <body>
 
@@ -199,48 +199,39 @@
                                 </div>
                             </div>
 
-                            <!-- Identity: name, affiliations, meta, awards -->
+                            <!-- Identity: position, name, points + info line (centered) -->
                             <div class="player-identity">
-                                <div class="player-identity-top">
-                                    <div class="player-identity-head">
-                                        <div class="player-position-pill" id="detail-position" aria-label="Position">–</div>
-                                        <h2 id="detail-name">Spielername</h2>
-                                    </div>
+                                <div class="player-position-pill" id="detail-position" aria-label="Position">–</div>
+                                <h2 id="detail-name">Spielername</h2>
+                                <div id="detail-total-pts" class="player-score-pill zero" aria-live="polite">0 Pkt.</div>
 
-                                    <!-- Score: prominent, top-right -->
-                                    <div class="player-score-stage">
-                                        <div id="detail-total-pts" class="player-score-pill zero" aria-live="polite">0 Pkt.</div>
-                                    </div>
-                                </div>
-
-                                <!-- Affiliations: logos float over the card (Spielerkarten-Look) -->
-                                <div class="player-affiliations">
-                                    <!-- Primary (id preserved for onclick JS) -->
-                                    <div class="player-affil player-affil-primary" id="tile-nation"
-                                         role="button" tabindex="0"
-                                         title="Alle Spieler dieses Teams anzeigen"
-                                         aria-label="Team filtern">
-                                        <img class="paf-logo" id="detail-nation-flag" src="" alt="Wappen" width="44" height="44">
-                                        <span class="paf-name" id="detail-nation-name">–</span>
-                                    </div>
-
-                                    <!-- Secondary (id preserved for onclick JS) -->
+                                <!-- Info line: secondary entity + self-explanatory values -->
+                                <div class="player-info-row" aria-label="Steckbrief">
+                                    <!-- Secondary entity (id preserved for onclick JS) -->
                                     <div class="player-affil player-affil-secondary" id="tile-club"
                                          role="button" tabindex="0"
-                                         title="Alle Spieler dieses Landes anzeigen"
-                                         aria-label="Land filtern">
-                                        <img class="paf-logo" id="detail-club-logo" src="" alt="Fahne" width="28" height="28">
+                                         title="Alle Spieler dieses Vereins anzeigen"
+                                         aria-label="Verein filtern">
+                                        <img class="paf-logo" id="detail-club-logo" src="" alt="Vereinslogo" width="28" height="20">
                                         <span class="paf-name" id="detail-club-name">–</span>
                                     </div>
-                                </div>
-
-                                <!-- Meta line: subtle, self-explanatory values -->
-                                <div class="player-meta-line" aria-label="Steckbrief">
+                                    <span class="pml-sep" aria-hidden="true"></span>
                                     <span class="pml-value" id="detail-dob">–</span>
                                     <span class="pml-sep" aria-hidden="true"></span>
                                     <span class="pml-value" id="detail-height">–</span>
                                     <span class="pml-sep" aria-hidden="true"></span>
                                     <span class="pml-value" id="detail-weight">–</span>
+                                </div>
+                            </div>
+
+                            <!-- Primary entity: big crest, right side (id preserved for onclick JS) -->
+                            <div class="player-crest-stage">
+                                <div class="player-affil player-affil-primary" id="tile-nation"
+                                     role="button" tabindex="0"
+                                     title="Alle Spieler dieses Landes anzeigen"
+                                     aria-label="Nationalteam filtern">
+                                    <img class="paf-logo paf-logo-hero" id="detail-nation-flag" src="" alt="Nationalfahne" width="140" height="140">
+                                    <span class="paf-name" id="detail-nation-name">–</span>
                                 </div>
                             </div>
                         </div>
@@ -452,20 +443,20 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="tournament-config.js?v=2026-07-23-phase2-12"></script>
-<script src="nav.js?v=2026-07-23-phase2-12"></script>
+<script src="tournament-config.js?v=2026-07-23-phase2-15"></script>
+<script src="nav.js?v=2026-07-23-phase2-15"></script>
 <!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
 <script src="country-aliases.js"></script>
-<script src="data.js?v=2026-07-23-phase2-12"></script>
-<script src="points-utils.js?v=2026-07-23-phase2-12"></script>
-<script src="cache.js?v=2026-07-23-phase2-12"></script>
+<script src="data.js?v=2026-07-23-phase2-15"></script>
+<script src="points-utils.js?v=2026-07-23-phase2-15"></script>
+<script src="cache.js?v=2026-07-23-phase2-15"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css?v=2026-07-23-phase2-12">
+<link rel="stylesheet" href="auth-modal.css?v=2026-07-23-phase2-15">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
 <script src="anime.min.js"></script>
 
-<script src="spieleranalyse.js?v=2026-07-23-phase2-12"></script>
+<script src="spieleranalyse.js?v=2026-07-23-phase2-15"></script>
 </body>
 </html>
