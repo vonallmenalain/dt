@@ -6074,6 +6074,19 @@ button.clb-slot--pick:hover { background: rgba(125, 180, 255, 0.16); border-colo
     font-variant-numeric: tabular-nums;
     color: var(--cl-accent, #7db4ff);
 }
+/* Einzelresultate (Hin-/Rückspiel bzw. Finalergebnis) klein unter der
+   Paarung – bewusst dezent, damit der Baum nicht überladen wirkt. */
+.clb-legs {
+    margin-top: 1px;
+    text-align: center;
+    font-size: 0.64em;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    font-variant-numeric: tabular-nums;
+    color: var(--cl-text-muted, #9db6e8);
+    opacity: 0.85;
+}
+.clb-tie--empty { opacity: 0.6; }
 
 @media (max-width: 560px) {
     /* Auf dem Handy gibt es keinen Flex-Platz zum Wachsen – die Runden also

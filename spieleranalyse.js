@@ -5411,11 +5411,228 @@
             + '</div>';
     }
 
+    /* =====================================================================
+     *  Tatsächlicher Turnierbaum (Auto-Modus)
+     *  --------------------------------------------------------------------
+     *  Die seed-basierte Projektion (resolveLeagueBracket) legt den Baum
+     *  nach Ligaphasen-Rang und sucht dann pro projizierter Paarung ein
+     *  reales Ergebnis. Die echte Auslosung weicht aber von der reinen
+     *  Setzung ab – deshalb bleiben bei einem gespielten Turnier viele
+     *  Paarungen leer. Sobald ein Turnier vorbei ist (alle KO-Runden
+     *  gesynct, Finale entschieden), rekonstruieren wir stattdessen den
+     *  KOMPLETTEN, echten Baum direkt aus den gespielten Spielen: die
+     *  tatsächlichen Paarungen, die Sieger (inkl. Aggregat & Elfmeter) und
+     *  die Einzelresultate. Klappt die Rekonstruktion nicht (Daten noch
+     *  unvollständig), fällt die Ansicht auf die Projektion zurück.
+     * ===================================================================== */
+    function leagueKnockoutTier(round) {
+        const r = String(round || '').toLowerCase();
+        if (!r) return null;
+        if (/(league|liga|matchday|spieltag|regular season|group|gruppe|qualif|vorrunde|preliminary)/.test(r)) return null;
+        if (/play-?off/.test(r)) return 'playoffs';
+        if (/quarter|viertel|1\s*\/\s*4/.test(r)) return 'qf';
+        if (/semi|halb|1\s*\/\s*2/.test(r)) return 'sf';
+        if (/round of 16|last 16|1\s*\/\s*8|8th final|achtel/.test(r)) return 'r16';
+        if (/final/.test(r)) return 'final';
+        return null;
+    }
+
+    // Alle gespielten KO-Spiele nach Runde gruppieren und je Paarung zu einem
+    // „Tie" aggregieren (Hin-/Rückspiel). Team A ist immer der alphabetisch
+    // erste normalisierte Name – so trifft jede Paarung unabhängig von der
+    // Heim/Auswärts-Reihenfolge denselben Schlüssel.
+    function buildActualKnockoutTies() {
+        const tiers = { playoffs: new Map(), r16: new Map(), qf: new Map(), sf: new Map(), final: new Map() };
+        (scheduleCatalog || []).forEach(m => {
+            const tier = leagueKnockoutTier(m.round);
+            if (!tier) return;
+            if (!isFixtureFinishedForLeague(m)) return;
+            const g = m.goals || {};
+            const hg = Number(g.home);
+            const ag = Number(g.away);
+            if (!Number.isFinite(hg) || !Number.isFinite(ag)) return;
+            const hn = normalizeTournamentName(m.teamA);
+            const an = normalizeTournamentName(m.teamB);
+            if (!hn || !an || hn === an) return;
+            const homeIsFirst = hn < an;
+            const aN = homeIsFirst ? hn : an;
+            const bN = homeIsFirst ? an : hn;
+            const map = tiers[tier];
+            let e = map.get(aN + '|' + bN);
+            if (!e) {
+                e = {
+                    tier, aN, bN,
+                    a: { name: homeIsFirst ? m.teamA : m.teamB, logo: homeIsFirst ? m.teamALogo : m.teamBLogo, normName: aN },
+                    b: { name: homeIsFirst ? m.teamB : m.teamA, logo: homeIsFirst ? m.teamBLogo : m.teamALogo, normName: bN },
+                    aGoals: 0, bGoals: 0, legs: []
+                };
+                map.set(aN + '|' + bN, e);
+            }
+            const aG = homeIsFirst ? hg : ag;
+            const bG = homeIsFirst ? ag : hg;
+            e.aGoals += aG;
+            e.bGoals += bG;
+            const hw = m.homeWinner === true;
+            const aw = m.awayWinner === true;
+            e.legs.push({ aG, bG, aWin: homeIsFirst ? hw : aw, bWin: homeIsFirst ? aw : hw, ms: getScheduleKickoffMs(m) || 0 });
+        });
+        // Sieger je Paarung bestimmen: Aggregat, bei Gleichstand entscheidet
+        // das (letzte) Spiel per Sieger-Flag → Elfmeterschiessen.
+        Object.values(tiers).forEach(map => map.forEach(e => {
+            e.legs.sort((x, y) => x.ms - y.ms);
+            if (e.aGoals > e.bGoals) e.winner = 'a';
+            else if (e.bGoals > e.aGoals) e.winner = 'b';
+            else {
+                const last = e.legs[e.legs.length - 1] || {};
+                if (last.aWin && !last.bWin) e.winner = 'a';
+                else if (last.bWin && !last.aWin) e.winner = 'b';
+                else e.winner = null;
+            }
+            e.winnerN = e.winner === 'a' ? e.aN : (e.winner === 'b' ? e.bN : null);
+        }));
+        return tiers;
+    }
+
+    function findActualTieByWinner(map, normName) {
+        if (!normName) return null;
+        for (const e of map.values()) if (e.winnerN === normName) return e;
+        return null;
+    }
+
+    // Baum von hinten aufrollen: Final-Sieger → Halbfinal-Ties → … Jede
+    // Elternpaarung verweist über ihre beiden Teilnehmer auf die Kind-Ties,
+    // deren Sieger sie sind. So ergibt sich eine kanonische Reihenfolge von
+    // oben nach unten, die – wie bei der Projektion – über `space-around`
+    // sauber zu den Elternpaarungen ausgerichtet wird.
+    function buildActualBracketColumns() {
+        const tiers = buildActualKnockoutTies();
+        const finalTie = [...tiers.final.values()][0];
+        if (!finalTie || !finalTie.winnerN) return null;
+        if (![tiers.r16, tiers.qf, tiers.sf].every(m => m.size)) return null;
+        const childrenOf = (t, map) => (t ? [findActualTieByWinner(map, t.aN), findActualTieByWinner(map, t.bN)] : [null, null]);
+        const finalArr = [finalTie];
+        const sfArr = [];
+        finalArr.forEach(t => { const [a, b] = childrenOf(t, tiers.sf); sfArr.push(a, b); });
+        const qfArr = [];
+        sfArr.forEach(t => { const [a, b] = childrenOf(t, tiers.qf); qfArr.push(a, b); });
+        const r16Arr = [];
+        qfArr.forEach(t => { const [a, b] = childrenOf(t, tiers.r16); r16Arr.push(a, b); });
+        // Playoffs: je R16-Paarung höchstens zwei Playoff-Kinder (direkt
+        // qualifizierte Teams haben keins) – in R16-Reihenfolge einsammeln.
+        const poArr = [];
+        r16Arr.forEach(t => { const [a, b] = childrenOf(t, tiers.playoffs); if (a) poArr.push(a); if (b) poArr.push(b); });
+        return { playoffs: poArr, r16: r16Arr, qf: qfArr, sf: sfArr, final: finalArr };
+    }
+
+    function renderActualSlot(tie, side, row) {
+        const part = tie ? (side === 'home' ? tie.a : tie.b) : null;
+        const goals = tie ? (side === 'home' ? tie.aGoals : tie.bGoals) : null;
+        const isWinner = !!(tie && tie.winner && (side === 'home' ? tie.winner === 'a' : tie.winner === 'b'));
+        const isLoser = !!(tie && tie.winner && !isWinner && part);
+        const cls = ['clb-slot'];
+        if (!part) cls.push('clb-slot--empty');
+        if (isWinner) cls.push('clb-slot--winner');
+        if (isLoser) cls.push('clb-slot--loser');
+        const seed = (row && Number.isFinite(row.rank))
+            ? `<span class="clb-seed">${row.rank}</span>`
+            : '<span class="clb-seed"></span>';
+        const logoSrc = (part && part.logo) || (row && row.logo) || '';
+        const logo = logoSrc
+            ? `<img class="clb-logo" src="${escapeHtml(logoSrc)}" alt="" loading="lazy">`
+            : '<span class="clb-logo clb-logo--ph"></span>';
+        const label = (part && part.name) || (row && (row.name || row.key)) || '—';
+        const name = `<span class="clb-name">${escapeHtml(label)}</span>`;
+        const score = Number.isFinite(goals)
+            ? `<span class="clb-score">${goals}</span>`
+            : '<span class="clb-score"></span>';
+        return `<div class="${cls.join(' ')}">${seed}${logo}${name}${score}</div>`;
+    }
+
+    // Einzelresultate der Paarung klein unter den beiden Teams (aus Sicht des
+    // oben stehenden Teams A). Zwei-Leg-Ties zeigen Hin- und Rückspiel.
+    function renderActualLegs(tie) {
+        if (!tie || !tie.legs || !tie.legs.length) return '';
+        const parts = tie.legs.map(l => `${l.aG}:${l.bG}`);
+        // Aggregat ausgeglichen, aber trotzdem ein Sieger → im
+        // Elfmeterschiessen entschieden (kleiner Zusatz).
+        const pens = !!(tie.winner && tie.aGoals === tie.bGoals);
+        const text = parts.join(' · ') + (pens ? ' · n.E.' : '');
+        return `<div class="clb-legs">${escapeHtml(text)}</div>`;
+    }
+
+    function renderActualTie(tie, roundKey, label, rowFor) {
+        if (!tie) {
+            return `<div class="clb-tie clb-tie--${roundKey} clb-tie--empty">`
+                + `<div class="clb-tie-head">${escapeHtml(label)}</div>`
+                + '<div class="clb-slot clb-slot--empty"><span class="clb-seed"></span><span class="clb-logo clb-logo--ph"></span><span class="clb-name clb-name--ph">—</span><span class="clb-score"></span></div>'
+                + '<div class="clb-slot clb-slot--empty"><span class="clb-seed"></span><span class="clb-logo clb-logo--ph"></span><span class="clb-name clb-name--ph">—</span><span class="clb-score"></span></div>'
+                + '</div>';
+        }
+        const cls = ['clb-tie', `clb-tie--${roundKey}`];
+        if (tie.winner) cls.push('clb-tie--done');
+        return `<div class="${cls.join(' ')}">`
+            + `<div class="clb-tie-head">${escapeHtml(label)}</div>`
+            + renderActualSlot(tie, 'home', rowFor(tie.a))
+            + renderActualSlot(tie, 'away', rowFor(tie.b))
+            + renderActualLegs(tie)
+            + '</div>';
+    }
+
+    function renderActualLeagueBracket(context) {
+        const columnsData = buildActualBracketColumns();
+        if (!columnsData) return null;
+        const rowByName = new Map();
+        context.standings.forEach(r => rowByName.set(normalizeTournamentName(r.name || r.key), r));
+        const rowFor = (part) => (part ? rowByName.get(part.normName) || null : null);
+        const columns = [
+            { key: 'playoffs', head: 'Playoffs', ties: columnsData.playoffs },
+            { key: 'r16', head: 'Achtelfinale', ties: columnsData.r16 },
+            { key: 'qf', head: 'Viertelfinale', ties: columnsData.qf },
+            { key: 'sf', head: 'Halbfinale', ties: columnsData.sf },
+            { key: 'final', head: 'Finale', ties: columnsData.final }
+        ];
+        const cols = columns.map(col => {
+            const body = col.ties.map((tie, i) => {
+                const label = col.key === 'final' ? 'Finale' : `${CL_ROUND_LABEL[col.key]} ${i + 1}`;
+                return renderActualTie(tie, col.key, label, rowFor);
+            }).join('');
+            return `<div class="clb-col clb-col--${col.key}"><div class="clb-col-head">${escapeHtml(col.head)}</div><div class="clb-col-body">${body}</div></div>`;
+        }).join('');
+
+        const finalTie = columnsData.final[0];
+        const champPart = finalTie && finalTie.winner
+            ? (finalTie.winner === 'a' ? finalTie.a : finalTie.b)
+            : null;
+        const champRow = rowFor(champPart);
+        const champLogo = (champPart && champPart.logo) || (champRow && champRow.logo) || '';
+        const champName = (champPart && champPart.name) || (champRow && (champRow.name || champRow.key)) || '';
+        const champ = champPart
+            ? `<div class="clb-champion"><span class="clb-champion-cap">Sieger</span>`
+                + (champLogo ? `<img src="${escapeHtml(champLogo)}" alt="" loading="lazy">` : '')
+                + `<span class="clb-champion-name">${escapeHtml(champName)}</span>🏆</div>`
+            : '';
+
+        const note = 'Tatsächlicher Turnierbaum aus den gespielten Finalrunden-Spielen: echte Paarungen und Sieger, das Aggregat je Klub rechts, die Einzelresultate (Hin-/Rückspiel) klein unter jeder Paarung.';
+
+        return `<div class="clb-wrap clb-wrap--actual">`
+            + `<p class="clb-note">${escapeHtml(note)}</p>`
+            + champ
+            + `<div class="clb-scroller"><div class="clb-cols">${cols}</div></div>`
+            + `</div>`;
+    }
+
     function renderLeagueBracket(context) {
         if (!context.standings.length) {
             return '<div class="tournament-empty">Die Finalrunde erscheint, sobald die Ligaphase Daten liefert.</div>';
         }
         const manual = isTournamentManualMode();
+        // Auto-Modus & Turnier gespielt → den echten, kompletten Baum aus den
+        // gesyncten KO-Ergebnissen abbilden. Nur wenn das (mangels Daten)
+        // nicht geht, auf die seed-basierte Projektion zurückfallen.
+        if (!manual) {
+            const actual = renderActualLeagueBracket(context);
+            if (actual) return actual;
+        }
         const res = resolveLeagueBracket(context);
         const columns = [
             { key: 'playoffs', head: 'Playoffs', ties: CL_BRACKET.playoffs.map(t => t.id) },
