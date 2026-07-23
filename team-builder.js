@@ -801,14 +801,8 @@
 
         const cardInfoHtml = `<div class="card-info">
                         <div class="card-name">${escapeHtml(player.name)}</div>
-                        <div class="card-sub-info">
-                            ${player.flag ? `<img src="${escapeHtml(player.flag)}" class="small-icon" alt="${escapeHtml(player.nation)}" loading="lazy">` : ''}
-                            <span>${escapeHtml(player.nation)}</span>
-                        </div>
-                        <div class="card-sub-info">
-                            ${player.clubLogo ? `<img src="${escapeHtml(player.clubLogo)}" class="small-icon club" alt="${escapeHtml(player.club)}" loading="lazy">` : ''}
-                            <span>${escapeHtml(player.club)}</span>
-                        </div>
+                        ${player.flag ? `<div class="card-badge-wrap"><img src="${escapeHtml(player.flag)}" class="card-badge-img" alt="${escapeHtml(player.nation)}" loading="lazy"></div>` : ''}
+                        <div class="card-badge-label">${escapeHtml(player.nation)}</div>
                     </div>`;
 
         const orphanBadge = isOrphan
@@ -2034,16 +2028,15 @@
         container.innerHTML = list.map((p) => {
             const cls = p.pts > 0 ? '' : (p.pts < 0 ? 'neg' : '');
             const sign = p.pts > 0 ? '+' : '';
-            const flagImg = p.flag ? `<img src="${escapeHtml(p.flag)}" class="small-icon" alt="${escapeHtml(p.nation)}" loading="lazy">` : '';
-            const clubImg = p.clubLogo ? `<img src="${escapeHtml(p.clubLogo)}" class="small-icon club" alt="${escapeHtml(p.club)}" loading="lazy">` : '';
+            const badgeImg = p.flag ? `<div class="card-badge-wrap"><img src="${escapeHtml(p.flag)}" class="card-badge-img" alt="${escapeHtml(p.nation)}" loading="lazy"></div>` : '';
             return `
                 <div class="builder-to-card">
                     <div class="builder-card-pts ${cls}" title="Punkte bis zum Transfer">${sign}${p.pts}</div>
                     <div class="avatar-wrapper"><img src="${escapeHtml(p.photo)}" class="card-avatar" alt="${escapeHtml(p.name)}" loading="lazy"></div>
                     <div class="card-info">
                         <div class="card-name">${escapeHtml(p.name)}</div>
-                        <div class="card-sub-info">${flagImg}<span>${escapeHtml(p.nation)}</span></div>
-                        <div class="card-sub-info">${clubImg}<span>${escapeHtml(p.club)}</span></div>
+                        ${badgeImg}
+                        <div class="card-badge-label">${escapeHtml(p.nation)}</div>
                     </div>
                 </div>
             `;

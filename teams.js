@@ -1561,8 +1561,8 @@
                     <div class="avatar-wrapper"><img src="${safePhoto}" class="card-avatar" alt="${safeName}" loading="lazy" width="92" height="92"></div>
                     <div class="card-info">
                         <div class="card-name">${safeName}</div>
-                        <div class="card-sub-info"><img src="${safeFlag}" class="small-icon" alt="${safeNation}" loading="lazy" width="24" height="17"> <span>${safeNation}</span></div>
-                        <div class="card-sub-info"><img src="${safeClubLogo}" class="small-icon club" alt="${safeClub}" loading="lazy" width="19" height="19"> <span>${safeClub}</span></div>
+                        ${mergedP.flag ? `<div class="card-badge-wrap"><img src="${safeFlag}" class="card-badge-img" alt="${safeNation}" loading="lazy"></div>` : ''}
+                        <div class="card-badge-label">${safeNation}</div>
                     </div>
                 </a>
             </div>
