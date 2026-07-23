@@ -1827,13 +1827,20 @@
         });
     }
 
-    // CL-Version: Pre-Start-Dashboard abspecken – „Beliebteste Länder"
-    // (tile-top-clubs), „Scouting Barometer" und „Team-Altersstruktur"
-    // entfallen komplett. Läuft nach der Captain-Watch-Entfernung, damit
-    // leer gewordene Reihen (und zuletzt der ganze Dashboard-Bereich)
-    // mit aufgeräumt werden. Die WM-Ansicht (type ≠ CL) bleibt unberührt.
+    // CL-Version: Dashboard abspecken – „Beliebteste Länder" (tile-top-clubs),
+    // „Scouting Barometer", „Team-Altersstruktur" sowie im Post-Start
+    // zusätzlich „Manager-Picks: Top & Flop" entfallen komplett. Betrifft
+    // Vor- UND Nach-Start (die Post-Kacheln sind Duplikate der Vor-Start-Reihen).
+    // Läuft nach der Captain-Watch-Entfernung, damit leer gewordene Reihen
+    // (und zuletzt die leeren Container) mit aufgeräumt werden. Die WM-Ansicht
+    // (type ≠ CL) bleibt unberührt.
     if (APP && String(APP.type || '').toUpperCase() === 'CL') {
-        ['tile-top-clubs', 'tile-scouting-barometer', 'tile-age-structure'].forEach((id) => {
+        [
+            // Vor-Start
+            'tile-top-clubs', 'tile-scouting-barometer', 'tile-age-structure',
+            // Nach-Start (Duplikate)
+            'tile-post-top-clubs', 'tile-post-scouting-barometer', 'tile-post-age-structure'
+        ].forEach((id) => {
             const inner = $(id);
             const gtile = inner && inner.closest('.gtile');
             const row = gtile && gtile.parentElement;
@@ -1844,8 +1851,17 @@
                 row.style.gridTemplateColumns = '1fr';
             }
         });
+
+        // „Manager-Picks: Top & Flop" (nur Nach-Start) – ganze .glass-Karte weg.
+        const picksInner = $('tile-post-top-picks');
+        const picksCard = picksInner && picksInner.closest('.glass.post-full');
+        if (picksCard) picksCard.remove();
+
+        // Leergeräumte Container aufräumen.
         const preDashboard = $('dashboard-area');
         if (preDashboard && preDashboard.children.length === 0) preDashboard.remove();
+        const postBottom = document.querySelector('#indexHomePostStart .post-bottom');
+        if (postBottom && postBottom.children.length === 0) postBottom.remove();
     }
 
     /* =========================================================
