@@ -2873,7 +2873,11 @@
 
     function setTournamentMode(mode) {
         currentTournamentMode = mode === TOURNAMENT_MODE_MANUAL ? TOURNAMENT_MODE_MANUAL : TOURNAMENT_MODE_AUTO;
-        saveTournamentManualState();
+        if (isLeagueStructure()) {
+            saveLeagueManualState();
+        } else {
+            saveTournamentManualState();
+        }
         syncTournamentModeUi();
         renderTournamentView();
     }
@@ -3482,6 +3486,7 @@
     }
 
     function resetTournamentManualStateToPrediction() {
+        if (isLeagueStructure()) { resetLeagueManualState(); return; }
         if (!isTournamentManualMode()) return;
         const autoContext = attachTournamentBestThirdAssignments(buildTournamentStandings());
         if (!autoContext?.groups?.length) return;
@@ -3837,6 +3842,24 @@
     function commitTournamentManualSortOrder(listOrLists) {
         const lists = Array.isArray(listOrLists) ? listOrLists : [listOrLists];
         const uniqueLists = Array.from(new Set(lists.filter(Boolean)));
+
+        // CL-Ligatabelle: eigene Reihenfolge in den League-State schreiben.
+        if (isLeagueStructure()) {
+            let leagueChanged = false;
+            uniqueLists.forEach(list => {
+                if (list.getAttribute('data-sort-kind') !== 'league') return;
+                leagueManualState.order = getTournamentManualSortItems(list)
+                    .map(item => item.getAttribute('data-team-key'))
+                    .filter(Boolean);
+                leagueChanged = true;
+            });
+            if (leagueChanged) {
+                saveLeagueManualState();
+                renderTournamentView();
+            }
+            return;
+        }
+
         let changed = false;
 
         uniqueLists.forEach(list => {
@@ -4980,7 +5003,551 @@
         syncSidebarHeight();
     }
 
+    /* =====================================================================
+     *  CHAMPIONS-LEAGUE-MODUS (structure === 'league')
+     *
+     *  Für Ligaphasen-Turniere (CL) wird die „Turnier"-Ansicht komplett
+     *  eigenständig gerendert: Sub-Tab „Ligatabelle" (statt Gruppenphase)
+     *  zeigt die 36er-Ligaphasen-Tabelle, Sub-Tab „Finalrunde" den
+     *  Champions-League-Turnierbaum (Playoffs → Achtel → Viertel → Halb →
+     *  Finale). Auto-Modus rechnet aus den gesyncten Ergebnissen, der
+     *  manuelle Modus erlaubt (a) das Umsortieren der Ligatabelle per
+     *  Drag&Drop und (b) das Durchspielen des Turnierbaums per Klick.
+     *
+     *  Die komplette WM-Logik (Gruppen/Drittplatzierte/Bracket) bleibt
+     *  unberührt – dieser Block ist rein additiv und greift nur, wenn das
+     *  aktive Turnier `structure: "league"` hat.
+     * ===================================================================== */
+    function isLeagueStructure() {
+        try {
+            return !!(APP && APP.activeTournament && APP.activeTournament.structure === 'league');
+        } catch (_) {
+            return false;
+        }
+    }
+
+    const LEAGUE_MANUAL_STORAGE_VERSION = 1;
+    const LEAGUE_MANUAL_STORAGE_KEY = `dreamteamLeagueTournament:${APP.key || TOURNAMENT_YEAR || 'current'}`;
+
+    // Positions-basierter CL-Turnierbaum (Setzung nach Ligaphasen-Rang).
+    // Playoffs: gesetzte Ränge 9–16 gegen ungesetzte 17–24 (höchster gegen
+    // tiefsten). Achtelfinale: Top-8 direkt gesetzt gegen die Playoff-Sieger,
+    // innerhalb der von der UEFA vorgegebenen Setzungs-Bänder (1./2. treffen
+    // auf Sieger 15/16 vs 17/18 usw.). Bracket so gelegt, dass sich Rang 1
+    // und Rang 2 frühestens im Finale treffen können.
+    const CL_BRACKET = {
+        playoffs: [
+            { id: 'PO1', seed: 9,  opp: 24 },
+            { id: 'PO2', seed: 10, opp: 23 },
+            { id: 'PO3', seed: 11, opp: 22 },
+            { id: 'PO4', seed: 12, opp: 21 },
+            { id: 'PO5', seed: 13, opp: 20 },
+            { id: 'PO6', seed: 14, opp: 19 },
+            { id: 'PO7', seed: 15, opp: 18 },
+            { id: 'PO8', seed: 16, opp: 17 }
+        ],
+        // Achtelfinale in visueller Reihenfolge (oben → unten).
+        r16: [
+            { id: 'R16-1', seed: 1, po: 'PO8' },
+            { id: 'R16-2', seed: 8, po: 'PO1' },
+            { id: 'R16-3', seed: 4, po: 'PO5' },
+            { id: 'R16-4', seed: 5, po: 'PO4' },
+            { id: 'R16-5', seed: 3, po: 'PO6' },
+            { id: 'R16-6', seed: 6, po: 'PO3' },
+            { id: 'R16-7', seed: 2, po: 'PO7' },
+            { id: 'R16-8', seed: 7, po: 'PO2' }
+        ],
+        qf: [
+            { id: 'QF1', from: ['R16-1', 'R16-2'] },
+            { id: 'QF2', from: ['R16-3', 'R16-4'] },
+            { id: 'QF3', from: ['R16-5', 'R16-6'] },
+            { id: 'QF4', from: ['R16-7', 'R16-8'] }
+        ],
+        sf: [
+            { id: 'SF1', from: ['QF1', 'QF2'] },
+            { id: 'SF2', from: ['QF3', 'QF4'] }
+        ],
+        final: { id: 'FIN', from: ['SF1', 'SF2'] }
+    };
+
+    const CL_TIE_DEFS = {};
+    CL_BRACKET.playoffs.forEach((t, i) => { CL_TIE_DEFS[t.id] = { round: 'playoffs', index: i, homeRank: t.seed, awayRank: t.opp }; });
+    CL_BRACKET.r16.forEach((t, i) => { CL_TIE_DEFS[t.id] = { round: 'r16', index: i, homeRank: t.seed, awaySource: t.po }; });
+    CL_BRACKET.qf.forEach((t, i) => { CL_TIE_DEFS[t.id] = { round: 'qf', index: i, homeSource: t.from[0], awaySource: t.from[1] }; });
+    CL_BRACKET.sf.forEach((t, i) => { CL_TIE_DEFS[t.id] = { round: 'sf', index: i, homeSource: t.from[0], awaySource: t.from[1] }; });
+    CL_TIE_DEFS[CL_BRACKET.final.id] = { round: 'final', index: 0, homeSource: CL_BRACKET.final.from[0], awaySource: CL_BRACKET.final.from[1] };
+
+    function normalizeLeagueManualState(raw) {
+        const base = { version: LEAGUE_MANUAL_STORAGE_VERSION, mode: TOURNAMENT_MODE_AUTO, order: [], winners: {} };
+        if (!raw || typeof raw !== 'object') return base;
+        return {
+            ...base,
+            mode: raw.mode === TOURNAMENT_MODE_MANUAL ? TOURNAMENT_MODE_MANUAL : TOURNAMENT_MODE_AUTO,
+            order: Array.isArray(raw.order) ? raw.order.map(v => String(v)).filter(Boolean) : [],
+            winners: raw.winners && typeof raw.winners === 'object' ? { ...raw.winners } : {}
+        };
+    }
+
+    function loadLeagueManualState() {
+        try {
+            const raw = window.localStorage ? window.localStorage.getItem(LEAGUE_MANUAL_STORAGE_KEY) : null;
+            if (!raw) return normalizeLeagueManualState(null);
+            return normalizeLeagueManualState(JSON.parse(raw));
+        } catch (_) {
+            return normalizeLeagueManualState(null);
+        }
+    }
+
+    function saveLeagueManualState() {
+        leagueManualState = normalizeLeagueManualState({ ...leagueManualState, mode: currentTournamentMode });
+        try {
+            if (window.localStorage) {
+                window.localStorage.setItem(LEAGUE_MANUAL_STORAGE_KEY, JSON.stringify(leagueManualState));
+            }
+        } catch (_) { /* localStorage evtl. nicht verfügbar */ }
+    }
+
+    let leagueManualState = loadLeagueManualState();
+    // Beim CL-Turnier den geteilten Modus-Schalter aus dem CL-State speisen.
+    if (isLeagueStructure()) {
+        currentTournamentMode = leagueManualState.mode === TOURNAMENT_MODE_MANUAL
+            ? TOURNAMENT_MODE_MANUAL
+            : TOURNAMENT_MODE_AUTO;
+    }
+
+    function getLeaguePhaseConfig() {
+        const lp = (APP && APP.activeTournament && APP.activeTournament.leaguePhase) || {};
+        return {
+            teamCount: Number(lp.teamCount) || 36,
+            directThrough: Number(lp.directQualifyThrough) || 8,
+            playoffThrough: Number(lp.playoffThrough) || 24
+        };
+    }
+
+    function leagueZone(rank, lp) {
+        if (!Number.isFinite(rank)) return 'out';
+        if (rank <= lp.directThrough) return 'r16';
+        if (rank <= lp.playoffThrough) return 'po';
+        return 'out';
+    }
+
+    // scheduleCatalog (bereits ohne Qualifikationsspiele) in die von
+    // APP.computeLeagueStatus erwartete Fixture-Form bringen.
+    function buildLeagueRawFixtures() {
+        return (scheduleCatalog || []).map(m => ({
+            homeTeam: { name: m.teamA, logo: m.teamALogo, winner: m.homeWinner === true },
+            awayTeam: { name: m.teamB, logo: m.teamBLogo, winner: m.awayWinner === true },
+            goals: (m.goals && typeof m.goals === 'object') ? { home: m.goals.home, away: m.goals.away } : null,
+            status: (m.status && typeof m.status === 'object')
+                ? m.status
+                : (m.status ? { short: m.status } : null),
+            league: { round: m.round || '' }
+        }));
+    }
+
+    function computeLeagueAutoStandings() {
+        try {
+            const fixtures = buildLeagueRawFixtures();
+            let status = null;
+            if (APP && typeof APP.computeLeagueStatus === 'function') {
+                status = APP.computeLeagueStatus(fixtures);
+            } else if (APP && typeof APP.getTournamentStatus === 'function') {
+                status = APP.getTournamentStatus(fixtures);
+            }
+            if (status && Array.isArray(status.standings)) return status;
+        } catch (_) { /* fällt auf leer zurück */ }
+        return { standings: [] };
+    }
+
+    function ensureLeagueManualOrder(autoStandings) {
+        const valid = autoStandings.map(r => r.key);
+        const kept = leagueManualState.order.filter(k => valid.includes(k));
+        // Fehlende (neue) Teams hinten anhängen, Reihenfolge sonst erhalten.
+        valid.forEach(k => { if (!kept.includes(k)) kept.push(k); });
+        const changed = kept.length !== leagueManualState.order.length
+            || kept.some((k, i) => k !== leagueManualState.order[i]);
+        if (changed) {
+            leagueManualState.order = kept;
+            saveLeagueManualState();
+        }
+    }
+
+    function buildLeagueContext() {
+        const auto = computeLeagueAutoStandings();
+        const autoStandings = (auto.standings || []).map((r, i) => ({ ...r, rank: i + 1 }));
+        const byKey = new Map();
+        autoStandings.forEach(r => byKey.set(r.key, r));
+
+        let standings = autoStandings;
+        if (isTournamentManualMode() && autoStandings.length) {
+            ensureLeagueManualOrder(autoStandings);
+            standings = leagueManualState.order
+                .map(k => byKey.get(k))
+                .filter(Boolean)
+                .map((r, i) => ({ ...r, rank: i + 1, manual: true }));
+        }
+
+        return {
+            standings,
+            teamsByKey: byKey,
+            autoStatus: auto,
+            leaguePhase: getLeaguePhaseConfig()
+        };
+    }
+
+    // ── Reale KO-Ergebnisse (aus den gesyncten Fixtures) für den Auto-Modus ──
+    function isLeagueKnockoutRound(round) {
+        const r = String(round || '').toLowerCase();
+        if (!r) return false;
+        if (/(league|liga|matchday|spieltag|regular season|group|gruppe)/.test(r)) return false;
+        if (/(qualif|vorrunde)/.test(r)) return false;
+        return /(play-?off|playoff|knockout|round of 16|last 16|achtel|1\/8|quarter|viertel|1\/4|semi|halb|1\/2|final)/.test(r);
+    }
+
+    function isFixtureFinishedForLeague(m) {
+        const s = String((m.status && m.status.short) || m.statusShort || '').toUpperCase();
+        return s === 'FT' || s === 'AET' || s === 'PEN';
+    }
+
+    function buildLeagueKnockoutIndex() {
+        const map = new Map();
+        (scheduleCatalog || []).forEach(m => {
+            if (!isLeagueKnockoutRound(m.round)) return;
+            if (!isFixtureFinishedForLeague(m)) return;
+            const g = m.goals || {};
+            const hg = Number(g.home);
+            const ag = Number(g.away);
+            if (!Number.isFinite(hg) || !Number.isFinite(ag)) return;
+            const hn = normalizeTournamentName(m.teamA);
+            const an = normalizeTournamentName(m.teamB);
+            if (!hn || !an || hn === an) return;
+            const homeIsFirst = hn < an;
+            const first = homeIsFirst ? hn : an;
+            const second = homeIsFirst ? an : hn;
+            const pairKey = first + '|' + second;
+            let e = map.get(pairKey);
+            if (!e) { e = { firstGoals: 0, secondGoals: 0, firstWin: false, secondWin: false, legs: 0 }; map.set(pairKey, e); }
+            e.firstGoals += homeIsFirst ? hg : ag;
+            e.secondGoals += homeIsFirst ? ag : hg;
+            const hw = m.homeWinner === true;
+            const aw = m.awayWinner === true;
+            if (homeIsFirst) { if (hw) e.firstWin = true; if (aw) e.secondWin = true; }
+            else { if (hw) e.secondWin = true; if (aw) e.firstWin = true; }
+            e.legs += 1;
+        });
+        return map;
+    }
+
+    function lookupLeagueKnockout(index, homeRow, awayRow) {
+        if (!index || !homeRow || !awayRow) return null;
+        const hn = normalizeTournamentName(homeRow.name || homeRow.key);
+        const an = normalizeTournamentName(awayRow.name || awayRow.key);
+        if (!hn || !an) return null;
+        const homeIsFirst = hn < an;
+        const first = homeIsFirst ? hn : an;
+        const second = homeIsFirst ? an : hn;
+        const e = index.get(first + '|' + second);
+        if (!e) return null;
+        const homeGoals = homeIsFirst ? e.firstGoals : e.secondGoals;
+        const awayGoals = homeIsFirst ? e.secondGoals : e.firstGoals;
+        let winnerKey = null;
+        if (homeGoals > awayGoals) winnerKey = homeRow.key;
+        else if (awayGoals > homeGoals) winnerKey = awayRow.key;
+        else {
+            const homeWin = homeIsFirst ? e.firstWin : e.secondWin;
+            const awayWin = homeIsFirst ? e.secondWin : e.firstWin;
+            if (homeWin && !awayWin) winnerKey = homeRow.key;
+            else if (awayWin && !homeWin) winnerKey = awayRow.key;
+        }
+        return { winnerKey, homeGoals, awayGoals, legs: e.legs };
+    }
+
+    function resolveLeagueBracket(context) {
+        const st = context.standings;
+        const manual = isTournamentManualMode();
+        const koIndex = manual ? null : buildLeagueKnockoutIndex();
+        const res = {};
+        const rowAt = (rank) => st[rank - 1] || null;
+        const part = (row) => (row ? { key: row.key, row } : null);
+
+        function decide(id, home, away) {
+            let winnerKey = null;
+            let homeGoals = null;
+            let awayGoals = null;
+            let resolved = false;
+            let hasResult = false;
+            if (home && away) {
+                if (manual) {
+                    const pick = leagueManualState.winners[id];
+                    if (pick && (pick === home.key || pick === away.key)) { winnerKey = pick; resolved = true; }
+                } else if (koIndex) {
+                    const real = lookupLeagueKnockout(koIndex, home.row, away.row);
+                    if (real) {
+                        hasResult = true;
+                        homeGoals = real.homeGoals;
+                        awayGoals = real.awayGoals;
+                        if (real.winnerKey) { winnerKey = real.winnerKey; resolved = true; }
+                    }
+                }
+            }
+            res[id] = {
+                id,
+                homeRow: home ? home.row : null,
+                awayRow: away ? away.row : null,
+                homeKey: home ? home.key : null,
+                awayKey: away ? away.key : null,
+                winnerKey, homeGoals, awayGoals, resolved, hasResult
+            };
+            return res[id];
+        }
+
+        const winnerPart = (id) => {
+            const r = res[id];
+            if (!r || !r.winnerKey) return null;
+            const row = r.winnerKey === r.homeKey ? r.homeRow : r.awayRow;
+            return row ? { key: row.key, row } : null;
+        };
+
+        CL_BRACKET.playoffs.forEach(t => decide(t.id, part(rowAt(t.seed)), part(rowAt(t.opp))));
+        CL_BRACKET.r16.forEach(t => decide(t.id, part(rowAt(t.seed)), winnerPart(t.po)));
+        CL_BRACKET.qf.forEach(t => decide(t.id, winnerPart(t.from[0]), winnerPart(t.from[1])));
+        CL_BRACKET.sf.forEach(t => decide(t.id, winnerPart(t.from[0]), winnerPart(t.from[1])));
+        decide(CL_BRACKET.final.id, winnerPart(CL_BRACKET.final.from[0]), winnerPart(CL_BRACKET.final.from[1]));
+        return res;
+    }
+
+    const CL_ROUND_LABEL = { playoffs: 'Playoff', r16: 'Achtelfinale', qf: 'Viertelfinale', sf: 'Halbfinale', final: 'Finale' };
+
+    function leagueTieLabel(id) {
+        const d = CL_TIE_DEFS[id];
+        if (!d) return '';
+        if (d.round === 'final') return 'Finale';
+        return `${CL_ROUND_LABEL[d.round]} ${d.index + 1}`;
+    }
+
+    function leagueSourcePlaceholder(sourceId) {
+        const d = CL_TIE_DEFS[sourceId];
+        if (!d) return 'Sieger';
+        if (d.round === 'playoffs') return `Sieger Playoff (${d.homeRank}/${d.awayRank})`;
+        return `Sieger ${CL_ROUND_LABEL[d.round]} ${d.index + 1}`;
+    }
+
+    function renderLeagueSlot(id, side, r, placeholder, pickable) {
+        const row = r ? (side === 'home' ? r.homeRow : r.awayRow) : null;
+        const key = row ? row.key : null;
+        const goals = r ? (side === 'home' ? r.homeGoals : r.awayGoals) : null;
+        const isWinner = !!(row && r.winnerKey && r.winnerKey === key);
+        const isLoser = !!(row && r.winnerKey && r.winnerKey !== key);
+        const cls = ['clb-slot'];
+        if (!row) cls.push('clb-slot--empty');
+        if (isWinner) cls.push('clb-slot--winner');
+        if (isLoser) cls.push('clb-slot--loser');
+        const seed = (row && Number.isFinite(row.rank))
+            ? `<span class="clb-seed">${row.rank}</span>`
+            : '<span class="clb-seed"></span>';
+        const logo = (row && row.logo)
+            ? `<img class="clb-logo" src="${escapeHtml(row.logo)}" alt="" loading="lazy">`
+            : '<span class="clb-logo clb-logo--ph"></span>';
+        const name = row
+            ? `<span class="clb-name">${escapeHtml(row.name || row.key)}</span>`
+            : `<span class="clb-name clb-name--ph">${escapeHtml(placeholder)}</span>`;
+        const score = (r && r.hasResult && Number.isFinite(goals))
+            ? `<span class="clb-score">${goals}</span>`
+            : '<span class="clb-score"></span>';
+        const inner = `${seed}${logo}${name}${score}`;
+        if (pickable && row) {
+            return `<button type="button" class="${cls.join(' ')} clb-slot--pick" data-league-winner="${escapeHtml(id)}" data-team-key="${escapeHtml(key)}">${inner}</button>`;
+        }
+        return `<div class="${cls.join(' ')}">${inner}</div>`;
+    }
+
+    function renderLeagueTie(id, res, manual, roundKey) {
+        const r = res[id];
+        const def = CL_TIE_DEFS[id];
+        const both = !!(r && r.homeRow && r.awayRow);
+        const pickable = manual && both;
+        const homePh = def.homeSource ? leagueSourcePlaceholder(def.homeSource) : '—';
+        const awayPh = def.awaySource ? leagueSourcePlaceholder(def.awaySource) : '—';
+        const cls = ['clb-tie', `clb-tie--${roundKey}`];
+        if (r && r.resolved) cls.push('clb-tie--done');
+        if (pickable) cls.push('clb-tie--pickable');
+        return `<div class="${cls.join(' ')}" data-tie="${escapeHtml(id)}">`
+            + `<div class="clb-tie-head">${escapeHtml(leagueTieLabel(id))}</div>`
+            + renderLeagueSlot(id, 'home', r, homePh, pickable)
+            + renderLeagueSlot(id, 'away', r, awayPh, pickable)
+            + '</div>';
+    }
+
+    function renderLeagueBracket(context) {
+        if (!context.standings.length) {
+            return '<div class="tournament-empty">Die Finalrunde erscheint, sobald die Ligaphase Daten liefert.</div>';
+        }
+        const manual = isTournamentManualMode();
+        const res = resolveLeagueBracket(context);
+        const columns = [
+            { key: 'playoffs', head: 'Playoffs', ties: CL_BRACKET.playoffs.map(t => t.id) },
+            { key: 'r16', head: 'Achtelfinale', ties: CL_BRACKET.r16.map(t => t.id) },
+            { key: 'qf', head: 'Viertelfinale', ties: CL_BRACKET.qf.map(t => t.id) },
+            { key: 'sf', head: 'Halbfinale', ties: CL_BRACKET.sf.map(t => t.id) },
+            { key: 'final', head: 'Finale', ties: [CL_BRACKET.final.id] }
+        ];
+        const cols = columns.map(col => {
+            const body = col.ties.map(id => renderLeagueTie(id, res, manual, col.key)).join('');
+            return `<div class="clb-col clb-col--${col.key}"><div class="clb-col-head">${escapeHtml(col.head)}</div><div class="clb-col-body">${body}</div></div>`;
+        }).join('');
+
+        const finalRes = res[CL_BRACKET.final.id];
+        const champRow = finalRes && finalRes.winnerKey
+            ? (finalRes.winnerKey === finalRes.homeKey ? finalRes.homeRow : finalRes.awayRow)
+            : null;
+        const champ = champRow
+            ? `<div class="clb-champion"><span class="clb-champion-cap">Sieger</span>`
+                + (champRow.logo ? `<img src="${escapeHtml(champRow.logo)}" alt="" loading="lazy">` : '')
+                + `<span class="clb-champion-name">${escapeHtml(champRow.name || champRow.key)}</span>🏆</div>`
+            : '';
+
+        const note = manual
+            ? 'Manueller Modus: Tippe in jeder Paarung auf den Sieger und spiele dich bis zum Finale durch. Die Setzung folgt deiner (frei sortierbaren) Ligatabelle.'
+            : 'Projektion nach Ligaphasen-Platzierung: Top 8 direkt ins Achtelfinale, Ränge 9–24 in die Playoffs. Ergebnisse werden – sofern gesynct – automatisch übernommen; die tatsächliche Auslosung kann innerhalb der Setzung abweichen.';
+
+        return `<div class="clb-wrap">`
+            + `<p class="clb-note">${escapeHtml(note)}</p>`
+            + champ
+            + `<div class="clb-scroller"><div class="clb-cols">${cols}</div></div>`
+            + `</div>`;
+    }
+
+    function renderLeagueStandingsRow(r, lp) {
+        const zone = leagueZone(r.rank, lp);
+        const logo = r.logo
+            ? `<img class="clt-logo" src="${escapeHtml(r.logo)}" alt="" loading="lazy">`
+            : '<span class="clt-logo clt-logo--ph"></span>';
+        const gd = `${r.gd > 0 ? '+' : ''}${r.gd}`;
+        return `<tr class="zone-${zone}">`
+            + `<td class="clt-zonebar clt-zonebar--${zone}"></td>`
+            + `<td class="clt-rank">${r.rank}</td>`
+            + `<td class="clt-club"><div class="clt-club-inner">${logo}<span class="clt-name">${escapeHtml(r.name || r.key)}</span></div></td>`
+            + `<td>${r.played}</td>`
+            + `<td class="clt-record">${r.won}-${r.drawn}-${r.lost}</td>`
+            + `<td>${r.gf}:${r.ga}</td>`
+            + `<td>${gd}</td>`
+            + `<td class="clt-pts">${r.pts}</td>`
+            + '</tr>';
+    }
+
+    function renderLeagueManualList(context) {
+        const lp = context.leaguePhase;
+        const items = context.standings.map(r => {
+            const zone = leagueZone(r.rank, lp);
+            const status = zone === 'r16' ? 'Achtelfinale' : (zone === 'po' ? 'Playoffs' : 'Ausgeschieden');
+            const logo = r.logo
+                ? `<img class="clt-logo" src="${escapeHtml(r.logo)}" alt="" loading="lazy">`
+                : '<span class="clt-logo clt-logo--ph"></span>';
+            return `<li class="clt-manual-row zone-${zone}" data-manual-sort-item data-team-key="${escapeHtml(r.key)}">`
+                + '<span class="tg-manual-grip" aria-hidden="true"></span>'
+                + `<span class="clt-rank">${r.rank}</span>`
+                + logo
+                + `<span class="clt-name">${escapeHtml(r.name || r.key)}</span>`
+                + `<span class="clt-status clt-status--${zone}">${status}</span>`
+                + '</li>';
+        }).join('');
+        return `<ul class="clt-manual-list" data-manual-sort-list data-sort-kind="league">${items}</ul>`;
+    }
+
+    function renderLeagueStandings(context) {
+        const lp = context.leaguePhase;
+        const legend = '<div class="clt-legend">'
+            + `<span><i class="clt-dot clt-dot--r16"></i> Achtelfinale · direkt (1–${lp.directThrough})</span>`
+            + `<span><i class="clt-dot clt-dot--po"></i> Playoffs (${lp.directThrough + 1}–${lp.playoffThrough})</span>`
+            + `<span><i class="clt-dot clt-dot--out"></i> Ausgeschieden (${lp.playoffThrough + 1}–${lp.teamCount})</span>`
+            + '</div>';
+        if (isTournamentManualMode()) {
+            return legend + renderLeagueManualList(context);
+        }
+        const rows = context.standings.map(r => renderLeagueStandingsRow(r, lp)).join('');
+        return legend
+            + '<div class="clt-wrap"><table class="clt">'
+            + '<thead><tr>'
+            + '<th class="clt-zonebar"></th><th class="clt-rank">#</th><th class="clt-club" style="text-align:left">Klub</th>'
+            + '<th>Sp</th><th>S-U-N</th><th>Tore</th><th>Diff</th><th>Pkt</th>'
+            + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+
+    function setLeagueManualWinner(id, key) {
+        if (!id || !key) return;
+        leagueManualState.winners[String(id)] = key;
+        saveLeagueManualState();
+        renderTournamentView();
+    }
+
+    function bindLeagueKnockoutPicks() {
+        if (!isTournamentManualMode()) return;
+        document.querySelectorAll('[data-league-winner]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setLeagueManualWinner(btn.getAttribute('data-league-winner'), btn.getAttribute('data-team-key'));
+            });
+        });
+    }
+
+    function resetLeagueManualState() {
+        const auto = computeLeagueAutoStandings();
+        const order = (auto.standings || []).map(r => r.key);
+        leagueManualState = normalizeLeagueManualState({
+            ...leagueManualState,
+            mode: currentTournamentMode,
+            order,
+            winners: {}
+        });
+        saveLeagueManualState();
+        renderTournamentView();
+    }
+
+    let leagueTournamentUiReady = false;
+    function setupLeagueTournamentUiOnce() {
+        if (leagueTournamentUiReady || !isLeagueStructure()) return;
+        leagueTournamentUiReady = true;
+        const heroSub = document.querySelector('#view-tournament .tournament-hero .cmp-hero-subtitle');
+        if (heroSub) heroSub.textContent = 'Ligatabelle und Finalrunde der Champions League.';
+        const groupsPill = document.querySelector('.tour-pill[data-tournament-tab="groups"]');
+        if (groupsPill) groupsPill.textContent = 'Ligatabelle';
+        const hintText = document.querySelector('#tournament-manual-hint .tournament-manual-hint-text');
+        if (hintText) {
+            hintText.innerHTML = '<strong>Reihenfolge selbst festlegen:</strong> '
+                + '<span class="hint-desktop">Klicke einen Klub an und ziehe ihn bei gedrückter Maustaste an die gewünschte Position.</span>'
+                + '<span class="hint-mobile">Tippe den Griff an und ziehe.</span>';
+        }
+    }
+
+    function renderLeagueTournamentView() {
+        const groupsEl = document.getElementById('tournament-groups-list');
+        const thirdEl = document.getElementById('tournament-third-places');
+        const bracketEl = document.getElementById('tournament-bracket');
+        if (!groupsEl || !thirdEl || !bracketEl) return;
+
+        setupLeagueTournamentUiOnce();
+        syncTournamentModeUi();
+        const context = buildLeagueContext();
+
+        if (!context.standings.length) {
+            const msg = '<div class="tournament-empty">Sobald der Spielplan gesynct ist, erscheint hier die Ligatabelle.</div>';
+            groupsEl.innerHTML = msg;
+            thirdEl.innerHTML = '';
+            bracketEl.innerHTML = '<div class="tournament-empty">Die Finalrunde folgt nach der Ligaphase.</div>';
+            syncSidebarHeight();
+            return;
+        }
+
+        groupsEl.innerHTML = renderLeagueStandings(context);
+        thirdEl.innerHTML = '';
+        bracketEl.innerHTML = renderLeagueBracket(context);
+        bindTournamentManualSortables();
+        bindLeagueKnockoutPicks();
+        syncSidebarHeight();
+    }
+
     function renderTournamentView() {
+        if (isLeagueStructure()) { renderLeagueTournamentView(); return; }
+
         const groupsEl = document.getElementById('tournament-groups-list');
         const thirdEl = document.getElementById('tournament-third-places');
         const bracketEl = document.getElementById('tournament-bracket');
@@ -6943,6 +7510,8 @@
     document.getElementById('btn-view-comparisons').addEventListener('click', () => setView('comparisons', true));
     document.getElementById('btn-view-games').addEventListener('click', () => setView('games', true));
     document.getElementById('btn-view-tournament').addEventListener('click', () => setView('tournament', true));
+    // CL: „Turnier"-Ansicht auf Ligaphase umbeschriften (Ligatabelle statt Gruppenphase).
+    setupLeagueTournamentUiOnce();
     document.querySelectorAll('.tour-pill').forEach(btn => {
         btn.addEventListener('click', () => setTournamentTab(btn.dataset.tournamentTab, true));
     });

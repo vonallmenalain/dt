@@ -5782,3 +5782,262 @@
             }
         }
     
+/* =============================================================================
+ *  CHAMPIONS LEAGUE – Turnier-Ansicht (Ligatabelle + Finalrunde)
+ *  Wird nur bei Ligaphasen-Turnieren (structure: "league") gerendert.
+ *  Farbwelt aus der CL-Palette (theme-cl.css / --cl-*), mit Fallbacks.
+ * ========================================================================== */
+.clt-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin: 4px 2px 14px;
+    font-size: 0.78em;
+    color: var(--cl-text-muted, #9db6e8);
+}
+.clt-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.clt-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.clt-dot--r16 { background: #3d8bff; }
+.clt-dot--po { background: #7db4ff; }
+.clt-dot--out { background: #d15a6a; }
+
+.clt-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(125, 180, 255, 0.14);
+    -webkit-overflow-scrolling: touch;
+}
+table.clt {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--cl-surface, #132347);
+    color: var(--cl-text, #dce8ff);
+    font-size: 0.9em;
+    min-width: 540px;
+}
+table.clt th, table.clt td { padding: 9px 8px; text-align: center; white-space: nowrap; }
+table.clt th {
+    position: sticky;
+    top: 0;
+    background: var(--cl-surface-alt, #0f1c3d);
+    color: var(--cl-text-muted, #9db6e8);
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 800;
+    z-index: 1;
+}
+table.clt td { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+table.clt tbody tr:hover td { background: rgba(125, 180, 255, 0.06); }
+.clt-rank { font-weight: 800; color: var(--cl-text-muted, #9db6e8); width: 30px; }
+.clt-club { text-align: left; }
+.clt-club-inner { display: flex; align-items: center; gap: 9px; }
+.clt-logo { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+.clt-logo--ph { display: inline-block; background: rgba(125, 180, 255, 0.12); border-radius: 4px; }
+.clt-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+.clt-record { font-variant-numeric: tabular-nums; }
+.clt-pts { font-weight: 900; color: var(--cl-accent, #7db4ff); }
+.clt-zonebar { width: 4px; padding: 0 !important; }
+.clt-zonebar--r16 { background: #3d8bff; }
+.clt-zonebar--po { background: #7db4ff; }
+.clt-zonebar--out { background: #d15a6a; }
+
+/* ── Manuelle Ligatabelle (Drag & Drop) ─────────────────────────────────── */
+.clt-manual-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-radius: 12px;
+}
+.clt-manual-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--cl-surface, #132347);
+    border: 1px solid rgba(125, 180, 255, 0.12);
+    border-left: 4px solid rgba(125, 180, 255, 0.2);
+    color: var(--cl-text, #dce8ff);
+    box-sizing: border-box;
+    touch-action: pan-y;
+}
+.clt-manual-row.zone-r16 { border-left-color: #3d8bff; }
+.clt-manual-row.zone-po { border-left-color: #7db4ff; }
+.clt-manual-row.zone-out { border-left-color: #d15a6a; opacity: 0.82; }
+.clt-manual-row.is-dragging {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+    border-color: var(--cl-accent, #7db4ff);
+    z-index: 6000;
+    cursor: grabbing;
+}
+.clt-manual-row .clt-rank { width: 26px; text-align: center; }
+.clt-manual-row .clt-name { flex: 1; min-width: 0; }
+.clt-status {
+    font-size: 0.72em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.clt-status--r16 { background: rgba(61, 139, 255, 0.18); color: #7db4ff; }
+.clt-status--po { background: rgba(125, 180, 255, 0.16); color: #a9cbff; }
+.clt-status--out { background: rgba(209, 90, 106, 0.16); color: #e88a97; }
+
+/* ── CL-Turnierbaum (Finalrunde) ────────────────────────────────────────── */
+.clb-wrap { margin: 2px; }
+.clb-note {
+    margin: 0 2px 14px;
+    font-size: 0.8em;
+    line-height: 1.5;
+    color: var(--cl-text-muted, #9db6e8);
+    background: rgba(125, 180, 255, 0.07);
+    border: 1px solid rgba(125, 180, 255, 0.14);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+.clb-champion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    margin: 0 auto 16px;
+    padding: 10px 18px;
+    width: fit-content;
+    max-width: 100%;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(61, 139, 255, 0.22), rgba(125, 180, 255, 0.12));
+    border: 1px solid rgba(125, 180, 255, 0.4);
+    font-weight: 900;
+    color: var(--cl-text, #dce8ff);
+}
+.clb-champion img { width: 30px; height: 30px; object-fit: contain; }
+.clb-champion-cap {
+    font-size: 0.68em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cl-text-muted, #9db6e8);
+}
+.clb-champion-name { font-size: 1.05em; }
+
+.clb-scroller {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+}
+.clb-cols {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+    min-width: 880px;
+}
+.clb-col {
+    flex: 1 1 0;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+}
+.clb-col-head {
+    text-align: center;
+    font-size: 0.72em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cl-accent, #7db4ff);
+    padding-bottom: 8px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(125, 180, 255, 0.14);
+}
+.clb-col-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+}
+.clb-tie {
+    background: var(--cl-surface, #132347);
+    border: 1px solid rgba(125, 180, 255, 0.14);
+    border-radius: 10px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.clb-tie--done { border-color: rgba(125, 180, 255, 0.32); }
+.clb-tie--final {
+    background: linear-gradient(135deg, rgba(61, 139, 255, 0.16), rgba(19, 35, 71, 0.9));
+    border-color: rgba(125, 180, 255, 0.4);
+}
+.clb-tie-head {
+    font-size: 0.62em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--cl-text-muted, #9db6e8);
+    padding: 0 2px 2px;
+}
+.clb-slot {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 5px 6px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    color: var(--cl-text, #dce8ff);
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+}
+button.clb-slot { cursor: default; }
+button.clb-slot--pick { cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease; }
+button.clb-slot--pick:hover { background: rgba(125, 180, 255, 0.16); border-color: rgba(125, 180, 255, 0.4); }
+.clb-slot--winner {
+    background: rgba(61, 139, 255, 0.2);
+    border-color: rgba(125, 180, 255, 0.5);
+    font-weight: 800;
+}
+.clb-slot--loser { opacity: 0.5; }
+.clb-slot--empty { opacity: 0.75; }
+.clb-seed {
+    flex: 0 0 auto;
+    width: 20px;
+    font-size: 0.72em;
+    font-weight: 800;
+    text-align: center;
+    color: var(--cl-text-muted, #9db6e8);
+    font-variant-numeric: tabular-nums;
+}
+.clb-logo { flex: 0 0 auto; width: 20px; height: 20px; object-fit: contain; }
+.clb-logo--ph { display: inline-block; background: rgba(125, 180, 255, 0.1); border-radius: 4px; }
+.clb-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.86em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.clb-name--ph { color: var(--cl-text-muted, #9db6e8); font-style: italic; font-size: 0.8em; }
+.clb-score {
+    flex: 0 0 auto;
+    min-width: 16px;
+    text-align: right;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--cl-accent, #7db4ff);
+}
+
+@media (max-width: 560px) {
+    .clb-cols { min-width: 760px; gap: 10px; }
+    .clb-col { min-width: 132px; }
+    .clt-status { padding: 2px 6px; font-size: 0.66em; }
+}
