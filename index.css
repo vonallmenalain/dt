@@ -6441,7 +6441,7 @@
             inset: 0;
             background: rgba(3, 8, 22, 0.74);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
         .cltm-overlay.is-open .cltm-backdrop { opacity: 1; }
         /* Blur erst nach abgeschlossener Expand-Animation (billiger). */
@@ -6466,9 +6466,36 @@
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
             overflow: hidden;
             will-change: transform;
-            transition: transform 0.48s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.26s ease 0.1s;
+            /* Karussell-Rezeptur (tcc: MOVE_DUR 0.6s / MOVE_EASE): exakt
+               dieselbe Bewegung wie der Kartenwechsel im Karussell. Das Modal
+               blendet nur ein/aus – die Morph-Bewegung trägt der Ghost. */
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.12s;
         }
-        .cltm-overlay.is-closing .cltm-modal { opacity: 0; }
+        .cltm-overlay.is-open .cltm-modal { opacity: 1; }
+        .cltm-overlay.is-closing .cltm-modal {
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.26s ease 0.06s;
+        }
+
+        /* Ghost: optischer Kachel-Klon, der den Morph Kachel ↔ Karte trägt
+           (siehe index.js cltmMakeGhost). Erbt das Kachel-Aussehen von
+           .cltm-tile; hier nur Position/Animations-Overrides. `animation`
+           muss die Kachel-Einblend-Animation (startet bei opacity 0) hart
+           abschalten, sonst wäre der Klon unsichtbar. */
+        .cltm-ghost {
+            position: fixed;
+            z-index: 2;
+            margin: 0;
+            pointer-events: none;
+            transform-origin: top left;
+            opacity: 1;
+            animation: none !important;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.1s !important;
+            will-change: transform, opacity;
+        }
+        .cltm-ghost.is-out { opacity: 0; }
+        .cltm-ghost.is-in { opacity: 0; }
 
         .cltm-modal-head {
             display: flex;
@@ -6555,28 +6582,24 @@
             /* Scroll-Kette kappen: am Ende des Popup-Scrollens darf der
                Schwung nicht auf den Hintergrund übergehen. */
             overscroll-behavior: contain;
-            opacity: 0;
-            transition: opacity 0.3s ease 0.14s;
+            /* Kein eigenes Opacity-Staging mehr: das Ein-/Ausblenden des
+               ganzen Modals (Crossfade mit dem Ghost) übernimmt das – eine
+               Animationsebene weniger = flüssiger. */
         }
         @media (max-width: 640px) {
             .cltm-modal-body { padding: 10px 10px 14px; }
-        }
-        .cltm-overlay.is-open .cltm-modal-body { opacity: 1; }
-        .cltm-overlay.is-closing .cltm-modal-body {
-            opacity: 0;
-            transition: opacity 0.14s ease;
         }
 
         /* ── Spieler-Bereich (JS-Layout, animierte Chips) ────────────── */
         .cltm-players {
             position: relative;
-            transition: height 0.55s cubic-bezier(0.22, 0.9, 0.24, 1);
+            transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .cltm-players > .cltm-chip {
             position: absolute;
             left: 0;
             top: 0;
-            transition: transform 0.55s cubic-bezier(0.22, 0.9, 0.24, 1);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
             will-change: transform;
         }
         .cltm-players.cltm-no-anim,
@@ -6749,11 +6772,7 @@
             .cltm-modal {
                 transition: opacity 0.25s ease;
             }
-            .cltm-overlay:not(.is-open) .cltm-modal { opacity: 0; }
-            .cltm-modal-body {
-                opacity: 1 !important;
-                transition: none;
-            }
+            .cltm-ghost { display: none !important; }
             .cltm-backdrop { transition: opacity 0.2s ease; }
             .cltm-players,
             .cltm-players > .cltm-chip {
