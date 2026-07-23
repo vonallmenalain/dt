@@ -2237,6 +2237,19 @@
         return !!(info && info.verifiedFromServer === true && info.stale !== true);
     }
 
+    /* In einer bewusst aktivierten Admin-Vorschau (z. B. CL-Test cl2526)
+       liegen fuer das Turnier oft schlicht noch keine Live-Daten vor – das
+       ist KEIN Server-/App-Fehler. Analog zu index.html zeigen wir dann
+       einen ruhigen Hinweis statt der roten Fehlermeldung. */
+    function isPreviewWithoutLiveData() {
+        try {
+            return !!(APP && typeof APP.isPreviewActive === 'function' && APP.isPreviewActive());
+        } catch (_) {
+            return false;
+        }
+    }
+
+
     /* =========================================================
        CACHED-FIRST RENDERING
        Der letzte lokale Cache-Stand wird sofort angezeigt, die
@@ -2463,6 +2476,9 @@
                         startFreshnessEscalation(() => {
                             if (hasRenderedOnce) {
                                 showStaleNotice('Warte auf Serverbestaetigung …');
+                            } else if (isPreviewWithoutLiveData()) {
+                                hideSyncIndicator();
+                                showFreshnessError(`Vorschau: Fuer ${TOURNAMENT_LABEL} liegen noch keine Live-Daten vor.`);
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError(`Rangliste fuer ${TOURNAMENT_LABEL} wartet auf frische Serverdaten.`);
@@ -2473,6 +2489,9 @@
                         if (!isServerVerifiedCacheInfo(info)) {
                             if (hasRenderedOnce) {
                                 showStaleNotice('Offline – angezeigt wird der letzte lokale Stand.');
+                            } else if (isPreviewWithoutLiveData()) {
+                                hideSyncIndicator();
+                                showFreshnessError(`Vorschau: Fuer ${TOURNAMENT_LABEL} liegen noch keine Live-Daten vor.`);
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError('Offline oder Server nicht erreichbar. Es liegen noch keine lokalen Daten vor.');
@@ -2493,10 +2512,16 @@
                         if (hasRenderedOnce) {
                             // Inhalt ist sichtbar → nicht-destruktiver Hinweis
                             // statt erneutem Einblenden des Loading-Blocks.
-                            showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+                            showStaleNotice(isPreviewWithoutLiveData()
+                                ? 'Vorschau: keine Live-Daten – letzter lokaler Stand.'
+                                : 'Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
                             return;
                         }
                         hideSyncIndicator();
+                        if (isPreviewWithoutLiveData()) {
+                            showFreshnessError(`Vorschau: Fuer ${TOURNAMENT_LABEL} liegen noch keine Live-Daten vor.`);
+                            return;
+                        }
                         showFreshnessError(`Aktuelle Ranglistendaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
                         document.getElementById("loading").innerHTML = `<span style="font-size:1.5rem;opacity:0.4;">⚠️</span> Fehler beim Berechnen der Rangliste für ${escapeHtml(TOURNAMENT_LABEL)}.`;
                     }
@@ -2504,8 +2529,12 @@
             }
         } catch (e) {
             console.error(e);
-            showFreshnessError(`Aktuelle Ranglistendaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
-            if (!hasRenderedOnce) {
+            if (hasRenderedOnce) {
+                showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+            } else if (isPreviewWithoutLiveData()) {
+                showFreshnessError(`Vorschau: Fuer ${TOURNAMENT_LABEL} liegen noch keine Live-Daten vor.`);
+            } else {
+                showFreshnessError(`Aktuelle Ranglistendaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
                 document.getElementById("loading").innerHTML = `<span style="font-size:1.5rem;opacity:0.4;">⚠️</span> Fehler beim Berechnen der Rangliste für ${escapeHtml(TOURNAMENT_LABEL)}.`;
             }
         }

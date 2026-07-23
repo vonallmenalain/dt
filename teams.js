@@ -1979,15 +1979,46 @@
 
         renderManagerList(getFilteredTeams(getDesktopSearchTerm()));
 
+        // Ab hier steht sichtbarer Inhalt (Manager-Liste). Das Flag muss VOR
+        // loadTeam gesetzt werden: Wirft loadTeam (oder wird es nie erreicht),
+        // duerfen spaetere Fehlerpfade die gerenderte Liste nicht mehr mit
+        // dem destruktiven Fehlerblock ueberdecken.
+        hasRenderedOnce = true;
+
         const teamToLoad = allTeams.find(t => t.manager === preferredManager) || allTeams[0];
         if (teamToLoad) {
-            loadTeam(teamToLoad);
-            hasRenderedOnce = true;
+            try {
+                loadTeam(teamToLoad);
+            } catch (err) {
+                console.error('[teams] loadTeam fehlgeschlagen:', err);
+            }
         }
     }
 
     function isServerVerifiedCacheInfo(info) {
         return !!(info && info.verifiedFromServer === true && info.stale !== true);
+    }
+
+    /* In einer bewusst aktivierten Admin-Vorschau (z. B. CL-Test cl2526)
+       liegen fuer das Turnier oft schlicht noch keine Live-Daten vor – das
+       ist KEIN Server-/App-Fehler. Analog zu index.html zeigen wir dann
+       einen ruhigen Hinweis statt des roten Fehlerblocks. */
+    function isPreviewWithoutLiveData() {
+        try {
+            return !!(APP && typeof APP.isPreviewActive === 'function' && APP.isPreviewActive());
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function showPreviewNoDataNotice() {
+        const teamView   = document.getElementById('team-view');
+        const emptyState = document.getElementById('empty-state');
+        if (teamView)   teamView.style.display = 'none';
+        if (emptyState) {
+            emptyState.style.display = 'block';
+            emptyState.innerHTML = `<span class="empty-icon">🔭</span>Vorschau: Fuer ${TOURNAMENT_LABEL} liegen noch keine Live-Daten vor.`;
+        }
     }
 
     /* =========================================================
@@ -2133,6 +2164,9 @@
                         startFreshnessEscalation(() => {
                             if (hasRenderedOnce) {
                                 showStaleNotice('Warte auf Serverbestaetigung …');
+                            } else if (isPreviewWithoutLiveData()) {
+                                hideSyncIndicator();
+                                showPreviewNoDataNotice();
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError(`Teams fuer ${TOURNAMENT_LABEL} warten auf frische Serverdaten.`);
@@ -2143,6 +2177,9 @@
                         if (!isServerVerifiedCacheInfo(info)) {
                             if (hasRenderedOnce) {
                                 showStaleNotice('Offline – angezeigt wird der letzte lokale Stand.');
+                            } else if (isPreviewWithoutLiveData()) {
+                                hideSyncIndicator();
+                                showPreviewNoDataNotice();
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError('Offline oder Server nicht erreichbar. Es liegen noch keine lokalen Daten vor.');
@@ -2163,10 +2200,16 @@
                         if (hasRenderedOnce) {
                             // Inhalt ist sichtbar → nicht-destruktiver Hinweis
                             // statt Ausblenden der Team-Ansicht.
-                            showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+                            showStaleNotice(isPreviewWithoutLiveData()
+                                ? 'Vorschau: keine Live-Daten – letzter lokaler Stand.'
+                                : 'Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
                             return;
                         }
                         hideSyncIndicator();
+                        if (isPreviewWithoutLiveData()) {
+                            showPreviewNoDataNotice();
+                            return;
+                        }
                         showFreshnessError(`Aktuelle Teamdaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
                         const teamView   = document.getElementById('team-view');
                         const emptyState = document.getElementById('empty-state');
@@ -2180,8 +2223,12 @@
             }
         } catch (e) {
             console.error(e);
-            showFreshnessError(`Aktuelle Teamdaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
-            if (!hasRenderedOnce) {
+            if (hasRenderedOnce) {
+                showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
+            } else if (isPreviewWithoutLiveData()) {
+                showPreviewNoDataNotice();
+            } else {
+                showFreshnessError(`Aktuelle Teamdaten fuer ${TOURNAMENT_LABEL} konnten nicht vom Server geladen werden.`);
                 const teamView   = document.getElementById('team-view');
                 const emptyState = document.getElementById('empty-state');
                 if (teamView)   teamView.style.display = 'none';
