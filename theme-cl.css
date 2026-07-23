@@ -362,6 +362,25 @@
   color: var(--cl-background, #0a1633);
 }
 
+/* ── Startseiten-Karussell (CL): Profilbild + Klublogo grösser ───────────
+ * Auf Wunsch dürfen Spielerfoto und Klublogo präsenter sein. Die Karte
+ * behält ihre Grösse (--card-w/--card-h); nur die Innenelemente wachsen,
+ * sodass weiterhin alles sauber in die Karte passt. Werte per Test so
+ * gewählt, dass auch auf schmalen Handys nichts abgeschnitten wird. */
+[data-tournament^="cl"] .tcc-player-photo-wrap {
+  width: 72%;
+}
+[data-tournament^="cl"] .tcc-badge-img {
+  width: clamp(48px, 14vw, 76px);
+  height: clamp(48px, 14vw, 76px);
+}
+@media (max-width: 560px) {
+  [data-tournament^="cl"] .tcc-badge-img {
+    width: clamp(42px, 14vw, 54px);
+    height: clamp(42px, 14vw, 54px);
+  }
+}
+
 /* ── Ränge/Podium: klassische Medaillenfarben statt Blau ─────────────────
  * Rang 1 soll auch in der CL GOLD sein (Silber/Bronze sind ohnehin fest
  * verdrahtet). Statt jede Regel einzeln zu überschreiben, werden die

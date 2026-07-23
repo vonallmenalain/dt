@@ -4454,6 +4454,10 @@
 
         const DEFAULT_CAROUSEL_TITLE = 'Stars der WM 2026';
         const VARIANT_STORAGE_KEY = 'tcc_carousel_last_variant';
+        // Merkt sich, welche Karte beim letzten Laden im Zentrum stand, damit
+        // die zufällige Zentrums-Wahl (nur CL) nicht zweimal hintereinander
+        // denselben Spieler zeigt („jedes Mal ein ANDERER Spieler").
+        const CENTER_STORAGE_KEY = 'tcc_carousel_last_center';
 
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -4584,46 +4588,45 @@
             }
         ];
 
-        // Champions-League-Stars (Saison 2025/26): 15 Topspieler aus
-        // verschiedenen Klubs (max. 2 pro Klub), alle über ihre player.id im
-        // CL-Datensatz vorhanden – Foto, Klub und Nationsflagge kommen also
-        // direkt aus data-cl2526.js. Titel bewusst leer (kein „Stars der …"
-        // über dem Karussell in der CL).
+        // Champions-League-Stars (Saison 2025/26): genau diese 14 Topspieler,
+        // alle über ihre player.id im CL-Datensatz vorhanden – Foto, Klub und
+        // Klubname kommen also direkt aus data-cl2526.js. Titel bewusst leer
+        // (kein „Stars der …" über dem Karussell in der CL).
+        //
+        // REIHENFOLGE: bewusst so gewählt, dass NIE zwei direkt benachbarte
+        // Spieler demselben Klub angehören – auch über den Ring-Umlauf hinweg
+        // (das Karussell ist zirkulär, letzte Karte grenzt an erste). Die
+        // Klub-Cluster (Real Madrid ×3, PSG ×4, Barça ×2, Arsenal ×2) sind
+        // deshalb gleichmässig verteilt. Welcher Spieler beim Laden im Zentrum
+        // steht, wird zufällig gewählt (siehe pickInitialActive) – die
+        // Ring-Reihenfolge bleibt dabei gültig, egal wo das Zentrum liegt.
         const cl2526StarRotation = [
             {
                 id: "cl_stars_set_1",
                 title: "",
                 players: [
-                    { playerId: 278,    name: "Kylian Mbappé",     nation: "Frankreich",   position: "ANG" },
-                    { playerId: 762,    name: "Vinícius Júnior",    nation: "Brasilien",    position: "ANG" },
-                    { playerId: 521,    name: "Robert Lewandowski", nation: "Polen",        position: "ANG" },
-                    { playerId: 386828, name: "Lamine Yamal",       nation: "Spanien",      position: "ANG" },
-                    { playerId: 1100,   name: "Erling Haaland",     nation: "Norwegen",     position: "ANG" },
-                    { playerId: 306,    name: "Mohamed Salah",      nation: "Ägypten",      position: "ANG" },
-                    { playerId: 184,    name: "Harry Kane",         nation: "England",      position: "ANG" },
-                    { playerId: 153,    name: "Ousmane Dembélé",    nation: "Frankreich",   position: "ANG" },
-                    { playerId: 1460,   name: "Bukayo Saka",        nation: "England",      position: "ANG" },
-                    { playerId: 217,    name: "Lautaro Martínez",   nation: "Argentinien",  position: "ANG" },
-                    { playerId: 629,    name: "Kevin De Bruyne",    nation: "Belgien",      position: "MIT" },
-                    { playerId: 21393,  name: "Serhou Guirassy",    nation: "Guinea",       position: "ANG" },
-                    { playerId: 2780,   name: "Victor Osimhen",     nation: "Nigeria",      position: "ANG" },
-                    { playerId: 339883, name: "Kenan Yıldız",       nation: "Türkei",       position: "ANG" },
-                    { playerId: 6009,   name: "Julián Álvarez",     nation: "Argentinien",  position: "ANG" }
+                    { playerId: 128384, name: "Vitinha",               nation: "Portugal",     position: "MIT" }, // PSG
+                    { playerId: 278,    name: "Kylian Mbappé",         nation: "Frankreich",   position: "ANG" }, // Real Madrid
+                    { playerId: 483,    name: "Khvicha Kvaratskhelia", nation: "Georgien",     position: "ANG" }, // PSG
+                    { playerId: 129718, name: "Jude Bellingham",       nation: "England",      position: "MIT" }, // Real Madrid
+                    { playerId: 335051, name: "João Neves",            nation: "Portugal",     position: "MIT" }, // PSG
+                    { playerId: 762,    name: "Vinícius Júnior",       nation: "Brasilien",    position: "ANG" }, // Real Madrid
+                    { playerId: 343027, name: "Désiré Doué",           nation: "Frankreich",   position: "ANG" }, // PSG
+                    { playerId: 386828, name: "Lamine Yamal",          nation: "Spanien",      position: "ANG" }, // Barcelona
+                    { playerId: 1100,   name: "Erling Haaland",        nation: "Norwegen",     position: "ANG" }, // Man City
+                    { playerId: 133609, name: "Pedri",                 nation: "Spanien",      position: "MIT" }, // Barcelona
+                    { playerId: 2937,   name: "Declan Rice",           nation: "England",      position: "MIT" }, // Arsenal
+                    { playerId: 19617,  name: "Michael Olise",         nation: "Frankreich",   position: "MIT" }, // Bayern München
+                    { playerId: 1460,   name: "Bukayo Saka",           nation: "England",      position: "ANG" }, // Arsenal
+                    { playerId: 6009,   name: "Julián Álvarez",        nation: "Argentinien",  position: "ANG" }  // Atlético Madrid
                 ]
-            },
-            {
-                id: "most_picked_players",
-                title: "",
-                type: "dynamic",
-                source: "mostPickedPlayers"
             }
         ];
 
         // Turnierabhängige Auswahl: CL-Turniere nutzen die CL-Stars, alle
         // anderen (WM) die bisherige WM-Rotation.
-        const starRotation = (window.APP_CONFIG && String(window.APP_CONFIG.key || "").toLowerCase().indexOf("cl") === 0)
-            ? cl2526StarRotation
-            : wm2026StarRotation;
+        const IS_CL = !!(window.APP_CONFIG && String(window.APP_CONFIG.key || "").toLowerCase().indexOf("cl") === 0);
+        const starRotation = IS_CL ? cl2526StarRotation : wm2026StarRotation;
 
         const STAR_NAME_ALIASES = {
             "abdukodir khusanov": ["abduqodir khusanov"]
@@ -4793,7 +4796,9 @@
         //  Der sichtbare Fächer umfasst 5 Karten (aktive + 2 je Seite);
         //  weiter entfernte Karten blenden aus und werden durchgeblättert.
         // ────────────────────────────────────────────────────────────────
-        const CARD_COUNT     = 9;      // Anzahl Karten im Karussell (Pool zum Durchblättern)
+        // Anzahl Karten im Karussell (Pool zum Durchblättern). CL zeigt genau
+        // die 14 kuratierten Stars; die WM bleibt unveraendert bei 9.
+        const CARD_COUNT     = IS_CL ? 14 : 9;
         const AUTOPLAY       = false;  // Autoplay deaktiviert – nur manuelle Navigation
         const MAX_VISIBLE    = 2;      // aktive Karte + 2 je Seite = 5 sichtbar
         const SCALE_STEP     = 0.16;   // Verkleinerung je Schritt
@@ -4840,6 +4845,23 @@
             return (items || []).map((it) => it && it.id).join('|');
         }
 
+        // Zentrums-Karte beim (Neu-)Aufbau bestimmen. WM: unveraendert die
+        // erste Karte (Index 0). CL: ein zufaelliger Spieler, damit bei jedem
+        // Seiten-Neuladen ein ANDERER Spieler im Zentrum steht. Rein lokale
+        // Berechnung (Math.random + ein localStorage-Zugriff) → kein Netzwerk,
+        // keine Ladeverzoegerung. Die Ring-Reihenfolge bleibt unveraendert, das
+        // „nie zwei gleiche Klubs nebeneinander" gilt also fuer jedes Zentrum.
+        function pickInitialActive(n) {
+            if (!IS_CL || n <= 1) return 0;
+            let last = -1;
+            try { last = parseInt(localStorage.getItem(CENTER_STORAGE_KEY), 10); } catch (_) {}
+            let idx = Math.floor(Math.random() * n);
+            // Direkte Wiederholung vermeiden (nur wenn ueberhaupt Auswahl bleibt).
+            if (idx === last && n > 1) idx = (idx + 1) % n;
+            try { localStorage.setItem(CENTER_STORAGE_KEY, String(idx)); } catch (_) {}
+            return idx;
+        }
+
         function renderCarouselItems(items) {
             track.innerHTML = '';
             players = items;
@@ -4853,7 +4875,7 @@
             }
             cards = items.map((it) => renderPlayerCard(it));
             cards.forEach((c) => track.appendChild(c));
-            active = 0;
+            active = pickInitialActive(cards.length);
             fitPlayerNames();
             measure();
             render();
