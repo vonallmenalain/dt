@@ -4761,9 +4761,11 @@
         //  Karte steht aufrecht im Fokus, die Nachbarn kippen in der
         //  Perspektive nach hinten. Klick/Tap holt eine Seitenkarte in die
         //  Mitte, Klick auf die aktive Karte öffnet die Spieleranalyse.
-        //  Es werden bewusst 5 Karten gezeigt (aktive + 2 je Seite).
+        //  Der sichtbare Fächer umfasst 5 Karten (aktive + 2 je Seite);
+        //  weiter entfernte Karten blenden aus und werden durchgeblättert.
         // ────────────────────────────────────────────────────────────────
-        const CARD_COUNT     = 5;      // Anzahl Karten im Karussell
+        const CARD_COUNT     = 9;      // Anzahl Karten im Karussell (Pool zum Durchblättern)
+        const AUTOPLAY       = false;  // Autoplay deaktiviert – nur manuelle Navigation
         const MAX_VISIBLE    = 2;      // aktive Karte + 2 je Seite = 5 sichtbar
         const SCALE_STEP     = 0.16;   // Verkleinerung je Schritt
         const SPREAD_FACTOR  = 0.62;   // horizontaler Abstand relativ zur Kartenbreite
@@ -4791,8 +4793,10 @@
                 </div>
                 <div class="tcc-player-info">
                     <h3 class="tcc-player-name">${escapeHtml(p.name)}</h3>
-                    <div class="tcc-meta-row"><img class="tcc-meta-icon tcc-flag-icon" loading="lazy" src="${escapeHtml(p.countryFlag)}" alt="Flagge ${escapeHtml(p.country)}"><span>${escapeHtml(p.country)}</span></div>
-                    <div class="tcc-meta-row"><img class="tcc-meta-icon" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}"><span>${escapeHtml(p.club)}</span></div>
+                    <div class="tcc-club-logo-wrap">
+                        <img class="tcc-club-logo" loading="lazy" src="${escapeHtml(p.clubLogo)}" alt="Vereinslogo ${escapeHtml(p.club)}">
+                    </div>
+                    <div class="tcc-club-name">${escapeHtml(p.club)}</div>
                 </div>
                 <div class="tcc-card-dim" aria-hidden="true"></div>
             `;
@@ -4848,7 +4852,7 @@
             root.querySelectorAll('.tcc-player-name').forEach((nameEl) => {
                 nameEl.style.fontSize = '';
                 nameEl.style.transform = '';
-                nameEl.style.transformOrigin = 'left center';
+                nameEl.style.transformOrigin = 'center center';
                 nameEl.style.whiteSpace = 'nowrap';
                 nameEl.style.display = 'block';
 
@@ -4864,7 +4868,7 @@
                 if (nameEl.scrollWidth > nameEl.clientWidth && nameEl.scrollWidth > 0) {
                     const scale = nameEl.clientWidth / nameEl.scrollWidth;
                     nameEl.style.transform = `scaleX(${scale})`;
-                    nameEl.style.transformOrigin = 'left center';
+                    nameEl.style.transformOrigin = 'center center';
                 }
             });
         }
@@ -4942,7 +4946,7 @@
         let autoplayId = null;
         function startAutoplay() {
             stopAutoplay();
-            if (prefersReducedMotion || cards.length < 2) return;
+            if (!AUTOPLAY || prefersReducedMotion || cards.length < 2) return;
             autoplayId = window.setInterval(() => {
                 if (!locked) goTo(active + 1);
             }, AUTOPLAY_DELAY);
