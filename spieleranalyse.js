@@ -5276,18 +5276,19 @@
             let awayGoals = null;
             let resolved = false;
             let hasResult = false;
-            if (home && away) {
-                if (manual) {
-                    const pick = leagueManualState.winners[id];
-                    if (pick && (pick === home.key || pick === away.key)) { winnerKey = pick; resolved = true; }
-                } else if (koIndex) {
-                    const real = lookupLeagueKnockout(koIndex, home.row, away.row);
-                    if (real) {
-                        hasResult = true;
-                        homeGoals = real.homeGoals;
-                        awayGoals = real.awayGoals;
-                        if (real.winnerKey) { winnerKey = real.winnerKey; resolved = true; }
-                    }
+            if (manual) {
+                // Manuell: der Sieger darf auch gesetzt werden, wenn der Gegner
+                // noch offen ist – der geklickte Klub rückt einfach weiter.
+                const pick = leagueManualState.winners[id];
+                const keys = [home && home.key, away && away.key].filter(Boolean);
+                if (pick && keys.indexOf(pick) !== -1) { winnerKey = pick; resolved = true; }
+            } else if (koIndex && home && away) {
+                const real = lookupLeagueKnockout(koIndex, home.row, away.row);
+                if (real) {
+                    hasResult = true;
+                    homeGoals = real.homeGoals;
+                    awayGoals = real.awayGoals;
+                    if (real.winnerKey) { winnerKey = real.winnerKey; resolved = true; }
                 }
             }
             res[id] = {
@@ -5364,8 +5365,10 @@
     function renderLeagueTie(id, res, manual, roundKey) {
         const r = res[id];
         const def = CL_TIE_DEFS[id];
-        const both = !!(r && r.homeRow && r.awayRow);
-        const pickable = manual && both;
+        // Anklickbar ist jeder bereits feststehende Klub (renderLeagueSlot prüft
+        // pro Seite, ob eine echte Zeile vorliegt) – so kann man sich auch von
+        // oben nach unten durch den Baum klicken.
+        const pickable = manual;
         const homePh = def.homeSource ? leagueSourcePlaceholder(def.homeSource) : '—';
         const awayPh = def.awaySource ? leagueSourcePlaceholder(def.awaySource) : '—';
         const cls = ['clb-tie', `clb-tie--${roundKey}`];
@@ -5461,16 +5464,18 @@
             + `<span><i class="clt-dot clt-dot--po"></i> Playoffs (${lp.directThrough + 1}–${lp.playoffThrough})</span>`
             + `<span><i class="clt-dot clt-dot--out"></i> Ausgeschieden (${lp.playoffThrough + 1}–${lp.teamCount})</span>`
             + '</div>';
+        let content;
         if (isTournamentManualMode()) {
-            return legend + renderLeagueManualList(context);
+            content = renderLeagueManualList(context);
+        } else {
+            const rows = context.standings.map(r => renderLeagueStandingsRow(r, lp)).join('');
+            content = '<div class="clt-wrap"><table class="clt">'
+                + '<thead><tr>'
+                + '<th class="clt-zonebar"></th><th class="clt-rank">#</th><th class="clt-club" style="text-align:left">Klub</th>'
+                + '<th>Sp</th><th>S-U-N</th><th>Tore</th><th>Diff</th><th>Pkt</th>'
+                + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
         }
-        const rows = context.standings.map(r => renderLeagueStandingsRow(r, lp)).join('');
-        return legend
-            + '<div class="clt-wrap"><table class="clt">'
-            + '<thead><tr>'
-            + '<th class="clt-zonebar"></th><th class="clt-rank">#</th><th class="clt-club" style="text-align:left">Klub</th>'
-            + '<th>Sp</th><th>S-U-N</th><th>Tore</th><th>Diff</th><th>Pkt</th>'
-            + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+        return '<div class="clt-panel">' + legend + content + '</div>';
     }
 
     function setLeagueManualWinner(id, key) {
@@ -5516,6 +5521,11 @@
                 + '<span class="hint-desktop">Klicke einen Klub an und ziehe ihn bei gedrückter Maustaste an die gewünschte Position.</span>'
                 + '<span class="hint-mobile">Tippe den Griff an und ziehe.</span>';
         }
+        const koHintText = document.querySelector('#tournament-knockout-manual-hint .tournament-manual-hint-text');
+        if (koHintText) {
+            koHintText.innerHTML = '<strong>Gewinner selbst festlegen:</strong> '
+                + '<span>Klicke in einer Paarung auf den Klub, der weiterkommen soll – er rückt automatisch in die nächste Runde.</span>';
+        }
     }
 
     function renderLeagueTournamentView() {
@@ -5526,6 +5536,9 @@
 
         setupLeagueTournamentUiOnce();
         syncTournamentModeUi();
+        // Der Gruppen-Grid-Host (repeat(auto-fit,…)) würde Legende und Tabelle
+        // nebeneinander legen → für die CL auf Block umstellen und zentrieren.
+        groupsEl.classList.add('clt-host');
         const context = buildLeagueContext();
 
         if (!context.standings.length) {
