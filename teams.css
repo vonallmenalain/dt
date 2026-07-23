@@ -1506,10 +1506,14 @@
         .card-wrapper:hover { z-index: 100; }
 
         .player-card {
-            background: var(--dark-card);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            /* Karussell-Look (tcc-player-card): dunkler Verlauf + goldener
+               Radial-Akzent, gerundete Karte mit Foto-Rahmen + grossem Badge. */
+            background:
+                linear-gradient(165deg, rgba(29,39,59,0.95) 0%, rgba(19,27,43,0.96) 65%, rgba(13,18,31,0.98) 100%),
+                radial-gradient(circle at 20% 0%, rgba(var(--rgb-gold), 0.14), transparent 52%);
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.16);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.5);
             width: 100%;
             height: 100%;
             text-align: center;
@@ -1518,8 +1522,9 @@
             align-items: center;
             position: relative;
             box-sizing: border-box;
-            justify-content: flex-start;
-            padding-top: 14px;
+            justify-content: center;
+            gap: 9px;
+            padding: 12px 10px 11px;
             cursor: pointer;
             text-decoration: none;
             color: inherit;
@@ -1540,17 +1545,19 @@
             top: 0; left: 0; right: 0;
             height: 50%;
             background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
-            border-radius: 12px 12px 0 0;
+            border-radius: 18px 18px 0 0;
             pointer-events: none;
             z-index: 0;
         }
 
-        .js-tilt-glare { border-radius: 12px; }
+        .js-tilt-glare { border-radius: 18px; }
 
         .player-card.is-captain {
-            background: linear-gradient(135deg, #1c1a0e, #261e08);
+            background:
+                linear-gradient(165deg, rgba(40,34,14,0.96) 0%, rgba(28,24,10,0.97) 70%, rgba(18,15,8,0.98) 100%),
+                radial-gradient(circle at 20% 0%, rgba(var(--rgb-amber), 0.18), transparent 52%);
             border: 1.5px solid rgba(var(--rgb-amber), 0.5);
-            box-shadow: 0 0 0 1px rgba(var(--rgb-amber), 0.15), 0 8px 24px rgba(var(--rgb-amber), 0.15), 0 8px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 0 0 1px rgba(var(--rgb-amber), 0.15), 0 16px 40px rgba(0,0,0,0.5), 0 0 34px rgba(var(--rgb-amber), 0.2);
         }
 
         .player-card.is-orphan {
@@ -1674,13 +1681,16 @@
         }
 
         .avatar-wrapper {
-            width: 92px; height: 92px;
-            border-radius: 8px;
+            width: 60%;
+            aspect-ratio: 1 / 1;
+            align-self: center;
+            border-radius: 15px;
             overflow: hidden;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-top: 6px;
-            margin-bottom: 6px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 4px 10px rgba(8,15,27,0.15);
+            display: grid;
+            place-items: center;
             transform: translateZ(18px);
             transition: transform 0.3s ease;
             backface-visibility: hidden;
@@ -1693,15 +1703,18 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+            object-position: center center;
             transition: transform 0.3s ease;
         }
 
         .card-info {
             width: 100%;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 6px;
+            gap: 5px;
+            padding: 0 4px;
             box-sizing: border-box;
             transform: translateZ(12px);
             transition: transform 0.3s ease;
@@ -1712,39 +1725,49 @@
         }
 
         .card-name {
-            font-weight: 700;
-            font-size: 12px;
-            line-height: 1.2;
-            min-height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin: 0;
+            font-weight: 900;
+            font-size: 13px;
+            line-height: 1.08;
+            letter-spacing: -0.02em;
             text-align: center;
             width: 100%;
-            color: var(--text-main);
-            margin-bottom: 5px;
+            color: #f8fbff;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .card-sub-info {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            font-size: 10px;
+        /* Grosses Badge unter dem Namen (primäre Entität: WM → Nation/Flagge,
+           CL → Klub/Logo) – 1:1 zum Karussell (tcc-badge). */
+        .card-badge-wrap {
             width: 100%;
-            margin-bottom: 3px;
-            font-weight: 600;
-            color: var(--text-muted);
+            display: grid;
+            place-items: center;
+            margin-top: 1px;
         }
 
-        .small-icon {
-            width: 24px; height: 17px;
-            object-fit: cover;
-            border-radius: 2px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        .card-badge-img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            object-position: center center;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
         }
 
-        .small-icon.club { width: 19px; height: 19px; object-fit: contain; box-shadow: none; }
+        .card-badge-label {
+            width: 100%;
+            font-size: 0.68rem;
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+            color: rgba(230,237,243,0.9);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         .card-pts {
             position: absolute;
@@ -2238,14 +2261,10 @@
                 width: 62%;
                 height: auto;
                 aspect-ratio: 1;
-                margin-top: 5px;
-                margin-bottom: 5px;
             }
 
             .mobile-card-wrapper .card-name {
                 font-size: 11px;
-                min-height: 22px;
-                margin-bottom: 3px;
                 padding: 0 4px;
                 /* Lange Namen (z.B. "Königsdörffer", "Kvaratskhelia")
                    duerfen mitten im Wort umbrechen, sonst diktiert ihre
@@ -2255,18 +2274,12 @@
                 word-break: break-word;
             }
 
-            .mobile-card-wrapper .card-sub-info {
-                font-size: 9px;
-                gap: 3px;
-                margin-bottom: 2px;
+            .mobile-card-wrapper .card-badge-img {
+                width: 32px; height: 32px;
             }
 
-            .mobile-card-wrapper .small-icon {
-                width: 19px; height: 13px;
-            }
-
-            .mobile-card-wrapper .small-icon.club {
-                width: 15px; height: 15px;
+            .mobile-card-wrapper .card-badge-label {
+                font-size: 0.6rem;
             }
 
             .mobile-card-wrapper .captain-badge {
