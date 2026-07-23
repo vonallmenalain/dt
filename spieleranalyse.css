@@ -907,48 +907,30 @@
             color: var(--text-muted);
         }
 
-        .player-score-caption {
-            font-size: 0.62rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.4px;
-            color: var(--text-muted);
-            padding-right: 4px;
-        }
-
-        /* -- AFFILIATIONS: primary team big, secondary small -- */
+        /* -- AFFILIATIONS: bare logos floating over the card (Spielerkarten-Look) -- */
         .player-affiliations {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px 20px;
             flex-wrap: wrap;
         }
 
         .player-affil {
             display: inline-flex;
             align-items: center;
-            gap: 11px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 999px;
+            gap: 12px;
             cursor: pointer;
-            transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
             min-width: 0;
+            transition: transform 0.2s, opacity 0.2s;
         }
 
-        .player-affil .paf-crest {
+        .player-affil .paf-logo {
             flex-shrink: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .player-affil .paf-crest img {
-            width: 100%;
-            height: 100%;
             object-fit: contain;
+            object-position: center;
             display: block;
+            /* Just the logo over the background – soft shadow gives it presence */
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.45));
         }
 
         .player-affil .paf-name {
@@ -960,76 +942,49 @@
             min-width: 0;
         }
 
-        /* Primary = headline team (Club in CL / Nation in WM): large crest */
-        .player-affil-primary {
-            padding: 7px 18px 7px 8px;
-            gap: 13px;
-        }
-
-        .player-affil-primary .paf-crest {
+        /* Primary = headline team (Club in CL / Nation in WM): larger logo */
+        .player-affil-primary .paf-logo {
             width: 46px;
             height: 46px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 50%;
-            padding: 5px;
         }
 
         .player-affil-primary .paf-name {
-            font-size: 1.05rem;
+            font-size: 1.1rem;
             font-weight: 800;
         }
 
-        /* Secondary = the other affiliation: small chip */
-        .player-affil-secondary {
-            padding: 6px 14px 6px 6px;
-            gap: 9px;
-        }
-
-        .player-affil-secondary .paf-crest {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
+        /* Secondary = the other affiliation: smaller logo, muted label */
+        .player-affil-secondary .paf-logo {
+            width: 30px;
+            height: 30px;
+            filter: drop-shadow(0 3px 7px rgba(0,0,0,0.4));
         }
 
         .player-affil-secondary .paf-name {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             color: var(--text-muted);
         }
 
         .player-affil:hover {
-            background: rgba(var(--rgb-green-1), 0.10);
-            border-color: rgba(var(--rgb-green-1), 0.35);
             transform: translateY(-2px);
-            box-shadow: 0 8px 22px -8px rgba(0,0,0,0.4);
         }
 
-        .player-affil:hover .paf-name { color: var(--text-main); }
+        .player-affil:hover .paf-name { color: var(--green-light); }
 
         .player-affil:focus-visible {
             outline: 2px solid var(--green-light);
-            outline-offset: 3px;
+            outline-offset: 4px;
+            border-radius: 8px;
         }
 
-        /* -- META LINE: subtle, secondary info -- */
+        /* -- META LINE: subtle, self-explanatory values -- */
         .player-meta-line {
             display: flex;
             align-items: center;
             flex-wrap: wrap;
             gap: 6px 12px;
             color: var(--text-muted);
-            font-size: 0.82rem;
-        }
-
-        .player-meta-line .pml-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .player-meta-line .pml-ico {
-            font-size: 0.9em;
-            opacity: 0.85;
-            filter: saturate(0.85);
+            font-size: 0.85rem;
         }
 
         .player-meta-line .pml-value {
@@ -5843,7 +5798,7 @@
         }
 
         @media (max-width: 480px) {
-            .player-affiliations { flex-direction: column; align-items: stretch; }
+            .player-affiliations { justify-content: center; column-gap: 16px; }
             .player-affil { justify-content: center; }
         }
 

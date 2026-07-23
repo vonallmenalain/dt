@@ -210,55 +210,38 @@
                                     <!-- Score: prominent, top-right -->
                                     <div class="player-score-stage">
                                         <div id="detail-total-pts" class="player-score-pill zero" aria-live="polite">0 Pkt.</div>
-                                        <div class="player-score-caption">Gesamtpunkte</div>
                                     </div>
                                 </div>
 
-                                <!-- Affiliations: primary (Club/Nation) big, secondary small -->
+                                <!-- Affiliations: logos float over the card (Spielerkarten-Look) -->
                                 <div class="player-affiliations">
-                                    <!-- Primary tile (id preserved for onclick JS) -->
+                                    <!-- Primary (id preserved for onclick JS) -->
                                     <div class="player-affil player-affil-primary" id="tile-nation"
                                          role="button" tabindex="0"
                                          title="Alle Spieler dieses Teams anzeigen"
                                          aria-label="Team filtern">
-                                        <span class="paf-crest">
-                                            <img id="detail-nation-flag" src="" alt="Wappen" width="44" height="44">
-                                        </span>
+                                        <img class="paf-logo" id="detail-nation-flag" src="" alt="Wappen" width="44" height="44">
                                         <span class="paf-name" id="detail-nation-name">–</span>
                                     </div>
 
-                                    <!-- Secondary tile (id preserved for onclick JS) -->
+                                    <!-- Secondary (id preserved for onclick JS) -->
                                     <div class="player-affil player-affil-secondary" id="tile-club"
                                          role="button" tabindex="0"
                                          title="Alle Spieler dieses Landes anzeigen"
                                          aria-label="Land filtern">
-                                        <span class="paf-crest">
-                                            <img id="detail-club-logo" src="" alt="Fahne" width="26" height="26">
-                                        </span>
+                                        <img class="paf-logo" id="detail-club-logo" src="" alt="Fahne" width="28" height="28">
                                         <span class="paf-name" id="detail-club-name">–</span>
                                     </div>
                                 </div>
 
-                                <!-- Meta line: subtle, secondary info -->
+                                <!-- Meta line: subtle, self-explanatory values -->
                                 <div class="player-meta-line" aria-label="Steckbrief">
-                                    <span class="pml-item">
-                                        <span class="pml-ico" aria-hidden="true">🎂</span>
-                                        <span class="pml-value" id="detail-dob">–</span>
-                                    </span>
+                                    <span class="pml-value" id="detail-dob">–</span>
                                     <span class="pml-sep" aria-hidden="true"></span>
-                                    <span class="pml-item">
-                                        <span class="pml-ico" aria-hidden="true">📏</span>
-                                        <span class="pml-value" id="detail-height">–</span>
-                                    </span>
+                                    <span class="pml-value" id="detail-height">–</span>
                                     <span class="pml-sep" aria-hidden="true"></span>
-                                    <span class="pml-item">
-                                        <span class="pml-ico" aria-hidden="true">⚖️</span>
-                                        <span class="pml-value" id="detail-weight">–</span>
-                                    </span>
+                                    <span class="pml-value" id="detail-weight">–</span>
                                 </div>
-
-                                <!-- Awards -->
-                                <div id="award-section" class="awards-container" aria-label="Auszeichnungen"></div>
                             </div>
                         </div>
                     </div>
