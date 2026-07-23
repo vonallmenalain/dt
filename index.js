@@ -4807,6 +4807,42 @@
         });
     }
 
+    // Karussell-Rezeptur (siehe tcc-Carousel: MOVE_DUR/MOVE_EASE): 0.6 s mit
+    // weich auslaufender Kurve cubic-bezier(0.22, 1, 0.36, 1). Open/Close des
+    // Popups nutzen exakt dieselbe Bewegung wie der Kartenwechsel im
+    // Karussell; die Dauer muss mit den cltm-CSS-Transitions übereinstimmen.
+    const CLTM_MOVE_MS = 600;
+
+    /* Ghost-Morph: Statt das volle Modal (15 Chips, Fotos, Schatten) zu
+       skalieren, trägt ein leichter optischer KLON der Kachel die Morph-
+       Animation zwischen Kachel und Karte – das Modal blendet währenddessen
+       nur ein/aus (Crossfade). Genau diese Arbeitsteilung macht auch den
+       Karussell-Wechsel so flüssig: bewegt werden nur kleine, fertige
+       Karten, nie schwerer Inhalt. */
+    let cltmGhost = null;
+
+    function cltmMakeGhost(tileEl, rect) {
+        cltmRemoveGhost();
+        const ghost = tileEl.cloneNode(true);
+        ghost.classList.remove('cltm-src-hidden');
+        ghost.classList.add('cltm-ghost');
+        ghost.removeAttribute('aria-label');
+        ghost.setAttribute('aria-hidden', 'true');
+        ghost.setAttribute('tabindex', '-1');
+        ghost.style.left = rect.left + 'px';
+        ghost.style.top = rect.top + 'px';
+        ghost.style.width = rect.width + 'px';
+        ghost.style.height = rect.height + 'px';
+        cltmOverlay.appendChild(ghost);
+        cltmGhost = ghost;
+        return ghost;
+    }
+
+    function cltmRemoveGhost() {
+        if (cltmGhost && cltmGhost.parentNode) cltmGhost.parentNode.removeChild(cltmGhost);
+        cltmGhost = null;
+    }
+
     function cltmOpen(manager, tileEl) {
         cltmEnsureOverlay();
         if (cltmClosing) return;
@@ -4828,19 +4864,21 @@
         // Chips sofort (ohne Transition) in der Positions-Ansicht platzieren.
         cltmLayoutPlayers(false);
 
-        // FLIP: Startzustand = Geometrie der angeklickten Kachel, Endzustand =
-        // zentrierte Detailkarte. Transform wird invertiert gesetzt und dann
-        // auf identity transitioniert („die Kachel wächst zur Karte").
+        // Morph (FLIP + Ghost): Das Modal startet transparent an der Kachel-
+        // Geometrie; der Kachel-Klon wächst mit der Karussell-Kurve zur Karte
+        // und blendet dabei ins mitwachsende Modal über. Der schwere Inhalt
+        // wird so nie sichtbar verzerrt skaliert.
         const reduced = cltmPrefersReducedMotion();
+        let ghostTarget = '';
         if (!reduced && tileEl) {
             const from = tileEl.getBoundingClientRect();
             const to = cltmModal.getBoundingClientRect();
-            const sx = from.width / Math.max(to.width, 1);
-            const sy = from.height / Math.max(to.height, 1);
-            const dx = from.left - to.left;
-            const dy = from.top - to.top;
             cltmModal.style.transformOrigin = 'top left';
-            cltmModal.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${sx}, ${sy})`;
+            cltmModal.style.transform = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
+                + `scale(${from.width / Math.max(to.width, 1)}, ${from.height / Math.max(to.height, 1)})`;
+            cltmMakeGhost(tileEl, from);
+            ghostTarget = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
+                + `scale(${to.width / Math.max(from.width, 1)}, ${to.height / Math.max(from.height, 1)})`;
         } else {
             cltmModal.style.transform = '';
         }
@@ -4852,20 +4890,26 @@
             requestAnimationFrame(() => {
                 cltmOverlay.classList.add('is-open');
                 cltmModal.style.transform = '';
+                if (cltmGhost && ghostTarget) {
+                    cltmGhost.style.transform = ghostTarget;
+                    cltmGhost.classList.add('is-out');
+                }
             });
         });
 
-        // Backdrop-Blur erst NACH der Transform-Animation zuschalten
-        // (`is-settled`): backdrop-filter während der Animation ist der
-        // häufigste Ruckel-Verursacher, danach kostet er nur einen Frame.
+        // Nach der Morph-Animation: Ghost aufräumen und Backdrop-Blur
+        // zuschalten (`is-settled`) – backdrop-filter während der Animation
+        // ist der häufigste Ruckel-Verursacher, danach kostet er nur einen
+        // Frame.
         const settle = (ev) => {
             if (ev && (ev.target !== cltmModal || ev.propertyName !== 'transform')) return;
             cltmModal.removeEventListener('transitionend', settle);
             if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
+            cltmRemoveGhost();
             if (!cltmOverlay.hidden && cltmOpenKey !== null) cltmOverlay.classList.add('is-settled');
         };
         cltmModal.addEventListener('transitionend', settle);
-        cltmSettleTimer = setTimeout(() => settle({ target: cltmModal, propertyName: 'transform' }), 700);
+        cltmSettleTimer = setTimeout(() => settle({ target: cltmModal, propertyName: 'transform' }), CLTM_MOVE_MS + 150);
 
         const closeBtn = cltmModal.querySelector('.cltm-close');
         if (closeBtn) setTimeout(() => { try { closeBtn.focus({ preventScroll: true }); } catch (_) {} }, 80);
@@ -4885,6 +4929,9 @@
             cltmOverlay.classList.remove('is-open', 'is-closing', 'is-settled');
             cltmModal.style.transform = '';
             cltmUnlockBody();
+            // Ghost entfernen und Kachel im selben Frame wieder einblenden –
+            // der Klon landet exakt auf der Kachel, der Tausch ist unsichtbar.
+            cltmRemoveGhost();
             document.querySelectorAll('.cltm-tile.cltm-src-hidden').forEach((el) => el.classList.remove('cltm-src-hidden'));
             if (cltmLastTrigger && document.contains(cltmLastTrigger)) {
                 try { cltmLastTrigger.focus({ preventScroll: true }); } catch (_) {}
@@ -4910,26 +4957,35 @@
         if (!cltmPrefersReducedMotion() && tileEl) {
             const to = tileEl.getBoundingClientRect();
             const from = cltmModal.getBoundingClientRect();
-            const sx = to.width / Math.max(from.width, 1);
-            const sy = to.height / Math.max(from.height, 1);
-            const dx = to.left - from.left;
-            const dy = to.top - from.top;
             cltmModal.style.transformOrigin = 'top left';
-            cltmModal.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${sx}, ${sy})`;
+            cltmModal.style.transform = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
+                + `scale(${to.width / Math.max(from.width, 1)}, ${to.height / Math.max(from.height, 1)})`;
+
+            // Ghost-Rückweg: startet als aufgeblasene Kachel auf dem Modal
+            // und schrumpft mit der Karussell-Kurve exakt auf den Platz der
+            // Kachel zurück, während das Modal ausblendet (Crossfade).
+            const ghost = cltmMakeGhost(tileEl, to);
+            ghost.classList.add('is-in');
+            ghost.style.transform = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
+                + `scale(${from.width / Math.max(to.width, 1)}, ${from.height / Math.max(to.height, 1)})`;
+            void ghost.offsetWidth; // Startzustand rendern lassen
+            ghost.style.transform = '';
+            ghost.classList.remove('is-in');
         }
 
-        // transitionend bubbelt auch von Kind-Transitions hoch → nur auf
-        // Transitions des Modals selbst reagieren.
+        // transitionend bubbelt auch von Kind-Transitions hoch → nur auf die
+        // TRANSFORM-Transition des Modals selbst reagieren (die Opacity endet
+        // deutlich früher und würde die Rück-Animation hart abschneiden).
         let done = false;
         const onEnd = (ev) => {
-            if (ev && ev.target !== cltmModal) return;
+            if (ev && (ev.target !== cltmModal || (ev.propertyName && ev.propertyName !== 'transform'))) return;
             if (done) return;
             done = true;
             cltmModal.removeEventListener('transitionend', onEnd);
             finish();
         };
         cltmModal.addEventListener('transitionend', onEnd);
-        setTimeout(() => onEnd({ target: cltmModal }), 620); // Fallback, falls transitionend ausbleibt
+        setTimeout(() => onEnd({ target: cltmModal }), CLTM_MOVE_MS + 150); // Fallback, falls transitionend ausbleibt
     }
 
     /* ── Top-10-Kachel-Grid ─────────────────────────────────────────── */
