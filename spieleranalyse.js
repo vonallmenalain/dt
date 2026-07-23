@@ -892,18 +892,33 @@
     function initStaticFilters() {
         if (staticFiltersInitialized) return;
 
+        // Wichtig für die CL: der Club-Remap in data.js legt den Klub in das
+        // PRIMÄRE Feld (Nationalteam.name) und die Nationalität ins SEKUNDÄRE
+        // (Club.name). Der „nation-filter" listet also in der CL die Klubs
+        // (→ Label „Club"), der „club-filter" die Länder (→ Label „Land").
+        // Für die WM bleibt alles wie gehabt (nation=Land, club=Verein).
         const nations = [...new Set(playersData.map(p => p['Nationalteam.name']))].filter(Boolean).sort();
         const nationSelect = document.getElementById('nation-filter');
-        nations.forEach(n => {
-            nationSelect.innerHTML += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`;
-        });
+        if (nationSelect) {
+            nationSelect.setAttribute('aria-label', IS_CLUB_ENTITY ? 'Club filtern' : 'Land filtern');
+            const nAll = nationSelect.querySelector('option[value="ALL"]');
+            if (nAll) nAll.textContent = IS_CLUB_ENTITY ? 'Alle Clubs' : 'Alle Länder';
+            nations.forEach(n => {
+                nationSelect.innerHTML += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`;
+            });
+        }
 
         const clubs = [...new Set(playersData.map(p => p['Club.name']))]
             .filter(c => c && c !== "Vereinslos").sort();
         const clubSelect = document.getElementById('club-filter');
-        clubs.forEach(c => {
-            clubSelect.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
-        });
+        if (clubSelect) {
+            clubSelect.setAttribute('aria-label', IS_CLUB_ENTITY ? 'Land filtern' : 'Verein filtern');
+            const cAll = clubSelect.querySelector('option[value="ALL"]');
+            if (cAll) cAll.textContent = IS_CLUB_ENTITY ? 'Alle Länder' : 'Alle Vereine';
+            clubs.forEach(c => {
+                clubSelect.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+            });
+        }
 
         staticFiltersInitialized = true;
     }
@@ -7684,14 +7699,9 @@
         if (!IS_CLUB_ENTITY) return;
         const setAttr = (el, a, v) => { if (el) el.setAttribute(a, v); };
 
-        // Spielerliste: Suche + Primär-Filter (in der CL = Club-Filter).
-        setAttr(document.getElementById('search-input'), 'placeholder', '🔍 Name oder Club...');
-        const nf = document.getElementById('nation-filter');
-        if (nf) {
-            nf.setAttribute('aria-label', 'Club filtern');
-            const all = nf.querySelector('option[value="ALL"]');
-            if (all) all.textContent = 'Alle Clubs';
-        }
+        // Spieler-Suche. (Die Filter-Selects werden autoritativ in
+        // initStaticFilters beschriftet – primär = Club, sekundär = Land.)
+        setAttr(document.getElementById('search-input'), 'placeholder', '🔍 Name, Club oder Land...');
 
         // Spielplan-Sidebar.
         const reset = document.getElementById('schedule-reset-filters');
@@ -7716,6 +7726,14 @@
             tileNation.setAttribute('aria-label', 'Club filtern');
         }
         setAttr(document.getElementById('detail-nation-flag'), 'alt', 'Vereinslogo');
+
+        // Sekundäre „Club"-Kachel zeigt in der CL die Nationalität → „Land".
+        const tileClub = document.getElementById('tile-club');
+        if (tileClub) {
+            tileClub.setAttribute('title', 'Alle Spieler dieses Landes anzeigen');
+            tileClub.setAttribute('aria-label', 'Land filtern');
+        }
+        setAttr(document.getElementById('detail-club-logo'), 'alt', 'Landesflagge');
     }
 
     async function init() {
