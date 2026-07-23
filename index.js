@@ -4758,6 +4758,7 @@
     let cltmLastTrigger = null;  // Kachel, die den Dialog geöffnet hat (Fokus-Rückgabe)
     let cltmClosing = false;
     let cltmSettleTimer = null;
+    let cltmSettleHandler = null;
     let cltmResizeTimer = null;
 
     function cltmPrefersReducedMotion() {
@@ -4917,17 +4918,26 @@
         }
 
         // Nach der Morph-Animation: Ghost aufräumen und Blur-Ebene weich
-        // einblenden (`is-settled`). Bewusst ein FESTER Timer ab dem
-        // Transitionsstart statt `transitionend`: Chrome feuert auf dem
-        // Modal gelegentlich ein spurioses transform-transitionend mit
-        // elapsedTime 0 (~80 ms nach Start) – das hat den Settle-Zustand
-        // mitten in der Animation ausgelöst (sichtbares Blur-Aufblitzen).
-        // Die CSS-Dauer ist eine Konstante, der Timer ist deterministisch.
-        const settle = () => {
-            cltmSettleTimer = null;
+        // einblenden (`is-settled`). Präzise über transitionend der
+        // transform-Transition MIT elapsedTime-Guard: der Guard filtert die
+        // spuriosen 0ms-transform-Events, die Chrome gelegentlich kurz nach
+        // dem Start feuert. Der Timer ist nur noch grosszügiger Fallback –
+        // CSS-Transitions starten erst mit dem nächsten Frame-Commit, unter
+        // Last also spürbar nach dem JS-Aufruf; ein knapper fester Timer hat
+        // deshalb das Ende der Animation abgeschnitten.
+        let settled = false;
+        const settle = (ev) => {
+            if (settled) return;
+            if (ev && (ev.target !== cltmModal || ev.propertyName !== 'transform' || ev.elapsedTime < 0.55)) return;
+            settled = true;
+            cltmModal.removeEventListener('transitionend', settle);
+            cltmSettleHandler = null;
+            if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
             cltmRemoveGhost();
             if (!cltmOverlay.hidden && cltmOpenKey !== null) cltmOverlay.classList.add('is-settled');
         };
+        cltmModal.addEventListener('transitionend', settle);
+        cltmSettleHandler = settle;
 
         // Doppel-rAF: der Browser rendert garantiert einen Frame im
         // Startzustand, bevor die Transition beginnt – ohne diesen Schritt
@@ -4940,7 +4950,7 @@
                     cltmGhost.style.transform = ghostTarget;
                     cltmGhost.classList.add('is-out');
                 }
-                cltmSettleTimer = setTimeout(settle, CLTM_MOVE_MS + 60);
+                cltmSettleTimer = setTimeout(() => settle(null), CLTM_MOVE_MS + 300);
             });
         });
 
@@ -4954,6 +4964,13 @@
         cltmOpenKey = null;
         cltmClosing = true;
         if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
+        // Falls der Open-Settle noch nicht gefeuert hat (schnelles
+        // Schliessen): Listener abhängen, sonst würde er während des
+        // Schliessens den CLOSE-Ghost entfernen.
+        if (cltmSettleHandler) {
+            cltmModal.removeEventListener('transitionend', cltmSettleHandler);
+            cltmSettleHandler = null;
+        }
 
         const finish = () => {
             cltmClosing = false;
@@ -5006,11 +5023,26 @@
             ghost.classList.remove('is-in');
         }
 
-        // Abschluss über FESTEN Timer statt `transitionend` (siehe Settle im
-        // Open-Pfad: spuriose transform-Events mit elapsedTime 0 würden die
-        // Rück-Animation sonst mitten im Flug hart beenden). Die CSS-Dauer
-        // ist konstant – der Timer trifft das Transitionsende zuverlässig.
-        setTimeout(finish, CLTM_MOVE_MS + 60);
+        // Abschluss EXAKT beim Landen des Ghosts: transitionend seiner
+        // transform-Transition (elapsedTime-Guard filtert die spuriosen
+        // 0ms-Events). Ein knapper fester Timer hat das Ende der Rück-
+        // Animation unter Last abgeschnitten – CSS-Transitions starten erst
+        // mit dem nächsten Frame-Commit, die Kachel „blitzte" dann die
+        // letzten Pixel an ihren Platz. Der Timer bleibt nur als
+        // grosszügiger Fallback (z. B. reduced motion: kein Ghost).
+        let done = false;
+        const onEnd = (ev) => {
+            if (done) return;
+            if (ev && (ev.propertyName !== 'transform' || ev.elapsedTime < 0.55)) return;
+            done = true;
+            finish();
+        };
+        if (cltmGhost) cltmGhost.addEventListener('transitionend', onEnd);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                setTimeout(() => onEnd(null), CLTM_MOVE_MS + 300);
+            });
+        });
     }
 
     /* ── Kachel-Bühne: „Top" (Podest + Reihe) / „Alle" ──────────────────
