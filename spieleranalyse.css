@@ -5787,6 +5787,11 @@
  *  Wird nur bei Ligaphasen-Turnieren (structure: "league") gerendert.
  *  Farbwelt aus der CL-Palette (theme-cl.css / --cl-*), mit Fallbacks.
  * ========================================================================== */
+/* Ligatabelle für die CL nicht im Gruppen-Grid, sondern als zentrierte
+   Einzelspalte darstellen. */
+#tournament-groups-list.clt-host { display: block; }
+.clt-panel { max-width: 780px; margin: 0 auto; }
+
 .clt-legend {
     display: flex;
     flex-wrap: wrap;
@@ -5938,8 +5943,8 @@ table.clt tbody tr:hover td { background: rgba(125, 180, 255, 0.06); }
     min-width: 880px;
 }
 .clb-col {
-    flex: 1 1 0;
-    min-width: 150px;
+    flex: 1 0 auto;
+    min-width: 172px;
     display: flex;
     flex-direction: column;
 }
@@ -6019,11 +6024,8 @@ button.clb-slot--pick:hover { background: rgba(125, 180, 255, 0.16); border-colo
 .clb-logo { flex: 0 0 auto; width: 20px; height: 20px; object-fit: contain; }
 .clb-logo--ph { display: inline-block; background: rgba(125, 180, 255, 0.1); border-radius: 4px; }
 .clb-name {
-    flex: 1 1 auto;
-    min-width: 0;
+    flex: 1 0 auto;
     font-size: 0.86em;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
 }
 .clb-name--ph { color: var(--cl-text-muted, #9db6e8); font-style: italic; font-size: 0.8em; }
@@ -6037,7 +6039,9 @@ button.clb-slot--pick:hover { background: rgba(125, 180, 255, 0.16); border-colo
 }
 
 @media (max-width: 560px) {
-    .clb-cols { min-width: 760px; gap: 10px; }
-    .clb-col { min-width: 132px; }
+    /* Runden breit genug lassen, damit der volle Klubname ohne Abschneiden
+       passt – der Baum bleibt horizontal scrollbar. */
+    .clb-cols { gap: 10px; }
+    .clb-col { min-width: 168px; }
     .clt-status { padding: 2px 6px; font-size: 0.66em; }
 }
