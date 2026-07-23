@@ -218,11 +218,7 @@ function buildDevTournamentSwitcher(APP) {
     function placeNextToIndexToggle() {
         const toggle = document.getElementById('dev-index-toggle');
         if (!toggle) return;
-        const monitorLink = document.getElementById('admin-sync-monitor-link');
-        const anchor = monitorLink && monitorLink.classList.contains('is-admin-visible')
-            ? monitorLink
-            : toggle;
-        const rect = anchor.getBoundingClientRect();
+        const rect = toggle.getBoundingClientRect();
         if (!rect || !rect.width) return;
         wrapper.style.left = `${Math.round(rect.right + 6)}px`;
         wrapper.style.top = `${Math.round(rect.top)}px`;
@@ -680,11 +676,11 @@ function buildPreviewBadge(APP) {
     (document.body || document.documentElement).appendChild(bar);
 
     // Nicht mit den übrigen Dev-Knöpfen oben links kollidieren: ist dort etwas
-    // sichtbar (#dev-index-toggle, Sync-Link, Turnier-Switcher), rutscht der
+    // sichtbar (#dev-index-toggle, Turnier-Switcher), rutscht der
     // Pill in die Zeile darunter; sonst bleibt er bei top:8px.
     function placePreviewBadge() {
         let bottom = 0;
-        ['dev-index-toggle', 'admin-sync-monitor-link', 'dev-tournament-switcher', 'dev-tournament-toggle']
+        ['dev-index-toggle', 'dev-tournament-switcher', 'dev-tournament-toggle']
             .forEach((id) => {
                 const el = document.getElementById(id);
                 if (!el) return;
