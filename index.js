@@ -1862,6 +1862,20 @@
         if (preDashboard && preDashboard.children.length === 0) preDashboard.remove();
         const postBottom = document.querySelector('#indexHomePostStart .post-bottom');
         if (postBottom && postBottom.children.length === 0) postBottom.remove();
+
+        // Top-Manager-Bereich: In der CL ersetzt die kompakte Top-10-Liste
+        // (#clTopManagers, siehe renderClTopManagers) die Champ-Stage samt
+        // Podest-Animation. Die Champ-Stage fliegt hier komplett raus
+        // (theme-cl.css blendet sie zusätzlich schon vor dem JS-Boot aus);
+        // das WM-Podest selbst bleibt im Code unangetastet.
+        const champStage = document.querySelector('#indexHomePostStart .champ-stage');
+        if (champStage) champStage.remove();
+        const clTopSection = $('clTopManagers');
+        if (clTopSection) clTopSection.hidden = false;
+    } else {
+        // WM (bzw. Nicht-CL): die CL-Top-10-Sektion wird nie benutzt → weg.
+        const clTopSection = $('clTopManagers');
+        if (clTopSection) clTopSection.remove();
     }
 
     /* =========================================================
@@ -4067,6 +4081,14 @@
         return { playerMatchPoints, nationStatus, maxNationGames };
     }
 
+    // Positions-Normalisierung wie in teams.js (FORWARD → ATTACKER); wird
+    // für das Mini-Fussballfeld der CL-Top-10-Detailkarte gebraucht.
+    function champNormalizePos(pos) {
+        const upper = String(pos || '').toUpperCase();
+        if (upper === 'FORWARD') return 'ATTACKER';
+        return upper || 'UNKNOWN';
+    }
+
     function champEnrichTeams(rawTeams, playerPointsMap, playerMatchPoints) {
         return (Array.isArray(rawTeams) ? rawTeams : []).map((team) => {
             const mergedPlayers = (team.players || []).map((p, idx) => {
@@ -4083,6 +4105,11 @@
                     isCaptain: !!p.isCaptain,
                     photo: fullP ? (fullP.Spielerfoto || '') : '',
                     nation: fullP ? (fullP['Nationalteam.name'] || '?') : '?',
+                    // Live-Position aus playersData bevorzugen (wie teams.js),
+                    // damit Positions-Overrides auch hier greifen; Slot-Nummer
+                    // (0–14) für die Feld-Aufstellung der CL-Detailkarte.
+                    pos: champNormalizePos((fullP && fullP.Position) || p.pos),
+                    slotNum: p.slot ? parseInt(String(p.slot).replace('slot-', ''), 10) : -1,
                     matchPoints: matchesMap,
                     matchCount: Object.keys(matchesMap).length
                 };
@@ -4331,6 +4358,361 @@
     }
 
     /* =========================================================
+       CL: TOP-10-MANAGER – kompakte Liste + Expand-Detailkarte
+       Ersetzt in der CL die Champ-Stage (Podest). Nutzt exakt
+       dieselbe Ranking-Pipeline (buildChampRanking) wie das
+       WM-Podest bzw. rangliste.html, damit Reihenfolge und
+       Punkte überall übereinstimmen. Eigener Namespace `cltm-`.
+
+       Interaktion („Expandable Card"): Klick auf eine Manager-
+       Zeile expandiert sie mit einer FLIP-Animation (von der
+       Zeilen-Position zur zentrierten Detailkarte). Die Detail-
+       karte zeigt ein kleines Fussballfeld mit allen 15 Spielern
+       (Slots des Team-Builders: 0 Tor, 1–3 Abwehr, 4–7 Mittelfeld,
+       8–10 Sturm, 11–14 Bank) samt Punkten.
+       ========================================================= */
+    const CLTM_MAX = 10;
+
+    const CLTM_ROWS = [
+        { key: 'GOALKEEPER', label: 'Tor',        firstSlot: 0,  lastSlot: 0 },
+        { key: 'DEFENDER',   label: 'Abwehr',     firstSlot: 1,  lastSlot: 3 },
+        { key: 'MIDFIELDER', label: 'Mittelfeld', firstSlot: 4,  lastSlot: 7 },
+        { key: 'ATTACKER',   label: 'Sturm',      firstSlot: 8,  lastSlot: 10 }
+    ];
+
+    function cltmFormatPts(value) {
+        return Math.round(Number(value) || 0).toLocaleString('de-DE');
+    }
+
+    // Kurzform für die schmalen Feld-Chips: „Erling Braut Haaland" → „E. Haaland".
+    function cltmShortPlayerName(fullName) {
+        const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) return 'Unbekannt';
+        if (parts.length === 1) return parts[0];
+        const initial = parts[0][0] ? `${parts[0][0]}. ` : '';
+        return `${initial}${parts[parts.length - 1]}`;
+    }
+
+    function cltmAvatarHtml(p) {
+        const fallback = champEscapeHtml(champInitials(p.name));
+        if (p.photo && /^https?:/i.test(p.photo)) {
+            return `<img src="${champEscapeHtml(p.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="${fallback}">`;
+        }
+        return `<span class="cltm-avatar-fallback" aria-hidden="true">${fallback}</span>`;
+    }
+
+    function cltmBindImgFallbacks(rootEl) {
+        rootEl.querySelectorAll('img[data-fallback]').forEach((img) => {
+            img.addEventListener('error', () => {
+                const span = document.createElement('span');
+                span.className = 'cltm-avatar-fallback';
+                span.setAttribute('aria-hidden', 'true');
+                span.textContent = img.dataset.fallback || '?';
+                img.replaceWith(span);
+            }, { once: true });
+        });
+    }
+
+    // Alle 15 Spieler in Feld-Reihen (Tor/Abwehr/Mittelfeld/Sturm) + Bank
+    // gruppieren. Primär über die Team-Builder-Slots; Spieler ohne gültigen
+    // Slot (Alt-Daten) werden über ihre Position einsortiert.
+    function cltmGroupPlayers(manager) {
+        const rows = CLTM_ROWS.map((row) => ({ key: row.key, label: row.label, players: [] }));
+        const bench = [];
+        const noSlot = [];
+
+        (manager.mergedPlayers || []).forEach((p) => {
+            const n = Number(p.slotNum);
+            if (!Number.isFinite(n) || n < 0 || n > 14) { noSlot.push(p); return; }
+            if (n >= 11) { bench.push({ p, n }); return; }
+            const rowIdx = CLTM_ROWS.findIndex((row) => n >= row.firstSlot && n <= row.lastSlot);
+            rows[rowIdx >= 0 ? rowIdx : 2].players.push({ p, n });
+        });
+
+        noSlot.forEach((p) => {
+            const row = rows.find((r) => r.key === p.pos) || rows[2];
+            row.players.push({ p, n: 99 });
+        });
+
+        rows.forEach((row) => {
+            row.players.sort((a, b) => a.n - b.n);
+            row.players = row.players.map((x) => x.p);
+        });
+        bench.sort((a, b) => a.n - b.n);
+
+        return { rows, bench: bench.map((x) => x.p) };
+    }
+
+    function cltmChipHtml(p) {
+        const safeName = champEscapeHtml(p.name || 'Unbekannt');
+        const ptsText = cltmFormatPts(p.pts);
+        return `
+            <button type="button" class="cltm-chip" data-action="player"
+                    data-player-id="${champEscapeHtml(p.id != null ? String(p.id) : '')}"
+                    data-player-name="${safeName}"
+                    aria-label="Spieler ${safeName}, ${ptsText} Punkte. Spieleranalyse öffnen.">
+                <span class="cltm-chip-avatar" aria-hidden="true">${cltmAvatarHtml(p)}</span>
+                <span class="cltm-chip-name">${champEscapeHtml(cltmShortPlayerName(p.name))}</span>
+                <span class="cltm-chip-pts">${ptsText}</span>
+            </button>`;
+    }
+
+    function cltmPitchHtml(manager) {
+        const { rows, bench } = cltmGroupPlayers(manager);
+        const rowsHtml = rows.map((row) => `
+            <div class="cltm-pitch-row" role="group" aria-label="${row.label}">
+                ${row.players.map(cltmChipHtml).join('')}
+            </div>`).join('');
+        const benchHtml = bench.length ? `
+            <div class="cltm-bench" role="group" aria-label="Bank">
+                <span class="cltm-bench-label">Bank</span>
+                <div class="cltm-bench-row">${bench.map(cltmChipHtml).join('')}</div>
+            </div>` : '';
+        return `<div class="cltm-pitch">${rowsHtml}</div>${benchHtml}`;
+    }
+
+    /* ── Expand-Detailkarte (Overlay + FLIP-Animation) ──────────────── */
+    let cltmOverlay = null;
+    let cltmModal = null;
+    let cltmOpenKey = null;      // Manager-Name der offenen Detailkarte
+    let cltmLastTrigger = null;  // Karte, die den Dialog geöffnet hat (Fokus-Rückgabe)
+    let cltmClosing = false;
+
+    function cltmPrefersReducedMotion() {
+        try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; }
+    }
+
+    function cltmEnsureOverlay() {
+        if (cltmOverlay) return;
+        cltmOverlay = document.createElement('div');
+        cltmOverlay.className = 'cltm-overlay';
+        cltmOverlay.hidden = true;
+        cltmOverlay.innerHTML = `
+            <div class="cltm-backdrop" data-cltm-close></div>
+            <div class="cltm-modal" role="dialog" aria-modal="true" tabindex="-1"></div>
+        `;
+        document.body.appendChild(cltmOverlay);
+        cltmModal = cltmOverlay.querySelector('.cltm-modal');
+
+        cltmOverlay.addEventListener('click', (ev) => {
+            if (ev.target.closest('[data-cltm-close]')) { cltmClose(); return; }
+            const chip = ev.target.closest('[data-action="player"]');
+            if (chip) {
+                champOpenPlayerAnalysis({ id: chip.dataset.playerId || '', name: chip.dataset.playerName || '' });
+            }
+        });
+
+        // Minimaler Fokus-Zyklus innerhalb des Dialogs (Tab bleibt drin).
+        cltmOverlay.addEventListener('keydown', (ev) => {
+            if (ev.key !== 'Tab') return;
+            const focusables = cltmModal.querySelectorAll('button, [href]');
+            if (!focusables.length) return;
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+            if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+            else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+        });
+
+        document.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape' && cltmOpenKey !== null) cltmClose();
+        });
+    }
+
+    function cltmOpen(manager, cardEl) {
+        cltmEnsureOverlay();
+        if (cltmClosing) return;
+        cltmOpenKey = manager.manager || '';
+        cltmLastTrigger = cardEl || null;
+
+        const rank = getDisplayedManagerRank(manager, 0);
+        const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+        cltmModal.setAttribute('aria-label', `Platz ${rank || '–'}: ${manager.manager || 'Unbekannt'}, ${cltmFormatPts(manager.totalScore)} Punkte`);
+        cltmModal.innerHTML = `
+            <div class="cltm-modal-head">
+                <span class="cltm-rank ${rankCls}">${rank || '–'}</span>
+                <div class="cltm-modal-title">
+                    <span class="cltm-modal-name">${champEscapeHtml(manager.manager || 'Unbekannt')}</span>
+                    <span class="cltm-modal-pts">${cltmFormatPts(manager.totalScore)} <small>Pkt</small></span>
+                </div>
+                <button type="button" class="cltm-close" data-cltm-close aria-label="Detailkarte schliessen">✕</button>
+            </div>
+            <div class="cltm-modal-body">
+                ${cltmPitchHtml(manager)}
+                <div class="cltm-modal-actions">
+                    <a class="btn-pill" href="teams.html?manager=${encodeURIComponent(manager.manager || '')}">🛡️ Team ansehen</a>
+                    <a class="btn-pill" href="rangliste.html">🏆 Zur Rangliste</a>
+                </div>
+            </div>
+        `;
+        cltmBindImgFallbacks(cltmModal);
+
+        document.body.classList.add('cltm-lock');
+        cltmOverlay.hidden = false;
+        if (cardEl) cardEl.classList.add('cltm-src-hidden');
+
+        // FLIP: Startzustand = Geometrie der angeklickten Zeile, Endzustand =
+        // zentrierte Detailkarte. Transform wird invertiert gesetzt und dann
+        // auf identity transitioniert („die Karte wächst aus der Zeile").
+        if (!cltmPrefersReducedMotion() && cardEl) {
+            const from = cardEl.getBoundingClientRect();
+            const to = cltmModal.getBoundingClientRect();
+            const sx = from.width / Math.max(to.width, 1);
+            const sy = from.height / Math.max(to.height, 1);
+            const dx = from.left - to.left;
+            const dy = from.top - to.top;
+            cltmModal.style.transformOrigin = 'top left';
+            cltmModal.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+            void cltmModal.offsetWidth; // Reflow: Start-Transform rendern lassen
+        } else {
+            cltmModal.style.transform = '';
+        }
+
+        requestAnimationFrame(() => {
+            cltmOverlay.classList.add('is-open');
+            cltmModal.style.transform = '';
+        });
+
+        const closeBtn = cltmModal.querySelector('.cltm-close');
+        if (closeBtn) setTimeout(() => { try { closeBtn.focus({ preventScroll: true }); } catch (_) {} }, 80);
+    }
+
+    function cltmClose() {
+        if (!cltmOverlay || cltmOverlay.hidden || cltmClosing) return;
+        const key = cltmOpenKey;
+        cltmOpenKey = null;
+        cltmClosing = true;
+
+        const finish = () => {
+            cltmClosing = false;
+            cltmOverlay.hidden = true;
+            cltmOverlay.classList.remove('is-open', 'is-closing');
+            cltmModal.style.transform = '';
+            document.body.classList.remove('cltm-lock');
+            document.querySelectorAll('.cltm-card.cltm-src-hidden').forEach((el) => el.classList.remove('cltm-src-hidden'));
+            if (cltmLastTrigger && document.contains(cltmLastTrigger)) {
+                try { cltmLastTrigger.focus({ preventScroll: true }); } catch (_) {}
+            }
+            cltmLastTrigger = null;
+        };
+
+        // Die Ursprungs-Zeile kann durch ein Daten-Re-Render ersetzt worden
+        // sein → frisch über den Manager-Namen suchen (Fallback: nur Fade).
+        let cardEl = null;
+        if (key) {
+            try {
+                const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(key) : key.replace(/"/g, '\\"');
+                cardEl = document.querySelector(`.cltm-card[data-manager="${esc}"]`);
+            } catch (_) { cardEl = null; }
+        }
+
+        cltmOverlay.classList.add('is-closing');
+        cltmOverlay.classList.remove('is-open');
+
+        if (!cltmPrefersReducedMotion() && cardEl) {
+            const to = cardEl.getBoundingClientRect();
+            const from = cltmModal.getBoundingClientRect();
+            const sx = to.width / Math.max(from.width, 1);
+            const sy = to.height / Math.max(from.height, 1);
+            const dx = to.left - from.left;
+            const dy = to.top - from.top;
+            cltmModal.style.transformOrigin = 'top left';
+            cltmModal.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+        }
+
+        // transitionend bubbelt auch von Kind-Transitions (.cltm-modal-body)
+        // hoch → nur auf Transitions des Modals selbst reagieren, sonst
+        // würde die Rück-Animation nach ~160 ms hart abgeschnitten.
+        let done = false;
+        const onEnd = (ev) => {
+            if (ev && ev.target !== cltmModal) return;
+            if (done) return;
+            done = true;
+            cltmModal.removeEventListener('transitionend', onEnd);
+            finish();
+        };
+        cltmModal.addEventListener('transitionend', onEnd);
+        setTimeout(() => onEnd({ target: cltmModal }), 560); // Fallback, falls transitionend ausbleibt
+    }
+
+    /* ── Top-10-Liste ───────────────────────────────────────────────── */
+    let cltmSignature = null;
+
+    function cltmSignatureOf(rankedManagers) {
+        const managers = Array.isArray(rankedManagers) ? rankedManagers : [];
+        const duplicateFirstNames = Array.from(champDuplicateFirstNameKeys(managers)).sort();
+        return JSON.stringify({
+            duplicateFirstNames,
+            list: managers.slice(0, CLTM_MAX).map((m, idx) => ({
+                rank: getDisplayedManagerRank(m, idx + 1),
+                manager: m.manager || 'Unbekannt',
+                totalScore: Number(m.totalScore) || 0,
+                players: (m.mergedPlayers || []).map((p) => [
+                    String(p.id ?? ''),
+                    Number(p.pts) || 0,
+                    Number.isFinite(Number(p.slotNum)) ? Number(p.slotNum) : -1
+                ])
+            }))
+        });
+    }
+
+    function renderClTopManagers(rankedManagers) {
+        const list = document.getElementById('clTopManagersList');
+        if (!list) return;
+
+        const signature = cltmSignatureOf(rankedManagers);
+        if (signature === cltmSignature) return;
+        cltmSignature = signature;
+
+        const managers = (Array.isArray(rankedManagers) ? rankedManagers : []).slice(0, CLTM_MAX);
+        const duplicateFirstNames = champDuplicateFirstNameKeys(rankedManagers);
+
+        list.innerHTML = '';
+
+        if (!managers.length) {
+            list.innerHTML = '<div class="cltm-empty">Noch keine Teams vorhanden.</div>';
+            return;
+        }
+
+        managers.forEach((m, idx) => {
+            const rank = getDisplayedManagerRank(m, idx + 1);
+            const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+            const top3 = (m.mergedPlayers || []).filter((p) => Number.isFinite(p.pts)).slice(0, 3);
+            const shortName = champShortManagerName(m.manager, duplicateFirstNames);
+
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'cltm-card';
+            card.dataset.manager = m.manager || '';
+            card.style.setProperty('--cltm-i', String(idx));
+            card.setAttribute('aria-haspopup', 'dialog');
+            card.setAttribute('aria-label', `Platz ${rank}: ${m.manager || 'Unbekannt'}, ${cltmFormatPts(m.totalScore)} Punkte. Detailkarte öffnen.`);
+            card.innerHTML = `
+                <span class="cltm-rank ${rankCls}">${rank}</span>
+                <span class="cltm-name">${champEscapeHtml(shortName)}</span>
+                <span class="cltm-top3" aria-hidden="true">
+                    ${top3.map((p) => `
+                        <span class="cltm-top3-player" title="${champEscapeHtml(p.name || '')}">
+                            <span class="cltm-top3-avatar">${cltmAvatarHtml(p)}</span>
+                            <span class="cltm-top3-pts">${cltmFormatPts(p.pts)}</span>
+                        </span>`).join('')}
+                </span>
+                <span class="cltm-pts">${cltmFormatPts(m.totalScore)}<small>Pkt</small></span>
+            `;
+            card.addEventListener('click', () => cltmOpen(m, card));
+            list.appendChild(card);
+        });
+
+        cltmBindImgFallbacks(list);
+
+        // Kommt während offener Detailkarte ein Re-Render, bleibt die
+        // Ursprungs-Zeile des offenen Managers unsichtbar (Expand-Illusion).
+        if (cltmOpenKey !== null) {
+            const openCard = Array.from(list.children).find((el) => el.dataset && el.dataset.manager === cltmOpenKey);
+            if (openCard) openCard.classList.add('cltm-src-hidden');
+        }
+    }
+
+    /* =========================================================
        POST START HOME – Render-Funktion (Live Dashboard)
        ========================================================= */
     function renderPostStartHome(data) {
@@ -4358,7 +4740,14 @@
         })).sort((a, b) => compareByTotalThenSubmission(a, b, 'total'));
         assignSharedRanks(teamTotals, team => team.total, (team, rank) => { team.currentRank = rank; });
 
-        renderChampStage(buildChampRanking(data));
+        // Top-Manager-Bereich: CL → kompakte Top-10-Liste mit Expand-Karte,
+        // WM → unverändert die Champ-Stage (Podest mit Animation).
+        const champRanking = buildChampRanking(data);
+        if (APP && String(APP.type || '').toUpperCase() === 'CL') {
+            renderClTopManagers(champRanking);
+        } else {
+            renderChampStage(champRanking);
+        }
 
         renderNextMatchesTile(data, teams);
 
