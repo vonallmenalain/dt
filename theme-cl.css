@@ -343,6 +343,25 @@
 /* Kein Titel („Stars der …") über dem Spieler-Karussell in der CL. */
 [data-tournament^="cl"] #indexTestCarouselTitle { display: none; }
 
+/* ── Startseite VOR Start (CL): Hero aufgeräumt / kompakter ──────────────
+ * In der CL-Version soll die Pre-Start-Startseite ohne Scrollen auf Mobile
+ * passen. Deshalb entfallen im Hero der Claim-Text („15 Spieler. … Drafte
+ * jetzt dein perfektes Fantasy-Team.") und die Live-Zähler („Teams erstellt"
+ * / „Spieler gedraftet"). Der Scroll-Hinweis (Pfeil unter dem Karussell)
+ * entfällt ebenfalls. Alle drei Elemente existieren nur im Pre-Start-Hero;
+ * die WM bleibt unberührt (Scope + eingefrorene Views). */
+[data-tournament^="cl"] .hero-claim,
+[data-tournament^="cl"] .hero-stats,
+[data-tournament^="cl"] .scroll-hint {
+  display: none;
+}
+
+/* CTA-Button („Team erstellen" / „Team bearbeiten"): dunkle Schrift auf dem
+ * hellblauen Button für bessere Lesbarkeit (statt Weiss auf Hellblau). */
+[data-tournament^="cl"] .btn-primary-hero {
+  color: var(--cl-background, #0a1633);
+}
+
 /* ── Ränge/Podium: klassische Medaillenfarben statt Blau ─────────────────
  * Rang 1 soll auch in der CL GOLD sein (Silber/Bronze sind ohnehin fest
  * verdrahtet). Statt jede Regel einzeln zu überschreiben, werden die
