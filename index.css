@@ -6480,6 +6480,24 @@
         }
         .cltm-overlay.is-open .cltm-backdrop { opacity: 1; }
 
+        /* Waehrend der Rueck-Animation ist der Body bereits entsperrt
+           (Re-Layout hinter dem Backdrop, s. index.js cltmClose): weicher
+           Lock statt position:fixed – kein Scrollen, kein Layout-Sprung. */
+        body.cltm-lock-soft { overflow: hidden; }
+        .cltm-overlay.is-closing { touch-action: none; }
+
+        /* Teardown-Zwischenschritt (Phase A in finish): backdrop-filter der
+           Blur-Ebene zuerst abschalten, display:none erst einen Frame
+           spaeter – das Wegraeumen einer live backdrop-filter-Ebene laesst
+           Chrome (v. a. Android) sonst den ganzen Screen kurz hell
+           aufblitzen. */
+        .cltm-overlay.is-teardown { pointer-events: none; }
+        .cltm-overlay.is-teardown .cltm-blur {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            transition: none;
+        }
+
         /* Blur als eigene Ebene mit weichem Ein-/Ausblenden. Der Blur selbst
            ist konstant – animiert wird nur die OPACITY der Ebene:
            • Einblenden erst NACH der Morph-Animation (`is-settled`), wenn

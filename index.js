@@ -4973,21 +4973,44 @@
         }
 
         const finish = () => {
-            cltmClosing = false;
             cltmModalManager = null;
-            cltmOverlay.hidden = true;
-            cltmOverlay.classList.remove('is-open', 'is-closing', 'is-settled');
-            cltmModal.style.transform = '';
-            cltmUnlockBody();
-            // Ghost entfernen und Kachel im selben Frame wieder einblenden –
-            // der Klon landet exakt auf der Kachel, der Tausch ist unsichtbar.
+            // Phase A (am Landepunkt): Ghost gegen die echte Kachel tauschen
+            // und den backdrop-filter der Blur-Ebene abschalten (unsichtbar,
+            // alles ist laengst transparent). Das Overlay bleibt noch einen
+            // Frame im DOM sichtbar (aber pointer-events: none).
             cltmRemoveGhost();
             document.querySelectorAll('.cltm-tile.cltm-src-hidden').forEach((el) => el.classList.remove('cltm-src-hidden'));
+            document.body.classList.remove('cltm-lock-soft');
+            cltmOverlay.classList.add('is-teardown');
+            cltmModal.style.transform = '';
             if (cltmLastTrigger && document.contains(cltmLastTrigger)) {
                 try { cltmLastTrigger.focus({ preventScroll: true }); } catch (_) {}
             }
             cltmLastTrigger = null;
+            // Phase B (naechster gerenderter Frame): erst jetzt display:none.
+            // Chrome (v. a. Android) blitzt sonst beim Wegraeumen einer noch
+            // aktiven backdrop-filter-Ebene den ganzen Screen kurz hell auf.
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    cltmOverlay.hidden = true;
+                    cltmOverlay.classList.remove('is-open', 'is-closing', 'is-settled', 'is-teardown');
+                    cltmClosing = false;
+                });
+            });
         };
+
+        // Body schon JETZT entsperren (inkl. Scroll-Restore), solange der
+        // dunkle Backdrop die App noch voll abdeckt: Das grosse Re-Layout
+        // beim Aufheben von position:fixed (samt Re-Rasterung der Glass-
+        // Panels mit backdrop-filter) passiert so unsichtbar HINTER dem
+        // Overlay statt nach der Animation – das war das helle Aufblitzen
+        // der ganzen App auf Mobile. Ein weicher Lock (overflow hidden auf
+        // dem Body + touch-action none auf dem Overlay, s. CSS) verhindert
+        // Scrollen waehrend der Rueck-Animation; die Kachel-Positionen sind
+        // vor/nach dem Restore identisch (top-Kompensation ↔ echter Scroll),
+        // die FLIP-Messungen unten stimmen also weiterhin.
+        cltmUnlockBody();
+        document.body.classList.add('cltm-lock-soft');
 
         // Die Ursprungs-Kachel kann durch ein Daten-Re-Render ersetzt worden
         // sein → frisch über den Manager-Namen suchen (Fallback: nur Fade).
