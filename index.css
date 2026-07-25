@@ -6214,9 +6214,9 @@
 
            Performance-Prinzip: Öffnen/Schliessen und der Positions-/
            Punkte-Wechsel animieren ausschliesslich transform + opacity
-           (Compositor). Der Backdrop-Blur wird erst NACH der Expand-
-           Animation zugeschaltet (`.is-settled`) – backdrop-filter
-           während einer Animation ist der häufigste Ruckel-Verursacher.
+           (Compositor); das Popup selbst kommt aus dem gemeinsamen
+           `clpop-`-Block (einfacher Zoom + Fade, bewusst ohne
+           Backdrop-Blur und ohne Ghost-Morph – siehe dort).
            ================================================================ */
         .cltm-stage {
             position: relative;
@@ -6317,9 +6317,6 @@
             opacity: 0;
             pointer-events: none;
         }
-        /* Ursprungs-Kachel bleibt während offener Detailkarte unsichtbar,
-           behält aber ihren Platz (Expand-Illusion wie bei Aceternity). */
-        .cltm-tile.clpop-src-hidden { visibility: hidden; }
 
         .cltm-tile-head {
             display: flex;
@@ -6477,12 +6474,16 @@
         }
         .clpop-overlay[hidden] { display: none; }
 
+        /* Backdrop: einziges Hintergrund-Element. Bewusst OHNE
+           backdrop-filter – der Blur war auf Mobile eine Dauerquelle von
+           Flackern/Aufblitzen (Re-Rasterung ganzer Ebenen, mehrere
+           Bugfix-Runden); die etwas höhere Deckkraft ersetzt ihn. */
         .clpop-backdrop {
             position: absolute;
             inset: 0;
-            background: rgba(3, 8, 22, 0.74);
+            background: rgba(3, 8, 22, 0.82);
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.3s ease;
         }
         .clpop-overlay.is-open .clpop-backdrop { opacity: 1; }
 
@@ -6490,45 +6491,7 @@
            (Re-Layout hinter dem Backdrop, s. index.js clpopClose): weicher
            Lock statt position:fixed – kein Scrollen, kein Layout-Sprung. */
         body.clpop-lock-soft { overflow: hidden; }
-        .clpop-overlay.is-closing { touch-action: none; }
-        .clpop-overlay.is-closing .clpop-backdrop {
-            transition: opacity 0.5s ease 0.1s;
-        }
-
-        /* Teardown-Zwischenschritt (Phase A in finish): backdrop-filter der
-           Blur-Ebene zuerst abschalten, display:none erst einen Frame
-           spaeter – das Wegraeumen einer live backdrop-filter-Ebene laesst
-           Chrome (v. a. Android) sonst den ganzen Screen kurz hell
-           aufblitzen. */
-        .clpop-overlay.is-teardown { pointer-events: none; }
-        .clpop-overlay.is-teardown .clpop-blur {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            transition: none;
-        }
-
-        /* Blur als eigene Ebene mit weichem Ein-/Ausblenden. Der Blur selbst
-           ist konstant – animiert wird nur die OPACITY der Ebene:
-           • Einblenden erst NACH der Morph-Animation (`is-settled`), wenn
-             sonst nichts mehr animiert → kein Ruckel-Risiko, kein hartes
-             „Aufblitzen" des scharfen/unscharfen Hintergrunds.
-           • Ausblenden beim Schliessen schnell (0.22s) über den statischen,
-             eingefrorenen Hintergrund – der Blur-Input ändert sich dabei
-             nicht, nur seine Deckkraft. */
-        .clpop-blur {
-            position: absolute;
-            inset: 0;
-            backdrop-filter: blur(7px);
-            -webkit-backdrop-filter: blur(7px);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .clpop-overlay.is-settled .clpop-blur { opacity: 1; }
-        .clpop-overlay.is-closing .clpop-blur {
-            opacity: 0;
-            transition: opacity 0.22s ease;
-        }
+        .clpop-overlay.is-closing { pointer-events: none; touch-action: none; }
 
         .clpop-modal {
             position: relative;
@@ -6546,46 +6509,26 @@
             border: 1px solid rgba(125, 180, 255, 0.28);
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
             overflow: hidden;
-            will-change: transform;
-            /* Karussell-Rezeptur (tcc: MOVE_DUR 0.6s / MOVE_EASE): exakt
-               dieselbe Bewegung wie der Kartenwechsel im Karussell. Das Modal
-               blendet nur ein/aus – die Morph-Bewegung trägt der Ghost. */
+            will-change: transform, opacity;
+            /* Einfache, robuste Bewegung: UNIFORMES scale + fade. Der
+               transform-origin zeigt auf die angeklickte Kachel (setzt
+               index.js → clpopOpen), die Karte wächst also aus der
+               richtigen Richtung – ohne Geometrie-Morph, ohne verzerrte
+               Inhalte, ohne zusätzliche Ebenen. Dauer muss zu
+               CLPOP_OPEN_MS/CLPOP_CLOSE_MS in index.js passen. */
             opacity: 0;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease 0.24s;
+            transform: scale(0.94);
+            transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
         }
-        .clpop-overlay.is-open .clpop-modal { opacity: 1; }
+        .clpop-overlay.is-open .clpop-modal {
+            opacity: 1;
+            transform: none;
+        }
         .clpop-overlay.is-closing .clpop-modal {
             opacity: 0;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease 0.26s;
+            transform: scale(0.96);
+            transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
         }
-
-        /* Ghost: optischer Kachel-Klon, der den Morph Kachel ↔ Karte trägt
-           (siehe index.js clpopMakeGhost). Erbt das Aussehen der jeweiligen
-           Kachel (.cltm-tile / .clcm-tile); hier nur Position/Animations-
-           Overrides. `animation`
-           muss die Kachel-Einblend-Animation (startet bei opacity 0) hart
-           abschalten, sonst wäre der Klon unsichtbar. */
-        .clpop-overlay > .clpop-ghost {
-            position: fixed;
-            z-index: 2;
-            margin: 0;
-            pointer-events: none;
-            transform-origin: top left;
-            opacity: 1;
-            animation: none !important;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.22s !important;
-            will-change: transform, opacity;
-        }
-        .clpop-ghost.is-out { opacity: 0; }
-        .clpop-ghost.is-in { opacity: 0; }
-        /* Inhalt des Ghosts (Rang, Name, Punkte, Avatare) wird beim
-           Aufwachsen SOFORT ausgeblendet – nur die leere Kachel-Hülle
-           morpht. So ist nie ein verzerrt skalierter Name sichtbar.
-           Beim Schliessen blendet der Inhalt erst kurz vor der Landung
-           auf der Kachel wieder ein (dann ist die Skalierung ≈ 1). */
-        .clpop-ghost > * { transition: opacity 0.18s ease 0.3s; }
-        .clpop-ghost.is-out > * { opacity: 0; transition: opacity 0.2s ease 0.06s; }
-        .clpop-ghost.is-in > * { opacity: 0; transition: opacity 0.1s ease; }
 
         .clpop-modal-head {
             display: flex;
@@ -6959,7 +6902,6 @@
            DOM, verlässt aber das Raster – die ersten Kacheln behalten damit
            beim Umschalten exakt ihren Platz. */
         .clcm-tile.is-hidden { display: none; }
-        .clcm-tile.clpop-src-hidden { visibility: hidden; }
         /* Laufende Spiele bekommen einen dezenten Rahmen-Akzent. */
         .clcm-tile.is-live {
             border-color: rgba(255, 92, 92, 0.45);
@@ -7484,10 +7426,10 @@
             .clcm-tile { transition: opacity 0.2s ease; }
             .cltm-list { transition: none; }
             .clpop-modal {
+                transform: none;
                 transition: opacity 0.25s ease;
             }
-            .clpop-ghost { display: none !important; }
-            .clpop-blur { transition: none; }
+            .clpop-overlay.is-closing .clpop-modal { transform: none; }
             .clpop-backdrop { transition: opacity 0.2s ease; }
             .cltm-players,
             .cltm-players > .cltm-chip {

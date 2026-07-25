@@ -4762,25 +4762,29 @@
         });
     }
 
-    /* ── Gemeinsamer Popup-Controller (Overlay + FLIP-Animation) ──────
-       Namespace `clpop-`. Trägt die Expand-Detailkarte der CL-Bereiche
-       „Top Manager" (Kachel → Manager-Karte) UND „Aktuelle Spiele"
-       (Kachel → Spiel-Karte). Beide teilen sich damit EXAKT dieselbe
-       Bewegung (Karussell-Rezeptur, Ghost-Morph, Scroll-Lock, Teardown);
-       bereichsspezifisch sind nur Inhalt und Klick-Behandlung, die als
-       Konfiguration hereingereicht werden:
+    /* ── Gemeinsamer Popup-Controller (Overlay, bewusst einfach) ──────
+       Namespace `clpop-`. Trägt die Detailkarten der CL-Bereiche
+       „Top Manager" und „Aktuelle Spiele".
 
-         {
-           key,          // Identität der Kachel (Re-Render-sicher)
-           modalClass,   // zusätzliche Klasse am Modal (Breite/Look)
-           ariaLabel,
-           html,         // Inhalt der Karte
-           onMounted(modal),   // direkt nach dem Einhängen (z. B. Layout)
-           onResize(modal),    // Fenster-Resize bei offener Karte
-           onClick(ev, modal), // eigene Klicks (Toggles, Chips, …)
-           findTile(key),      // Ursprungs-Kachel für den Rückweg suchen
-           scope               // Bereichskennung ('cltm' | 'clcm')
-         }
+       BEWUSST SIMPEL: Frühere Versionen haben die Kachel per Ghost-Klon
+       und FLIP zur Karte gemorpht (nicht-uniformes scale). Auf Mobile
+       war das nie sauber zu kriegen – der skalierte Klon zeigte Logos/
+       Namen riesig verzerrt über den ganzen Screen, und Backdrop-Blur
+       plus mehrere gleichzeitig blendende Ebenen flackerten (mehrere
+       Bugfix-Runden #341–#347, zuletzt trotzdem kaputt). Deshalb gilt
+       jetzt: EINE Karte, EIN Backdrop, nur transform (uniform) +
+       opacity – nichts kann sich mehr verzerren oder doppelt mischen.
+
+       • Öffnen: Backdrop blendet ein; die Karte wächst mit uniformem
+         scale(0.94→1) aus der RICHTUNG der angeklickten Kachel
+         (transform-origin), ohne Geometrie-Morph.
+       • Schliessen: Karte schrumpft leicht und blendet aus, Backdrop
+         folgt. Der Body wird sofort entsperrt (Scroll-Restore hinter dem
+         noch dunklen Backdrop – bewährter Fix gegen das Aufblitzen).
+
+       Bereichsspezifisch sind nur Inhalt und Klick-Behandlung:
+         { key, modalClass, ariaLabel, html,
+           onMounted(modal), onResize(modal), onClick(ev, modal) }
        ================================================================= */
     let clpopOverlay = null;
     let clpopModal = null;
@@ -4788,17 +4792,12 @@
     let clpopCtx = null;          // Konfiguration der offenen Detailkarte
     let clpopLastTrigger = null;  // Kachel, die den Dialog geöffnet hat (Fokus-Rückgabe)
     let clpopClosing = false;
-    let clpopSettleTimer = null;
-    let clpopSettleHandler = null;
+    let clpopCloseTimer = null;
     let clpopResizeTimer = null;
 
-    // Ist gerade eine Detailkarte offen – und falls `scope` gesetzt ist,
-    // gehört sie zu diesem Bereich? Die Kachel-Renderer prüfen das, um die
-    // Ursprungs-Kachel nach einem Daten-Re-Render unsichtbar zu halten.
-    function clpopIsOpen(scope) {
-        if (clpopOpenKey === null || !clpopCtx) return false;
-        return !scope || clpopCtx.scope === scope;
-    }
+    // Dauer der Karten-Ausblendung; muss mit der clpop-CSS-Transition
+    // übereinstimmen (Fallback-Timer beim Schliessen).
+    const CLPOP_CLOSE_MS = 240;
 
     function clpopPrefersReducedMotion() {
         try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; }
@@ -4807,8 +4806,6 @@
     // Harter Body-Scroll-Lock (auch iOS Safari): Body wird per
     // `position: fixed` eingefroren; `top: -scrollY` hält die Seite optisch
     // an Ort, beim Entsperren wird die Scroll-Position wiederhergestellt.
-    // Die FLIP-Messungen (getBoundingClientRect) bleiben dadurch korrekt,
-    // weil sich die Viewport-Positionen nicht verändern.
     let clpopLockScrollY = 0;
 
     function clpopLockBody() {
@@ -4832,7 +4829,6 @@
         clpopOverlay.hidden = true;
         clpopOverlay.innerHTML = `
             <div class="clpop-backdrop" data-clpop-close></div>
-            <div class="clpop-blur" aria-hidden="true"></div>
             <div class="clpop-modal" role="dialog" aria-modal="true" tabindex="-1"></div>
         `;
         document.body.appendChild(clpopOverlay);
@@ -4869,48 +4865,6 @@
         });
     }
 
-    // Karussell-Rezeptur (siehe tcc-Carousel: MOVE_DUR/MOVE_EASE): 0.6 s mit
-    // weich auslaufender Kurve cubic-bezier(0.22, 1, 0.36, 1). Open/Close des
-    // Popups nutzen exakt dieselbe Bewegung wie der Kartenwechsel im
-    // Karussell; die Dauer muss mit den clpop-CSS-Transitions übereinstimmen.
-    const CLPOP_MOVE_MS = 600;
-
-    /* Ghost-Morph: Statt das volle Modal (Chips, Fotos, Schatten) zu
-       skalieren, trägt ein leichter optischer KLON der Kachel die Morph-
-       Animation zwischen Kachel und Karte – das Modal blendet währenddessen
-       nur ein/aus (Crossfade). Genau diese Arbeitsteilung macht auch den
-       Karussell-Wechsel so flüssig: bewegt werden nur kleine, fertige
-       Karten, nie schwerer Inhalt. */
-    let clpopGhost = null;
-
-    function clpopMakeGhost(tileEl, rect) {
-        clpopRemoveGhost();
-        const ghost = tileEl.cloneNode(true);
-        ghost.classList.remove('clpop-src-hidden');
-        ghost.classList.add('clpop-ghost');
-        ghost.removeAttribute('aria-label');
-        ghost.setAttribute('aria-hidden', 'true');
-        ghost.setAttribute('tabindex', '-1');
-        ghost.style.left = rect.left + 'px';
-        ghost.style.top = rect.top + 'px';
-        ghost.style.width = rect.width + 'px';
-        ghost.style.height = rect.height + 'px';
-        // Der Klon erbt inline transform (Kachel-Position aus der Layout-
-        // Engine), Einblend-Opacity und Stagger-Delay – alles neutralisieren,
-        // der Ghost wird über left/top + eigene Transforms gesteuert.
-        ghost.style.transform = 'none';
-        ghost.style.opacity = '';
-        ghost.style.transitionDelay = '';
-        clpopOverlay.appendChild(ghost);
-        clpopGhost = ghost;
-        return ghost;
-    }
-
-    function clpopRemoveGhost() {
-        if (clpopGhost && clpopGhost.parentNode) clpopGhost.parentNode.removeChild(clpopGhost);
-        clpopGhost = null;
-    }
-
     function clpopOpen(cfg, tileEl) {
         clpopEnsureOverlay();
         if (clpopClosing) return;
@@ -4925,75 +4879,26 @@
 
         clpopLockBody();
         clpopOverlay.hidden = false;
-        if (tileEl) tileEl.classList.add('clpop-src-hidden');
 
-        // Morph (FLIP + Ghost): Das Modal startet transparent an der Kachel-
-        // Geometrie; der Kachel-Klon wächst mit der Karussell-Kurve zur Karte
-        // und blendet dabei ins mitwachsende Modal über. Der schwere Inhalt
-        // wird so nie sichtbar verzerrt skaliert.
-        const reduced = clpopPrefersReducedMotion();
-        let ghostTarget = '';
-        let modalStart = '';
-        if (!reduced && tileEl) {
-            const from = tileEl.getBoundingClientRect();
-            const to = clpopModal.getBoundingClientRect();
-            modalStart = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
-                + `scale(${from.width / Math.max(to.width, 1)}, ${from.height / Math.max(to.height, 1)})`;
-            clpopMakeGhost(tileEl, from);
-            ghostTarget = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
-                + `scale(${to.width / Math.max(from.width, 1)}, ${to.height / Math.max(from.height, 1)})`;
+        // Die Karte wächst aus der RICHTUNG der angeklickten Kachel: der
+        // transform-origin liegt auf deren Mittelpunkt (auf die Karten-
+        // fläche geklemmt). Uniformes scale – nichts wird verzerrt.
+        if (tileEl && !clpopPrefersReducedMotion()) {
+            const t = tileEl.getBoundingClientRect();
+            const m = clpopModal.getBoundingClientRect();
+            const ox = Math.min(Math.max(t.left + t.width / 2 - m.left, 0), m.width);
+            const oy = Math.min(Math.max(t.top + t.height / 2 - m.top, 0), m.height);
+            clpopModal.style.transformOrigin = `${Math.round(ox)}px ${Math.round(oy)}px`;
         } else {
-            clpopModal.style.transform = '';
+            clpopModal.style.transformOrigin = '';
         }
 
-        // Nach der Morph-Animation: Ghost aufräumen und Blur-Ebene weich
-        // einblenden (`is-settled`). Präzise über transitionend der
-        // transform-Transition MIT elapsedTime-Guard: der Guard filtert die
-        // spuriosen 0ms-transform-Events, die Chrome gelegentlich kurz nach
-        // dem Start feuert. Der Timer ist nur noch grosszügiger Fallback –
-        // CSS-Transitions starten erst mit dem nächsten Frame-Commit, unter
-        // Last also spürbar nach dem JS-Aufruf; ein knapper fester Timer hat
-        // deshalb das Ende der Animation abgeschnitten.
-        let settled = false;
-        const settle = (ev) => {
-            if (settled) return;
-            if (ev && (ev.target !== clpopModal || ev.propertyName !== 'transform' || ev.elapsedTime < 0.55)) return;
-            settled = true;
-            clpopModal.removeEventListener('transitionend', settle);
-            clpopSettleHandler = null;
-            if (clpopSettleTimer) { clearTimeout(clpopSettleTimer); clpopSettleTimer = null; }
-            clpopRemoveGhost();
-            if (!clpopOverlay.hidden && clpopOpenKey !== null) clpopOverlay.classList.add('is-settled');
-        };
-        clpopModal.addEventListener('transitionend', settle);
-        clpopSettleHandler = settle;
-
         // Doppel-rAF: der Browser rendert garantiert einen Frame im
-        // Startzustand, bevor die Transition beginnt – ohne diesen Schritt
-        // wird der erste Frame gern übersprungen und der Start wirkt ruckig.
+        // Startzustand (Karte klein + transparent), bevor die Transition
+        // beginnt – sonst wird der erste Frame gern übersprungen.
         requestAnimationFrame(() => {
-            if (modalStart) {
-                // Startzustand OHNE Transition setzen. Ohne das kurze
-                // `transition: none` behandelt Chrome den Kachel-Zustand als
-                // ZIEL einer Transition (gemessen: computed transform blieb bei
-                // der Identität) – das Modal stand dann die ganze Animation in
-                // Endgroesse hinter dem wachsenden Ghost, und `transitionend`
-                // feuerte nie. Dieselbe Rezeptur wie `cltm-no-anim` bei den
-                // Chips/Kacheln.
-                clpopModal.style.transition = 'none';
-                clpopModal.style.transformOrigin = 'top left';
-                clpopModal.style.transform = modalStart;
-                void clpopModal.offsetWidth;
-                clpopModal.style.transition = '';
-            }
             requestAnimationFrame(() => {
-                clpopOverlay.classList.add('is-open');
-                clpopModal.style.transform = '';
-                if (clpopGhost && ghostTarget) {
-                    clpopGhost.style.transform = ghostTarget;
-                    clpopGhost.classList.add('is-out');
-                }
-                clpopSettleTimer = setTimeout(() => settle(null), CLPOP_MOVE_MS + 300);
+                if (clpopOpenKey !== null) clpopOverlay.classList.add('is-open');
             });
         });
 
@@ -5003,110 +4908,40 @@
 
     function clpopClose() {
         if (!clpopOverlay || clpopOverlay.hidden || clpopClosing) return;
-        const key = clpopOpenKey;
-        const ctx = clpopCtx;
         clpopOpenKey = null;
         clpopClosing = true;
-        if (clpopSettleTimer) { clearTimeout(clpopSettleTimer); clpopSettleTimer = null; }
-        // Falls der Open-Settle noch nicht gefeuert hat (schnelles
-        // Schliessen): Listener abhängen, sonst würde er während des
-        // Schliessens den CLOSE-Ghost entfernen.
-        if (clpopSettleHandler) {
-            clpopModal.removeEventListener('transitionend', clpopSettleHandler);
-            clpopSettleHandler = null;
-        }
+
+        // Body sofort entsperren (inkl. Scroll-Restore), solange der dunkle
+        // Backdrop die App noch abdeckt: das Re-Layout beim Aufheben von
+        // position:fixed passiert unsichtbar HINTER dem Overlay. Ein weicher
+        // Lock verhindert Scrollen während der kurzen Ausblendung.
+        clpopUnlockBody();
+        document.body.classList.add('clpop-lock-soft');
+
+        clpopOverlay.classList.add('is-closing');
+        clpopOverlay.classList.remove('is-open');
 
         const finish = () => {
+            if (clpopCloseTimer) { clearTimeout(clpopCloseTimer); clpopCloseTimer = null; }
+            clpopModal.removeEventListener('transitionend', onEnd);
             clpopCtx = null;
-            // Phase A (am Landepunkt): Ghost gegen die echte Kachel tauschen
-            // und den backdrop-filter der Blur-Ebene abschalten (unsichtbar,
-            // alles ist laengst transparent). Das Overlay bleibt noch einen
-            // Frame im DOM sichtbar (aber pointer-events: none).
-            clpopRemoveGhost();
-            document.querySelectorAll('.clpop-src-hidden').forEach((el) => el.classList.remove('clpop-src-hidden'));
             document.body.classList.remove('clpop-lock-soft');
-            clpopOverlay.classList.add('is-teardown');
-            clpopModal.style.transform = '';
+            clpopOverlay.hidden = true;
+            clpopOverlay.classList.remove('is-open', 'is-closing');
+            clpopClosing = false;
             if (clpopLastTrigger && document.contains(clpopLastTrigger)) {
                 try { clpopLastTrigger.focus({ preventScroll: true }); } catch (_) {}
             }
             clpopLastTrigger = null;
-            // Phase B (naechster gerenderter Frame): erst jetzt display:none.
-            // Chrome (v. a. Android) blitzt sonst beim Wegraeumen einer noch
-            // aktiven backdrop-filter-Ebene den ganzen Screen kurz hell auf.
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    clpopOverlay.hidden = true;
-                    clpopOverlay.classList.remove('is-open', 'is-closing', 'is-settled', 'is-teardown');
-                    clpopClosing = false;
-                });
-            });
         };
-
-        // Body schon JETZT entsperren (inkl. Scroll-Restore), solange der
-        // dunkle Backdrop die App noch voll abdeckt: Das grosse Re-Layout
-        // beim Aufheben von position:fixed (samt Re-Rasterung der Glass-
-        // Panels mit backdrop-filter) passiert so unsichtbar HINTER dem
-        // Overlay statt nach der Animation – das war das helle Aufblitzen
-        // der ganzen App auf Mobile. Ein weicher Lock (overflow hidden auf
-        // dem Body + touch-action none auf dem Overlay, s. CSS) verhindert
-        // Scrollen waehrend der Rueck-Animation; die Kachel-Positionen sind
-        // vor/nach dem Restore identisch (top-Kompensation ↔ echter Scroll),
-        // die FLIP-Messungen unten stimmen also weiterhin.
-        clpopUnlockBody();
-        document.body.classList.add('clpop-lock-soft');
-
-        // Die Ursprungs-Kachel kann durch ein Daten-Re-Render ersetzt worden
-        // sein → über den Bereichs-Callback frisch suchen (Fallback: nur Fade).
-        let tileEl = null;
-        if (key && ctx && typeof ctx.findTile === 'function') {
-            try { tileEl = ctx.findTile(key); } catch (_) { tileEl = null; }
-        }
-
-        // Blur sofort weg (billig), dann rein Compositor-Animation zurück.
-        clpopOverlay.classList.remove('is-settled');
-        clpopOverlay.classList.add('is-closing');
-        clpopOverlay.classList.remove('is-open');
-
-        if (!clpopPrefersReducedMotion() && tileEl) {
-            const to = tileEl.getBoundingClientRect();
-            const from = clpopModal.getBoundingClientRect();
-            clpopModal.style.transformOrigin = 'top left';
-            clpopModal.style.transform = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
-                + `scale(${to.width / Math.max(from.width, 1)}, ${to.height / Math.max(from.height, 1)})`;
-
-            // Ghost-Rückweg: startet als aufgeblasene Kachel auf dem Modal
-            // und schrumpft mit der Karussell-Kurve exakt auf den Platz der
-            // Kachel zurück, während das Modal ausblendet (Crossfade).
-            const ghost = clpopMakeGhost(tileEl, to);
-            ghost.classList.add('is-in');
-            ghost.style.transform = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
-                + `scale(${from.width / Math.max(to.width, 1)}, ${from.height / Math.max(to.height, 1)})`;
-            void ghost.offsetWidth; // Startzustand rendern lassen
-            ghost.style.transform = '';
-            ghost.classList.remove('is-in');
-        }
-
-        // Abschluss EXAKT beim Landen des Ghosts: transitionend seiner
-        // transform-Transition (elapsedTime-Guard filtert die spuriosen
-        // 0ms-Events). Ein knapper fester Timer hat das Ende der Rück-
-        // Animation unter Last abgeschnitten – CSS-Transitions starten erst
-        // mit dem nächsten Frame-Commit, die Kachel „blitzte" dann die
-        // letzten Pixel an ihren Platz. Der Timer bleibt nur als
-        // grosszügiger Fallback (z. B. reduced motion: kein Ghost).
-        let done = false;
+        // Abschluss am Ende der Karten-Ausblendung (transitionend der
+        // opacity); grosszügiger Timer nur als Fallback.
         const onEnd = (ev) => {
-            if (done) return;
-            if (ev && (ev.propertyName !== 'transform' || ev.elapsedTime < 0.55)) return;
-            done = true;
+            if (ev && (ev.target !== clpopModal || ev.propertyName !== 'opacity')) return;
             finish();
         };
-        if (clpopGhost) clpopGhost.addEventListener('transitionend', onEnd);
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                setTimeout(() => onEnd(null), CLPOP_MOVE_MS + 300);
-            });
-        });
+        clpopModal.addEventListener('transitionend', onEnd);
+        clpopCloseTimer = setTimeout(finish, CLPOP_CLOSE_MS + 200);
     }
 
     /* ── Top Manager: Detailkarte über den gemeinsamen Controller ────── */
@@ -5119,7 +4954,6 @@
         const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
 
         clpopOpen({
-            scope: 'cltm',
             key: manager.manager || '',
             ariaLabel: `Platz ${rank || '–'}: ${manager.manager || 'Unbekannt'}, ${cltmFormatPts(manager.totalScore)} Punkte`,
             html: cltmModalHtml(manager, rank, rankCls),
@@ -5136,10 +4970,6 @@
                 if (chip) {
                     champOpenPlayerAnalysis({ id: chip.dataset.pid || '', name: chip.dataset.playerName || '' });
                 }
-            },
-            findTile: (key) => {
-                const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(key) : key.replace(/"/g, '\\"');
-                return document.querySelector(`.cltm-tile[data-manager="${esc}"]`);
             }
         }, tileEl);
     }
@@ -5427,12 +5257,6 @@
             });
         });
 
-        // Kommt während offener Detailkarte ein Re-Render, bleibt die
-        // Ursprungs-Kachel des offenen Managers unsichtbar (Expand-Illusion).
-        if (clpopIsOpen('cltm')) {
-            const openTile = created.find((el) => el.dataset && el.dataset.manager === clpopOpenKey);
-            if (openTile) openTile.classList.add('clpop-src-hidden');
-        }
     }
 
     /* =========================================================
@@ -5932,7 +5756,7 @@
             clcmHeightTimer = setTimeout(() => {
                 clcmHeightTimer = null;
                 list.style.height = '';
-            }, CLPOP_MOVE_MS + 60);
+            }, 660);   // Dauer der .clcm-list-Höhen-Transition (0.6 s) + Reserve
         }
 
         if (!revealed.length) return;
@@ -6151,7 +5975,6 @@
 
     function clcmOpen(entry, tileEl) {
         clpopOpen({
-            scope: 'clcm',
             key: entry.key,
             modalClass: 'clcm-modal',
             ariaLabel: `${entry.teamA} gegen ${entry.teamB} – Spieldetails`,
@@ -6163,10 +5986,6 @@
                 if (playerBtn) {
                     champOpenPlayerAnalysis({ id: playerBtn.dataset.pid || '', name: playerBtn.dataset.playerName || '' });
                 }
-            },
-            findTile: (key) => {
-                const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(key) : String(key).replace(/"/g, '\\"');
-                return document.querySelector(`.clcm-tile[data-match-key="${esc}"]`);
             }
         }, tileEl);
     }
@@ -6248,12 +6067,6 @@
             });
         });
 
-        // Kommt während offener Detailkarte ein Re-Render, bleibt die
-        // Ursprungs-Kachel des offenen Spiels unsichtbar (Expand-Illusion).
-        if (clpopIsOpen('clcm')) {
-            const openTile = list.querySelector(`.clcm-tile[data-match-key="${(window.CSS && CSS.escape) ? CSS.escape(clpopOpenKey) : clpopOpenKey}"]`);
-            if (openTile) openTile.classList.add('clpop-src-hidden');
-        }
     }
     /* =========================================================
        POST START HOME – Render-Funktion (Live Dashboard)
