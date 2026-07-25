@@ -4578,6 +4578,51 @@
     }
 
     /* =========================================================
+       DEEPLINKS AUS DEN DETAILKARTEN
+       Alles, was in einer Detailkarte einen Klub, einen Manager oder
+       einen Rang zeigt, führt an die passende Stelle der App:
+         Klublogo/-name → Analyse „Spieler" mit gesetztem Club-Filter
+         Managername    → dessen Team unter „Teams"
+         Rang           → Rangliste (auf den Manager gescrollt)
+
+       Der Club-Filter der Analyse kennt die Klubs unter ihrem Namen aus
+       `Nationalteam.name` (in der CL steckt dort dank Club-Remap der
+       Klub, bei der WM die Nation). Spielplan-Daten schreiben denselben
+       Klub gern anders („Inter" ↔ „Inter Mailand"), deshalb wird der
+       Name vorher über normalizeCountry auf die Schreibweise des
+       Datensatzes zurückgeführt – sonst greift der Filter drüben ins
+       Leere.
+       ========================================================= */
+    let clEntityNameCache = null;
+
+    function clCanonicalEntityName(name) {
+        const raw = String(name || '').trim();
+        if (!raw) return '';
+        if (!clEntityNameCache) {
+            clEntityNameCache = new Map();
+            (typeof playersData !== 'undefined' ? playersData : []).forEach((p) => {
+                const value = p['Nationalteam.name'];
+                const key = normalizeCountry(value);
+                if (key && value && !clEntityNameCache.has(key)) clEntityNameCache.set(key, value);
+            });
+        }
+        return clEntityNameCache.get(normalizeCountry(raw)) || raw;
+    }
+
+    // Analyse „Spieler", gefiltert auf einen Klub (WM: eine Nation).
+    // Auf schmalen Screens öffnet die Analyse dazu ihr Filter-Popup –
+    // das erledigt sie selbst, sobald `team` in der URL steht.
+    function clTeamAnalysisHref(name) {
+        const canonical = clCanonicalEntityName(name);
+        return canonical ? `spieleranalyse.html?team=${encodeURIComponent(canonical)}` : '';
+    }
+
+    function clTeamLinkLabel(name) {
+        const word = (window.APP_CONFIG && window.APP_CONFIG.primaryEntity === 'club') ? 'Clubs' : 'Landes';
+        return `${name} – Spieler dieses ${word} in der Analyse`;
+    }
+
+    /* =========================================================
        CL: TOP-10-MANAGER – Kachel-Grid + Expand-Detailkarte
        Ersetzt in der CL die Champ-Stage (Podest). Nutzt exakt
        dieselbe Ranking-Pipeline (buildChampRanking) wie das
@@ -4679,24 +4724,34 @@
         return { rows };
     }
 
+    /* Chip = Wrapper mit ZWEI Zielen: die Fläche öffnet die Spieler-
+       Analyse, das Klub-Badge filtert die Analyse auf den Klub. Deshalb
+       ist der Wrapper ein <div> – ein Link im Button wäre verschachtelte
+       Interaktion. Das Badge liegt (wie zuvor) absolut an der Ecke des
+       Avatars, jetzt aber relativ zum Chip (siehe index.css). */
     function cltmChipHtml(p, extraCls) {
         const safeName = champEscapeHtml(p.name || 'Unbekannt');
         const ptsText = cltmFormatPts(p.pts);
+        const safePid = champEscapeHtml(p.id != null ? String(p.id) : '');
+        const clubHref = p.club ? clTeamAnalysisHref(p.club) : '';
+        const clubLabel = p.club ? champEscapeHtml(clTeamLinkLabel(p.club)) : '';
         const clubBadge = (p.clubLogo && /^https?:/i.test(p.clubLogo))
-            ? `<span class="cltm-chip-club"><img src="${champEscapeHtml(p.clubLogo)}" alt="" loading="lazy" decoding="async"></span>`
+            ? (clubHref
+                ? `<a class="cltm-chip-club" href="${champEscapeHtml(clubHref)}" title="${clubLabel}" aria-label="${clubLabel}"><img src="${champEscapeHtml(p.clubLogo)}" alt="" loading="lazy" decoding="async"></a>`
+                : `<span class="cltm-chip-club"><img src="${champEscapeHtml(p.clubLogo)}" alt="" loading="lazy" decoding="async"></span>`)
             : '';
         return `
-            <button type="button" class="cltm-chip${extraCls ? ' ' + extraCls : ''}" data-action="player"
-                    data-pid="${champEscapeHtml(p.id != null ? String(p.id) : '')}"
-                    data-player-name="${safeName}"
-                    aria-label="Spieler ${safeName}, ${ptsText} Punkte. Spieleranalyse öffnen.">
-                <span class="cltm-chip-avatar" aria-hidden="true">
-                    ${cltmAvatarHtml(p)}
-                    ${clubBadge}
-                </span>
-                <span class="cltm-chip-name">${champEscapeHtml(cltmShortPlayerName(p.name))}</span>
-                <span class="cltm-chip-pts">${ptsText}</span>
-            </button>`;
+            <div class="cltm-chip${extraCls ? ' ' + extraCls : ''}" data-pid="${safePid}">
+                <button type="button" class="cltm-chip-main" data-action="player"
+                        data-pid="${safePid}"
+                        data-player-name="${safeName}"
+                        aria-label="Spieler ${safeName}, ${ptsText} Punkte. Spieleranalyse öffnen.">
+                    <span class="cltm-chip-avatar" aria-hidden="true">${cltmAvatarHtml(p)}</span>
+                    <span class="cltm-chip-name">${champEscapeHtml(cltmShortPlayerName(p.name))}</span>
+                    <span class="cltm-chip-pts">${ptsText}</span>
+                </button>
+                ${clubBadge}
+            </div>`;
     }
 
     function cltmModalHtml(manager, rank, rankCls) {
@@ -4717,11 +4772,23 @@
                 <div class="cltm-transfers-row">${outs.map((p) => cltmChipHtml(p, 'cltm-chip-out')).join('')}</div>
             </div>` : '';
 
+        // Rang → Rangliste (dort auf den Manager gescrollt und kurz
+        // hervorgehoben), Name → sein Team unter „Teams".
+        const managerName = manager.manager || '';
+        const safeManagerName = champEscapeHtml(managerName || 'Unbekannt');
+        const rankHref = managerName
+            ? `rangliste.html?focus=${encodeURIComponent(managerName)}`
+            : 'rangliste.html';
+        const rankLabel = `Platz ${rank || '–'} – Rangliste öffnen`;
+        const teamLabel = `Team von ${safeManagerName} öffnen`;
+
         return `
             <div class="clpop-modal-head">
-                <span class="cltm-rank ${rankCls}">${rank || '–'}</span>
+                <a class="cltm-rank cltm-rank-link ${rankCls}" href="${champEscapeHtml(rankHref)}"
+                   title="${champEscapeHtml(rankLabel)}" aria-label="${champEscapeHtml(rankLabel)}">${rank || '–'}</a>
                 <div class="cltm-modal-title">
-                    <span class="cltm-modal-name">${champEscapeHtml(manager.manager || 'Unbekannt')}</span>
+                    <a class="cltm-modal-name cltm-modal-name-link" href="teams.html?manager=${encodeURIComponent(managerName)}"
+                       title="${teamLabel}" aria-label="${teamLabel}">${safeManagerName}</a>
                     <span class="cltm-modal-pts">${cltmFormatPts(manager.totalScore)} <small>Pkt</small></span>
                 </div>
                 <span class="cltm-head-break" aria-hidden="true"></span>
@@ -6016,10 +6083,17 @@
         const emptyAll = players.length === 0
             ? '<div class="clcm-col-empty only-all">Noch keine Spielerdaten zu diesem Spiel.</div>'
             : '';
+        // Logo + Klubname der Spalte führen in die Analyse, gefiltert auf
+        // diesen Klub; die Zählung daneben bleibt reine Anzeige.
+        const href = clTeamAnalysisHref(teamName);
+        const label = escapeHtml(clTeamLinkLabel(teamName));
+        const headInner = `<span class="clcm-col-logo">${renderFlagImageHtml('clcm-col-logo-img', logo, fallbackLogo, teamName, 'font-size:1.2rem;')}</span>
+                <span class="clcm-col-name">${escapeHtml(teamName)}</span>`;
         return `<div class="clcm-players-col">
             <div class="clcm-col-head">
-                <span class="clcm-col-logo">${renderFlagImageHtml('clcm-col-logo-img', logo, fallbackLogo, teamName, 'font-size:1.2rem;')}</span>
-                <span class="clcm-col-name">${escapeHtml(teamName)}</span>
+                ${href
+                    ? `<a class="clcm-col-link" href="${escapeHtml(href)}" title="${label}" aria-label="${label}">${headInner}</a>`
+                    : `<span class="clcm-col-link">${headInner}</span>`}
                 <span class="clcm-col-count">${draftedCount} gewählt</span>
             </div>
             <div class="clcm-col-players">${cards}${emptyDrafted}${emptyAll}</div>
@@ -6062,13 +6136,22 @@
                         </div>`
             : '<div class="clcm-note">Noch keine Spielpunkte erfasst – angezeigt sind die gewählten Spieler.</div>';
 
+        // Wappen + Klubname im Kopf sind Einstiege in die Analyse,
+        // gefiltert auf den jeweiligen Klub.
+        const headSide = (teamName, logo, fallbackLogo) => {
+            const href = clTeamAnalysisHref(teamName);
+            const label = escapeHtml(clTeamLinkLabel(teamName));
+            const inner = `<span class="clcm-head-logo">${renderFlagImageHtml('clcm-head-logo-img', logo, fallbackLogo, teamName, 'font-size:2rem;')}</span>
+                        <span class="clcm-head-club">${escapeHtml(teamName)}</span>`;
+            return href
+                ? `<a class="clcm-head-side clcm-head-side-link" href="${escapeHtml(href)}" title="${label}" aria-label="${label}">${inner}</a>`
+                : `<div class="clcm-head-side">${inner}</div>`;
+        };
+
         return `
             <div class="clpop-modal-head clcm-modal-head">
                 <div class="clcm-head-teams">
-                    <div class="clcm-head-side">
-                        <span class="clcm-head-logo">${renderFlagImageHtml('clcm-head-logo-img', entry.logoA, entry.fallbackLogoA, entry.teamA, 'font-size:2rem;')}</span>
-                        <span class="clcm-head-club">${escapeHtml(entry.teamA)}</span>
-                    </div>
+                    ${headSide(entry.teamA, entry.logoA, entry.fallbackLogoA)}
                     <div class="clcm-head-center">
                         ${showScore
                             ? `<div class="clcm-head-score">${escapeHtml(String(entry.score.home))}<i>:</i>${escapeHtml(String(entry.score.away))}</div>`
@@ -6076,10 +6159,7 @@
                         ${showScore && entry.score.note ? `<div class="clcm-head-note">${escapeHtml(entry.score.note)}</div>` : ''}
                         <div class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</div>
                     </div>
-                    <div class="clcm-head-side">
-                        <span class="clcm-head-logo">${renderFlagImageHtml('clcm-head-logo-img', entry.logoB, entry.fallbackLogoB, entry.teamB, 'font-size:2rem;')}</span>
-                        <span class="clcm-head-club">${escapeHtml(entry.teamB)}</span>
-                    </div>
+                    ${headSide(entry.teamB, entry.logoB, entry.fallbackLogoB)}
                 </div>
                 ${metaBits.length ? `<div class="clcm-head-meta">${escapeHtml(metaBits.join(' · '))}</div>` : ''}
                 <button type="button" class="clpop-close" data-clpop-close aria-label="Detailkarte schliessen">✕</button>
