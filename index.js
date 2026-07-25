@@ -4637,7 +4637,13 @@
         if (!chips.length) { wrap.style.height = '0px'; return; }
 
         const W = wrap.clientWidth;
-        if (!W) return;
+        if (!W) {
+            // Noch nicht messbar (z. B. Container erst im nächsten Frame
+            // sichtbar): erneut versuchen statt die Chips ungesetzt – und
+            // damit alle auf 0/0 gestapelt – stehen zu lassen.
+            requestAnimationFrame(() => cltmLayoutPlayers(false));
+            return;
+        }
         const inRow = W >= 620;                       // Bank rechts in der Reihe?
         const gap = inRow ? Math.min(18, Math.max(10, Math.floor(W * 0.014))) : 8;
         const gutter = inRow ? 44 : 0;                // Platz für TOR/ABW/MF/ST
@@ -4875,10 +4881,14 @@
         clpopModal.className = `clpop-modal${cfg.modalClass ? ' ' + cfg.modalClass : ''}`;
         clpopModal.setAttribute('aria-label', cfg.ariaLabel || '');
         clpopModal.innerHTML = cfg.html || '';
-        if (typeof cfg.onMounted === 'function') cfg.onMounted(clpopModal);
 
         clpopLockBody();
         clpopOverlay.hidden = false;
+
+        // ERST jetzt: das Overlay ist sichtbar, der Inhalt also messbar.
+        // Vorher (display: none) liefert jede Breitenmessung 0 – das
+        // Chip-Layout der Manager-Karte brach dann still ab.
+        if (typeof cfg.onMounted === 'function') cfg.onMounted(clpopModal);
 
         // Die Karte wächst aus der RICHTUNG der angeklickten Kachel: der
         // transform-origin liegt auf deren Mittelpunkt (auf die Karten-
