@@ -114,47 +114,62 @@ function registerServiceWorker() {
 /* =============================================================================
  *  DEV TOURNAMENT SWITCHER
  *
- *  Sehr unauffälliger Dev-Knopf oben links (neben dem ggf. vorhandenen
- *  "DEV: Auto/Vor Start/Nach Start"-Toggle in index.html). Beschriftet nur
- *  mit "Dev". Erst beim Klick öffnet sich ein kleines Popover, in dem
- *  zwischen den aktuell verfügbaren Turnieren aus tournament-config.js
- *  gewechselt werden kann.
+ *  Turnier-Wechsel für Admins. Früher ein schwebendes Popover oben links,
+ *  heute eine Gruppe von Einträgen im Dev-Bereich des Profil-Dropdowns
+ *  (siehe auth-modal.js → devMenu) – zusammen mit den übrigen Dev-Optionen.
  *
- *  Aktuell ist nur `wm2026` produktiv verfügbar. Solange nur ein einziges
- *  Turnier verfügbar ist, wird der Switcher gar nicht erst gerendert – es
- *  gibt schlicht nichts auszuwählen. Sobald weitere Turniere in
- *  tournament-config.js aktiviert werden (`available: true && dataReady: true`),
- *  erscheint der Switcher automatisch wieder.
+ *  Aktuell ist nur `wm2026` produktiv verfügbar. Solange es nur ein Turnier
+ *  zu wählen gibt, werden gar keine Einträge registriert – es gibt schlicht
+ *  nichts auszuwählen. Sobald weitere Turniere in tournament-config.js
+ *  aktiviert werden (`available: true && dataReady: true`) oder ein Turnier
+ *  über den Preview-Kanal ladbar ist, erscheinen sie automatisch.
  *
  *  Wichtig:
  *  - Der eigentliche Standard kommt aus dem Domain-Mapping in
  *    tournament-config.js (dt.alae.app → WM 2026).
- *  - Der Dev-Knopf dient nur noch als TEST-OVERRIDE und schreibt
- *    seine Auswahl host-spezifisch in localStorage
- *    (`dreamteam_dev_override_${hostname}`).
- *  - Wenn ein Override aktiv ist, zeigt der Knopf das per Farbakzent an
- *    und erlaubt mit "↺ Domain-Default" das Zurücksetzen auf die
- *    domain-basierte Standardwahl.
+ *  - Die Auswahl ist nur ein TEST-OVERRIDE und wird host-spezifisch in
+ *    localStorage abgelegt (`dreamteam_dev_override_${hostname}`).
+ *  - Ist ein Override aktiv, gibt es zusätzlich den Eintrag
+ *    "Zurück auf Domain-Default".
  *
  *  Sichtbarkeit:
- *  - Nur für eingeloggte Admins sichtbar (siehe admin.js / window.DreamTeamAdmin).
- *  - Für alle anderen Nutzer bleibt der Wrapper komplett versteckt.
- *  - Zusätzlich kann ein Admin den Knopf mit ?dev=0 oder
- *    localStorage["dreamteam_hide_dev"]="1" lokal komplett deaktivieren.
+ *  - Nur für eingeloggte Admins (das Dev-Menü rendert für alle anderen
+ *    Nutzer gar nichts, siehe admin.js / window.DreamTeamAdmin).
+ *  - Zusätzlich lässt sich der ganze Block mit ?dev=0 oder
+ *    localStorage["dreamteam_hide_dev"]="1" lokal deaktivieren.
  * ============================================================================= */
 function buildDevTournamentSwitcher(APP) {
     if (!APP || typeof APP.tournaments !== 'object') return;
+
+    // auth-modal.js wird nach nav.js geladen. Beim regulären Boot steht es
+    // zu DOMContentLoaded längst bereit; falls die Seite es doch später
+    // einbindet, warten wir kurz – sonst gäbe es für Admins still keine
+    // Turnier-Einträge.
+    const Modal = window.DreamTeamAuthModal;
+    if (!Modal || !Modal.devMenu || typeof Modal.devMenu.register !== 'function') {
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const interval = setInterval(() => {
+            attempts += 1;
+            const M = window.DreamTeamAuthModal;
+            if (M && M.devMenu && typeof M.devMenu.register === 'function') {
+                clearInterval(interval);
+                buildDevTournamentSwitcher(APP);
+            } else if (attempts >= maxAttempts) {
+                clearInterval(interval);
+            }
+        }, 100);
+        return;
+    }
 
     try {
         const params = new URLSearchParams(window.location.search);
         if (params.get('dev') === '0') return;
         if (window.localStorage.getItem('dreamteam_hide_dev') === '1') return;
     } catch (_) {
-        // Wenn Storage/Params nicht lesbar sind, zeigen wir den Switcher trotzdem
-        // (Admin-Gate weiter unten greift).
+        // Wenn Storage/Params nicht lesbar sind, registrieren wir trotzdem
+        // (das Admin-Gate im Dev-Menü greift weiter).
     }
-
-    if (document.getElementById('dev-tournament-switcher')) return;
 
     // Nur Turniere zeigen, die aktuell wirklich verfügbar sind
     // (siehe APP_CONFIG.getAvailableTournamentKeys – `available !== false`
@@ -173,8 +188,7 @@ function buildDevTournamentSwitcher(APP) {
 
     // Zusätzlich: (noch) nicht freigeschaltete Turniere, die als
     // Admin-Vorschau geladen werden können (Preview-Kanal, siehe
-    // tournament-config.js). Diese Optionen sind – wie der ganze
-    // Switcher – nur für eingeloggte Admins sichtbar (Admin-Gate unten).
+    // tournament-config.js).
     let previewKeys = [];
     if (Array.isArray(APP.previewableTournamentKeys)) {
         previewKeys = APP.previewableTournamentKeys.slice();
@@ -182,8 +196,8 @@ function buildDevTournamentSwitcher(APP) {
         previewKeys = APP.getPreviewableTournamentKeys();
     }
 
-    // Der Switcher erscheint, sobald es überhaupt etwas zu wählen gibt:
-    // mehrere verfügbare Turniere ODER mindestens eine Admin-Vorschau.
+    // Erst sinnvoll, sobald es überhaupt etwas zu wählen gibt: mehrere
+    // verfügbare Turniere ODER mindestens eine Admin-Vorschau.
     if (tournamentKeys.length + previewKeys.length < 2) return;
 
     const overrideActive = typeof APP.isDevOverrideActive === 'function'
@@ -193,307 +207,91 @@ function buildDevTournamentSwitcher(APP) {
         ? APP.isUrlOverrideActive()
         : false;
 
-    const RESET_VALUE = '__reset_to_domain_default__';
     const domainDefaultKey = APP.domainDefaultKey;
-    const domainDefaultLabel = (APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel)
-        || domainDefaultKey
-        || '–';
-
-    // Container nimmt Button + Popover auf, damit beides gemeinsam positioniert
-    // werden kann (oben links, neben einem evtl. vorhandenen #dev-index-toggle).
-    const wrapper = document.createElement('div');
-    wrapper.id = 'dev-tournament-switcher';
-    Object.assign(wrapper.style, {
-        position: 'fixed',
-        top: '8px',
-        left: '8px',
-        zIndex: '9999',
-        fontFamily: 'monospace, system-ui, -apple-system, Segoe UI, sans-serif',
-        userSelect: 'none',
-        WebkitUserSelect: 'none'
-    });
-
-    // Falls der DEV-Ansichtsmodus-Knopf (#dev-index-toggle, nur auf index.html)
-    // existiert, setzen wir den Turnier-Switcher direkt rechts daneben.
-    function placeNextToIndexToggle() {
-        const toggle = document.getElementById('dev-index-toggle');
-        if (!toggle) return;
-        const rect = toggle.getBoundingClientRect();
-        if (!rect || !rect.width) return;
-        wrapper.style.left = `${Math.round(rect.right + 6)}px`;
-        wrapper.style.top = `${Math.round(rect.top)}px`;
-    }
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.id = 'dev-tournament-toggle';
-    button.textContent = 'Dev';
-    button.setAttribute('aria-haspopup', 'menu');
-    button.setAttribute('aria-expanded', 'false');
-    button.setAttribute(
-        'aria-label',
-        overrideActive
-            ? `Dev: Turnier wechseln (Override aktiv, Domain-Default: ${domainDefaultLabel})`
-            : `Dev: Turnier wechseln (Domain-Default: ${domainDefaultLabel})`
-    );
-    button.title = overrideActive
-        ? `Dev Override aktiv – Domain-Default: ${domainDefaultLabel}`
-        : `Domain-Default: ${domainDefaultLabel}`;
-    Object.assign(button.style, {
-        fontSize: '11px',
-        fontFamily: 'monospace',
-        fontWeight: '700',
-        padding: '4px 8px',
-        borderRadius: '6px',
-        border: overrideActive
-            ? '1px solid rgba(255, 120, 120, 0.55)'
-            : '1px solid rgba(255, 255, 255, 0.2)',
-        background: 'rgba(0, 0, 0, 0.55)',
-        color: overrideActive ? 'rgba(255, 180, 162, 0.95)' : 'rgba(255, 255, 255, 0.7)',
-        cursor: 'pointer',
-        opacity: '0.55',
-        transition: 'opacity 0.2s ease, background 0.2s ease',
-        lineHeight: '1.4',
-        letterSpacing: '0.3px'
-    });
-    button.addEventListener('mouseenter', () => {
-        button.style.opacity = '0.9';
-        button.style.background = 'rgba(0, 0, 0, 0.8)';
-    });
-    button.addEventListener('mouseleave', () => {
-        button.style.opacity = '0.55';
-        button.style.background = 'rgba(0, 0, 0, 0.55)';
-    });
-
-    // Popover mit den Auswahl-Optionen, standardmässig versteckt.
-    const popover = document.createElement('div');
-    popover.id = 'dev-tournament-popover';
-    popover.setAttribute('role', 'menu');
-    Object.assign(popover.style, {
-        position: 'absolute',
-        top: 'calc(100% + 6px)',
-        left: '0',
-        minWidth: '180px',
-        padding: '6px',
-        display: 'none',
-        flexDirection: 'column',
-        gap: '2px',
-        background: 'rgba(20, 20, 20, 0.95)',
-        border: overrideActive
-            ? '1px solid rgba(255, 120, 120, 0.55)'
-            : '1px solid rgba(255, 255, 255, 0.2)',
-        borderRadius: '8px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
-        backdropFilter: 'blur(6px)',
-        fontSize: '11px',
-        fontWeight: '600',
-        color: 'rgba(255,255,255,0.85)'
-    });
-
-    // Header zeigt den Domain-Default zur Orientierung.
-    const header = document.createElement('div');
-    header.textContent = overrideActive
-        ? `Dev Override aktiv (Default: ${domainDefaultLabel})`
-        : `Domain-Default: ${domainDefaultLabel}`;
-    Object.assign(header.style, {
-        padding: '4px 8px 6px',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        marginBottom: '4px',
-        fontSize: '10px',
-        fontWeight: '700',
-        letterSpacing: '0.3px',
-        color: overrideActive ? '#ffb4a2' : '#ffd166',
-        textTransform: 'uppercase'
-    });
-    popover.appendChild(header);
-
-    function closePopover() {
-        popover.style.display = 'none';
-        button.setAttribute('aria-expanded', 'false');
-    }
-
-    function openPopover() {
-        placeNextToIndexToggle();
-        popover.style.display = 'flex';
-        button.setAttribute('aria-expanded', 'true');
-    }
-
-    function makeItem({ text, isActive, isDomain, accent, onClick }) {
-        const item = document.createElement('button');
-        item.type = 'button';
-        item.setAttribute('role', 'menuitem');
-        item.textContent = text;
-        Object.assign(item.style, {
-            display: 'block',
-            width: '100%',
-            textAlign: 'left',
-            padding: '6px 8px',
-            borderRadius: '6px',
-            border: '1px solid transparent',
-            background: isActive ? 'rgba(255, 209, 102, 0.12)' : 'transparent',
-            color: accent || (isActive ? '#ffd166' : 'rgba(255,255,255,0.85)'),
-            fontSize: '11px',
-            fontWeight: isActive ? '800' : '600',
-            cursor: 'pointer',
-            outline: 'none',
-            lineHeight: '1.3'
-        });
-        if (isDomain) {
-            item.style.borderColor = 'rgba(255, 209, 102, 0.35)';
-        }
-        item.addEventListener('mouseenter', () => {
-            item.style.background = 'rgba(255,255,255,0.08)';
-        });
-        item.addEventListener('mouseleave', () => {
-            item.style.background = isActive ? 'rgba(255, 209, 102, 0.12)' : 'transparent';
-        });
-        item.addEventListener('click', (event) => {
-            event.stopPropagation();
-            try {
-                onClick();
-            } finally {
-                closePopover();
-            }
-        });
-        return item;
-    }
+    const GROUP = 'Turnier';
+    const GROUP_ORDER = 20;
+    let order = 0;
 
     tournamentKeys.forEach((key) => {
         const t = APP.tournaments[key];
-        const baseLabel = t && t.shortLabel ? t.shortLabel : key;
+        const baseLabel = (t && t.shortLabel) ? t.shortLabel : key;
         const isDomainDefault = key === domainDefaultKey;
         const isActive = key === APP.activeTournamentKey;
         const marks = [];
-        if (isDomainDefault) marks.push('★ Domain');
-        if (isActive) marks.push(overrideActive ? 'Override aktiv' : 'aktiv');
-        const suffix = marks.length ? ` — ${marks.join(' · ')}` : '';
-        popover.appendChild(makeItem({
-            text: `${baseLabel}${suffix}`,
-            isActive,
-            isDomain: isDomainDefault,
-            onClick: () => {
-                if (isActive && !urlOverrideActive) return;
+        if (isActive) marks.push(overrideActive ? 'Override' : 'aktiv');
+        if (isDomainDefault) marks.push('Domain');
+
+        order += 1;
+        Modal.devMenu.register({
+            id: `tournament-${key}`,
+            group: GROUP,
+            groupOrder: GROUP_ORDER,
+            order,
+            label: baseLabel,
+            value: marks.join(' · '),
+            accent: isActive ? 'active' : null,
+            disabled: isActive && !urlOverrideActive,
+            onSelect: () => {
                 if (typeof APP.setActiveTournament === 'function') {
                     APP.setActiveTournament(key);
                 }
             }
-        }));
+        });
     });
 
     // Admin-Vorschau-Optionen (noch nicht freigeschaltete Turniere, z. B.
-    // die CL vor dem 27.08.). Klick lädt das Turnier über den Preview-
-    // Kanal – nur für Admins sichtbar.
-    if (previewKeys.length) {
-        const sep = document.createElement('div');
-        Object.assign(sep.style, {
-            borderTop: '1px solid rgba(255,255,255,0.10)',
-            margin: '4px 0'
-        });
-        popover.appendChild(sep);
+    // die CL vor der Freischaltung). Klick lädt das Turnier über den
+    // Preview-Kanal.
+    previewKeys.forEach((key) => {
+        const t = APP.tournaments[key];
+        const baseLabel = (t && t.shortLabel) ? t.shortLabel : key;
+        const isActive = key === APP.activeTournamentKey;
 
-        previewKeys.forEach((key) => {
-            const t = APP.tournaments[key];
-            const baseLabel = t && t.shortLabel ? t.shortLabel : key;
-            const isActive = key === APP.activeTournamentKey;
-            popover.appendChild(makeItem({
-                text: `${baseLabel} — Vorschau${isActive ? ' · aktiv' : ''}`,
-                isActive,
-                accent: '#8ec7ff',
-                onClick: () => {
-                    if (isActive) return;
-                    if (typeof APP.setPreviewTournament === 'function') {
-                        APP.setPreviewTournament(key);
-                    }
+        order += 1;
+        Modal.devMenu.register({
+            id: `tournament-preview-${key}`,
+            group: GROUP,
+            groupOrder: GROUP_ORDER,
+            order,
+            label: `${baseLabel} (Vorschau)`,
+            value: isActive ? 'aktiv' : '',
+            accent: 'info',
+            disabled: isActive,
+            onSelect: () => {
+                if (typeof APP.setPreviewTournament === 'function') {
+                    APP.setPreviewTournament(key);
                 }
-            }));
+            }
         });
-    }
+    });
 
     // Aktive Vorschau beenden → zurück auf die normale Auflösung.
     if (typeof APP.isPreviewActive === 'function' && APP.isPreviewActive()) {
-        popover.appendChild(makeItem({
-            text: '↺ Vorschau beenden',
-            accent: '#8ec7ff',
-            onClick: () => {
-                if (typeof APP.clearPreview === 'function') {
-                    APP.clearPreview();
-                }
+        Modal.devMenu.register({
+            id: 'tournament-preview-exit',
+            group: GROUP,
+            groupOrder: GROUP_ORDER,
+            order: 900,
+            label: 'Vorschau beenden',
+            accent: 'info',
+            onSelect: () => {
+                if (typeof APP.clearPreview === 'function') APP.clearPreview();
             }
-        }));
+        });
     }
 
     if (overrideActive) {
-        popover.appendChild(makeItem({
-            text: '↺ Zurück auf Domain-Default',
-            accent: '#ffb4a2',
-            onClick: () => {
-                if (typeof APP.resetToDomainDefault === 'function') {
-                    APP.resetToDomainDefault();
-                }
+        Modal.devMenu.register({
+            id: 'tournament-reset-default',
+            group: GROUP,
+            groupOrder: GROUP_ORDER,
+            order: 901,
+            label: 'Zurück auf Domain-Default',
+            accent: 'danger',
+            onSelect: () => {
+                if (typeof APP.resetToDomainDefault === 'function') APP.resetToDomainDefault();
             }
-        }));
-    }
-
-    button.addEventListener('click', (event) => {
-        event.stopPropagation();
-        if (popover.style.display === 'none') {
-            openPopover();
-        } else {
-            closePopover();
-        }
-    });
-
-    document.addEventListener('click', (event) => {
-        if (!wrapper.contains(event.target)) closePopover();
-    });
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closePopover();
-    });
-    window.addEventListener('resize', () => {
-        if (popover.style.display !== 'none') placeNextToIndexToggle();
-    });
-
-    wrapper.appendChild(button);
-    wrapper.appendChild(popover);
-
-    // Admin-Gate: Wrapper ist standardmässig versteckt und wird ausschliesslich
-    // sichtbar, wenn ein Admin (gem. admin.js / window.DreamTeamAdmin) eingeloggt
-    // ist. Wir hängen ihn schon ins DOM, damit `placeNextToIndexToggle` korrekt
-    // misst, sobald der Wrapper sichtbar wird.
-    wrapper.style.display = 'none';
-    document.body.appendChild(wrapper);
-
-    function applyAdminVisibility(isAdmin) {
-        if (isAdmin) {
-            wrapper.style.display = '';
-            placeNextToIndexToggle();
-            setTimeout(placeNextToIndexToggle, 0);
-            setTimeout(placeNextToIndexToggle, 250);
-        } else {
-            closePopover();
-            wrapper.style.display = 'none';
-        }
-    }
-
-    function hookAdmin() {
-        if (!window.DreamTeamAdmin || typeof window.DreamTeamAdmin.onAdminChange !== 'function') {
-            return false;
-        }
-        window.DreamTeamAdmin.onAdminChange(({ isAdmin }) => applyAdminVisibility(!!isAdmin));
-        return true;
-    }
-
-    if (!hookAdmin()) {
-        // admin.js kann nach nav.js geladen werden (defer / async). Kurz pollen,
-        // bis DreamTeamAdmin verfügbar ist; danach gilt der Admin-Status.
-        let attempts = 0;
-        const maxAttempts = 50; // ~5s
-        const interval = setInterval(() => {
-            attempts += 1;
-            if (hookAdmin() || attempts >= maxAttempts) {
-                clearInterval(interval);
-            }
-        }, 100);
+        });
     }
 }
 
@@ -675,29 +473,8 @@ function buildPreviewBadge(APP) {
     bar.appendChild(btn);
     (document.body || document.documentElement).appendChild(bar);
 
-    // Nicht mit den übrigen Dev-Knöpfen oben links kollidieren: ist dort etwas
-    // sichtbar (#dev-index-toggle, Turnier-Switcher), rutscht der
-    // Pill in die Zeile darunter; sonst bleibt er bei top:8px.
-    function placePreviewBadge() {
-        let bottom = 0;
-        ['dev-index-toggle', 'dev-tournament-switcher', 'dev-tournament-toggle']
-            .forEach((id) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                let cs;
-                try { cs = window.getComputedStyle(el); } catch (_) { return; }
-                if (!cs || cs.visibility === 'hidden' || cs.display === 'none') return;
-                const r = el.getBoundingClientRect();
-                if (!r || !r.width || r.left > 240) return; // nur die linke Knopfleiste
-                bottom = Math.max(bottom, r.bottom);
-            });
-        bar.style.top = `${bottom > 0 ? Math.round(bottom + 6) : 8}px`;
-    }
-    placePreviewBadge();
-    // Die Dev-Knöpfe werden erst nach dem Admin-Gate sichtbar (asynchron) –
-    // daher ein paar Nachmessungen plus Reflow bei Resize.
-    [0, 250, 600, 1200].forEach((ms) => setTimeout(placePreviewBadge, ms));
-    window.addEventListener('resize', placePreviewBadge);
+    // Oben links ist jetzt nichts mehr im Weg: die Dev-Knöpfe sind ins
+    // Profil-Dropdown gewandert, der Pill sitzt fix auf top:8px.
 }
 
 document.addEventListener("DOMContentLoaded", () => {

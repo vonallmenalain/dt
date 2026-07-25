@@ -30,7 +30,7 @@
         && window.APP_CONFIG.storage.globalKeys.indexViewMode)
         || "dreamteamIndexViewMode";
     const DEV_MODES = ["auto", "pre", "post"];
-    const DEV_LABELS = { auto: "DEV: Auto", pre: "DEV: Vor Start", post: "DEV: Nach Start" };
+    const DEV_LABELS = { auto: "Auto", pre: "Vor Start", post: "Nach Start" };
 
     function readStoredDevViewOverride() {
         try {
@@ -87,14 +87,13 @@
     }
 
     /**
-     * Aktualisiert die Beschriftung und das data-mode-Attribut des Dev-Umschalters.
+     * Aktualisiert den Dev-Eintrag im Profil-Dropdown (Beschriftung/Status).
      */
     function updateDevToggleLabel() {
-        const btn = document.getElementById("dev-index-toggle");
-        if (!btn) return;
-        const storedMode = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
-        btn.textContent = DEV_LABELS[storedMode] || DEV_LABELS.auto;
-        btn.dataset.mode = storedMode;
+        const Modal = window.DreamTeamAuthModal;
+        if (Modal && Modal.devMenu && typeof Modal.devMenu.refresh === "function") {
+            Modal.devMenu.refresh();
+        }
     }
 
     /**
@@ -228,51 +227,51 @@
     }
 
     /**
-     * Dev-Umschalter: Klick wechselt zyklisch durch auto → pre → post → auto …
-     * Speichert den Modus in localStorage und wendet ihn sofort an.
+     * Dev-Umschalter für den Ansichtsmodus. Lebt als Eintrag im Dev-Bereich
+     * des Profil-Dropdowns (siehe auth-modal.js → devMenu); früher war das
+     * ein schwebender Knopf oben links. Klick wechselt zyklisch durch
+     * auto → pre → post → auto …, speichert den Modus in localStorage und
+     * wendet ihn sofort an.
      *
-     * Sichtbarkeit ist Admin-gegated (siehe admin.js / DreamTeamAdmin):
-     * Der Button bleibt für normale Nutzer komplett versteckt (display:none
-     * via CSS) und wird hier nur eingeblendet, wenn ein Admin eingeloggt ist.
+     * Sichtbarkeit ist Admin-gegated: das Dev-Menü rendert seine Einträge
+     * nur für angemeldete Admins (admin.js / DreamTeamAdmin).
      */
     function initDevToggle() {
-        const btn = document.getElementById("dev-index-toggle");
-        if (!btn) return;
-
-        updateDevToggleLabel();
-
-        btn.addEventListener("click", () => {
-            const current = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
-            const nextIdx = (DEV_MODES.indexOf(current) + 1) % DEV_MODES.length;
-            const next = DEV_MODES[nextIdx];
-            localStorage.setItem(DEV_TOGGLE_KEY, next);
-            updateDevToggleLabel();
-            if (_lastRenderedData) {
-                render(_lastRenderedData);
-            } else {
-                applyIndexViewMode();
-            }
-            // Wenn der Modus wieder auf Auto gestellt wird, planen wir den
-            // nächsten Live-Flip neu; bei "pre"/"post" wird ein evtl.
-            // anstehender Auto-Timer in scheduleAutoModeFlip() abgebrochen.
-            scheduleAutoModeFlip();
-        });
-
-        function applyAdminVisibility(isAdmin) {
-            // CSS rendert den Knopf standardmässig mit `visibility: hidden`,
-            // damit ein einfaches Zurücksetzen auf den CSS-Default keinen
-            // versehentlichen `display: none`-Fallthrough auslöst (alter
-            // Bug: `style.display = ''` liess den Knopf für Admins
-            // weiterhin verborgen, weil der CSS-Default selbst `none` war).
-            btn.classList.toggle("is-admin-visible", !!isAdmin);
+        const Modal = window.DreamTeamAuthModal;
+        if (Modal && Modal.devMenu && typeof Modal.devMenu.register === "function") {
+            Modal.devMenu.register({
+                id: "index-view-mode",
+                group: "Ansicht",
+                groupOrder: 10,
+                label: "Startseite",
+                value: () => DEV_LABELS[localStorage.getItem(DEV_TOGGLE_KEY) || "auto"] || DEV_LABELS.auto,
+                accent: "active",
+                title: "Ansichtsmodus umschalten: Auto / Vor Start / Nach Start",
+                // Offen lassen, damit der neue Modus direkt ablesbar ist.
+                keepOpen: true,
+                onSelect: () => {
+                    const current = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
+                    const nextIdx = (DEV_MODES.indexOf(current) + 1) % DEV_MODES.length;
+                    localStorage.setItem(DEV_TOGGLE_KEY, DEV_MODES[nextIdx]);
+                    updateDevToggleLabel();
+                    if (_lastRenderedData) {
+                        render(_lastRenderedData);
+                    } else {
+                        applyIndexViewMode();
+                    }
+                    // Wenn der Modus wieder auf Auto gestellt wird, planen wir den
+                    // nächsten Live-Flip neu; bei "pre"/"post" wird ein evtl.
+                    // anstehender Auto-Timer in scheduleAutoModeFlip() abgebrochen.
+                    scheduleAutoModeFlip();
+                }
+            });
         }
 
         function hookAdmin() {
             if (!window.DreamTeamAdmin || typeof window.DreamTeamAdmin.onAdminChange !== "function") {
                 return false;
             }
-            window.DreamTeamAdmin.onAdminChange(({ isAdmin }) => {
-                applyAdminVisibility(!!isAdmin);
+            window.DreamTeamAdmin.onAdminChange(() => {
                 // Admin-Status wirkt sich auf die Override-Auswertung aus
                 // (siehe getEffectiveIndexViewMode): Bei einem Wechsel
                 // muss die Ansicht neu evaluiert und der Auto-Flip-Timer

@@ -41,6 +41,17 @@
  *    close()
  *    setMode(mode)
  *
+ *    devMenu
+ *        Registry für die Admin-/Dev-Werkzeuge, die im Profil-Dropdown
+ *        erscheinen (siehe "Dev-Menü im Profil-Dropdown" weiter unten):
+ *          devMenu.register({ id, group, groupOrder, order, label, value,
+ *                             accent, disabled, onSelect, keepOpen })
+ *                                → unregister-Funktion
+ *          devMenu.unregister(id)
+ *          devMenu.refresh()      Labels/Werte neu auswerten
+ *        Der ganze Block ist nur für angemeldete Admins sichtbar
+ *        (admin.js / DreamTeamAdmin).
+ *
  *    showVerifyPending({ email })
  *        Switches the modal to the "Check your inbox" view. Useful right after
  *        registration, when the team payload is sitting in localStorage waiting
@@ -61,7 +72,11 @@
         navIconEl:        null,
         navDropdownEl:    null,
         navWrapperEl:     null,
+        navDevEl:         null,
         navAuthListener:  null,
+        devItems:         new Map(),   // id → Item-Definition (siehe devMenu)
+        devIsAdmin:       false,
+        devAdminHooked:   false,
         teamBuilderHref:  'team-builder.html',
         currentMode:      null,
         callbacks:        { onAuthenticated: null, onClose: null }
@@ -456,7 +471,10 @@
             }, [
                 el('span', { class: 'dt-auth-nav-dropdown-icon', html: '🚪' }),
                 el('span', {}, ['Abmelden'])
-            ])
+            ]),
+            // Dev-Bereich: bleibt leer und versteckt, solange kein Admin
+            // angemeldet ist bzw. keine Seite Einträge registriert hat.
+            el('div', { class: 'dt-auth-nav-dev', id: 'dt-auth-nav-dev', hidden: '' })
         ]);
 
         wrapper.appendChild(button);
@@ -466,6 +484,10 @@
         state.navIconEl     = button;
         state.navDropdownEl = dropdown;
         state.navWrapperEl  = wrapper;
+        state.navDevEl      = dropdown.querySelector('#dt-auth-nav-dev');
+
+        hookDevMenuAdmin();
+        renderDevMenu();
 
         // Close dropdown on outside click / Escape.
         document.addEventListener('click', (event) => {
@@ -514,8 +536,151 @@
         if (emailEl) emailEl.textContent = email;
     }
 
+    /* ---------------------------------------------------------------------------
+     *  Dev-Menü im Profil-Dropdown
+     *
+     *  Sammelstelle für alle Admin-/Dev-Werkzeuge der App. Früher hingen die
+     *  als schwebende Overlays in der Ecke (Ansichtsmodus auf index.html,
+     *  Turnier-Switcher in nav.js, Einreichungs-Schalter im Team-Builder) –
+     *  jetzt registrieren die Seiten ihre Einträge hier und sie erscheinen
+     *  gebündelt unter dem Profil-Icon.
+     *
+     *  Ein Eintrag (siehe `devMenu.register`):
+     *    id          eindeutig; erneutes register() ersetzt den Eintrag
+     *    group       Überschrift, unter der der Eintrag einsortiert wird
+     *    groupOrder  Reihenfolge der Gruppen (kleiner = weiter oben)
+     *    order       Reihenfolge innerhalb der Gruppe
+     *    label       String oder () => String (bei refresh() neu ausgewertet)
+     *    value       optional, rechtsbündiger Statustext (String oder Funktion)
+     *    accent      optional 'active' | 'info' | 'danger' – nur Farbe
+     *    disabled    optional Boolean oder () => Boolean
+     *    onSelect    Klick-Handler
+     *    keepOpen    true → Dropdown bleibt nach dem Klick offen (Default: false)
+     *
+     *  Sichtbarkeit ist an den Admin-Status gekoppelt (admin.js /
+     *  DreamTeamAdmin). Wie überall im Projekt ist das eine reine UI-Schranke;
+     *  die echte Absicherung liegt in den Firestore Rules.
+     * ------------------------------------------------------------------------- */
+    function resolveDevValue(value, item) {
+        try {
+            return typeof value === 'function' ? value(item) : value;
+        } catch (err) {
+            console.warn('[AuthModal] Dev-Menüeintrag konnte nicht ausgewertet werden:', err);
+            return '';
+        }
+    }
+
+    function sortedDevItems() {
+        return Array.from(state.devItems.values()).sort((a, b) => {
+            const ga = Number(a.groupOrder) || 0;
+            const gb = Number(b.groupOrder) || 0;
+            if (ga !== gb) return ga - gb;
+            const oa = Number(a.order) || 0;
+            const ob = Number(b.order) || 0;
+            if (oa !== ob) return oa - ob;
+            return String(a.id).localeCompare(String(b.id), 'de');
+        });
+    }
+
+    function renderDevMenu() {
+        const host = state.navDevEl;
+        if (!host) return;
+
+        const items = state.devIsAdmin ? sortedDevItems() : [];
+        host.innerHTML = '';
+        host.hidden = items.length === 0;
+        if (!items.length) return;
+
+        host.appendChild(el('div', { class: 'dt-auth-nav-dropdown-divider' }));
+        host.appendChild(el('div', { class: 'dt-auth-nav-dev-title' }, ['Dev']));
+
+        let lastGroup = null;
+        items.forEach((item) => {
+            const group = item.group || '';
+            if (group && group !== lastGroup) {
+                host.appendChild(el('div', { class: 'dt-auth-nav-dev-group' }, [group]));
+            }
+            lastGroup = group;
+
+            const disabled = !!resolveDevValue(item.disabled, item);
+            const value = resolveDevValue(item.value, item);
+            const accent = item.accent ? ` is-${item.accent}` : '';
+
+            const button = el('button', {
+                type: 'button',
+                role: 'menuitem',
+                class: `dt-auth-nav-dropdown-item dt-auth-nav-dev-item${accent}`,
+                disabled: disabled ? '' : null,
+                title: item.title || null,
+                on: {
+                    click: (event) => {
+                        event.stopPropagation();
+                        if (resolveDevValue(item.disabled, item)) return;
+                        try {
+                            if (typeof item.onSelect === 'function') item.onSelect(item);
+                        } catch (err) {
+                            console.error('[AuthModal] Dev-Menüeintrag fehlgeschlagen:', err);
+                        }
+                        if (item.keepOpen) renderDevMenu();
+                        else closeNavDropdown();
+                    }
+                }
+            }, [
+                el('span', { class: 'dt-auth-nav-dev-label' }, [String(resolveDevValue(item.label, item) ?? '')])
+            ]);
+
+            if (value) {
+                button.appendChild(el('span', { class: 'dt-auth-nav-dev-value' }, [String(value)]));
+            }
+            host.appendChild(button);
+        });
+    }
+
+    // Admin-Status beobachten. admin.js kann nach auth-modal.js geladen
+    // werden – dann kurz pollen, wie an den übrigen Admin-Gates im Projekt.
+    function hookDevMenuAdmin() {
+        if (state.devAdminHooked) return;
+
+        function attach() {
+            const Admin = window.DreamTeamAdmin;
+            if (!Admin || typeof Admin.onAdminChange !== 'function') return false;
+            state.devAdminHooked = true;
+            Admin.onAdminChange(({ isAdmin }) => {
+                state.devIsAdmin = !!isAdmin;
+                renderDevMenu();
+            });
+            return true;
+        }
+
+        if (attach()) return;
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const interval = setInterval(() => {
+            attempts += 1;
+            if (attach() || attempts >= maxAttempts) clearInterval(interval);
+        }, 100);
+    }
+
+    const devMenu = {
+        register(item) {
+            if (!item || !item.id) return function () {};
+            state.devItems.set(String(item.id), Object.assign({}, item, { id: String(item.id) }));
+            // Seiten registrieren u. U. bevor das Icon gemountet ist – dann
+            // zieht renderDevMenu() beim Mount nach.
+            hookDevMenuAdmin();
+            renderDevMenu();
+            return function () { devMenu.unregister(item.id); };
+        },
+        unregister(id) {
+            if (state.devItems.delete(String(id))) renderDevMenu();
+        },
+        refresh() { renderDevMenu(); },
+        has(id) { return state.devItems.has(String(id)); }
+    };
+
     function openNavDropdown() {
         if (!state.navDropdownEl || !state.navIconEl) return;
+        renderDevMenu();
         state.navDropdownEl.hidden = false;
         state.navDropdownEl.classList.add('is-open');
         state.navIconEl.setAttribute('aria-expanded', 'true');
@@ -1402,6 +1567,7 @@
         open,
         close,
         setMode,
-        showVerifyPending
+        showVerifyPending,
+        devMenu
     };
 })();
