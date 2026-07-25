@@ -412,6 +412,47 @@
         <div class="clcm-list" id="clCurrentMatchesList" aria-live="polite"></div>
     </section>
 
+    <!-- =====================================================================
+         CL: „Top Spieler" – Karten-Bühne mit zwei Ansichten.
+         Ersetzt in der CL-Version das Glass-Panel „Top Spieler" (Top-5-Grid
+         + Perfect-15-Liste, #post-players-panel wird von index.js entfernt);
+         die WM behält das Panel unverändert. Aufbau bewusst identisch zu
+         „Top Manager" und „Aktuelle Spiele": Titel im gleichen Layout,
+         darunter ein dezenter Ansichts-Toggle und eine Bühne mit Karten.
+
+         • „Top 20": die 20 punktbesten Spieler als Spielerkarten im
+           Teams-Look (Foto, Name, Klublogo, Punkte) – Rang-Badge oben
+           links, Medaillenfarben für die Ränge 1–3.
+         • „Perfect 15": dieselben Karten, aber im Reihen-Layout der
+           Positions-Ansicht aus der Top-Manager-Detailkarte (TOR/ABW/MF/ST,
+           Bank in einer eigenen Spalte rechts).
+         Beide Ansichten teilen sich denselben Kartensatz; der Wechsel
+         animiert die Karten über transform an ihren neuen Platz
+         (Layout-Engine in index.js → cltsLayoutCards).
+         ===================================================================== -->
+    <section class="clts-stage" id="clTopPlayers" aria-label="Top Spieler" hidden>
+        <header class="champ-header">
+            <h2 class="champ-title">
+                <span class="gold-text">Top</span>
+                <span class="accent">Spieler</span>
+            </h2>
+        </header>
+        <div class="clts-list-toolbar">
+            <div class="pt-toggle clts-view-toggle" role="tablist" aria-label="Spieler-Ansicht">
+                <button type="button" class="pt-toggle-btn active" data-view="top" role="tab" aria-selected="true">Top 20</button>
+                <button type="button" class="pt-toggle-btn" data-view="perfect" role="tab" aria-selected="false">Perfect 15</button>
+            </div>
+            <div class="clts-toolbar-right">
+                <span class="clts-meta is-hidden" id="clTopPlayersMeta" aria-live="polite"></span>
+                <a class="clts-list-link" href="spieleranalyse.html">Alle Spieler →</a>
+            </div>
+        </div>
+        <!-- Karten-Bühne: Karten sind absolut positioniert (JS-Layout).
+             Während des Ladens bleibt die Fläche leer, aber reserviert
+             (min-height via cltsReserveBoardHeight) – kein Layout-Shift. -->
+        <div class="clts-board" id="clTopPlayersBoard" aria-live="polite"></div>
+    </section>
+
     <!-- Quick nav pills (Auswahl: Rangliste, Spieler, Teams, Punkte) -->
     <div class="post-hero-pills" style="margin-top: 22px; margin-bottom: 8px;">
         <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
