@@ -5495,6 +5495,7 @@
     let clcmBound = false;
     let clcmSignature = null;
     let clcmRenderedView = null;     // Ansicht, die aktuell im DOM steht
+    let clcmViewChosenByUser = false;// true, sobald jemand selbst umgeschaltet hat
 
     function clcmSignatureOf(entries) {
         return JSON.stringify(entries.map((e) => [
@@ -5819,12 +5820,12 @@
     }
 
     function clcmUpdateToggle() {
-        // Umschalter nur zeigen, wenn beide Ansichten überhaupt Spiele haben.
+        // Der Umschalter steht IMMER da, auch wenn eine Seite gerade leer
+        // ist (nach dem Final gibt es keine kommenden Spiele mehr) – dort
+        // erklärt dann ein Hinweis, dass nichts ansteht. Nur wenn gar keine
+        // Spiele vorliegen, gibt es nichts umzuschalten.
         const toolbar = document.querySelector('#clCurrentMatches .clcm-list-toolbar');
-        if (toolbar) {
-            const hasBoth = clcmCountByGroup('abgeschlossen') > 0 && clcmCountByGroup('kommend') > 0;
-            toolbar.classList.toggle('is-single-view', !hasBoth);
-        }
+        if (toolbar) toolbar.classList.toggle('is-single-view', !clcmEntries.length);
         document.querySelectorAll('#clCurrentMatches .clcm-view-toggle .pt-toggle-btn').forEach((btn) => {
             const active = btn.dataset.view === clcmView;
             btn.classList.toggle('active', active);
@@ -6093,7 +6094,11 @@
         if (toggle) {
             toggle.addEventListener('click', (ev) => {
                 const btn = ev.target.closest('[data-view]');
-                if (btn) clcmSetView(btn.dataset.view);
+                if (!btn) return;
+                // Ab jetzt gilt die Wahl des Users – der Auto-Wechsel auf
+                // eine nicht-leere Seite darf sie nicht mehr überschreiben.
+                clcmViewChosenByUser = true;
+                clcmSetView(btn.dataset.view);
             });
         }
 
@@ -6128,10 +6133,12 @@
         clcmEntries = entries;
         clcmEntryByKey = new Map(entries.map((e) => [e.key, e]));
 
-        // Steht die gewählte Ansicht leer da (z. B. vor dem ersten Anpfiff
+        // Steht die Standard-Ansicht leer da (z. B. vor dem ersten Anpfiff
         // gibt es noch nichts Abgeschlossenes), still auf die andere
-        // wechseln – der User landet nie auf einer leeren Bühne.
-        if (!clcmCountByGroup(clcmView)) {
+        // wechseln – niemand landet beim Aufmachen auf einer leeren Bühne.
+        // Hat jemand selbst umgeschaltet, bleibt seine Wahl stehen, auch
+        // wenn sie leer ist (sonst würde ein Daten-Refresh sie wegziehen).
+        if (!clcmViewChosenByUser && !clcmCountByGroup(clcmView)) {
             const other = clcmView === 'abgeschlossen' ? 'kommend' : 'abgeschlossen';
             if (clcmCountByGroup(other)) clcmView = other;
         }

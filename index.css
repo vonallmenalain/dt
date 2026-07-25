@@ -6856,7 +6856,9 @@
             padding: 4px 12px;
             font-size: 0.7rem;
         }
-        /* Weniger Spiele als eine Standard-Ansicht fasst → kein Toggle. */
+        /* Nur wenn ÜBERHAUPT keine Spiele vorliegen → kein Toggle. Eine
+           leere Einzelseite blendet ihn nicht aus, sie bekommt einen
+           Hinweis (siehe .clcm-empty). */
         .clcm-list-toolbar.is-single-view .clcm-view-toggle { visibility: hidden; }
         .clcm-list-link {
             font-size: 0.74rem;
