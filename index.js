@@ -316,6 +316,58 @@
     const isDesktopHover = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /* ── Bühnenhöhe beim Ansichtswechsel ──────────────────────────────────
+       Die Karten-Bühnen (Top Manager, Top Spieler, Popup-Spielerreihen)
+       positionieren ihre Kacheln absolut und setzen die Höhe der Bühne per
+       JS – sonst hätte der Container gar keine. Bislang glitt diese Höhe
+       über `transition: height` weich mit.
+
+       `height` ist aber kein Compositor-Wert: Der Browser muss dafür in
+       JEDEM Bild der 0,6 s die halbe Seite neu umbrechen, samt der
+       Glass-Panels darunter, deren `backdrop-filter` dabei jedes Mal neu
+       gerechnet wird. Auf dem Desktop fällt das nicht auf, auf Telefonen
+       ruckelt dadurch die ganze Bewegung.
+
+       Deshalb steht die Höhen-Transition auf Touch-Geräten in index.css
+       aus (`@media (hover: none), (pointer: coarse)`) – exakt die
+       Gegenbedingung zu `isDesktopHover()`. Damit die Kacheln beim
+       Schrumpfen aber nicht kurzzeitig über den Inhalt darunter laufen,
+       hält die Bühne für die Dauer der Bewegung die GRÖSSERE der beiden
+       Höhen und gibt den Platz erst danach frei: ein einziger Umbruch
+       statt rund drei Dutzend. Wächst die Bühne, steht die neue Höhe
+       sofort – dort gibt es nichts zu überdecken. */
+    // Kachel-Transition (0,6 s) + längster Stagger-Versatz (0,2 s) + Reserve:
+    // Erst wenn auch die letzte Kachel angekommen ist, darf der Platz weg.
+    const STAGE_MOVE_MS = 820;
+    const stageShrinkTimers = new WeakMap();
+
+    // Höhe wieder der Auto-Berechnung überlassen (Leerzustände). Muss ein
+    // laufendes Nachschrumpfen abbestellen, sonst schreibt der Timer später
+    // die Höhe des alten Inhalts zurück.
+    function stageReleaseHeight(el) {
+        if (!el) return;
+        const pending = stageShrinkTimers.get(el);
+        if (pending) { clearTimeout(pending); stageShrinkTimers.delete(el); }
+        el.style.height = '';
+    }
+
+    function stageSetHeight(el, height, animate) {
+        if (!el) return;
+        const target = Math.ceil(height);
+        const pending = stageShrinkTimers.get(el);
+        if (pending) { clearTimeout(pending); stageShrinkTimers.delete(el); }
+
+        const current = Math.ceil(parseFloat(el.style.height) || 0);
+        const holdsHeight = animate && !isDesktopHover() && current > target;
+        if (!holdsHeight) { el.style.height = target + 'px'; return; }
+
+        el.style.height = current + 'px';
+        stageShrinkTimers.set(el, setTimeout(() => {
+            stageShrinkTimers.delete(el);
+            el.style.height = target + 'px';
+        }, STAGE_MOVE_MS));
+    }
+
     let nationFlagLookup = null;
 
     function normalizeNationFlagKey(value) {
@@ -4712,7 +4764,7 @@
         const wrap = clpopModal.querySelector('.cltm-players');
         if (!wrap) return;
         const chips = cltmChipElements();
-        if (!chips.length) { wrap.style.height = '0px'; return; }
+        if (!chips.length) { stageSetHeight(wrap, 0, false); return; }
 
         const W = wrap.clientWidth;
         if (!W) {
@@ -4819,7 +4871,7 @@
             }
         }
 
-        wrap.style.height = Math.ceil(height) + 'px';
+        stageSetHeight(wrap, height, animate);
         wrap.classList.toggle('mode-points', cltmMode === 'points');
         wrap.classList.toggle('cltm-inrow', inRow);
 
@@ -5226,7 +5278,7 @@
         });
         cltmTileLayout = nextLayout;
 
-        list.style.height = Math.ceil(height) + 'px';
+        stageSetHeight(list, height, animate);
         list.style.minHeight = '';
 
         if (!animate) {
@@ -5304,7 +5356,7 @@
         list.innerHTML = '';
 
         if (!managers.length) {
-            list.style.height = '';
+            stageReleaseHeight(list);
             list.style.minHeight = '';
             list.innerHTML = '<div class="cltm-empty">Noch keine Teams vorhanden.</div>';
             return;
@@ -6449,7 +6501,7 @@
             place(divider, deco.divider.x, deco.divider.y);
         }
 
-        board.style.height = Math.ceil(height) + 'px';
+        stageSetHeight(board, height, animate);
         board.style.minHeight = '';
         board.classList.toggle('mode-top', cltsView === 'top');
         board.classList.toggle('mode-perfect', cltsView === 'perfect');
@@ -6614,7 +6666,7 @@
         board.innerHTML = '';
 
         if (!top.length || top.every((p) => p.pts === 0)) {
-            board.style.height = '';
+            stageReleaseHeight(board);
             board.style.minHeight = '';
             board.innerHTML = '<div class="clts-empty">Noch keine Punkte vorhanden.</div>';
             cltsUpdateMeta();

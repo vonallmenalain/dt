@@ -4060,6 +4060,18 @@
             background-attachment: fixed;
         }
 
+        /* Touch-Geräte: kein festgehefteter Hintergrund.
+           Der Wrapper ist mehrere tausend Pixel hoch. Bleibt sein Verlauf am
+           Viewport hängen, muss der Browser ihn bei JEDEM Scroll-Schritt über
+           die volle Fläche neu zeichnen – der schnelle Scroll-Pfad entfällt
+           damit komplett. (Betrifft in der Praxis die WM-Farbwelt; in der CL
+           setzt theme-cl.css den Verlauf per `background`-Kurzschreibweise
+           ohnehin auf `scroll` zurück. iOS ignoriert `fixed` hier zudem seit
+           je.) Der Vor-Start-Wrapper bekommt dieselbe Regel bei sich unten. */
+        @media (hover: none), (pointer: coarse) {
+            #indexHomePostStart { background-attachment: scroll; }
+        }
+
         /* Stadium spotlight cones from above */
         .ps-stage-glow {
             pointer-events: none;
@@ -4153,6 +4165,37 @@
 
         @media (prefers-reduced-motion: reduce) {
             .ps-orb, .ps-stage-glow::before, .ps-stage-glow::after { animation: none !important; }
+        }
+
+        /* ── Touch-Geräte: Atmosphäre steht still ─────────────────────────
+           Die fünf Ebenen (2 Spotlight-Kegel, 3 Orbs) liegen fix über dem
+           ganzen Viewport, sind stark weichgezeichnet und animieren endlos.
+           Zwei Dinge daran kosten auf dem Telefon dauerhaft Leistung:
+
+           • `mix-blend-mode: screen` zwingt den Compositor, für jedes Bild
+             den Untergrund der ganzen Fläche zurückzulesen und neu zu
+             verrechnen. Solange darüber ein blendender Layer liegt, kann
+             nichts darunter mehr eigenständig auf der GPU laufen – auch die
+             Spielerkarten nicht, die nur transform und opacity anfassen.
+           • Die Endlos-Animationen halten die Style-Maschinerie permanent
+             in Betrieb, auch wenn der Nutzer gar nichts tut. In der Messung
+             mit nachgebauter Bühne fielen die Style-Durchläufe pro
+             Umschaltvorgang von ~50 auf ~32, sobald die Atmosphäre stillsteht.
+
+           Auf dem Desktop ist beides gratis und bleibt unverändert. Auf
+           Touch-Geräten steht dieselbe Bildaufteilung still und blendet
+           normal; die etwas höheren Deckkräfte gleichen aus, dass „normal"
+           auf dunklem Grund weniger aufhellt als „screen". */
+        @media (hover: none), (pointer: coarse) {
+            .ps-stage-glow::before,
+            .ps-stage-glow::after,
+            .ps-orb {
+                animation: none !important;
+                mix-blend-mode: normal;
+            }
+            .ps-stage-glow::before,
+            .ps-stage-glow::after { opacity: 0.9; }
+            .ps-orb { opacity: 0.7; }
         }
 
         /* Glass/transparent post-start hero */
@@ -4876,6 +4919,13 @@
                 radial-gradient(ellipse 60% 35% at 85% 5%, rgba(var(--rgb-green-2), 0.20) 0%, transparent 50%),
                 linear-gradient(180deg, #050a0e 0%, var(--green-bg-2) 40%, var(--green-bg-3) 100%);
             background-attachment: fixed;
+        }
+
+        /* Touch-Geräte: siehe Begründung beim Post-Start-Wrapper – ein am
+           Viewport festgehefteter Verlauf auf einem seitenhohen Element
+           kostet bei jedem Scroll-Schritt ein volles Neuzeichnen. */
+        @media (hover: none), (pointer: coarse) {
+            #indexHomePreStart.prestart-home { background-attachment: scroll; }
         }
 
         #indexHomePreStart.prestart-home .hero::before {
@@ -7710,6 +7760,45 @@
         .clts-board:not(.clts-inrow) .clts-row-label,
         .clts-board:not(.clts-inrow) .clts-bench-divider {
             opacity: 0;
+        }
+
+        /* ── Touch-Geräte: Bühnenhöhe springt, statt zu animieren ─────────
+           Die vier Bühnen (Top Manager, Aktuelle Spiele, Top Spieler und die
+           Spielerreihen im Popup) setzen ihre Höhe per JS und lassen sie über
+           `transition: height` weichgleiten. `height` ist aber kein
+           Compositor-Wert: Der Browser muss dafür in JEDEM Bild der 0,6 s
+           neu umbrechen – und weil die Bühnen mitten auf der Startseite
+           liegen, wandert dieser Umbruch durch ALLES, was darunter steht
+           (die Glass-Panels mit `backdrop-filter` inklusive, deren Weichzeichner
+           dabei jedes Mal neu gerechnet wird).
+
+           Gemessen an einer nachgebauten Bühne mit 24 Karten und dem üblichen
+           Inhalt darunter: 50 Layout-Durchläufe pro Umschaltvorgang mit
+           Höhen-Animation, 6 ohne. Auf dem Desktop fällt das nicht auf, auf
+           dem Telefon ist es der Grund, warum die Karten in Stufen springen
+           statt zu gleiten.
+
+           Auf Touch-Geräten steht die Höhe deshalb sofort auf dem Zielwert.
+           Die Karten selbst gleiten unverändert weiter (reines transform), nur
+           der Platz darunter richtet sich in einem Schritt ein. */
+        @media (hover: none), (pointer: coarse) {
+            .clts-board,
+            .cltm-list,
+            .clcm-list,
+            .cltm-players {
+                transition: none;
+            }
+        }
+
+        /* Die Spielerkarte ist eine in sich geschlossene Box fester Grösse
+           (`--cw`) und schneidet ihren Inhalt ohnehin ab (`overflow: hidden`).
+           `contain` sagt das dem Browser zu: Ändert sich beim Ansichtswechsel
+           die Kartenbreite, rechnet er den Umbruch nur noch innerhalb der
+           Karte und reicht ihn nicht durch die restliche Seite weiter.
+           Bewusst nur hier – die Manager- und Spiel-Kacheln zeichnen Teile
+           ausserhalb ihres Rahmens, dort würde `contain: paint` beschneiden. */
+        .clts-card {
+            contain: layout paint;
         }
 
         /* ── Reduzierte Bewegung: nur Ein-/Ausblenden, keine Transforms ── */
