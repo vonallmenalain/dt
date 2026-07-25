@@ -108,7 +108,7 @@
            ===================================================== */
         .analysis-page {
             min-height: 100svh;
-            padding-top: 72px;
+            padding-top: var(--dt-nav-space);
             padding-bottom: 100px;
             position: relative;
         }
@@ -127,7 +127,7 @@
         }
 
         @media (max-width: 860px) {
-            .analysis-page { padding-top: 62px; padding-bottom: 82px; }
+            .analysis-page { padding-bottom: 82px; }
         }
 
         /* =====================================================
@@ -229,7 +229,7 @@
             border-radius: 16px;
             overflow: hidden;
             position: sticky;
-            top: 88px;
+            top: calc(var(--dt-nav-space) + 14px);
             display: flex;
             flex-direction: column;
             transition: box-shadow 0.25s, border-color 0.25s;
@@ -5634,13 +5634,16 @@
                 z-index: 1700;
             }
 
+            /* Filter-Popup hängt unter der Navigation statt auf einer
+               festen Zahl (72px lag 3px UNTER der Leiste); die Höhe zieht
+               mit, damit unten der gleiche Rand bleibt. */
             .analysis-sidebar.mobile-open {
                 position: fixed;
                 left: 12px;
                 right: 12px;
-                top: 72px;
+                top: calc(var(--dt-nav-space) + 8px);
                 width: auto;
-                max-height: calc(100vh - 96px);
+                max-height: calc(100vh - var(--dt-nav-space) - 32px);
                 opacity: 1;
                 border-color: var(--glass-border);
                 margin-bottom: 0;
@@ -5649,7 +5652,7 @@
 
             .analysis-sidebar.mobile-open + * { pointer-events: auto; }
 
-            .analysis-sidebar.mobile-open .sidebar-inner { max-height: calc(100vh - 128px); }
+            .analysis-sidebar.mobile-open .sidebar-inner { max-height: calc(100vh - var(--dt-nav-space) - 64px); }
 
             .mobile-sidebar-close {
                 display: inline-flex;

@@ -175,6 +175,9 @@
         .ps-page {
             min-height: 100vh;
             position: relative;
+            /* Platz für die fixe Navigation (styles.css). Fehlte hier
+               ganz – Badge und Titel lagen unter der Leiste. */
+            padding-top: var(--dt-nav-space);
             padding-bottom: 100px;
             box-sizing: border-box;
         }

@@ -112,7 +112,7 @@
         .builder-page {
             min-height: 100vh;
             position: relative;
-            padding-top: 80px;
+            padding-top: var(--dt-nav-space);
             padding-bottom: 100px;
             box-sizing: border-box;
         }
@@ -133,7 +133,6 @@
 
         @media (max-width: 900px) {
             .builder-page {
-                padding-top: 70px;
                 padding-bottom: 80px;
             }
         }
@@ -1074,7 +1073,7 @@
             width: 340px;
             min-width: 340px;
             position: sticky;
-            top: 96px;
+            top: calc(var(--dt-nav-space) + 22px);
         }
 
         .picker-panel {
