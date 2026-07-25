@@ -1551,17 +1551,22 @@
     }
 
     /* =========================================================
-       COMPACT PERFECT TEAM TILE (Live Dashboard)
-       ========================================================= */
-    function renderCompactPerfectTeam(ptMap, prefix) {
-        const container = $('tile-' + (prefix || '') + 'perfect-team');
-        const metaContainer = $('tile-' + (prefix || '') + 'perfect-meta');
-        if (!container) return;
+       PERFECT TEAM (bestmögliche 15) – gemeinsame Berechnung
+       Basis für die kompakte Kachel (WM) UND die CL-Karten-Bühne
+       „Top Spieler → Perfect 15" (siehe renderClTopPlayers), damit
+       beide Ansichten garantiert dieselbe Elf zeigen.
 
-        const posMap = { GOALKEEPER: 'GK', DEFENDER: 'DEF', MIDFIELDER: 'MID', ATTACKER: 'ATT', FORWARD: 'ATT' };
-        const posLabels = { GK: 'TOR', DEF: 'ABW', MID: 'MIT', ATT: 'STU' };
-        const maxSlots = { GK: 2, DEF: 4, MID: 5, ATT: 4 };
-        const startSlots = { GK: 1, DEF: 3, MID: 4, ATT: 3 };
+       Regeln wie im Team-Builder: pro Position ein Kontingent
+       (Start + Bank) und maximal ein Spieler je primärer Entität
+       (WM: Nation, CL: Klub – beides steckt in `Nationalteam.name`).
+       ========================================================= */
+    const PERFECT_TEAM_POS_MAP = { GOALKEEPER: 'GK', DEFENDER: 'DEF', MIDFIELDER: 'MID', ATTACKER: 'ATT', FORWARD: 'ATT' };
+    const PERFECT_TEAM_MAX_SLOTS = { GK: 2, DEF: 4, MID: 5, ATT: 4 };
+    const PERFECT_TEAM_START_SLOTS = { GK: 1, DEF: 3, MID: 4, ATT: 3 };
+
+    function buildPerfectTeam(ptMap) {
+        const maxSlots = PERFECT_TEAM_MAX_SLOTS;
+        const startSlots = PERFECT_TEAM_START_SLOTS;
 
         const teamSlots = { GK: [], DEF: [], MID: [], ATT: [] };
         const selectedNations = new Set();
@@ -1572,7 +1577,7 @@
 
         for (const p of sorted) {
             const rawPos = String(p.Position || '').toUpperCase();
-            const key = posMap[rawPos];
+            const key = PERFECT_TEAM_POS_MAP[rawPos];
             if (!key) continue;
             if (teamSlots[key].length >= maxSlots[key]) continue;
             if (selectedNations.has(p['Nationalteam.name'])) continue;
@@ -1604,6 +1609,20 @@
             : null;
         const captainId = captain ? String(captain['player.id']) : null;
         const maxPts = allPicked.reduce((sum, p) => sum + (String(p['player.id']) === captainId ? p.pts * 2 : p.pts), 0);
+
+        return { teamSlots, starters, benchers, captain, captainId, maxPts, startSlots };
+    }
+
+    /* =========================================================
+       COMPACT PERFECT TEAM TILE (Live Dashboard)
+       ========================================================= */
+    function renderCompactPerfectTeam(ptMap, prefix) {
+        const container = $('tile-' + (prefix || '') + 'perfect-team');
+        const metaContainer = $('tile-' + (prefix || '') + 'perfect-meta');
+        if (!container) return;
+
+        const posLabels = { GK: 'TOR', DEF: 'ABW', MID: 'MIT', ATT: 'STU' };
+        const { teamSlots, benchers, captain, captainId, maxPts, startSlots } = buildPerfectTeam(ptMap);
 
         // Meta header
         if (metaContainer) {
@@ -1896,18 +1915,37 @@
 
         // „Aktuelle Spiele": In der CL ersetzt die Kachel-Bühne
         // (#clCurrentMatches, siehe renderClCurrentMatches) das Glass-Panel
-        // mit dem Spiel-Ticker. Das Panel fliegt hier raus; steht es allein
-        // in der Fold-Reihe, bleibt die Reihe für „Top Spieler" bestehen.
+        // mit dem Spiel-Ticker. Das Panel fliegt hier raus.
         const matchesPanel = $('post-matches-panel');
         if (matchesPanel) matchesPanel.remove();
         const clMatchesSection = $('clCurrentMatches');
         if (clMatchesSection) clMatchesSection.hidden = false;
+
+        // „Top Spieler": In der CL ersetzt die Karten-Bühne (#clTopPlayers,
+        // siehe renderClTopPlayers) das Glass-Panel mit Top-5-Grid und
+        // Perfect-15-Liste. Damit ist die Fold-Reihe leer → ganz weg.
+        const playersPanel = $('post-players-panel');
+        if (playersPanel) playersPanel.remove();
+        const clPlayersSection = $('clTopPlayers');
+        if (clPlayersSection) clPlayersSection.hidden = false;
+        const postFold = document.querySelector('#indexHomePostStart .post-fold');
+        if (postFold && postFold.children.length === 0) postFold.remove();
+
+        // Binden und Fläche reservieren erst im nächsten Frame: die
+        // `const`/`let`-Deklarationen des clts-Blocks stehen weiter unten in
+        // dieser IIFE und sind zu diesem Zeitpunkt noch in der TDZ.
+        requestAnimationFrame(() => {
+            cltsBindOnce();
+            cltsReserveBoardHeight();
+        });
     } else {
         // WM (bzw. Nicht-CL): die CL-Sektionen werden nie benutzt → weg.
         const clTopSection = $('clTopManagers');
         if (clTopSection) clTopSection.remove();
         const clMatchesSection = $('clCurrentMatches');
         if (clMatchesSection) clMatchesSection.remove();
+        const clPlayersSection = $('clTopPlayers');
+        if (clPlayersSection) clPlayersSection.remove();
     }
 
     /* =========================================================
@@ -6078,6 +6116,480 @@
         });
 
     }
+
+    /* =========================================================
+       CL: „TOP SPIELER" – Karten-Bühne (Top 20 | Perfect 15)
+       Ersetzt in der CL das Glass-Panel „Top Spieler" (Top-5-Grid +
+       Perfect-15-Liste). Aufbau analog zu „Top Manager" und „Aktuelle
+       Spiele" (Namespace `clts-`), damit die Startseite eine Sprache
+       spricht: Titel im gleichen Layout, darunter ein dezenter
+       Ansichts-Toggle und eine Bühne mit anklickbaren Karten.
+
+       • Karte = die SPIELERKARTE AUS „TEAMS" (Foto im Rahmen, Name,
+         grosses Klub-Badge, Punkte-Kapsel) – nur skalierbar gebaut, die
+         Innengrössen hängen an der Kartenbreite (--cw).
+       • „Top 20": die 20 punktbesten Spieler der Saison im Raster
+         (5 Spalten auf breiten Screens, 4 bzw. 3 auf schmalen). Rang
+         oben links, Ränge 1–3 mit Medaillen-Badge und farbigem Rahmen –
+         bewusst KEIN zweites Podest neben den Top Managern.
+       • „Perfect 15": dieselben Karten im Reihen-Layout der
+         Positions-Ansicht aus der Top-Manager-Detailkarte: Reihen
+         TOR/ABW/MF/ST, der jeweilige Bank-Spieler auf gleicher Höhe in
+         einer eigenen Spalte rechts (schmale Screens: Bank als eigene
+         Reihe unten). Zusätzlich zeigt die Toolbar die maximal
+         mögliche Punktzahl.
+
+       Beide Ansichten teilen sich EINEN Kartensatz (Top 20 ∪ Perfect
+       15): Karten, die in beiden vorkommen, gleiten beim Umschalten an
+       ihren neuen Platz, die übrigen blenden aus. Wie im Popup läuft
+       das ausschliesslich über transform + opacity (Compositor).
+       ========================================================= */
+    const CLTS_TOP_COUNT = 20;      // Karten in der Ansicht „Top 20"
+    const CLTS_CARD_RATIO = 1.44;   // Höhe/Breite der Spielerkarte
+    const CLTS_CARD_MAX_W = 180;    // Kartenbreite auf sehr breiten Screens
+    const CLTS_ROW_DEFS = [
+        { key: 'GK',  label: 'TOR' },
+        { key: 'DEF', label: 'ABW' },
+        { key: 'MID', label: 'MF'  },
+        { key: 'ATT', label: 'ST'  }
+    ];
+
+    let cltsView = 'top';           // 'top' | 'perfect'
+    let cltsTopList = [];           // Top-20 in Rangfolge
+    let cltsPerfectRows = [];       // [{ label, starters: [p], bench: p|null }]
+    let cltsPerfectMaxPts = 0;
+    let cltsSignature = null;
+    let cltsBound = false;
+    let cltsResizeTimer = null;
+
+    function cltsBoardEl() {
+        return document.getElementById('clTopPlayersBoard');
+    }
+
+    function cltsFormatPts(value) {
+        const n = Math.round(Number(value) || 0);
+        return `${n > 0 ? '+' : ''}${n.toLocaleString('de-DE')}`;
+    }
+
+    // Spieler auf die Felder reduzieren, welche die Karte braucht. Die
+    // ANZEIGE-Felder sind bewusst die primären (`Nationalteam.*`): in der
+    // CL stehen dort nach dem Club-Remap in data.js Klubname und Klublogo.
+    function cltsNormalizePlayer(raw, pts) {
+        return {
+            id: String(raw['player.id']),
+            name: raw.Spielername || 'Unbekannt',
+            photo: raw.Spielerfoto || '',
+            badgeLogo: raw['Nationalteam.logo'] || '',
+            badgeLabel: raw['Nationalteam.name'] || '',
+            pts: Math.round(Number(pts) || 0)
+        };
+    }
+
+    /* ── Geometrie ────────────────────────────────────────────────────
+       Spaltenzahl der Perfect-15-Ansicht ist vorgegeben: 4 Feld-Spalten
+       (breiteste Reihe = Mittelfeld) plus Bank-Spalte, sobald die Bank
+       rechts Platz hat. Die Top-20-Ansicht übernimmt dieses Raster, damit
+       der Wechsel eine reine Bewegung ist – nur auf Telefonen bekommt sie
+       eine Spalte weniger, sonst wären Name und Klub nicht mehr lesbar
+       (die Karten ändern dann beim Wechsel zusätzlich ihre Grösse, was
+       die Engine über die Scale-Korrektur sauber mitanimiert). */
+    function cltsGeometry(W) {
+        const inRow = W >= 780;                 // Bank rechts neben dem Feld?
+        const gap = W >= 900 ? 16 : (W >= 620 ? 12 : 8);
+        const rowGap = inRow ? 16 : 12;
+        const gutter = inRow ? 40 : 0;          // Platz für TOR/ABW/MF/ST
+        const benchSep = inRow ? 26 : 0;        // Abstand Feld ↔ Bank-Spalte
+        const fit = (value) => Math.max(64, Math.min(CLTS_CARD_MAX_W, Math.floor(value)));
+
+        const perfectW = fit(inRow
+            ? (W - gutter - benchSep - 3 * gap) / 5
+            : (W - 3 * gap) / 4);
+
+        const topCols = inRow ? 5 : (W >= 560 ? 4 : 3);
+        const topW = inRow
+            ? Math.min(fit((W - (topCols - 1) * gap) / topCols), perfectW)
+            : fit((W - (topCols - 1) * gap) / topCols);
+
+        return { inRow, gap, rowGap, gutter, benchSep, topCols, topW, perfectW };
+    }
+
+    // Kartenmass der aktiven Ansicht.
+    function cltsCardSize(g, view) {
+        const w = view === 'top' ? g.topW : g.perfectW;
+        return { w, h: Math.round(w * CLTS_CARD_RATIO) };
+    }
+
+    /* Positionen einer Ansicht: Map playerId → {x, y} plus Dekor-Plätze
+       (Reihen-Labels, Bank-Beschriftung, Trennlinie) und Gesamthöhe. */
+    function cltsComputeLayout(W, view) {
+        const g = cltsGeometry(W);
+        const { w, h } = cltsCardSize(g, view);
+        const pos = new Map();
+        const deco = { labels: [], caption: null, divider: null };
+        let height = 0;
+
+        if (view === 'top') {
+            const cols = g.topCols;
+            const n = cltsTopList.length;
+            cltsTopList.forEach((p, i) => {
+                const r = Math.floor(i / cols);
+                const inThisRow = Math.min(cols, n - r * cols);
+                const rowW = inThisRow * w + (inThisRow - 1) * g.gap;
+                pos.set(p.id, {
+                    x: (W - rowW) / 2 + (i % cols) * (w + g.gap),
+                    y: r * (h + g.rowGap)
+                });
+            });
+            const rows = Math.max(1, Math.ceil(n / cols));
+            height = rows * h + (rows - 1) * g.rowGap;
+            return { g, w, h, pos, deco, height };
+        }
+
+        const rows = cltsPerfectRows;
+        if (g.inRow) {
+            const topPad = 26;                  // Platz für „Bank"-Beschriftung
+            const benchX = W - w;
+            const areaW = benchX - g.benchSep - g.gutter;
+            rows.forEach((row, r) => {
+                const y = topPad + r * (h + g.rowGap);
+                const n = row.starters.length;
+                const rowW = n * w + Math.max(0, n - 1) * g.gap;
+                row.starters.forEach((p, i) => {
+                    pos.set(p.id, { x: g.gutter + (areaW - rowW) / 2 + i * (w + g.gap), y });
+                });
+                if (row.bench) pos.set(row.bench.id, { x: benchX, y });
+                deco.labels.push({ x: 0, y: y + h / 2 - 9 });
+            });
+            height = topPad + rows.length * h + (rows.length - 1) * g.rowGap;
+            deco.caption = { x: benchX, y: 2, w };
+            deco.divider = { x: benchX - Math.round(g.benchSep / 2), y: 6, h: Math.max(0, height - 12) };
+            return { g, w, h, pos, deco, height };
+        }
+
+        // Schmale Screens: Bank als eigene Reihe unterhalb des Feldes.
+        rows.forEach((row, r) => {
+            const y = r * (h + g.rowGap);
+            const n = row.starters.length;
+            const rowW = n * w + Math.max(0, n - 1) * g.gap;
+            row.starters.forEach((p, i) => {
+                pos.set(p.id, { x: (W - rowW) / 2 + i * (w + g.gap), y });
+            });
+            deco.labels.push({ x: 0, y: y + h / 2 - 9 });
+        });
+        const benchList = rows.map((row) => row.bench).filter(Boolean);
+        const benchLabelY = rows.length * (h + g.rowGap);
+        const benchY = benchLabelY + 20;
+        const rowW = benchList.length * w + Math.max(0, benchList.length - 1) * g.gap;
+        benchList.forEach((p, i) => {
+            pos.set(p.id, { x: (W - rowW) / 2 + i * (w + g.gap), y: benchY });
+        });
+        deco.caption = { x: 0, y: benchLabelY - 2, w: W };
+        height = benchList.length ? benchY + h : Math.max(0, benchLabelY - g.rowGap);
+        return { g, w, h, pos, deco, height };
+    }
+
+    // Fläche der Standard-Ansicht schon VOR dem Daten-Render reservieren –
+    // unsichtbar, aber mit fester Höhe (kein Layout-Shift beim Eintreffen).
+    function cltsReserveBoardHeight() {
+        const board = cltsBoardEl();
+        if (!board || board.querySelector('.clts-card')) return;
+        const W = board.clientWidth;
+        if (!W) return;
+        const g = cltsGeometry(W);
+        const { h } = cltsCardSize(g, 'top');
+        const rows = Math.max(1, Math.ceil(CLTS_TOP_COUNT / g.topCols));
+        board.style.minHeight = Math.ceil(rows * h + (rows - 1) * g.rowGap) + 'px';
+    }
+
+    /* Layout-Engine: setzt Grösse (--cw) und Position (transform) aller
+       Karten. Beim animierten Wechsel läuft derselbe Zwei-Pass-Ablauf wie
+       bei den Manager-Kacheln: Pass 1 setzt die neue Grösse und hält die
+       Karte per Scale-Korrektur optisch am alten Platz, Pass 2 setzt das
+       Ziel – die CSS-Transition erledigt den Rest. */
+    function cltsLayoutCards(animate) {
+        const board = cltsBoardEl();
+        if (!board) return;
+        const cards = Array.from(board.querySelectorAll('.clts-card'));
+        if (!cards.length) return;
+
+        const W = board.clientWidth;
+        if (!W) {
+            // Noch nicht messbar (Bühne erst im nächsten Frame sichtbar):
+            // erneut versuchen, statt alle Karten auf 0/0 zu stapeln.
+            requestAnimationFrame(() => cltsLayoutCards(false));
+            return;
+        }
+
+        const { g, w, pos, deco, height } = cltsComputeLayout(W, cltsView);
+        const place = (el, x, y, scale) => {
+            if (!el) return;
+            el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`
+                + (scale && scale !== 1 ? ` scale(${scale})` : '');
+        };
+        const sizeCard = (card) => { card.style.setProperty('--cw', w + 'px'); };
+
+        if (!animate) board.classList.add('clts-no-anim');
+
+        // Pass 1 (nur animiert): Startzustände setzen – bereits sichtbare
+        // Karten an alter Position (Scale-Korrektur für die neue Breite),
+        // neu erscheinende leicht verkleinert am Zielort.
+        if (animate) {
+            board.classList.add('clts-no-anim');
+            cards.forEach((card) => {
+                const prev = card._cltsPos;
+                const prevW = card._cltsW || w;
+                sizeCard(card);
+                if (prev) place(card, prev.x, prev.y, prevW / w);
+                else {
+                    const target = pos.get(card.dataset.pid);
+                    place(card, target ? target.x : (W - w) / 2, target ? target.y : 0, 0.9);
+                }
+            });
+            void board.offsetWidth;
+            board.classList.remove('clts-no-anim');
+        }
+
+        // Pass 2: Zielzustände (bei animate laufen jetzt die Transitions).
+        cards.forEach((card) => {
+            const target = pos.get(card.dataset.pid);
+            sizeCard(card);
+            card._cltsW = w;
+            if (!target) {
+                // Nicht Teil dieser Ansicht: an Ort und Stelle ausblenden.
+                card.classList.add('is-hidden');
+                const prev = card._cltsPos || { x: (W - w) / 2, y: 0 };
+                card._cltsPos = prev;
+                place(card, prev.x, prev.y, 0.92);
+                return;
+            }
+            card.classList.remove('is-hidden');
+            card._cltsPos = target;
+            place(card, target.x, target.y, 1);
+        });
+
+        // Dekor der Perfect-15-Ansicht (in der Top-Ansicht via CSS unsichtbar).
+        const labels = Array.from(board.querySelectorAll('.clts-row-label'));
+        deco.labels.forEach((spot, i) => place(labels[i], spot.x, spot.y));
+        const caption = board.querySelector('.clts-bench-caption');
+        if (caption && deco.caption) {
+            caption.style.width = deco.caption.w + 'px';
+            place(caption, deco.caption.x, deco.caption.y);
+        }
+        const divider = board.querySelector('.clts-bench-divider');
+        if (divider && deco.divider) {
+            divider.style.height = deco.divider.h + 'px';
+            place(divider, deco.divider.x, deco.divider.y);
+        }
+
+        board.style.height = Math.ceil(height) + 'px';
+        board.style.minHeight = '';
+        board.classList.toggle('mode-top', cltsView === 'top');
+        board.classList.toggle('mode-perfect', cltsView === 'perfect');
+        board.classList.toggle('clts-inrow', g.inRow);
+        board.classList.toggle('is-tiny', w < 104);
+
+        if (!animate) {
+            void board.offsetWidth;             // Layout ohne Transition anwenden
+            board.classList.remove('clts-no-anim');
+        }
+    }
+
+    function cltsUpdateMeta() {
+        const meta = document.getElementById('clTopPlayersMeta');
+        if (!meta) return;
+        const show = cltsView === 'perfect' && cltsPerfectRows.length > 0;
+        meta.innerHTML = show
+            ? `Max. <b>${cltsFormatPts(cltsPerfectMaxPts).replace(/^\+/, '')}</b> Pkt`
+            : '';
+        meta.classList.toggle('is-hidden', !show);
+    }
+
+    function cltsSetView(view) {
+        if (view !== 'top' && view !== 'perfect') return;
+        if (view === cltsView) return;
+        cltsView = view;
+
+        const board = cltsBoardEl();
+        if (board && board.querySelector('.clts-card')) {
+            // Sanfter Stagger wie beim Position/Punkte-Toggle im Popup.
+            const cards = Array.from(board.querySelectorAll('.clts-card'));
+            cards.forEach((c, i) => { c.style.transitionDelay = Math.min(i * 12, 180) + 'ms'; });
+            cltsLayoutCards(true);
+            setTimeout(() => { cards.forEach((c) => { c.style.transitionDelay = ''; }); }, 1000);
+        }
+
+        cltsUpdateMeta();
+        document.querySelectorAll('.clts-view-toggle .pt-toggle-btn').forEach((btn) => {
+            const active = btn.dataset.view === view;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+    }
+
+    function cltsBindOnce() {
+        if (cltsBound) return;
+        const section = document.getElementById('clTopPlayers');
+        const board = cltsBoardEl();
+        if (!section || !board) return;
+        cltsBound = true;
+
+        const toggle = section.querySelector('.clts-view-toggle');
+        if (toggle) {
+            toggle.addEventListener('click', (ev) => {
+                const btn = ev.target.closest('[data-view]');
+                if (btn) cltsSetView(btn.dataset.view);
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            if (cltsResizeTimer) clearTimeout(cltsResizeTimer);
+            cltsResizeTimer = setTimeout(() => {
+                cltsResizeTimer = null;
+                if (board.querySelector('.clts-card')) cltsLayoutCards(false);
+                else cltsReserveBoardHeight();
+            }, 120);
+        });
+    }
+
+    // Fallbacks: Foto → Initialen, Klublogo → Badge ganz weg (statt
+    // kaputter Bild-Platzhalter auf der Karte).
+    function cltsBindImgFallbacks(rootEl) {
+        rootEl.querySelectorAll('.clts-photo img[data-fallback]').forEach((img) => {
+            img.addEventListener('error', () => {
+                const span = document.createElement('span');
+                span.className = 'clts-photo-fallback';
+                span.setAttribute('aria-hidden', 'true');
+                span.textContent = img.dataset.fallback || '?';
+                img.replaceWith(span);
+            }, { once: true });
+        });
+        rootEl.querySelectorAll('.clts-badge img').forEach((img) => {
+            img.addEventListener('error', () => {
+                const badge = img.closest('.clts-badge');
+                if (badge) badge.remove();
+            }, { once: true });
+        });
+    }
+
+    function cltsCardHtml(p, rank, isBench) {
+        const safeName = champEscapeHtml(p.name);
+        const ptsText = cltsFormatPts(p.pts);
+        const ptsCls = p.pts > 0 ? '' : (p.pts < 0 ? 'neg' : 'zero');
+        const rankCls = rank === 1 ? 'r1' : (rank === 2 ? 'r2' : (rank === 3 ? 'r3' : ''));
+        const medalCls = (rank >= 1 && rank <= 3) ? ` medal-${rank}` : '';
+        const photo = (p.photo && /^https?:/i.test(p.photo))
+            ? `<img src="${champEscapeHtml(p.photo)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fallback="${champEscapeHtml(champInitials(p.name))}">`
+            : `<span class="clts-photo-fallback" aria-hidden="true">${champEscapeHtml(champInitials(p.name))}</span>`;
+        const badge = (p.badgeLogo && /^https?:/i.test(p.badgeLogo))
+            ? `<span class="clts-badge"><img src="${champEscapeHtml(p.badgeLogo)}" alt="" loading="lazy" decoding="async"></span>`
+            : '';
+        const rankBadge = rank
+            ? `<span class="clts-rank ${rankCls}" aria-hidden="true">${rank}</span>`
+            : '';
+
+        return `
+            <a class="clts-card${medalCls}${isBench ? ' is-bench' : ''}"
+               href="spieleranalyse.html?playerId=${encodeURIComponent(p.id)}"
+               data-pid="${champEscapeHtml(p.id)}"
+               aria-label="${rank ? `Rang ${rank}: ` : ''}${safeName}, ${ptsText} Punkte. Spieleranalyse öffnen.">
+                ${rankBadge}
+                <span class="clts-pts ${ptsCls}">${ptsText}</span>
+                <span class="clts-photo" aria-hidden="true">${photo}</span>
+                <span class="clts-info">
+                    <span class="clts-name">${safeName}</span>
+                    ${badge}
+                    <span class="clts-club">${champEscapeHtml(p.badgeLabel)}</span>
+                </span>
+            </a>`;
+    }
+
+    function cltsSignatureOf(top, rows, maxPts) {
+        return JSON.stringify({
+            maxPts,
+            top: top.map((p) => [p.id, p.pts]),
+            rows: rows.map((row) => [
+                row.starters.map((p) => `${p.id}:${p.pts}`),
+                row.bench ? `${row.bench.id}:${row.bench.pts}` : ''
+            ])
+        });
+    }
+
+    function renderClTopPlayers(topPlayers, ptMap) {
+        const board = cltsBoardEl();
+        if (!board) return;
+        cltsBindOnce();
+
+        // Top 20 (die Liste kommt bereits nach Punkten sortiert herein).
+        const top = (topPlayers || [])
+            .slice(0, CLTS_TOP_COUNT)
+            .map((p) => cltsNormalizePlayer(p, p._pts));
+
+        // Perfect 15 – exakt dieselbe Elf wie in der kompakten Kachel.
+        const perfect = buildPerfectTeam(ptMap);
+        const rows = CLTS_ROW_DEFS.map((def) => {
+            const slot = perfect.teamSlots[def.key] || [];
+            const startCount = perfect.startSlots[def.key] || 0;
+            return {
+                label: def.label,
+                starters: slot.slice(0, startCount).map((p) => cltsNormalizePlayer(p, p.pts)),
+                bench: slot[startCount] ? cltsNormalizePlayer(slot[startCount], slot[startCount].pts) : null
+            };
+        });
+
+        const signature = cltsSignatureOf(top, rows, perfect.maxPts);
+        if (signature === cltsSignature && board.querySelector('.clts-card')) return;
+        cltsSignature = signature;
+
+        cltsTopList = top;
+        cltsPerfectRows = rows;
+        cltsPerfectMaxPts = perfect.maxPts;
+        board.innerHTML = '';
+
+        if (!top.length || top.every((p) => p.pts === 0)) {
+            board.style.height = '';
+            board.style.minHeight = '';
+            board.innerHTML = '<div class="clts-empty">Noch keine Punkte vorhanden.</div>';
+            cltsUpdateMeta();
+            return;
+        }
+
+        // EIN Kartensatz für beide Ansichten: Top 20 zuerst (mit Rang),
+        // danach die Perfect-15-Spieler, die nicht in den Top 20 stehen.
+        const rankById = new Map(top.map((p, i) => [p.id, i + 1]));
+        const benchIds = new Set(rows.map((row) => row.bench && row.bench.id).filter(Boolean));
+        const cards = top.map((p) => ({ p, rank: rankById.get(p.id) || 0, isBench: benchIds.has(p.id) }));
+        rows.forEach((row) => {
+            [...row.starters, row.bench].filter(Boolean).forEach((p) => {
+                if (rankById.has(p.id)) return;
+                rankById.set(p.id, 0);
+                cards.push({ p, rank: 0, isBench: benchIds.has(p.id) });
+            });
+        });
+
+        board.innerHTML = cards.map((c) => cltsCardHtml(c.p, c.rank, c.isBench)).join('')
+            + CLTS_ROW_DEFS.map((def) => `<span class="clts-row-label" aria-hidden="true">${def.label}</span>`).join('')
+            + '<span class="clts-bench-caption" aria-hidden="true">Bank</span>'
+            + '<span class="clts-bench-divider" aria-hidden="true"></span>';
+
+        cltsBindImgFallbacks(board);
+        cltsLayoutCards(false);
+        cltsUpdateMeta();
+
+        // Erst-Einblendung: Positionen stehen bereits fest, die Karten der
+        // aktiven Ansicht faden nur gestaffelt ein (kein Raster-Pop).
+        const created = Array.from(board.querySelectorAll('.clts-card:not(.is-hidden)'));
+        created.forEach((card) => { card.style.opacity = '0'; });
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                created.forEach((card, i) => {
+                    card.style.transitionDelay = Math.min(i * 30, 480) + 'ms';
+                    card.style.opacity = '';
+                });
+                setTimeout(() => { created.forEach((card) => { card.style.transitionDelay = ''; }); }, 1400);
+            });
+        });
+    }
+
     /* =========================================================
        POST START HOME – Render-Funktion (Live Dashboard)
        ========================================================= */
@@ -6123,9 +6635,15 @@
             renderNextMatchesTile(data, teams);
         }
 
-        renderPostTopPlayersGrid(topPlayers, ptMap);
-        renderCompactPerfectTeam(ptMap, 'post-');
-        initPostPlayersToggle();
+        // „Top Spieler": CL → Karten-Bühne mit „Top 20 | Perfect 15",
+        // WM → unverändert das Glass-Panel mit Top-5-Grid und Perfect-Team.
+        if (APP && String(APP.type || '').toUpperCase() === 'CL') {
+            renderClTopPlayers(topPlayers, ptMap);
+        } else {
+            renderPostTopPlayersGrid(topPlayers, ptMap);
+            renderCompactPerfectTeam(ptMap, 'post-');
+            initPostPlayersToggle();
+        }
 
         const pickCounts = {};
         teams.forEach((t) => {
