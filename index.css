@@ -6318,6 +6318,23 @@
             pointer-events: none;
         }
 
+        /* Verbleibende Transfers („T:2") – bewusst dezent oben links in der
+           Ecke. Absolut positioniert, damit der zentrierte Kachelinhalt
+           (Rang, Name, Punkte, Top-3) exakt an seinem Platz bleibt; die
+           Grösse skaliert wie alles andere über --tw mit der Kachelbreite. */
+        .cltm-tile-transfers {
+            position: absolute;
+            top: calc(var(--tw) * 0.05);
+            left: calc(var(--tw) * 0.055);
+            font-size: clamp(7px, calc(var(--tw) * 0.048), 12px);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 0.02em;
+            color: var(--cl-text-muted, #9db6e8);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
         .cltm-tile-head {
             display: flex;
             flex-direction: column;
@@ -6829,12 +6846,15 @@
             justify-content: space-between;
             gap: 10px;
             margin: 2px 0 10px;
+            /* „Abgeschlossen"/„Kommend" sind breiter als die alten Labels –
+               auf schmalen Screens darf der Spielplan-Link umbrechen. */
+            flex-wrap: wrap;
         }
         .clcm-view-toggle { opacity: 0.9; }
         .clcm-view-toggle .pt-toggle-btn {
             min-height: 30px;
-            padding: 4px 14px;
-            font-size: 0.72rem;
+            padding: 4px 12px;
+            font-size: 0.7rem;
         }
         /* Weniger Spiele als eine Standard-Ansicht fasst → kein Toggle. */
         .clcm-list-toolbar.is-single-view .clcm-view-toggle { visibility: hidden; }
@@ -6865,7 +6885,11 @@
             border: 1px solid rgba(255, 255, 255, 0.12);
             background: rgba(255, 255, 255, 0.04);
             color: var(--cl-text-muted, #9db6e8);
+            transition: opacity 0.35s ease;
         }
+        /* Hinweis der gerade nicht gewählten Ansicht – wie die Kacheln
+           raus aus dem Raster (siehe .clcm-tile.is-hidden). */
+        .clcm-empty.is-hidden { display: none; }
 
         /* ── Spiel-Kachel ──────────────────────────────────────────────── */
         .clcm-tile {
@@ -6898,9 +6922,9 @@
             outline: 2px solid var(--cl-accent, #7db4ff);
             outline-offset: 2px;
         }
-        /* Ansicht „Aktuell": alles jenseits der Standard-Anzahl bleibt im
-           DOM, verlässt aber das Raster – die ersten Kacheln behalten damit
-           beim Umschalten exakt ihren Platz. */
+        /* Kacheln der gerade nicht gewählten Ansicht („Abgeschlossen" bzw.
+           „Kommend") bleiben im DOM, verlassen aber das Raster – der
+           Wechsel ist damit eine reine Opacity-Animation. */
         .clcm-tile.is-hidden { display: none; }
         /* Laufende Spiele bekommen einen dezenten Rahmen-Akzent. */
         .clcm-tile.is-live {
@@ -6992,6 +7016,14 @@
             color: var(--cl-text-muted, #9db6e8);
         }
         .clcm-score.is-live { color: #ff9b9b; }
+        /* „n.V." / „n.E." – klein und dezent unter dem Schlussresultat. */
+        .clcm-score-note {
+            font-size: clamp(7px, calc(var(--ctw) * 0.05), 12px);
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            color: var(--cl-text-muted, #9db6e8);
+            white-space: nowrap;
+        }
         .clcm-kick-time {
             font-size: clamp(12px, calc(var(--ctw) * 0.115), 30px);
             font-weight: 900;
@@ -7110,6 +7142,14 @@
             padding: 0 6px;
             color: var(--cl-text-muted, #9db6e8);
         }
+        /* „n.V." / „n.E." unter dem Resultat im Kopf der Detailkarte. */
+        .clcm-head-note {
+            margin-top: -2px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: var(--cl-text-muted, #9db6e8);
+        }
         .clcm-head-meta {
             margin-top: 10px;
             font-size: 0.74rem;
@@ -7117,54 +7157,18 @@
             color: var(--cl-text-muted, #9db6e8);
         }
 
-        /* ── Detailkarte: Zusammenfassung ──────────────────────────────── */
-        .clcm-summary {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        @media (max-width: 640px) {
-            .clcm-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        .clcm-stat {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            padding: 9px 10px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(125, 180, 255, 0.14);
-            min-width: 0;
-        }
-        .clcm-stat-label {
-            font-size: 0.6rem;
-            font-weight: 800;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--cl-text-muted, #9db6e8);
-        }
-        .clcm-stat-value {
-            font-size: 0.95rem;
-            font-weight: 900;
-            color: #fff;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .clcm-stat-value small {
-            font-size: 0.74rem;
-            font-weight: 800;
-            color: var(--cl-accent, #7db4ff);
-        }
-        .clcm-stat-value.pos { color: #6ee7a8; }
-        .clcm-stat-value.neg { color: #ff8b8b; }
-
         /* ── Detailkarte: Blöcke ───────────────────────────────────────── */
         .clcm-block {
             margin-top: 14px;
             padding-top: 12px;
             border-top: 1px solid rgba(125, 180, 255, 0.14);
+        }
+        /* Der erste Block sitzt direkt unter dem Kopf – dort wäre die
+           Trennlinie ein doppelter Strich. */
+        .clpop-modal-body > .clcm-block:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
         }
         .clcm-block-head {
             display: flex;

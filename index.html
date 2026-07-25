@@ -43,7 +43,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-25-clspiele-04">
+<link rel="manifest" href="Icons/site.webmanifest?v=2026-07-25-clspiele-05">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -74,7 +74,7 @@
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
-<link rel="stylesheet" href="styles.css?v=2026-07-25-clspiele-04">
+<link rel="stylesheet" href="styles.css?v=2026-07-25-clspiele-05">
 
     <!-- =====================================================
          PRE/POST-START VIEW DECIDER (synchron, FOUC-frei)
@@ -157,7 +157,7 @@
     })();
     </script>
 
-    <link rel="stylesheet" href="index.css?v=2026-07-25-clspiele-04">
+    <link rel="stylesheet" href="index.css?v=2026-07-25-clspiele-05">
 </head>
 <body data-nav-style="hero">
 
@@ -389,8 +389,8 @@
          10 Spiele, auf breiten Screens 5 pro Reihe) mit beiden Klublogos,
          Klubnamen und – in der Mitte – Endresultat bzw. Anstosszeit +
          Datum. Klick öffnet über denselben Popup-Controller (clpopOpen)
-         die Detailkarte mit Zusammenfassung, Torschützen und allen
-         Spielern samt Punkten und wählenden Managern.
+         die Detailkarte mit Torschützen und allen Spielern samt Punkten
+         und wählenden Managern.
          ===================================================================== -->
     <section class="clcm-stage" id="clCurrentMatches" aria-label="Aktuelle Spiele" hidden>
         <header class="champ-header">
@@ -399,13 +399,16 @@
                 <span class="accent">Spiele</span>
             </h2>
         </header>
-        <!-- Dezenter Ansichts-Toggle: „Aktuell" (10 Spiele) / „Alle"
-             (kompletter Spielplan). Wird ausgeblendet, wenn ohnehin
-             höchstens 10 Spiele vorliegen (siehe clcmUpdateToggle). -->
+        <!-- Dezenter Ansichts-Toggle: „Abgeschlossen" (die 10 zuletzt
+             beendeten Spiele, das neuste zuerst) / „Kommend" (die 10
+             nächsten noch nicht abgeschlossenen Spiele, laufende Partien
+             eingeschlossen). Beide Ansichten zeigen NIE mehr als 10
+             Kacheln; hat eine Seite gar keine Spiele, verschwindet der
+             Umschalter (siehe clcmUpdateToggle). -->
         <div class="clcm-list-toolbar">
             <div class="pt-toggle clcm-view-toggle" role="tablist" aria-label="Spiele-Ansicht">
-                <button type="button" class="pt-toggle-btn active" data-view="aktuell" role="tab" aria-selected="true">Aktuell</button>
-                <button type="button" class="pt-toggle-btn" data-view="alle" role="tab" aria-selected="false">Alle</button>
+                <button type="button" class="pt-toggle-btn active" data-view="abgeschlossen" role="tab" aria-selected="true">Abgeschlossen</button>
+                <button type="button" class="pt-toggle-btn" data-view="kommend" role="tab" aria-selected="false">Kommend</button>
             </div>
             <a class="clcm-list-link" href="spieleranalyse.html?view=games">Spielplan →</a>
         </div>
@@ -453,13 +456,8 @@
         <div class="clts-board" id="clTopPlayersBoard" aria-live="polite"></div>
     </section>
 
-    <!-- Quick nav pills (Auswahl: Rangliste, Spieler, Teams, Punkte) -->
-    <div class="post-hero-pills" style="margin-top: 22px; margin-bottom: 8px;">
-        <a href="rangliste.html" class="btn-pill">🏆 Rangliste</a>
-        <a href="spieleranalyse.html" class="btn-pill">🔍 Analyse</a>
-        <a href="teams.html" class="btn-pill">🛡️ Teams</a>
-        <a href="punktesystem.html" class="btn-pill">📊 Punkte</a>
-    </div>
+    <!-- Die Quick-nav-Pills (Rangliste / Analyse / Teams / Punkte) sind
+         bewusst entfernt – die Navigation läuft über die Nav-Bar oben. -->
 
     <!-- LIVE DASHBOARD -->
     <main id="dashboard-post-area">
@@ -638,19 +636,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="tournament-config.js?v=2026-07-25-clspiele-04"></script>
-<script src="nav.js?v=2026-07-25-clspiele-04"></script>
+<script src="tournament-config.js?v=2026-07-25-clspiele-05"></script>
+<script src="nav.js?v=2026-07-25-clspiele-05"></script>
 <script src="country-aliases.js"></script>
-<script src="data.js?v=2026-07-25-clspiele-04"></script>
-<script src="points-utils.js?v=2026-07-25-clspiele-04"></script>
-<script src="transfer-utils.js?v=2026-07-25-clspiele-04"></script>
-<script src="cache.js?v=2026-07-25-clspiele-04"></script>
+<script src="data.js?v=2026-07-25-clspiele-05"></script>
+<script src="points-utils.js?v=2026-07-25-clspiele-05"></script>
+<script src="transfer-utils.js?v=2026-07-25-clspiele-05"></script>
+<script src="cache.js?v=2026-07-25-clspiele-05"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css?v=2026-07-25-clspiele-04">
+<link rel="stylesheet" href="auth-modal.css?v=2026-07-25-clspiele-05">
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
 
-<script src="index.js?v=2026-07-25-clspiele-04"></script>
+<script src="index.js?v=2026-07-25-clspiele-05"></script>
 </body>
 </html>
