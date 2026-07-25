@@ -1158,6 +1158,11 @@
                         statusLong: f.status?.long || f.statusLong || '',
                         statusElapsed: f.status?.elapsed ?? f.statusElapsed ?? null,
                         goals: f.goals || null,
+                        // Vollständiger Score-Block der API (halftime /
+                        // fulltime / extratime / penalty). Wird für das
+                        // Schlussresultat samt „n.V."/„n.E." gebraucht –
+                        // siehe getMatchDecisionParts.
+                        score: f.score || null,
                         goalEvents: Array.isArray(f.goalEvents) ? f.goalEvents : (Array.isArray(f.events) ? f.events : []),
                         homeWinner: f.homeTeam?.winner ?? null,
                         awayWinner: f.awayTeam?.winner ?? null,
@@ -2938,6 +2943,42 @@
         const away = goals.away ?? goals.awayGoals ?? goals.awayTeam ?? score.away ?? score.awayGoals ?? fulltime.away ?? fulltime.awayGoals ?? regular.away ?? match?.goalsAway ?? match?.awayGoals ?? match?.scoreAway ?? match?.awayScore ?? null;
         if (home === null && away === null) return null;
         return { home: home ?? 0, away: away ?? 0 };
+    }
+
+    /* Schlussresultat eines Spiels inkl. Zusatz „n.V." / „n.E.".
+
+       • Elfmeterschiessen → das SCHIESSEN entscheidet, also steht dessen
+         Resultat da (Final: 4:3 n.E., nicht 1:1).
+       • Entscheidung in der Verlängerung → Resultat nach 120 Minuten mit
+         dem Hinweis „n.V.".
+       • Sonst das normale Resultat ohne Zusatz.
+
+       Datenquelle ist der Score-Block der API (`score.penalty` /
+       `score.extratime`) bzw. der Status-Kurzcode (PEN / AET). Fehlen die
+       Werte, fällt die Funktion auf getMatchScoreParts zurück – dann
+       sieht die Kachel exakt aus wie bisher. */
+    function getMatchDecisionParts(match) {
+        const base = getMatchScoreParts(match);
+        const score = match?.score || {};
+        const toNum = (value) => {
+            if (value === undefined || value === null || value === '') return null;
+            const n = Number(value);
+            return Number.isFinite(n) ? n : null;
+        };
+        const statusShort = String(match?.statusShort || match?.status?.short || '').toUpperCase();
+
+        const penalty = score.penalty || score.penalties || score.penaltyShootout || {};
+        const penHome = toNum(penalty.home);
+        const penAway = toNum(penalty.away);
+        if (penHome !== null && penAway !== null) {
+            return { home: penHome, away: penAway, note: 'n.E.' };
+        }
+        if (!base) return null;
+        if (statusShort === 'PEN') return { home: base.home, away: base.away, note: 'n.E.' };
+
+        const extra = score.extratime || score.extraTime || {};
+        const hadExtraTime = statusShort === 'AET' || toNum(extra.home) !== null || toNum(extra.away) !== null;
+        return { home: base.home, away: base.away, note: hadExtraTime ? 'n.V.' : '' };
     }
 
     function getGoalEventName(...values) {
@@ -5216,6 +5257,18 @@
         });
     }
 
+    /* Verbleibende Transfer-Aktionen eines Managers. Liefert null, wenn das
+       aktive Turnier gar kein Transfer-Feature hat (WM 2026) – dann bleibt
+       die Kachel unverändert. */
+    function cltmRemainingTransfers(team) {
+        const TU = window.TransferUtils;
+        if (!TU || typeof TU.getTransferConfig !== 'function') return null;
+        const cfg = TU.getTransferConfig();
+        if (!cfg || !cfg.enabled) return null;
+        const used = (team && Array.isArray(team.transfers)) ? team.transfers.length : 0;
+        return TU.remainingTransfers(cfg, used);
+    }
+
     function cltmSignatureOf(rankedManagers) {
         const managers = Array.isArray(rankedManagers) ? rankedManagers : [];
         const duplicateFirstNames = Array.from(champDuplicateFirstNameKeys(managers)).sort();
@@ -5225,6 +5278,7 @@
                 rank: getDisplayedManagerRank(m, idx + 1),
                 manager: m.manager || 'Unbekannt',
                 totalScore: Number(m.totalScore) || 0,
+                transfersLeft: cltmRemainingTransfers(m),
                 outs: (m.transferredOut || []).map((p) => String(p.id ?? '')),
                 players: (m.mergedPlayers || []).map((p) => [
                     String(p.id ?? ''),
@@ -5263,6 +5317,7 @@
             const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
             const top3 = (m.mergedPlayers || []).filter((p) => Number.isFinite(p.pts)).slice(0, 3);
             const shortName = champShortManagerName(m.manager, duplicateFirstNames);
+            const transfersLeft = cltmRemainingTransfers(m);
 
             const tile = document.createElement('button');
             tile.type = 'button';
@@ -5270,8 +5325,11 @@
             tile.dataset.manager = m.manager || '';
             tile.style.opacity = '0';   // Erst-Einblendung unten (nur Opacity)
             tile.setAttribute('aria-haspopup', 'dialog');
-            tile.setAttribute('aria-label', `Platz ${rank}: ${m.manager || 'Unbekannt'}, ${cltmFormatPts(m.totalScore)} Punkte. Detailkarte öffnen.`);
+            tile.setAttribute('aria-label', `Platz ${rank}: ${m.manager || 'Unbekannt'}, ${cltmFormatPts(m.totalScore)} Punkte`
+                + (transfersLeft === null ? '' : `, noch ${transfersLeft} Transfer${transfersLeft === 1 ? '' : 's'} übrig`)
+                + '. Detailkarte öffnen.');
             tile.innerHTML = `
+                ${transfersLeft === null ? '' : `<span class="cltm-tile-transfers" aria-hidden="true">T:${transfersLeft}</span>`}
                 <span class="cltm-tile-head">
                     <span class="cltm-rank ${rankCls}">${rank}</span>
                     <span class="cltm-name">${champEscapeHtml(shortName)}</span>
@@ -5314,47 +5372,51 @@
        (Namespace `clcm-`), damit die Startseite eine Sprache spricht:
 
        • Titel im gleichen Layout wie „Top Manager" (champ-header).
-       • Darunter anklickbare Spiel-Kacheln, standardmässig 10 Stück,
-         auf breiten Screens 5 pro Reihe (Grid; schmalere Screens 4/3/2).
-         Kachel = beide Klublogos + Klubnamen gross, in der Mitte das
-         Endresultat bzw. Startzeit + Datum, wenn das Spiel noch nicht
+       • Darunter anklickbare Spiel-Kacheln, auf breiten Screens 5 pro
+         Reihe (Grid; schmalere Screens 4/3/2). Kachel = beide Klublogos +
+         Klubnamen gross, in der Mitte das Schlussresultat (bei Bedarf mit
+         „n.V."/„n.E.") bzw. Startzeit + Datum, wenn das Spiel noch nicht
          angepfiffen ist.
+       • Zwei Ansichten, je GENAU bis 10 Kacheln – nie mehr:
+         „Abgeschlossen" = die 10 zuletzt beendeten Spiele, das neuste
+         zuerst; „Kommend" = die 10 nächsten noch nicht abgeschlossenen
+         Spiele (laufende Partien eingeschlossen), der nächste Anpfiff
+         zuerst.
        • Klick öffnet über den gemeinsamen Popup-Controller (clpopOpen)
          die Detailkarte – EXAKT dieselbe Animation wie bei Top Manager.
        • In der Detailkarte steht alles, was der Gelegenheits-User sonst
          in der Analyse suchen müsste: Kopf mit Logos/Resultat/Anstoss/
-         Ort, Kurz-Zusammenfassung (bester Spieler, gewählte Spieler,
-         deren Punkte, betroffene Manager), Torschützen beider Teams und
-         die Spieler mit ihren Punkten – umschaltbar zwischen „Gewählt"
-         (mit den Managern, die den Spieler im Team haben) und „Alle"
-         (alle Spieler mit Punkte-Eintrag, auch ungewählte).
+         Ort, Torschützen beider Teams und die Spieler mit ihren Punkten –
+         umschaltbar zwischen „Gewählt" (mit den Managern, die den Spieler
+         im Team haben) und „Alle" (alle Spieler mit Punkte-Eintrag, auch
+         ungewählte).
 
        Daten kommen aus denselben Quellen wie der bisherige Ticker
        (extractMatchInfo + data.points + teams) – die Punkte stimmen also
        mit Analyse, Rangliste und Teams überein.
        ========================================================= */
-    const CLCM_DEFAULT_COUNT = 10;   // Kacheln in der Ansicht „Aktuell"
-    const CLCM_PAST_TARGET = 4;      // davon höchstens so viele beendete Spiele
+    const CLCM_VIEW_COUNT = 10;      // Kacheln je Ansicht – hartes Maximum
 
-    // Kurz-Chips auf der Spielerkarte. Die Werte in `Aufstellung` sind
-    // PUNKTE, nicht Anzahl – die Anzahl ergibt sich aus Punkte/Regelwert
-    // (siehe Spieleranalyse, gleiche Rechnung).
+    // Kurz-Chips auf der Spielerkarte – bewusst NUR Text, keine Emojis.
+    // Die Werte in `Aufstellung` sind PUNKTE, nicht Anzahl – die Anzahl
+    // ergibt sich aus Punkte/Regelwert (siehe Spieleranalyse, gleiche
+    // Rechnung).
     const CLCM_EVENT_META = {
-        GOAL_GK:       { icon: '⚽', one: 'Tor', many: 'Tore' },
-        GOAL_DEF:      { icon: '⚽', one: 'Tor', many: 'Tore' },
-        GOAL_MID:      { icon: '⚽', one: 'Tor', many: 'Tore' },
-        GOAL_ATT:      { icon: '⚽', one: 'Tor', many: 'Tore' },
-        ASSIST_GK_DEF: { icon: '🅰️', one: 'Assist', many: 'Assists' },
-        ASSIST_MID:    { icon: '🅰️', one: 'Assist', many: 'Assists' },
-        ASSIST_ATT:    { icon: '🅰️', one: 'Assist', many: 'Assists' },
-        OWN_GOAL:      { icon: '🙈', one: 'Eigentor', many: 'Eigentore' },
-        PEN_SAVED:     { icon: '🧤', one: 'Elfer gehalten', many: 'Elfer gehalten' },
-        PEN_WON:       { icon: '🎯', one: 'Elfer geholt', many: 'Elfer geholt' },
-        PEN_MISSED:    { icon: '❌', one: 'Elfer verschossen', many: 'Elfer verschossen' },
-        PEN_COMMITED:  { icon: '⚠️', one: 'Elfer verursacht', many: 'Elfer verursacht' },
-        YELLOW_CARD:   { icon: '🟨', one: 'Gelb', many: 'Gelb' },
-        RED_CARD:      { icon: '🟥', one: 'Rot', many: 'Rot' },
-        SUBBED_IN:     { icon: '🔁', one: 'Eingewechselt', many: 'Eingewechselt' }
+        GOAL_GK:       { one: 'Tor', many: 'Tore' },
+        GOAL_DEF:      { one: 'Tor', many: 'Tore' },
+        GOAL_MID:      { one: 'Tor', many: 'Tore' },
+        GOAL_ATT:      { one: 'Tor', many: 'Tore' },
+        ASSIST_GK_DEF: { one: 'Assist', many: 'Assists' },
+        ASSIST_MID:    { one: 'Assist', many: 'Assists' },
+        ASSIST_ATT:    { one: 'Assist', many: 'Assists' },
+        OWN_GOAL:      { one: 'Eigentor', many: 'Eigentore' },
+        PEN_SAVED:     { one: 'Elfer gehalten', many: 'Elfer gehalten' },
+        PEN_WON:       { one: 'Elfer geholt', many: 'Elfer geholt' },
+        PEN_MISSED:    { one: 'Elfer verschossen', many: 'Elfer verschossen' },
+        PEN_COMMITED:  { one: 'Elfer verursacht', many: 'Elfer verursacht' },
+        YELLOW_CARD:   { one: 'Gelb', many: 'Gelb' },
+        RED_CARD:      { one: 'Rot', many: 'Rot' },
+        SUBBED_IN:     { one: 'Eingewechselt', many: 'Eingewechselt' }
     };
 
     /* Spielart aus dem Runden-Text der API ableiten. Reihenfolge zaehlt:
@@ -5424,21 +5486,26 @@
         });
     }
 
-    let clcmView = 'aktuell';        // 'aktuell' | 'alle'
-    let clcmEntries = [];            // Spiele in Anzeige-Reihenfolge
+    let clcmView = 'abgeschlossen';  // 'abgeschlossen' | 'kommend'
+    let clcmEntries = [];            // beide Ansichten, „abgeschlossen" zuerst
     let clcmEntryByKey = new Map();  // Kachel-Key → Eintrag
     let clcmCtx = null;              // { drafted, pointsIndex }
     let clcmResizeTimer = null;
     let clcmHeightTimer = null;
     let clcmBound = false;
     let clcmSignature = null;
+    let clcmRenderedView = null;     // Ansicht, die aktuell im DOM steht
 
     function clcmSignatureOf(entries) {
         return JSON.stringify(entries.map((e) => [
-            e.key, e.teamA, e.teamB, e.matchType,
-            e.score ? `${e.score.home}:${e.score.away}` : '',
+            e.key, e.group, e.teamA, e.teamB, e.matchType,
+            e.score ? `${e.score.home}:${e.score.away}${e.score.note || ''}` : '',
             e.view.badgeText, e.view.timeText, e.view.dateText
         ]));
+    }
+
+    function clcmCountByGroup(group) {
+        return clcmEntries.filter((e) => e.group === group).length;
     }
 
     function clcmListEl() {
@@ -5576,45 +5643,33 @@
         const now = Date.now();
         const enriched = source.map((match) => ({ match, timingState: getMatchTimingState(match, now) }));
 
-        const running = enriched
-            .filter(({ timingState }) => timingState.isLive || timingState.isUpdateOpen)
-            .sort(compareMatchEntriesByKickoff);
+        // Zwei feste Ansichten mit je höchstens 10 Spielen:
+        //   „Abgeschlossen" – die 10 zuletzt beendeten, das neuste zuerst.
+        //   „Kommend"       – die 10 nächsten NOCH NICHT abgeschlossenen
+        //                     Spiele; laufende bzw. auf ihr Update wartende
+        //                     Partien gehören dazu und stehen dank der
+        //                     Anpfiff-Sortierung automatisch zuoberst.
         const finished = enriched
             .filter(({ timingState }) => timingState.isFinished)
-            .sort(compareFinishedMatchEntriesByRecency);
+            .sort(compareFinishedMatchEntriesByRecency)
+            .slice(0, CLCM_VIEW_COUNT)
+            .map((e) => ({ ...e, group: 'abgeschlossen' }));
         const upcoming = enriched
-            .filter(({ timingState }) => !timingState.isFinished && !timingState.isLive && !timingState.isUpdateOpen)
-            .sort(compareMatchEntriesByKickoff);
+            .filter(({ timingState }) => !timingState.isFinished)
+            .sort(compareMatchEntriesByKickoff)
+            .slice(0, CLCM_VIEW_COUNT)
+            .map((e) => ({ ...e, group: 'kommend' }));
 
-        // Reihenfolge der Standard-Ansicht: laufende Spiele zuerst, dann die
-        // zuletzt beendeten (dort schaut man nach den Punkten), danach die
-        // nächsten Anstösse. Gibt eine Seite zu wenig her, füllt die andere
-        // die freien Plätze auf – es sind also immer 10 Kacheln belegt,
-        // solange überhaupt 10 Spiele existieren.
-        const budget = Math.max(0, CLCM_DEFAULT_COUNT - running.length);
-        let pastTake = Math.min(finished.length, CLCM_PAST_TARGET);
-        const futureTake = Math.min(upcoming.length, Math.max(0, budget - pastTake));
-        pastTake = Math.min(finished.length, Math.max(0, budget - futureTake));
+        const ordered = [...finished, ...upcoming];
 
-        const primary = [
-            ...running,
-            ...finished.slice(0, pastTake),
-            ...upcoming.slice(0, futureTake)
-        ];
-        const primarySet = new Set(primary);
-        const rest = [
-            ...upcoming.filter((e) => !primarySet.has(e)),
-            ...finished.filter((e) => !primarySet.has(e))
-        ];
-        const ordered = [...primary, ...rest];
-
-        const entries = ordered.map(({ match, timingState }, index) => {
+        const entries = ordered.map(({ match, timingState, group }, index) => {
             const matchId = match.gameNumber ?? match.matchId ?? match.id;
             const teamA = match.teamA || match.home || match.homeTeam || '?';
             const teamB = match.teamB || match.away || match.awayTeam || '?';
             const stageMatch = { ...match, teamA, teamB, round: match.round || '' };
             const round = clcmClassifyRound(clcmRoundText(match));
             return {
+                group,
                 round,
                 // Vorbelegung ohne Hin-/Rueckspiel; clcmAssignMatchTypes
                 // praezisiert das gleich fuer die zweiteiligen Runden.
@@ -5629,7 +5684,9 @@
                 logoB: match.awayLogo || match.teamBFlag || '',
                 fallbackLogoA: clcmTeamLogo(teamA) || getNationFlag(teamA),
                 fallbackLogoB: clcmTeamLogo(teamB) || getNationFlag(teamB),
-                score: getMatchScoreParts(match),
+                // Schlussresultat inkl. „n.V."/„n.E." (siehe
+                // getMatchDecisionParts) – {home, away, note}.
+                score: getMatchDecisionParts(match),
                 venue: match.venue && match.venue !== 'Spielort folgt'
                     ? `${match.venue}${match.venueCity ? ', ' + match.venueCity : ''}`
                     : '',
@@ -5699,8 +5756,15 @@
             ? `<span class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</span>`
             : '';
         if (showScore) {
+            // „n.V." / „n.E." klein unter dem Resultat – nur wenn das Spiel
+            // tatsächlich in der Verlängerung bzw. im Elfmeterschiessen
+            // entschieden wurde.
+            const note = entry.score.note
+                ? `<span class="clcm-score-note">${escapeHtml(entry.score.note)}</span>`
+                : '';
             return `<span class="clcm-center">
                 <span class="clcm-score${state.isLive ? ' is-live' : ''}">${escapeHtml(String(entry.score.home))}<i>:</i>${escapeHtml(String(entry.score.away))}</span>
+                ${note}
                 ${liveBadge}
             </span>`;
         }
@@ -5715,15 +5779,15 @@
         const state = entry.timingState;
         const showScore = !!entry.score && (state.isFinished || state.isLive || state.isUpdateOpen);
         const result = showScore
-            ? `${entry.score.home} zu ${entry.score.away}`
+            ? `${entry.score.home} zu ${entry.score.away}${entry.score.note === 'n.E.' ? ' nach Elfmeterschiessen' : (entry.score.note === 'n.V.' ? ' nach Verlängerung' : '')}`
             : `Anpfiff ${entry.view.dateText ? entry.view.dateText + ', ' : ''}${entry.view.timeText}`;
         const type = entry.matchType ? `${entry.matchType}, ` : '';
         return `${type}${entry.teamA} gegen ${entry.teamB}, ${result}. Spieldetails öffnen.`;
     }
 
-    function clcmTileHtml(entry, index) {
-        return `<button type="button" class="clcm-tile${entry.timingState.isLive ? ' is-live' : ''}${index >= CLCM_DEFAULT_COUNT && clcmView === 'aktuell' ? ' is-hidden' : ''}"
-                data-match-key="${escapeHtml(entry.key)}" aria-haspopup="dialog"
+    function clcmTileHtml(entry) {
+        return `<button type="button" class="clcm-tile${entry.timingState.isLive ? ' is-live' : ''}${entry.group === clcmView ? '' : ' is-hidden'}"
+                data-match-key="${escapeHtml(entry.key)}" data-group="${escapeHtml(entry.group)}" aria-haspopup="dialog"
                 aria-label="${escapeHtml(clcmTileAriaLabel(entry))}">
             <span class="clcm-tile-main">
                 ${clcmTileLogoHtml(entry.teamA, entry.logoA, entry.fallbackLogoA)}
@@ -5755,8 +5819,12 @@
     }
 
     function clcmUpdateToggle() {
+        // Umschalter nur zeigen, wenn beide Ansichten überhaupt Spiele haben.
         const toolbar = document.querySelector('#clCurrentMatches .clcm-list-toolbar');
-        if (toolbar) toolbar.classList.toggle('is-single-view', clcmEntries.length <= CLCM_DEFAULT_COUNT);
+        if (toolbar) {
+            const hasBoth = clcmCountByGroup('abgeschlossen') > 0 && clcmCountByGroup('kommend') > 0;
+            toolbar.classList.toggle('is-single-view', !hasBoth);
+        }
         document.querySelectorAll('#clCurrentMatches .clcm-view-toggle .pt-toggle-btn').forEach((btn) => {
             const active = btn.dataset.view === clcmView;
             btn.classList.toggle('active', active);
@@ -5764,29 +5832,29 @@
         });
     }
 
-    // Ansichts-Wechsel ohne Neuaufbau: die Kacheln jenseits der Standard-
-    // Anzahl bleiben im DOM und werden nur ein-/ausgeblendet. Die ersten
-    // zehn behalten dadurch exakt ihren Rasterplatz – es „springt" nichts.
+    // Ansichts-Wechsel ohne Neuaufbau: die Kacheln beider Ansichten liegen
+    // im DOM und werden nur ein-/ausgeblendet (`data-group`). Dadurch bleibt
+    // der Wechsel eine reine Opacity-Animation – es „springt" nichts.
     function clcmSetView(view) {
-        if (view !== 'aktuell' && view !== 'alle') return;
+        if (view !== 'abgeschlossen' && view !== 'kommend') return;
         if (view === clcmView) return;
         clcmView = view;
+        clcmRenderedView = view;
         clcmUpdateToggle();
 
         const list = clcmListEl();
         if (!list) return;
-        const tiles = Array.from(list.querySelectorAll('.clcm-tile'));
+        const nodes = Array.from(list.querySelectorAll('[data-group]'));
         const revealed = [];
         const fromHeight = list.offsetHeight;
 
-        tiles.forEach((tile, i) => {
-            const hide = clcmView === 'aktuell' && i >= CLCM_DEFAULT_COUNT;
-            if (hide) {
-                tile.classList.add('is-hidden');
-            } else if (tile.classList.contains('is-hidden')) {
-                tile.classList.remove('is-hidden');
-                tile.style.opacity = '0';
-                revealed.push(tile);
+        nodes.forEach((node) => {
+            if (node.dataset.group !== clcmView) {
+                node.classList.add('is-hidden');
+            } else if (node.classList.contains('is-hidden')) {
+                node.classList.remove('is-hidden');
+                node.style.opacity = '0';
+                revealed.push(node);
             }
         });
 
@@ -5834,7 +5902,7 @@
             if (!count) return;
             const meta = CLCM_EVENT_META[key];
             const label = count > 1 ? `${count}× ${meta.many}` : meta.one;
-            chips.push(`<span class="clcm-event-chip">${meta.icon} ${escapeHtml(label)}</span>`);
+            chips.push(`<span class="clcm-event-chip">${escapeHtml(label)}</span>`);
         });
         return chips.length ? `<span class="clcm-player-events">${chips.join('')}</span>` : '';
     }
@@ -5906,31 +5974,6 @@
         </div>`;
     }
 
-    function clcmSummaryHtml(entry, homePlayers, awayPlayers) {
-        const all = [...homePlayers, ...awayPlayers];
-        const scored = all.filter((p) => p.pts !== null);
-        const draftedScored = scored.filter((p) => p.drafted);
-        const best = scored.length
-            ? scored.reduce((acc, p) => (acc && acc.pts >= p.pts ? acc : p), null)
-            : null;
-        const draftedPoints = draftedScored.reduce((sum, p) => sum + (Number(p.pts) || 0), 0);
-        const managers = new Set();
-        all.filter((p) => p.drafted).forEach((p) => (p.managers || []).forEach((m) => managers.add(m.manager)));
-        const draftedCount = all.filter((p) => p.drafted).length;
-
-        const cell = (label, value, cls) =>
-            `<div class="clcm-stat"><span class="clcm-stat-label">${escapeHtml(label)}</span><span class="clcm-stat-value${cls ? ' ' + cls : ''}">${value}</span></div>`;
-
-        return `<div class="clcm-summary">
-            ${cell('Bester Spieler', best
-                ? `${escapeHtml(cltmShortPlayerName(best.player.Spielername))} <small>${escapeHtml(clcmFormatPts(best.pts))}</small>`
-                : '–')}
-            ${cell('Gewählte Spieler', String(draftedCount))}
-            ${cell('Punkte gewählter Spieler', draftedScored.length ? escapeHtml(clcmFormatPts(draftedPoints)) : '–', draftedScored.length ? getPointsClass(draftedPoints) : '')}
-            ${cell('Betroffene Manager', String(managers.size))}
-        </div>`;
-    }
-
     function clcmModalHtml(entry) {
         const homePlayers = clcmTeamPlayers(entry, entry.teamA);
         const awayPlayers = clcmTeamPlayers(entry, entry.teamB);
@@ -5978,6 +6021,7 @@
                         ${showScore
                             ? `<div class="clcm-head-score">${escapeHtml(String(entry.score.home))}<i>:</i>${escapeHtml(String(entry.score.away))}</div>`
                             : `<div class="clcm-head-kick">${escapeHtml(entry.view.timeText)}</div>`}
+                        ${showScore && entry.score.note ? `<div class="clcm-head-note">${escapeHtml(entry.score.note)}</div>` : ''}
                         <div class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</div>
                     </div>
                     <div class="clcm-head-side">
@@ -5989,7 +6033,6 @@
                 <button type="button" class="clpop-close" data-clpop-close aria-label="Detailkarte schliessen">✕</button>
             </div>
             <div class="clpop-modal-body">
-                ${clcmSummaryHtml(entry, homePlayers, awayPlayers)}
                 ${goalsHtml}
                 <div class="clcm-block">
                     <div class="clcm-block-head">
@@ -6085,11 +6128,20 @@
         clcmEntries = entries;
         clcmEntryByKey = new Map(entries.map((e) => [e.key, e]));
 
+        // Steht die gewählte Ansicht leer da (z. B. vor dem ersten Anpfiff
+        // gibt es noch nichts Abgeschlossenes), still auf die andere
+        // wechseln – der User landet nie auf einer leeren Bühne.
+        if (!clcmCountByGroup(clcmView)) {
+            const other = clcmView === 'abgeschlossen' ? 'kommend' : 'abgeschlossen';
+            if (clcmCountByGroup(other)) clcmView = other;
+        }
+
         // Unveränderte Anzeige → DOM stehen lassen (kein Neuaufbau, keine
         // erneute Einblendung). Die Einträge oben sind trotzdem frisch,
         // damit ein Klick die aktuellen Punkte zeigt.
-        if (signature === clcmSignature && list.querySelector('.clcm-tile')) return;
+        if (signature === clcmSignature && clcmRenderedView === clcmView && list.querySelector('.clcm-tile')) return;
         clcmSignature = signature;
+        clcmRenderedView = clcmView;
 
         if (!entries.length) {
             list.innerHTML = '<div class="clcm-empty">Keine aktuellen Spiele gefunden.</div>';
@@ -6097,7 +6149,17 @@
             return;
         }
 
-        list.innerHTML = entries.map((entry, index) => clcmTileHtml(entry, index)).join('');
+        // Beide Ansichten stehen im DOM; leere Seiten bekommen einen Hinweis
+        // statt einer leeren Fläche. Ein-/Ausblenden läuft rein über
+        // `data-group` (siehe clcmSetView).
+        const emptyHtml = ['abgeschlossen', 'kommend']
+            .filter((group) => !clcmCountByGroup(group))
+            .map((group) => `<div class="clcm-empty${group === clcmView ? '' : ' is-hidden'}" data-group="${group}">${
+                group === 'abgeschlossen' ? 'Noch kein Spiel abgeschlossen.' : 'Keine kommenden Spiele.'
+            }</div>`)
+            .join('');
+
+        list.innerHTML = entries.map((entry) => clcmTileHtml(entry)).join('') + emptyHtml;
         clcmSyncTileScale();
         clcmUpdateToggle();
 
