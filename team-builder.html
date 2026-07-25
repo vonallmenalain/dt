@@ -315,15 +315,12 @@
 <!-- Next-slot action toast (mobile only) -->
 <div id="next-slot-action" class="next-slot-action" role="button" tabindex="0" aria-label="Nächsten freien Slot öffnen" style="display:none;"></div>
 
-<!-- DEV-Knopf (nur Admins): schaltet die Team-Einreichung trotz
-     Turnierstart global für ALLE Nutzer frei/gesperrt. Der Zustand liegt
-     im Firestore-Meta-Dokument (Feld lateSubmitOpen). Sichtbarkeit ist
-     Admin-gegated (siehe admin.js / DreamTeamAdmin) und wird per JS
-     eingeblendet; das Schreiben ist zusätzlich in den Firestore Rules auf
-     Admins beschränkt. -->
-<button class="dev-latesubmit-toggle" id="dev-latesubmit-toggle" type="button" data-late="off"
-        title="DEV: Einreichung trotz Turnierstart für ALLE freischalten/sperren"
-        aria-label="DEV: Späte Einreichung für alle umschalten">DEV: Einreichung gesperrt</button>
+<!-- Der DEV-Schalter für die Team-Einreichung (Feld lateSubmitOpen im
+     Firestore-Meta-Dokument) ist kein Overlay mehr: Er lebt als Eintrag im
+     Dev-Bereich des Profil-Dropdowns oben rechts (siehe team-builder.js →
+     initLateSubmitToggle und auth-modal.js → devMenu). Sichtbar nur für
+     Admins; das Schreiben ist zusätzlich in den Firestore Rules auf Admins
+     beschränkt. -->
 
 <!-- Firebase-Compat-SDK: per preload im <head> bereits heruntergeladen,
      hier nur noch ausgefuehrt – VOR tournament-config.js, damit

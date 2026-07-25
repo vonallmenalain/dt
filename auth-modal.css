@@ -209,6 +209,70 @@
     text-align: center;
 }
 
+/* -----------------------------------------------------------------------------
+ *  Dev-Bereich im Profil-Dropdown
+ *  Nur für angemeldete Admins sichtbar (siehe auth-modal.js → devMenu).
+ *  Bewusst ruhiger als die normalen Einträge: kleinere Schrift, gedämpfte
+ *  Farbe – es sind Werkzeuge, keine Hauptnavigation.
+ * -------------------------------------------------------------------------- */
+.dt-auth-nav-dev[hidden] { display: none; }
+
+.dt-auth-nav-dev-title {
+    padding: 4px 12px 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--dt-auth-muted, #9ba9b7);
+}
+
+.dt-auth-nav-dev-group {
+    padding: 8px 12px 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--dt-auth-muted, #9ba9b7);
+    opacity: 0.75;
+}
+
+.dt-auth-nav-dev-item {
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dt-auth-nav-dev-item:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.dt-auth-nav-dev-item:disabled:hover {
+    background: transparent;
+    color: var(--dt-auth-text, #e6edf3);
+}
+
+.dt-auth-nav-dev-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dt-auth-nav-dev-value {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: var(--dt-auth-muted, #9ba9b7);
+}
+
+.dt-auth-nav-dev-item.is-active .dt-auth-nav-dev-value { color: #ffd166; }
+.dt-auth-nav-dev-item.is-info   .dt-auth-nav-dev-value { color: #8ec7ff; }
+.dt-auth-nav-dev-item.is-danger .dt-auth-nav-dev-value { color: #ffb4a2; }
+
 @media (max-width: 600px) {
     .dt-auth-nav-icon {
         width: 44px;

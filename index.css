@@ -1683,57 +1683,8 @@
 
         .fade-in { animation: fadeIn 0.5s ease both; }
 
-        /* ===================================================
-           DEV-UMSCHALTER (nur für Entwicklung/Test)
-           Kleiner, unauffälliger Button oben links.
-           Verschiebt keine bestehenden Elemente.
-           =================================================== */
-        .dev-index-toggle {
-            position: fixed;
-            top: 8px;
-            left: 8px;
-            z-index: 9999;
-            font-size: 11px;
-            font-family: monospace;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.55);
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            opacity: 0.55;
-            transition: opacity 0.2s ease, background 0.2s ease;
-            line-height: 1.4;
-            user-select: none;
-            -webkit-user-select: none;
-            /* Admin-Gate: Standardmässig versteckt, wird nur für Admin-User
-               via admin.js / DreamTeamAdmin sichtbar gemacht.
-               Wir nutzen bewusst `visibility: hidden` (statt `display: none`),
-               damit `applyAdminVisibility()` den Knopf später per
-               `style.display = ''` einblenden kann, ohne dass dieser
-               CSS-Default das Element trotz inline-Reset versteckt lässt. */
-            visibility: hidden;
-        }
-
-        .dev-index-toggle.is-admin-visible {
-            visibility: visible;
-        }
-
-        .dev-index-toggle:hover {
-            opacity: 0.9;
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .dev-index-toggle[data-mode="pre"] {
-            border-color: rgba(var(--rgb-gold-light), 0.5);
-            color: rgba(var(--rgb-gold-light), 0.85);
-        }
-
-        .dev-index-toggle[data-mode="post"] {
-            border-color: rgba(var(--rgb-green-light), 0.5);
-            color: rgba(var(--rgb-green-light), 0.85);
-        }
+        /* Der DEV-Umschalter ist kein Overlay mehr – er lebt im Dev-Bereich
+           des Profil-Dropdowns (siehe auth-modal.css → .dt-auth-nav-dev). */
 
         /* ===================================================
            MANAGER LIST (team count expanded)

@@ -2749,21 +2749,10 @@
     let lateSubmitToggleBusy = false;
 
     function updateLateSubmitToggle() {
-        const btn = document.getElementById('dev-latesubmit-toggle');
-        if (!btn) return;
-        const Admin = window.DreamTeamAdmin;
-        const isAdmin = !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
-        btn.classList.toggle('is-admin-visible', isAdmin);
-
-        const on = !!lateSubmitOpen;
-        btn.dataset.late = on ? 'on' : 'off';
-        if (lateSubmitToggleBusy) {
-            btn.textContent = 'DEV: Speichere…';
-        } else {
-            btn.textContent = on ? 'DEV: Einreichung offen ✓' : 'DEV: Einreichung gesperrt';
+        const Modal = window.DreamTeamAuthModal;
+        if (Modal && Modal.devMenu && typeof Modal.devMenu.refresh === 'function') {
+            Modal.devMenu.refresh();
         }
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-        btn.disabled = lateSubmitToggleBusy;
     }
 
     /** Reagiert auf eine (lokale oder aus Firestore gepushte) Änderung des
@@ -2812,37 +2801,53 @@
     }
 
     function initLateSubmitToggle() {
-        const btn = document.getElementById('dev-latesubmit-toggle');
-        if (!btn) return;
-
-        updateLateSubmitToggle();
         subscribeLateSubmitFlag();
 
-        btn.addEventListener('click', async () => {
-            const Admin = window.DreamTeamAdmin;
-            const isAdmin = !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
-            if (!isAdmin || lateSubmitToggleBusy) return;
+        const Modal = window.DreamTeamAuthModal;
+        if (!Modal || !Modal.devMenu || typeof Modal.devMenu.register !== 'function') return;
 
-            const next = !lateSubmitOpen;
-            lateSubmitToggleBusy = true;
-            updateLateSubmitToggle();
-            try {
-                await setLateSubmitFlag(next);
-                // Der onSnapshot-Listener übernimmt den neuen Zustand für
-                // uns und alle anderen Clients; wir setzen ihn hier optimistisch
-                // trotzdem, falls der Listener minimal verzögert feuert.
-                lateSubmitToggleBusy = false;
-                applyLateSubmitState(next);
-                showToast(next
-                    ? '🔓 Team-Einreichung ist jetzt für ALLE freigeschaltet (trotz Turnierstart).'
-                    : '🔒 Team-Einreichung wieder für alle gesperrt.');
-            } catch (err) {
-                console.error('[TeamBuilder] Umschalten des Nachzügler-Schalters fehlgeschlagen:', err);
-                lateSubmitToggleBusy = false;
+        Modal.devMenu.register({
+            id: 'team-latesubmit',
+            group: 'Team-Einreichung',
+            groupOrder: 30,
+            order: 1,
+            label: 'Einreichung für alle',
+            value: () => (lateSubmitToggleBusy
+                ? 'speichere…'
+                : (lateSubmitOpen ? 'offen' : 'gesperrt')),
+            accent: 'active',
+            disabled: () => lateSubmitToggleBusy,
+            title: 'Team-Einreichung trotz Turnierstart für ALLE freischalten/sperren',
+            // Offen lassen, damit der neue Zustand direkt ablesbar ist.
+            keepOpen: true,
+            onSelect: async () => {
+                const Admin = window.DreamTeamAdmin;
+                const isAdmin = !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
+                if (!isAdmin || lateSubmitToggleBusy) return;
+
+                const next = !lateSubmitOpen;
+                lateSubmitToggleBusy = true;
                 updateLateSubmitToggle();
-                showToast('⚠️ Konnte den Schalter nicht speichern (nur Admins dürfen das).');
+                try {
+                    await setLateSubmitFlag(next);
+                    // Der onSnapshot-Listener übernimmt den neuen Zustand für
+                    // uns und alle anderen Clients; wir setzen ihn hier optimistisch
+                    // trotzdem, falls der Listener minimal verzögert feuert.
+                    lateSubmitToggleBusy = false;
+                    applyLateSubmitState(next);
+                    showToast(next
+                        ? 'Team-Einreichung ist jetzt für ALLE freigeschaltet (trotz Turnierstart).'
+                        : 'Team-Einreichung wieder für alle gesperrt.');
+                } catch (err) {
+                    console.error('[TeamBuilder] Umschalten des Nachzügler-Schalters fehlgeschlagen:', err);
+                    lateSubmitToggleBusy = false;
+                    updateLateSubmitToggle();
+                    showToast('Konnte den Schalter nicht speichern (nur Admins dürfen das).');
+                }
             }
         });
+
+        updateLateSubmitToggle();
     }
 
     /* =========================================================
