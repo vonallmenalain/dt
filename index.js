@@ -1893,10 +1893,21 @@
                 else cltmReserveListHeight();
             }, 120);
         });
+
+        // „Aktuelle Spiele": In der CL ersetzt die Kachel-Bühne
+        // (#clCurrentMatches, siehe renderClCurrentMatches) das Glass-Panel
+        // mit dem Spiel-Ticker. Das Panel fliegt hier raus; steht es allein
+        // in der Fold-Reihe, bleibt die Reihe für „Top Spieler" bestehen.
+        const matchesPanel = $('post-matches-panel');
+        if (matchesPanel) matchesPanel.remove();
+        const clMatchesSection = $('clCurrentMatches');
+        if (clMatchesSection) clMatchesSection.hidden = false;
     } else {
-        // WM (bzw. Nicht-CL): die CL-Top-10-Sektion wird nie benutzt → weg.
+        // WM (bzw. Nicht-CL): die CL-Sektionen werden nie benutzt → weg.
         const clTopSection = $('clTopManagers');
         if (clTopSection) clTopSection.remove();
+        const clMatchesSection = $('clCurrentMatches');
+        if (clMatchesSection) clMatchesSection.remove();
     }
 
     /* =========================================================
@@ -4577,7 +4588,7 @@
             </div>` : '';
 
         return `
-            <div class="cltm-modal-head">
+            <div class="clpop-modal-head">
                 <span class="cltm-rank ${rankCls}">${rank || '–'}</span>
                 <div class="cltm-modal-title">
                     <span class="cltm-modal-name">${champEscapeHtml(manager.manager || 'Unbekannt')}</span>
@@ -4588,9 +4599,9 @@
                     <button type="button" class="pt-toggle-btn active" data-mode="position" role="tab" aria-selected="true">Position</button>
                     <button type="button" class="pt-toggle-btn" data-mode="points" role="tab" aria-selected="false">Punkte</button>
                 </div>
-                <button type="button" class="cltm-close" data-cltm-close aria-label="Detailkarte schliessen">✕</button>
+                <button type="button" class="clpop-close" data-clpop-close aria-label="Detailkarte schliessen">✕</button>
             </div>
-            <div class="cltm-modal-body">
+            <div class="clpop-modal-body">
                 <div class="cltm-players">
                     ${chipsHtml}
                     ${labelsHtml}
@@ -4598,7 +4609,7 @@
                     <span class="cltm-bench-divider" aria-hidden="true"></span>
                 </div>
                 ${transfersHtml}
-                <div class="cltm-modal-actions">
+                <div class="clpop-modal-actions">
                     <a class="btn-pill" href="teams.html?manager=${encodeURIComponent(manager.manager || '')}">🛡️ Team ansehen</a>
                     <a class="btn-pill" href="rangliste.html">🏆 Zur Rangliste</a>
                 </div>
@@ -4615,12 +4626,12 @@
     let cltmMode = 'position';
 
     function cltmChipElements() {
-        return cltmModal ? Array.from(cltmModal.querySelectorAll('.cltm-players > .cltm-chip')) : [];
+        return clpopModal ? Array.from(clpopModal.querySelectorAll('.cltm-players > .cltm-chip')) : [];
     }
 
     function cltmLayoutPlayers(animate) {
-        if (!cltmModal || !cltmModalManager) return;
-        const wrap = cltmModal.querySelector('.cltm-players');
+        if (!clpopModal || !cltmModalManager) return;
+        const wrap = clpopModal.querySelector('.cltm-players');
         if (!wrap) return;
         const chips = cltmChipElements();
         if (!chips.length) { wrap.style.height = '0px'; return; }
@@ -4735,7 +4746,7 @@
     }
 
     function cltmSetMode(mode) {
-        if (!cltmModal || mode === cltmMode) return;
+        if (!clpopModal || mode === cltmMode) return;
         cltmMode = mode;
 
         // Sanfter Stagger: Chips starten minimal versetzt, wirkt organischer.
@@ -4744,24 +4755,52 @@
         cltmLayoutPlayers(true);
         setTimeout(() => { chips.forEach((c) => { c.style.transitionDelay = ''; }); }, 950);
 
-        cltmModal.querySelectorAll('.cltm-mode-toggle .pt-toggle-btn').forEach((btn) => {
+        clpopModal.querySelectorAll('.cltm-mode-toggle .pt-toggle-btn').forEach((btn) => {
             const active = btn.dataset.mode === mode;
             btn.classList.toggle('active', active);
             btn.setAttribute('aria-selected', active ? 'true' : 'false');
         });
     }
 
-    /* ── Expand-Detailkarte (Overlay + FLIP-Animation) ──────────────── */
-    let cltmOverlay = null;
-    let cltmModal = null;
-    let cltmOpenKey = null;      // Manager-Name der offenen Detailkarte
-    let cltmLastTrigger = null;  // Kachel, die den Dialog geöffnet hat (Fokus-Rückgabe)
-    let cltmClosing = false;
-    let cltmSettleTimer = null;
-    let cltmSettleHandler = null;
-    let cltmResizeTimer = null;
+    /* ── Gemeinsamer Popup-Controller (Overlay + FLIP-Animation) ──────
+       Namespace `clpop-`. Trägt die Expand-Detailkarte der CL-Bereiche
+       „Top Manager" (Kachel → Manager-Karte) UND „Aktuelle Spiele"
+       (Kachel → Spiel-Karte). Beide teilen sich damit EXAKT dieselbe
+       Bewegung (Karussell-Rezeptur, Ghost-Morph, Scroll-Lock, Teardown);
+       bereichsspezifisch sind nur Inhalt und Klick-Behandlung, die als
+       Konfiguration hereingereicht werden:
 
-    function cltmPrefersReducedMotion() {
+         {
+           key,          // Identität der Kachel (Re-Render-sicher)
+           modalClass,   // zusätzliche Klasse am Modal (Breite/Look)
+           ariaLabel,
+           html,         // Inhalt der Karte
+           onMounted(modal),   // direkt nach dem Einhängen (z. B. Layout)
+           onResize(modal),    // Fenster-Resize bei offener Karte
+           onClick(ev, modal), // eigene Klicks (Toggles, Chips, …)
+           findTile(key),      // Ursprungs-Kachel für den Rückweg suchen
+           scope               // Bereichskennung ('cltm' | 'clcm')
+         }
+       ================================================================= */
+    let clpopOverlay = null;
+    let clpopModal = null;
+    let clpopOpenKey = null;      // Schlüssel der offenen Detailkarte
+    let clpopCtx = null;          // Konfiguration der offenen Detailkarte
+    let clpopLastTrigger = null;  // Kachel, die den Dialog geöffnet hat (Fokus-Rückgabe)
+    let clpopClosing = false;
+    let clpopSettleTimer = null;
+    let clpopSettleHandler = null;
+    let clpopResizeTimer = null;
+
+    // Ist gerade eine Detailkarte offen – und falls `scope` gesetzt ist,
+    // gehört sie zu diesem Bereich? Die Kachel-Renderer prüfen das, um die
+    // Ursprungs-Kachel nach einem Daten-Re-Render unsichtbar zu halten.
+    function clpopIsOpen(scope) {
+        if (clpopOpenKey === null || !clpopCtx) return false;
+        return !scope || clpopCtx.scope === scope;
+    }
+
+    function clpopPrefersReducedMotion() {
         try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; }
     }
 
@@ -4770,49 +4809,44 @@
     // an Ort, beim Entsperren wird die Scroll-Position wiederhergestellt.
     // Die FLIP-Messungen (getBoundingClientRect) bleiben dadurch korrekt,
     // weil sich die Viewport-Positionen nicht verändern.
-    let cltmLockScrollY = 0;
+    let clpopLockScrollY = 0;
 
-    function cltmLockBody() {
-        if (document.body.classList.contains('cltm-lock')) return;
-        cltmLockScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-        document.body.style.top = `-${cltmLockScrollY}px`;
-        document.body.classList.add('cltm-lock');
+    function clpopLockBody() {
+        if (document.body.classList.contains('clpop-lock')) return;
+        clpopLockScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.body.style.top = `-${clpopLockScrollY}px`;
+        document.body.classList.add('clpop-lock');
     }
 
-    function cltmUnlockBody() {
-        if (!document.body.classList.contains('cltm-lock')) return;
-        document.body.classList.remove('cltm-lock');
+    function clpopUnlockBody() {
+        if (!document.body.classList.contains('clpop-lock')) return;
+        document.body.classList.remove('clpop-lock');
         document.body.style.top = '';
-        window.scrollTo(0, cltmLockScrollY);
+        window.scrollTo(0, clpopLockScrollY);
     }
 
-    function cltmEnsureOverlay() {
-        if (cltmOverlay) return;
-        cltmOverlay = document.createElement('div');
-        cltmOverlay.className = 'cltm-overlay';
-        cltmOverlay.hidden = true;
-        cltmOverlay.innerHTML = `
-            <div class="cltm-backdrop" data-cltm-close></div>
-            <div class="cltm-blur" aria-hidden="true"></div>
-            <div class="cltm-modal" role="dialog" aria-modal="true" tabindex="-1"></div>
+    function clpopEnsureOverlay() {
+        if (clpopOverlay) return;
+        clpopOverlay = document.createElement('div');
+        clpopOverlay.className = 'clpop-overlay';
+        clpopOverlay.hidden = true;
+        clpopOverlay.innerHTML = `
+            <div class="clpop-backdrop" data-clpop-close></div>
+            <div class="clpop-blur" aria-hidden="true"></div>
+            <div class="clpop-modal" role="dialog" aria-modal="true" tabindex="-1"></div>
         `;
-        document.body.appendChild(cltmOverlay);
-        cltmModal = cltmOverlay.querySelector('.cltm-modal');
+        document.body.appendChild(clpopOverlay);
+        clpopModal = clpopOverlay.querySelector('.clpop-modal');
 
-        cltmOverlay.addEventListener('click', (ev) => {
-            if (ev.target.closest('[data-cltm-close]')) { cltmClose(); return; }
-            const modeBtn = ev.target.closest('.cltm-mode-toggle [data-mode]');
-            if (modeBtn) { cltmSetMode(modeBtn.dataset.mode); return; }
-            const chip = ev.target.closest('[data-action="player"]');
-            if (chip) {
-                champOpenPlayerAnalysis({ id: chip.dataset.pid || '', name: chip.dataset.playerName || '' });
-            }
+        clpopOverlay.addEventListener('click', (ev) => {
+            if (ev.target.closest('[data-clpop-close]')) { clpopClose(); return; }
+            if (clpopCtx && typeof clpopCtx.onClick === 'function') clpopCtx.onClick(ev, clpopModal);
         });
 
         // Minimaler Fokus-Zyklus innerhalb des Dialogs (Tab bleibt drin).
-        cltmOverlay.addEventListener('keydown', (ev) => {
+        clpopOverlay.addEventListener('keydown', (ev) => {
             if (ev.key !== 'Tab') return;
-            const focusables = cltmModal.querySelectorAll('button, [href]');
+            const focusables = clpopModal.querySelectorAll('button, [href]');
             if (!focusables.length) return;
             const first = focusables[0];
             const last = focusables[focusables.length - 1];
@@ -4821,16 +4855,16 @@
         });
 
         document.addEventListener('keydown', (ev) => {
-            if (ev.key === 'Escape' && cltmOpenKey !== null) cltmClose();
+            if (ev.key === 'Escape' && clpopOpenKey !== null) clpopClose();
         });
 
-        // Chips bei Fenster-Resize ohne Animation neu platzieren.
+        // Inhalt bei Fenster-Resize neu vermessen lassen (z. B. Chip-Layout).
         window.addEventListener('resize', () => {
-            if (!cltmOverlay || cltmOverlay.hidden) return;
-            if (cltmResizeTimer) clearTimeout(cltmResizeTimer);
-            cltmResizeTimer = setTimeout(() => {
-                cltmResizeTimer = null;
-                cltmLayoutPlayers(false);
+            if (!clpopOverlay || clpopOverlay.hidden) return;
+            if (clpopResizeTimer) clearTimeout(clpopResizeTimer);
+            clpopResizeTimer = setTimeout(() => {
+                clpopResizeTimer = null;
+                if (clpopCtx && typeof clpopCtx.onResize === 'function') clpopCtx.onResize(clpopModal);
             }, 120);
         });
     }
@@ -4838,22 +4872,22 @@
     // Karussell-Rezeptur (siehe tcc-Carousel: MOVE_DUR/MOVE_EASE): 0.6 s mit
     // weich auslaufender Kurve cubic-bezier(0.22, 1, 0.36, 1). Open/Close des
     // Popups nutzen exakt dieselbe Bewegung wie der Kartenwechsel im
-    // Karussell; die Dauer muss mit den cltm-CSS-Transitions übereinstimmen.
-    const CLTM_MOVE_MS = 600;
+    // Karussell; die Dauer muss mit den clpop-CSS-Transitions übereinstimmen.
+    const CLPOP_MOVE_MS = 600;
 
-    /* Ghost-Morph: Statt das volle Modal (15 Chips, Fotos, Schatten) zu
+    /* Ghost-Morph: Statt das volle Modal (Chips, Fotos, Schatten) zu
        skalieren, trägt ein leichter optischer KLON der Kachel die Morph-
        Animation zwischen Kachel und Karte – das Modal blendet währenddessen
        nur ein/aus (Crossfade). Genau diese Arbeitsteilung macht auch den
        Karussell-Wechsel so flüssig: bewegt werden nur kleine, fertige
        Karten, nie schwerer Inhalt. */
-    let cltmGhost = null;
+    let clpopGhost = null;
 
-    function cltmMakeGhost(tileEl, rect) {
-        cltmRemoveGhost();
+    function clpopMakeGhost(tileEl, rect) {
+        clpopRemoveGhost();
         const ghost = tileEl.cloneNode(true);
-        ghost.classList.remove('cltm-src-hidden');
-        ghost.classList.add('cltm-ghost');
+        ghost.classList.remove('clpop-src-hidden');
+        ghost.classList.add('clpop-ghost');
         ghost.removeAttribute('aria-label');
         ghost.setAttribute('aria-hidden', 'true');
         ghost.setAttribute('tabindex', '-1');
@@ -4867,54 +4901,49 @@
         ghost.style.transform = 'none';
         ghost.style.opacity = '';
         ghost.style.transitionDelay = '';
-        cltmOverlay.appendChild(ghost);
-        cltmGhost = ghost;
+        clpopOverlay.appendChild(ghost);
+        clpopGhost = ghost;
         return ghost;
     }
 
-    function cltmRemoveGhost() {
-        if (cltmGhost && cltmGhost.parentNode) cltmGhost.parentNode.removeChild(cltmGhost);
-        cltmGhost = null;
+    function clpopRemoveGhost() {
+        if (clpopGhost && clpopGhost.parentNode) clpopGhost.parentNode.removeChild(clpopGhost);
+        clpopGhost = null;
     }
 
-    function cltmOpen(manager, tileEl) {
-        cltmEnsureOverlay();
-        if (cltmClosing) return;
-        cltmOpenKey = manager.manager || '';
-        cltmModalManager = manager;
-        cltmMode = 'position';
-        cltmLastTrigger = tileEl || null;
+    function clpopOpen(cfg, tileEl) {
+        clpopEnsureOverlay();
+        if (clpopClosing) return;
+        clpopCtx = cfg;
+        clpopOpenKey = cfg.key != null ? cfg.key : '';
+        clpopLastTrigger = tileEl || null;
 
-        const rank = getDisplayedManagerRank(manager, 0);
-        const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
-        cltmModal.setAttribute('aria-label', `Platz ${rank || '–'}: ${manager.manager || 'Unbekannt'}, ${cltmFormatPts(manager.totalScore)} Punkte`);
-        cltmModal.innerHTML = cltmModalHtml(manager, rank, rankCls);
-        cltmBindImgFallbacks(cltmModal);
+        clpopModal.className = `clpop-modal${cfg.modalClass ? ' ' + cfg.modalClass : ''}`;
+        clpopModal.setAttribute('aria-label', cfg.ariaLabel || '');
+        clpopModal.innerHTML = cfg.html || '';
+        if (typeof cfg.onMounted === 'function') cfg.onMounted(clpopModal);
 
-        cltmLockBody();
-        cltmOverlay.hidden = false;
-        if (tileEl) tileEl.classList.add('cltm-src-hidden');
-
-        // Chips sofort (ohne Transition) in der Positions-Ansicht platzieren.
-        cltmLayoutPlayers(false);
+        clpopLockBody();
+        clpopOverlay.hidden = false;
+        if (tileEl) tileEl.classList.add('clpop-src-hidden');
 
         // Morph (FLIP + Ghost): Das Modal startet transparent an der Kachel-
         // Geometrie; der Kachel-Klon wächst mit der Karussell-Kurve zur Karte
         // und blendet dabei ins mitwachsende Modal über. Der schwere Inhalt
         // wird so nie sichtbar verzerrt skaliert.
-        const reduced = cltmPrefersReducedMotion();
+        const reduced = clpopPrefersReducedMotion();
         let ghostTarget = '';
         if (!reduced && tileEl) {
             const from = tileEl.getBoundingClientRect();
-            const to = cltmModal.getBoundingClientRect();
-            cltmModal.style.transformOrigin = 'top left';
-            cltmModal.style.transform = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
+            const to = clpopModal.getBoundingClientRect();
+            clpopModal.style.transformOrigin = 'top left';
+            clpopModal.style.transform = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
                 + `scale(${from.width / Math.max(to.width, 1)}, ${from.height / Math.max(to.height, 1)})`;
-            cltmMakeGhost(tileEl, from);
+            clpopMakeGhost(tileEl, from);
             ghostTarget = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
                 + `scale(${to.width / Math.max(from.width, 1)}, ${to.height / Math.max(from.height, 1)})`;
         } else {
-            cltmModal.style.transform = '';
+            clpopModal.style.transform = '';
         }
 
         // Nach der Morph-Animation: Ghost aufräumen und Blur-Ebene weich
@@ -4928,73 +4957,74 @@
         let settled = false;
         const settle = (ev) => {
             if (settled) return;
-            if (ev && (ev.target !== cltmModal || ev.propertyName !== 'transform' || ev.elapsedTime < 0.55)) return;
+            if (ev && (ev.target !== clpopModal || ev.propertyName !== 'transform' || ev.elapsedTime < 0.55)) return;
             settled = true;
-            cltmModal.removeEventListener('transitionend', settle);
-            cltmSettleHandler = null;
-            if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
-            cltmRemoveGhost();
-            if (!cltmOverlay.hidden && cltmOpenKey !== null) cltmOverlay.classList.add('is-settled');
+            clpopModal.removeEventListener('transitionend', settle);
+            clpopSettleHandler = null;
+            if (clpopSettleTimer) { clearTimeout(clpopSettleTimer); clpopSettleTimer = null; }
+            clpopRemoveGhost();
+            if (!clpopOverlay.hidden && clpopOpenKey !== null) clpopOverlay.classList.add('is-settled');
         };
-        cltmModal.addEventListener('transitionend', settle);
-        cltmSettleHandler = settle;
+        clpopModal.addEventListener('transitionend', settle);
+        clpopSettleHandler = settle;
 
         // Doppel-rAF: der Browser rendert garantiert einen Frame im
         // Startzustand, bevor die Transition beginnt – ohne diesen Schritt
         // wird der erste Frame gern übersprungen und der Start wirkt ruckig.
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                cltmOverlay.classList.add('is-open');
-                cltmModal.style.transform = '';
-                if (cltmGhost && ghostTarget) {
-                    cltmGhost.style.transform = ghostTarget;
-                    cltmGhost.classList.add('is-out');
+                clpopOverlay.classList.add('is-open');
+                clpopModal.style.transform = '';
+                if (clpopGhost && ghostTarget) {
+                    clpopGhost.style.transform = ghostTarget;
+                    clpopGhost.classList.add('is-out');
                 }
-                cltmSettleTimer = setTimeout(() => settle(null), CLTM_MOVE_MS + 300);
+                clpopSettleTimer = setTimeout(() => settle(null), CLPOP_MOVE_MS + 300);
             });
         });
 
-        const closeBtn = cltmModal.querySelector('.cltm-close');
+        const closeBtn = clpopModal.querySelector('.clpop-close');
         if (closeBtn) setTimeout(() => { try { closeBtn.focus({ preventScroll: true }); } catch (_) {} }, 80);
     }
 
-    function cltmClose() {
-        if (!cltmOverlay || cltmOverlay.hidden || cltmClosing) return;
-        const key = cltmOpenKey;
-        cltmOpenKey = null;
-        cltmClosing = true;
-        if (cltmSettleTimer) { clearTimeout(cltmSettleTimer); cltmSettleTimer = null; }
+    function clpopClose() {
+        if (!clpopOverlay || clpopOverlay.hidden || clpopClosing) return;
+        const key = clpopOpenKey;
+        const ctx = clpopCtx;
+        clpopOpenKey = null;
+        clpopClosing = true;
+        if (clpopSettleTimer) { clearTimeout(clpopSettleTimer); clpopSettleTimer = null; }
         // Falls der Open-Settle noch nicht gefeuert hat (schnelles
         // Schliessen): Listener abhängen, sonst würde er während des
         // Schliessens den CLOSE-Ghost entfernen.
-        if (cltmSettleHandler) {
-            cltmModal.removeEventListener('transitionend', cltmSettleHandler);
-            cltmSettleHandler = null;
+        if (clpopSettleHandler) {
+            clpopModal.removeEventListener('transitionend', clpopSettleHandler);
+            clpopSettleHandler = null;
         }
 
         const finish = () => {
-            cltmModalManager = null;
+            clpopCtx = null;
             // Phase A (am Landepunkt): Ghost gegen die echte Kachel tauschen
             // und den backdrop-filter der Blur-Ebene abschalten (unsichtbar,
             // alles ist laengst transparent). Das Overlay bleibt noch einen
             // Frame im DOM sichtbar (aber pointer-events: none).
-            cltmRemoveGhost();
-            document.querySelectorAll('.cltm-tile.cltm-src-hidden').forEach((el) => el.classList.remove('cltm-src-hidden'));
-            document.body.classList.remove('cltm-lock-soft');
-            cltmOverlay.classList.add('is-teardown');
-            cltmModal.style.transform = '';
-            if (cltmLastTrigger && document.contains(cltmLastTrigger)) {
-                try { cltmLastTrigger.focus({ preventScroll: true }); } catch (_) {}
+            clpopRemoveGhost();
+            document.querySelectorAll('.clpop-src-hidden').forEach((el) => el.classList.remove('clpop-src-hidden'));
+            document.body.classList.remove('clpop-lock-soft');
+            clpopOverlay.classList.add('is-teardown');
+            clpopModal.style.transform = '';
+            if (clpopLastTrigger && document.contains(clpopLastTrigger)) {
+                try { clpopLastTrigger.focus({ preventScroll: true }); } catch (_) {}
             }
-            cltmLastTrigger = null;
+            clpopLastTrigger = null;
             // Phase B (naechster gerenderter Frame): erst jetzt display:none.
             // Chrome (v. a. Android) blitzt sonst beim Wegraeumen einer noch
             // aktiven backdrop-filter-Ebene den ganzen Screen kurz hell auf.
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    cltmOverlay.hidden = true;
-                    cltmOverlay.classList.remove('is-open', 'is-closing', 'is-settled', 'is-teardown');
-                    cltmClosing = false;
+                    clpopOverlay.hidden = true;
+                    clpopOverlay.classList.remove('is-open', 'is-closing', 'is-settled', 'is-teardown');
+                    clpopClosing = false;
                 });
             });
         };
@@ -5009,35 +5039,32 @@
         // Scrollen waehrend der Rueck-Animation; die Kachel-Positionen sind
         // vor/nach dem Restore identisch (top-Kompensation ↔ echter Scroll),
         // die FLIP-Messungen unten stimmen also weiterhin.
-        cltmUnlockBody();
-        document.body.classList.add('cltm-lock-soft');
+        clpopUnlockBody();
+        document.body.classList.add('clpop-lock-soft');
 
         // Die Ursprungs-Kachel kann durch ein Daten-Re-Render ersetzt worden
-        // sein → frisch über den Manager-Namen suchen (Fallback: nur Fade).
+        // sein → über den Bereichs-Callback frisch suchen (Fallback: nur Fade).
         let tileEl = null;
-        if (key) {
-            try {
-                const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(key) : key.replace(/"/g, '\\"');
-                tileEl = document.querySelector(`.cltm-tile[data-manager="${esc}"]`);
-            } catch (_) { tileEl = null; }
+        if (key && ctx && typeof ctx.findTile === 'function') {
+            try { tileEl = ctx.findTile(key); } catch (_) { tileEl = null; }
         }
 
         // Blur sofort weg (billig), dann rein Compositor-Animation zurück.
-        cltmOverlay.classList.remove('is-settled');
-        cltmOverlay.classList.add('is-closing');
-        cltmOverlay.classList.remove('is-open');
+        clpopOverlay.classList.remove('is-settled');
+        clpopOverlay.classList.add('is-closing');
+        clpopOverlay.classList.remove('is-open');
 
-        if (!cltmPrefersReducedMotion() && tileEl) {
+        if (!clpopPrefersReducedMotion() && tileEl) {
             const to = tileEl.getBoundingClientRect();
-            const from = cltmModal.getBoundingClientRect();
-            cltmModal.style.transformOrigin = 'top left';
-            cltmModal.style.transform = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
+            const from = clpopModal.getBoundingClientRect();
+            clpopModal.style.transformOrigin = 'top left';
+            clpopModal.style.transform = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
                 + `scale(${to.width / Math.max(from.width, 1)}, ${to.height / Math.max(from.height, 1)})`;
 
             // Ghost-Rückweg: startet als aufgeblasene Kachel auf dem Modal
             // und schrumpft mit der Karussell-Kurve exakt auf den Platz der
             // Kachel zurück, während das Modal ausblendet (Crossfade).
-            const ghost = cltmMakeGhost(tileEl, to);
+            const ghost = clpopMakeGhost(tileEl, to);
             ghost.classList.add('is-in');
             ghost.style.transform = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
                 + `scale(${from.width / Math.max(to.width, 1)}, ${from.height / Math.max(to.height, 1)})`;
@@ -5060,12 +5087,47 @@
             done = true;
             finish();
         };
-        if (cltmGhost) cltmGhost.addEventListener('transitionend', onEnd);
+        if (clpopGhost) clpopGhost.addEventListener('transitionend', onEnd);
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                setTimeout(() => onEnd(null), CLTM_MOVE_MS + 300);
+                setTimeout(() => onEnd(null), CLPOP_MOVE_MS + 300);
             });
         });
+    }
+
+    /* ── Top Manager: Detailkarte über den gemeinsamen Controller ────── */
+    function cltmOpen(manager, tileEl) {
+        if (clpopClosing) return;
+        cltmModalManager = manager;
+        cltmMode = 'position';
+
+        const rank = getDisplayedManagerRank(manager, 0);
+        const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+
+        clpopOpen({
+            scope: 'cltm',
+            key: manager.manager || '',
+            ariaLabel: `Platz ${rank || '–'}: ${manager.manager || 'Unbekannt'}, ${cltmFormatPts(manager.totalScore)} Punkte`,
+            html: cltmModalHtml(manager, rank, rankCls),
+            onMounted: (modal) => {
+                cltmBindImgFallbacks(modal);
+                // Chips sofort (ohne Transition) in der Positions-Ansicht platzieren.
+                cltmLayoutPlayers(false);
+            },
+            onResize: () => cltmLayoutPlayers(false),
+            onClick: (ev) => {
+                const modeBtn = ev.target.closest('.cltm-mode-toggle [data-mode]');
+                if (modeBtn) { cltmSetMode(modeBtn.dataset.mode); return; }
+                const chip = ev.target.closest('[data-action="player"]');
+                if (chip) {
+                    champOpenPlayerAnalysis({ id: chip.dataset.pid || '', name: chip.dataset.playerName || '' });
+                }
+            },
+            findTile: (key) => {
+                const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(key) : key.replace(/"/g, '\\"');
+                return document.querySelector(`.cltm-tile[data-manager="${esc}"]`);
+            }
+        }, tileEl);
     }
 
     /* ── Kachel-Bühne: „Top" (Podest + Reihe) / „Alle" ──────────────────
@@ -5353,12 +5415,754 @@
 
         // Kommt während offener Detailkarte ein Re-Render, bleibt die
         // Ursprungs-Kachel des offenen Managers unsichtbar (Expand-Illusion).
-        if (cltmOpenKey !== null) {
-            const openTile = created.find((el) => el.dataset && el.dataset.manager === cltmOpenKey);
-            if (openTile) openTile.classList.add('cltm-src-hidden');
+        if (clpopIsOpen('cltm')) {
+            const openTile = created.find((el) => el.dataset && el.dataset.manager === clpopOpenKey);
+            if (openTile) openTile.classList.add('clpop-src-hidden');
         }
     }
 
+    /* =========================================================
+       CL: „AKTUELLE SPIELE" – Kachel-Bühne + Expand-Detailkarte
+       Ersetzt in der CL das Glass-Panel „Aktuelle Spiele" (Ticker) im
+       Post-Start-Dashboard. Aufbau bewusst analog zu „Top Manager"
+       (Namespace `clcm-`), damit die Startseite eine Sprache spricht:
+
+       • Titel im gleichen Layout wie „Top Manager" (champ-header).
+       • Darunter anklickbare Spiel-Kacheln, standardmässig 10 Stück,
+         auf breiten Screens 5 pro Reihe (Grid; schmalere Screens 4/3/2).
+         Kachel = beide Klublogos + Klubnamen gross, in der Mitte das
+         Endresultat bzw. Startzeit + Datum, wenn das Spiel noch nicht
+         angepfiffen ist.
+       • Klick öffnet über den gemeinsamen Popup-Controller (clpopOpen)
+         die Detailkarte – EXAKT dieselbe Animation wie bei Top Manager.
+       • In der Detailkarte steht alles, was der Gelegenheits-User sonst
+         in der Analyse suchen müsste: Kopf mit Logos/Resultat/Anstoss/
+         Ort, Kurz-Zusammenfassung (bester Spieler, gewählte Spieler,
+         deren Punkte, betroffene Manager), Torschützen beider Teams und
+         die Spieler mit ihren Punkten – umschaltbar zwischen „Gewählt"
+         (mit den Managern, die den Spieler im Team haben) und „Alle"
+         (alle Spieler mit Punkte-Eintrag, auch ungewählte).
+
+       Daten kommen aus denselben Quellen wie der bisherige Ticker
+       (extractMatchInfo + data.points + teams) – die Punkte stimmen also
+       mit Analyse, Rangliste und Teams überein.
+       ========================================================= */
+    const CLCM_DEFAULT_COUNT = 10;   // Kacheln in der Ansicht „Aktuell"
+    const CLCM_PAST_TARGET = 4;      // davon höchstens so viele beendete Spiele
+
+    // Kurz-Chips auf der Spielerkarte. Die Werte in `Aufstellung` sind
+    // PUNKTE, nicht Anzahl – die Anzahl ergibt sich aus Punkte/Regelwert
+    // (siehe Spieleranalyse, gleiche Rechnung).
+    const CLCM_EVENT_META = {
+        GOAL_GK:       { icon: '⚽', one: 'Tor', many: 'Tore' },
+        GOAL_DEF:      { icon: '⚽', one: 'Tor', many: 'Tore' },
+        GOAL_MID:      { icon: '⚽', one: 'Tor', many: 'Tore' },
+        GOAL_ATT:      { icon: '⚽', one: 'Tor', many: 'Tore' },
+        ASSIST_GK_DEF: { icon: '🅰️', one: 'Assist', many: 'Assists' },
+        ASSIST_MID:    { icon: '🅰️', one: 'Assist', many: 'Assists' },
+        ASSIST_ATT:    { icon: '🅰️', one: 'Assist', many: 'Assists' },
+        OWN_GOAL:      { icon: '🙈', one: 'Eigentor', many: 'Eigentore' },
+        PEN_SAVED:     { icon: '🧤', one: 'Elfer gehalten', many: 'Elfer gehalten' },
+        PEN_WON:       { icon: '🎯', one: 'Elfer geholt', many: 'Elfer geholt' },
+        PEN_MISSED:    { icon: '❌', one: 'Elfer verschossen', many: 'Elfer verschossen' },
+        PEN_COMMITED:  { icon: '⚠️', one: 'Elfer verursacht', many: 'Elfer verursacht' },
+        YELLOW_CARD:   { icon: '🟨', one: 'Gelb', many: 'Gelb' },
+        RED_CARD:      { icon: '🟥', one: 'Rot', many: 'Rot' },
+        SUBBED_IN:     { icon: '🔁', one: 'Eingewechselt', many: 'Eingewechselt' }
+    };
+
+    let clcmView = 'aktuell';        // 'aktuell' | 'alle'
+    let clcmEntries = [];            // Spiele in Anzeige-Reihenfolge
+    let clcmEntryByKey = new Map();  // Kachel-Key → Eintrag
+    let clcmCtx = null;              // { drafted, pointsIndex }
+    let clcmResizeTimer = null;
+    let clcmBound = false;
+
+    function clcmListEl() {
+        return document.getElementById('clCurrentMatchesList');
+    }
+
+    function clcmFormatPts(value) {
+        const n = Number(value) || 0;
+        return `${n > 0 ? '+' : ''}${n}`;
+    }
+
+    /* ── Daten-Indizes ────────────────────────────────────────────────
+       Beide werden pro Render EINMAL gebaut und danach von Kacheln und
+       Detailkarte gemeinsam benutzt (statt pro Spiel erneut über alle
+       Punkte-Dokumente zu laufen). */
+
+    // playerId → { player, managers: [{ manager, isCaptain }] }
+    function clcmBuildDraftedIndex(teams) {
+        const index = new Map();
+        (teams || []).forEach((t) => {
+            const managerName = getManagerDisplayName(t.manager);
+            (t.players || []).forEach((tp) => {
+                const full = resolvePlayer(tp);
+                if (!full) return;
+                const id = String(full['player.id']);
+                let entry = index.get(id);
+                if (!entry) { entry = { player: full, managers: [] }; index.set(id, entry); }
+                if (!entry.managers.some((m) => m.manager === managerName)) {
+                    entry.managers.push({ manager: managerName, isCaptain: !!tp.isCaptain });
+                }
+            });
+        });
+        const byTeam = new Map();
+        index.forEach((entry, playerId) => {
+            entry.managers.sort((a, b) => {
+                if (a.isCaptain !== b.isCaptain) return a.isCaptain ? -1 : 1;
+                return String(a.manager).localeCompare(String(b.manager), 'de');
+            });
+            // In der CL steht der KLUB in den primären Anzeigefeldern
+            // (`Nationalteam.*`, siehe data.js Club-Remap) – der Schlüssel
+            // passt damit direkt auf die Teamnamen der Fixtures.
+            const teamKey = normalizeCountry(entry.player['Nationalteam.name']);
+            if (!teamKey) return;
+            let list = byTeam.get(teamKey);
+            if (!list) { list = []; byTeam.set(teamKey, list); }
+            list.push({ playerId: String(playerId), player: entry.player, managers: entry.managers });
+        });
+        return { byId: index, byTeam };
+    }
+
+    // Klublogo aus dem Kader ableiten, falls das Fixture keins mitbringt.
+    // Nach dem Club-Remap steckt es in `Nationalteam.logo`.
+    let clcmTeamLogoCache = null;
+    function clcmTeamLogo(teamName) {
+        if (!clcmTeamLogoCache) {
+            clcmTeamLogoCache = new Map();
+            (typeof playersData !== 'undefined' ? playersData : []).forEach((p) => {
+                const key = normalizeCountry(p['Nationalteam.name']);
+                const logo = p['Nationalteam.logo'] || '';
+                if (key && logo && !clcmTeamLogoCache.has(key)) clcmTeamLogoCache.set(key, logo);
+            });
+        }
+        return clcmTeamLogoCache.get(normalizeCountry(teamName)) || '';
+    }
+
+    // matchId → Map(playerId → { pts, detail }). Punkte kommen über
+    // sumPointBucket – dieselbe Rechnung wie getPlayerMatchPoints.
+    function clcmBuildPointsIndex(data) {
+        const byMatch = new Map();
+        Object.entries(data.points || {}).forEach(([playerId, doc]) => {
+            if (!doc || typeof doc !== 'object') return;
+            Object.entries(doc).forEach(([key, val]) => {
+                if (!key.startsWith('Spiel_') || !val || typeof val !== 'object' || Array.isArray(val)) return;
+                const rawId = val.MatchID ?? val.matchId ?? val.fixtureId ?? val.id ?? key.replace(/^Spiel_/, '');
+                if (rawId === undefined || rawId === null || rawId === '') return;
+                const matchKey = String(rawId);
+                let players = byMatch.get(matchKey);
+                if (!players) { players = new Map(); byMatch.set(matchKey, players); }
+                players.set(String(playerId), { pts: sumPointBucket(val), detail: val });
+            });
+        });
+        return byMatch;
+    }
+
+    /* ── Status/Anzeige eines Spiels ─────────────────────────────────── */
+    function clcmDescribeMatch(match, timingState, now) {
+        const kickoffMs = timingState.kickoffMs;
+        const kickoffDate = Number.isFinite(kickoffMs) ? new Date(kickoffMs) : null;
+        let badgeText = '';
+        let badgeCls = '';
+
+        if (timingState.isFinished) {
+            badgeText = 'Abgeschlossen';
+            badgeCls = 'finished';
+        } else if (timingState.isLive) {
+            badgeText = formatMatchLiveMinute(match);
+            badgeCls = 'live';
+        } else if (timingState.isUpdateOpen) {
+            badgeText = 'Update offen';
+            badgeCls = 'pending';
+        } else if (kickoffDate) {
+            const diffMin = (kickoffMs - now) / 60000;
+            const dayDiff = getSwissCalendarDayDiff(kickoffDate, now);
+            if (diffMin >= 0 && diffMin <= PREMATCH_COUNTDOWN_WINDOW_MIN && dayDiff === 0) {
+                badgeText = formatPrematchCountdown(diffMin);
+                badgeCls = 'countdown';
+            } else if (dayDiff === 0) {
+                badgeText = 'Heute';
+                badgeCls = 'today';
+            } else if (dayDiff === 1) {
+                badgeText = 'Morgen';
+                badgeCls = 'today';
+            } else {
+                badgeText = 'Angesetzt';
+            }
+        } else {
+            badgeText = 'Termin offen';
+        }
+
+        return {
+            badgeText,
+            badgeCls,
+            kickoffDate,
+            timeText: kickoffDate ? formatSwissMatchTime(kickoffDate) : '–',
+            dateText: kickoffDate ? formatSwissMatchDate(kickoffDate) : ''
+        };
+    }
+
+    /* ── Spiel-Auswahl + Aufbereitung ────────────────────────────────── */
+    function clcmBuildEntries(data) {
+        const matchInfos = extractMatchInfo(data);
+        const source = matchInfos.length ? matchInfos : getTournamentFallbackFixtures();
+        if (!source.length) return [];
+
+        const now = Date.now();
+        const enriched = source.map((match) => ({ match, timingState: getMatchTimingState(match, now) }));
+
+        const running = enriched
+            .filter(({ timingState }) => timingState.isLive || timingState.isUpdateOpen)
+            .sort(compareMatchEntriesByKickoff);
+        const finished = enriched
+            .filter(({ timingState }) => timingState.isFinished)
+            .sort(compareFinishedMatchEntriesByRecency);
+        const upcoming = enriched
+            .filter(({ timingState }) => !timingState.isFinished && !timingState.isLive && !timingState.isUpdateOpen)
+            .sort(compareMatchEntriesByKickoff);
+
+        // Reihenfolge der Standard-Ansicht: laufende Spiele zuerst, dann die
+        // zuletzt beendeten (dort schaut man nach den Punkten), danach die
+        // nächsten Anstösse. Gibt eine Seite zu wenig her, füllt die andere
+        // die freien Plätze auf – es sind also immer 10 Kacheln belegt,
+        // solange überhaupt 10 Spiele existieren.
+        const budget = Math.max(0, CLCM_DEFAULT_COUNT - running.length);
+        let pastTake = Math.min(finished.length, CLCM_PAST_TARGET);
+        const futureTake = Math.min(upcoming.length, Math.max(0, budget - pastTake));
+        pastTake = Math.min(finished.length, Math.max(0, budget - futureTake));
+
+        const primary = [
+            ...running,
+            ...finished.slice(0, pastTake),
+            ...upcoming.slice(0, futureTake)
+        ];
+        const primarySet = new Set(primary);
+        const rest = [
+            ...upcoming.filter((e) => !primarySet.has(e)),
+            ...finished.filter((e) => !primarySet.has(e))
+        ];
+        const ordered = [...primary, ...rest];
+        const scheduleContext = source;
+
+        const entries = ordered.map(({ match, timingState }, index) => {
+            const matchId = match.gameNumber ?? match.matchId ?? match.id;
+            const teamA = match.teamA || match.home || match.homeTeam || '?';
+            const teamB = match.teamB || match.away || match.awayTeam || '?';
+            const stageMatch = { ...match, teamA, teamB, round: match.round || '' };
+            const stageLabel = APP && typeof APP.groupStageLabelForMatch === 'function'
+                ? APP.groupStageLabelForMatch(stageMatch, { matches: scheduleContext })
+                : '';
+            return {
+                key: getNextMatchKey(stageMatch, index),
+                match,
+                matchId,
+                timingState,
+                teamA,
+                teamB,
+                logoA: match.homeLogo || match.teamAFlag || '',
+                logoB: match.awayLogo || match.teamBFlag || '',
+                fallbackLogoA: clcmTeamLogo(teamA) || getNationFlag(teamA),
+                fallbackLogoB: clcmTeamLogo(teamB) || getNationFlag(teamB),
+                score: getMatchScoreParts(match),
+                stageLabel,
+                venue: match.venue && match.venue !== 'Spielort folgt'
+                    ? `${match.venue}${match.venueCity ? ', ' + match.venueCity : ''}`
+                    : '',
+                view: clcmDescribeMatch(match, timingState, now)
+            };
+        });
+
+        return entries;
+    }
+
+    // Spieler eines Teams für die Detailkarte: alle mit Punkte-Eintrag zu
+    // diesem Spiel PLUS die gedrafteten Spieler des Clubs ohne Eintrag
+    // (damit Manager ihre Wahl auch vor dem Anpfiff sehen).
+    function clcmTeamPlayers(entry, teamName) {
+        const teamKey = normalizeCountry(teamName);
+        const draftedById = (clcmCtx && clcmCtx.drafted.byId) || new Map();
+        const draftedTeam = (clcmCtx && clcmCtx.drafted.byTeam.get(teamKey)) || [];
+        const matchPoints = (clcmCtx && clcmCtx.pointsIndex.get(String(entry.matchId))) || new Map();
+        const byId = new Map();
+
+        matchPoints.forEach(({ pts, detail }, playerId) => {
+            const player = getPlayerById(playerId);
+            if (!player) return;
+            if (normalizeCountry(player['Nationalteam.name']) !== teamKey) return;
+            const draft = draftedById.get(String(playerId));
+            byId.set(String(playerId), {
+                player,
+                pts: Number(pts) || 0,
+                detail,
+                drafted: !!draft,
+                managers: draft ? draft.managers : []
+            });
+        });
+
+        draftedTeam.forEach(({ playerId, player, managers }) => {
+            if (byId.has(playerId)) return;
+            byId.set(playerId, { player, pts: null, detail: null, drafted: true, managers });
+        });
+
+        return Array.from(byId.values()).sort((a, b) => {
+            const hasA = a.pts !== null;
+            const hasB = b.pts !== null;
+            if (hasA !== hasB) return hasA ? -1 : 1;
+            if (hasA && a.pts !== b.pts) return b.pts - a.pts;
+            return String(a.player.Spielername).localeCompare(String(b.player.Spielername), 'de');
+        });
+    }
+
+    /* ── Kacheln ─────────────────────────────────────────────────────── */
+    function clcmTileLogoHtml(name, logo, fallbackLogo) {
+        return `<span class="clcm-logo">${renderFlagImageHtml('clcm-logo-img', logo, fallbackLogo, name, 'font-size:1.4rem;')}</span>`;
+    }
+
+    // Klubnamen stehen bewusst in einer EIGENEN Zeile unter Logos/Resultat:
+    // dort teilen sie sich die volle Kachelbreite (statt der schmalen
+    // Aussenspalten) und bleiben deshalb auch bei „Eintracht Frankfurt"
+    // lesbar (CSS erlaubt zwei Zeilen).
+    function clcmTileNameHtml(name) {
+        return `<span class="clcm-club" title="${escapeHtml(name)}">${escapeHtml(name)}</span>`;
+    }
+
+    function clcmTileCenterHtml(entry) {
+        const state = entry.timingState;
+        const showScore = !!entry.score && (state.isFinished || state.isLive || state.isUpdateOpen);
+        if (showScore) {
+            return `<span class="clcm-center">
+                <span class="clcm-score${state.isLive ? ' is-live' : ''}">${escapeHtml(String(entry.score.home))}<i>:</i>${escapeHtml(String(entry.score.away))}</span>
+            </span>`;
+        }
+        return `<span class="clcm-center">
+            <span class="clcm-kick-time">${escapeHtml(entry.view.timeText)}</span>
+            ${entry.view.dateText ? `<span class="clcm-kick-date">${escapeHtml(entry.view.dateText)}</span>` : ''}
+        </span>`;
+    }
+
+    function clcmTileAriaLabel(entry) {
+        const state = entry.timingState;
+        const showScore = !!entry.score && (state.isFinished || state.isLive || state.isUpdateOpen);
+        const result = showScore
+            ? `${entry.score.home} zu ${entry.score.away}`
+            : `Anpfiff ${entry.view.dateText ? entry.view.dateText + ', ' : ''}${entry.view.timeText}`;
+        return `${entry.teamA} gegen ${entry.teamB}, ${entry.view.badgeText}, ${result}. Spieldetails öffnen.`;
+    }
+
+    function clcmDraftedSummary(entry) {
+        const byTeam = (clcmCtx && clcmCtx.drafted.byTeam) || new Map();
+        const matchPoints = (clcmCtx && clcmCtx.pointsIndex.get(String(entry.matchId))) || new Map();
+        const sides = [
+            byTeam.get(normalizeCountry(entry.teamA)) || [],
+            byTeam.get(normalizeCountry(entry.teamB)) || []
+        ];
+        let count = 0;
+        let points = 0;
+        let hasPoints = false;
+        const managers = new Set();
+
+        sides.forEach((list) => list.forEach(({ playerId, managers: mgrs }) => {
+            count += 1;
+            (mgrs || []).forEach((m) => managers.add(m.manager));
+            const hit = matchPoints.get(playerId);
+            if (hit) { points += Number(hit.pts) || 0; hasPoints = true; }
+        }));
+
+        return { count, points, hasPoints, managerCount: managers.size };
+    }
+
+    function clcmTileHtml(entry, index) {
+        const summary = clcmDraftedSummary(entry);
+        const pointsChip = summary.hasPoints
+            ? `<span class="clcm-tile-pts ${getPointsClass(summary.points)}">${escapeHtml(clcmFormatPts(summary.points))} Pkt</span>`
+            : (summary.count
+                ? `<span class="clcm-tile-picks">${summary.count} gewählt</span>`
+                : '');
+
+        return `<button type="button" class="clcm-tile${entry.timingState.isLive ? ' is-live' : ''}${index >= CLCM_DEFAULT_COUNT && clcmView === 'aktuell' ? ' is-hidden' : ''}"
+                data-match-key="${escapeHtml(entry.key)}" aria-haspopup="dialog"
+                aria-label="${escapeHtml(clcmTileAriaLabel(entry))}">
+            <span class="clcm-tile-stage">${escapeHtml(entry.stageLabel || '')}</span>
+            <span class="clcm-tile-main">
+                ${clcmTileLogoHtml(entry.teamA, entry.logoA, entry.fallbackLogoA)}
+                ${clcmTileCenterHtml(entry)}
+                ${clcmTileLogoHtml(entry.teamB, entry.logoB, entry.fallbackLogoB)}
+            </span>
+            <span class="clcm-tile-names">
+                ${clcmTileNameHtml(entry.teamA)}
+                ${clcmTileNameHtml(entry.teamB)}
+            </span>
+            <span class="clcm-tile-foot">
+                <span class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</span>
+                ${pointsChip}
+            </span>
+        </button>`;
+    }
+
+    // Kachelbreite (--ctw) + Spaltenzahl aus der Container-Breite ableiten:
+    // Über --ctw skalieren alle Innengrössen der Kachel (Logos, Fonts) mit,
+    // genau wie --tw bei den Manager-Kacheln.
+    function clcmSyncTileScale() {
+        const list = clcmListEl();
+        if (!list) return;
+        const W = list.clientWidth;
+        if (!W) return;
+        const cols = W >= 1040 ? 5 : (W >= 820 ? 4 : (W >= 560 ? 3 : 2));
+        const gap = W >= 820 ? 14 : 10;
+        const tile = Math.max(110, Math.floor((W - (cols - 1) * gap) / cols));
+        list.style.setProperty('--clcm-cols', String(cols));
+        list.style.setProperty('--clcm-gap', gap + 'px');
+        list.style.setProperty('--ctw', tile + 'px');
+    }
+
+    function clcmUpdateToggle() {
+        const toolbar = document.querySelector('#clCurrentMatches .clcm-list-toolbar');
+        if (toolbar) toolbar.classList.toggle('is-single-view', clcmEntries.length <= CLCM_DEFAULT_COUNT);
+        document.querySelectorAll('#clCurrentMatches .clcm-view-toggle .pt-toggle-btn').forEach((btn) => {
+            const active = btn.dataset.view === clcmView;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+    }
+
+    // Ansichts-Wechsel ohne Neuaufbau: die Kacheln jenseits der Standard-
+    // Anzahl bleiben im DOM und werden nur ein-/ausgeblendet. Die ersten
+    // zehn behalten dadurch exakt ihren Rasterplatz – es „springt" nichts.
+    function clcmSetView(view) {
+        if (view !== 'aktuell' && view !== 'alle') return;
+        if (view === clcmView) return;
+        clcmView = view;
+        clcmUpdateToggle();
+
+        const list = clcmListEl();
+        if (!list) return;
+        const tiles = Array.from(list.querySelectorAll('.clcm-tile'));
+        const revealed = [];
+        tiles.forEach((tile, i) => {
+            const hide = clcmView === 'aktuell' && i >= CLCM_DEFAULT_COUNT;
+            if (hide) {
+                tile.classList.add('is-hidden');
+            } else if (tile.classList.contains('is-hidden')) {
+                tile.classList.remove('is-hidden');
+                tile.style.opacity = '0';
+                revealed.push(tile);
+            }
+        });
+        if (!revealed.length) return;
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                revealed.forEach((tile, i) => {
+                    tile.style.transitionDelay = Math.min(i * 26, 320) + 'ms';
+                    tile.style.opacity = '';
+                });
+                setTimeout(() => { revealed.forEach((tile) => { tile.style.transitionDelay = ''; }); }, 1200);
+            });
+        });
+    }
+
+    /* ── Detailkarte ─────────────────────────────────────────────────── */
+    function clcmEventChipsHtml(detail) {
+        const lineup = detail && detail.Aufstellung && typeof detail.Aufstellung === 'object' ? detail.Aufstellung : null;
+        if (!lineup) return '';
+        const rules = (APP && APP.rules) || {};
+        const chips = [];
+        Object.keys(CLCM_EVENT_META).forEach((key) => {
+            const value = Number(lineup[key]);
+            if (!Number.isFinite(value) || value === 0) return;
+            const rule = Number(rules[key]);
+            const count = Number.isFinite(rule) && rule !== 0 ? Math.abs(Math.round(value / rule)) : 1;
+            if (!count) return;
+            const meta = CLCM_EVENT_META[key];
+            const label = count > 1 ? `${count}× ${meta.many}` : meta.one;
+            chips.push(`<span class="clcm-event-chip">${meta.icon} ${escapeHtml(label)}</span>`);
+        });
+        return chips.length ? `<span class="clcm-player-events">${chips.join('')}</span>` : '';
+    }
+
+    function clcmManagerChipsHtml(managers) {
+        if (!managers || !managers.length) return '';
+        const chips = managers.map((m) => {
+            const name = getManagerDisplayName(m.manager);
+            const href = `teams.html?manager=${encodeURIComponent(name)}`;
+            const label = m.isCaptain ? `${name} (Captain) – Team öffnen` : `${name} – Team öffnen`;
+            return `<a class="clcm-mgr-chip${m.isCaptain ? ' is-captain' : ''}" href="${escapeHtml(href)}"
+                title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">${m.isCaptain ? '<span class="clcm-mgr-cap" aria-hidden="true">C</span>' : ''}${escapeHtml(name)}</a>`;
+        }).join('');
+        return `<span class="clcm-player-mgrs">${chips}</span>`;
+    }
+
+    function clcmPlayerCardHtml(item) {
+        const player = item.player;
+        const id = String(player['player.id']);
+        const name = player.Spielername || 'Unbekannt';
+        const photo = player.Spielerfoto || '';
+        const position = translateClcmPosition(player.Position);
+        const ptsHtml = item.pts === null
+            ? '<span class="clcm-player-pts none">–</span>'
+            : `<span class="clcm-player-pts ${getPointsClass(item.pts)}">${escapeHtml(clcmFormatPts(item.pts))}</span>`;
+
+        return `<div class="clcm-player${item.drafted ? ' is-drafted' : ' is-extra'}">
+            <button type="button" class="clcm-player-main" data-action="player" data-pid="${escapeHtml(id)}" data-player-name="${escapeHtml(name)}"
+                    aria-label="${escapeHtml(name)}${item.pts === null ? '' : `, ${clcmFormatPts(item.pts)} Punkte`} – Spieleranalyse öffnen">
+                <span class="clcm-player-photo">${photo
+                    ? `<img src="${escapeHtml(photo)}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">`
+                    : ''}</span>
+                <span class="clcm-player-copy">
+                    <span class="clcm-player-name">${escapeHtml(name)}</span>
+                    <span class="clcm-player-meta">${escapeHtml(position)}</span>
+                    ${clcmEventChipsHtml(item.detail)}
+                </span>
+                ${ptsHtml}
+            </button>
+            ${item.drafted ? clcmManagerChipsHtml(item.managers) : ''}
+        </div>`;
+    }
+
+    function translateClcmPosition(pos) {
+        const p = String(pos || '').toUpperCase();
+        if (p === 'GOALKEEPER') return 'Torhüter';
+        if (p === 'DEFENDER') return 'Abwehr';
+        if (p === 'MIDFIELDER') return 'Mittelfeld';
+        if (p === 'ATTACKER' || p === 'FORWARD') return 'Sturm';
+        return pos || '';
+    }
+
+    function clcmTeamColumnHtml(teamName, logo, fallbackLogo, players) {
+        const draftedCount = players.filter((p) => p.drafted).length;
+        const cards = players.map((p) => clcmPlayerCardHtml(p)).join('');
+        const emptyDrafted = draftedCount === 0
+            ? '<div class="clcm-col-empty only-drafted">Kein Spieler dieses Clubs wurde von einem Manager gewählt.</div>'
+            : '';
+        const emptyAll = players.length === 0
+            ? '<div class="clcm-col-empty only-all">Noch keine Spielerdaten zu diesem Spiel.</div>'
+            : '';
+        return `<div class="clcm-players-col">
+            <div class="clcm-col-head">
+                <span class="clcm-col-logo">${renderFlagImageHtml('clcm-col-logo-img', logo, fallbackLogo, teamName, 'font-size:1.2rem;')}</span>
+                <span class="clcm-col-name">${escapeHtml(teamName)}</span>
+                <span class="clcm-col-count">${draftedCount} gewählt</span>
+            </div>
+            <div class="clcm-col-players">${cards}${emptyDrafted}${emptyAll}</div>
+        </div>`;
+    }
+
+    function clcmSummaryHtml(entry, homePlayers, awayPlayers) {
+        const all = [...homePlayers, ...awayPlayers];
+        const scored = all.filter((p) => p.pts !== null);
+        const draftedScored = scored.filter((p) => p.drafted);
+        const best = scored.length
+            ? scored.reduce((acc, p) => (acc && acc.pts >= p.pts ? acc : p), null)
+            : null;
+        const draftedPoints = draftedScored.reduce((sum, p) => sum + (Number(p.pts) || 0), 0);
+        const managers = new Set();
+        all.filter((p) => p.drafted).forEach((p) => (p.managers || []).forEach((m) => managers.add(m.manager)));
+        const draftedCount = all.filter((p) => p.drafted).length;
+
+        const cell = (label, value, cls) =>
+            `<div class="clcm-stat"><span class="clcm-stat-label">${escapeHtml(label)}</span><span class="clcm-stat-value${cls ? ' ' + cls : ''}">${value}</span></div>`;
+
+        return `<div class="clcm-summary">
+            ${cell('Bester Spieler', best
+                ? `${escapeHtml(cltmShortPlayerName(best.player.Spielername))} <small>${escapeHtml(clcmFormatPts(best.pts))}</small>`
+                : '–')}
+            ${cell('Gewählte Spieler', String(draftedCount))}
+            ${cell('Punkte gewählter Spieler', draftedScored.length ? escapeHtml(clcmFormatPts(draftedPoints)) : '–', draftedScored.length ? getPointsClass(draftedPoints) : '')}
+            ${cell('Betroffene Manager', String(managers.size))}
+        </div>`;
+    }
+
+    function clcmModalHtml(entry) {
+        const homePlayers = clcmTeamPlayers(entry, entry.teamA);
+        const awayPlayers = clcmTeamPlayers(entry, entry.teamB);
+        const state = entry.timingState;
+        const showScore = !!entry.score && (state.isFinished || state.isLive || state.isUpdateOpen);
+
+        const metaBits = [
+            entry.view.dateText && entry.view.timeText ? `${entry.view.dateText}, ${entry.view.timeText}` : (entry.view.dateText || entry.view.timeText),
+            entry.venue,
+            entry.stageLabel
+        ].filter(Boolean);
+
+        const homeGoals = renderGoalEventList(entry.match, entry.teamA, 'clcm');
+        const awayGoals = renderGoalEventList(entry.match, entry.teamB, 'clcm');
+        const goalsHtml = (homeGoals || awayGoals) ? `
+            <div class="clcm-block">
+                <div class="clcm-block-title">Torschützen</div>
+                <div class="clcm-goals">
+                    <div class="clcm-goals-side">${homeGoals || '<span class="clcm-goals-none">Kein Tor</span>'}</div>
+                    <div class="clcm-goals-side right">${awayGoals || '<span class="clcm-goals-none">Kein Tor</span>'}</div>
+                </div>
+            </div>` : '';
+
+        const analysisHref = `spieleranalyse.html?view=games${entry.matchId != null ? `&matchId=${encodeURIComponent(entry.matchId)}` : ''}`;
+
+        // Ohne Punkte-Daten (Spiel noch nicht angepfiffen bzw. Punkte noch
+        // nicht synchronisiert) gäbe es unter „Alle" nichts zu sehen – dann
+        // ersetzt ein Hinweis den Umschalter.
+        const hasAnyPoints = homePlayers.some((p) => p.pts !== null) || awayPlayers.some((p) => p.pts !== null);
+        const playersToolHtml = hasAnyPoints
+            ? `<div class="pt-toggle clcm-mode-toggle" role="tablist" aria-label="Spieler-Auswahl">
+                            <button type="button" class="pt-toggle-btn active" data-clcm-mode="drafted" role="tab" aria-selected="true">Gewählt</button>
+                            <button type="button" class="pt-toggle-btn" data-clcm-mode="all" role="tab" aria-selected="false">Alle</button>
+                        </div>`
+            : '<div class="clcm-note">Noch keine Spielpunkte erfasst – angezeigt sind die gewählten Spieler.</div>';
+
+        return `
+            <div class="clpop-modal-head clcm-modal-head">
+                <div class="clcm-head-teams">
+                    <div class="clcm-head-side">
+                        <span class="clcm-head-logo">${renderFlagImageHtml('clcm-head-logo-img', entry.logoA, entry.fallbackLogoA, entry.teamA, 'font-size:2rem;')}</span>
+                        <span class="clcm-head-club">${escapeHtml(entry.teamA)}</span>
+                    </div>
+                    <div class="clcm-head-center">
+                        ${showScore
+                            ? `<div class="clcm-head-score">${escapeHtml(String(entry.score.home))}<i>:</i>${escapeHtml(String(entry.score.away))}</div>`
+                            : `<div class="clcm-head-kick">${escapeHtml(entry.view.timeText)}</div>`}
+                        <div class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</div>
+                    </div>
+                    <div class="clcm-head-side">
+                        <span class="clcm-head-logo">${renderFlagImageHtml('clcm-head-logo-img', entry.logoB, entry.fallbackLogoB, entry.teamB, 'font-size:2rem;')}</span>
+                        <span class="clcm-head-club">${escapeHtml(entry.teamB)}</span>
+                    </div>
+                </div>
+                ${metaBits.length ? `<div class="clcm-head-meta">${escapeHtml(metaBits.join(' · '))}</div>` : ''}
+                <button type="button" class="clpop-close" data-clpop-close aria-label="Detailkarte schliessen">✕</button>
+            </div>
+            <div class="clpop-modal-body">
+                ${clcmSummaryHtml(entry, homePlayers, awayPlayers)}
+                ${goalsHtml}
+                <div class="clcm-block">
+                    <div class="clcm-block-head">
+                        <div class="clcm-block-title">Spieler &amp; Punkte</div>
+                        ${playersToolHtml}
+                    </div>
+                    <div class="clcm-players mode-drafted">
+                        ${clcmTeamColumnHtml(entry.teamA, entry.logoA, entry.fallbackLogoA, homePlayers)}
+                        ${clcmTeamColumnHtml(entry.teamB, entry.logoB, entry.fallbackLogoB, awayPlayers)}
+                    </div>
+                </div>
+                <div class="clpop-modal-actions">
+                    <a class="btn-pill" href="${escapeHtml(analysisHref)}">🔍 Spiel in der Analyse</a>
+                    <a class="btn-pill" href="punktesystem.html">📊 Punktesystem</a>
+                </div>
+            </div>
+        `;
+    }
+
+    function clcmSetPlayersMode(modal, mode) {
+        const wrap = modal && modal.querySelector('.clcm-players');
+        if (!wrap) return;
+        wrap.classList.toggle('mode-drafted', mode !== 'all');
+        wrap.classList.toggle('mode-all', mode === 'all');
+        modal.querySelectorAll('.clcm-mode-toggle .pt-toggle-btn').forEach((btn) => {
+            const active = btn.dataset.clcmMode === mode;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+    }
+
+    function clcmOpen(entry, tileEl) {
+        clpopOpen({
+            scope: 'clcm',
+            key: entry.key,
+            modalClass: 'clcm-modal',
+            ariaLabel: `${entry.teamA} gegen ${entry.teamB} – Spieldetails`,
+            html: clcmModalHtml(entry),
+            onClick: (ev, modal) => {
+                const modeBtn = ev.target.closest('.clcm-mode-toggle [data-clcm-mode]');
+                if (modeBtn) { clcmSetPlayersMode(modal, modeBtn.dataset.clcmMode); return; }
+                const playerBtn = ev.target.closest('[data-action="player"]');
+                if (playerBtn) {
+                    champOpenPlayerAnalysis({ id: playerBtn.dataset.pid || '', name: playerBtn.dataset.playerName || '' });
+                }
+            },
+            findTile: (key) => {
+                const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(key) : String(key).replace(/"/g, '\\"');
+                return document.querySelector(`.clcm-tile[data-match-key="${esc}"]`);
+            }
+        }, tileEl);
+    }
+
+    /* ── Render ──────────────────────────────────────────────────────── */
+    function clcmBindOnce() {
+        if (clcmBound) return;
+        const section = document.getElementById('clCurrentMatches');
+        const list = clcmListEl();
+        if (!section || !list) return;
+        clcmBound = true;
+
+        const toggle = section.querySelector('.clcm-view-toggle');
+        if (toggle) {
+            toggle.addEventListener('click', (ev) => {
+                const btn = ev.target.closest('[data-view]');
+                if (btn) clcmSetView(btn.dataset.view);
+            });
+        }
+
+        list.addEventListener('click', (ev) => {
+            const tile = ev.target.closest('.clcm-tile');
+            if (!tile) return;
+            const entry = clcmEntryByKey.get(tile.dataset.matchKey || '');
+            if (entry) clcmOpen(entry, tile);
+        });
+
+        window.addEventListener('resize', () => {
+            if (clcmResizeTimer) clearTimeout(clcmResizeTimer);
+            clcmResizeTimer = setTimeout(() => {
+                clcmResizeTimer = null;
+                clcmSyncTileScale();
+            }, 120);
+        });
+    }
+
+    function renderClCurrentMatches(data, teams) {
+        const list = clcmListEl();
+        if (!list) return;
+        clcmBindOnce();
+
+        clcmCtx = {
+            drafted: clcmBuildDraftedIndex(teams),
+            pointsIndex: clcmBuildPointsIndex(data)
+        };
+
+        const entries = clcmBuildEntries(data);
+        clcmEntries = entries;
+        clcmEntryByKey = new Map(entries.map((e) => [e.key, e]));
+
+        if (!entries.length) {
+            list.innerHTML = '<div class="clcm-empty">Keine aktuellen Spiele gefunden.</div>';
+            clcmUpdateToggle();
+            return;
+        }
+
+        list.innerHTML = entries.map((entry, index) => clcmTileHtml(entry, index)).join('');
+        clcmSyncTileScale();
+        clcmUpdateToggle();
+
+        // Erst-Einblendung: nur Opacity, gestaffelt – wie bei den Manager-
+        // Kacheln (kein Layout-Shift, kein Raster-Pop).
+        const created = Array.from(list.querySelectorAll('.clcm-tile:not(.is-hidden)'));
+        created.forEach((tile) => { tile.style.opacity = '0'; });
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                created.forEach((tile, i) => {
+                    tile.style.transitionDelay = Math.min(i * 34, 420) + 'ms';
+                    tile.style.opacity = '';
+                });
+                setTimeout(() => { created.forEach((tile) => { tile.style.transitionDelay = ''; }); }, 1400);
+            });
+        });
+
+        // Kommt während offener Detailkarte ein Re-Render, bleibt die
+        // Ursprungs-Kachel des offenen Spiels unsichtbar (Expand-Illusion).
+        if (clpopIsOpen('clcm')) {
+            const openTile = list.querySelector(`.clcm-tile[data-match-key="${(window.CSS && CSS.escape) ? CSS.escape(clpopOpenKey) : clpopOpenKey}"]`);
+            if (openTile) openTile.classList.add('clpop-src-hidden');
+        }
+    }
     /* =========================================================
        POST START HOME – Render-Funktion (Live Dashboard)
        ========================================================= */
@@ -5396,7 +6200,13 @@
             renderChampStage(champRanking);
         }
 
-        renderNextMatchesTile(data, teams);
+        // „Aktuelle Spiele": CL → Kachel-Bühne mit Expand-Detailkarte,
+        // WM → unverändert der Ticker im Glass-Panel.
+        if (APP && String(APP.type || '').toUpperCase() === 'CL') {
+            renderClCurrentMatches(data, teams);
+        } else {
+            renderNextMatchesTile(data, teams);
+        }
 
         renderPostTopPlayersGrid(topPlayers, ptMap);
         renderCompactPerfectTeam(ptMap, 'post-');

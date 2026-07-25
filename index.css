@@ -6319,7 +6319,7 @@
         }
         /* Ursprungs-Kachel bleibt während offener Detailkarte unsichtbar,
            behält aber ihren Platz (Expand-Illusion wie bei Aceternity). */
-        .cltm-tile.cltm-src-hidden { visibility: hidden; }
+        .cltm-tile.clpop-src-hidden { visibility: hidden; }
 
         .cltm-tile-head {
             display: flex;
@@ -6436,13 +6436,19 @@
             white-space: nowrap;
         }
 
-        /* ── Overlay + Expand-Detailkarte ────────────────────────────── */
+        /* ================================================================
+           GEMEINSAMES POPUP (`clpop-`) – Overlay + Expand-Detailkarte
+           Wird von BEIDEN CL-Bereichen genutzt: „Top Manager" (Kachel →
+           Manager-Karte) und „Aktuelle Spiele" (Kachel → Spiel-Karte).
+           Der Controller dazu steht in index.js (clpopOpen/clpopClose);
+           bereichsspezifisch sind nur die Inhalte im Karten-Body.
+           ================================================================ */
         /* Harter Scroll-Lock: `overflow: hidden` allein reicht auf iOS
            Safari nicht – der Hintergrund scrollt beim Wischen im Popup
            sichtbar mit. `position: fixed` friert den Body komplett ein;
            index.js kompensiert die Scroll-Position über `top: -scrollY`
            und stellt sie beim Schliessen wieder her. */
-        body.cltm-lock {
+        body.clpop-lock {
             position: fixed;
             left: 0;
             right: 0;
@@ -6450,7 +6456,7 @@
             overflow: hidden;
         }
 
-        .cltm-overlay {
+        .clpop-overlay {
             position: fixed;
             inset: 0;
             /* 100vw schliesst die reservierte Scrollbar-Rinne mit ein –
@@ -6469,30 +6475,30 @@
             padding: max(14px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
             box-sizing: border-box;
         }
-        .cltm-overlay[hidden] { display: none; }
+        .clpop-overlay[hidden] { display: none; }
 
-        .cltm-backdrop {
+        .clpop-backdrop {
             position: absolute;
             inset: 0;
             background: rgba(3, 8, 22, 0.74);
             opacity: 0;
             transition: opacity 0.4s ease;
         }
-        .cltm-overlay.is-open .cltm-backdrop { opacity: 1; }
+        .clpop-overlay.is-open .clpop-backdrop { opacity: 1; }
 
         /* Waehrend der Rueck-Animation ist der Body bereits entsperrt
-           (Re-Layout hinter dem Backdrop, s. index.js cltmClose): weicher
+           (Re-Layout hinter dem Backdrop, s. index.js clpopClose): weicher
            Lock statt position:fixed – kein Scrollen, kein Layout-Sprung. */
-        body.cltm-lock-soft { overflow: hidden; }
-        .cltm-overlay.is-closing { touch-action: none; }
+        body.clpop-lock-soft { overflow: hidden; }
+        .clpop-overlay.is-closing { touch-action: none; }
 
         /* Teardown-Zwischenschritt (Phase A in finish): backdrop-filter der
            Blur-Ebene zuerst abschalten, display:none erst einen Frame
            spaeter – das Wegraeumen einer live backdrop-filter-Ebene laesst
            Chrome (v. a. Android) sonst den ganzen Screen kurz hell
            aufblitzen. */
-        .cltm-overlay.is-teardown { pointer-events: none; }
-        .cltm-overlay.is-teardown .cltm-blur {
+        .clpop-overlay.is-teardown { pointer-events: none; }
+        .clpop-overlay.is-teardown .clpop-blur {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
             transition: none;
@@ -6506,7 +6512,7 @@
            • Ausblenden beim Schliessen schnell (0.22s) über den statischen,
              eingefrorenen Hintergrund – der Blur-Input ändert sich dabei
              nicht, nur seine Deckkraft. */
-        .cltm-blur {
+        .clpop-blur {
             position: absolute;
             inset: 0;
             backdrop-filter: blur(7px);
@@ -6515,13 +6521,13 @@
             pointer-events: none;
             transition: opacity 0.45s ease;
         }
-        .cltm-overlay.is-settled .cltm-blur { opacity: 1; }
-        .cltm-overlay.is-closing .cltm-blur {
+        .clpop-overlay.is-settled .clpop-blur { opacity: 1; }
+        .clpop-overlay.is-closing .clpop-blur {
             opacity: 0;
             transition: opacity 0.22s ease;
         }
 
-        .cltm-modal {
+        .clpop-modal {
             position: relative;
             z-index: 1;
             /* Nur so breit, dass 5 Chips (4 Starter + Bank) in eine Reihe
@@ -6544,18 +6550,19 @@
             opacity: 0;
             transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.12s;
         }
-        .cltm-overlay.is-open .cltm-modal { opacity: 1; }
-        .cltm-overlay.is-closing .cltm-modal {
+        .clpop-overlay.is-open .clpop-modal { opacity: 1; }
+        .clpop-overlay.is-closing .clpop-modal {
             opacity: 0;
             transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.26s ease 0.06s;
         }
 
         /* Ghost: optischer Kachel-Klon, der den Morph Kachel ↔ Karte trägt
-           (siehe index.js cltmMakeGhost). Erbt das Kachel-Aussehen von
-           .cltm-tile; hier nur Position/Animations-Overrides. `animation`
+           (siehe index.js clpopMakeGhost). Erbt das Aussehen der jeweiligen
+           Kachel (.cltm-tile / .clcm-tile); hier nur Position/Animations-
+           Overrides. `animation`
            muss die Kachel-Einblend-Animation (startet bei opacity 0) hart
            abschalten, sonst wäre der Klon unsichtbar. */
-        .cltm-ghost {
+        .clpop-ghost {
             position: fixed;
             z-index: 2;
             margin: 0;
@@ -6566,18 +6573,18 @@
             transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.1s !important;
             will-change: transform, opacity;
         }
-        .cltm-ghost.is-out { opacity: 0; }
-        .cltm-ghost.is-in { opacity: 0; }
+        .clpop-ghost.is-out { opacity: 0; }
+        .clpop-ghost.is-in { opacity: 0; }
         /* Inhalt des Ghosts (Rang, Name, Punkte, Avatare) wird beim
            Aufwachsen SOFORT ausgeblendet – nur die leere Kachel-Hülle
            morpht. So ist nie ein verzerrt skalierter Name sichtbar.
            Beim Schliessen blendet der Inhalt erst kurz vor der Landung
            auf der Kachel wieder ein (dann ist die Skalierung ≈ 1). */
-        .cltm-ghost > * { transition: opacity 0.16s ease 0.34s; }
-        .cltm-ghost.is-out > * { opacity: 0; transition: opacity 0.09s ease; }
-        .cltm-ghost.is-in > * { opacity: 0; transition: opacity 0.1s ease; }
+        .clpop-ghost > * { transition: opacity 0.16s ease 0.34s; }
+        .clpop-ghost.is-out > * { opacity: 0; transition: opacity 0.09s ease; }
+        .clpop-ghost.is-in > * { opacity: 0; transition: opacity 0.1s ease; }
 
-        .cltm-modal-head {
+        .clpop-modal-head {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -6618,7 +6625,7 @@
            Breite), damit der Manager-Name im Kopf nicht bis zur
            Unkenntlichkeit gekürzt wird. */
         @media (max-width: 640px) {
-            .cltm-modal-head { row-gap: 8px; }
+            .clpop-modal-head { row-gap: 8px; }
             .cltm-head-break {
                 display: block;
                 flex-basis: 100%;
@@ -6630,7 +6637,7 @@
                 margin: 0 auto;
             }
         }
-        .cltm-close {
+        .clpop-close {
             width: 36px;
             height: 36px;
             border-radius: 50%;
@@ -6642,18 +6649,18 @@
             flex-shrink: 0;
             transition: background 0.2s ease, border-color 0.2s ease;
         }
-        .cltm-close:hover {
+        .clpop-close:hover {
             background: rgba(255, 255, 255, 0.14);
             border-color: rgba(255, 255, 255, 0.35);
         }
-        .cltm-close:focus-visible {
+        .clpop-close:focus-visible {
             outline: 2px solid var(--cl-accent, #7db4ff);
             outline-offset: 2px;
         }
 
         /* Innenleben blendet leicht verzögert ein, während die Karte wächst
            (nur Opacity – kein zusätzliches Layout/Painting während des FLIP). */
-        .cltm-modal-body {
+        .clpop-modal-body {
             padding: 12px 18px 18px;
             overflow-y: auto;
             /* Verhindert den Breiten-Sprung, wenn während der Expand-
@@ -6667,7 +6674,7 @@
                Animationsebene weniger = flüssiger. */
         }
         @media (max-width: 640px) {
-            .cltm-modal-body { padding: 10px 10px 14px; }
+            .clpop-modal-body { padding: 10px 10px 14px; }
         }
 
         /* ── Spieler-Bereich (JS-Layout, animierte Chips) ────────────── */
@@ -6834,7 +6841,7 @@
             border-style: dashed;
         }
 
-        .cltm-modal-actions {
+        .clpop-modal-actions {
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -6842,19 +6849,657 @@
             margin-top: 14px;
         }
 
+        /* ================================================================
+           CL: „AKTUELLE SPIELE" – Kachel-Bühne + Inhalt der Detailkarte
+           Namespace `clcm-`. Nur in der CL sichtbar (index.js blendet
+           #clCurrentMatches ein und entfernt dafür das Ticker-Panel); die
+           WM behält ihren Ticker. Overlay, Morph-Animation und Karten-
+           Chrome kommen aus dem gemeinsamen `clpop-`-Block oben – hier
+           steht ausschliesslich Bereichsspezifisches.
+
+           Grössen: die Layout-Funktion (index.js → clcmSyncTileScale)
+           setzt Spaltenzahl (--clcm-cols), Abstand (--clcm-gap) und
+           Kachelbreite (--ctw) auf der Bühne; alle Innengrössen der
+           Kachel skalieren über calc(var(--ctw) * …) mit – derselbe
+           Mechanismus wie --tw bei den Manager-Kacheln.
+           ================================================================ */
+        .clcm-stage {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1280px;
+            margin: 26px auto 0;
+            padding: 10px 16px 6px;
+            box-sizing: border-box;
+        }
+        @media (min-width: 720px) {
+            .clcm-stage { padding: 10px 24px 6px; }
+        }
+        .clcm-stage[hidden] { display: none; }
+
+        .clcm-list-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 2px 0 10px;
+        }
+        .clcm-view-toggle { opacity: 0.9; }
+        .clcm-view-toggle .pt-toggle-btn {
+            min-height: 30px;
+            padding: 4px 14px;
+            font-size: 0.72rem;
+        }
+        /* Weniger Spiele als eine Standard-Ansicht fasst → kein Toggle. */
+        .clcm-list-toolbar.is-single-view .clcm-view-toggle { visibility: hidden; }
+        .clcm-list-link {
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: var(--cl-accent, #7db4ff);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .clcm-list-link:hover { text-decoration: underline; }
+
+        .clcm-list {
+            display: grid;
+            grid-template-columns: repeat(var(--clcm-cols, 2), minmax(0, 1fr));
+            gap: var(--clcm-gap, 10px);
+            --ctw: 180px;
+        }
+        .clcm-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 26px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--cl-text-muted, #9db6e8);
+        }
+
+        /* ── Spiel-Kachel ──────────────────────────────────────────────── */
+        .clcm-tile {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: calc(var(--ctw) * 0.035);
+            padding: calc(var(--ctw) * 0.055) calc(var(--ctw) * 0.045);
+            min-height: calc(var(--ctw) * 0.92);
+            border-radius: clamp(12px, calc(var(--ctw) * 0.08), 20px);
+            box-sizing: border-box;
+            background: linear-gradient(165deg, var(--cl-surface, #132347) 0%, var(--cl-surface-alt, #0f1c3d) 100%);
+            border: 1px solid rgba(125, 180, 255, 0.16);
+            color: inherit;
+            font-family: inherit;
+            text-align: center;
+            cursor: pointer;
+            transition: opacity 0.35s ease,
+                        border-color 0.22s ease,
+                        box-shadow 0.22s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .clcm-tile:hover {
+                border-color: rgba(125, 180, 255, 0.45);
+                box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+            }
+        }
+        .clcm-tile:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: 2px;
+        }
+        /* Ansicht „Aktuell": alles jenseits der Standard-Anzahl bleibt im
+           DOM, verlässt aber das Raster – die ersten Kacheln behalten damit
+           beim Umschalten exakt ihren Platz. */
+        .clcm-tile.is-hidden { display: none; }
+        .clcm-tile.clpop-src-hidden { visibility: hidden; }
+        /* Laufende Spiele bekommen einen dezenten Rahmen-Akzent. */
+        .clcm-tile.is-live {
+            border-color: rgba(255, 92, 92, 0.45);
+            box-shadow: 0 0 0 1px rgba(255, 92, 92, 0.12) inset;
+        }
+
+        .clcm-tile-stage {
+            display: block;
+            min-height: 1em;
+            font-size: clamp(8px, calc(var(--ctw) * 0.052), 12px);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--cl-text-muted, #9db6e8);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .clcm-tile-main {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: calc(var(--ctw) * 0.02);
+            flex: 1;
+        }
+        /* Klubnamen in eigener Zeile: so steht jedem Namen die halbe
+           Kachelbreite zur Verfügung (statt der schmalen Aussenspalte
+           neben dem Resultat) und lange Namen bleiben lesbar. */
+        .clcm-tile-names {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: calc(var(--ctw) * 0.03);
+            align-items: start;
+        }
+        .clcm-logo {
+            justify-self: center;
+            width: clamp(26px, calc(var(--ctw) * 0.27), 64px);
+            height: clamp(26px, calc(var(--ctw) * 0.27), 64px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .clcm-logo-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .clcm-club {
+            max-width: 100%;
+            /* Bis zu zwei Zeilen, danach Ellipsis – volle Klubnamen ohne
+               eigene Kürzungsheuristik. */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.16;
+            font-size: clamp(9px, calc(var(--ctw) * 0.07), 16px);
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            word-break: break-word;
+        }
+
+        .clcm-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            padding: 0 calc(var(--ctw) * 0.02);
+        }
+        .clcm-score {
+            display: flex;
+            align-items: baseline;
+            font-size: clamp(15px, calc(var(--ctw) * 0.155), 40px);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+        }
+        .clcm-score i {
+            font-style: normal;
+            padding: 0 calc(var(--ctw) * 0.012);
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-score.is-live { color: #ff9b9b; }
+        .clcm-kick-time {
+            font-size: clamp(12px, calc(var(--ctw) * 0.115), 30px);
+            font-weight: 900;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .clcm-kick-date {
+            font-size: clamp(8px, calc(var(--ctw) * 0.055), 13px);
+            font-weight: 700;
+            color: var(--cl-text-muted, #9db6e8);
+            white-space: nowrap;
+        }
+
+        .clcm-tile-foot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: calc(var(--ctw) * 0.025);
+            min-height: 1.4em;
+        }
+        .clcm-tile-pts,
+        .clcm-tile-picks {
+            font-size: clamp(8px, calc(var(--ctw) * 0.052), 12px);
+            font-weight: 800;
+            white-space: nowrap;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-tile-pts.pos { color: #6ee7a8; }
+        .clcm-tile-pts.neg { color: #ff8b8b; }
+
+        /* Status-Badge (Kachel + Kopf der Detailkarte). */
+        .clcm-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: clamp(8px, calc(var(--ctw, 180px) * 0.052), 12px);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-badge.live {
+            background: rgba(255, 92, 92, 0.18);
+            color: #ff9b9b;
+        }
+        .clcm-badge.finished {
+            background: rgba(125, 180, 255, 0.16);
+            color: var(--cl-accent, #7db4ff);
+        }
+        .clcm-badge.pending,
+        .clcm-badge.countdown {
+            background: rgba(255, 196, 84, 0.16);
+            color: #ffcf7a;
+        }
+        .clcm-badge.today {
+            background: rgba(110, 231, 168, 0.16);
+            color: #6ee7a8;
+        }
+
+        /* ── Detailkarte: Kopf ─────────────────────────────────────────── */
+        .clpop-modal.clcm-modal { width: min(940px, 100%); }
+        .clpop-modal-head.clcm-modal-head {
+            display: block;
+            position: relative;
+            padding: 16px 54px 14px;
+            text-align: center;
+        }
+        .clcm-modal-head .clpop-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+        .clcm-head-teams {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+        }
+        .clcm-head-side {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+        .clcm-head-logo {
+            width: clamp(44px, 11vw, 72px);
+            height: clamp(44px, 11vw, 72px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .clcm-head-logo-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .clcm-head-club {
+            max-width: 100%;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.18;
+            font-size: clamp(0.82rem, 2.6vw, 1.05rem);
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            word-break: break-word;
+        }
+        .clcm-head-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 0 6px;
+        }
+        .clcm-head-score,
+        .clcm-head-kick {
+            display: flex;
+            align-items: baseline;
+            font-size: clamp(1.6rem, 6vw, 2.6rem);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+        .clcm-head-score i {
+            font-style: normal;
+            padding: 0 6px;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-head-meta {
+            margin-top: 10px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+
+        /* ── Detailkarte: Zusammenfassung ──────────────────────────────── */
+        .clcm-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        @media (max-width: 640px) {
+            .clcm-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        .clcm-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 9px 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(125, 180, 255, 0.14);
+            min-width: 0;
+        }
+        .clcm-stat-label {
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-stat-value {
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .clcm-stat-value small {
+            font-size: 0.74rem;
+            font-weight: 800;
+            color: var(--cl-accent, #7db4ff);
+        }
+        .clcm-stat-value.pos { color: #6ee7a8; }
+        .clcm-stat-value.neg { color: #ff8b8b; }
+
+        /* ── Detailkarte: Blöcke ───────────────────────────────────────── */
+        .clcm-block {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(125, 180, 255, 0.14);
+        }
+        .clcm-block-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .clcm-block-title {
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--cl-text-muted, #9db6e8);
+            margin-bottom: 8px;
+        }
+        .clcm-block-head .clcm-block-title { margin-bottom: 0; }
+        .clcm-mode-toggle .pt-toggle-btn {
+            min-height: 30px;
+            padding: 4px 14px;
+            font-size: 0.72rem;
+        }
+        .clcm-note {
+            font-size: 0.72rem;
+            color: rgba(157, 182, 232, 0.8);
+        }
+
+        /* Torschützen beider Teams nebeneinander. */
+        .clcm-goals {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .clcm-goals-side.right { text-align: right; }
+        .clcm-goals-none {
+            font-size: 0.74rem;
+            color: rgba(157, 182, 232, 0.65);
+        }
+        .clcm-goal-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+        .clcm-goals-side.right .clcm-goal-row { flex-direction: row-reverse; }
+        .clcm-goal-minute {
+            flex-shrink: 0;
+            font-weight: 800;
+            font-size: 0.68rem;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-goal-text { min-width: 0; }
+        .clcm-goal-player,
+        .clcm-goal-assist-player {
+            color: inherit;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .clcm-goal-player:hover,
+        .clcm-goal-assist-player:hover { text-decoration: underline; }
+        .clcm-goal-assist,
+        .clcm-goal-own,
+        .clcm-goal-penalty {
+            color: var(--cl-text-muted, #9db6e8);
+            font-weight: 600;
+        }
+
+        /* ── Detailkarte: Spieler & Punkte ─────────────────────────────── */
+        .clcm-players {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        @media (max-width: 620px) {
+            .clcm-players { grid-template-columns: 1fr; }
+        }
+        /* Ansicht „Gewählt" blendet alles aus, was kein Manager im Team
+           hat; „Alle" zeigt zusätzlich jeden Spieler mit Punkte-Eintrag. */
+        .clcm-players.mode-drafted .clcm-player.is-extra { display: none; }
+        .clcm-players.mode-drafted .clcm-col-empty.only-all { display: none; }
+        .clcm-players.mode-all .clcm-col-empty.only-drafted { display: none; }
+
+        .clcm-players-col { min-width: 0; }
+        .clcm-col-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(125, 180, 255, 0.12);
+        }
+        .clcm-col-logo {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .clcm-col-logo-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .clcm-col-name {
+            font-weight: 900;
+            font-size: 0.86rem;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .clcm-col-count {
+            margin-left: auto;
+            flex-shrink: 0;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-col-players {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .clcm-col-empty {
+            font-size: 0.74rem;
+            color: rgba(157, 182, 232, 0.7);
+            padding: 6px 2px;
+        }
+
+        .clcm-player {
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(125, 180, 255, 0.12);
+            overflow: hidden;
+        }
+        /* Gewählte Spieler heben sich klar von den übrigen ab. */
+        .clcm-player.is-drafted {
+            background: rgba(125, 180, 255, 0.09);
+            border-color: rgba(125, 180, 255, 0.3);
+        }
+        .clcm-player-main {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            padding: 7px 9px;
+            background: none;
+            border: 0;
+            color: inherit;
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+        .clcm-player-main:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: -2px;
+        }
+        .clcm-player-photo {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .clcm-player-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+            display: block;
+        }
+        .clcm-player-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+        .clcm-player-name {
+            font-size: 0.8rem;
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .clcm-player-meta {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-player-events {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+        }
+        .clcm-event-chip {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--cl-text, #dce8ff);
+            white-space: nowrap;
+        }
+        .clcm-player-pts {
+            flex-shrink: 0;
+            font-size: 0.88rem;
+            font-weight: 900;
+            color: var(--cl-text-muted, #9db6e8);
+        }
+        .clcm-player-pts.pos { color: #6ee7a8; }
+        .clcm-player-pts.neg { color: #ff8b8b; }
+        .clcm-player-pts.none { opacity: 0.5; }
+
+        .clcm-player-mgrs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 0 9px 8px 52px;
+        }
+        .clcm-mgr-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--cl-text, #dce8ff);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(125, 180, 255, 0.2);
+        }
+        .clcm-mgr-chip:hover { border-color: rgba(125, 180, 255, 0.5); }
+        .clcm-mgr-chip.is-captain {
+            background: rgba(255, 215, 0, 0.16);
+            border-color: rgba(255, 215, 0, 0.4);
+        }
+        .clcm-mgr-cap {
+            font-size: 0.55rem;
+            font-weight: 900;
+            color: #ffd700;
+        }
+
         /* ── Reduzierte Bewegung: nur Ein-/Ausblenden, keine Transforms ── */
         @media (prefers-reduced-motion: reduce) {
             .cltm-tile { transition: opacity 0.2s ease; }
+            .clcm-tile { transition: opacity 0.2s ease; }
             .cltm-list { transition: none; }
-            .cltm-modal {
+            .clpop-modal {
                 transition: opacity 0.25s ease;
             }
-            .cltm-ghost { display: none !important; }
-            .cltm-blur { transition: none; }
-            .cltm-backdrop { transition: opacity 0.2s ease; }
+            .clpop-ghost { display: none !important; }
+            .clpop-blur { transition: none; }
+            .clpop-backdrop { transition: opacity 0.2s ease; }
             .cltm-players,
             .cltm-players > .cltm-chip {
                 transition: none !important;
             }
-            .cltm-chip, .cltm-close { transition: none; }
+            .cltm-chip, .clpop-close { transition: none; }
         }
