@@ -6571,6 +6571,36 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        /* Kopf-Deeplinks: Rang → Rangliste, Name → Team. Bewusst dezent
+           (keine Dauer-Unterstreichung), aber mit klarem Hover/Fokus –
+           die Karte soll nicht wie ein Linkverzeichnis aussehen. */
+        .cltm-modal-name-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .cltm-rank-link {
+            text-decoration: none;
+            transition: box-shadow 0.2s ease, filter 0.2s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .cltm-modal-name-link:hover {
+                color: var(--cl-accent, #7db4ff);
+                text-decoration: underline;
+                text-underline-offset: 3px;
+            }
+            .cltm-rank-link:hover {
+                box-shadow: 0 0 0 2px rgba(125, 180, 255, 0.45);
+                filter: brightness(1.12);
+            }
+        }
+        .cltm-modal-name-link:focus-visible,
+        .cltm-rank-link:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: 2px;
+            border-radius: 8px;
+        }
         .cltm-modal-pts {
             font-weight: 800;
             color: var(--cl-accent, #7db4ff);
@@ -6658,20 +6688,37 @@
             transition: none !important;
         }
 
+        /* Chip = Rahmen (div) mit zwei Zielen darin: `-main` öffnet die
+           Spieler-Analyse, das Klub-Badge filtert die Analyse auf den
+           Klub. Weil das Badge deshalb NEBEN dem Button steht (statt in
+           ihm), hängt es am Chip-Rahmen und wird über die drei Masse
+           unten an die Avatar-Ecke gerechnet. */
         .cltm-chip {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            padding: 8px 4px 7px;
+            --chip-pad-top: 8px;
+            --chip-avatar: 44px;
+            --chip-badge: 21px;   /* inkl. 1px Rand (border-box) */
+            position: relative;
             border-radius: 14px;
             box-sizing: border-box;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(125, 180, 255, 0.18);
             color: inherit;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .cltm-chip-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            width: 100%;
+            padding: var(--chip-pad-top) 4px 7px;
+            box-sizing: border-box;
+            background: none;
+            border: 0;
+            border-radius: inherit;
+            color: inherit;
             font-family: inherit;
             cursor: pointer;
-            transition: border-color 0.2s ease, background 0.2s ease;
         }
         /* Kein transform beim Hover: die Position der Feld-Chips lebt im
            transform – ein Hover-Transform würde sie verschieben. */
@@ -6681,14 +6728,15 @@
                 background: rgba(255, 255, 255, 0.09);
             }
         }
-        .cltm-chip:focus-visible {
+        .cltm-chip-main:focus-visible {
             outline: 2px solid var(--cl-accent, #7db4ff);
             outline-offset: 2px;
+            border-radius: inherit;
         }
         .cltm-chip-avatar {
             position: relative;
-            width: 44px;
-            height: 44px;
+            width: var(--chip-avatar);
+            height: var(--chip-avatar);
             flex-shrink: 0;
         }
         .cltm-chip-avatar > img,
@@ -6703,12 +6751,15 @@
             justify-content: center;
             background: rgba(255, 255, 255, 0.08);
         }
+        /* Sitzt an der unteren rechten Avatar-Ecke, 5px/3px darüber
+           hinaus – identisch zur früheren Platzierung im Avatar. */
         .cltm-chip-club {
             position: absolute;
-            right: -5px;
-            bottom: -3px;
-            width: 19px;
-            height: 19px;
+            top: calc(var(--chip-pad-top) + var(--chip-avatar) + 3px - var(--chip-badge));
+            left: calc(50% + var(--chip-avatar) / 2 + 5px - var(--chip-badge));
+            width: var(--chip-badge);
+            height: var(--chip-badge);
+            box-sizing: border-box;
             border-radius: 50%;
             background: var(--cl-surface-alt, #0f1c3d);
             border: 1px solid rgba(255, 255, 255, 0.28);
@@ -6716,12 +6767,37 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .cltm-chip-club img {
             width: 13px;
             height: 13px;
             object-fit: contain;
             display: block;
+        }
+        /* Als Link etwas grösser antippbar, ohne den Namen darunter zu
+           verdecken (die Fläche bleibt in der Avatar-Zeile). `overflow`
+           muss dafür offen sein, sonst schneidet das Badge seine eigene
+           Trefferfläche weg – das Logo darin ist mit festen 13px ohnehin
+           kleiner als der Kreis. */
+        a.cltm-chip-club {
+            overflow: visible;
+        }
+        a.cltm-chip-club::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            a.cltm-chip-club:hover {
+                border-color: var(--cl-accent, #7db4ff);
+                box-shadow: 0 0 0 2px rgba(125, 180, 255, 0.35);
+            }
+        }
+        a.cltm-chip-club:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: 2px;
         }
         .cltm-chip-name {
             max-width: 100%;
@@ -7098,6 +7174,27 @@
             gap: 6px;
             min-width: 0;
         }
+        /* Wappen + Klubname führen in die Analyse (Filter auf den Klub).
+           Padding nur für die Hover-Fläche; das negative Margin nimmt es
+           wieder zurück, damit der Kopf exakt gleich hoch bleibt. */
+        .clcm-head-side-link {
+            color: inherit;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 4px 2px;
+            margin: -4px -2px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .clcm-head-side-link:hover {
+                background: rgba(125, 180, 255, 0.12);
+                color: var(--cl-accent, #7db4ff);
+            }
+        }
+        .clcm-head-side-link:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: 2px;
+        }
         .clcm-head-logo {
             width: clamp(44px, 11vw, 72px);
             height: clamp(44px, 11vw, 72px);
@@ -7264,6 +7361,29 @@
             padding-bottom: 8px;
             margin-bottom: 8px;
             border-bottom: 1px solid rgba(125, 180, 255, 0.12);
+        }
+        /* Logo + Klubname der Spaltenüberschrift sind ein Ziel, die
+           Zählung rechts bleibt Anzeige (deshalb ausserhalb des Links). */
+        .clcm-col-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 9px;
+            transition: color 0.2s ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            a.clcm-col-link:hover { color: var(--cl-accent, #7db4ff); }
+            a.clcm-col-link:hover .clcm-col-name {
+                text-decoration: underline;
+                text-underline-offset: 3px;
+            }
+        }
+        a.clcm-col-link:focus-visible {
+            outline: 2px solid var(--cl-accent, #7db4ff);
+            outline-offset: 3px;
         }
         .clcm-col-logo {
             width: 24px;

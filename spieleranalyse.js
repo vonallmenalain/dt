@@ -405,6 +405,7 @@
             view: currentView,
             player: currentPlayerName,
             playerId: currentPlayerId,
+            team: document.getElementById('nation-filter')?.value || 'ALL',
             club: document.getElementById('club-filter')?.value || 'ALL',
             scheduleNation: currentScheduleNationFilter,
             scheduleStatus: currentScheduleStatusFilter,
@@ -496,6 +497,10 @@
             view: ['players','comparisons','games','tournament'].includes(viewParam) ? viewParam : 'players',
             playerId: rawPlayerId,
             player: params.get('player') || null,
+            // Primärer Filter (CL: Club, WM: Land) – der Deeplink aus den
+            // Detailkarten der Startseite kommt hier an. `club` bleibt der
+            // sekundäre Filter (CL: Land, WM: Verein).
+            team: params.get('team') || 'ALL',
             club: params.get('club') || 'ALL',
             scheduleNation: params.get('scheduleNation') || 'ALL',
             scheduleStatus: ['current','upcoming','finished','all'].includes(scheduleStatus) ? scheduleStatus : 'current',
@@ -544,6 +549,10 @@
                 params.set('playerId', currentPlayerId);
             } else if (currentPlayerName) {
                 params.set('player', currentPlayerName);
+            }
+            const teamFilter = document.getElementById('nation-filter')?.value;
+            if (teamFilter && teamFilter !== 'ALL') {
+                params.set('team', teamFilter);
             }
             const clubFilter = document.getElementById('club-filter').value;
             if (clubFilter && clubFilter !== 'ALL') {
@@ -921,6 +930,24 @@
         }
 
         staticFiltersInitialized = true;
+    }
+
+    /* Deeplink `?team=<Name>` auf eine vorhandene Option des primären
+       Filters abbilden. Die Startseite verlinkt Klubs so, wie sie im
+       Spielplan stehen – das weicht von der Schreibweise im Spieler-
+       Datensatz gern ab („Inter" ↔ „Inter Mailand"). Deshalb erst exakt,
+       dann über den kanonischen Klub-/Länderschlüssel suchen. Kein
+       Treffer → '' (Filter bleibt auf „Alle"). */
+    function resolvePrimaryFilterValue(rawValue) {
+        const select = document.getElementById('nation-filter');
+        const value = String(rawValue || '').trim();
+        if (!select || !value || value === 'ALL') return '';
+        const options = Array.from(select.options)
+            .map(o => o.value)
+            .filter(v => v && v !== 'ALL');
+        if (options.includes(value)) return value;
+        const key = normalizeScheduleTeamKey(value);
+        return (key && options.find(v => normalizeScheduleTeamKey(v) === key)) || '';
     }
 
     /* =========================================================
@@ -7555,6 +7582,7 @@
        ========================================================= */
     function applyDataset(data, options = {}) {
         const preserveCurrentPlayer = !!options.preserveCurrentPlayer;
+        const isFirstRender = !hasRenderedOnce;
 
         // Letzten Datensatz cachen, damit ein Lock-State-Wechsel (Anpfiff
         // oder Admin-Override) ohne neuen Cache-Roundtrip re-rendern kann.
@@ -7622,6 +7650,13 @@
             clubFilterEl.value = state.club;
         }
 
+        // Primärfilter aus der URL (Deeplink „Clublogo/Clubname" aus den
+        // Detailkarten der Startseite). Wie beim sekundären Filter gilt die
+        // URL als Wahrheit: ohne `team` steht der Filter auf „Alle".
+        const teamFilterEl = document.getElementById('nation-filter');
+        const resolvedTeam = resolvePrimaryFilterValue(state.team);
+        if (teamFilterEl) teamFilterEl.value = resolvedTeam || 'ALL';
+
         const filteredData = applyFilters();
         populateComparisonPickers();
 
@@ -7676,6 +7711,15 @@
         // restored from history) are rewritten to the canonical
         // ?playerId=<id> form once the player has been resolved.
         updateUrl(false);
+
+        // Mobil landet man aus einer Detailkarte mit gesetztem Club-Filter –
+        // dann fährt das Filter-Popup gleich auf, damit sichtbar ist, WORAUF
+        // gefiltert wurde (und man direkt weiterfiltern kann). Nur beim
+        // ersten Rendern: die Server-Bestätigung rendert gleich noch einmal,
+        // und nach Browser-Back soll sich nichts von selbst öffnen.
+        if (isFirstRender && resolvedTeam && currentView === 'players') {
+            jumpToFiltersOnMobile();
+        }
 
         hasRenderedOnce = true;
     }
