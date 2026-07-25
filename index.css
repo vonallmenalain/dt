@@ -6491,6 +6491,9 @@
            Lock statt position:fixed – kein Scrollen, kein Layout-Sprung. */
         body.clpop-lock-soft { overflow: hidden; }
         .clpop-overlay.is-closing { touch-action: none; }
+        .clpop-overlay.is-closing .clpop-backdrop {
+            transition: opacity 0.5s ease 0.1s;
+        }
 
         /* Teardown-Zwischenschritt (Phase A in finish): backdrop-filter der
            Blur-Ebene zuerst abschalten, display:none erst einen Frame
@@ -6519,7 +6522,7 @@
             -webkit-backdrop-filter: blur(7px);
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.45s ease;
+            transition: opacity 0.3s ease;
         }
         .clpop-overlay.is-settled .clpop-blur { opacity: 1; }
         .clpop-overlay.is-closing .clpop-blur {
@@ -6548,12 +6551,12 @@
                dieselbe Bewegung wie der Kartenwechsel im Karussell. Das Modal
                blendet nur ein/aus – die Morph-Bewegung trägt der Ghost. */
             opacity: 0;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.12s;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease 0.24s;
         }
         .clpop-overlay.is-open .clpop-modal { opacity: 1; }
         .clpop-overlay.is-closing .clpop-modal {
             opacity: 0;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.26s ease 0.06s;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease 0.26s;
         }
 
         /* Ghost: optischer Kachel-Klon, der den Morph Kachel ↔ Karte trägt
@@ -6562,7 +6565,7 @@
            Overrides. `animation`
            muss die Kachel-Einblend-Animation (startet bei opacity 0) hart
            abschalten, sonst wäre der Klon unsichtbar. */
-        .clpop-ghost {
+        .clpop-overlay > .clpop-ghost {
             position: fixed;
             z-index: 2;
             margin: 0;
@@ -6570,7 +6573,7 @@
             transform-origin: top left;
             opacity: 1;
             animation: none !important;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.1s !important;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease 0.22s !important;
             will-change: transform, opacity;
         }
         .clpop-ghost.is-out { opacity: 0; }
@@ -6580,8 +6583,8 @@
            morpht. So ist nie ein verzerrt skalierter Name sichtbar.
            Beim Schliessen blendet der Inhalt erst kurz vor der Landung
            auf der Kachel wieder ein (dann ist die Skalierung ≈ 1). */
-        .clpop-ghost > * { transition: opacity 0.16s ease 0.34s; }
-        .clpop-ghost.is-out > * { opacity: 0; transition: opacity 0.09s ease; }
+        .clpop-ghost > * { transition: opacity 0.18s ease 0.3s; }
+        .clpop-ghost.is-out > * { opacity: 0; transition: opacity 0.2s ease 0.06s; }
         .clpop-ghost.is-in > * { opacity: 0; transition: opacity 0.1s ease; }
 
         .clpop-modal-head {
@@ -6903,6 +6906,9 @@
         .clcm-list-link:hover { text-decoration: underline; }
 
         .clcm-list {
+            /* Höhe wird beim Ansichts-Wechsel kurzzeitig von JS gesetzt und
+               animiert (Grid animiert seine Auto-Höhe nicht selbst). */
+            transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
             display: grid;
             grid-template-columns: repeat(var(--clcm-cols, 2), minmax(0, 1fr));
             gap: var(--clcm-gap, 10px);
@@ -6920,14 +6926,13 @@
 
         /* ── Spiel-Kachel ──────────────────────────────────────────────── */
         .clcm-tile {
-            position: relative;
             display: flex;
             flex-direction: column;
             align-items: stretch;
             justify-content: space-between;
-            gap: calc(var(--ctw) * 0.035);
-            padding: calc(var(--ctw) * 0.055) calc(var(--ctw) * 0.045);
-            min-height: calc(var(--ctw) * 0.92);
+            gap: calc(var(--ctw) * 0.04);
+            padding: calc(var(--ctw) * 0.07) calc(var(--ctw) * 0.045) calc(var(--ctw) * 0.055);
+            min-height: calc(var(--ctw) * 0.9);
             border-radius: clamp(12px, calc(var(--ctw) * 0.08), 20px);
             box-sizing: border-box;
             background: linear-gradient(165deg, var(--cl-surface, #132347) 0%, var(--cl-surface-alt, #0f1c3d) 100%);
@@ -6961,9 +6966,12 @@
             box-shadow: 0 0 0 1px rgba(255, 92, 92, 0.12) inset;
         }
 
-        .clcm-tile-stage {
+        /* Spielart ganz unten („Ligaphase · Spiel 3", „Achtelfinal Hinspiel",
+           „Final"). Feste Mindesthöhe, damit alle Kacheln einer Reihe gleich
+           hoch bleiben, auch wenn zu einem Spiel keine Runde bekannt ist. */
+        .clcm-tile-type {
             display: block;
-            min-height: 1em;
+            min-height: 1.2em;
             font-size: clamp(8px, calc(var(--ctw) * 0.052), 12px);
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -7055,25 +7063,9 @@
             white-space: nowrap;
         }
 
-        .clcm-tile-foot {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: calc(var(--ctw) * 0.025);
-            min-height: 1.4em;
-        }
-        .clcm-tile-pts,
-        .clcm-tile-picks {
-            font-size: clamp(8px, calc(var(--ctw) * 0.052), 12px);
-            font-weight: 800;
-            white-space: nowrap;
-            color: var(--cl-text-muted, #9db6e8);
-        }
-        .clcm-tile-pts.pos { color: #6ee7a8; }
-        .clcm-tile-pts.neg { color: #ff8b8b; }
-
-        /* Status-Badge (Kachel + Kopf der Detailkarte). */
+        /* Status-Badge – auf der Kachel nur noch bei laufenden Spielen bzw.
+           offenem Update; abgeschlossene Spiele erkennt man am weissen
+           Resultat, kommende an Zeit + Datum. */
         .clcm-badge {
             display: inline-block;
             padding: 2px 8px;

@@ -4933,11 +4933,11 @@
         // wird so nie sichtbar verzerrt skaliert.
         const reduced = clpopPrefersReducedMotion();
         let ghostTarget = '';
+        let modalStart = '';
         if (!reduced && tileEl) {
             const from = tileEl.getBoundingClientRect();
             const to = clpopModal.getBoundingClientRect();
-            clpopModal.style.transformOrigin = 'top left';
-            clpopModal.style.transform = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
+            modalStart = `translate3d(${from.left - to.left}px, ${from.top - to.top}px, 0) `
                 + `scale(${from.width / Math.max(to.width, 1)}, ${from.height / Math.max(to.height, 1)})`;
             clpopMakeGhost(tileEl, from);
             ghostTarget = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) `
@@ -4972,6 +4972,20 @@
         // Startzustand, bevor die Transition beginnt – ohne diesen Schritt
         // wird der erste Frame gern übersprungen und der Start wirkt ruckig.
         requestAnimationFrame(() => {
+            if (modalStart) {
+                // Startzustand OHNE Transition setzen. Ohne das kurze
+                // `transition: none` behandelt Chrome den Kachel-Zustand als
+                // ZIEL einer Transition (gemessen: computed transform blieb bei
+                // der Identität) – das Modal stand dann die ganze Animation in
+                // Endgroesse hinter dem wachsenden Ghost, und `transitionend`
+                // feuerte nie. Dieselbe Rezeptur wie `cltm-no-anim` bei den
+                // Chips/Kacheln.
+                clpopModal.style.transition = 'none';
+                clpopModal.style.transformOrigin = 'top left';
+                clpopModal.style.transform = modalStart;
+                void clpopModal.offsetWidth;
+                clpopModal.style.transition = '';
+            }
             requestAnimationFrame(() => {
                 clpopOverlay.classList.add('is-open');
                 clpopModal.style.transform = '';
@@ -5471,12 +5485,89 @@
         SUBBED_IN:     { icon: '🔁', one: 'Eingewechselt', many: 'Eingewechselt' }
     };
 
+    /* Spielart aus dem Runden-Text der API ableiten. Reihenfolge zaehlt:
+       „Quarter-finals" enthaelt „final", der Final-Test steht deshalb zuletzt.
+       Zweiteilige Runden bekommen zusaetzlich Hin-/Rueckspiel (siehe
+       clcmAssignMatchTypes) – der Runden-Text der API nennt das Leg nicht. */
+    const CLCM_KO_ROUNDS = [
+        { test: /play[\s-]*off/,                                    label: 'Playoff',      twoLeg: true },
+        { test: /round of 16|last 16|8th final|1\s*\/\s*8|achtel/,   label: 'Achtelfinal',  twoLeg: true },
+        { test: /quarter|viertel|1\s*\/\s*4/,                       label: 'Viertelfinal', twoLeg: true },
+        { test: /semi|halb|1\s*\/\s*2/,                             label: 'Halbfinal',    twoLeg: true },
+        { test: /final/,                                            label: 'Final',        twoLeg: false }
+    ];
+
+    function clcmRoundText(match) {
+        return String((match && (match.round || (match.league && match.league.round))) || '').trim();
+    }
+
+    // { label, twoLeg, key } – key gruppiert die Spiele einer Runde, damit
+    // Hin-/Rueckspiel ueber die Anstosszeiten bestimmt werden kann.
+    function clcmClassifyRound(roundText) {
+        const v = String(roundText || '').toLowerCase();
+        if (!v) return null;
+
+        // Ligaphase: „League Stage - 3", „Regular Season - 3", „Spieltag 3", …
+        if (/league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v)) {
+            const n = (v.match(/(\d+)\s*$/) || [])[1];
+            return { label: n ? `Ligaphase · Spiel ${n}` : 'Ligaphase', twoLeg: false, key: 'lp' };
+        }
+
+        for (const round of CLCM_KO_ROUNDS) {
+            if (!round.test.test(v)) continue;
+            // Nennt der Runden-Text das Leg selbst, direkt uebernehmen.
+            const leg = /1st leg|hinspiel/.test(v) ? 'Hinspiel'
+                : (/2nd leg|rueckspiel|rückspiel/.test(v) ? 'Rückspiel' : '');
+            return {
+                label: leg ? `${round.label} ${leg}` : round.label,
+                twoLeg: round.twoLeg && !leg,
+                key: round.label
+            };
+        }
+        return { label: roundText, twoLeg: false, key: v };
+    }
+
+    // Hin-/Rueckspiel fuer zweiteilige K.-o.-Runden: die beiden Partien einer
+    // Paarung stehen im selben Runden-Topf und unterscheiden sich nur ueber den
+    // Anstoss – das fruehere ist das Hinspiel. Liegt nur eine Partie vor,
+    // bleibt es beim reinen Rundennamen (keine falsche Behauptung).
+    function clcmAssignMatchTypes(entries) {
+        const ties = new Map();
+        entries.forEach((entry) => {
+            if (!entry.round || !entry.round.twoLeg) return;
+            const pair = [normalizeCountry(entry.teamA), normalizeCountry(entry.teamB)].sort().join('|');
+            const tieKey = `${entry.round.key}::${pair}`;
+            let list = ties.get(tieKey);
+            if (!list) { list = []; ties.set(tieKey, list); }
+            list.push(entry);
+        });
+
+        ties.forEach((list) => {
+            if (list.length < 2) return;
+            list.sort((a, b) => (a.timingState.kickoffMs || 0) - (b.timingState.kickoffMs || 0));
+            list.forEach((entry, i) => {
+                if (i > 1) return;
+                entry.matchType = `${entry.round.label} ${i === 0 ? 'Hinspiel' : 'Rückspiel'}`;
+            });
+        });
+    }
+
     let clcmView = 'aktuell';        // 'aktuell' | 'alle'
     let clcmEntries = [];            // Spiele in Anzeige-Reihenfolge
     let clcmEntryByKey = new Map();  // Kachel-Key → Eintrag
     let clcmCtx = null;              // { drafted, pointsIndex }
     let clcmResizeTimer = null;
+    let clcmHeightTimer = null;
     let clcmBound = false;
+    let clcmSignature = null;
+
+    function clcmSignatureOf(entries) {
+        return JSON.stringify(entries.map((e) => [
+            e.key, e.teamA, e.teamB, e.matchType,
+            e.score ? `${e.score.home}:${e.score.away}` : '',
+            e.view.badgeText, e.view.timeText, e.view.dateText
+        ]));
+    }
 
     function clcmListEl() {
         return document.getElementById('clCurrentMatchesList');
@@ -5644,17 +5735,18 @@
             ...finished.filter((e) => !primarySet.has(e))
         ];
         const ordered = [...primary, ...rest];
-        const scheduleContext = source;
 
         const entries = ordered.map(({ match, timingState }, index) => {
             const matchId = match.gameNumber ?? match.matchId ?? match.id;
             const teamA = match.teamA || match.home || match.homeTeam || '?';
             const teamB = match.teamB || match.away || match.awayTeam || '?';
             const stageMatch = { ...match, teamA, teamB, round: match.round || '' };
-            const stageLabel = APP && typeof APP.groupStageLabelForMatch === 'function'
-                ? APP.groupStageLabelForMatch(stageMatch, { matches: scheduleContext })
-                : '';
+            const round = clcmClassifyRound(clcmRoundText(match));
             return {
+                round,
+                // Vorbelegung ohne Hin-/Rueckspiel; clcmAssignMatchTypes
+                // praezisiert das gleich fuer die zweiteiligen Runden.
+                matchType: round ? round.label : '',
                 key: getNextMatchKey(stageMatch, index),
                 match,
                 matchId,
@@ -5666,7 +5758,6 @@
                 fallbackLogoA: clcmTeamLogo(teamA) || getNationFlag(teamA),
                 fallbackLogoB: clcmTeamLogo(teamB) || getNationFlag(teamB),
                 score: getMatchScoreParts(match),
-                stageLabel,
                 venue: match.venue && match.venue !== 'Spielort folgt'
                     ? `${match.venue}${match.venueCity ? ', ' + match.venueCity : ''}`
                     : '',
@@ -5674,6 +5765,7 @@
             };
         });
 
+        clcmAssignMatchTypes(entries);
         return entries;
     }
 
@@ -5731,14 +5823,19 @@
     function clcmTileCenterHtml(entry) {
         const state = entry.timingState;
         const showScore = !!entry.score && (state.isFinished || state.isLive || state.isUpdateOpen);
+        const liveBadge = (state.isLive || state.isUpdateOpen)
+            ? `<span class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</span>`
+            : '';
         if (showScore) {
             return `<span class="clcm-center">
                 <span class="clcm-score${state.isLive ? ' is-live' : ''}">${escapeHtml(String(entry.score.home))}<i>:</i>${escapeHtml(String(entry.score.away))}</span>
+                ${liveBadge}
             </span>`;
         }
         return `<span class="clcm-center">
             <span class="clcm-kick-time">${escapeHtml(entry.view.timeText)}</span>
             ${entry.view.dateText ? `<span class="clcm-kick-date">${escapeHtml(entry.view.dateText)}</span>` : ''}
+            ${liveBadge}
         </span>`;
     }
 
@@ -5748,43 +5845,14 @@
         const result = showScore
             ? `${entry.score.home} zu ${entry.score.away}`
             : `Anpfiff ${entry.view.dateText ? entry.view.dateText + ', ' : ''}${entry.view.timeText}`;
-        return `${entry.teamA} gegen ${entry.teamB}, ${entry.view.badgeText}, ${result}. Spieldetails öffnen.`;
-    }
-
-    function clcmDraftedSummary(entry) {
-        const byTeam = (clcmCtx && clcmCtx.drafted.byTeam) || new Map();
-        const matchPoints = (clcmCtx && clcmCtx.pointsIndex.get(String(entry.matchId))) || new Map();
-        const sides = [
-            byTeam.get(normalizeCountry(entry.teamA)) || [],
-            byTeam.get(normalizeCountry(entry.teamB)) || []
-        ];
-        let count = 0;
-        let points = 0;
-        let hasPoints = false;
-        const managers = new Set();
-
-        sides.forEach((list) => list.forEach(({ playerId, managers: mgrs }) => {
-            count += 1;
-            (mgrs || []).forEach((m) => managers.add(m.manager));
-            const hit = matchPoints.get(playerId);
-            if (hit) { points += Number(hit.pts) || 0; hasPoints = true; }
-        }));
-
-        return { count, points, hasPoints, managerCount: managers.size };
+        const type = entry.matchType ? `${entry.matchType}, ` : '';
+        return `${type}${entry.teamA} gegen ${entry.teamB}, ${result}. Spieldetails öffnen.`;
     }
 
     function clcmTileHtml(entry, index) {
-        const summary = clcmDraftedSummary(entry);
-        const pointsChip = summary.hasPoints
-            ? `<span class="clcm-tile-pts ${getPointsClass(summary.points)}">${escapeHtml(clcmFormatPts(summary.points))} Pkt</span>`
-            : (summary.count
-                ? `<span class="clcm-tile-picks">${summary.count} gewählt</span>`
-                : '');
-
         return `<button type="button" class="clcm-tile${entry.timingState.isLive ? ' is-live' : ''}${index >= CLCM_DEFAULT_COUNT && clcmView === 'aktuell' ? ' is-hidden' : ''}"
                 data-match-key="${escapeHtml(entry.key)}" aria-haspopup="dialog"
                 aria-label="${escapeHtml(clcmTileAriaLabel(entry))}">
-            <span class="clcm-tile-stage">${escapeHtml(entry.stageLabel || '')}</span>
             <span class="clcm-tile-main">
                 ${clcmTileLogoHtml(entry.teamA, entry.logoA, entry.fallbackLogoA)}
                 ${clcmTileCenterHtml(entry)}
@@ -5794,10 +5862,7 @@
                 ${clcmTileNameHtml(entry.teamA)}
                 ${clcmTileNameHtml(entry.teamB)}
             </span>
-            <span class="clcm-tile-foot">
-                <span class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</span>
-                ${pointsChip}
-            </span>
+            <span class="clcm-tile-type">${escapeHtml(entry.matchType || '')}</span>
         </button>`;
     }
 
@@ -5840,6 +5905,8 @@
         if (!list) return;
         const tiles = Array.from(list.querySelectorAll('.clcm-tile'));
         const revealed = [];
+        const fromHeight = list.offsetHeight;
+
         tiles.forEach((tile, i) => {
             const hide = clcmView === 'aktuell' && i >= CLCM_DEFAULT_COUNT;
             if (hide) {
@@ -5850,6 +5917,24 @@
                 revealed.push(tile);
             }
         });
+
+        // Höhe von alt nach neu fahren (ein Grid animiert seine Auto-Höhe
+        // nicht von selbst). Danach wieder freigeben, damit spätere Re-Renders
+        // die Höhe nicht eingefroren vorfinden.
+        const toHeight = list.offsetHeight;
+        if (fromHeight !== toHeight && !clpopPrefersReducedMotion()) {
+            list.style.transition = 'none';
+            list.style.height = fromHeight + 'px';
+            void list.offsetWidth;
+            list.style.transition = '';
+            list.style.height = toHeight + 'px';
+            if (clcmHeightTimer) clearTimeout(clcmHeightTimer);
+            clcmHeightTimer = setTimeout(() => {
+                clcmHeightTimer = null;
+                list.style.height = '';
+            }, CLPOP_MOVE_MS + 60);
+        }
+
         if (!revealed.length) return;
 
         requestAnimationFrame(() => {
@@ -5983,7 +6068,7 @@
         const metaBits = [
             entry.view.dateText && entry.view.timeText ? `${entry.view.dateText}, ${entry.view.timeText}` : (entry.view.dateText || entry.view.timeText),
             entry.venue,
-            entry.stageLabel
+            entry.matchType
         ].filter(Boolean);
 
         const homeGoals = renderGoalEventList(entry.match, entry.teamA, 'clcm');
@@ -6129,8 +6214,15 @@
         };
 
         const entries = clcmBuildEntries(data);
+        const signature = clcmSignatureOf(entries);
         clcmEntries = entries;
         clcmEntryByKey = new Map(entries.map((e) => [e.key, e]));
+
+        // Unveränderte Anzeige → DOM stehen lassen (kein Neuaufbau, keine
+        // erneute Einblendung). Die Einträge oben sind trotzdem frisch,
+        // damit ein Klick die aktuellen Punkte zeigt.
+        if (signature === clcmSignature && list.querySelector('.clcm-tile')) return;
+        clcmSignature = signature;
 
         if (!entries.length) {
             list.innerHTML = '<div class="clcm-empty">Keine aktuellen Spiele gefunden.</div>';
