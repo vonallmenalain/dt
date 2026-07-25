@@ -208,6 +208,9 @@ function buildDevTournamentSwitcher(APP) {
         : false;
 
     const domainDefaultKey = APP.domainDefaultKey;
+    const domainDefaultLabel = (APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel)
+        || domainDefaultKey
+        || 'Standard-Turnier';
     const GROUP = 'Turnier';
     const GROUP_ORDER = 20;
     let order = 0;
@@ -265,7 +268,9 @@ function buildDevTournamentSwitcher(APP) {
         });
     });
 
-    // Aktive Vorschau beenden → zurück auf die normale Auflösung.
+    // Aktive Vorschau beenden → zurück auf die normale Auflösung. Der
+    // Zielname steht rechts daneben, damit klar ist, wohin der Klick führt –
+    // diese Information stand früher im Vorschau-Pill oben links.
     if (typeof APP.isPreviewActive === 'function' && APP.isPreviewActive()) {
         Modal.devMenu.register({
             id: 'tournament-preview-exit',
@@ -273,6 +278,7 @@ function buildDevTournamentSwitcher(APP) {
             groupOrder: GROUP_ORDER,
             order: 900,
             label: 'Vorschau beenden',
+            value: `→ ${domainDefaultLabel}`,
             accent: 'info',
             onSelect: () => {
                 if (typeof APP.clearPreview === 'function') APP.clearPreview();
@@ -384,97 +390,6 @@ function initNavAuth(APP) {
         setTimeout(retry, 100);
     };
     setTimeout(retry, 50);
-}
-
-/* =========================================================================
- *  Vorschau-Hinweis (kompakter Dev-Pill oben links).
- *
- *  Sobald eine Admin-VORSCHAU aktiv ist (Preview-Kanal, siehe
- *  tournament-config.js), einen dezenten, festen Hinweis mit 1-Klick-Ausstieg
- *  oben links einblenden – im Stil der übrigen Dev-Knöpfe. So lässt sich eine
- *  Vorschau nie mit der echten Produktiv-Seite verwechseln, ohne dass der
- *  Hinweis (wie der frühere Balken am unteren Rand) auf Mobil die untere
- *  Bereichsleiste (.bottom-nav: Dashboard/Analyse/…) überdeckt. Unabhängig
- *  davon, ob der (Admin-gate-abhängige) Turnier-Switcher sichtbar ist. Rein
- *  additiv: ohne aktive Vorschau ein No-op (die WM ist nie betroffen).
- * ========================================================================= */
-function buildPreviewBadge(APP) {
-    if (!APP || typeof APP.isPreviewActive !== 'function' || !APP.isPreviewActive()) return;
-    if (document.getElementById('dt-preview-badge')) return;
-
-    let previewLabel = 'Vorschau';
-    let backLabel = 'Standard-Turnier';
-    try {
-        if (APP.activeTournament && APP.activeTournament.shortLabel) {
-            previewLabel = APP.activeTournament.shortLabel;
-        }
-    } catch (_) { /* keep default */ }
-    try {
-        const def = APP.domainDefaultTournament;
-        if (def && def.shortLabel) backLabel = def.shortLabel;
-    } catch (_) { /* keep default */ }
-
-    // Volltext bleibt für Screenreader / Hover erhalten – der sichtbare Pill
-    // ist bewusst kompakt gehalten.
-    const fullText = `🔧 Admin-Vorschau aktiv: ${previewLabel} – nicht die öffentliche Seite. Zur ${backLabel} zurück.`;
-
-    const bar = document.createElement('div');
-    bar.id = 'dt-preview-badge';
-    bar.setAttribute('role', 'status');
-    bar.setAttribute('aria-label', fullText);
-    bar.title = fullText;
-    // Kompakter Dev-Pill oben links statt breitem Balken am unteren Rand: so
-    // stört er weder das Layout noch – auf Mobil – die untere Bereichsleiste
-    // (.bottom-nav für Dashboard/Analyse/…). Optik im Stil der übrigen
-    // Dev-Knöpfe (dunkel, transluzent, Blau-Akzent als Vorschau-Signal –
-    // passend zum CL-Theme; erkennbar bleibt der Pill über 🔧 + „Vorschau").
-    bar.style.cssText = [
-        'position:fixed', 'top:8px', 'left:8px', 'z-index:2147483000',
-        'display:inline-flex', 'align-items:center', 'gap:8px',
-        'max-width:min(92vw,360px)', 'padding:4px 8px', 'border-radius:6px',
-        'background:rgba(0,0,0,0.62)', 'border:1px solid rgba(125,180,255,0.55)',
-        'color:rgba(125,180,255,0.95)',
-        'font:700 11px/1.4 monospace,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
-        'box-shadow:0 2px 10px rgba(0,0,0,.35)',
-        'user-select:none', '-webkit-user-select:none'
-    ].join(';');
-
-    const text = document.createElement('span');
-    text.textContent = `🔧 Vorschau: ${previewLabel}`;
-    text.style.cssText = [
-        'min-width:0', 'overflow:hidden', 'text-overflow:ellipsis', 'white-space:nowrap'
-    ].join(';');
-
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = '↩';
-    btn.setAttribute('aria-label', `Zur ${backLabel} zurück`);
-    btn.title = `Zur ${backLabel} zurück`;
-    btn.style.cssText = [
-        'flex:0 0 auto', 'cursor:pointer', 'border:0', 'border-radius:4px',
-        'padding:2px 7px', 'background:rgba(125,180,255,0.18)',
-        'color:rgba(125,180,255,0.95)',
-        'font:800 12px/1 monospace,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif',
-        'white-space:nowrap'
-    ].join(';');
-    btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(125,180,255,0.30)'; });
-    btn.addEventListener('mouseleave', () => { btn.style.background = 'rgba(125,180,255,0.18)'; });
-    btn.addEventListener('click', () => {
-        try {
-            if (typeof APP.clearPreview === 'function') { APP.clearPreview(); return; }
-        } catch (_) { /* fall through */ }
-        try {
-            if (typeof APP.resetToDomainDefault === 'function') { APP.resetToDomainDefault(); return; }
-        } catch (_) { /* fall through */ }
-        window.location.reload();
-    });
-
-    bar.appendChild(text);
-    bar.appendChild(btn);
-    (document.body || document.documentElement).appendChild(bar);
-
-    // Oben links ist jetzt nichts mehr im Weg: die Dev-Knöpfe sind ins
-    // Profil-Dropdown gewandert, der Pill sitzt fix auf top:8px.
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -682,7 +597,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     buildDevTournamentSwitcher(APP);
-    buildPreviewBadge(APP);
 
     registerServiceWorker();
 });
