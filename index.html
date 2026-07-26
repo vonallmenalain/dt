@@ -27,10 +27,11 @@
       }
       // Kaderdatei-Preload: data.js laedt sie spaeter synchron via
       // document.write – der Preload startet den Download schon jetzt,
-      // parallel zum HTML-Parsing. Spiegel der dataReady-Turniere aus
-      // tournament-config.js (dort nachziehen, wenn ein Turnier dazukommt);
-      // bei Abweichung kostet es nur einen unnoetigen Request.
-      var df=(k==="cl2526")?"data-cl2526.js":"data-wm2026.js";
+      // parallel zum HTML-Parsing. CL-Saisons folgen dem Muster
+      // data-cl<jahr>.js, alles andere faellt auf die WM zurueck – so muss
+      // hier bei einer neuen CL-Saison nichts nachgezogen werden; bei
+      // Abweichung kostet es ohnehin nur einen unnoetigen Request.
+      var df=/^cl\d{4}$/.test(k)?("data-"+k+".js"):"data-wm2026.js";
       var pl=document.createElement("link");
       pl.rel="preload";pl.as="script";pl.href=df;
       (document.head||d).appendChild(pl);
