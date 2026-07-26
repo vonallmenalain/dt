@@ -22,7 +22,8 @@
     "test:kader": "node test-generate-kader.js",
     "test:cl-pool": "node test-generate-cl-pool.js",
     "test:cl2627-pool": "node test-cl2627-pool.js",
-    "test": "npm run test:points && npm run test:cache && npm run test:nation-status && npm run test:freeze && npm run test:scaffold && npm run test:cl-league && npm run test:cl-preview && npm run test:cl-scope && npm run test:transfers && npm run test:kader && npm run test:cl-pool && npm run test:cl2627-pool"
+    "test": "npm run test:points && npm run test:cache && npm run test:nation-status && npm run test:freeze && npm run test:scaffold && npm run test:cl-league && npm run test:cl-preview && npm run test:cl-scope && npm run test:transfers && npm run test:kader && npm run test:cl-pool && npm run test:cl2627-pool && npm run test:cl-preview-render",
+    "test:cl-preview-render": "node test-cl-preview-pool-render.js"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"

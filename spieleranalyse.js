@@ -7741,6 +7741,44 @@
         }
     }
 
+    /* Der Spielerpool haengt NICHT an Live-Daten: er liegt als statische
+       Kaderdatei (data-<turnier>.js) vollstaendig im Browser, sobald die
+       Seite geladen ist. Vor Turnierstart fehlen nur die PUNKTE.
+       Frueher hat der Vorschau-Hinweis die Spielerliste ersetzt – damit war
+       ein fertig geladener Kader unsichtbar (CL 2026/27: 917 Spieler, aber
+       leere Liste). Stattdessen: den Pool rendern (alle Punkte auf 0) und
+       den Hinweis als nicht-destruktive Pille daneben zeigen. Nur wenn gar
+       kein Pool da ist, bleibt es beim alten, ersetzenden Hinweis. */
+    function hasPlayerPool() {
+        try {
+            return typeof playersData !== 'undefined'
+                && Array.isArray(playersData)
+                && playersData.length > 0;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function renderPreviewWithoutLiveData(data) {
+        if (!hasPlayerPool()) {
+            showPreviewNoDataNotice();
+            return;
+        }
+        const bundle = (data && typeof data === 'object') ? data : {};
+        try {
+            applyDataset({
+                points: bundle.points || {},
+                teams: Array.isArray(bundle.teams) ? bundle.teams : [],
+                fixtures: (bundle.fixtures !== undefined) ? bundle.fixtures : (lastFixtures || [])
+            }, { preserveCurrentPlayer: false });
+        } catch (err) {
+            console.warn('[spieleranalyse] Vorschau-Render ohne Live-Daten fehlgeschlagen:', err);
+            showPreviewNoDataNotice();
+            return;
+        }
+        showStaleNotice(`Vorschau: Fuer ${TOURNAMENT_LABEL} liegen noch keine Live-Daten vor – alle Punkte stehen auf 0.`);
+    }
+
 
     /* =========================================================
        CACHED-FIRST RENDERING
@@ -8077,7 +8115,7 @@
                                 showStaleNotice('Warte auf Serverbestaetigung …');
                             } else if (isPreviewWithoutLiveData()) {
                                 hideSyncIndicator();
-                                showPreviewNoDataNotice();
+                                renderPreviewWithoutLiveData(data);
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError(`Spieleranalyse fuer ${TOURNAMENT_LABEL} wartet auf frische Serverdaten.`);
@@ -8090,7 +8128,7 @@
                                 showStaleNotice('Offline – angezeigt wird der letzte lokale Stand.');
                             } else if (isPreviewWithoutLiveData()) {
                                 hideSyncIndicator();
-                                showPreviewNoDataNotice();
+                                renderPreviewWithoutLiveData(data);
                             } else {
                                 hideSyncIndicator();
                                 showFreshnessError('Offline oder Server nicht erreichbar. Es liegen noch keine lokalen Daten vor.');
@@ -8118,7 +8156,7 @@
                         }
                         hideSyncIndicator();
                         if (isPreviewWithoutLiveData()) {
-                            showPreviewNoDataNotice();
+                            renderPreviewWithoutLiveData(window.__spaLastData);
                             return;
                         }
                         showFreshnessError('Aktuelle Analyse-Daten konnten nicht vom Server geladen werden.');
@@ -8131,7 +8169,7 @@
             if (hasRenderedOnce) {
                 showStaleNotice('Aktualisierung fehlgeschlagen – letzter lokaler Stand.');
             } else if (isPreviewWithoutLiveData()) {
-                showPreviewNoDataNotice();
+                renderPreviewWithoutLiveData(window.__spaLastData);
             } else {
                 showFreshnessError('Aktuelle Analyse-Daten konnten nicht vom Server geladen werden.');
                 document.getElementById('player-list').innerHTML = '<div class="list-empty" style="color:var(--red-soft);">Fehler beim Laden.</div>';
