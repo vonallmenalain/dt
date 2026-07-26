@@ -479,6 +479,19 @@ const APP_CONFIG = (() => {
       cachePrefix: "dreamteam-cl2627",
       dataFile: "data-cl2627.js",
 
+      // Spieler ohne Stammdaten bei api-football (kein Geburtsdatum, keine
+      // Nationalitaet, nur das Silhouetten-Platzhalterbild, abgekuerzter
+      // Name wie "A. Le Borgne") beim Laden aussortieren – siehe data.js.
+      // Das sind praktisch ausschliesslich Akademiespieler: 89 der 91
+      // betroffenen player.id liegen ueber 500'000, bei den uebrigen 826
+      // Spielern nur 20. Durch den abgekuerzten Vornamen standen sie
+      // alphabetisch ganz oben und haben die Spielerliste angefuehrt.
+      //
+      // Die Kaderdatei selbst bleibt vollstaendig – das ist eine reine
+      // Anzeige-Entscheidung. Fuer cl2526 gaelte dasselbe (70 von 1131),
+      // dort bewusst nicht gesetzt, um den Teststand nicht zu veraendern.
+      hidePlayersWithoutProfile: true,
+
       api: {
         competitionParam: "league",
         // API-Football Liga-ID der UEFA Champions League.
