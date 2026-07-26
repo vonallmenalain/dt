@@ -76,6 +76,10 @@
  *                                                                           second team for the same address.
  *    saveTeamForUser(payload)             → Promise<{ id, data }>          Creates a new team doc
  *    updateTeam(teamId, payload)          → Promise<void>                  Updates existing team doc
+ *    saveOrUpdateTeam(payload, options?)  → Promise<{ id, mode }>          Update-or-create. `options.forceCreate`
+ *                                                                          legt IMMER ein neues Doc an (Testteam-
+ *                                                                          Modus, nur fuer Admin-Accounts).
+ *    isAdminUser()                        → boolean                        Admin-Account angemeldet? (admin.js)
  *    finalizePendingTeam()                → Promise<{ id, data } | null>   If pending team in LS + user verified,
  *                                                                          writes it to Firestore and clears LS.
  *                                                                          Returns the saved team or null.
@@ -713,6 +717,22 @@
     }
 
     /**
+     * Ist der aktuell angemeldete Account ein Admin (siehe admin.js /
+     * DreamTeamAdmin)? Wird ausschliesslich fuer den Testteam-Modus
+     * gebraucht (mehrere Teams pro Account). Wie ueberall im Projekt ist
+     * das eine reine Client-Schranke – die Rules erlauben mehrere Teams
+     * pro Account grundsaetzlich, weil Firestore keine "genau ein Doc pro
+     * Nutzer"-Bedingung ausdruecken kann. Der Schutz gegen Doppel-Teams
+     * ist damit bewusst hier im Client verankert.
+     */
+    function isAdminUser() {
+        const Admin = window.DreamTeamAdmin;
+        const user  = state.currentUser;
+        if (!Admin || typeof Admin.isAdminUid !== 'function' || !user) return false;
+        return Admin.isAdminUid(user.uid);
+    }
+
+    /**
      * Save-or-update convenience: looks up the user's existing team and either
      * updates it (edit flow) or creates a new one (lazy-register flow).
      *
@@ -726,7 +746,7 @@
      *   "Unter dieser E-Mail-Adresse ist bereits ein Team erfasst"
      * message.
      */
-    async function saveOrUpdateTeam(payload) {
+    async function saveOrUpdateTeam(payload, options) {
         requireInit();
         if (!isSignedInAndVerified()) {
             throw new Error('E-Mail-Adresse muss verifiziert sein, bevor das Team gespeichert werden kann.');
@@ -741,6 +761,21 @@
 
         const user  = state.currentUser;
         const email = user && user.email;
+
+        /* Testteam-Modus (nur Admin): jede Einreichung legt ein NEUES
+           Dokument an – weder der Edit-Pfad noch die "ein Team pro
+           E-Mail"-Sperre greifen. Damit lassen sich mehrere Testteams
+           unter demselben Account einreichen. Der Admin-Check steht
+           bewusst hier und nicht nur im aufrufenden Team-Builder, damit
+           die Option nicht ueber einen manipulierten Aufruf an normale
+           Accounts durchschlaegt. */
+        if (options && options.forceCreate) {
+            if (!isAdminUser()) {
+                throw new Error('Mehrfach-Einreichung ist nur fuer Admin-Accounts verfuegbar.');
+            }
+            const testTeam = await saveTeamForUser(payload);
+            return { id: testTeam.id, mode: 'create' };
+        }
 
         let teamId     = state.loadedTeamId;
         let loadedTeam = null;
@@ -818,6 +853,7 @@
         init,
         getCurrentUser,
         isSignedInAndVerified,
+        isAdminUser,
         onAuthStateChange,
 
         registerWithEmail,

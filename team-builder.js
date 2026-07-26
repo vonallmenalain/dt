@@ -28,6 +28,9 @@
     const META_DOC_ID          = APP.firestore.metaDocId();
     const BUILDER_CACHE_KEY    = APP.storage.builderCacheKey();
     const SESSION_DATA_KEY     = APP.storage.key('data_cache');
+    /* Testteam-Modus des Admins – pro Turnier gemerkt, damit ein
+       eingeschalteter Testmodus in der CL nicht in der WM weiterläuft. */
+    const TEST_TEAM_MODE_KEY   = APP.storage.key('admin_test_team_mode');
     const CARD_BASE_TRANSFORM  = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     const PICKER_BATCH_SIZE    = 20;
 
@@ -213,6 +216,14 @@
        bis die Firestore-Antwort da ist – die Sperre schlägt also im
        Zweifel zu, nie in die andere Richtung. */
     let lateSubmitOpen        = false;
+
+    /* Testteam-Modus (nur Admin, siehe DEV: TESTTEAM-MODUS weiter unten).
+       Ist er an, legt jede Einreichung ein NEUES Team an, statt das
+       bestehende Team des Accounts zu aktualisieren. Der Wert überlebt den
+       Redirect/Reload in localStorage – der Modus bleibt aktiv, bis der
+       Admin ihn wieder ausschaltet. Direkt beim Laden gelesen, damit der
+       Auth-Callback (kann vor setupUI() feuern) den Modus schon kennt. */
+    let adminTestTeamMode     = readTestTeamMode();
 
     /* Mobile filter chip state */
     let mobileFilterOnlyAvailable = false;
@@ -1858,6 +1869,9 @@
     const PENDING_TEAM_KEY = APP.storage.key('pending_team');
     const SUBMIT_LABEL_CREATE = 'Team abschicken ✓';
     const SUBMIT_LABEL_UPDATE = 'Team aktualisieren ✓';
+    /* Nur im Testteam-Modus (Admin) – macht direkt am Knopf sichtbar, dass
+       hier ein zusätzliches Team entsteht und nichts überschrieben wird. */
+    const SUBMIT_LABEL_TEST   = '🧪 Testteam abschicken ✓';
 
     let editingTeamId  = null;   // Firestore doc id if user is in edit mode
     let pendingFinalize = false; // guard against concurrent finalize attempts
@@ -2276,6 +2290,10 @@
         if (!dom.submitBtn) return;
         /* Don't override the locked-state label after tournament start. */
         if (isTournamentStarted()) return;
+        if (isTestTeamMode()) {
+            dom.submitBtn.textContent = SUBMIT_LABEL_TEST;
+            return;
+        }
         dom.submitBtn.textContent = editingTeamId ? SUBMIT_LABEL_UPDATE : SUBMIT_LABEL_CREATE;
     }
 
@@ -2403,11 +2421,15 @@
         }
     }
 
-    /** Save a payload to Firestore (create or update) and navigate to teams.html. */
-    async function persistPayload(payload, { silent = false } = {}) {
+    /** Save a payload to Firestore (create or update) and navigate to teams.html.
+     *
+     *  `forceCreate` (Testteam-Modus des Admins) legt statt eines Updates
+     *  immer ein NEUES Team-Dokument an – siehe DreamTeamAuth.saveOrUpdateTeam.
+     */
+    async function persistPayload(payload, { silent = false, forceCreate = false } = {}) {
         let result;
         try {
-            result = await DreamTeamAuth.saveOrUpdateTeam(payload);
+            result = await DreamTeamAuth.saveOrUpdateTeam(payload, { forceCreate });
         } catch (err) {
             // Cross-provider duplicate guard: another team is already
             // registered for this e-mail. Surface a clear message and
@@ -2474,8 +2496,12 @@
                here as well, not only on the direct submit path. Without
                this, a user could build a team while signed out, verify a
                fresh password account, and silently create a second team
-               whose e-mail already owned one (created earlier via Google). */
-            const result = await DreamTeamAuth.saveOrUpdateTeam(pending);
+               whose e-mail already owned one (created earlier via Google).
+               Einzige Ausnahme ist der Testteam-Modus des Admins – dort ist
+               ein zweites Team genau das Gewollte. */
+            const result = await DreamTeamAuth.saveOrUpdateTeam(pending, {
+                forceCreate: isTestTeamMode()
+            });
             DreamTeamAuth.setLoadedTeamId(result.id);
             DreamTeamAuth.clearPendingTeam();
 
@@ -2572,6 +2598,24 @@
             const payload = buildTeamPayload(name);
 
             if (DreamTeamAuth.isSignedInAndVerified()) {
+                /* Testteam-Modus (Admin): jede Einreichung legt ein neues
+                   Team an und wir bleiben im Builder stehen – so lässt sich
+                   mit einem geänderten Manager-Namen sofort das nächste
+                   Testteam abschicken, ohne die Aufstellung neu zu bauen. */
+                if (isTestTeamMode()) {
+                    await persistPayload(payload, { silent: true, forceCreate: true });
+                    editingTeamId = null;
+                    DreamTeamAuth.setLoadedTeamId(null);
+                    showToast(`🧪 Testteam „${name}" gespeichert. Für das nächste einfach den Manager-Namen ändern.`);
+                    if (dom.managerName) {
+                        dom.managerName.focus();
+                        dom.managerName.select();
+                    }
+                    isSubmitting = false;
+                    setSubmitDefaultLabel();
+                    validateForm();
+                    return;
+                }
                 await persistPayload(payload);
                 return;
             }
@@ -2645,8 +2689,11 @@
                     tryFinalizePendingTeam();
                     return;
                 }
-                /* No pending team → user wants to edit their existing team. */
-                if (!editingTeamId) {
+                /* No pending team → user wants to edit their existing team.
+                   Im Testteam-Modus (Admin) bleibt der Builder bewusst leer:
+                   dort soll jede Einreichung ein NEUES Team werden, nicht
+                   eine Bearbeitung des zuerst gefundenen. */
+                if (!editingTeamId && !isTestTeamMode()) {
                     loadUserTeamIntoBuilder(user);
                 }
             }
@@ -2851,6 +2898,97 @@
     }
 
     /* =========================================================
+       DEV: TESTTEAM-MODUS (mehrere Teams pro Admin-Account)
+       =========================================================
+       Normalerweise gilt „ein Team pro E-Mail-Adresse": der Builder lädt
+       das bestehende Team des angemeldeten Accounts und jede weitere
+       Einreichung aktualisiert es. Für Tests braucht der Admin mehrere
+       Teams (Rangliste, Sortierung, Punkteverteilung mit mehr als einem
+       Eintrag), deshalb dieser Schalter:
+
+         • an  → der Builder startet leer, jede Einreichung legt ein NEUES
+                 Team an und wir bleiben nach dem Speichern im Builder
+                 stehen (nur der Manager-Name muss geändert werden).
+         • aus → alles wie gehabt; das bestehende Team wird wieder geladen
+                 und bearbeitet.
+
+       Sichtbar ist der Eintrag – wie alle Dev-Werkzeuge – nur für
+       angemeldete Admins (admin.js / DreamTeamAdmin). Der Admin-Check
+       steckt zusätzlich in DreamTeamAuth.saveOrUpdateTeam, damit der
+       Modus nicht über einen manipulierten localStorage-Wert an normale
+       Accounts durchschlägt.
+       ========================================================= */
+    function isAdminSignedIn() {
+        const Admin = window.DreamTeamAdmin;
+        return !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
+    }
+
+    /** Ist der Testteam-Modus aktiv? Nur wahr, solange auch wirklich ein
+     *  Admin angemeldet ist – ein Logout schaltet ihn faktisch ab, ohne
+     *  dass der gemerkte Wert verloren geht. */
+    function isTestTeamMode() {
+        return adminTestTeamMode && isAdminSignedIn();
+    }
+
+    function readTestTeamMode() {
+        try {
+            return window.localStorage.getItem(TEST_TEAM_MODE_KEY) === '1';
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function writeTestTeamMode(on) {
+        try {
+            if (on) window.localStorage.setItem(TEST_TEAM_MODE_KEY, '1');
+            else    window.localStorage.removeItem(TEST_TEAM_MODE_KEY);
+        } catch (_) { /* Storage geblockt – Modus gilt dann nur für diese Sitzung */ }
+    }
+
+    function initTestTeamModeToggle() {
+        const Modal = window.DreamTeamAuthModal;
+        if (!Modal || !Modal.devMenu || typeof Modal.devMenu.register !== 'function') return;
+
+        Modal.devMenu.register({
+            id: 'team-testmode',
+            group: 'Team-Einreichung',
+            groupOrder: 30,
+            order: 2,
+            label: 'Testteams (mehrere)',
+            value: () => (adminTestTeamMode ? 'an' : 'aus'),
+            accent: 'info',
+            title: 'Mehrere Teams mit demselben Admin-Account einreichen: jede Einreichung legt ein neues Team an.',
+            keepOpen: true,
+            onSelect: () => {
+                if (!isAdminSignedIn()) return;
+
+                adminTestTeamMode = !adminTestTeamMode;
+                writeTestTeamMode(adminTestTeamMode);
+
+                if (adminTestTeamMode) {
+                    /* Bearbeitungs-Bindung lösen: der nächste Submit legt ein
+                       neues Team an, statt das geladene zu überschreiben. */
+                    editingTeamId = null;
+                    DreamTeamAuth.setLoadedTeamId(null);
+                    setSubmitDefaultLabel();
+                    validateForm();
+                    showToast('🧪 Testteam-Modus an: jede Einreichung legt ein NEUES Team an.');
+                } else {
+                    showToast('Testteam-Modus aus: Einreichungen aktualisieren wieder dein Team.');
+                    /* Zurück in den normalen Bearbeitungs-Modus: bestehendes
+                       Team des Accounts wieder in den Builder holen. */
+                    const user = DreamTeamAuth.getCurrentUser();
+                    if (user && user.emailVerified) loadUserTeamIntoBuilder(user);
+                }
+
+                updateLateSubmitToggle();
+            }
+        });
+
+        updateLateSubmitToggle();
+    }
+
+    /* =========================================================
        SETUP & INIT
        ========================================================= */
     function setupUI() {
@@ -2867,6 +3005,7 @@
         applyTournamentClosedState();
         bindTournamentLockToAdminState();
         initLateSubmitToggle();
+        initTestTeamModeToggle();
 
         /* Button events */
         if (dom.clearTeamBtn) dom.clearTeamBtn.addEventListener('click', clearTeam);

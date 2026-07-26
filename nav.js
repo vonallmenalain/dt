@@ -207,8 +207,20 @@ function buildDevTournamentSwitcher(APP) {
         ? APP.isUrlOverrideActive()
         : false;
 
+    /* Label für die Dev-Turnierliste. Die beiden CL-Turniere tragen
+       bewusst denselben Anzeigenamen („Champions League" – ohne Saison,
+       siehe tournament-config.js) und wären in der Liste sonst nicht
+       auseinanderzuhalten. Hier – und NUR hier, im Admin-Menü – hängen
+       wir deshalb den Saison-Zusatz an. */
+    function devTournamentLabel(tournament, key) {
+        const base = (tournament && tournament.shortLabel) ? tournament.shortLabel : key;
+        const season = tournament && tournament.seasonLabel;
+        return season ? `${base} ${season}` : base;
+    }
+
     const domainDefaultKey = APP.domainDefaultKey;
-    const domainDefaultLabel = (APP.domainDefaultTournament && APP.domainDefaultTournament.shortLabel)
+    const domainDefaultLabel = (APP.domainDefaultTournament
+            && devTournamentLabel(APP.domainDefaultTournament, domainDefaultKey))
         || domainDefaultKey
         || 'Standard-Turnier';
     const GROUP = 'Turnier';
@@ -217,7 +229,7 @@ function buildDevTournamentSwitcher(APP) {
 
     tournamentKeys.forEach((key) => {
         const t = APP.tournaments[key];
-        const baseLabel = (t && t.shortLabel) ? t.shortLabel : key;
+        const baseLabel = devTournamentLabel(t, key);
         const isDomainDefault = key === domainDefaultKey;
         const isActive = key === APP.activeTournamentKey;
         const marks = [];
@@ -247,7 +259,7 @@ function buildDevTournamentSwitcher(APP) {
     // Preview-Kanal.
     previewKeys.forEach((key) => {
         const t = APP.tournaments[key];
-        const baseLabel = (t && t.shortLabel) ? t.shortLabel : key;
+        const baseLabel = devTournamentLabel(t, key);
         const isActive = key === APP.activeTournamentKey;
 
         order += 1;
