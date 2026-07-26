@@ -1,0 +1,104 @@
+name: CL Vorschau-Spielerpool
+
+# Erzeugt den VORSCHAU-Spielerpool einer Champions-League-Saison, deren
+# Ligaphasen-Auslosung noch nicht stattgefunden hat (CL 2026/27). Bewusst
+# ein eigener Workflow neben "Kader generieren": der reguläre Generator
+# liest gespielte Wettbewerbs-Einsätze und liefert vor Saisonstart nichts.
+#
+# Ablauf (scripts/generate-cl-pool.js):
+#   1. Abschlusstabellen der nationalen UEFA-Ligen der Vorsaison lesen und
+#      daraus die direkt für die Ligaphase qualifizierten Klubs ableiten.
+#   2. Titelverteidiger (CL- und Europa-League-Sieger) ergänzen.
+#   3. Aktuellen Kader je Klub + Spielerprofile laden.
+#   4. data-<key>.js schreiben (identisches Schema und identische
+#      Namenslogik wie beim regulären Kader-Generator).
+#
+# Benötigtes Repo-Secret:
+#   RAPIDAPI_KEY   RapidAPI / API-Football Key.
+#
+# Erst mit `probe: true` laufen lassen: der Lauf kostet dann nur die
+# Tabellen-Calls und loggt, welche Klubs erkannt wurden – ohne Kader-Calls
+# und ohne Dateien zu schreiben.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tournament_key:
+        description: "Turnier-Key (z. B. cl2627)"
+        required: true
+        type: string
+        default: "cl2627"
+      source_season:
+        description: "Saison der Ligatabellen (leer = Turnier-Saison minus 1)"
+        required: false
+        type: string
+        default: ""
+      probe:
+        description: "Nur Klubs ermitteln und loggen (keine Kader-Calls, keine Dateien)"
+        required: false
+        type: boolean
+        default: false
+      max_teams:
+        description: "Debug: nur die ersten N Klubs laden (0 = alle)"
+        required: false
+        type: string
+        default: "0"
+      commit:
+        description: "Ergebnis committen & pushen"
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: generate-cl-pool-${{ github.ref }}-${{ inputs.tournament_key }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package.json
+
+      - name: Install script dependencies
+        working-directory: scripts
+        run: npm install --no-audit --no-fund --omit=dev
+
+      - name: Generate CL preview pool
+        working-directory: scripts
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          TOURNAMENT_KEY: ${{ inputs.tournament_key }}
+          SOURCE_SEASON: ${{ inputs.source_season }}
+          PROBE: ${{ inputs.probe == true && '1' || '0' }}
+          MAX_TEAMS: ${{ inputs.max_teams }}
+        run: node generate-cl-pool.js
+
+      - name: Commit & push generated data
+        if: ${{ inputs.commit && !inputs.probe }}
+        env:
+          KEY: ${{ inputs.tournament_key }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          FILE="data-${KEY}.js"
+          CLUBS="scripts/cl-pool-${KEY}-clubs.json"
+          git add "$FILE" "$CLUBS"
+          if [ -n "$(git status --porcelain "$FILE" "$CLUBS")" ]; then
+            git commit -m "CL Vorschau-Spielerpool: $FILE (via generate-cl-pool Workflow)"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+            echo "Committed $FILE to ${GITHUB_REF_NAME}."
+          else
+            echo "Keine Aenderung – nichts zu committen."
+          fi
