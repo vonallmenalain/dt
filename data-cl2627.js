@@ -10,6 +10,11 @@
  *  Qualifikationsrunden fehlen noch und kommen mit einem erneuten Lauf dazu.
  *
  *  Spieler: 917 aus 29 Klubs.
+ *
+ *  Vorsaison.*: Leistung der Saison 2025 (Minuten, Spiele, Rating und
+ *  ein nach Wettbewerb gewichteter Wert). api-football liefert keine Marktwerte –
+ *  der Wert dient als Sortierschluessel, damit vor Turnierstart die Stammspieler
+ *  oben stehen statt einer alphabetischen Liste.
  *  Klubs: Arsenal, AS Roma, Aston Villa, Atletico Madrid, Barcelona, Bayern München, Borussia Dortmund, Club Brugge KV, Como, FC Porto, Feyenoord, Galatasaray, Inter, Lens, Lille, Liverpool, Manchester City, Manchester United, Napoli, Paris Saint Germain, PSV Eindhoven, RB Leipzig, Real Betis, Real Madrid, Shakhtar Donetsk, Slavia Praha, Sporting CP, VfB Stuttgart, Villarreal.
  *  Club-zentriert: Club.* = Vereinsdaten (primär), Nationalteam.* = Nation (sekundär).
  * ============================================================================= */
@@ -25,7 +30,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1995-09-15",
     "Groesse": "183",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 4620,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 5265
   },
   {
     "player.id": 20619,
@@ -38,7 +47,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2000-03-02",
     "Groesse": "197",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 416697,
@@ -51,7 +64,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-07-15",
     "Groesse": "187",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 720,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.3,
+    "Vorsaison.Wert": 378
   },
   {
     "player.id": 2273,
@@ -64,7 +81,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1994-10-03",
     "Groesse": "189",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 1077,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 674
   },
   {
     "player.id": 403221,
@@ -77,7 +98,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-09-13",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 342243,
@@ -90,7 +115,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-03-13",
     "Groesse": "185",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 543,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 5.8,
+    "Vorsaison.Wert": 272
   },
   {
     "player.id": 19959,
@@ -103,7 +132,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1997-10-08",
     "Groesse": "186",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2072,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 2021
   },
   {
     "player.id": 333682,
@@ -116,7 +149,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-06-27",
     "Groesse": "191",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2649,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 2392
   },
   {
     "player.id": 22224,
@@ -129,7 +166,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1997-12-19",
     "Groesse": "190",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 4544,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.27,
+    "Vorsaison.Wert": 4650
   },
   {
     "player.id": 418403,
@@ -142,7 +183,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-02-07",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 14,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 7
   },
   {
     "player.id": 38746,
@@ -155,7 +200,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2001-06-17",
     "Groesse": "179",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 3543,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 3567
   },
   {
     "player.id": 482903,
@@ -168,7 +217,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2009-08-29",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 206,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.4,
+    "Vorsaison.Wert": 114
   },
   {
     "player.id": 313245,
@@ -181,7 +234,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-09-26",
     "Groesse": "178",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2229,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 2176
   },
   {
     "player.id": 127817,
@@ -194,7 +251,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ec.svg",
     "Geburtsdatum": "2002-01-09",
     "Groesse": "184",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3106,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3188
   },
   {
     "player.id": 157052,
@@ -207,7 +268,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2002-05-19",
     "Groesse": "188",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 2793,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 2581
   },
   {
     "player.id": 22090,
@@ -220,7 +285,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2001-03-24",
     "Groesse": "192",
-    "Gewicht": "92"
+    "Gewicht": "92",
+    "Vorsaison.Minuten": 4254,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 4545
   },
   {
     "player.id": 30407,
@@ -233,7 +302,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "1994-03-10",
     "Groesse": "187",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1129,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 928
   },
   {
     "player.id": 2937,
@@ -246,7 +319,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1999-01-14",
     "Groesse": "188",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 4788,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.41,
+    "Vorsaison.Wert": 5013
   },
   {
     "player.id": 19586,
@@ -259,7 +336,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1998-06-29",
     "Groesse": "178",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3387,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 3416
   },
   {
     "player.id": 313236,
@@ -272,7 +353,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-03-21",
     "Groesse": "176",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1269,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 984
   },
   {
     "player.id": 553530,
@@ -285,7 +370,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 73,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 38
   },
   {
     "player.id": 37127,
@@ -298,7 +387,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "1998-12-17",
     "Groesse": "178",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2360,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 2305
   },
   {
     "player.id": 47315,
@@ -311,7 +404,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1999-02-02",
     "Groesse": "181",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 4478,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 4737
   },
   {
     "player.id": 442044,
@@ -324,7 +421,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2009-12-31",
     "Groesse": "183",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1132,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 713
   },
   {
     "player.id": 47311,
@@ -337,7 +438,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-06-22",
     "Groesse": "189",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 2096,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 2084
   },
   {
     "player.id": 457731,
@@ -350,7 +455,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-12-27",
     "Groesse": "181",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 265,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 142
   },
   {
     "player.id": 463908,
@@ -363,7 +472,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-10-02",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 41,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.71,
+    "Vorsaison.Wert": 34
   },
   {
     "player.id": 1460,
@@ -376,7 +489,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2001-09-05",
     "Groesse": "178",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3634,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 3617
   },
   {
     "player.id": 136723,
@@ -389,7 +506,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2002-03-10",
     "Groesse": "182",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3350,
+    "Vorsaison.Spiele": 63,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 2896
   },
   {
     "player.id": 643,
@@ -402,7 +523,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1997-04-03",
     "Groesse": "175",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 843,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 643
   },
   {
     "player.id": 127769,
@@ -415,7 +540,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2001-06-18",
     "Groesse": "178",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2491,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2489
   },
   {
     "player.id": 978,
@@ -428,7 +557,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1999-06-11",
     "Groesse": "193",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 1128,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1082
   },
   {
     "player.id": 18979,
@@ -441,7 +574,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "1998-06-04",
     "Groesse": "189",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 4239,
+    "Vorsaison.Spiele": 64,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 4161
   },
   {
     "player.id": 81012,
@@ -454,7 +591,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
     "Geburtsdatum": "1998-05-12",
     "Groesse": "195",
-    "Gewicht": "93"
+    "Gewicht": "93",
+    "Vorsaison.Minuten": 826,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 431
   },
   {
     "player.id": 483676,
@@ -467,7 +608,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2007-04-18",
     "Groesse": "182",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 556,
@@ -480,7 +625,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
     "Geburtsdatum": "1999-08-27",
     "Groesse": "189",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 4627,
+    "Vorsaison.Spiele": 86,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 4531
   },
   {
     "player.id": 30418,
@@ -493,7 +642,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1995-03-18",
     "Groesse": "194",
-    "Gewicht": "94"
+    "Gewicht": "94",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 5.9,
+    "Vorsaison.Wert": 99
   },
   {
     "player.id": 452423,
@@ -506,7 +659,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "2006-09-06",
     "Groesse": "191",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 227,
@@ -519,7 +676,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1997-01-04",
     "Groesse": "175",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 430,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 431
   },
   {
     "player.id": 342019,
@@ -532,7 +693,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2003-01-06",
     "Groesse": "189",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2463,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 1992
   },
   {
     "player.id": 162452,
@@ -545,7 +710,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2003-01-18",
     "Groesse": "181",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2654,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 2174
   },
   {
     "player.id": 598615,
@@ -558,7 +727,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 30425,
@@ -571,7 +744,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1996-04-17",
     "Groesse": "190",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3706,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 3769
   },
   {
     "player.id": 2669,
@@ -584,7 +761,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1995-06-18",
     "Groesse": "184",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2619,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 2644
   },
   {
     "player.id": 458411,
@@ -597,7 +778,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2006-07-10",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 384543,
@@ -610,7 +795,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "2005-06-05",
     "Groesse": "194",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 1192,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 1082
   },
   {
     "player.id": 626713,
@@ -623,7 +812,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 1807,
@@ -636,7 +829,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ci.svg",
     "Geburtsdatum": "1999-08-20",
     "Groesse": "192",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 7703,
+    "Vorsaison.Spiele": 90,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 5644
   },
   {
     "player.id": 349001,
@@ -649,7 +846,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2003-09-06",
     "Groesse": "173",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 5529,
+    "Vorsaison.Spiele": 69,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 4653
   },
   {
     "player.id": 778,
@@ -662,7 +863,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1995-03-03",
     "Groesse": "186",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 3747,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 3757
   },
   {
     "player.id": 22147,
@@ -675,7 +880,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2001-05-17",
     "Groesse": "185",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2765,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 2775
   },
   {
     "player.id": 472080,
@@ -688,7 +897,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2006-01-13",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 23,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.2,
+    "Vorsaison.Wert": 25
   },
   {
     "player.id": 277003,
@@ -701,7 +914,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "2001-07-02",
     "Groesse": "185",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 4101,
+    "Vorsaison.Spiele": 67,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 2979
   },
   {
     "player.id": 356888,
@@ -714,7 +931,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2004-09-23",
     "Groesse": "181",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 2085,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 2010
   },
   {
     "player.id": 484027,
@@ -727,7 +948,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/au.svg",
     "Geburtsdatum": "2009-02-10",
     "Groesse": "188",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 224,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 125
   },
   {
     "player.id": 15811,
@@ -740,7 +965,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1997-06-21",
     "Groesse": "189",
-    "Gewicht": "92"
+    "Gewicht": "92",
+    "Vorsaison.Minuten": 4403,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 3027
   },
   {
     "player.id": 249,
@@ -753,7 +982,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1999-01-19",
     "Groesse": "176",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2937,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2871
   },
   {
     "player.id": 323936,
@@ -766,7 +999,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2003-04-15",
     "Groesse": "182",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3222,
+    "Vorsaison.Spiele": 76,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3029
   },
   {
     "player.id": 875,
@@ -779,7 +1016,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1993-11-15",
     "Groesse": "177",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3351,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 2480
   },
   {
     "player.id": 435482,
@@ -792,7 +1033,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2007-02-17",
     "Groesse": "185",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 779,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 791
   },
   {
     "player.id": 19599,
@@ -805,7 +1050,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1992-09-02",
     "Groesse": "195",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 4397,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 4210
   },
   {
     "player.id": 284390,
@@ -818,7 +1067,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2004-12-02",
     "Groesse": "188",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 36878,
@@ -831,7 +1084,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1991-03-10",
     "Groesse": "193",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 1273,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 1151
   },
   {
     "player.id": 398004,
@@ -844,7 +1101,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-12-21",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 388013,
@@ -857,7 +1118,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-02-07",
     "Groesse": "185",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 221,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.4,
+    "Vorsaison.Wert": 172
   },
   {
     "player.id": 19354,
@@ -870,7 +1135,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1997-10-23",
     "Groesse": "183",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 4647,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 4414
   },
   {
     "player.id": 138816,
@@ -883,7 +1152,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2002-03-10",
     "Groesse": "178",
-    "Gewicht": "57"
+    "Gewicht": "57",
+    "Vorsaison.Minuten": 3224,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 2762
   },
   {
     "player.id": 284457,
@@ -896,7 +1169,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2004-01-05",
     "Groesse": "183",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2140,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 2091
   },
   {
     "player.id": 2724,
@@ -909,7 +1186,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1993-07-20",
     "Groesse": "178",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 3028,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 2937
   },
   {
     "player.id": 19298,
@@ -922,7 +1203,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "1997-08-07",
     "Groesse": "185",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 4275,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 4152
   },
   {
     "player.id": 478441,
@@ -935,7 +1220,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "2005-08-04",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2271,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 1590
   },
   {
     "player.id": 46815,
@@ -948,7 +1237,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1997-01-16",
     "Groesse": "191",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 3069,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 2991
   },
   {
     "player.id": 19179,
@@ -961,7 +1254,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1993-03-13",
     "Groesse": "196",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1608,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 1635
   },
   {
     "player.id": 889,
@@ -974,7 +1271,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "1994-07-17",
     "Groesse": "187",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1919,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 1904
   },
   {
     "player.id": 415107,
@@ -987,7 +1288,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
     "Geburtsdatum": "2005-02-06",
     "Groesse": "191",
-    "Gewicht": "93"
+    "Gewicht": "93",
+    "Vorsaison.Minuten": 450,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 225
   },
   {
     "player.id": 162714,
@@ -1000,7 +1305,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2001-08-16",
     "Groesse": "195",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2723,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 2725
   },
   {
     "player.id": 453101,
@@ -1013,7 +1322,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-03-04",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 387,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.33,
+    "Vorsaison.Wert": 205
   },
   {
     "player.id": 19071,
@@ -1026,7 +1339,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1996-12-25",
     "Groesse": "172",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2946,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 2967
   },
   {
     "player.id": 364566,
@@ -1039,7 +1356,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-03-04",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 161,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.59,
+    "Vorsaison.Wert": 121
   },
   {
     "player.id": 360268,
@@ -1052,7 +1373,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-10-02",
     "Groesse": "183",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 515,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.57,
+    "Vorsaison.Wert": 347
   },
   {
     "player.id": 19191,
@@ -1065,7 +1390,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-sct.svg",
     "Geburtsdatum": "1994-10-18",
     "Groesse": "178",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3267,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3147
   },
   {
     "player.id": 553420,
@@ -1078,7 +1407,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 19170,
@@ -1091,7 +1424,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2002-07-26",
     "Groesse": "187",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 5298,
+    "Vorsaison.Spiele": 67,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 4944
   },
   {
     "player.id": 2287,
@@ -1104,7 +1441,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1993-12-05",
     "Groesse": "189",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 960,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 931
   },
   {
     "player.id": 416250,
@@ -1117,7 +1458,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-10-19",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 180,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 90
   },
   {
     "player.id": 464004,
@@ -1130,7 +1475,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2006-05-05",
     "Groesse": "182",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2293,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 1525
   },
   {
     "player.id": 514519,
@@ -1143,7 +1492,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2009-01-12",
     "Groesse": "186",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 281,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 6.51,
+    "Vorsaison.Wert": 222
   },
   {
     "player.id": 137303,
@@ -1156,7 +1509,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2001-07-01",
     "Groesse": "185",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 2439,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.61,
+    "Vorsaison.Wert": 2146
   },
   {
     "player.id": 983,
@@ -1169,7 +1526,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/jm.svg",
     "Geburtsdatum": "1997-08-09",
     "Groesse": "178",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1740,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 1264
   },
   {
     "player.id": 19366,
@@ -1182,7 +1543,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1995-12-30",
     "Groesse": "180",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 4165,
+    "Vorsaison.Spiele": 60,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 4062
   },
   {
     "player.id": 553848,
@@ -1195,7 +1560,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 19194,
@@ -1208,7 +1577,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1997-10-02",
     "Groesse": "190",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2047,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 1558
   },
   {
     "player.id": 646997,
@@ -1221,7 +1594,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 29,
@@ -1234,7 +1611,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/si.svg",
     "Geburtsdatum": "1993-01-07",
     "Groesse": "188",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 4710,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 4785
   },
   {
     "player.id": 2465,
@@ -1247,7 +1628,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1994-05-06",
     "Groesse": "193",
-    "Gewicht": "93"
+    "Gewicht": "93",
+    "Vorsaison.Minuten": 1658,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 7.43,
+    "Vorsaison.Wert": 1550
   },
   {
     "player.id": 189997,
@@ -1260,7 +1645,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2002-06-05",
     "Groesse": "185",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 393198,
@@ -1273,7 +1662,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-09-30",
     "Groesse": "190",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 428799,
@@ -1286,7 +1679,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
     "Geburtsdatum": "2003-07-07",
     "Groesse": "185",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 47,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.2,
+    "Vorsaison.Wert": 47
   },
   {
     "player.id": 563,
@@ -1299,7 +1696,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1995-09-20",
     "Groesse": "171",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 4128,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.33,
+    "Vorsaison.Wert": 4405
   },
   {
     "player.id": 386869,
@@ -1312,7 +1713,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-05-05",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 90
   },
   {
     "player.id": 30399,
@@ -1325,7 +1730,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
     "Geburtsdatum": "1997-12-13",
     "Groesse": "188",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 4741,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 4699
   },
   {
     "player.id": 441280,
@@ -1338,7 +1747,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2005-02-09",
     "Groesse": "187",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 336685,
@@ -1351,7 +1764,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-06-03",
     "Groesse": "180",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 299,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 299
   },
   {
     "player.id": 31,
@@ -1364,7 +1781,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "1995-01-20",
     "Groesse": "186",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1627,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 1695
   },
   {
     "player.id": 386870,
@@ -1377,7 +1798,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-01-10",
     "Groesse": "174",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 666,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 489
   },
   {
     "player.id": 295793,
@@ -1390,7 +1815,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-06-20",
     "Groesse": "190",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3184,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 3106
   },
   {
     "player.id": 753,
@@ -1403,7 +1832,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1995-01-30",
     "Groesse": "183",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 3966,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 4234
   },
   {
     "player.id": 162012,
@@ -1416,7 +1849,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2002-07-11",
     "Groesse": "187",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 4400,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 6.75,
+    "Vorsaison.Wert": 4296
   },
   {
     "player.id": 6503,
@@ -1429,7 +1866,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1998-04-06",
     "Groesse": "179",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2560,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 2649
   },
   {
     "player.id": 47301,
@@ -1442,7 +1883,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-11-11",
     "Groesse": "187",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2951,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 3176
   },
   {
     "player.id": 548704,
@@ -1455,7 +1900,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 170,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 170
   },
   {
     "player.id": 303378,
@@ -1468,7 +1917,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-01-16",
     "Groesse": "178",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 133185,
@@ -1481,7 +1934,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2001-09-20",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1962,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1941
   },
   {
     "player.id": 50,
@@ -1494,7 +1951,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1992-01-08",
     "Groesse": "176",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3662,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3897
   },
   {
     "player.id": 7712,
@@ -1507,7 +1968,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "1999-06-25",
     "Groesse": "185",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3702,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 3226
   },
   {
     "player.id": 313383,
@@ -1520,7 +1985,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2005-08-05",
     "Groesse": "175",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 4439,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 3099
   },
   {
     "player.id": 336594,
@@ -1533,7 +2002,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-06-15",
     "Groesse": "183",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2873,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 2950
   },
   {
     "player.id": 341371,
@@ -1546,7 +2019,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-03-15",
     "Groesse": "182",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 1774,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 1513
   },
   {
     "player.id": 548867,
@@ -1559,7 +2036,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 22,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.2,
+    "Vorsaison.Wert": 22
   },
   {
     "player.id": 18767,
@@ -1572,7 +2053,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "1997-10-20",
     "Groesse": "174",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 3980,
+    "Vorsaison.Spiele": 61,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 3630
   },
   {
     "player.id": 182219,
@@ -1585,7 +2070,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-07-20",
     "Groesse": "175",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 4920,
+    "Vorsaison.Spiele": 77,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 3707
   },
   {
     "player.id": 8492,
@@ -1598,7 +2087,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "1995-12-05",
     "Groesse": "196",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 2919,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 3068
   },
   {
     "player.id": 323935,
@@ -1611,7 +2104,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2002-12-18",
     "Groesse": "174",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3887,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 4190
   },
   {
     "player.id": 548706,
@@ -1624,7 +2121,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 27,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 7.3,
+    "Vorsaison.Wert": 27
   },
   {
     "player.id": 6009,
@@ -1637,7 +2138,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2000-01-31",
     "Groesse": "170",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 3763,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.2,
+    "Vorsaison.Wert": 4073
   },
   {
     "player.id": 548707,
@@ -1650,7 +2155,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 29,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 29
   },
   {
     "player.id": 443668,
@@ -1663,7 +2172,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-02-11",
     "Groesse": "172",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 435,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 285
   },
   {
     "player.id": 491091,
@@ -1676,7 +2189,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 6067,
@@ -1689,7 +2206,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2001-04-26",
     "Groesse": "171",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 1774,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 1715
   },
   {
     "player.id": 543468,
@@ -1702,7 +2223,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 182718,
@@ -1715,7 +2240,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-05-04",
     "Groesse": "193",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 4139,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.37,
+    "Vorsaison.Wert": 4222
   },
   {
     "player.id": 127,
@@ -1728,7 +2257,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1992-04-30",
     "Groesse": "187",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 270,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 225
   },
   {
     "player.id": 851,
@@ -1741,7 +2274,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "1990-04-18",
     "Groesse": "195",
-    "Gewicht": "96"
+    "Gewicht": "96",
+    "Vorsaison.Minuten": 998,
+    "Vorsaison.Spiele": 13,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 1137
   },
   {
     "player.id": 161928,
@@ -1754,7 +2291,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-10-18",
     "Groesse": "177",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2981,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 2956
   },
   {
     "player.id": 433395,
@@ -1767,7 +2308,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-03-17",
     "Groesse": "189",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 134,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 7.45,
+    "Vorsaison.Wert": 112
   },
   {
     "player.id": 2282,
@@ -1780,7 +2325,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "1996-04-10",
     "Groesse": "189",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 598,
+    "Vorsaison.Spiele": 19,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 574
   },
   {
     "player.id": 619,
@@ -1793,7 +2342,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-01-09",
     "Groesse": "180",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3953,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 4122
   },
   {
     "player.id": 181701,
@@ -1806,7 +2359,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2002-02-26",
     "Groesse": "186",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 3393,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 3558
   },
   {
     "player.id": 491250,
@@ -1819,7 +2376,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-01-28",
     "Groesse": "185",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 110,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.96,
+    "Vorsaison.Wert": 79
   },
   {
     "player.id": 1257,
@@ -1832,7 +2393,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1998-11-12",
     "Groesse": "181",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 3627,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 3816
   },
   {
     "player.id": 396623,
@@ -1845,7 +2410,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-01-22",
     "Groesse": "183",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 4234,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 4215
   },
   {
     "player.id": 101814,
@@ -1858,7 +2427,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "1999-03-07",
     "Groesse": "191",
-    "Gewicht": "96"
+    "Gewicht": "96",
+    "Vorsaison.Minuten": 1732,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1853
   },
   {
     "player.id": 568001,
@@ -1871,7 +2444,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 197,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 6.54,
+    "Vorsaison.Wert": 214
   },
   {
     "player.id": 1323,
@@ -1884,7 +2461,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1998-05-07",
     "Groesse": "182",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 2853,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 2910
   },
   {
     "player.id": 340626,
@@ -1897,7 +2478,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-05-11",
     "Groesse": "176",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3449,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 3424
   },
   {
     "player.id": 538,
@@ -1910,7 +2495,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1997-05-12",
     "Groesse": "182",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2665,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.25,
+    "Vorsaison.Wert": 2665
   },
   {
     "player.id": 296667,
@@ -1923,7 +2512,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-08-05",
     "Groesse": "174",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 832,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 829
   },
   {
     "player.id": 433396,
@@ -1936,7 +2529,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-05-26",
     "Groesse": "193",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 1329,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 1303
   },
   {
     "player.id": 329728,
@@ -1949,7 +2546,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-09-14",
     "Groesse": "171",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 1495,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 1442
   },
   {
     "player.id": 133609,
@@ -1962,7 +2563,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2002-11-25",
     "Groesse": "174",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3188,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 7.43,
+    "Vorsaison.Wert": 3343
   },
   {
     "player.id": 491086,
@@ -1975,7 +2580,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2006-10-30",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 12,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.3,
+    "Vorsaison.Wert": 12
   },
   {
     "player.id": 138787,
@@ -1988,7 +2597,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2001-02-24",
     "Groesse": "183",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3117,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.24,
+    "Vorsaison.Wert": 3237
   },
   {
     "player.id": 931,
@@ -2001,7 +2614,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2000-02-29",
     "Groesse": "182",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2729,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 2721
   },
   {
     "player.id": 550547,
@@ -2014,7 +2631,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 579244,
@@ -2027,7 +2648,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 386828,
@@ -2040,7 +2665,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-07-13",
     "Groesse": "179",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3828,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.98,
+    "Vorsaison.Wert": 3922
   },
   {
     "player.id": 1496,
@@ -2053,7 +2682,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1996-12-14",
     "Groesse": "176",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2290,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 7.6,
+    "Vorsaison.Wert": 2383
   },
   {
     "player.id": 338958,
@@ -2066,7 +2699,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "2005-11-15",
     "Groesse": "173",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1224,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 1046
   },
   {
     "player.id": 445973,
@@ -2079,7 +2716,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2008-07-15",
     "Groesse": "174",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 294,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 170
   },
   {
     "player.id": 432595,
@@ -2092,7 +2733,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2006-06-24",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 203376,
@@ -2105,7 +2750,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2003-08-08",
     "Groesse": "189",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 2100,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.42,
+    "Vorsaison.Wert": 1875
   },
   {
     "player.id": 568316,
@@ -2118,7 +2767,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 497,
@@ -2131,7 +2784,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1986-03-27",
     "Groesse": "193",
-    "Gewicht": "93"
+    "Gewicht": "93",
+    "Vorsaison.Minuten": 3930,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 3885
   },
   {
     "player.id": 498,
@@ -2144,7 +2801,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1988-08-03",
     "Groesse": "192",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 7.7,
+    "Vorsaison.Wert": 90
   },
   {
     "player.id": 509,
@@ -2157,7 +2818,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ca.svg",
     "Geburtsdatum": "2000-11-02",
     "Groesse": "183",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1054,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 1007
   },
   {
     "player.id": 524214,
@@ -2170,7 +2835,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2009-01-11",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 1
   },
   {
     "player.id": 1149,
@@ -2183,7 +2852,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1998-10-27",
     "Groesse": "186",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 3646,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 3735
   },
   {
     "player.id": 628356,
@@ -2196,7 +2869,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 18,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 27
   },
   {
     "player.id": 32893,
@@ -2209,7 +2886,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/jp.svg",
     "Geburtsdatum": "1999-05-12",
     "Groesse": "188",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 3845,
+    "Vorsaison.Spiele": 60,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2515
   },
   {
     "player.id": 972,
@@ -2222,7 +2903,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1996-02-11",
     "Groesse": "195",
-    "Gewicht": "94"
+    "Gewicht": "94",
+    "Vorsaison.Minuten": 4378,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 4321
   },
   {
     "player.id": 125171,
@@ -2235,7 +2920,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "2000-04-02",
     "Groesse": "186",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3151,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 3272
   },
   {
     "player.id": 2897,
@@ -2248,7 +2937,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/kr.svg",
     "Geburtsdatum": "1996-11-15",
     "Groesse": "190",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 2356,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 2325
   },
   {
     "player.id": 280074,
@@ -2261,7 +2954,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2003-06-16",
     "Groesse": "176",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 4160,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 4091
   },
   {
     "player.id": 2195,
@@ -2274,7 +2971,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2000-09-13",
     "Groesse": "178",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1614,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 1350
   },
   {
     "player.id": 610483,
@@ -2287,7 +2988,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 328033,
@@ -2300,7 +3005,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2004-05-03",
     "Groesse": "188",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3362,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 3585
   },
   {
     "player.id": 327897,
@@ -2313,7 +3022,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2005-12-11",
     "Groesse": "176",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 2617,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 2543
   },
   {
     "player.id": 449689,
@@ -2326,7 +3039,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-01-10",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 27,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 27
   },
   {
     "player.id": 648615,
@@ -2339,7 +3056,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 3,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 3
   },
   {
     "player.id": 414474,
@@ -2352,7 +3073,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pe.svg",
     "Geburtsdatum": "2007-04-10",
     "Groesse": "171",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 150,
+    "Vorsaison.Spiele": 10,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 144
   },
   {
     "player.id": 568043,
@@ -2365,7 +3090,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 161897,
@@ -2378,7 +3107,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "2001-01-28",
     "Groesse": "185",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 3931,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 3001
   },
   {
     "player.id": 181812,
@@ -2391,7 +3124,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2003-02-26",
     "Groesse": "184",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 1269,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 1292
   },
   {
     "player.id": 502,
@@ -2404,7 +3141,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1995-02-08",
     "Groesse": "177",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 4448,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7.63,
+    "Vorsaison.Wert": 4524
   },
   {
     "player.id": 1157,
@@ -2417,7 +3158,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
     "Geburtsdatum": "1997-05-27",
     "Groesse": "180",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3656,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 3681
   },
   {
     "player.id": 494131,
@@ -2430,7 +3175,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2008-02-22",
     "Groesse": "168",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 2666,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2449
   },
   {
     "player.id": 568042,
@@ -2443,7 +3192,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 32,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.3,
+    "Vorsaison.Wert": 32
   },
   {
     "player.id": 19617,
@@ -2456,7 +3209,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2001-12-12",
     "Groesse": "184",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 4387,
+    "Vorsaison.Spiele": 59,
+    "Vorsaison.Rating": 7.69,
+    "Vorsaison.Wert": 4433
   },
   {
     "player.id": 325975,
@@ -2469,7 +3226,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2005-06-28",
     "Groesse": "176",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 1775,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1911
   },
   {
     "player.id": 496738,
@@ -2482,7 +3243,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2008-09-24",
     "Groesse": "175",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 220,
+    "Vorsaison.Spiele": 10,
+    "Vorsaison.Rating": 6.39,
+    "Vorsaison.Wert": 138
   },
   {
     "player.id": 280339,
@@ -2495,7 +3260,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2003-02-17",
     "Groesse": "175",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1141,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 1021
   },
   {
     "player.id": 657672,
@@ -2508,7 +3277,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 184,
@@ -2521,7 +3294,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1993-07-28",
     "Groesse": "188",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 4466,
+    "Vorsaison.Spiele": 59,
+    "Vorsaison.Rating": 7.87,
+    "Vorsaison.Wert": 4463
   },
   {
     "player.id": 2489,
@@ -2534,7 +3311,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
     "Geburtsdatum": "1997-01-13",
     "Groesse": "178",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 4352,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 7.33,
+    "Vorsaison.Wert": 4388
   },
   {
     "player.id": 510,
@@ -2547,7 +3328,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1995-07-14",
     "Groesse": "176",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2304,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 2327
   },
   {
     "player.id": 26292,
@@ -2560,7 +3345,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1991-04-13",
     "Groesse": "195",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 10,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 25282,
@@ -2573,7 +3362,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
     "Geburtsdatum": "1997-12-06",
     "Groesse": "195",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 5430,
+    "Vorsaison.Spiele": 60,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 5145
   },
   {
     "player.id": 26395,
@@ -2586,7 +3379,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1993-02-04",
     "Groesse": "194",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 7.7,
+    "Vorsaison.Wert": 45
   },
   {
     "player.id": 280463,
@@ -2599,7 +3396,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2003-11-19",
     "Groesse": "198",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 394667,
@@ -2612,7 +3413,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2006-02-06",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 443,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 229
   },
   {
     "player.id": 2194,
@@ -2625,7 +3430,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
     "Geburtsdatum": "1995-04-16",
     "Groesse": "187",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 4281,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 3679
   },
   {
     "player.id": 420351,
@@ -2638,7 +3447,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2007-04-29",
     "Groesse": "192",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 341839,
@@ -2651,7 +3464,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2005-03-08",
     "Groesse": "188",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 311,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 311
   },
   {
     "player.id": 24845,
@@ -2664,7 +3481,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "1997-11-17",
     "Groesse": "183",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3898,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 3690
   },
   {
     "player.id": 409215,
@@ -2677,7 +3498,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2007-01-17",
     "Groesse": "194",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3149,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 2627
   },
   {
     "player.id": 568225,
@@ -2690,7 +3515,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 603,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 648
   },
   {
     "player.id": 26243,
@@ -2703,7 +3532,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1999-12-01",
     "Groesse": "191",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3500,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.61,
+    "Vorsaison.Wert": 3570
   },
   {
     "player.id": 25368,
@@ -2716,7 +3549,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1996-07-20",
     "Groesse": "189",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 4827,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 4601
   },
   {
     "player.id": 197448,
@@ -2729,7 +3566,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2002-06-03",
     "Groesse": "168",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 1517,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 1681
   },
   {
     "player.id": 138935,
@@ -2742,7 +3583,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2003-10-20",
     "Groesse": "187",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1257,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 1319
   },
   {
     "player.id": 198654,
@@ -2755,7 +3600,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "2002-02-12",
     "Groesse": "183",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 4448,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 4163
   },
   {
     "player.id": 864,
@@ -2768,7 +3617,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1994-01-12",
     "Groesse": "186",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 984,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 1076
   },
   {
     "player.id": 637,
@@ -2781,7 +3634,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2000-10-10",
     "Groesse": "190",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3667,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 3679
   },
   {
     "player.id": 568733,
@@ -2794,7 +3651,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 326757,
@@ -2807,7 +3668,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2005-09-23",
     "Groesse": "188",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3365,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 3227
   },
   {
     "player.id": 1159,
@@ -2820,7 +3685,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
     "Geburtsdatum": "1994-03-17",
     "Groesse": "178",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2807,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2663
   },
   {
     "player.id": 478991,
@@ -2833,7 +3702,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2008-04-02",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 676,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 530
   },
   {
     "player.id": 129791,
@@ -2846,7 +3719,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2002-07-19",
     "Groesse": "185",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1779,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 1585
   },
   {
     "player.id": 7334,
@@ -2859,7 +3736,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2002-01-18",
     "Groesse": "180",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2567,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2364
   },
   {
     "player.id": 486522,
@@ -2872,7 +3753,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2009-05-21",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 117,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 7.4,
+    "Vorsaison.Wert": 59
   },
   {
     "player.id": 158644,
@@ -2885,7 +3770,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2002-10-17",
     "Groesse": "183",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3276,
+    "Vorsaison.Spiele": 59,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 3185
   },
   {
     "player.id": 21393,
@@ -2898,7 +3787,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gn.svg",
     "Geburtsdatum": "1996-03-12",
     "Groesse": "187",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 4393,
+    "Vorsaison.Spiele": 60,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 4081
   },
   {
     "player.id": 426668,
@@ -2911,7 +3804,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2007-04-22",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1002,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 701
   },
   {
     "player.id": 395891,
@@ -2924,7 +3821,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2006-03-24",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1370,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 923
   },
   {
     "player.id": 1923,
@@ -2937,7 +3838,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1997-09-05",
     "Groesse": "187",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 2329,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 2047
   },
   {
     "player.id": 2802,
@@ -2950,7 +3855,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
     "Geburtsdatum": "1988-12-17",
     "Groesse": "183",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 4581,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 4671
   },
   {
     "player.id": 314265,
@@ -2963,7 +3872,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2003-03-18",
     "Groesse": "191",
-    "Gewicht": "89"
+    "Gewicht": "89",
+    "Vorsaison.Minuten": 4447,
+    "Vorsaison.Spiele": 79,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 2790
   },
   {
     "player.id": 69,
@@ -2976,7 +3889,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1993-01-28",
     "Groesse": "190",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 4700,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.21,
+    "Vorsaison.Wert": 4296
   },
   {
     "player.id": 290213,
@@ -2989,7 +3906,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2002-07-09",
     "Groesse": "180",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2938,
+    "Vorsaison.Spiele": 79,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 2009
   },
   {
     "player.id": 375974,
@@ -3002,7 +3923,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2005-03-28",
     "Groesse": "168",
-    "Gewicht": "52"
+    "Gewicht": "52",
+    "Vorsaison.Minuten": 5671,
+    "Vorsaison.Spiele": 72,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 4445
   },
   {
     "player.id": 354027,
@@ -3015,7 +3940,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ec.svg",
     "Geburtsdatum": "2004-04-21",
     "Groesse": "188",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 4131,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 3473
   },
   {
     "player.id": 304984,
@@ -3028,7 +3957,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2005-01-21",
     "Groesse": "188",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2829,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 2117
   },
   {
     "player.id": 301322,
@@ -3041,7 +3974,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2005-01-26",
     "Groesse": "176",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2519,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2452
   },
   {
     "player.id": 568147,
@@ -3054,7 +3991,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 439579,
@@ -3067,7 +4008,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2006-01-24",
     "Groesse": "184",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 3655,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 2249
   },
   {
     "player.id": 474741,
@@ -3080,7 +4025,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "2006-04-06",
     "Groesse": "188",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 1862,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 1215
   },
   {
     "player.id": 394206,
@@ -3093,7 +4042,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
     "Geburtsdatum": "2006-12-09",
     "Groesse": "183",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2923,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1997
   },
   {
     "player.id": 162211,
@@ -3106,7 +4059,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2003-12-16",
     "Groesse": "184",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 989,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 772
   },
   {
     "player.id": 325594,
@@ -3119,7 +4076,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2003-08-07",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1067,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 973
   },
   {
     "player.id": 78,
@@ -3132,7 +4093,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1992-08-24",
     "Groesse": "195",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 8207,
+    "Vorsaison.Spiele": 93,
+    "Vorsaison.Rating": 7.42,
+    "Vorsaison.Wert": 6038
   },
   {
     "player.id": 39291,
@@ -3145,7 +4110,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "2000-02-29",
     "Groesse": "174",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2530,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 1832
   },
   {
     "player.id": 38124,
@@ -3158,7 +4127,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2000-06-01",
     "Groesse": "178",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 3090,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 1754
   },
   {
     "player.id": 271609,
@@ -3171,7 +4144,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2003-10-13",
     "Groesse": "182",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 1139,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 797
   },
   {
     "player.id": 162219,
@@ -3184,7 +4161,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2001-04-19",
     "Groesse": "184",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 5829,
+    "Vorsaison.Spiele": 85,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 4181
   },
   {
     "player.id": 282126,
@@ -3197,7 +4178,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2004-03-19",
     "Groesse": "169",
-    "Gewicht": "62"
+    "Gewicht": "62",
+    "Vorsaison.Minuten": 4150,
+    "Vorsaison.Spiele": 62,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 3520
   },
   {
     "player.id": 161800,
@@ -3210,7 +4195,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
     "Geburtsdatum": "2002-01-30",
     "Groesse": "179",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 7742,
+    "Vorsaison.Spiele": 97,
+    "Vorsaison.Rating": 7.61,
+    "Vorsaison.Wert": 5537
   },
   {
     "player.id": 15683,
@@ -3223,7 +4212,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "1997-05-23",
     "Groesse": "196",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1180,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 643
   },
   {
     "player.id": 426447,
@@ -3236,7 +4229,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2008-04-15",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 882,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.57,
+    "Vorsaison.Wert": 496
   },
   {
     "player.id": 386481,
@@ -3249,7 +4246,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2005-09-22",
     "Groesse": "180",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1303,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 1231
   },
   {
     "player.id": 287923,
@@ -3262,7 +4263,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2004-08-20",
     "Groesse": "183",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 4157,
+    "Vorsaison.Spiele": 90,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 3272
   },
   {
     "player.id": 271276,
@@ -3275,7 +4280,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2004-01-24",
     "Groesse": "181",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 2225,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 1911
   },
   {
     "player.id": 430077,
@@ -3288,7 +4297,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/za.svg",
     "Geburtsdatum": "2005-07-15",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1026,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 7.34,
+    "Vorsaison.Wert": 619
   },
   {
     "player.id": 551259,
@@ -3301,7 +4314,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 8574,
@@ -3314,7 +4331,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1995-06-08",
     "Groesse": "188",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 5625,
+    "Vorsaison.Spiele": 64,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 4523
   },
   {
     "player.id": 193328,
@@ -3327,7 +4348,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "2002-02-01",
     "Groesse": "195",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 2700,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 1872
   },
   {
     "player.id": 32034,
@@ -3340,7 +4365,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1998-10-13",
     "Groesse": "195",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 863,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 863
   },
   {
     "player.id": 336560,
@@ -3353,7 +4382,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-04-25",
     "Groesse": "178",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2284,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 2155
   },
   {
     "player.id": 441244,
@@ -3366,7 +4399,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-06-11",
     "Groesse": "181",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 1497,
+    "Vorsaison.Spiele": 19,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 875
   },
   {
     "player.id": 31073,
@@ -3379,7 +4416,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1993-11-02",
     "Groesse": "193",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 1640,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 827
   },
   {
     "player.id": 129119,
@@ -3392,7 +4433,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2002-04-01",
     "Groesse": "187",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 1305,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1124
   },
   {
     "player.id": 14266,
@@ -3405,7 +4450,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "2000-08-17",
     "Groesse": "181",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2535,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 2100
   },
   {
     "player.id": 386305,
@@ -3418,7 +4467,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-01-06",
     "Groesse": "195",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 3179,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2961
   },
   {
     "player.id": 309792,
@@ -3431,7 +4484,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2003-03-08",
     "Groesse": "173",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 5560,
+    "Vorsaison.Spiele": 61,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 3739
   },
   {
     "player.id": 26301,
@@ -3444,7 +4501,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1995-01-28",
     "Groesse": "186",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 2720,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 2522
   },
   {
     "player.id": 8586,
@@ -3457,7 +4518,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/xk.svg",
     "Geburtsdatum": "1995-02-01",
     "Groesse": "187",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 4068,
+    "Vorsaison.Spiele": 75,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 2834
   },
   {
     "player.id": 711,
@@ -3470,7 +4535,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
     "Geburtsdatum": "1997-05-14",
     "Groesse": "190",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 2206,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 2148
   },
   {
     "player.id": 562612,
@@ -3483,7 +4552,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 636,
+    "Vorsaison.Spiele": 19,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 389
   },
   {
     "player.id": 459029,
@@ -3496,7 +4569,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "2007-12-26",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 551,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 386
   },
   {
     "player.id": 443162,
@@ -3509,7 +4586,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-11-21",
     "Groesse": "185",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2131,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1933
   },
   {
     "player.id": 476862,
@@ -3522,7 +4603,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hu.svg",
     "Geburtsdatum": "2009-02-18",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 130,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 66
   },
   {
     "player.id": 162266,
@@ -3535,7 +4620,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2001-06-09",
     "Groesse": "174",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 3888,
+    "Vorsaison.Spiele": 60,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 3318
   },
   {
     "player.id": 47085,
@@ -3548,7 +4637,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1994-10-07",
     "Groesse": "175",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 3317,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 3295
   },
   {
     "player.id": 295026,
@@ -3561,7 +4654,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "2003-02-16",
     "Groesse": "172",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3581,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 2586
   },
   {
     "player.id": 659,
@@ -3574,7 +4671,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2000-02-15",
     "Groesse": "174",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 1937,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1712
   },
   {
     "player.id": 288699,
@@ -3587,7 +4688,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2003-01-07",
     "Groesse": "177",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3083,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 2916
   },
   {
     "player.id": 350037,
@@ -3600,7 +4705,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2004-09-08",
     "Groesse": "186",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 3438,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.3,
+    "Vorsaison.Wert": 3161
   },
   {
     "player.id": 662278,
@@ -3613,7 +4722,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 263699,
@@ -3626,7 +4739,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gm.svg",
     "Geburtsdatum": "2001-11-03",
     "Groesse": "182",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 1423,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 1245
   },
   {
     "player.id": 59,
@@ -3639,7 +4756,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1992-10-23",
     "Groesse": "190",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 1192,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 1098
   },
   {
     "player.id": 26845,
@@ -3652,7 +4773,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
     "Geburtsdatum": "1999-08-02",
     "Groesse": "186",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2618,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 2448
   },
   {
     "player.id": 400948,
@@ -3665,7 +4790,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-09-07",
     "Groesse": "185",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1707,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1398
   },
   {
     "player.id": 354533,
@@ -3678,7 +4807,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2005-08-26",
     "Groesse": "175",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 919,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 804
   },
   {
     "player.id": 38753,
@@ -3691,7 +4824,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2000-01-01",
     "Groesse": "174",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 790,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.67,
+    "Vorsaison.Wert": 723
   },
   {
     "player.id": 567667,
@@ -3704,7 +4841,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 96476,
@@ -3717,7 +4858,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1996-02-02",
     "Groesse": "185",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 288,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 202
   },
   {
     "player.id": 41432,
@@ -3730,7 +4875,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1991-11-16",
     "Groesse": "183",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 135,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 95
   },
   {
     "player.id": 369,
@@ -3743,7 +4892,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1999-09-19",
     "Groesse": "186",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 7160,
+    "Vorsaison.Spiele": 81,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 4809
   },
   {
     "player.id": 453955,
@@ -3756,7 +4909,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-04-30",
     "Groesse": "187",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 180,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 7.6,
+    "Vorsaison.Wert": 126
   },
   {
     "player.id": 330419,
@@ -3769,7 +4926,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2003-09-29",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 3043,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 2367
   },
   {
     "player.id": 340572,
@@ -3782,7 +4943,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "2004-05-19",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 818,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 553
   },
   {
     "player.id": 41966,
@@ -3795,7 +4960,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1999-08-16",
     "Groesse": "181",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 1871,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 1468
   },
   {
     "player.id": 336683,
@@ -3808,7 +4977,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2004-03-25",
     "Groesse": "183",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1036,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 689
   },
   {
     "player.id": 61431,
@@ -3821,7 +4994,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "2000-02-15",
     "Groesse": "189",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3662,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.24,
+    "Vorsaison.Wert": 2645
   },
   {
     "player.id": 2999,
@@ -3834,7 +5011,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "1996-04-12",
     "Groesse": "189",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 4317,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7.21,
+    "Vorsaison.Wert": 3241
   },
   {
     "player.id": 336596,
@@ -3847,7 +5028,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2006-01-18",
     "Groesse": "181",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 1848,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1385
   },
   {
     "player.id": 37,
@@ -3860,7 +5045,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2000-06-24",
     "Groesse": "185",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 373,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 261
   },
   {
     "player.id": 126899,
@@ -3873,7 +5062,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "1997-06-13",
     "Groesse": "182",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2671,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 1853
   },
   {
     "player.id": 278375,
@@ -3886,7 +5079,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2001-07-04",
     "Groesse": "177",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 5040,
+    "Vorsaison.Spiele": 76,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 3204
   },
   {
     "player.id": 392252,
@@ -3899,7 +5096,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2005-10-01",
     "Groesse": "186",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 204,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.4,
+    "Vorsaison.Wert": 143
   },
   {
     "player.id": 500047,
@@ -3912,7 +5113,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2008-03-26",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 586,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 320
   },
   {
     "player.id": 519922,
@@ -3925,7 +5130,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "2010-03-24",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 54,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 38
   },
   {
     "player.id": 182504,
@@ -3938,7 +5147,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2002-05-27",
     "Groesse": "184",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3121,
+    "Vorsaison.Spiele": 65,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 2148
   },
   {
     "player.id": 240,
@@ -3951,7 +5164,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1997-01-07",
     "Groesse": "188",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 2786,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 2287
   },
   {
     "player.id": 404097,
@@ -3964,7 +5181,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-05-05",
     "Groesse": "168",
-    "Gewicht": "56"
+    "Gewicht": "56",
+    "Vorsaison.Minuten": 1904,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 1455
   },
   {
     "player.id": 35570,
@@ -3977,7 +5198,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ca.svg",
     "Geburtsdatum": "1996-12-21",
     "Groesse": "177",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 882,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 598
   },
   {
     "player.id": 550966,
@@ -3990,7 +5215,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 388872,
@@ -4003,7 +5232,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "2006-02-25",
     "Groesse": "187",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3963,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 3007
   },
   {
     "player.id": 515008,
@@ -4016,7 +5249,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-09-25",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 288,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 202
   },
   {
     "player.id": 2063,
@@ -4029,7 +5266,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1995-11-06",
     "Groesse": "185",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 1859,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1859
   },
   {
     "player.id": 133453,
@@ -4042,7 +5283,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-02-01",
     "Groesse": "178",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2418,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1934
   },
   {
     "player.id": 388570,
@@ -4055,7 +5300,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "2004-07-02",
     "Groesse": "190",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 2008,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.51,
+    "Vorsaison.Wert": 1475
   },
   {
     "player.id": 550909,
@@ -4068,7 +5317,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 442540,
@@ -4081,7 +5334,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "2008-05-20",
     "Groesse": "179",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 2591,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 1916
   },
   {
     "player.id": 10500,
@@ -4094,7 +5351,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1997-02-24",
     "Groesse": "175",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 5618,
+    "Vorsaison.Spiele": 80,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 3623
   },
   {
     "player.id": 358628,
@@ -4107,7 +5368,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-05-05",
     "Groesse": "193",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 2524,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 1825
   },
   {
     "player.id": 361372,
@@ -4120,7 +5385,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2005-10-21",
     "Groesse": "172",
-    "Gewicht": "62"
+    "Gewicht": "62",
+    "Vorsaison.Minuten": 540,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 378
   },
   {
     "player.id": 449243,
@@ -4133,7 +5402,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2006-03-15",
     "Groesse": "172",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 2388,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1821
   },
   {
     "player.id": 441274,
@@ -4146,7 +5419,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2006-03-09",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 198483,
@@ -4159,7 +5436,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ie.svg",
     "Geburtsdatum": "1996-07-15",
     "Groesse": "190",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 612947,
@@ -4172,7 +5453,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 203380,
@@ -4185,7 +5470,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2003-03-15",
     "Groesse": "193",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 3480,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.39,
+    "Vorsaison.Wert": 2334
   },
   {
     "player.id": 1949,
@@ -4198,7 +5487,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ba.svg",
     "Geburtsdatum": "1999-03-26",
     "Groesse": "190",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 3110,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 2555
   },
   {
     "player.id": 37147,
@@ -4211,7 +5504,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1996-03-07",
     "Groesse": "181",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 725,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 575
   },
   {
     "player.id": 37742,
@@ -4224,7 +5521,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1997-08-31",
     "Groesse": "183",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 1388,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1149
   },
   {
     "player.id": 359390,
@@ -4237,7 +5538,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2006-06-02",
     "Groesse": "184",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1649,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 1169
   },
   {
     "player.id": 629173,
@@ -4250,7 +5555,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 37148,
@@ -4263,7 +5572,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1996-10-19",
     "Groesse": "186",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 158,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 6.58,
+    "Vorsaison.Wert": 111
   },
   {
     "player.id": 337587,
@@ -4276,7 +5589,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/au.svg",
     "Geburtsdatum": "2002-10-29",
     "Groesse": "180",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 2898,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 2185
   },
   {
     "player.id": 37451,
@@ -4289,7 +5606,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1997-07-15",
     "Groesse": "181",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3560,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 2720
   },
   {
     "player.id": 162475,
@@ -4302,7 +5623,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-07-01",
     "Groesse": "181",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 3359,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 2351
   },
   {
     "player.id": 945,
@@ -4315,7 +5640,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
     "Geburtsdatum": "1998-09-29",
     "Groesse": "177",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 1635,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.29,
+    "Vorsaison.Wert": 1390
   },
   {
     "player.id": 134756,
@@ -4328,7 +5657,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2002-02-18",
     "Groesse": "185",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2176,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 1437
   },
   {
     "player.id": 32858,
@@ -4341,7 +5674,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/jp.svg",
     "Geburtsdatum": "1997-02-05",
     "Groesse": "184",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3770,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 2840
   },
   {
     "player.id": 632814,
@@ -4354,7 +5691,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 36910,
@@ -4367,7 +5708,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1998-12-18",
     "Groesse": "182",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 61,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.43,
+    "Vorsaison.Wert": 61
   },
   {
     "player.id": 8680,
@@ -4380,7 +5725,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1998-09-16",
     "Groesse": "182",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3113,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 2849
   },
   {
     "player.id": 425819,
@@ -4393,7 +5742,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2004-06-01",
     "Groesse": "171",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 3582,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 2704
   },
   {
     "player.id": 2901,
@@ -4406,7 +5759,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/kr.svg",
     "Geburtsdatum": "1996-09-20",
     "Groesse": "177",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1577,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 1264
   },
   {
     "player.id": 653521,
@@ -4419,7 +5776,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 11,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6,
+    "Vorsaison.Wert": 8
   },
   {
     "player.id": 40911,
@@ -4432,7 +5793,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "1999-04-07",
     "Groesse": "188",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1184,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 765
   },
   {
     "player.id": 314266,
@@ -4445,7 +5810,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2003-10-04",
     "Groesse": "189",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 3498,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 2663
   },
   {
     "player.id": 14394,
@@ -4458,7 +5827,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "1998-11-26",
     "Groesse": "175",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 783,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 616
   },
   {
     "player.id": 284071,
@@ -4471,7 +5844,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "2002-05-20",
     "Groesse": "186",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2600,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 1973
   },
   {
     "player.id": 37784,
@@ -4484,7 +5861,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2001-11-12",
     "Groesse": "173",
-    "Gewicht": "61"
+    "Gewicht": "61",
+    "Vorsaison.Minuten": 1790,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1546
   },
   {
     "player.id": 371228,
@@ -4497,7 +5878,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2007-05-03",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 828,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 607
   },
   {
     "player.id": 491239,
@@ -4510,7 +5895,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2007-02-02",
     "Groesse": "188",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 387,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 271
   },
   {
     "player.id": 326067,
@@ -4523,7 +5912,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
     "Geburtsdatum": "2002-02-11",
     "Groesse": "176",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3625,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.37,
+    "Vorsaison.Wert": 2875
   },
   {
     "player.id": 72155,
@@ -4536,7 +5929,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/jp.svg",
     "Geburtsdatum": "1998-08-28",
     "Groesse": "182",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3585,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 2727
   },
   {
     "player.id": 412873,
@@ -4549,7 +5946,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2006-03-24",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1215,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 790
   },
   {
     "player.id": 162703,
@@ -4562,7 +5963,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "2000-06-01",
     "Groesse": "184",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 679,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 584
   },
   {
     "player.id": 458540,
@@ -4575,7 +5980,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ml.svg",
     "Geburtsdatum": "2002-11-21",
     "Groesse": "183",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 459,
+    "Vorsaison.Spiele": 13,
+    "Vorsaison.Rating": 6.57,
+    "Vorsaison.Wert": 366
   },
   {
     "player.id": 128385,
@@ -4588,7 +5997,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2001-03-29",
     "Groesse": "184",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 968,
+    "Vorsaison.Spiele": 19,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 845
   },
   {
     "player.id": 629206,
@@ -4601,7 +6014,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 342163,
@@ -4614,7 +6031,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
     "Geburtsdatum": "2005-12-16",
     "Groesse": "184",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 2047,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1565
   },
   {
     "player.id": 353943,
@@ -4627,7 +6048,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-10-05",
     "Groesse": "192",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 5124,
+    "Vorsaison.Spiele": 67,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 3144
   },
   {
     "player.id": 624605,
@@ -4640,7 +6065,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 87,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 81
   },
   {
     "player.id": 568439,
@@ -4653,7 +6082,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2008-02-13",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 61950,
@@ -4666,7 +6099,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "1991-06-25",
     "Groesse": "187",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 850,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 595
   },
   {
     "player.id": 49866,
@@ -4679,7 +6116,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "1996-04-05",
     "Groesse": "191",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 4058,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 3639
   },
   {
     "player.id": 61837,
@@ -4692,7 +6133,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "1994-09-07",
     "Groesse": "185",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 4054,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 3504
   },
   {
     "player.id": 404443,
@@ -4705,7 +6150,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2007-01-18",
     "Groesse": "187",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 245,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 6.58,
+    "Vorsaison.Wert": 200
   },
   {
     "player.id": 168,
@@ -4718,7 +6167,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
     "Geburtsdatum": "1996-06-12",
     "Groesse": "187",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 3714,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 3362
   },
   {
     "player.id": 50057,
@@ -4731,7 +6184,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2000-07-07",
     "Groesse": "183",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2051,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1620
   },
   {
     "player.id": 158121,
@@ -4744,7 +6201,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "1999-08-17",
     "Groesse": "184",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2539,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.67,
+    "Vorsaison.Wert": 2403
   },
   {
     "player.id": 25448,
@@ -4757,7 +6218,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "1994-11-10",
     "Groesse": "185",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 660,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 463
   },
   {
     "player.id": 145057,
@@ -4770,7 +6235,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2003-01-16",
     "Groesse": "182",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1148,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 804
   },
   {
     "player.id": 26252,
@@ -4783,7 +6252,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hu.svg",
     "Geburtsdatum": "1997-05-22",
     "Groesse": "183",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3548,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 3145
   },
   {
     "player.id": 30504,
@@ -4796,7 +6269,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ci.svg",
     "Geburtsdatum": "2000-12-25",
     "Groesse": "190",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 1885,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 1614
   },
   {
     "player.id": 568393,
@@ -4809,7 +6286,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2008-03-26",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 567984,
@@ -4822,7 +6303,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2009-07-31",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 80552,
@@ -4835,7 +6320,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1999-06-26",
     "Groesse": "176",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2600,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 2405
   },
   {
     "player.id": 633,
@@ -4848,7 +6337,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1990-10-24",
     "Groesse": "180",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1963,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1682
   },
   {
     "player.id": 270508,
@@ -4861,7 +6354,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2004-03-26",
     "Groesse": "190",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2831,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 2595
   },
   {
     "player.id": 1462,
@@ -4874,7 +6371,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "1996-02-11",
     "Groesse": "166",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 3303,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 3085
   },
   {
     "player.id": 518567,
@@ -4887,7 +6388,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gw.svg",
     "Geburtsdatum": "2007-03-27",
     "Groesse": "176",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 1348,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 928
   },
   {
     "player.id": 602698,
@@ -4900,7 +6405,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2009-04-03",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 1
   },
   {
     "player.id": 422,
@@ -4913,7 +6422,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2000-03-01",
     "Groesse": "181",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 230,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.48,
+    "Vorsaison.Wert": 161
   },
   {
     "player.id": 63274,
@@ -4926,7 +6439,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2000-05-23",
     "Groesse": "186",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 3483,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 3194
   },
   {
     "player.id": 585709,
@@ -4939,7 +6456,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 1
   },
   {
     "player.id": 498673,
@@ -4952,7 +6473,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2008-03-02",
     "Groesse": "176",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 644,
@@ -4965,7 +6490,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1996-01-11",
     "Groesse": "183",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 3290,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 2826
   },
   {
     "player.id": 2780,
@@ -4978,7 +6507,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "1998-12-29",
     "Groesse": "185",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 3276,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 2823
   },
   {
     "player.id": 454,
@@ -4991,7 +6524,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2000-07-07",
     "Groesse": "173",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 2480,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2057
   },
   {
     "player.id": 449683,
@@ -5004,7 +6541,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/al.svg",
     "Geburtsdatum": "2007-04-30",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 226,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 113
   },
   {
     "player.id": 336707,
@@ -5017,7 +6558,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2005-03-07",
     "Groesse": "185",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 31037,
@@ -5030,7 +6575,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1994-03-17",
     "Groesse": "194",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 6022,
+    "Vorsaison.Spiele": 67,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 4226
   },
   {
     "player.id": 46988,
@@ -5043,7 +6592,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1998-05-27",
     "Groesse": "191",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1002,
+    "Vorsaison.Spiele": 19,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 726
   },
   {
     "player.id": 91488,
@@ -5056,7 +6609,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1993-10-03",
     "Groesse": "186",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 9,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.2,
+    "Vorsaison.Wert": 9
   },
   {
     "player.id": 31009,
@@ -5069,7 +6626,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1999-04-13",
     "Groesse": "190",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3209,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 3426
   },
   {
     "player.id": 31010,
@@ -5082,7 +6643,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1997-11-10",
     "Groesse": "175",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3670,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.34,
+    "Vorsaison.Wert": 3901
   },
   {
     "player.id": 5,
@@ -5095,7 +6660,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
     "Geburtsdatum": "1995-07-19",
     "Groesse": "188",
-    "Gewicht": "91"
+    "Gewicht": "91",
+    "Vorsaison.Minuten": 4134,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 4184
   },
   {
     "player.id": 392493,
@@ -5108,7 +6677,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2007-02-01",
     "Groesse": "178",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 210,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 113
   },
   {
     "player.id": 563858,
@@ -5121,7 +6694,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 24953,
@@ -5134,7 +6711,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2000-11-29",
     "Groesse": "196",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 2884,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 2961
   },
   {
     "player.id": 342230,
@@ -5147,7 +6728,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
     "Geburtsdatum": "2005-08-03",
     "Groesse": "187",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 4172,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 3792
   },
   {
     "player.id": 270509,
@@ -5160,7 +6745,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2003-05-17",
     "Groesse": "187",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 1165,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 922
   },
   {
     "player.id": 10238,
@@ -5173,7 +6762,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1999-01-07",
     "Groesse": "184",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2632,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 2592
   },
   {
     "player.id": 31173,
@@ -5186,7 +6779,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1999-09-22",
     "Groesse": "178",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 1161,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.67,
+    "Vorsaison.Wert": 1165
   },
   {
     "player.id": 408635,
@@ -5199,7 +6796,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2004-11-25",
     "Groesse": "184",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1806,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1685
   },
   {
     "player.id": 1640,
@@ -5212,7 +6813,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "1994-02-08",
     "Groesse": "178",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2696,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.52,
+    "Vorsaison.Wert": 2511
   },
   {
     "player.id": 1457,
@@ -5225,7 +6830,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/am.svg",
     "Geburtsdatum": "1989-01-21",
     "Groesse": "177",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2611,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 2399
   },
   {
     "player.id": 383000,
@@ -5238,7 +6847,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2004-08-02",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 80,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 7.3,
+    "Vorsaison.Wert": 40
   },
   {
     "player.id": 562597,
@@ -5251,7 +6864,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 11,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 6
   },
   {
     "player.id": 367878,
@@ -5264,7 +6881,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/si.svg",
     "Geburtsdatum": "2006-02-23",
     "Groesse": "186",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 457,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 233
   },
   {
     "player.id": 30558,
@@ -5277,7 +6898,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1997-02-07",
     "Groesse": "175",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3411,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 3568
   },
   {
     "player.id": 348205,
@@ -5290,7 +6915,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ba.svg",
     "Geburtsdatum": "2003-10-25",
     "Groesse": "183",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3118,
+    "Vorsaison.Spiele": 62,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 2931
   },
   {
     "player.id": 329,
@@ -5303,7 +6932,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "1994-05-20",
     "Groesse": "180",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3090,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3206
   },
   {
     "player.id": 395849,
@@ -5316,7 +6949,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2005-05-31",
     "Groesse": "176",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 275651,
@@ -5329,7 +6966,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2003-10-25",
     "Groesse": "189",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 1723,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 1729
   },
   {
     "player.id": 345808,
@@ -5342,7 +6983,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2005-06-28",
     "Groesse": "190",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2825,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 2716
   },
   {
     "player.id": 217,
@@ -5355,7 +7000,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1997-08-22",
     "Groesse": "174",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3669,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 3389
   },
   {
     "player.id": 10077,
@@ -5368,7 +7017,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2001-12-14",
     "Groesse": "181",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 2573,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 2463
   },
   {
     "player.id": 21509,
@@ -5381,7 +7034,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1997-08-06",
     "Groesse": "192",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 3077,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3072
   },
   {
     "player.id": 461830,
@@ -5394,7 +7051,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2006-12-08",
     "Groesse": "185",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 12,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 12
   },
   {
     "player.id": 436238,
@@ -5407,7 +7068,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2006-07-13",
     "Groesse": "189",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 11,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 6
   },
   {
     "player.id": 437678,
@@ -5420,7 +7085,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2007-03-26",
     "Groesse": "176",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 181,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 103
   },
   {
     "player.id": 497661,
@@ -5433,7 +7102,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2008-07-17",
     "Groesse": "185",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 1080,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 540
   },
   {
     "player.id": 347211,
@@ -5446,7 +7119,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2004-12-02",
     "Groesse": "192",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 3420,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3195
   },
   {
     "player.id": 441264,
@@ -5459,7 +7136,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2008-01-04",
     "Groesse": "183",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1073,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 631
   },
   {
     "player.id": 20525,
@@ -5472,7 +7153,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1996-03-20",
     "Groesse": "178",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 3913,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 3458
   },
   {
     "player.id": 395589,
@@ -5485,7 +7170,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ba.svg",
     "Geburtsdatum": "2006-07-17",
     "Groesse": "189",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 888,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.52,
+    "Vorsaison.Wert": 753
   },
   {
     "player.id": 369500,
@@ -5498,7 +7187,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2005-03-14",
     "Groesse": "191",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2541,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 2278
   },
   {
     "player.id": 21568,
@@ -5511,7 +7204,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1993-04-26",
     "Groesse": "172",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1873,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 1805
   },
   {
     "player.id": 322984,
@@ -5524,7 +7221,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
     "Geburtsdatum": "2004-03-31",
     "Groesse": "190",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 2442,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.21,
+    "Vorsaison.Wert": 2137
   },
   {
     "player.id": 44594,
@@ -5537,7 +7238,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sa.svg",
     "Geburtsdatum": "1999-07-18",
     "Groesse": "171",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 4695,
+    "Vorsaison.Spiele": 68,
+    "Vorsaison.Rating": 7.25,
+    "Vorsaison.Wert": 3026
   },
   {
     "player.id": 1153,
@@ -5550,7 +7255,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ml.svg",
     "Geburtsdatum": "1998-01-31",
     "Groesse": "175",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 460,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 359
   },
   {
     "player.id": 394950,
@@ -5563,7 +7272,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/me.svg",
     "Geburtsdatum": "2006-12-27",
     "Groesse": "180",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 1588,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 1188
   },
   {
     "player.id": 660571,
@@ -5576,7 +7289,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 11,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 7.6,
+    "Vorsaison.Wert": 11
   },
   {
     "player.id": 277306,
@@ -5589,7 +7306,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ml.svg",
     "Geburtsdatum": "2002-06-26",
     "Groesse": "178",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 3791,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 3197
   },
   {
     "player.id": 25634,
@@ -5602,7 +7323,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1999-08-16",
     "Groesse": "181",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 2933,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1969
   },
   {
     "player.id": 2929,
@@ -5615,7 +7340,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1993-03-29",
     "Groesse": "175",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 2945,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 2106
   },
   {
     "player.id": 277191,
@@ -5628,7 +7357,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "2001-06-17",
     "Groesse": "188",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 1055,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 887
   },
   {
     "player.id": 633361,
@@ -5641,7 +7374,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/th.svg",
     "Geburtsdatum": "2006-01-05",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 14,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 14
   },
   {
     "player.id": 20761,
@@ -5654,7 +7391,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1990-10-25",
     "Groesse": "187",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 956,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 755
   },
   {
     "player.id": 1922,
@@ -5667,7 +7408,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1993-01-26",
     "Groesse": "179",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2716,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 7.33,
+    "Vorsaison.Wert": 2588
   },
   {
     "player.id": 40809,
@@ -5680,7 +7425,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "2000-02-15",
     "Groesse": "172",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 2771,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 1925
   },
   {
     "player.id": 1135,
@@ -5693,7 +7442,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1998-01-16",
     "Groesse": "187",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 2159,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 2001
   },
   {
     "player.id": 443579,
@@ -5706,7 +7459,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2006-02-12",
     "Groesse": "182",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 1004,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 909
   },
   {
     "player.id": 2096,
@@ -5719,7 +7476,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1998-03-11",
     "Groesse": "186",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 406,
+    "Vorsaison.Spiele": 10,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 316
   },
   {
     "player.id": 1337,
@@ -5732,7 +7493,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2000-05-25",
     "Groesse": "190",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 4217,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 4211
   },
   {
     "player.id": 551417,
@@ -5745,7 +7510,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 628379,
@@ -5758,7 +7527,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 1567,
@@ -5771,7 +7544,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
     "Geburtsdatum": "1991-10-22",
     "Groesse": "184",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 4339,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 7.21,
+    "Vorsaison.Wert": 3899
   },
   {
     "player.id": 142691,
@@ -5784,7 +7561,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1999-08-09",
     "Groesse": "189",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 814,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 736
   },
   {
     "player.id": 37151,
@@ -5797,7 +7578,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1997-04-26",
     "Groesse": "174",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 1694,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1584
   },
   {
     "player.id": 375,
@@ -5810,7 +7595,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cg.svg",
     "Geburtsdatum": "1994-08-08",
     "Groesse": "182",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 2501,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 2152
   },
   {
     "player.id": 394211,
@@ -5823,7 +7612,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
     "Geburtsdatum": "2006-08-04",
     "Groesse": "180",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 876,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 611
   },
   {
     "player.id": 490745,
@@ -5836,7 +7629,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2008-01-23",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 221,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 185
   },
   {
     "player.id": 312964,
@@ -5849,7 +7646,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2003-06-10",
     "Groesse": "183",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 3476,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 3310
   },
   {
     "player.id": 20600,
@@ -5862,7 +7663,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1997-09-22",
     "Groesse": "173",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3016,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 3038
   },
   {
     "player.id": 379329,
@@ -5875,7 +7680,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2002-07-23",
     "Groesse": "175",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 1707,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 1563
   },
   {
     "player.id": 438688,
@@ -5888,7 +7697,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2007-10-02",
     "Groesse": "186",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3167,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 3153
   },
   {
     "player.id": 2204,
@@ -5901,7 +7714,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1990-08-03",
     "Groesse": "180",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3395,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 3249
   },
   {
     "player.id": 386287,
@@ -5914,7 +7731,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2006-12-29",
     "Groesse": "176",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 718,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 668
   },
   {
     "player.id": 401333,
@@ -5927,7 +7748,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2006-05-25",
     "Groesse": "168",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 409,
@@ -5940,7 +7765,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
     "Geburtsdatum": "1994-11-24",
     "Groesse": "187",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2320,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 2132
   },
   {
     "player.id": 375598,
@@ -5953,7 +7782,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2004-11-03",
     "Groesse": "188",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2858,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.71,
+    "Vorsaison.Wert": 2641
   },
   {
     "player.id": 630699,
@@ -5966,7 +7799,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 360032,
@@ -5979,7 +7816,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2004-07-06",
     "Groesse": "173",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2518,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 1673
   },
   {
     "player.id": 135749,
@@ -5992,7 +7833,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2001-01-22",
     "Groesse": "178",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 3331,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 3153
   },
   {
     "player.id": 20732,
@@ -6005,7 +7850,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1996-06-07",
     "Groesse": "169",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 1017,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.61,
+    "Vorsaison.Wert": 887
   },
   {
     "player.id": 67889,
@@ -6018,7 +7867,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/is.svg",
     "Geburtsdatum": "2003-04-10",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3772,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 3578
   },
   {
     "player.id": 318416,
@@ -6031,7 +7884,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "2004-12-26",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1699,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 1290
   },
   {
     "player.id": 340077,
@@ -6044,7 +7901,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2005-02-03",
     "Groesse": "183",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 3106,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 3125
   },
   {
     "player.id": 430816,
@@ -6057,7 +7918,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2005-10-04",
     "Groesse": "181",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 715,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.52,
+    "Vorsaison.Wert": 562
   },
   {
     "player.id": 2295,
@@ -6070,7 +7935,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1986-09-30",
     "Groesse": "193",
-    "Gewicht": "91"
+    "Gewicht": "91",
+    "Vorsaison.Minuten": 3376,
+    "Vorsaison.Spiele": 64,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 2998
   },
   {
     "player.id": 99576,
@@ -6083,7 +7952,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "2001-06-11",
     "Groesse": "170",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 995,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 922
   },
   {
     "player.id": 487381,
@@ -6096,7 +7969,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gn.svg",
     "Geburtsdatum": "2007-08-14",
     "Groesse": "174",
-    "Gewicht": "56"
+    "Gewicht": "56",
+    "Vorsaison.Minuten": 293,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 289
   },
   {
     "player.id": 280,
@@ -6109,7 +7986,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1992-10-02",
     "Groesse": "193",
-    "Gewicht": "91"
+    "Gewicht": "91",
+    "Vorsaison.Minuten": 3223,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 3293
   },
   {
     "player.id": 342467,
@@ -6122,7 +8003,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hu.svg",
     "Geburtsdatum": "2005-02-24",
     "Groesse": "190",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 45
   },
   {
     "player.id": 18889,
@@ -6135,7 +8020,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1997-03-04",
     "Groesse": "188",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 302,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 257
   },
   {
     "player.id": 24760,
@@ -6148,7 +8037,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
     "Geburtsdatum": "2000-09-29",
     "Groesse": "197",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 1712,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 1864
   },
   {
     "player.id": 415992,
@@ -6161,7 +8054,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-04-27",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 135525,
@@ -6174,7 +8071,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-sct.svg",
     "Geburtsdatum": "2003-07-31",
     "Groesse": "177",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 344,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.3,
+    "Vorsaison.Wert": 172
   },
   {
     "player.id": 367636,
@@ -6187,7 +8088,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2005-07-13",
     "Groesse": "188",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1853,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 1763
   },
   {
     "player.id": 284,
@@ -6200,7 +8105,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1997-05-23",
     "Groesse": "188",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1430,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.61,
+    "Vorsaison.Wert": 1412
   },
   {
     "player.id": 206254,
@@ -6213,7 +8122,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hu.svg",
     "Geburtsdatum": "2003-11-07",
     "Groesse": "180",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 3541,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 3528
   },
   {
     "player.id": 606814,
@@ -6226,7 +8139,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 290,
@@ -6239,7 +8156,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1991-07-08",
     "Groesse": "195",
-    "Gewicht": "92"
+    "Gewicht": "92",
+    "Vorsaison.Minuten": 5048,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7.29,
+    "Vorsaison.Wert": 5320
   },
   {
     "player.id": 6716,
@@ -6252,7 +8173,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1998-12-24",
     "Groesse": "176",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 4133,
+    "Vorsaison.Spiele": 59,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 4263
   },
   {
     "player.id": 407032,
@@ -6265,7 +8190,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-11-18",
     "Groesse": "186",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 54,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 42
   },
   {
     "player.id": 293,
@@ -6278,7 +8207,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2001-01-30",
     "Groesse": "185",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 3287,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 3057
   },
   {
     "player.id": 1096,
@@ -6291,7 +8224,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hu.svg",
     "Geburtsdatum": "2000-10-25",
     "Groesse": "186",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 5102,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 7.41,
+    "Vorsaison.Wert": 5226
   },
   {
     "player.id": 203224,
@@ -6304,7 +8241,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2003-05-03",
     "Groesse": "176",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 3587,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 3833
   },
   {
     "player.id": 287109,
@@ -6317,7 +8258,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2004-09-13",
     "Groesse": "175",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 219,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 248
   },
   {
     "player.id": 152654,
@@ -6330,7 +8275,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2000-12-10",
     "Groesse": "171",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 1896,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 1952
   },
   {
     "player.id": 389032,
@@ -6343,7 +8292,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-11-09",
     "Groesse": "170",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 167,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 5.72,
+    "Vorsaison.Wert": 84
   },
   {
     "player.id": 542,
@@ -6356,7 +8309,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2002-05-16",
     "Groesse": "190",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 4221,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 4570
   },
   {
     "player.id": 397997,
@@ -6369,7 +8326,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-06-30",
     "Groesse": "180",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 357,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 227
   },
   {
     "player.id": 8500,
@@ -6382,7 +8343,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/jp.svg",
     "Geburtsdatum": "1993-02-09",
     "Groesse": "178",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 677,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 528
   },
   {
     "player.id": 2864,
@@ -6395,7 +8360,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/se.svg",
     "Geburtsdatum": "1999-09-21",
     "Groesse": "192",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1195,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 1240
   },
   {
     "player.id": 247,
@@ -6408,7 +8377,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1999-05-07",
     "Groesse": "193",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3676,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 3691
   },
   {
     "player.id": 30410,
@@ -6421,7 +8394,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1997-10-25",
     "Groesse": "175",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 862,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 715
   },
   {
     "player.id": 174565,
@@ -6434,7 +8411,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2002-06-20",
     "Groesse": "190",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3142,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 3314
   },
   {
     "player.id": 452685,
@@ -6447,7 +8428,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-08-29",
     "Groesse": "170",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1444,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 1076
   },
   {
     "player.id": 338751,
@@ -6460,7 +8445,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-07-13",
     "Groesse": "173",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2785,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2727
   },
   {
     "player.id": 498377,
@@ -6473,7 +8462,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-04-03",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 56,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.2,
+    "Vorsaison.Wert": 28
   },
   {
     "player.id": 1622,
@@ -6486,7 +8479,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1999-02-25",
     "Groesse": "196",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 3870,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 4275
   },
   {
     "player.id": 162489,
@@ -6499,7 +8496,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2002-10-10",
     "Groesse": "197",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 2262,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 1407
   },
   {
     "player.id": 19012,
@@ -6512,7 +8513,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1992-05-24",
     "Groesse": "193",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 360114,
@@ -6525,7 +8530,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uz.svg",
     "Geburtsdatum": "2004-02-29",
     "Groesse": "186",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 2817,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 2638
   },
   {
     "player.id": 67971,
@@ -6538,7 +8547,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2000-07-13",
     "Groesse": "182",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 4616,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.36,
+    "Vorsaison.Wert": 4262
   },
   {
     "player.id": 129033,
@@ -6551,7 +8564,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "2002-01-23",
     "Groesse": "185",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1931,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 2099
   },
   {
     "player.id": 293168,
@@ -6564,7 +8581,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2005-07-21",
     "Groesse": "185",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 1809,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 1317
   },
   {
     "player.id": 21138,
@@ -6577,7 +8598,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
     "Geburtsdatum": "2001-06-06",
     "Groesse": "180",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2738,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 2207
   },
   {
     "player.id": 284230,
@@ -6590,7 +8615,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2004-11-21",
     "Groesse": "170",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 1787,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 1329
   },
   {
     "player.id": 567,
@@ -6603,7 +8632,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1997-05-14",
     "Groesse": "187",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3087,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 3130
   },
   {
     "player.id": 382358,
@@ -6616,7 +8649,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-02-12",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 897,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 583
   },
   {
     "player.id": 389034,
@@ -6629,7 +8666,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-02-22",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 8,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 4
   },
   {
     "player.id": 138908,
@@ -6642,7 +8683,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-sct.svg",
     "Geburtsdatum": "2002-11-06",
     "Groesse": "179",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 4804,
+    "Vorsaison.Spiele": 59,
+    "Vorsaison.Rating": 7.3,
+    "Vorsaison.Wert": 4571
   },
   {
     "player.id": 2291,
@@ -6655,7 +8700,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "1994-05-06",
     "Groesse": "177",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 307,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 260
   },
   {
     "player.id": 41621,
@@ -6668,7 +8717,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1998-08-27",
     "Groesse": "183",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 4303,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 4018
   },
   {
     "player.id": 156477,
@@ -6681,7 +8734,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2003-08-17",
     "Groesse": "180",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 3401,
+    "Vorsaison.Spiele": 61,
+    "Vorsaison.Rating": 7.27,
+    "Vorsaison.Wert": 3003
   },
   {
     "player.id": 161933,
@@ -6694,7 +8751,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2002-01-03",
     "Groesse": "189",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 2738,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 2573
   },
   {
     "player.id": 307123,
@@ -6707,7 +8768,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2005-03-21",
     "Groesse": "177",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 4148,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 4069
   },
   {
     "player.id": 631,
@@ -6720,7 +8785,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2000-05-28",
     "Groesse": "171",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 3570,
+    "Vorsaison.Spiele": 64,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 3353
   },
   {
     "player.id": 44,
@@ -6733,7 +8802,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-06-22",
     "Groesse": "190",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 2327,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.35,
+    "Vorsaison.Wert": 2267
   },
   {
     "player.id": 442048,
@@ -6746,7 +8819,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-06-24",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 379,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 190
   },
   {
     "player.id": 568413,
@@ -6759,7 +8836,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 36902,
@@ -6772,7 +8853,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1998-07-29",
     "Groesse": "178",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3377,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 3088
   },
   {
     "player.id": 19281,
@@ -6785,7 +8870,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gh.svg",
     "Geburtsdatum": "2000-01-07",
     "Groesse": "185",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 4276,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 3844
   },
   {
     "player.id": 380681,
@@ -6798,7 +8887,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-08-22",
     "Groesse": "180",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1289,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 828
   },
   {
     "player.id": 1100,
@@ -6811,7 +8904,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "2000-07-21",
     "Groesse": "195",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 4518,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.25,
+    "Vorsaison.Wert": 4493
   },
   {
     "player.id": 1422,
@@ -6824,7 +8921,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2002-05-27",
     "Groesse": "173",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 3464,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.51,
+    "Vorsaison.Wert": 3260
   },
   {
     "player.id": 460853,
@@ -6837,7 +8938,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2009-07-10",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1097,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.57,
+    "Vorsaison.Wert": 735
   },
   {
     "player.id": 81573,
@@ -6850,7 +8955,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/eg.svg",
     "Geburtsdatum": "1999-02-07",
     "Groesse": "180",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 2620,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 1909
   },
   {
     "player.id": 266657,
@@ -6863,7 +8972,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2004-04-10",
     "Groesse": "179",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 2137,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.28,
+    "Vorsaison.Wert": 1867
   },
   {
     "player.id": 50132,
@@ -6876,7 +8989,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "1998-04-14",
     "Groesse": "198",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 810,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 675
   },
   {
     "player.id": 18885,
@@ -6889,7 +9006,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1990-10-08",
     "Groesse": "190",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 2441,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 2213
   },
   {
     "player.id": 162511,
@@ -6902,7 +9023,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2002-07-07",
     "Groesse": "193",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 3690,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3357
   },
   {
     "player.id": 402329,
@@ -6915,7 +9040,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2006-09-22",
     "Groesse": "189",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1022,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 982
   },
   {
     "player.id": 886,
@@ -6928,7 +9057,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1999-03-18",
     "Groesse": "183",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2797,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 2707
   },
   {
     "player.id": 440159,
@@ -6941,7 +9074,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2008-02-06",
     "Groesse": "196",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 45
   },
   {
     "player.id": 2935,
@@ -6954,7 +9091,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1993-03-05",
     "Groesse": "194",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 2164,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 1955
   },
   {
     "player.id": 342970,
@@ -6967,7 +9108,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2005-11-13",
     "Groesse": "190",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 2378,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 2090
   },
   {
     "player.id": 2467,
@@ -6980,7 +9125,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1998-01-18",
     "Groesse": "175",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 1684,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 1534
   },
   {
     "player.id": 891,
@@ -6993,7 +9142,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1995-07-12",
     "Groesse": "178",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 3627,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 3469
   },
   {
     "player.id": 545,
@@ -7006,7 +9159,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "1997-11-14",
     "Groesse": "183",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 2382,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 1731
   },
   {
     "player.id": 382452,
@@ -7019,7 +9176,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "2004-10-26",
     "Groesse": "185",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2005,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.96,
+    "Vorsaison.Wert": 1742
   },
   {
     "player.id": 328101,
@@ -7032,7 +9193,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2005-02-23",
     "Groesse": "184",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 235,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.01,
+    "Vorsaison.Wert": 132
   },
   {
     "player.id": 305834,
@@ -7045,7 +9210,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2004-05-03",
     "Groesse": "180",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2435,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 2164
   },
   {
     "player.id": 1485,
@@ -7058,7 +9227,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1994-09-08",
     "Groesse": "179",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 4101,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.69,
+    "Vorsaison.Wert": 3674
   },
   {
     "player.id": 383770,
@@ -7071,7 +9244,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-03-19",
     "Groesse": "180",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 170,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 139
   },
   {
     "player.id": 344229,
@@ -7084,7 +9261,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2005-11-29",
     "Groesse": "184",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1223,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 790
   },
   {
     "player.id": 284322,
@@ -7097,7 +9278,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2005-04-19",
     "Groesse": "175",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 1942,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 1818
   },
   {
     "player.id": 51494,
@@ -7110,7 +9295,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "2001-04-11",
     "Groesse": "182",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1560,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.75,
+    "Vorsaison.Wert": 1275
   },
   {
     "player.id": 19220,
@@ -7123,7 +9312,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1999-01-10",
     "Groesse": "181",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 1158,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1093
   },
   {
     "player.id": 557460,
@@ -7136,7 +9329,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 197,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.43,
+    "Vorsaison.Wert": 107
   },
   {
     "player.id": 2926,
@@ -7149,7 +9346,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1997-05-07",
     "Groesse": "176",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 3029,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 2836
   },
   {
     "player.id": 157997,
@@ -7162,7 +9363,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ci.svg",
     "Geburtsdatum": "2002-07-11",
     "Groesse": "173",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2878,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 2611
   },
   {
     "player.id": 115589,
@@ -7175,7 +9380,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/si.svg",
     "Geburtsdatum": "2003-05-31",
     "Groesse": "195",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 1816,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 1726
   },
   {
     "player.id": 20589,
@@ -7188,7 +9397,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cm.svg",
     "Geburtsdatum": "1999-08-07",
     "Groesse": "173",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 3566,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 3103
   },
   {
     "player.id": 70100,
@@ -7201,7 +9414,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2001-05-22",
     "Groesse": "193",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 848,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.54,
+    "Vorsaison.Wert": 786
   },
   {
     "player.id": 1165,
@@ -7214,7 +9431,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1999-05-27",
     "Groesse": "183",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2968,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 2742
   },
   {
     "player.id": 557462,
@@ -7227,7 +9448,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 248,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 7.47,
+    "Vorsaison.Wert": 150
   },
   {
     "player.id": 312,
@@ -7240,7 +9465,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1997-03-22",
     "Groesse": "190",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 1070,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 1115
   },
   {
     "player.id": 568115,
@@ -7253,7 +9482,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 32172,
@@ -7266,7 +9499,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1996-05-21",
     "Groesse": "190",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 10,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.3,
+    "Vorsaison.Wert": 10
   },
   {
     "player.id": 31156,
@@ -7279,7 +9516,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
     "Geburtsdatum": "1997-02-20",
     "Groesse": "202",
-    "Gewicht": "96"
+    "Gewicht": "96",
+    "Vorsaison.Minuten": 3515,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 3648
   },
   {
     "player.id": 31226,
@@ -7292,7 +9533,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1999-06-06",
     "Groesse": "190",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3152,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 3435
   },
   {
     "player.id": 1314,
@@ -7305,7 +9550,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/xk.svg",
     "Geburtsdatum": "1994-02-24",
     "Groesse": "192",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 2345,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 7.27,
+    "Vorsaison.Wert": 2343
   },
   {
     "player.id": 561812,
@@ -7318,7 +9567,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 31042,
@@ -7331,7 +9584,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1993-08-04",
     "Groesse": "183",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 3024,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 3212
   },
   {
     "player.id": 862,
@@ -7344,7 +9601,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1993-03-25",
     "Groesse": "186",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2604,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 2683
   },
   {
     "player.id": 388547,
@@ -7357,7 +9618,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2004-07-23",
     "Groesse": "186",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 752,
+    "Vorsaison.Spiele": 13,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 722
   },
   {
     "player.id": 47254,
@@ -7370,7 +9635,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "1997-10-31",
     "Groesse": "185",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2008,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 2013
   },
   {
     "player.id": 162032,
@@ -7383,7 +9652,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-07-27",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1844,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1969
   },
   {
     "player.id": 31390,
@@ -7396,7 +9669,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1995-07-27",
     "Groesse": "183",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 473,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 395
   },
   {
     "player.id": 37604,
@@ -7409,7 +9686,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1998-11-17",
     "Groesse": "188",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2220,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 2307
   },
   {
     "player.id": 3406,
@@ -7422,7 +9703,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cm.svg",
     "Geburtsdatum": "1995-11-16",
     "Groesse": "184",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2025,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 1982
   },
   {
     "player.id": 347395,
@@ -7435,7 +9720,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2003-01-16",
     "Groesse": "182",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 938,
+    "Vorsaison.Spiele": 19,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 940
   },
   {
     "player.id": 130423,
@@ -7448,7 +9737,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-sct.svg",
     "Geburtsdatum": "2001-06-11",
     "Groesse": "170",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 1055,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 1014
   },
   {
     "player.id": 579072,
@@ -7461,7 +9754,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 629,
@@ -7474,7 +9771,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1991-06-28",
     "Groesse": "181",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 1360,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1456
   },
   {
     "player.id": 56851,
@@ -7487,7 +9788,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1998-02-07",
     "Groesse": "190",
-    "Gewicht": "92"
+    "Gewicht": "92",
+    "Vorsaison.Minuten": 2458,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 2409
   },
   {
     "player.id": 903,
@@ -7500,7 +9805,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-sct.svg",
     "Geburtsdatum": "1996-12-08",
     "Groesse": "193",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 3786,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 3989
   },
   {
     "player.id": 47439,
@@ -7513,7 +9822,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
     "Geburtsdatum": "1994-11-25",
     "Groesse": "168",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3845,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 3648
   },
   {
     "player.id": 561707,
@@ -7526,7 +9839,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 31219,
@@ -7539,7 +9856,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1999-03-03",
     "Groesse": "182",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2062,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 2026
   },
   {
     "player.id": 310943,
@@ -7552,7 +9873,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2002-09-27",
     "Groesse": "177",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 1264,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 1266
   },
   {
     "player.id": 312615,
@@ -7565,7 +9890,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2003-11-24",
     "Groesse": "183",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 2048,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.58,
+    "Vorsaison.Wert": 1975
   },
   {
     "player.id": 341912,
@@ -7578,7 +9907,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2003-09-10",
     "Groesse": "187",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 1124,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 751
   },
   {
     "player.id": 199089,
@@ -7591,7 +9924,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2000-09-10",
     "Groesse": "201",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 983,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.52,
+    "Vorsaison.Wert": 1027
   },
   {
     "player.id": 219,
@@ -7604,7 +9941,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "1993-08-03",
     "Groesse": "171",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 2839,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 2859
   },
   {
     "player.id": 544,
@@ -7617,7 +9958,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1999-06-17",
     "Groesse": "173",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2014,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 1983
   },
   {
     "player.id": 288006,
@@ -7630,7 +9975,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "2003-02-04",
     "Groesse": "191",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3858,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.59,
+    "Vorsaison.Wert": 3920
   },
   {
     "player.id": 907,
@@ -7643,7 +9992,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1993-05-13",
     "Groesse": "191",
-    "Gewicht": "93"
+    "Gewicht": "93",
+    "Vorsaison.Minuten": 74,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.49,
+    "Vorsaison.Wert": 70
   },
   {
     "player.id": 128478,
@@ -7656,7 +10009,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "1998-01-22",
     "Groesse": "187",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1316,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.62,
+    "Vorsaison.Wert": 1282
   },
   {
     "player.id": 606062,
@@ -7669,7 +10026,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 568273,
@@ -7682,7 +10043,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 659070,
@@ -7695,7 +10060,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 162453,
@@ -7708,7 +10077,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2001-11-06",
     "Groesse": "189",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2347,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2479
   },
   {
     "player.id": 568266,
@@ -7721,7 +10094,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 2068,
@@ -7734,7 +10111,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ru.svg",
     "Geburtsdatum": "1999-02-25",
     "Groesse": "192",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 2850,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 3120
   },
   {
     "player.id": 9,
@@ -7747,7 +10128,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "1998-11-04",
     "Groesse": "181",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 4125,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 3904
   },
   {
     "player.id": 307835,
@@ -7760,7 +10145,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2003-11-24",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2750,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2198
   },
   {
     "player.id": 610763,
@@ -7773,7 +10162,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 29,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 15
   },
   {
     "player.id": 568268,
@@ -7786,7 +10179,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 59,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 59
   },
   {
     "player.id": 161671,
@@ -7799,7 +10196,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2002-09-01",
     "Groesse": "189",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2885,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 2852
   },
   {
     "player.id": 33,
@@ -7812,7 +10213,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1996-02-14",
     "Groesse": "184",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 2172,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 2205
   },
   {
     "player.id": 257,
@@ -7825,7 +10230,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1994-05-14",
     "Groesse": "183",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3176,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 3433
   },
   {
     "player.id": 263482,
@@ -7838,7 +10247,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2002-06-19",
     "Groesse": "180",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2994,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 3526
   },
   {
     "player.id": 568269,
@@ -7851,7 +10264,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 16367,
@@ -7864,7 +10281,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ec.svg",
     "Geburtsdatum": "2001-10-16",
     "Groesse": "188",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 4479,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 4757
   },
   {
     "player.id": 328,
@@ -7877,7 +10298,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-04-03",
     "Groesse": "189",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2446,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 2438
   },
   {
     "player.id": 335051,
@@ -7890,7 +10315,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2004-09-27",
     "Groesse": "174",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 3244,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.21,
+    "Vorsaison.Wert": 3410
   },
   {
     "player.id": 927,
@@ -7903,7 +10332,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/kr.svg",
     "Geburtsdatum": "2001-02-19",
     "Groesse": "173",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 2307,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 2178
   },
   {
     "player.id": 567804,
@@ -7916,7 +10349,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 44,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.43,
+    "Vorsaison.Wert": 30
   },
   {
     "player.id": 491087,
@@ -7929,7 +10366,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2008-01-12",
     "Groesse": "182",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 839,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 873
   },
   {
     "player.id": 409216,
@@ -7942,7 +10383,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2006-05-17",
     "Groesse": "183",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 2531,
+    "Vorsaison.Spiele": 62,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 2567
   },
   {
     "player.id": 128384,
@@ -7955,7 +10400,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2000-02-13",
     "Groesse": "172",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 4512,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 7.58,
+    "Vorsaison.Wert": 4861
   },
   {
     "player.id": 336657,
@@ -7968,7 +10417,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2006-03-08",
     "Groesse": "178",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 4551,
+    "Vorsaison.Spiele": 62,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 4845
   },
   {
     "player.id": 161904,
@@ -7981,7 +10434,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2002-09-02",
     "Groesse": "182",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3446,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 3587
   },
   {
     "player.id": 343027,
@@ -7994,7 +10451,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2005-06-03",
     "Groesse": "181",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 3057,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 3078
   },
   {
     "player.id": 446249,
@@ -8007,7 +10468,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2008-01-24",
     "Groesse": "185",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 1801,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1505
   },
   {
     "player.id": 483,
@@ -8020,7 +10485,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
     "Geburtsdatum": "2001-02-12",
     "Groesse": "183",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3305,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.42,
+    "Vorsaison.Wert": 3534
   },
   {
     "player.id": 153,
@@ -8033,7 +10502,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1997-05-15",
     "Groesse": "178",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 2520,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.45,
+    "Vorsaison.Wert": 2618
   },
   {
     "player.id": 36828,
@@ -8046,7 +10519,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1996-11-16",
     "Groesse": "192",
-    "Gewicht": "89"
+    "Gewicht": "89",
+    "Vorsaison.Minuten": 3360,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 7.37,
+    "Vorsaison.Wert": 2292
   },
   {
     "player.id": 138804,
@@ -8059,7 +10536,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2000-05-17",
     "Groesse": "196",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 4005,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 3281
   },
   {
     "player.id": 37818,
@@ -8072,7 +10553,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1995-08-01",
     "Groesse": "188",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 270,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 189
   },
   {
     "player.id": 371523,
@@ -8085,7 +10570,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2005-02-23",
     "Groesse": "197",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1350,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 927
   },
   {
     "player.id": 307426,
@@ -8098,7 +10587,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/bf.svg",
     "Geburtsdatum": "2002-09-22",
     "Groesse": "185",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 889,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 566
   },
   {
     "player.id": 228,
@@ -8111,7 +10604,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1999-03-05",
     "Groesse": "185",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 1414,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 1194
   },
   {
     "player.id": 474551,
@@ -8124,7 +10621,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2008-09-26",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 3147,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 2108
   },
   {
     "player.id": 191233,
@@ -8137,7 +10638,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2002-05-16",
     "Groesse": "186",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 2483,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1584
   },
   {
     "player.id": 233,
@@ -8150,7 +10655,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1999-05-06",
     "Groesse": "171",
-    "Gewicht": "62"
+    "Gewicht": "62",
+    "Vorsaison.Minuten": 2885,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 2490
   },
   {
     "player.id": 342054,
@@ -8163,7 +10672,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2002-12-31",
     "Groesse": "186",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3002,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 2059
   },
   {
     "player.id": 38735,
@@ -8176,7 +10689,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2000-11-03",
     "Groesse": "173",
-    "Gewicht": "62"
+    "Gewicht": "62",
+    "Vorsaison.Minuten": 3109,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2456
   },
   {
     "player.id": 361385,
@@ -8189,7 +10706,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-01-12",
     "Groesse": "190",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2923,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 2444
   },
   {
     "player.id": 36905,
@@ -8202,7 +10723,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1997-12-22",
     "Groesse": "186",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 3004,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 2534
   },
   {
     "player.id": 37890,
@@ -8215,7 +10740,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1997-01-12",
     "Groesse": "185",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3371,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 2837
   },
   {
     "player.id": 453712,
@@ -8228,7 +10757,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2007-03-31",
     "Groesse": "172",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 1263,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 884
   },
   {
     "player.id": 434623,
@@ -8241,7 +10774,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2007-02-11",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2295,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 1602
   },
   {
     "player.id": 37749,
@@ -8254,7 +10791,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1998-11-19",
     "Groesse": "185",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 3360,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.71,
+    "Vorsaison.Wert": 2874
   },
   {
     "player.id": 439829,
@@ -8267,7 +10808,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2006-11-17",
     "Groesse": "182",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1701,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1110
   },
   {
     "player.id": 474550,
@@ -8280,7 +10825,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2005-01-09",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2138,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1407
   },
   {
     "player.id": 327895,
@@ -8293,7 +10842,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
     "Geburtsdatum": "2005-12-23",
     "Groesse": "185",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2459,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 1839
   },
   {
     "player.id": 37438,
@@ -8306,7 +10859,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2000-03-09",
     "Groesse": "190",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 3946,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.21,
+    "Vorsaison.Wert": 2938
   },
   {
     "player.id": 25646,
@@ -8319,7 +10876,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1993-03-10",
     "Groesse": "181",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 112,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 78
   },
   {
     "player.id": 272543,
@@ -8332,7 +10893,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "2002-04-17",
     "Groesse": "175",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1273,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1024
   },
   {
     "player.id": 43036,
@@ -8345,7 +10910,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ro.svg",
     "Geburtsdatum": "1998-08-26",
     "Groesse": "183",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 2164,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 1839
   },
   {
     "player.id": 329409,
@@ -8358,7 +10927,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2005-03-10",
     "Groesse": "175",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 1475,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 1030
   },
   {
     "player.id": 207,
@@ -8371,7 +10944,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hr.svg",
     "Geburtsdatum": "1989-02-02",
     "Groesse": "186",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 3060,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 2512
   },
   {
     "player.id": 73868,
@@ -8384,7 +10961,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2003-01-09",
     "Groesse": "185",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1788,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1335
   },
   {
     "player.id": 24814,
@@ -8397,7 +10978,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1994-04-10",
     "Groesse": "185",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 1924,
@@ -8410,7 +10995,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2002-02-26",
     "Groesse": "192",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2138,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 1595
   },
   {
     "player.id": 1139,
@@ -8423,7 +11012,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hu.svg",
     "Geburtsdatum": "1990-05-06",
     "Groesse": "191",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 2099,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 2054
   },
   {
     "player.id": 98,
@@ -8436,7 +11029,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1997-02-23",
     "Groesse": "183",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 319,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 319
   },
   {
     "player.id": 162761,
@@ -8449,7 +11046,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2002-12-17",
     "Groesse": "184",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3175,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 2676
   },
   {
     "player.id": 25158,
@@ -8462,7 +11063,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1998-04-22",
     "Groesse": "180",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2923,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 7.39,
+    "Vorsaison.Wert": 2740
   },
   {
     "player.id": 268571,
@@ -8475,7 +11080,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2005-05-16",
     "Groesse": "196",
-    "Gewicht": "95"
+    "Gewicht": "95",
+    "Vorsaison.Minuten": 766,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 719
   },
   {
     "player.id": 441231,
@@ -8488,7 +11097,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2007-10-07",
     "Groesse": "178",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 1144,
@@ -8501,7 +11114,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1996-06-03",
     "Groesse": "187",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 173,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 138
   },
   {
     "player.id": 355167,
@@ -8514,7 +11131,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2004-03-27",
     "Groesse": "183",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 510,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 506
   },
   {
     "player.id": 179400,
@@ -8527,7 +11148,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2002-05-26",
     "Groesse": "193",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 3202,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 3070
   },
   {
     "player.id": 1148,
@@ -8540,7 +11165,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/hu.svg",
     "Geburtsdatum": "1992-11-03",
     "Groesse": "186",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 3591,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.29,
+    "Vorsaison.Wert": 3271
   },
   {
     "player.id": 601134,
@@ -8553,7 +11182,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 398192,
@@ -8566,7 +11199,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
     "Geburtsdatum": "2007-06-05",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 108,
+    "Vorsaison.Spiele": 10,
+    "Vorsaison.Rating": 6.59,
+    "Vorsaison.Wert": 98
   },
   {
     "player.id": 25917,
@@ -8579,7 +11216,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1998-04-08",
     "Groesse": "176",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2760,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 2635
   },
   {
     "player.id": 715,
@@ -8592,7 +11233,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
     "Geburtsdatum": "1999-08-01",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3022,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 2906
   },
   {
     "player.id": 380978,
@@ -8605,7 +11250,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2006-05-09",
     "Groesse": "191",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 1109,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1042
   },
   {
     "player.id": 7328,
@@ -8618,7 +11267,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/at.svg",
     "Geburtsdatum": "2001-05-04",
     "Groesse": "179",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 3052,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 2878
   },
   {
     "player.id": 203007,
@@ -8631,7 +11284,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2002-05-29",
     "Groesse": "176",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3775,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 3206
   },
   {
     "player.id": 314511,
@@ -8644,7 +11301,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/no.svg",
     "Geburtsdatum": "2005-04-17",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 2365,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2200
   },
   {
     "player.id": 328225,
@@ -8657,7 +11318,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2004-05-31",
     "Groesse": "178",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2321,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 1908
   },
   {
     "player.id": 419916,
@@ -8670,7 +11335,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "2005-04-07",
     "Groesse": "185",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 1343,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 1144
   },
   {
     "player.id": 343286,
@@ -8683,7 +11352,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2005-02-16",
     "Groesse": "191",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 836,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 717
   },
   {
     "player.id": 326102,
@@ -8696,7 +11369,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2002-02-08",
     "Groesse": "193",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 2345,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 2275
   },
   {
     "player.id": 570742,
@@ -8709,7 +11386,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 8,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.3,
+    "Vorsaison.Wert": 8
   },
   {
     "player.id": 290549,
@@ -8722,7 +11403,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2003-04-20",
     "Groesse": "179",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 1024,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 902
   },
   {
     "player.id": 383665,
@@ -8735,7 +11420,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2006-08-08",
     "Groesse": "182",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 827,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.49,
+    "Vorsaison.Wert": 592
   },
   {
     "player.id": 513776,
@@ -8748,7 +11437,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ci.svg",
     "Geburtsdatum": "2006-11-14",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 3069,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.68,
+    "Vorsaison.Wert": 2773
   },
   {
     "player.id": 46990,
@@ -8761,7 +11454,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1997-07-25",
     "Groesse": "190",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 2970,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 3015
   },
   {
     "player.id": 334574,
@@ -8774,7 +11471,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-07-25",
     "Groesse": "167",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 1200,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 1181
   },
   {
     "player.id": 610742,
@@ -8787,7 +11488,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 47302,
@@ -8800,7 +11505,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1993-08-16",
     "Groesse": "186",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2024,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 2001
   },
   {
     "player.id": 355004,
@@ -8813,7 +11522,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2003-06-26",
     "Groesse": "180",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 4023,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 3489
   },
   {
     "player.id": 736,
@@ -8826,7 +11539,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1999-08-14",
     "Groesse": "169",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 1369,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 1411
   },
   {
     "player.id": 1439,
@@ -8839,7 +11556,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1995-03-19",
     "Groesse": "178",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 2007,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 2024
   },
   {
     "player.id": 1564,
@@ -8852,7 +11573,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-08-22",
     "Groesse": "184",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1045,
+    "Vorsaison.Spiele": 19,
+    "Vorsaison.Rating": 6.56,
+    "Vorsaison.Wert": 1012
   },
   {
     "player.id": 1561,
@@ -8865,7 +11590,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1991-01-15",
     "Groesse": "184",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2496,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2461
   },
   {
     "player.id": 195100,
@@ -8878,7 +11607,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2001-02-06",
     "Groesse": "188",
-    "Gewicht": "92"
+    "Gewicht": "92",
+    "Vorsaison.Minuten": 3755,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.75,
+    "Vorsaison.Wert": 3742
   },
   {
     "player.id": 439994,
@@ -8891,7 +11624,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-09-15",
     "Groesse": "180",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 750,
@@ -8904,7 +11641,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1997-04-09",
     "Groesse": "174",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3016,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 2183
   },
   {
     "player.id": 316519,
@@ -8917,7 +11658,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "2003-08-21",
     "Groesse": "189",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2108,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1329
   },
   {
     "player.id": 1578,
@@ -8930,7 +11675,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "1996-04-09",
     "Groesse": "177",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 1971,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 1876
   },
   {
     "player.id": 745,
@@ -8943,7 +11692,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1992-04-21",
     "Groesse": "176",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 237,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 238
   },
   {
     "player.id": 450714,
@@ -8956,7 +11709,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-05-01",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 14,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 6.3,
+    "Vorsaison.Wert": 14
   },
   {
     "player.id": 47341,
@@ -8969,7 +11726,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-11-26",
     "Groesse": "184",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2641,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 2638
   },
   {
     "player.id": 300885,
@@ -8982,7 +11743,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
     "Geburtsdatum": "2000-02-06",
     "Groesse": "185",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 2101,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 1695
   },
   {
     "player.id": 1697,
@@ -8995,7 +11760,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-02-22",
     "Groesse": "178",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 3708,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3701
   },
   {
     "player.id": 181421,
@@ -9008,7 +11777,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "2001-12-17",
     "Groesse": "177",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 4228,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.32,
+    "Vorsaison.Wert": 3725
   },
   {
     "player.id": 47119,
@@ -9021,7 +11794,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-03-22",
     "Groesse": "176",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 2598,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 2561
   },
   {
     "player.id": 9971,
@@ -9034,7 +11811,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2000-02-24",
     "Groesse": "174",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 3431,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.3,
+    "Vorsaison.Wert": 3418
   },
   {
     "player.id": 128985,
@@ -9047,7 +11828,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-08-01",
     "Groesse": "175",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1079,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 994
   },
   {
     "player.id": 544644,
@@ -9060,7 +11845,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 22,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 5.9,
+    "Vorsaison.Wert": 24
   },
   {
     "player.id": 47582,
@@ -9073,7 +11862,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
     "Geburtsdatum": "1999-04-20",
     "Groesse": "175",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3187,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 3158
   },
   {
     "player.id": 443163,
@@ -9086,7 +11879,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2006-08-15",
     "Groesse": "175",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 1126,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 851
   },
   {
     "player.id": 548691,
@@ -9099,7 +11896,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 136117,
@@ -9112,7 +11913,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2000-04-02",
     "Groesse": "173",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 1285,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 1240
   },
   {
     "player.id": 47400,
@@ -9125,7 +11930,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1999-02-11",
     "Groesse": "191",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1042,
+    "Vorsaison.Spiele": 13,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 1106
   },
   {
     "player.id": 396475,
@@ -9138,7 +11947,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-06-24",
     "Groesse": "199",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 360,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 180
   },
   {
     "player.id": 544044,
@@ -9151,7 +11964,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 386872,
@@ -9164,7 +11981,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-02-13",
     "Groesse": "193",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 730,
@@ -9177,7 +11998,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "1992-05-11",
     "Groesse": "200",
-    "Gewicht": "96"
+    "Gewicht": "96",
+    "Vorsaison.Minuten": 4545,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 4658
   },
   {
     "player.id": 284300,
@@ -9190,7 +12015,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-03-23",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 4172,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 4053
   },
   {
     "player.id": 2285,
@@ -9203,7 +12032,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1993-03-03",
     "Groesse": "190",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 2540,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 2646
   },
   {
     "player.id": 330436,
@@ -9216,7 +12049,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-03-14",
     "Groesse": "170",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 244,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.16,
+    "Vorsaison.Wert": 161
   },
   {
     "player.id": 361497,
@@ -9229,7 +12066,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2005-04-14",
     "Groesse": "195",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 3848,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 3713
   },
   {
     "player.id": 226,
@@ -9242,7 +12083,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "1996-04-18",
     "Groesse": "188",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2068,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 2040
   },
   {
     "player.id": 451355,
@@ -9255,7 +12100,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-02-07",
     "Groesse": "180",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 296,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.39,
+    "Vorsaison.Wert": 163
   },
   {
     "player.id": 372,
@@ -9268,7 +12117,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1998-01-18",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1795,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 1856
   },
   {
     "player.id": 653,
@@ -9281,7 +12134,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1995-06-08",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 518,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 587
   },
   {
     "player.id": 1145,
@@ -9294,7 +12151,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1999-05-25",
     "Groesse": "194",
-    "Gewicht": "95"
+    "Gewicht": "95",
+    "Vorsaison.Minuten": 4376,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 4609
   },
   {
     "player.id": 561033,
@@ -9307,7 +12168,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 443595,
@@ -9320,7 +12185,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-03-26",
     "Groesse": "174",
-    "Gewicht": "62"
+    "Gewicht": "62",
+    "Vorsaison.Minuten": 408,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 204
   },
   {
     "player.id": 561032,
@@ -9333,7 +12202,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 560902,
@@ -9346,7 +12219,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 8,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.2,
+    "Vorsaison.Wert": 8
   },
   {
     "player.id": 47380,
@@ -9359,7 +12236,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1998-07-22",
     "Groesse": "174",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 5024,
+    "Vorsaison.Spiele": 63,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 4595
   },
   {
     "player.id": 341640,
@@ -9372,7 +12253,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-02-13",
     "Groesse": "184",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 2651,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.75,
+    "Vorsaison.Wert": 2738
   },
   {
     "player.id": 283,
@@ -9385,7 +12270,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "1998-10-07",
     "Groesse": "175",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 2188,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 2308
   },
   {
     "player.id": 291964,
@@ -9398,7 +12287,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tr.svg",
     "Geburtsdatum": "2005-02-25",
     "Groesse": "176",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 3864,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 3975
   },
   {
     "player.id": 1271,
@@ -9411,7 +12304,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2000-01-27",
     "Groesse": "187",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 4475,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 4674
   },
   {
     "player.id": 636,
@@ -9424,7 +12321,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1994-08-10",
     "Groesse": "173",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 4254,
+    "Vorsaison.Spiele": 59,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 4123
   },
   {
     "player.id": 744,
@@ -9437,7 +12338,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "1999-08-03",
     "Groesse": "171",
-    "Gewicht": "59"
+    "Gewicht": "59",
+    "Vorsaison.Minuten": 2717,
+    "Vorsaison.Spiele": 62,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2428
   },
   {
     "player.id": 386306,
@@ -9450,7 +12355,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-11-11",
     "Groesse": "182",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 123,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.43,
+    "Vorsaison.Wert": 121
   },
   {
     "player.id": 2207,
@@ -9463,7 +12372,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2002-11-10",
     "Groesse": "182",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2211,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 2350
   },
   {
     "player.id": 756,
@@ -9476,7 +12389,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "1998-07-22",
     "Groesse": "182",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 4163,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.31,
+    "Vorsaison.Wert": 4617
   },
   {
     "player.id": 560905,
@@ -9489,7 +12406,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 118,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.42,
+    "Vorsaison.Wert": 76
   },
   {
     "player.id": 129718,
@@ -9502,7 +12423,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2003-06-29",
     "Groesse": "186",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3183,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.24,
+    "Vorsaison.Wert": 3157
   },
   {
     "player.id": 313167,
@@ -9515,7 +12440,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-03-15",
     "Groesse": "170",
-    "Gewicht": "60"
+    "Gewicht": "60",
+    "Vorsaison.Minuten": 136,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.54,
+    "Vorsaison.Wert": 146
   },
   {
     "player.id": 371913,
@@ -9528,7 +12457,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-03-10",
     "Groesse": "175",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 509470,
@@ -9541,7 +12474,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-08-03",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1074,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.52,
+    "Vorsaison.Wert": 1074
   },
   {
     "player.id": 308998,
@@ -9554,7 +12491,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-12-28",
     "Groesse": "173",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 3,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 3
   },
   {
     "player.id": 441497,
@@ -9567,7 +12508,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-03-28",
     "Groesse": "177",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 47,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 46
   },
   {
     "player.id": 449249,
@@ -9580,7 +12525,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2007-08-14",
     "Groesse": "178",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3817,
+    "Vorsaison.Spiele": 62,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 2924
   },
   {
     "player.id": 336711,
@@ -9593,7 +12542,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-03-24",
     "Groesse": "182",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 1969,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 1657
   },
   {
     "player.id": 278,
@@ -9606,7 +12559,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1998-12-20",
     "Groesse": "178",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3755,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 7.65,
+    "Vorsaison.Wert": 4092
   },
   {
     "player.id": 10009,
@@ -9619,7 +12576,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2001-01-09",
     "Groesse": "174",
-    "Gewicht": "64"
+    "Gewicht": "64",
+    "Vorsaison.Minuten": 1502,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 1326
   },
   {
     "player.id": 762,
@@ -9632,7 +12593,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2000-07-12",
     "Groesse": "176",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 5031,
+    "Vorsaison.Spiele": 62,
+    "Vorsaison.Rating": 7.41,
+    "Vorsaison.Wert": 5098
   },
   {
     "player.id": 544640,
@@ -9645,7 +12610,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 1500,
@@ -9658,7 +12627,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1999-01-30",
     "Groesse": "186",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1854,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 1479
   },
   {
     "player.id": 158447,
@@ -9671,7 +12644,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2002-08-07",
     "Groesse": "191",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 540,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 450
   },
   {
     "player.id": 441295,
@@ -9684,7 +12661,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 63
   },
   {
     "player.id": 49439,
@@ -9697,7 +12678,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/tn.svg",
     "Geburtsdatum": "2001-07-24",
     "Groesse": "190",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 959,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 719
   },
   {
     "player.id": 547512,
@@ -9710,7 +12695,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 24597,
@@ -9723,7 +12712,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
     "Geburtsdatum": "2002-02-21",
     "Groesse": "179",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1443,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 955
   },
   {
     "player.id": 30529,
@@ -9736,7 +12729,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1995-09-07",
     "Groesse": "182",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1623,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.96,
+    "Vorsaison.Wert": 1114
   },
   {
     "player.id": 336696,
@@ -9749,7 +12746,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2003-08-28",
     "Groesse": "180",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 526,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 368
   },
   {
     "player.id": 682,
@@ -9762,7 +12763,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1996-05-02",
     "Groesse": "182",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 1905,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 1506
   },
   {
     "player.id": 299925,
@@ -9775,7 +12780,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2002-07-11",
     "Groesse": "177",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 1741,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 1404
   },
   {
     "player.id": 676,
@@ -9788,7 +12797,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1999-02-27",
     "Groesse": "185",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2120,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 1688
   },
   {
     "player.id": 279792,
@@ -9801,7 +12814,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2004-02-23",
     "Groesse": "177",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 1436,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 1216
   },
   {
     "player.id": 161950,
@@ -9814,7 +12831,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2000-08-21",
     "Groesse": "182",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1062,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 814
   },
   {
     "player.id": 545356,
@@ -9827,7 +12848,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 162050,
@@ -9840,7 +12865,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2000-10-06",
     "Groesse": "180",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 363,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 275
   },
   {
     "player.id": 8458,
@@ -9853,7 +12882,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1997-07-10",
     "Groesse": "183",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 1085,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 888
   },
   {
     "player.id": 463988,
@@ -9866,7 +12899,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2007-04-24",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1663,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 1234
   },
   {
     "player.id": 465199,
@@ -9879,7 +12916,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2006-04-28",
     "Groesse": "180",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 2069,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 1473
   },
   {
     "player.id": 374356,
@@ -9892,7 +12933,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2003-12-14",
     "Groesse": "182",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1287,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1014
   },
   {
     "player.id": 161946,
@@ -9905,7 +12950,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2003-05-25",
     "Groesse": "181",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 2365,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1701
   },
   {
     "player.id": 55877,
@@ -9918,7 +12967,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1992-06-02",
     "Groesse": "175",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 817,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 626
   },
   {
     "player.id": 428137,
@@ -9931,7 +12984,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2003-11-24",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 751,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 7.2,
+    "Vorsaison.Wert": 527
   },
   {
     "player.id": 386300,
@@ -9944,7 +13001,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2006-02-04",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 238,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 6.75,
+    "Vorsaison.Wert": 126
   },
   {
     "player.id": 415116,
@@ -9957,7 +13018,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2005-09-21",
     "Groesse": "183",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 1011,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 807
   },
   {
     "player.id": 336626,
@@ -9970,7 +13035,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2004-04-20",
     "Groesse": "185",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 598,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 429
   },
   {
     "player.id": 374094,
@@ -9983,7 +13052,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2004-08-09",
     "Groesse": "175",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1029,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 799
   },
   {
     "player.id": 406224,
@@ -9996,7 +13069,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ve.svg",
     "Geburtsdatum": "2001-12-08",
     "Groesse": "184",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 1337,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.67,
+    "Vorsaison.Wert": 883
   },
   {
     "player.id": 414358,
@@ -10009,7 +13086,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2006-03-28",
     "Groesse": "180",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 1447,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 1182
   },
   {
     "player.id": 555,
@@ -10022,7 +13103,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/bf.svg",
     "Geburtsdatum": "2001-01-12",
     "Groesse": "182",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 1194,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 709
   },
   {
     "player.id": 500094,
@@ -10035,7 +13120,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2007-05-15",
     "Groesse": "185",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2133,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 1358
   },
   {
     "player.id": 63557,
@@ -10048,7 +13137,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "1997-07-16",
     "Groesse": "171",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 139,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 112
   },
   {
     "player.id": 415151,
@@ -10061,7 +13154,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2005-06-03",
     "Groesse": "167",
-    "Gewicht": "59"
+    "Gewicht": "59",
+    "Vorsaison.Minuten": 1431,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1130
   },
   {
     "player.id": 10244,
@@ -10074,7 +13171,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "1998-04-13",
     "Groesse": "172",
-    "Gewicht": "62"
+    "Gewicht": "62",
+    "Vorsaison.Minuten": 1542,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 1237
   },
   {
     "player.id": 570400,
@@ -10087,7 +13188,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 544046,
@@ -10100,7 +13205,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 128768,
@@ -10113,7 +13222,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2001-07-13",
     "Groesse": "188",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1551,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 7.31,
+    "Vorsaison.Wert": 1230
   },
   {
     "player.id": 66347,
@@ -10126,7 +13239,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1996-04-27",
     "Groesse": "192",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 2250,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2007
   },
   {
     "player.id": 431177,
@@ -10139,7 +13256,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ua.svg",
     "Geburtsdatum": "2007-04-06",
     "Groesse": "190",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1440,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 7.34,
+    "Vorsaison.Wert": 1008
   },
   {
     "player.id": 1227,
@@ -10152,7 +13273,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1994-10-17",
     "Groesse": "193",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 32,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 7.5,
+    "Vorsaison.Wert": 22
   },
   {
     "player.id": 376316,
@@ -10165,7 +13290,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2004-05-13",
     "Groesse": "178",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2170,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 1483
   },
   {
     "player.id": 574662,
@@ -10178,7 +13307,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 276551,
@@ -10191,7 +13324,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2003-09-01",
     "Groesse": "188",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2452,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 1716
   },
   {
     "player.id": 33095,
@@ -10204,7 +13341,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/jp.svg",
     "Geburtsdatum": "1999-05-17",
     "Groesse": "184",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1708,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 1308
   },
   {
     "player.id": 128793,
@@ -10217,7 +13358,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2000-08-07",
     "Groesse": "183",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2285,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 1635
   },
   {
     "player.id": 128772,
@@ -10230,7 +13375,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2000-11-08",
     "Groesse": "190",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2513,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 2311
   },
   {
     "player.id": 323900,
@@ -10243,7 +13392,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2003-07-13",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2938,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 2029
   },
   {
     "player.id": 265386,
@@ -10256,7 +13409,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
     "Geburtsdatum": "2002-11-02",
     "Groesse": "183",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 803,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 404
   },
   {
     "player.id": 551763,
@@ -10269,7 +13426,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 63
   },
   {
     "player.id": 524875,
@@ -10282,7 +13443,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "2004-01-09",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 755,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 840
   },
   {
     "player.id": 1174,
@@ -10295,7 +13460,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2000-02-08",
     "Groesse": "187",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1368,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 1042
   },
   {
     "player.id": 462213,
@@ -10308,7 +13477,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2007-08-14",
     "Groesse": "187",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 175,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 6.25,
+    "Vorsaison.Wert": 105
   },
   {
     "player.id": 543962,
@@ -10321,7 +13494,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1363,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 954
   },
   {
     "player.id": 368039,
@@ -10334,7 +13511,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2004-09-10",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 981,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 687
   },
   {
     "player.id": 524412,
@@ -10347,7 +13528,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 952,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 666
   },
   {
     "player.id": 337740,
@@ -10360,7 +13545,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2003-03-08",
     "Groesse": "182",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 3378,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 2623
   },
   {
     "player.id": 338205,
@@ -10373,7 +13562,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2003-06-10",
     "Groesse": "193",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 2598,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 1819
   },
   {
     "player.id": 512859,
@@ -10386,7 +13579,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2004-07-13",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1975,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 1383
   },
   {
     "player.id": 2252,
@@ -10399,7 +13596,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1993-03-31",
     "Groesse": "180",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 2282,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 7.36,
+    "Vorsaison.Wert": 1748
   },
   {
     "player.id": 1236,
@@ -10412,7 +13613,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2001-02-28",
     "Groesse": "182",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1104,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 1031
   },
   {
     "player.id": 551688,
@@ -10425,7 +13630,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 66214,
@@ -10438,7 +13647,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1998-05-31",
     "Groesse": "175",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 2019,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 1750
   },
   {
     "player.id": 400679,
@@ -10451,7 +13664,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2004-01-20",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2029,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1714
   },
   {
     "player.id": 339346,
@@ -10464,7 +13681,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/lr.svg",
     "Geburtsdatum": "2006-04-19",
     "Groesse": "179",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 738,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 454
   },
   {
     "player.id": 365840,
@@ -10477,7 +13698,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2004-10-28",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2137,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 1496
   },
   {
     "player.id": 555416,
@@ -10490,7 +13715,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 190,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.36,
+    "Vorsaison.Wert": 133
   },
   {
     "player.id": 551760,
@@ -10503,7 +13732,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 66353,
@@ -10516,7 +13749,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1996-10-23",
     "Groesse": "191",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 3181,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.37,
+    "Vorsaison.Wert": 2788
   },
   {
     "player.id": 551776,
@@ -10529,7 +13766,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 315,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 221
   },
   {
     "player.id": 551562,
@@ -10542,7 +13783,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 241,
@@ -10555,7 +13800,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1999-05-31",
     "Groesse": "169",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 2746,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 2383
   },
   {
     "player.id": 66042,
@@ -10568,7 +13817,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/lr.svg",
     "Geburtsdatum": "1998-07-19",
     "Groesse": "173",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 2224,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 1827
   },
   {
     "player.id": 322561,
@@ -10581,7 +13834,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2002-02-09",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 596,
+    "Vorsaison.Spiele": 13,
+    "Vorsaison.Rating": 6.59,
+    "Vorsaison.Wert": 423
   },
   {
     "player.id": 388771,
@@ -10594,7 +13851,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2005-12-27",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 689,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 482
   },
   {
     "player.id": 512806,
@@ -10607,7 +13868,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ci.svg",
     "Geburtsdatum": "2006-01-19",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1639,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 1147
   },
   {
     "player.id": 368737,
@@ -10620,7 +13885,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pl.svg",
     "Geburtsdatum": "2004-09-20",
     "Groesse": "187",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 2783,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 1948
   },
   {
     "player.id": 561874,
@@ -10633,7 +13902,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1163,
+    "Vorsaison.Spiele": 17,
+    "Vorsaison.Rating": 6.47,
+    "Vorsaison.Wert": 814
   },
   {
     "player.id": 522293,
@@ -10646,7 +13919,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2006-08-14",
     "Groesse": "192",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 39,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 7.05,
+    "Vorsaison.Wert": 27
   },
   {
     "player.id": 135273,
@@ -10659,7 +13936,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/si.svg",
     "Geburtsdatum": "1999-01-04",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 2192,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 1746
   },
   {
     "player.id": 15328,
@@ -10672,7 +13953,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sk.svg",
     "Geburtsdatum": "1993-09-13",
     "Groesse": "185",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 862,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 634
   },
   {
     "player.id": 66275,
@@ -10685,7 +13970,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1999-04-29",
     "Groesse": "187",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 1664,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1276
   },
   {
     "player.id": 450921,
@@ -10698,7 +13987,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "2006-09-12",
     "Groesse": "181",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 879,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 615
   },
   {
     "player.id": 555376,
@@ -10711,7 +14004,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 818,
@@ -10724,7 +14021,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cz.svg",
     "Geburtsdatum": "1995-01-26",
     "Groesse": "199",
-    "Gewicht": "102"
+    "Gewicht": "102",
+    "Vorsaison.Minuten": 2387,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 2023
   },
   {
     "player.id": 491797,
@@ -10737,7 +14038,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "2005-08-31",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1667,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1429
   },
   {
     "player.id": 330296,
@@ -10750,7 +14055,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2004-07-18",
     "Groesse": "190",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 720,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 504
   },
   {
     "player.id": 361417,
@@ -10763,7 +14072,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2005-11-20",
     "Groesse": "191",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 180,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 126
   },
   {
     "player.id": 18755,
@@ -10776,7 +14089,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1999-10-10",
     "Groesse": "193",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 390,
+    "Vorsaison.Spiele": 7,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 321
   },
   {
     "player.id": 46672,
@@ -10789,7 +14106,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1994-02-07",
     "Groesse": "191",
-    "Gewicht": "91"
+    "Gewicht": "91",
+    "Vorsaison.Minuten": 4215,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3703
   },
   {
     "player.id": 262845,
@@ -10802,7 +14123,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2002-03-02",
     "Groesse": "185",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2041,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.24,
+    "Vorsaison.Wert": 1703
   },
   {
     "player.id": 135839,
@@ -10815,7 +14140,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
     "Geburtsdatum": "2001-09-12",
     "Groesse": "182",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 1803,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1395
   },
   {
     "player.id": 265595,
@@ -10828,7 +14157,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2001-08-25",
     "Groesse": "186",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 3802,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.51,
+    "Vorsaison.Wert": 3358
   },
   {
     "player.id": 341700,
@@ -10841,7 +14174,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2004-09-28",
     "Groesse": "183",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 2629,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.67,
+    "Vorsaison.Wert": 2557
   },
   {
     "player.id": 354753,
@@ -10854,7 +14191,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ci.svg",
     "Geburtsdatum": "2003-12-04",
     "Groesse": "190",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3090,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 2418
   },
   {
     "player.id": 41324,
@@ -10867,7 +14208,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1998-03-19",
     "Groesse": "181",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 1257,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 927
   },
   {
     "player.id": 505249,
@@ -10880,7 +14225,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2005-07-12",
     "Groesse": "179",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 625,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.71,
+    "Vorsaison.Wert": 438
   },
   {
     "player.id": 490740,
@@ -10893,7 +14242,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-06-13",
     "Groesse": "185",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 440,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 320
   },
   {
     "player.id": 304228,
@@ -10906,7 +14259,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2003-10-24",
     "Groesse": "191",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 1451,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 1141
   },
   {
     "player.id": 41892,
@@ -10919,7 +14276,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1999-05-27",
     "Groesse": "178",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 870,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 716
   },
   {
     "player.id": 449626,
@@ -10932,7 +14293,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-01-08",
     "Groesse": "187",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 537,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.57,
+    "Vorsaison.Wert": 331
   },
   {
     "player.id": 119795,
@@ -10945,7 +14310,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
     "Geburtsdatum": "1999-06-29",
     "Groesse": "178",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 746,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 558
   },
   {
     "player.id": 331046,
@@ -10958,7 +14327,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/it.svg",
     "Geburtsdatum": "2003-10-16",
     "Groesse": "187",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 3283,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 2267
   },
   {
     "player.id": 417653,
@@ -10971,7 +14344,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gb-eng.svg",
     "Geburtsdatum": "2007-06-30",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 209,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 127
   },
   {
     "player.id": 400509,
@@ -10984,7 +14361,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-01-06",
     "Groesse": "178",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 1505,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.56,
+    "Vorsaison.Wert": 1560
   },
   {
     "player.id": 279802,
@@ -10997,7 +14378,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2003-03-27",
     "Groesse": "185",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 2018,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 1389
   },
   {
     "player.id": 18748,
@@ -11010,7 +14395,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1998-06-28",
     "Groesse": "173",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 2716,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 2289
   },
   {
     "player.id": 108563,
@@ -11023,7 +14412,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "1999-08-12",
     "Groesse": "178",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2850,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.2,
+    "Vorsaison.Wert": 2222
   },
   {
     "player.id": 286084,
@@ -11036,7 +14429,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-08-25",
     "Groesse": "188",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 2007,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 1981
   },
   {
     "player.id": 341822,
@@ -11049,7 +14446,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "2004-06-13",
     "Groesse": "190",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 2791,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.43,
+    "Vorsaison.Wert": 2075
   },
   {
     "player.id": 490759,
@@ -11062,7 +14463,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-05-30",
     "Groesse": "173",
-    "Gewicht": "65"
+    "Gewicht": "65",
+    "Vorsaison.Minuten": 395,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 277
   },
   {
     "player.id": 26965,
@@ -11075,7 +14480,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/gr.svg",
     "Geburtsdatum": "2000-01-10",
     "Groesse": "186",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1118,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1015
   },
   {
     "player.id": 449624,
@@ -11088,7 +14497,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2007-04-09",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 401,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.4,
+    "Vorsaison.Wert": 244
   },
   {
     "player.id": 154839,
@@ -11101,7 +14514,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/mz.svg",
     "Geburtsdatum": "2001-01-26",
     "Groesse": "173",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 3972,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 3150
   },
   {
     "player.id": 404574,
@@ -11114,7 +14531,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2006-02-09",
     "Groesse": "178",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 1100,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 826
   },
   {
     "player.id": 47237,
@@ -11127,7 +14548,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/co.svg",
     "Geburtsdatum": "1997-12-02",
     "Groesse": "185",
-    "Gewicht": "74"
+    "Gewicht": "74",
+    "Vorsaison.Minuten": 4228,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.28,
+    "Vorsaison.Wert": 3609
   },
   {
     "player.id": 385674,
@@ -11140,7 +14565,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2005-11-15",
     "Groesse": "170",
-    "Gewicht": "63"
+    "Gewicht": "63",
+    "Vorsaison.Minuten": 775,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.57,
+    "Vorsaison.Wert": 543
   },
   {
     "player.id": 51776,
@@ -11153,7 +14582,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "2000-02-15",
     "Groesse": "179",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3592,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 3219
   },
   {
     "player.id": 41194,
@@ -11166,7 +14599,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1995-02-13",
     "Groesse": "177",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 202,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 194
   },
   {
     "player.id": 386820,
@@ -11179,7 +14616,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2005-04-03",
     "Groesse": "182",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 681,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 496
   },
   {
     "player.id": 353771,
@@ -11192,7 +14633,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "2003-02-08",
     "Groesse": "179",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 1801,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 1279
   },
   {
     "player.id": 41112,
@@ -11205,7 +14650,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "1999-12-29",
     "Groesse": "184",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 4167,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.2,
+    "Vorsaison.Wert": 3610
   },
   {
     "player.id": 25597,
@@ -11218,7 +14667,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1995-03-02",
     "Groesse": "190",
-    "Gewicht": "87"
+    "Gewicht": "87",
+    "Vorsaison.Minuten": 375,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 242
   },
   {
     "player.id": 25142,
@@ -11231,7 +14684,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1996-01-01",
     "Groesse": "187",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 2160,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 1494
   },
   {
     "player.id": 178217,
@@ -11244,7 +14701,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1999-04-20",
     "Groesse": "193",
-    "Gewicht": "89"
+    "Gewicht": "89",
+    "Vorsaison.Minuten": 180,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 126
   },
   {
     "player.id": 323449,
@@ -11257,7 +14718,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/be.svg",
     "Geburtsdatum": "2002-03-06",
     "Groesse": "188",
-    "Gewicht": "81"
+    "Gewicht": "81",
+    "Vorsaison.Minuten": 416,
+    "Vorsaison.Spiele": 10,
+    "Vorsaison.Rating": 6.58,
+    "Vorsaison.Wert": 403
   },
   {
     "player.id": 13,
@@ -11270,7 +14735,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "1999-06-03",
     "Groesse": "196",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 346,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 7.38,
+    "Vorsaison.Wert": 308
   },
   {
     "player.id": 394734,
@@ -11283,7 +14752,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2006-07-17",
     "Groesse": "187",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 2855,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 2626
   },
   {
     "player.id": 24868,
@@ -11296,7 +14769,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2000-12-11",
     "Groesse": "190",
-    "Gewicht": "90"
+    "Gewicht": "90",
+    "Vorsaison.Minuten": 2137,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.56,
+    "Vorsaison.Wert": 2020
   },
   {
     "player.id": 38112,
@@ -11309,7 +14786,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1998-02-12",
     "Groesse": "195",
-    "Gewicht": "95"
+    "Gewicht": "95",
+    "Vorsaison.Minuten": 3586,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 3346
   },
   {
     "player.id": 180731,
@@ -11322,7 +14803,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2000-06-22",
     "Groesse": "181",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2143,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 2060
   },
   {
     "player.id": 349344,
@@ -11335,7 +14820,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ch.svg",
     "Geburtsdatum": "2003-06-02",
     "Groesse": "187",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 1836,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 1645
   },
   {
     "player.id": 25342,
@@ -11348,7 +14837,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1997-03-18",
     "Groesse": "180",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 3787,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 3507
   },
   {
     "player.id": 420353,
@@ -11361,7 +14854,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2006-02-09",
     "Groesse": "191",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 1679,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1068
   },
   {
     "player.id": 24806,
@@ -11374,7 +14871,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dk.svg",
     "Geburtsdatum": "2000-02-22",
     "Groesse": "187",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 1536,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1475
   },
   {
     "player.id": 135883,
@@ -11387,7 +14888,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/nl.svg",
     "Geburtsdatum": "2001-07-18",
     "Groesse": "189",
-    "Gewicht": "83"
+    "Gewicht": "83",
+    "Vorsaison.Minuten": 3459,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 3245
   },
   {
     "player.id": 137210,
@@ -11400,7 +14905,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2001-04-04",
     "Groesse": "183",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 4322,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 4052
   },
   {
     "player.id": 24963,
@@ -11413,7 +14922,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1996-10-13",
     "Groesse": "191",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3826,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.82,
+    "Vorsaison.Wert": 3295
   },
   {
     "player.id": 340573,
@@ -11426,7 +14939,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ma.svg",
     "Geburtsdatum": "2004-05-10",
     "Groesse": "180",
-    "Gewicht": "70"
+    "Gewicht": "70",
+    "Vorsaison.Minuten": 3428,
+    "Vorsaison.Spiele": 59,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 2947
   },
   {
     "player.id": 24854,
@@ -11439,7 +14956,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1995-01-09",
     "Groesse": "180",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 1823,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1788
   },
   {
     "player.id": 388871,
@@ -11452,7 +14973,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-04-25",
     "Groesse": "190",
-    "Gewicht": "82"
+    "Gewicht": "82",
+    "Vorsaison.Minuten": 1964,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 1949
   },
   {
     "player.id": 535099,
@@ -11465,7 +14990,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 960,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 672
   },
   {
     "player.id": 478610,
@@ -11478,7 +15007,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
     "Geburtsdatum": "2007-05-01",
     "Groesse": "190",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 1367,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 957
   },
   {
     "player.id": 535120,
@@ -11491,7 +15024,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 867,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.57,
+    "Vorsaison.Wert": 610
   },
   {
     "player.id": 334879,
@@ -11504,7 +15041,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/dz.svg",
     "Geburtsdatum": "2004-12-08",
     "Groesse": "177",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 1671,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 1554
   },
   {
     "player.id": 24798,
@@ -11517,7 +15058,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1998-01-09",
     "Groesse": "181",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 2734,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 2509
   },
   {
     "player.id": 26475,
@@ -11530,7 +15075,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "1996-07-19",
     "Groesse": "179",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3643,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 3404
   },
   {
     "player.id": 46930,
@@ -11543,7 +15092,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ba.svg",
     "Geburtsdatum": "1998-03-25",
     "Groesse": "185",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 2850,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 2510
   },
   {
     "player.id": 128533,
@@ -11556,7 +15109,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/de.svg",
     "Geburtsdatum": "2001-02-26",
     "Groesse": "185",
-    "Gewicht": "86"
+    "Gewicht": "86",
+    "Vorsaison.Minuten": 3558,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 3353
   },
   {
     "player.id": 350799,
@@ -11569,7 +15126,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-03-19",
     "Groesse": "182",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 1269,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 859
   },
   {
     "player.id": 371911,
@@ -11582,7 +15143,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/rs.svg",
     "Geburtsdatum": "2005-07-31",
     "Groesse": "190",
-    "Gewicht": "84"
+    "Gewicht": "84",
+    "Vorsaison.Minuten": 1901,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 1462
   },
   {
     "player.id": 546701,
@@ -11595,7 +15160,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 1421,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 955
   },
   {
     "player.id": 265363,
@@ -11608,7 +15177,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2002-06-16",
     "Groesse": "180",
-    "Gewicht": "69"
+    "Gewicht": "69",
+    "Vorsaison.Minuten": 2251,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 1934
   },
   {
     "player.id": 162473,
@@ -11621,7 +15194,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2001-05-30",
     "Groesse": "185",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 1381,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 1411
   },
   {
     "player.id": 122956,
@@ -11634,7 +15211,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1998-10-28",
     "Groesse": "188",
-    "Gewicht": "78"
+    "Gewicht": "78",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 7.3,
+    "Vorsaison.Wert": 45
   },
   {
     "player.id": 278619,
@@ -11647,7 +15228,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/br.svg",
     "Geburtsdatum": "2001-01-14",
     "Groesse": "194",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 3060,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 3240
   },
   {
     "player.id": 355994,
@@ -11660,7 +15245,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/us.svg",
     "Geburtsdatum": "2004-08-09",
     "Groesse": "188",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 3816,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 2596
   },
   {
     "player.id": 311773,
@@ -11673,7 +15262,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/uy.svg",
     "Geburtsdatum": "2002-02-13",
     "Groesse": "186",
-    "Gewicht": "76"
+    "Gewicht": "76",
+    "Vorsaison.Minuten": 3098,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 3275
   },
   {
     "player.id": 455356,
@@ -11686,7 +15279,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2006-05-27",
     "Groesse": "183",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 21,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 32
   },
   {
     "player.id": 21997,
@@ -11699,7 +15296,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/cv.svg",
     "Geburtsdatum": "2001-04-01",
     "Groesse": "190",
-    "Gewicht": "91"
+    "Gewicht": "91",
+    "Vorsaison.Minuten": 1080,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 555
   },
   {
     "player.id": 435552,
@@ -11712,7 +15313,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-04-25",
     "Groesse": "185",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 2325,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 2318
   },
   {
     "player.id": 336671,
@@ -11725,7 +15330,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/pt.svg",
     "Geburtsdatum": "2003-07-29",
     "Groesse": "190",
-    "Gewicht": "88"
+    "Gewicht": "88",
+    "Vorsaison.Minuten": 4079,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.72,
+    "Vorsaison.Wert": 4002
   },
   {
     "player.id": 70500,
@@ -11738,7 +15347,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1999-07-08",
     "Groesse": "185",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 2732,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.67,
+    "Vorsaison.Wert": 2830
   },
   {
     "player.id": 288112,
@@ -11751,7 +15364,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/fr.svg",
     "Geburtsdatum": "2004-08-25",
     "Groesse": "192",
-    "Gewicht": "85"
+    "Gewicht": "85",
+    "Vorsaison.Minuten": 86,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.55,
+    "Vorsaison.Wert": 86
   },
   {
     "player.id": 463280,
@@ -11764,7 +15381,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "2005-05-14",
     "Groesse": "190",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 123
   },
   {
     "player.id": 182519,
@@ -11777,7 +15398,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2003-09-30",
     "Groesse": "172",
-    "Gewicht": "67"
+    "Gewicht": "67",
+    "Vorsaison.Minuten": 3066,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 3026
   },
   {
     "player.id": 548734,
@@ -11790,7 +15415,11 @@ const playersData = [
     "Nationalteam.logo": "",
     "Geburtsdatum": "",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 135,
+    "Vorsaison.Spiele": 6,
+    "Vorsaison.Rating": 6.43,
+    "Vorsaison.Wert": 107
   },
   {
     "player.id": 20696,
@@ -11803,7 +15432,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/sn.svg",
     "Geburtsdatum": "1999-01-24",
     "Groesse": "189",
-    "Gewicht": "79"
+    "Gewicht": "79",
+    "Vorsaison.Minuten": 3900,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 3552
   },
   {
     "player.id": 47541,
@@ -11816,7 +15449,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1996-10-05",
     "Groesse": "188",
-    "Gewicht": "75"
+    "Gewicht": "75",
+    "Vorsaison.Minuten": 3230,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 3426
   },
   {
     "player.id": 51016,
@@ -11829,7 +15466,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ca.svg",
     "Geburtsdatum": "1999-02-08",
     "Groesse": "183",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 2929,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 2812
   },
   {
     "player.id": 362750,
@@ -11842,7 +15483,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ar.svg",
     "Geburtsdatum": "2004-04-03",
     "Groesse": "175",
-    "Gewicht": "68"
+    "Gewicht": "68",
+    "Vorsaison.Minuten": 822,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 822
   },
   {
     "player.id": 18906,
@@ -11855,7 +15500,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1993-07-29",
     "Groesse": "178",
-    "Gewicht": "66"
+    "Gewicht": "66",
+    "Vorsaison.Minuten": 1588,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 1631
   },
   {
     "player.id": 180496,
@@ -11868,7 +15517,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ge.svg",
     "Geburtsdatum": "2000-10-31",
     "Groesse": "176",
-    "Gewicht": "71"
+    "Gewicht": "71",
+    "Vorsaison.Minuten": 2963,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 3026
   },
   {
     "player.id": 1707,
@@ -11881,7 +15534,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "1992-04-07",
     "Groesse": "180",
-    "Gewicht": "77"
+    "Gewicht": "77",
+    "Vorsaison.Minuten": 1395,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 1418
   },
   {
     "player.id": 514913,
@@ -11894,7 +15551,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2007-03-04",
     "Groesse": "",
-    "Gewicht": ""
+    "Gewicht": "",
+    "Vorsaison.Minuten": 180,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.52,
+    "Vorsaison.Wert": 163
   },
   {
     "player.id": 3246,
@@ -11907,7 +15568,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ci.svg",
     "Geburtsdatum": "1995-05-29",
     "Groesse": "183",
-    "Gewicht": "73"
+    "Gewicht": "73",
+    "Vorsaison.Minuten": 3340,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 3480
   },
   {
     "player.id": 411702,
@@ -11920,7 +15585,11 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/es.svg",
     "Geburtsdatum": "2005-02-17",
     "Groesse": "179",
-    "Gewicht": "72"
+    "Gewicht": "72",
+    "Vorsaison.Minuten": 16,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 16
   },
   {
     "player.id": 351587,
@@ -11933,6 +15602,10 @@ const playersData = [
     "Nationalteam.logo": "https://media.api-sports.io/flags/ng.svg",
     "Geburtsdatum": "2000-05-15",
     "Groesse": "191",
-    "Gewicht": "80"
+    "Gewicht": "80",
+    "Vorsaison.Minuten": 4036,
+    "Vorsaison.Spiele": 74,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 3250
   }
 ];
