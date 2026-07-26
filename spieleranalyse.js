@@ -1867,6 +1867,46 @@
             return;
         }
 
+        /* Vor der Auslosung gibt es weder Paarungen noch einen Spielplan in
+           Firestore – die TERMINE stehen aber fest und liegen als
+           Platzhalter in tournament-config.js (matchCalendar →
+           fallbackFixtures). Sie zu zeigen ist ehrlicher als „Kein
+           Spielplan verfuegbar": man sieht, WANN gespielt wird, nur noch
+           nicht wer gegen wen. Sobald der Spielplan-Sync echte Fixtures
+           schreibt, gewinnt der Firestore-Zweig ganz oben. */
+        const calendarFixtures = (APP && Array.isArray(APP.fallbackFixtures)) ? APP.fallbackFixtures : [];
+        if (calendarFixtures.length) {
+            scheduleCatalog = calendarFixtures
+                .slice()
+                .sort((a, b) => (Date.parse(a.date) || 0) - (Date.parse(b.date) || 0))
+                .map((m, i) => ({
+                    id: m.id || `cal_${i + 1}`,
+                    teamA: m.teamA || 'TBD',
+                    teamAId: null,
+                    teamALogo: m.homeLogo || '',
+                    teamB: m.teamB || 'TBD',
+                    teamBId: null,
+                    teamBLogo: m.awayLogo || '',
+                    homeTeamId: null,
+                    awayTeamId: null,
+                    date: m.date || '',
+                    kickoffMs: Date.parse(m.date) || null,
+                    kickoffTimestamp: null,
+                    venue: m.venue || 'Spielort folgt',
+                    venueCity: m.venueCity || '',
+                    venueImage: '',
+                    status: m.statusShort ? { short: m.statusShort, long: '', elapsed: null } : null,
+                    goals: null,
+                    score: {},
+                    goalEvents: [],
+                    round: m.round || '',
+                    roundLabel: m.roundLabel || '',
+                    homeWinner: null,
+                    awayWinner: null
+                }));
+            return;
+        }
+
         scheduleCatalog = matchCatalog.map(m => ({
             id: m.number,
             teamA: m.teamA,
