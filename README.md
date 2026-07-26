@@ -81,6 +81,8 @@ Schreibzugriffe finden ausschliesslich hier statt, nicht im Browser.
 | ----------------------- | ------------------------------------------------------------------------- | ----------------------------- |
 | `auto-points-upload.js` | Punkte berechnen + nach Firestore schreiben, Meta-Version hochzählen.     | alle 5 Minuten im WM-Fenster  |
 | `sync-fixtures.js`      | Fixtures + Venues von api-football laden + nach Firestore schreiben.      | täglich 04:00 UTC (≈ 06:00 CH)|
+| `generate-kader.js`     | `data-<key>.js` aus den Wettbewerbs-Einsätzen einer Saison erzeugen.      | manuell                       |
+| `generate-cl-pool.js`   | `data-<key>.js` einer CL-Saison **vor** der Auslosung erzeugen.           | manuell                       |
 
 Beide Scripts lesen die Turnier-Konfiguration **direkt aus
 `tournament-config.js`** – keine lokale Kopie pflegen.
@@ -101,6 +103,55 @@ Regressionstest: `npm run test:cl-scope`.
 Der detaillierte Live-Update-Ablauf inkl. GitHub-Actions-Check,
 Tick-Zeitpunkt, Firestore-Signalen und Betriebs-Checkliste steht in
 [`docs/live-update-prozess.md`](docs/live-update-prozess.md).
+
+### Kader erzeugen: zwei Wege
+
+Beide schreiben dieselbe Datei (`data-<key>.js`, globales `playersData`)
+im selben club-zentrierten Schema – sie unterscheiden sich nur in der
+Datenquelle:
+
+| Situation                                        | Script                | Quelle                                                     |
+| ------------------------------------------------ | --------------------- | ---------------------------------------------------------- |
+| Saison läuft oder ist abgeschlossen               | `generate-kader.js`   | `/players?league=<comp>&season=<saison>` (gespielte Einsätze)|
+| Saison hat noch nicht begonnen, Auslosung fehlt   | `generate-cl-pool.js` | qualifizierte Klubs → `/players/squads` → `/players/profiles`|
+
+**Warum zwei Scripts.** `generate-kader.js` liest Spieler mit Einsätzen im
+Wettbewerb. Für eine abgeschlossene Saison (CL 2025/26) ist das ideal, vor
+Saisonstart liefert es nichts. `generate-cl-pool.js` dreht die Richtung um
+und geht über die Klubs:
+
+1. Abschlusstabellen aller nationalen UEFA-Ligen der Vorsaison lesen. An
+   den Tabellenzeilen hängt eine `description` („Promotion - Champions
+   League (League phase)" vs. „… (Qualification)") – daraus ergibt sich,
+   wer **direkt** in der Ligaphase steht und wer nur in die Qualifikation
+   geht. Nur Erstere zählen zum Vorschau-Pool.
+2. Titelverteidiger ergänzen (CL- und Europa-League-Sieger der Vorsaison,
+   ermittelt aus dem jeweiligen Endspiel).
+3. Aktuellen Kader je Klub laden und je Spieler das Profil holen.
+
+**Frauen-Wettbewerbe.** api-football führt die Frauenligen unter denselben
+Ländern und hängt an deren Tabellen ebenfalls „Champions League"-
+Beschreibungen. Ohne Filter landeten im ersten Lauf 13 Frauenteams im Pool
+(Arsenal W, Bayern Munich W, …). `isWomensEntry` sortiert sie über drei
+unabhängige Netze aus (Ligaame, Beschreibung, api-football-Teamsuffix
+„ W") und protokolliert jede Aussortierung.
+
+**Namenslogik ist geteilt, nicht kopiert.** `buildRecord`,
+`playerDisplayName`, `resolveNationFlag`, `mapPosition` und die Sortierung
+importiert `generate-cl-pool.js` aus `generate-kader.js`. Ein Spieler, der
+schon in `data-cl2526.js` steht, erscheint deshalb im neuen Pool mit
+identischem Namen und identischem Schema.
+
+**Nachvollziehbarkeit.** Neben der Kaderdatei entsteht
+`scripts/cl-pool-<key>-clubs.json` mit der Herleitung je Klub (Liga, Rang,
+API-Beschreibung). Korrekturen von Hand gehen über
+`scripts/cl-pool-<key>-clubs.manual.json` (`{ "add": [...], "remove": [...] }`),
+ohne das Script anzufassen.
+
+Auslösen: **Actions → „CL Vorschau-Spielerpool" → Run workflow**. Erst mit
+`probe: true` laufen lassen – der Lauf kostet dann nur die Tabellen-Calls
+und loggt die erkannten Klubs, ohne Kaderdaten zu ziehen oder Dateien zu
+schreiben.
 
 ### Pre-Check / Live-Load (auto-points-upload)
 
