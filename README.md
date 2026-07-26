@@ -41,6 +41,17 @@ Regelsatz existieren – das war früher der Fall und hat zu Drift geführt.
 Andere Stellen (Cron-Scripts, Workflows, Frontend-Skripte) müssen
 **nicht** angefasst werden – sie lesen alles aus `tournament-config.js`.
 
+### Captain
+
+Die **WM 2026** hat einen Captain, dessen Punkte doppelt zählen (×2). Die
+**Champions League hat keinen Captain** – dort setzt der Turnier-Block
+`captainEnabled: false`, und das schaltet Captain-Wahl, „C"-Badge und
+Verdopplung überall ab (Team-Builder, Rangliste, Teams, Punktesystem-Seite;
+gespeicherte `isCaptain`-Flags aus Alt-Teams werden beim Rendern verworfen).
+Ein turnier-eigener Multiplikator wird bewusst **nicht** konfiguriert: das
+Flag ist die einzige Quelle. `APP_CONFIG.captainMultiplier` liefert daraus
+abgeleitet 2 (Captain an) bzw. 1 (Captain aus).
+
 ### Aktives Turnier auflösen
 
 Browser-Reihenfolge:
@@ -207,6 +218,24 @@ Auto-Upload zusätzlich den Pre-Check.
 
 `TOURNAMENT_KEY` lässt man typischerweise leer – dann gilt der Default
 aus `tournament-config.js`.
+
+### Regressionstests
+
+Die Tests laufen ohne Browser, Firebase und API-Key (reine Node-Module +
+Quelltext-Checks):
+
+```bash
+cd scripts
+npm test                 # alle Suites nacheinander
+npm run test:freeze      # einzelne Suite, siehe scripts/package.json
+```
+
+`test:freeze` ist der **WM-2026-Freeze-Guard**: Punktesystem, Regel-Labels
+und die Captain-Verdopplung (×2) der WM sind eingefroren und dürfen sich
+durch Änderungen an anderen Turnieren nicht mitverändern. Er zählt die
+Verdopplung über alle View-Dateien zusammen, damit ein blosser Umzug von
+Code zwischen den Dateien nicht ausschlägt – ein Entfernen oder Ändern
+dagegen schon.
 
 ---
 

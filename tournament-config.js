@@ -467,9 +467,12 @@ const APP_CONFIG = (() => {
       // Eigene Punkteregeln (M0-Mechanik: pro Turnier überschreibbar).
       // `rules` wird bewusst NICHT gesetzt → es gelten vorerst die
       // eingefrorenen Defaults (= WM), bis du sie hier überschreibst.
-      // Captain-Multiplikator: CL soll 1.5× statt 2×. Wird in M4 von den
-      // CL-Views konsumiert (die WM-Views bleiben bei hartkodiertem 2×).
-      captainMultiplier: 1.5,
+      //
+      // Captain: die CL hat KEINEN Captain. `captainEnabled: false` schaltet
+      // Captain-Wahl, „C"-Badge und Punkte-Verdopplung ab. Ein eigener
+      // Multiplikator wird bewusst NICHT konfiguriert – es gibt in der CL
+      // nichts zu multiplizieren, und eine zweite Zahl daneben wäre nur eine
+      // widersprüchliche Quelle. Ohne das Flag gälte der Default (WM: ×2).
       captainEnabled: false,
 
       // Transfer-Feature (siehe CL_TRANSFERS): 2 Transfers für die ganze
@@ -516,7 +519,7 @@ const APP_CONFIG = (() => {
 
       structure: "league",
       primaryEntity: "club",
-      captainMultiplier: 1.5,
+      // Kein Captain in der CL – Begründung siehe cl2627.
       captainEnabled: false,
 
       // Abgeschlossene Saison: API-Football Liga-ID 2, Saison-Startjahr 2025.
@@ -2312,6 +2315,13 @@ const APP_CONFIG = (() => {
     // die Captain-Wahl (und der ×2-Multiplikator) deaktiviert.
     get captainEnabled() {
       return getActiveTournament().captainEnabled !== false;
+    },
+
+    // Punkte-Multiplikator des Captains. Turniere ohne Captain liefern 1 –
+    // damit ein Konsument, der blind multipliziert, nichts kaputt macht.
+    // Turniere mit Captain bleiben beim eingefrorenen WM-Wert ×2.
+    get captainMultiplier() {
+      return getActiveTournament().captainEnabled === false ? 1 : 2;
     },
 
     get type() {

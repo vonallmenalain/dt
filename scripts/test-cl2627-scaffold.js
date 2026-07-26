@@ -26,7 +26,12 @@ assert.equal(cl.key, 'cl2627', 'cl2627.key falsch.');
 assert.equal(cl.type, 'CL', 'cl2627.type soll "CL" sein.');
 assert.equal(cl.structure, 'league', 'CL muss structure "league" haben (Ligaphase).');
 assert.equal(cl.primaryEntity, 'club', 'CL muss club-zentriert sein (primaryEntity "club").');
-assert.equal(cl.captainMultiplier, 1.5, 'CL-Captain-Multiplikator soll 1.5 sein.');
+// Die CL hat keinen Captain: das Flag schaltet ihn ab, und ein eigener
+// Multiplikator darf gar nicht erst konfiguriert sein (sonst gäbe es eine
+// zweite, widersprüchliche Quelle neben dem Flag).
+assert.equal(cl.captainEnabled, false, 'CL darf kein Captain-Feature haben.');
+assert.equal(cl.captainMultiplier, undefined,
+  'CL darf keinen eigenen Captain-Multiplikator konfigurieren.');
 assert.equal(cl.api.competitionId, 2, 'CL API competitionId soll 2 (Champions League) sein.');
 assert.ok(Array.isArray(cl.defaultDomains) && cl.defaultDomains.includes('dt.alae.app'),
   'cl2627.defaultDomains soll dt.alae.app enthalten.');
