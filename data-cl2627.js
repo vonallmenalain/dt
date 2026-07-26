@@ -133,10 +133,10 @@ const playersData = [
     "Geburtsdatum": "1997-10-08",
     "Groesse": "186",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2072,
-    "Vorsaison.Spiele": 32,
+    "Vorsaison.Minuten": 1982,
+    "Vorsaison.Spiele": 31,
     "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 2021
+    "Vorsaison.Wert": 1976
   },
   {
     "player.id": 333682,
@@ -150,10 +150,10 @@ const playersData = [
     "Geburtsdatum": "2004-06-27",
     "Groesse": "191",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2649,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 6.94,
-    "Vorsaison.Wert": 2392
+    "Vorsaison.Minuten": 2559,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2347
   },
   {
     "player.id": 22224,
@@ -167,10 +167,10 @@ const playersData = [
     "Geburtsdatum": "1997-12-19",
     "Groesse": "190",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 4544,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.27,
-    "Vorsaison.Wert": 4650
+    "Vorsaison.Minuten": 4300,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.28,
+    "Vorsaison.Wert": 4528
   },
   {
     "player.id": 418403,
@@ -201,10 +201,10 @@ const playersData = [
     "Geburtsdatum": "2001-06-17",
     "Groesse": "179",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 3543,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 3567
+    "Vorsaison.Minuten": 3453,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 3522
   },
   {
     "player.id": 482903,
@@ -235,10 +235,10 @@ const playersData = [
     "Geburtsdatum": "2006-09-26",
     "Groesse": "178",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 2229,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 6.84,
-    "Vorsaison.Wert": 2176
+    "Vorsaison.Minuten": 2131,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 2127
   },
   {
     "player.id": 127817,
@@ -252,10 +252,10 @@ const playersData = [
     "Geburtsdatum": "2002-01-09",
     "Groesse": "184",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 3106,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 7.02,
-    "Vorsaison.Wert": 3188
+    "Vorsaison.Minuten": 2918,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 3094
   },
   {
     "player.id": 157052,
@@ -269,10 +269,10 @@ const playersData = [
     "Geburtsdatum": "2002-05-19",
     "Groesse": "188",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 2793,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 2581
+    "Vorsaison.Minuten": 2704,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2537
   },
   {
     "player.id": 22090,
@@ -303,10 +303,10 @@ const playersData = [
     "Geburtsdatum": "1994-03-10",
     "Groesse": "187",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 1129,
-    "Vorsaison.Spiele": 23,
-    "Vorsaison.Rating": 7.11,
-    "Vorsaison.Wert": 928
+    "Vorsaison.Minuten": 1048,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 887
   },
   {
     "player.id": 2937,
@@ -320,10 +320,10 @@ const playersData = [
     "Geburtsdatum": "1999-01-14",
     "Groesse": "188",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 4788,
-    "Vorsaison.Spiele": 58,
-    "Vorsaison.Rating": 7.41,
-    "Vorsaison.Wert": 5013
+    "Vorsaison.Minuten": 4558,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 7.43,
+    "Vorsaison.Wert": 4898
   },
   {
     "player.id": 19586,
@@ -337,10 +337,10 @@ const playersData = [
     "Geburtsdatum": "1998-06-29",
     "Groesse": "178",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3387,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 3416
+    "Vorsaison.Minuten": 3297,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 3371
   },
   {
     "player.id": 313236,
@@ -355,7 +355,7 @@ const playersData = [
     "Groesse": "176",
     "Gewicht": "70",
     "Vorsaison.Minuten": 1269,
-    "Vorsaison.Spiele": 33,
+    "Vorsaison.Spiele": 32,
     "Vorsaison.Rating": 6.77,
     "Vorsaison.Wert": 984
   },
@@ -388,10 +388,10 @@ const playersData = [
     "Geburtsdatum": "1998-12-17",
     "Groesse": "178",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 2360,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 2305
+    "Vorsaison.Minuten": 2149,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 2200
   },
   {
     "player.id": 47315,
@@ -405,10 +405,10 @@ const playersData = [
     "Geburtsdatum": "1999-02-02",
     "Groesse": "181",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 4478,
-    "Vorsaison.Spiele": 58,
+    "Vorsaison.Minuten": 4388,
+    "Vorsaison.Spiele": 57,
     "Vorsaison.Rating": 7.05,
-    "Vorsaison.Wert": 4737
+    "Vorsaison.Wert": 4692
   },
   {
     "player.id": 442044,
@@ -439,10 +439,10 @@ const playersData = [
     "Geburtsdatum": "1996-06-22",
     "Groesse": "189",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 2096,
-    "Vorsaison.Spiele": 36,
-    "Vorsaison.Rating": 6.81,
-    "Vorsaison.Wert": 2084
+    "Vorsaison.Minuten": 2006,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 2039
   },
   {
     "player.id": 457731,
@@ -490,10 +490,10 @@ const playersData = [
     "Geburtsdatum": "2001-09-05",
     "Groesse": "178",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3634,
-    "Vorsaison.Spiele": 57,
-    "Vorsaison.Rating": 7.17,
-    "Vorsaison.Wert": 3617
+    "Vorsaison.Minuten": 3374,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 3487
   },
   {
     "player.id": 136723,
@@ -507,10 +507,10 @@ const playersData = [
     "Geburtsdatum": "2002-03-10",
     "Groesse": "182",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3350,
-    "Vorsaison.Spiele": 63,
-    "Vorsaison.Rating": 6.94,
-    "Vorsaison.Wert": 2896
+    "Vorsaison.Minuten": 3133,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2788
   },
   {
     "player.id": 643,
@@ -541,10 +541,10 @@ const playersData = [
     "Geburtsdatum": "2001-06-18",
     "Groesse": "178",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2491,
-    "Vorsaison.Spiele": 55,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 2489
+    "Vorsaison.Minuten": 2415,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 2451
   },
   {
     "player.id": 978,
@@ -558,10 +558,10 @@ const playersData = [
     "Geburtsdatum": "1999-06-11",
     "Groesse": "193",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 1128,
-    "Vorsaison.Spiele": 25,
-    "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 1082
+    "Vorsaison.Minuten": 1097,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 1066
   },
   {
     "player.id": 18979,
@@ -575,10 +575,10 @@ const playersData = [
     "Geburtsdatum": "1998-06-04",
     "Groesse": "189",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 4239,
-    "Vorsaison.Spiele": 64,
-    "Vorsaison.Rating": 6.76,
-    "Vorsaison.Wert": 4161
+    "Vorsaison.Minuten": 3568,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 3825
   },
   {
     "player.id": 81012,
@@ -592,10 +592,10 @@ const playersData = [
     "Geburtsdatum": "1998-05-12",
     "Groesse": "195",
     "Gewicht": "93",
-    "Vorsaison.Minuten": 826,
-    "Vorsaison.Spiele": 17,
-    "Vorsaison.Rating": 7.17,
-    "Vorsaison.Wert": 431
+    "Vorsaison.Minuten": 90,
+    "Vorsaison.Spiele": 1,
+    "Vorsaison.Rating": 7.9,
+    "Vorsaison.Wert": 63
   },
   {
     "player.id": 483676,
@@ -626,10 +626,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-27",
     "Groesse": "189",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 4627,
-    "Vorsaison.Spiele": 86,
-    "Vorsaison.Rating": 7.04,
-    "Vorsaison.Wert": 4531
+    "Vorsaison.Minuten": 4357,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 4396
   },
   {
     "player.id": 30418,
@@ -694,10 +694,10 @@ const playersData = [
     "Geburtsdatum": "2003-01-06",
     "Groesse": "189",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 2463,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 1992
+    "Vorsaison.Minuten": 2367,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 1944
   },
   {
     "player.id": 162452,
@@ -711,10 +711,10 @@ const playersData = [
     "Geburtsdatum": "2003-01-18",
     "Groesse": "181",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2654,
-    "Vorsaison.Spiele": 44,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 2174
+    "Vorsaison.Minuten": 2444,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 2069
   },
   {
     "player.id": 598615,
@@ -796,10 +796,10 @@ const playersData = [
     "Geburtsdatum": "2005-06-05",
     "Groesse": "194",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 1192,
-    "Vorsaison.Spiele": 27,
-    "Vorsaison.Rating": 6.91,
-    "Vorsaison.Wert": 1082
+    "Vorsaison.Minuten": 1102,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1037
   },
   {
     "player.id": 626713,
@@ -830,10 +830,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-20",
     "Groesse": "192",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 7703,
-    "Vorsaison.Spiele": 90,
-    "Vorsaison.Rating": 6.87,
-    "Vorsaison.Wert": 5644
+    "Vorsaison.Minuten": 3840,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 3713
   },
   {
     "player.id": 349001,
@@ -847,10 +847,10 @@ const playersData = [
     "Geburtsdatum": "2003-09-06",
     "Groesse": "173",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 5529,
-    "Vorsaison.Spiele": 69,
-    "Vorsaison.Rating": 7.1,
-    "Vorsaison.Wert": 4653
+    "Vorsaison.Minuten": 5458,
+    "Vorsaison.Spiele": 67,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 4618
   },
   {
     "player.id": 778,
@@ -915,10 +915,10 @@ const playersData = [
     "Geburtsdatum": "2001-07-02",
     "Groesse": "185",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 4101,
-    "Vorsaison.Spiele": 67,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 2979
+    "Vorsaison.Minuten": 2405,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 2131
   },
   {
     "player.id": 356888,
@@ -932,10 +932,10 @@ const playersData = [
     "Geburtsdatum": "2004-09-23",
     "Groesse": "181",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 2085,
-    "Vorsaison.Spiele": 42,
+    "Vorsaison.Minuten": 2084,
+    "Vorsaison.Spiele": 40,
     "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 2010
+    "Vorsaison.Wert": 2009
   },
   {
     "player.id": 484027,
@@ -966,10 +966,10 @@ const playersData = [
     "Geburtsdatum": "1997-06-21",
     "Groesse": "189",
     "Gewicht": "92",
-    "Vorsaison.Minuten": 4403,
-    "Vorsaison.Spiele": 58,
-    "Vorsaison.Rating": 7.04,
-    "Vorsaison.Wert": 3027
+    "Vorsaison.Minuten": 1603,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1627
   },
   {
     "player.id": 249,
@@ -983,10 +983,10 @@ const playersData = [
     "Geburtsdatum": "1999-01-19",
     "Groesse": "176",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 2937,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 2871
+    "Vorsaison.Minuten": 2829,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 2817
   },
   {
     "player.id": 323936,
@@ -1000,10 +1000,10 @@ const playersData = [
     "Geburtsdatum": "2003-04-15",
     "Groesse": "182",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3222,
-    "Vorsaison.Spiele": 76,
-    "Vorsaison.Rating": 7.02,
-    "Vorsaison.Wert": 3029
+    "Vorsaison.Minuten": 2783,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 2810
   },
   {
     "player.id": 875,
@@ -1017,10 +1017,10 @@ const playersData = [
     "Geburtsdatum": "1993-11-15",
     "Groesse": "177",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3351,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.22,
-    "Vorsaison.Wert": 2480
+    "Vorsaison.Minuten": 1600,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 1605
   },
   {
     "player.id": 435482,
@@ -1051,10 +1051,10 @@ const playersData = [
     "Geburtsdatum": "1992-09-02",
     "Groesse": "195",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 4397,
-    "Vorsaison.Spiele": 50,
+    "Vorsaison.Minuten": 3871,
+    "Vorsaison.Spiele": 44,
     "Vorsaison.Rating": 7.01,
-    "Vorsaison.Wert": 4210
+    "Vorsaison.Wert": 3947
   },
   {
     "player.id": 284390,
@@ -1085,10 +1085,10 @@ const playersData = [
     "Geburtsdatum": "1991-03-10",
     "Groesse": "193",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 1273,
-    "Vorsaison.Spiele": 15,
-    "Vorsaison.Rating": 7.16,
-    "Vorsaison.Wert": 1151
+    "Vorsaison.Minuten": 1183,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 1106
   },
   {
     "player.id": 398004,
@@ -1136,10 +1136,10 @@ const playersData = [
     "Geburtsdatum": "1997-10-23",
     "Groesse": "183",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 4647,
-    "Vorsaison.Spiele": 54,
+    "Vorsaison.Minuten": 4170,
+    "Vorsaison.Spiele": 48,
     "Vorsaison.Rating": 7.05,
-    "Vorsaison.Wert": 4414
+    "Vorsaison.Wert": 4175
   },
   {
     "player.id": 138816,
@@ -1153,10 +1153,10 @@ const playersData = [
     "Geburtsdatum": "2002-03-10",
     "Groesse": "178",
     "Gewicht": "57",
-    "Vorsaison.Minuten": 3224,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 6.66,
-    "Vorsaison.Wert": 2762
+    "Vorsaison.Minuten": 3045,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 2673
   },
   {
     "player.id": 284457,
@@ -1187,10 +1187,10 @@ const playersData = [
     "Geburtsdatum": "1993-07-20",
     "Groesse": "178",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 3028,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 6.78,
-    "Vorsaison.Wert": 2937
+    "Vorsaison.Minuten": 2785,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 2816
   },
   {
     "player.id": 19298,
@@ -1204,10 +1204,10 @@ const playersData = [
     "Geburtsdatum": "1997-08-07",
     "Groesse": "185",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 4275,
-    "Vorsaison.Spiele": 53,
+    "Vorsaison.Minuten": 4032,
+    "Vorsaison.Spiele": 49,
     "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 4152
+    "Vorsaison.Wert": 4031
   },
   {
     "player.id": 478441,
@@ -1238,10 +1238,10 @@ const playersData = [
     "Geburtsdatum": "1997-01-16",
     "Groesse": "191",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 3069,
-    "Vorsaison.Spiele": 38,
-    "Vorsaison.Rating": 6.86,
-    "Vorsaison.Wert": 2991
+    "Vorsaison.Minuten": 2979,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 2946
   },
   {
     "player.id": 19179,
@@ -1272,10 +1272,10 @@ const playersData = [
     "Geburtsdatum": "1994-07-17",
     "Groesse": "187",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 1919,
-    "Vorsaison.Spiele": 29,
-    "Vorsaison.Rating": 6.69,
-    "Vorsaison.Wert": 1904
+    "Vorsaison.Minuten": 1829,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 1859
   },
   {
     "player.id": 415107,
@@ -1306,10 +1306,10 @@ const playersData = [
     "Geburtsdatum": "2001-08-16",
     "Groesse": "195",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2723,
-    "Vorsaison.Spiele": 39,
-    "Vorsaison.Rating": 7.06,
-    "Vorsaison.Wert": 2725
+    "Vorsaison.Minuten": 2661,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 2694
   },
   {
     "player.id": 453101,
@@ -1340,10 +1340,10 @@ const playersData = [
     "Geburtsdatum": "1996-12-25",
     "Groesse": "172",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 2946,
-    "Vorsaison.Spiele": 55,
+    "Vorsaison.Minuten": 2921,
+    "Vorsaison.Spiele": 54,
     "Vorsaison.Rating": 6.95,
-    "Vorsaison.Wert": 2967
+    "Vorsaison.Wert": 2955
   },
   {
     "player.id": 364566,
@@ -1374,10 +1374,10 @@ const playersData = [
     "Geburtsdatum": "2006-10-02",
     "Groesse": "183",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 515,
-    "Vorsaison.Spiele": 16,
-    "Vorsaison.Rating": 6.57,
-    "Vorsaison.Wert": 347
+    "Vorsaison.Minuten": 505,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 6.58,
+    "Vorsaison.Wert": 342
   },
   {
     "player.id": 19191,
@@ -1391,10 +1391,10 @@ const playersData = [
     "Geburtsdatum": "1994-10-18",
     "Groesse": "178",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 3267,
-    "Vorsaison.Spiele": 47,
+    "Vorsaison.Minuten": 3039,
+    "Vorsaison.Spiele": 44,
     "Vorsaison.Rating": 7.02,
-    "Vorsaison.Wert": 3147
+    "Vorsaison.Wert": 3033
   },
   {
     "player.id": 553420,
@@ -1425,10 +1425,10 @@ const playersData = [
     "Geburtsdatum": "2002-07-26",
     "Groesse": "187",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 5298,
-    "Vorsaison.Spiele": 67,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 4944
+    "Vorsaison.Minuten": 4857,
+    "Vorsaison.Spiele": 60,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 4723
   },
   {
     "player.id": 2287,
@@ -1493,10 +1493,10 @@ const playersData = [
     "Geburtsdatum": "2009-01-12",
     "Groesse": "186",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 281,
-    "Vorsaison.Spiele": 8,
-    "Vorsaison.Rating": 6.51,
-    "Vorsaison.Wert": 222
+    "Vorsaison.Minuten": 162,
+    "Vorsaison.Spiele": 5,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 162
   },
   {
     "player.id": 137303,
@@ -1510,10 +1510,10 @@ const playersData = [
     "Geburtsdatum": "2001-07-01",
     "Groesse": "185",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 2439,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 6.61,
-    "Vorsaison.Wert": 2146
+    "Vorsaison.Minuten": 2090,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.58,
+    "Vorsaison.Wert": 1971
   },
   {
     "player.id": 983,
@@ -1527,10 +1527,10 @@ const playersData = [
     "Geburtsdatum": "1997-08-09",
     "Groesse": "178",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 1740,
-    "Vorsaison.Spiele": 44,
-    "Vorsaison.Rating": 6.74,
-    "Vorsaison.Wert": 1264
+    "Vorsaison.Minuten": 1070,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 929
   },
   {
     "player.id": 19366,
@@ -1544,10 +1544,10 @@ const playersData = [
     "Geburtsdatum": "1995-12-30",
     "Groesse": "180",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 4165,
-    "Vorsaison.Spiele": 60,
-    "Vorsaison.Rating": 6.84,
-    "Vorsaison.Wert": 4062
+    "Vorsaison.Minuten": 3849,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 3904
   },
   {
     "player.id": 553848,
@@ -1578,10 +1578,10 @@ const playersData = [
     "Geburtsdatum": "1997-10-02",
     "Groesse": "190",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 2047,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 1558
+    "Vorsaison.Minuten": 1957,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 1513
   },
   {
     "player.id": 646997,
@@ -1612,10 +1612,10 @@ const playersData = [
     "Geburtsdatum": "1993-01-07",
     "Groesse": "188",
     "Gewicht": "87",
-    "Vorsaison.Minuten": 4710,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 7.07,
-    "Vorsaison.Wert": 4785
+    "Vorsaison.Minuten": 4140,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 4500
   },
   {
     "player.id": 2465,
@@ -1697,10 +1697,10 @@ const playersData = [
     "Geburtsdatum": "1995-09-20",
     "Groesse": "171",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 4128,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 7.33,
-    "Vorsaison.Wert": 4405
+    "Vorsaison.Minuten": 4038,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.32,
+    "Vorsaison.Wert": 4360
   },
   {
     "player.id": 386869,
@@ -1731,10 +1731,10 @@ const playersData = [
     "Geburtsdatum": "1997-12-13",
     "Groesse": "188",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 4741,
-    "Vorsaison.Spiele": 56,
-    "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 4699
+    "Vorsaison.Minuten": 4082,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 4369
   },
   {
     "player.id": 441280,
@@ -1782,10 +1782,10 @@ const playersData = [
     "Geburtsdatum": "1995-01-20",
     "Groesse": "186",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 1627,
-    "Vorsaison.Spiele": 26,
-    "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 1695
+    "Vorsaison.Minuten": 1537,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 1650
   },
   {
     "player.id": 386870,
@@ -1816,10 +1816,10 @@ const playersData = [
     "Geburtsdatum": "2003-06-20",
     "Groesse": "190",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 3184,
-    "Vorsaison.Spiele": 41,
+    "Vorsaison.Minuten": 3171,
+    "Vorsaison.Spiele": 40,
     "Vorsaison.Rating": 6.95,
-    "Vorsaison.Wert": 3106
+    "Vorsaison.Wert": 3100
   },
   {
     "player.id": 753,
@@ -1833,10 +1833,10 @@ const playersData = [
     "Geburtsdatum": "1995-01-30",
     "Groesse": "183",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 3966,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 7.03,
-    "Vorsaison.Wert": 4234
+    "Vorsaison.Minuten": 3876,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 4189
   },
   {
     "player.id": 162012,
@@ -1851,7 +1851,7 @@ const playersData = [
     "Groesse": "187",
     "Gewicht": "69",
     "Vorsaison.Minuten": 4400,
-    "Vorsaison.Spiele": 58,
+    "Vorsaison.Spiele": 57,
     "Vorsaison.Rating": 6.75,
     "Vorsaison.Wert": 4296
   },
@@ -1867,10 +1867,10 @@ const playersData = [
     "Geburtsdatum": "1998-04-06",
     "Groesse": "179",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 2560,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 6.76,
-    "Vorsaison.Wert": 2649
+    "Vorsaison.Minuten": 2424,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 2581
   },
   {
     "player.id": 47301,
@@ -1884,10 +1884,10 @@ const playersData = [
     "Geburtsdatum": "1996-11-11",
     "Groesse": "187",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 2951,
-    "Vorsaison.Spiele": 46,
+    "Vorsaison.Minuten": 2861,
+    "Vorsaison.Spiele": 45,
     "Vorsaison.Rating": 6.8,
-    "Vorsaison.Wert": 3176
+    "Vorsaison.Wert": 3131
   },
   {
     "player.id": 548704,
@@ -1935,10 +1935,10 @@ const playersData = [
     "Geburtsdatum": "2001-09-20",
     "Groesse": "186",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 1962,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 1941
+    "Vorsaison.Minuten": 1750,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1835
   },
   {
     "player.id": 50,
@@ -1952,10 +1952,10 @@ const playersData = [
     "Geburtsdatum": "1992-01-08",
     "Groesse": "176",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 3662,
-    "Vorsaison.Spiele": 56,
+    "Vorsaison.Minuten": 3625,
+    "Vorsaison.Spiele": 55,
     "Vorsaison.Rating": 7.08,
-    "Vorsaison.Wert": 3897
+    "Vorsaison.Wert": 3878
   },
   {
     "player.id": 7712,
@@ -1969,10 +1969,10 @@ const playersData = [
     "Geburtsdatum": "1999-06-25",
     "Groesse": "185",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 3702,
-    "Vorsaison.Spiele": 45,
+    "Vorsaison.Minuten": 3620,
+    "Vorsaison.Spiele": 43,
     "Vorsaison.Rating": 7.22,
-    "Vorsaison.Wert": 3226
+    "Vorsaison.Wert": 3185
   },
   {
     "player.id": 313383,
@@ -1986,10 +1986,10 @@ const playersData = [
     "Geburtsdatum": "2005-08-05",
     "Groesse": "175",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 4439,
-    "Vorsaison.Spiele": 57,
+    "Vorsaison.Minuten": 4414,
+    "Vorsaison.Spiele": 56,
     "Vorsaison.Rating": 7.1,
-    "Vorsaison.Wert": 3099
+    "Vorsaison.Wert": 3086
   },
   {
     "player.id": 336594,
@@ -2054,10 +2054,10 @@ const playersData = [
     "Geburtsdatum": "1997-10-20",
     "Groesse": "174",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 3980,
-    "Vorsaison.Spiele": 61,
-    "Vorsaison.Rating": 7.18,
-    "Vorsaison.Wert": 3630
+    "Vorsaison.Minuten": 3137,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 3208
   },
   {
     "player.id": 182219,
@@ -2071,10 +2071,10 @@ const playersData = [
     "Geburtsdatum": "2001-07-20",
     "Groesse": "175",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 4920,
-    "Vorsaison.Spiele": 77,
-    "Vorsaison.Rating": 7.19,
-    "Vorsaison.Wert": 3707
+    "Vorsaison.Minuten": 2318,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 2406
   },
   {
     "player.id": 8492,
@@ -2088,10 +2088,10 @@ const playersData = [
     "Geburtsdatum": "1995-12-05",
     "Groesse": "196",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 2919,
-    "Vorsaison.Spiele": 56,
+    "Vorsaison.Minuten": 2890,
+    "Vorsaison.Spiele": 54,
     "Vorsaison.Rating": 6.8,
-    "Vorsaison.Wert": 3068
+    "Vorsaison.Wert": 3053
   },
   {
     "player.id": 323935,
@@ -2105,10 +2105,10 @@ const playersData = [
     "Geburtsdatum": "2002-12-18",
     "Groesse": "174",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3887,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 4190
+    "Vorsaison.Minuten": 3802,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 4148
   },
   {
     "player.id": 548706,
@@ -2139,10 +2139,10 @@ const playersData = [
     "Geburtsdatum": "2000-01-31",
     "Groesse": "170",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 3763,
-    "Vorsaison.Spiele": 52,
+    "Vorsaison.Minuten": 3547,
+    "Vorsaison.Spiele": 48,
     "Vorsaison.Rating": 7.2,
-    "Vorsaison.Wert": 4073
+    "Vorsaison.Wert": 3965
   },
   {
     "player.id": 548707,
@@ -2207,10 +2207,10 @@ const playersData = [
     "Geburtsdatum": "2001-04-26",
     "Groesse": "171",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 1774,
-    "Vorsaison.Spiele": 40,
-    "Vorsaison.Rating": 6.84,
-    "Vorsaison.Wert": 1715
+    "Vorsaison.Minuten": 1704,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1680
   },
   {
     "player.id": 543468,
@@ -2241,10 +2241,10 @@ const playersData = [
     "Geburtsdatum": "2001-05-04",
     "Groesse": "193",
     "Gewicht": "85",
-    "Vorsaison.Minuten": 4139,
-    "Vorsaison.Spiele": 46,
-    "Vorsaison.Rating": 7.37,
-    "Vorsaison.Wert": 4222
+    "Vorsaison.Minuten": 4049,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.33,
+    "Vorsaison.Wert": 4177
   },
   {
     "player.id": 127,
@@ -2276,7 +2276,7 @@ const playersData = [
     "Groesse": "195",
     "Gewicht": "96",
     "Vorsaison.Minuten": 998,
-    "Vorsaison.Spiele": 13,
+    "Vorsaison.Spiele": 12,
     "Vorsaison.Rating": 6.84,
     "Vorsaison.Wert": 1137
   },
@@ -2292,10 +2292,10 @@ const playersData = [
     "Geburtsdatum": "2003-10-18",
     "Groesse": "177",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2981,
-    "Vorsaison.Spiele": 44,
-    "Vorsaison.Rating": 6.72,
-    "Vorsaison.Wert": 2956
+    "Vorsaison.Minuten": 2808,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 2869
   },
   {
     "player.id": 433395,
@@ -2326,10 +2326,10 @@ const playersData = [
     "Geburtsdatum": "1996-04-10",
     "Groesse": "189",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 598,
-    "Vorsaison.Spiele": 19,
-    "Vorsaison.Rating": 7.02,
-    "Vorsaison.Wert": 574
+    "Vorsaison.Minuten": 578,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 564
   },
   {
     "player.id": 619,
@@ -2360,10 +2360,10 @@ const playersData = [
     "Geburtsdatum": "2002-02-26",
     "Groesse": "186",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 3393,
-    "Vorsaison.Spiele": 53,
+    "Vorsaison.Minuten": 3312,
+    "Vorsaison.Spiele": 52,
     "Vorsaison.Rating": 7.03,
-    "Vorsaison.Wert": 3558
+    "Vorsaison.Wert": 3517
   },
   {
     "player.id": 491250,
@@ -2394,10 +2394,10 @@ const playersData = [
     "Geburtsdatum": "1998-11-12",
     "Groesse": "181",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 3627,
-    "Vorsaison.Spiele": 48,
+    "Vorsaison.Minuten": 3537,
+    "Vorsaison.Spiele": 47,
     "Vorsaison.Rating": 6.9,
-    "Vorsaison.Wert": 3816
+    "Vorsaison.Wert": 3771
   },
   {
     "player.id": 396623,
@@ -2411,10 +2411,10 @@ const playersData = [
     "Geburtsdatum": "2007-01-22",
     "Groesse": "183",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 4234,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 7.13,
-    "Vorsaison.Wert": 4215
+    "Vorsaison.Minuten": 4165,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 4181
   },
   {
     "player.id": 101814,
@@ -2428,10 +2428,10 @@ const playersData = [
     "Geburtsdatum": "1999-03-07",
     "Groesse": "191",
     "Gewicht": "96",
-    "Vorsaison.Minuten": 1732,
-    "Vorsaison.Spiele": 39,
-    "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 1853
+    "Vorsaison.Minuten": 1641,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1808
   },
   {
     "player.id": 568001,
@@ -2462,10 +2462,10 @@ const playersData = [
     "Geburtsdatum": "1998-05-07",
     "Groesse": "182",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 2853,
-    "Vorsaison.Spiele": 50,
-    "Vorsaison.Rating": 6.97,
-    "Vorsaison.Wert": 2910
+    "Vorsaison.Minuten": 2845,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.96,
+    "Vorsaison.Wert": 2906
   },
   {
     "player.id": 340626,
@@ -2479,10 +2479,10 @@ const playersData = [
     "Geburtsdatum": "2003-05-11",
     "Groesse": "176",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3449,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 7.07,
-    "Vorsaison.Wert": 3424
+    "Vorsaison.Minuten": 3360,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3380
   },
   {
     "player.id": 538,
@@ -2496,10 +2496,10 @@ const playersData = [
     "Geburtsdatum": "1997-05-12",
     "Groesse": "182",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2665,
-    "Vorsaison.Spiele": 39,
+    "Vorsaison.Minuten": 2575,
+    "Vorsaison.Spiele": 38,
     "Vorsaison.Rating": 7.25,
-    "Vorsaison.Wert": 2665
+    "Vorsaison.Wert": 2620
   },
   {
     "player.id": 296667,
@@ -2513,10 +2513,10 @@ const playersData = [
     "Geburtsdatum": "2004-08-05",
     "Groesse": "174",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 832,
-    "Vorsaison.Spiele": 15,
-    "Vorsaison.Rating": 7.01,
-    "Vorsaison.Wert": 829
+    "Vorsaison.Minuten": 700,
+    "Vorsaison.Spiele": 13,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 763
   },
   {
     "player.id": 433396,
@@ -2547,8 +2547,8 @@ const playersData = [
     "Geburtsdatum": "2003-09-14",
     "Groesse": "171",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 1495,
-    "Vorsaison.Spiele": 36,
+    "Vorsaison.Minuten": 1494,
+    "Vorsaison.Spiele": 35,
     "Vorsaison.Rating": 6.72,
     "Vorsaison.Wert": 1442
   },
@@ -2564,10 +2564,10 @@ const playersData = [
     "Geburtsdatum": "2002-11-25",
     "Groesse": "174",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 3188,
-    "Vorsaison.Spiele": 44,
-    "Vorsaison.Rating": 7.43,
-    "Vorsaison.Wert": 3343
+    "Vorsaison.Minuten": 3098,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.44,
+    "Vorsaison.Wert": 3298
   },
   {
     "player.id": 491086,
@@ -2598,10 +2598,10 @@ const playersData = [
     "Geburtsdatum": "2001-02-24",
     "Groesse": "183",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3117,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 7.24,
-    "Vorsaison.Wert": 3237
+    "Vorsaison.Minuten": 2879,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.23,
+    "Vorsaison.Wert": 3118
   },
   {
     "player.id": 931,
@@ -2615,10 +2615,10 @@ const playersData = [
     "Geburtsdatum": "2000-02-29",
     "Groesse": "182",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 2729,
-    "Vorsaison.Spiele": 50,
-    "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 2721
+    "Vorsaison.Minuten": 2708,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 2710
   },
   {
     "player.id": 550547,
@@ -2666,10 +2666,10 @@ const playersData = [
     "Geburtsdatum": "2007-07-13",
     "Groesse": "179",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3828,
-    "Vorsaison.Spiele": 47,
+    "Vorsaison.Minuten": 3706,
+    "Vorsaison.Spiele": 45,
     "Vorsaison.Rating": 7.98,
-    "Vorsaison.Wert": 3922
+    "Vorsaison.Wert": 3861
   },
   {
     "player.id": 1496,
@@ -2683,10 +2683,10 @@ const playersData = [
     "Geburtsdatum": "1996-12-14",
     "Groesse": "176",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 2290,
-    "Vorsaison.Spiele": 34,
-    "Vorsaison.Rating": 7.6,
-    "Vorsaison.Wert": 2383
+    "Vorsaison.Minuten": 2200,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.62,
+    "Vorsaison.Wert": 2338
   },
   {
     "player.id": 338958,
@@ -2701,7 +2701,7 @@ const playersData = [
     "Groesse": "173",
     "Gewicht": "73",
     "Vorsaison.Minuten": 1224,
-    "Vorsaison.Spiele": 33,
+    "Vorsaison.Spiele": 32,
     "Vorsaison.Rating": 6.8,
     "Vorsaison.Wert": 1046
   },
@@ -2718,7 +2718,7 @@ const playersData = [
     "Groesse": "174",
     "Gewicht": "73",
     "Vorsaison.Minuten": 294,
-    "Vorsaison.Spiele": 5,
+    "Vorsaison.Spiele": 4,
     "Vorsaison.Rating": 6.5,
     "Vorsaison.Wert": 170
   },
@@ -2752,7 +2752,7 @@ const playersData = [
     "Groesse": "189",
     "Gewicht": "83",
     "Vorsaison.Minuten": 2100,
-    "Vorsaison.Spiele": 33,
+    "Vorsaison.Spiele": 29,
     "Vorsaison.Rating": 7.42,
     "Vorsaison.Wert": 1875
   },
@@ -2785,10 +2785,10 @@ const playersData = [
     "Geburtsdatum": "1986-03-27",
     "Groesse": "193",
     "Gewicht": "93",
-    "Vorsaison.Minuten": 3930,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 6.97,
-    "Vorsaison.Wert": 3885
+    "Vorsaison.Minuten": 3570,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 3705
   },
   {
     "player.id": 498,
@@ -2819,10 +2819,10 @@ const playersData = [
     "Geburtsdatum": "2000-11-02",
     "Groesse": "183",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 1054,
-    "Vorsaison.Spiele": 27,
-    "Vorsaison.Rating": 6.86,
-    "Vorsaison.Wert": 1007
+    "Vorsaison.Minuten": 1009,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 985
   },
   {
     "player.id": 524214,
@@ -2837,7 +2837,7 @@ const playersData = [
     "Groesse": "",
     "Gewicht": "",
     "Vorsaison.Minuten": 1,
-    "Vorsaison.Spiele": 8,
+    "Vorsaison.Spiele": 5,
     "Vorsaison.Rating": 0,
     "Vorsaison.Wert": 1
   },
@@ -2853,10 +2853,10 @@ const playersData = [
     "Geburtsdatum": "1998-10-27",
     "Groesse": "186",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 3646,
-    "Vorsaison.Spiele": 49,
+    "Vorsaison.Minuten": 3601,
+    "Vorsaison.Spiele": 46,
     "Vorsaison.Rating": 7.06,
-    "Vorsaison.Wert": 3735
+    "Vorsaison.Wert": 3712
   },
   {
     "player.id": 628356,
@@ -2887,10 +2887,10 @@ const playersData = [
     "Geburtsdatum": "1999-05-12",
     "Groesse": "188",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 3845,
-    "Vorsaison.Spiele": 60,
-    "Vorsaison.Rating": 6.9,
-    "Vorsaison.Wert": 2515
+    "Vorsaison.Minuten": 3812,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 2498
   },
   {
     "player.id": 972,
@@ -2904,10 +2904,10 @@ const playersData = [
     "Geburtsdatum": "1996-02-11",
     "Groesse": "195",
     "Gewicht": "94",
-    "Vorsaison.Minuten": 4378,
-    "Vorsaison.Spiele": 57,
-    "Vorsaison.Rating": 7.06,
-    "Vorsaison.Wert": 4321
+    "Vorsaison.Minuten": 4076,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 4170
   },
   {
     "player.id": 125171,
@@ -2938,10 +2938,10 @@ const playersData = [
     "Geburtsdatum": "1996-11-15",
     "Groesse": "190",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 2356,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 7.1,
-    "Vorsaison.Wert": 2325
+    "Vorsaison.Minuten": 2068,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 2181
   },
   {
     "player.id": 280074,
@@ -2972,10 +2972,10 @@ const playersData = [
     "Geburtsdatum": "2000-09-13",
     "Groesse": "178",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 1614,
-    "Vorsaison.Spiele": 39,
-    "Vorsaison.Rating": 6.68,
-    "Vorsaison.Wert": 1350
+    "Vorsaison.Minuten": 1497,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 1292
   },
   {
     "player.id": 610483,
@@ -3006,10 +3006,10 @@ const playersData = [
     "Geburtsdatum": "2004-05-03",
     "Groesse": "188",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3362,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 7.11,
-    "Vorsaison.Wert": 3585
+    "Vorsaison.Minuten": 3317,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 3563
   },
   {
     "player.id": 327897,
@@ -3023,10 +3023,10 @@ const playersData = [
     "Geburtsdatum": "2005-12-11",
     "Groesse": "176",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 2617,
-    "Vorsaison.Spiele": 41,
+    "Vorsaison.Minuten": 2572,
+    "Vorsaison.Spiele": 40,
     "Vorsaison.Rating": 6.77,
-    "Vorsaison.Wert": 2543
+    "Vorsaison.Wert": 2521
   },
   {
     "player.id": 449689,
@@ -3041,7 +3041,7 @@ const playersData = [
     "Groesse": "",
     "Gewicht": "",
     "Vorsaison.Minuten": 27,
-    "Vorsaison.Spiele": 11,
+    "Vorsaison.Spiele": 7,
     "Vorsaison.Rating": 6.7,
     "Vorsaison.Wert": 27
   },
@@ -3074,10 +3074,10 @@ const playersData = [
     "Geburtsdatum": "2007-04-10",
     "Groesse": "171",
     "Gewicht": "64",
-    "Vorsaison.Minuten": 150,
-    "Vorsaison.Spiele": 10,
-    "Vorsaison.Rating": 6.62,
-    "Vorsaison.Wert": 144
+    "Vorsaison.Minuten": 138,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 138
   },
   {
     "player.id": 568043,
@@ -3108,10 +3108,10 @@ const playersData = [
     "Geburtsdatum": "2001-01-28",
     "Groesse": "185",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 3931,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 7.12,
-    "Vorsaison.Wert": 3001
+    "Vorsaison.Minuten": 3478,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 2774
   },
   {
     "player.id": 181812,
@@ -3142,10 +3142,10 @@ const playersData = [
     "Geburtsdatum": "1995-02-08",
     "Groesse": "177",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 4448,
-    "Vorsaison.Spiele": 56,
-    "Vorsaison.Rating": 7.63,
-    "Vorsaison.Wert": 4524
+    "Vorsaison.Minuten": 4385,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.61,
+    "Vorsaison.Wert": 4493
   },
   {
     "player.id": 1157,
@@ -3159,10 +3159,10 @@ const playersData = [
     "Geburtsdatum": "1997-05-27",
     "Groesse": "180",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3656,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 6.74,
-    "Vorsaison.Wert": 3681
+    "Vorsaison.Minuten": 3593,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 3649
   },
   {
     "player.id": 494131,
@@ -3177,7 +3177,7 @@ const playersData = [
     "Groesse": "168",
     "Gewicht": "67",
     "Vorsaison.Minuten": 2666,
-    "Vorsaison.Spiele": 56,
+    "Vorsaison.Spiele": 52,
     "Vorsaison.Rating": 6.9,
     "Vorsaison.Wert": 2449
   },
@@ -3210,10 +3210,10 @@ const playersData = [
     "Geburtsdatum": "2001-12-12",
     "Groesse": "184",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 4387,
-    "Vorsaison.Spiele": 59,
-    "Vorsaison.Rating": 7.69,
-    "Vorsaison.Wert": 4433
+    "Vorsaison.Minuten": 4324,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7.67,
+    "Vorsaison.Wert": 4402
   },
   {
     "player.id": 325975,
@@ -3227,10 +3227,10 @@ const playersData = [
     "Geburtsdatum": "2005-06-28",
     "Groesse": "176",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 1775,
-    "Vorsaison.Spiele": 46,
-    "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 1911
+    "Vorsaison.Minuten": 1730,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 1888
   },
   {
     "player.id": 496738,
@@ -3245,7 +3245,7 @@ const playersData = [
     "Groesse": "175",
     "Gewicht": "65",
     "Vorsaison.Minuten": 220,
-    "Vorsaison.Spiele": 10,
+    "Vorsaison.Spiele": 9,
     "Vorsaison.Rating": 6.39,
     "Vorsaison.Wert": 138
   },
@@ -3295,10 +3295,10 @@ const playersData = [
     "Geburtsdatum": "1993-07-28",
     "Groesse": "188",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 4466,
-    "Vorsaison.Spiele": 59,
-    "Vorsaison.Rating": 7.87,
-    "Vorsaison.Wert": 4463
+    "Vorsaison.Minuten": 4362,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 7.89,
+    "Vorsaison.Wert": 4411
   },
   {
     "player.id": 2489,
@@ -3312,10 +3312,10 @@ const playersData = [
     "Geburtsdatum": "1997-01-13",
     "Groesse": "178",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 4352,
-    "Vorsaison.Spiele": 55,
+    "Vorsaison.Minuten": 4065,
+    "Vorsaison.Spiele": 51,
     "Vorsaison.Rating": 7.33,
-    "Vorsaison.Wert": 4388
+    "Vorsaison.Wert": 4245
   },
   {
     "player.id": 510,
@@ -3347,7 +3347,7 @@ const playersData = [
     "Groesse": "195",
     "Gewicht": "90",
     "Vorsaison.Minuten": 0,
-    "Vorsaison.Spiele": 10,
+    "Vorsaison.Spiele": 5,
     "Vorsaison.Rating": 0,
     "Vorsaison.Wert": 0
   },
@@ -3363,10 +3363,10 @@ const playersData = [
     "Geburtsdatum": "1997-12-06",
     "Groesse": "195",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 5430,
-    "Vorsaison.Spiele": 60,
-    "Vorsaison.Rating": 7.15,
-    "Vorsaison.Wert": 5145
+    "Vorsaison.Minuten": 4710,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 4785
   },
   {
     "player.id": 26395,
@@ -3380,10 +3380,10 @@ const playersData = [
     "Geburtsdatum": "1993-02-04",
     "Groesse": "194",
     "Gewicht": "87",
-    "Vorsaison.Minuten": 90,
-    "Vorsaison.Spiele": 1,
-    "Vorsaison.Rating": 7.7,
-    "Vorsaison.Wert": 45
+    "Vorsaison.Minuten": 0,
+    "Vorsaison.Spiele": 0,
+    "Vorsaison.Rating": 0,
+    "Vorsaison.Wert": 0
   },
   {
     "player.id": 280463,
@@ -3415,7 +3415,7 @@ const playersData = [
     "Groesse": "186",
     "Gewicht": "78",
     "Vorsaison.Minuten": 443,
-    "Vorsaison.Spiele": 9,
+    "Vorsaison.Spiele": 8,
     "Vorsaison.Rating": 6.9,
     "Vorsaison.Wert": 229
   },
@@ -3431,10 +3431,10 @@ const playersData = [
     "Geburtsdatum": "1995-04-16",
     "Groesse": "187",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 4281,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.23,
-    "Vorsaison.Wert": 3679
+    "Vorsaison.Minuten": 3245,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.25,
+    "Vorsaison.Wert": 3161
   },
   {
     "player.id": 420351,
@@ -3449,7 +3449,7 @@ const playersData = [
     "Groesse": "192",
     "Gewicht": "80",
     "Vorsaison.Minuten": 0,
-    "Vorsaison.Spiele": 8,
+    "Vorsaison.Spiele": 4,
     "Vorsaison.Rating": 0,
     "Vorsaison.Wert": 0
   },
@@ -3482,10 +3482,10 @@ const playersData = [
     "Geburtsdatum": "1997-11-17",
     "Groesse": "183",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 3898,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 6.94,
-    "Vorsaison.Wert": 3690
+    "Vorsaison.Minuten": 3435,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 3459
   },
   {
     "player.id": 409215,
@@ -3499,10 +3499,10 @@ const playersData = [
     "Geburtsdatum": "2007-01-17",
     "Groesse": "194",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3149,
-    "Vorsaison.Spiele": 39,
+    "Vorsaison.Minuten": 3104,
+    "Vorsaison.Spiele": 36,
     "Vorsaison.Rating": 6.66,
-    "Vorsaison.Wert": 2627
+    "Vorsaison.Wert": 2605
   },
   {
     "player.id": 568225,
@@ -3550,10 +3550,10 @@ const playersData = [
     "Geburtsdatum": "1996-07-20",
     "Groesse": "189",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 4827,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.08,
-    "Vorsaison.Wert": 4601
+    "Vorsaison.Minuten": 4377,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.1,
+    "Vorsaison.Wert": 4376
   },
   {
     "player.id": 197448,
@@ -3601,10 +3601,10 @@ const playersData = [
     "Geburtsdatum": "2002-02-12",
     "Groesse": "183",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 4448,
-    "Vorsaison.Spiele": 58,
+    "Vorsaison.Minuten": 4327,
+    "Vorsaison.Spiele": 56,
     "Vorsaison.Rating": 6.73,
-    "Vorsaison.Wert": 4163
+    "Vorsaison.Wert": 4103
   },
   {
     "player.id": 864,
@@ -3635,10 +3635,10 @@ const playersData = [
     "Geburtsdatum": "2000-10-10",
     "Groesse": "190",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3667,
-    "Vorsaison.Spiele": 52,
+    "Vorsaison.Minuten": 3399,
+    "Vorsaison.Spiele": 47,
     "Vorsaison.Rating": 6.99,
-    "Vorsaison.Wert": 3679
+    "Vorsaison.Wert": 3545
   },
   {
     "player.id": 568733,
@@ -3669,10 +3669,10 @@ const playersData = [
     "Geburtsdatum": "2005-09-23",
     "Groesse": "188",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3365,
-    "Vorsaison.Spiele": 57,
-    "Vorsaison.Rating": 6.89,
-    "Vorsaison.Wert": 3227
+    "Vorsaison.Minuten": 3137,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 3113
   },
   {
     "player.id": 1159,
@@ -3686,10 +3686,10 @@ const playersData = [
     "Geburtsdatum": "1994-03-17",
     "Groesse": "178",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2807,
-    "Vorsaison.Spiele": 44,
+    "Vorsaison.Minuten": 2578,
+    "Vorsaison.Spiele": 39,
     "Vorsaison.Rating": 6.9,
-    "Vorsaison.Wert": 2663
+    "Vorsaison.Wert": 2548
   },
   {
     "player.id": 478991,
@@ -3737,10 +3737,10 @@ const playersData = [
     "Geburtsdatum": "2002-01-18",
     "Groesse": "180",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2567,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 6.9,
-    "Vorsaison.Wert": 2364
+    "Vorsaison.Minuten": 2333,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 2247
   },
   {
     "player.id": 486522,
@@ -3771,10 +3771,10 @@ const playersData = [
     "Geburtsdatum": "2002-10-17",
     "Groesse": "183",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3276,
-    "Vorsaison.Spiele": 59,
-    "Vorsaison.Rating": 6.74,
-    "Vorsaison.Wert": 3185
+    "Vorsaison.Minuten": 3186,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 3140
   },
   {
     "player.id": 21393,
@@ -3788,10 +3788,10 @@ const playersData = [
     "Geburtsdatum": "1996-03-12",
     "Groesse": "187",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 4393,
-    "Vorsaison.Spiele": 60,
-    "Vorsaison.Rating": 6.97,
-    "Vorsaison.Wert": 4081
+    "Vorsaison.Minuten": 3651,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 3710
   },
   {
     "player.id": 426668,
@@ -3856,10 +3856,10 @@ const playersData = [
     "Geburtsdatum": "1988-12-17",
     "Groesse": "183",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 4581,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 6.91,
-    "Vorsaison.Wert": 4671
+    "Vorsaison.Minuten": 4221,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 4491
   },
   {
     "player.id": 314265,
@@ -3873,10 +3873,10 @@ const playersData = [
     "Geburtsdatum": "2003-03-18",
     "Groesse": "191",
     "Gewicht": "89",
-    "Vorsaison.Minuten": 4447,
-    "Vorsaison.Spiele": 79,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 2790
+    "Vorsaison.Minuten": 1670,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 1401
   },
   {
     "player.id": 69,
@@ -3907,10 +3907,10 @@ const playersData = [
     "Geburtsdatum": "2002-07-09",
     "Groesse": "180",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 2938,
-    "Vorsaison.Spiele": 79,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 2009
+    "Vorsaison.Minuten": 2271,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 1676
   },
   {
     "player.id": 375974,
@@ -3924,10 +3924,10 @@ const playersData = [
     "Geburtsdatum": "2005-03-28",
     "Groesse": "168",
     "Gewicht": "52",
-    "Vorsaison.Minuten": 5671,
-    "Vorsaison.Spiele": 72,
-    "Vorsaison.Rating": 6.91,
-    "Vorsaison.Wert": 4445
+    "Vorsaison.Minuten": 3991,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 3605
   },
   {
     "player.id": 354027,
@@ -3941,10 +3941,10 @@ const playersData = [
     "Geburtsdatum": "2004-04-21",
     "Groesse": "188",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 4131,
-    "Vorsaison.Spiele": 50,
+    "Vorsaison.Minuten": 3547,
+    "Vorsaison.Spiele": 43,
     "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 3473
+    "Vorsaison.Wert": 3181
   },
   {
     "player.id": 304984,
@@ -3958,10 +3958,10 @@ const playersData = [
     "Geburtsdatum": "2005-01-21",
     "Groesse": "188",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2829,
-    "Vorsaison.Spiele": 44,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 2117
+    "Vorsaison.Minuten": 2739,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 2072
   },
   {
     "player.id": 301322,
@@ -4009,10 +4009,10 @@ const playersData = [
     "Geburtsdatum": "2006-01-24",
     "Groesse": "184",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 3655,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 6.74,
-    "Vorsaison.Wert": 2249
+    "Vorsaison.Minuten": 2475,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1659
   },
   {
     "player.id": 474741,
@@ -4026,10 +4026,10 @@ const playersData = [
     "Geburtsdatum": "2006-04-06",
     "Groesse": "188",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 1862,
-    "Vorsaison.Spiele": 28,
-    "Vorsaison.Rating": 6.7,
-    "Vorsaison.Wert": 1215
+    "Vorsaison.Minuten": 1420,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.64,
+    "Vorsaison.Wert": 994
   },
   {
     "player.id": 394206,
@@ -4094,10 +4094,10 @@ const playersData = [
     "Geburtsdatum": "1992-08-24",
     "Groesse": "195",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 8207,
-    "Vorsaison.Spiele": 93,
-    "Vorsaison.Rating": 7.42,
-    "Vorsaison.Wert": 6038
+    "Vorsaison.Minuten": 4633,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.53,
+    "Vorsaison.Wert": 4251
   },
   {
     "player.id": 39291,
@@ -4111,10 +4111,10 @@ const playersData = [
     "Geburtsdatum": "2000-02-29",
     "Groesse": "174",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 2530,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 6.87,
-    "Vorsaison.Wert": 1832
+    "Vorsaison.Minuten": 1619,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1377
   },
   {
     "player.id": 38124,
@@ -4128,10 +4128,10 @@ const playersData = [
     "Geburtsdatum": "2000-06-01",
     "Groesse": "178",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 3090,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 1754
+    "Vorsaison.Minuten": 421,
+    "Vorsaison.Spiele": 10,
+    "Vorsaison.Rating": 6.55,
+    "Vorsaison.Wert": 420
   },
   {
     "player.id": 271609,
@@ -4162,10 +4162,10 @@ const playersData = [
     "Geburtsdatum": "2001-04-19",
     "Groesse": "184",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 5829,
-    "Vorsaison.Spiele": 85,
+    "Vorsaison.Minuten": 3156,
+    "Vorsaison.Spiele": 45,
     "Vorsaison.Rating": 6.95,
-    "Vorsaison.Wert": 4181
+    "Vorsaison.Wert": 2844
   },
   {
     "player.id": 282126,
@@ -4179,10 +4179,10 @@ const playersData = [
     "Geburtsdatum": "2004-03-19",
     "Groesse": "169",
     "Gewicht": "62",
-    "Vorsaison.Minuten": 4150,
-    "Vorsaison.Spiele": 62,
-    "Vorsaison.Rating": 7.19,
-    "Vorsaison.Wert": 3520
+    "Vorsaison.Minuten": 3989,
+    "Vorsaison.Spiele": 60,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 3440
   },
   {
     "player.id": 161800,
@@ -4196,10 +4196,10 @@ const playersData = [
     "Geburtsdatum": "2002-01-30",
     "Groesse": "179",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 7742,
-    "Vorsaison.Spiele": 97,
-    "Vorsaison.Rating": 7.61,
-    "Vorsaison.Wert": 5537
+    "Vorsaison.Minuten": 4485,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.6,
+    "Vorsaison.Wert": 3908
   },
   {
     "player.id": 15683,
@@ -4213,10 +4213,10 @@ const playersData = [
     "Geburtsdatum": "1997-05-23",
     "Groesse": "196",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 1180,
-    "Vorsaison.Spiele": 40,
-    "Vorsaison.Rating": 6.72,
-    "Vorsaison.Wert": 643
+    "Vorsaison.Minuten": 104,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.34,
+    "Vorsaison.Wert": 105
   },
   {
     "player.id": 426447,
@@ -4264,10 +4264,10 @@ const playersData = [
     "Geburtsdatum": "2004-08-20",
     "Groesse": "183",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 4157,
-    "Vorsaison.Spiele": 90,
-    "Vorsaison.Rating": 6.89,
-    "Vorsaison.Wert": 3272
+    "Vorsaison.Minuten": 3725,
+    "Vorsaison.Spiele": 65,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 3056
   },
   {
     "player.id": 271276,
@@ -4298,10 +4298,10 @@ const playersData = [
     "Geburtsdatum": "2005-07-15",
     "Groesse": "",
     "Gewicht": "",
-    "Vorsaison.Minuten": 1026,
-    "Vorsaison.Spiele": 31,
-    "Vorsaison.Rating": 7.34,
-    "Vorsaison.Wert": 619
+    "Vorsaison.Minuten": 417,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 7.42,
+    "Vorsaison.Wert": 314
   },
   {
     "player.id": 551259,
@@ -4332,10 +4332,10 @@ const playersData = [
     "Geburtsdatum": "1995-06-08",
     "Groesse": "188",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 5625,
-    "Vorsaison.Spiele": 64,
-    "Vorsaison.Rating": 7.18,
-    "Vorsaison.Wert": 4523
+    "Vorsaison.Minuten": 3960,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 7.24,
+    "Vorsaison.Wert": 3690
   },
   {
     "player.id": 193328,
@@ -4417,10 +4417,10 @@ const playersData = [
     "Geburtsdatum": "1993-11-02",
     "Groesse": "193",
     "Gewicht": "87",
-    "Vorsaison.Minuten": 1640,
-    "Vorsaison.Spiele": 36,
-    "Vorsaison.Rating": 6.88,
-    "Vorsaison.Wert": 827
+    "Vorsaison.Minuten": 104,
+    "Vorsaison.Spiele": 3,
+    "Vorsaison.Rating": 7.43,
+    "Vorsaison.Wert": 59
   },
   {
     "player.id": 129119,
@@ -4451,10 +4451,10 @@ const playersData = [
     "Geburtsdatum": "2000-08-17",
     "Groesse": "181",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2535,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 6.86,
-    "Vorsaison.Wert": 2100
+    "Vorsaison.Minuten": 1900,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1783
   },
   {
     "player.id": 386305,
@@ -4502,10 +4502,10 @@ const playersData = [
     "Geburtsdatum": "1995-01-28",
     "Groesse": "186",
     "Gewicht": "87",
-    "Vorsaison.Minuten": 2720,
-    "Vorsaison.Spiele": 39,
-    "Vorsaison.Rating": 6.97,
-    "Vorsaison.Wert": 2522
+    "Vorsaison.Minuten": 2630,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 2477
   },
   {
     "player.id": 8586,
@@ -4519,10 +4519,10 @@ const playersData = [
     "Geburtsdatum": "1995-02-01",
     "Groesse": "187",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 4068,
-    "Vorsaison.Spiele": 75,
+    "Vorsaison.Minuten": 1821,
+    "Vorsaison.Spiele": 34,
     "Vorsaison.Rating": 6.74,
-    "Vorsaison.Wert": 2834
+    "Vorsaison.Wert": 1710
   },
   {
     "player.id": 711,
@@ -4587,10 +4587,10 @@ const playersData = [
     "Geburtsdatum": "2005-11-21",
     "Groesse": "185",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 2131,
-    "Vorsaison.Spiele": 41,
+    "Vorsaison.Minuten": 2041,
+    "Vorsaison.Spiele": 40,
     "Vorsaison.Rating": 6.89,
-    "Vorsaison.Wert": 1933
+    "Vorsaison.Wert": 1888
   },
   {
     "player.id": 476862,
@@ -4621,10 +4621,10 @@ const playersData = [
     "Geburtsdatum": "2001-06-09",
     "Groesse": "174",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 3888,
-    "Vorsaison.Spiele": 60,
-    "Vorsaison.Rating": 7.11,
-    "Vorsaison.Wert": 3318
+    "Vorsaison.Minuten": 3193,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 2971
   },
   {
     "player.id": 47085,
@@ -4655,10 +4655,10 @@ const playersData = [
     "Geburtsdatum": "2003-02-16",
     "Groesse": "172",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 3581,
-    "Vorsaison.Spiele": 57,
-    "Vorsaison.Rating": 7.26,
-    "Vorsaison.Wert": 2586
+    "Vorsaison.Minuten": 2025,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 1808
   },
   {
     "player.id": 659,
@@ -4672,10 +4672,10 @@ const playersData = [
     "Geburtsdatum": "2000-02-15",
     "Groesse": "174",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 1937,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Minuten": 1851,
+    "Vorsaison.Spiele": 36,
     "Vorsaison.Rating": 6.88,
-    "Vorsaison.Wert": 1712
+    "Vorsaison.Wert": 1669
   },
   {
     "player.id": 288699,
@@ -4689,10 +4689,10 @@ const playersData = [
     "Geburtsdatum": "2003-01-07",
     "Groesse": "177",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 3083,
-    "Vorsaison.Spiele": 42,
+    "Vorsaison.Minuten": 3073,
+    "Vorsaison.Spiele": 41,
     "Vorsaison.Rating": 6.97,
-    "Vorsaison.Wert": 2916
+    "Vorsaison.Wert": 2911
   },
   {
     "player.id": 350037,
@@ -4706,10 +4706,10 @@ const playersData = [
     "Geburtsdatum": "2004-09-08",
     "Groesse": "186",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 3438,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.3,
-    "Vorsaison.Wert": 3161
+    "Vorsaison.Minuten": 3290,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.31,
+    "Vorsaison.Wert": 3087
   },
   {
     "player.id": 662278,
@@ -4740,10 +4740,10 @@ const playersData = [
     "Geburtsdatum": "2001-11-03",
     "Groesse": "182",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 1423,
-    "Vorsaison.Spiele": 38,
-    "Vorsaison.Rating": 6.68,
-    "Vorsaison.Wert": 1245
+    "Vorsaison.Minuten": 1197,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 1132
   },
   {
     "player.id": 59,
@@ -4774,10 +4774,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-02",
     "Groesse": "186",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2618,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 6.91,
-    "Vorsaison.Wert": 2448
+    "Vorsaison.Minuten": 2528,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2403
   },
   {
     "player.id": 400948,
@@ -4791,10 +4791,10 @@ const playersData = [
     "Geburtsdatum": "2005-09-07",
     "Groesse": "185",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 1707,
-    "Vorsaison.Spiele": 32,
-    "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 1398
+    "Vorsaison.Minuten": 1299,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 1194
   },
   {
     "player.id": 354533,
@@ -4893,10 +4893,10 @@ const playersData = [
     "Geburtsdatum": "1999-09-19",
     "Groesse": "186",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 7160,
-    "Vorsaison.Spiele": 81,
-    "Vorsaison.Rating": 7.04,
-    "Vorsaison.Wert": 4809
+    "Vorsaison.Minuten": 4280,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3369
   },
   {
     "player.id": 453955,
@@ -4944,10 +4944,10 @@ const playersData = [
     "Geburtsdatum": "2004-05-19",
     "Groesse": "",
     "Gewicht": "",
-    "Vorsaison.Minuten": 818,
-    "Vorsaison.Spiele": 22,
-    "Vorsaison.Rating": 6.88,
-    "Vorsaison.Wert": 553
+    "Vorsaison.Minuten": 765,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 527
   },
   {
     "player.id": 41966,
@@ -4995,10 +4995,10 @@ const playersData = [
     "Geburtsdatum": "2000-02-15",
     "Groesse": "189",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3662,
-    "Vorsaison.Spiele": 51,
+    "Vorsaison.Minuten": 3350,
+    "Vorsaison.Spiele": 44,
     "Vorsaison.Rating": 7.24,
-    "Vorsaison.Wert": 2645
+    "Vorsaison.Wert": 2489
   },
   {
     "player.id": 2999,
@@ -5012,10 +5012,10 @@ const playersData = [
     "Geburtsdatum": "1996-04-12",
     "Groesse": "189",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 4317,
-    "Vorsaison.Spiele": 56,
-    "Vorsaison.Rating": 7.21,
-    "Vorsaison.Wert": 3241
+    "Vorsaison.Minuten": 3818,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 7.2,
+    "Vorsaison.Wert": 2992
   },
   {
     "player.id": 336596,
@@ -5029,10 +5029,10 @@ const playersData = [
     "Geburtsdatum": "2006-01-18",
     "Groesse": "181",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 1848,
-    "Vorsaison.Spiele": 36,
-    "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 1385
+    "Vorsaison.Minuten": 1590,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 1256
   },
   {
     "player.id": 37,
@@ -5063,10 +5063,10 @@ const playersData = [
     "Geburtsdatum": "1997-06-13",
     "Groesse": "182",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2671,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 6.77,
-    "Vorsaison.Wert": 1853
+    "Vorsaison.Minuten": 1628,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 1331
   },
   {
     "player.id": 278375,
@@ -5080,10 +5080,10 @@ const playersData = [
     "Geburtsdatum": "2001-07-04",
     "Groesse": "177",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 5040,
-    "Vorsaison.Spiele": 76,
-    "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 3204
+    "Vorsaison.Minuten": 2835,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 2101
   },
   {
     "player.id": 392252,
@@ -5148,10 +5148,10 @@ const playersData = [
     "Geburtsdatum": "2002-05-27",
     "Groesse": "184",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3121,
-    "Vorsaison.Spiele": 65,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 2148
+    "Vorsaison.Minuten": 2387,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 1781
   },
   {
     "player.id": 240,
@@ -5165,10 +5165,10 @@ const playersData = [
     "Geburtsdatum": "1997-01-07",
     "Groesse": "188",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 2786,
-    "Vorsaison.Spiele": 42,
-    "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 2287
+    "Vorsaison.Minuten": 2696,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 2242
   },
   {
     "player.id": 404097,
@@ -5182,10 +5182,10 @@ const playersData = [
     "Geburtsdatum": "2007-05-05",
     "Groesse": "168",
     "Gewicht": "56",
-    "Vorsaison.Minuten": 1904,
-    "Vorsaison.Spiele": 46,
-    "Vorsaison.Rating": 6.84,
-    "Vorsaison.Wert": 1455
+    "Vorsaison.Minuten": 1838,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 1422
   },
   {
     "player.id": 35570,
@@ -5199,10 +5199,10 @@ const playersData = [
     "Geburtsdatum": "1996-12-21",
     "Groesse": "177",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 882,
-    "Vorsaison.Spiele": 23,
-    "Vorsaison.Rating": 6.81,
-    "Vorsaison.Wert": 598
+    "Vorsaison.Minuten": 527,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 6.65,
+    "Vorsaison.Wert": 421
   },
   {
     "player.id": 550966,
@@ -5233,10 +5233,10 @@ const playersData = [
     "Geburtsdatum": "2006-02-25",
     "Groesse": "187",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3963,
-    "Vorsaison.Spiele": 53,
+    "Vorsaison.Minuten": 3933,
+    "Vorsaison.Spiele": 52,
     "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 3007
+    "Vorsaison.Wert": 2992
   },
   {
     "player.id": 515008,
@@ -5284,10 +5284,10 @@ const playersData = [
     "Geburtsdatum": "2001-02-01",
     "Groesse": "178",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2418,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 1934
+    "Vorsaison.Minuten": 2339,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1895
   },
   {
     "player.id": 388570,
@@ -5301,10 +5301,10 @@ const playersData = [
     "Geburtsdatum": "2004-07-02",
     "Groesse": "190",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 2008,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 6.51,
-    "Vorsaison.Wert": 1475
+    "Vorsaison.Minuten": 1789,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 1366
   },
   {
     "player.id": 550909,
@@ -5352,10 +5352,10 @@ const playersData = [
     "Geburtsdatum": "1997-02-24",
     "Groesse": "175",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 5618,
-    "Vorsaison.Spiele": 80,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 3623
+    "Vorsaison.Minuten": 3065,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 2347
   },
   {
     "player.id": 358628,
@@ -5369,10 +5369,10 @@ const playersData = [
     "Geburtsdatum": "2004-05-05",
     "Groesse": "193",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 2524,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 6.77,
-    "Vorsaison.Wert": 1825
+    "Vorsaison.Minuten": 2434,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1780
   },
   {
     "player.id": 361372,
@@ -5403,10 +5403,10 @@ const playersData = [
     "Geburtsdatum": "2006-03-15",
     "Groesse": "172",
     "Gewicht": "64",
-    "Vorsaison.Minuten": 2388,
-    "Vorsaison.Spiele": 53,
+    "Vorsaison.Minuten": 2200,
+    "Vorsaison.Spiele": 48,
     "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 1821
+    "Vorsaison.Wert": 1727
   },
   {
     "player.id": 441274,
@@ -5523,7 +5523,7 @@ const playersData = [
     "Groesse": "183",
     "Gewicht": "74",
     "Vorsaison.Minuten": 1388,
-    "Vorsaison.Spiele": 25,
+    "Vorsaison.Spiele": 24,
     "Vorsaison.Rating": 6.89,
     "Vorsaison.Wert": 1149
   },
@@ -5539,10 +5539,10 @@ const playersData = [
     "Geburtsdatum": "2006-06-02",
     "Groesse": "184",
     "Gewicht": "",
-    "Vorsaison.Minuten": 1649,
-    "Vorsaison.Spiele": 26,
-    "Vorsaison.Rating": 7.05,
-    "Vorsaison.Wert": 1169
+    "Vorsaison.Minuten": 1559,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1124
   },
   {
     "player.id": 629173,
@@ -5590,10 +5590,10 @@ const playersData = [
     "Geburtsdatum": "2002-10-29",
     "Groesse": "180",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 2898,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 7.08,
-    "Vorsaison.Wert": 2185
+    "Vorsaison.Minuten": 2569,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2021
   },
   {
     "player.id": 37451,
@@ -5641,10 +5641,10 @@ const playersData = [
     "Geburtsdatum": "1998-09-29",
     "Groesse": "177",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 1635,
-    "Vorsaison.Spiele": 29,
-    "Vorsaison.Rating": 6.29,
-    "Vorsaison.Wert": 1390
+    "Vorsaison.Minuten": 1545,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.4,
+    "Vorsaison.Wert": 1345
   },
   {
     "player.id": 134756,
@@ -5658,10 +5658,10 @@ const playersData = [
     "Geburtsdatum": "2002-02-18",
     "Groesse": "185",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 2176,
-    "Vorsaison.Spiele": 33,
+    "Vorsaison.Minuten": 2154,
+    "Vorsaison.Spiele": 31,
     "Vorsaison.Rating": 6.62,
-    "Vorsaison.Wert": 1437
+    "Vorsaison.Wert": 1426
   },
   {
     "player.id": 32858,
@@ -5675,10 +5675,10 @@ const playersData = [
     "Geburtsdatum": "1997-02-05",
     "Groesse": "184",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3770,
-    "Vorsaison.Spiele": 44,
-    "Vorsaison.Rating": 7.15,
-    "Vorsaison.Wert": 2840
+    "Vorsaison.Minuten": 3320,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2615
   },
   {
     "player.id": 632814,
@@ -5710,7 +5710,7 @@ const playersData = [
     "Groesse": "182",
     "Gewicht": "74",
     "Vorsaison.Minuten": 61,
-    "Vorsaison.Spiele": 5,
+    "Vorsaison.Spiele": 4,
     "Vorsaison.Rating": 6.43,
     "Vorsaison.Wert": 61
   },
@@ -5726,10 +5726,10 @@ const playersData = [
     "Geburtsdatum": "1998-09-16",
     "Groesse": "182",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3113,
-    "Vorsaison.Spiele": 44,
+    "Vorsaison.Minuten": 3023,
+    "Vorsaison.Spiele": 43,
     "Vorsaison.Rating": 6.91,
-    "Vorsaison.Wert": 2849
+    "Vorsaison.Wert": 2804
   },
   {
     "player.id": 425819,
@@ -5760,10 +5760,10 @@ const playersData = [
     "Geburtsdatum": "1996-09-20",
     "Groesse": "177",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 1577,
-    "Vorsaison.Spiele": 27,
+    "Vorsaison.Minuten": 1392,
+    "Vorsaison.Spiele": 24,
     "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 1264
+    "Vorsaison.Wert": 1171
   },
   {
     "player.id": 653521,
@@ -5794,10 +5794,10 @@ const playersData = [
     "Geburtsdatum": "1999-04-07",
     "Groesse": "188",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 1184,
-    "Vorsaison.Spiele": 15,
-    "Vorsaison.Rating": 7.01,
-    "Vorsaison.Wert": 765
+    "Vorsaison.Minuten": 824,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 585
   },
   {
     "player.id": 314266,
@@ -5811,10 +5811,10 @@ const playersData = [
     "Geburtsdatum": "2003-10-04",
     "Groesse": "189",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 3498,
-    "Vorsaison.Spiele": 47,
+    "Vorsaison.Minuten": 3481,
+    "Vorsaison.Spiele": 46,
     "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 2663
+    "Vorsaison.Wert": 2655
   },
   {
     "player.id": 14394,
@@ -5828,8 +5828,8 @@ const playersData = [
     "Geburtsdatum": "1998-11-26",
     "Groesse": "175",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 783,
-    "Vorsaison.Spiele": 27,
+    "Vorsaison.Minuten": 782,
+    "Vorsaison.Spiele": 26,
     "Vorsaison.Rating": 6.76,
     "Vorsaison.Wert": 616
   },
@@ -5845,10 +5845,10 @@ const playersData = [
     "Geburtsdatum": "2002-05-20",
     "Groesse": "186",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 2600,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Minuten": 2490,
+    "Vorsaison.Spiele": 37,
     "Vorsaison.Rating": 7.16,
-    "Vorsaison.Wert": 1973
+    "Vorsaison.Wert": 1918
   },
   {
     "player.id": 37784,
@@ -5862,10 +5862,10 @@ const playersData = [
     "Geburtsdatum": "2001-11-12",
     "Groesse": "173",
     "Gewicht": "61",
-    "Vorsaison.Minuten": 1790,
-    "Vorsaison.Spiele": 29,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 1546
+    "Vorsaison.Minuten": 1705,
+    "Vorsaison.Spiele": 28,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1503
   },
   {
     "player.id": 371228,
@@ -5913,10 +5913,10 @@ const playersData = [
     "Geburtsdatum": "2002-02-11",
     "Groesse": "176",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3625,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 7.37,
-    "Vorsaison.Wert": 2875
+    "Vorsaison.Minuten": 3535,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 7.38,
+    "Vorsaison.Wert": 2830
   },
   {
     "player.id": 72155,
@@ -5930,10 +5930,10 @@ const playersData = [
     "Geburtsdatum": "1998-08-28",
     "Groesse": "182",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3585,
-    "Vorsaison.Spiele": 46,
-    "Vorsaison.Rating": 7.07,
-    "Vorsaison.Wert": 2727
+    "Vorsaison.Minuten": 3225,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 2547
   },
   {
     "player.id": 412873,
@@ -5947,10 +5947,10 @@ const playersData = [
     "Geburtsdatum": "2006-03-24",
     "Groesse": "",
     "Gewicht": "",
-    "Vorsaison.Minuten": 1215,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 6.68,
-    "Vorsaison.Wert": 790
+    "Vorsaison.Minuten": 1125,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.67,
+    "Vorsaison.Wert": 745
   },
   {
     "player.id": 162703,
@@ -5981,10 +5981,10 @@ const playersData = [
     "Geburtsdatum": "2002-11-21",
     "Groesse": "183",
     "Gewicht": "",
-    "Vorsaison.Minuten": 459,
-    "Vorsaison.Spiele": 13,
-    "Vorsaison.Rating": 6.57,
-    "Vorsaison.Wert": 366
+    "Vorsaison.Minuten": 414,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.49,
+    "Vorsaison.Wert": 343
   },
   {
     "player.id": 128385,
@@ -5998,10 +5998,10 @@ const playersData = [
     "Geburtsdatum": "2001-03-29",
     "Groesse": "184",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 968,
-    "Vorsaison.Spiele": 19,
-    "Vorsaison.Rating": 6.8,
-    "Vorsaison.Wert": 845
+    "Vorsaison.Minuten": 923,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 823
   },
   {
     "player.id": 629206,
@@ -6032,10 +6032,10 @@ const playersData = [
     "Geburtsdatum": "2005-12-16",
     "Groesse": "184",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 2047,
-    "Vorsaison.Spiele": 38,
+    "Vorsaison.Minuten": 2017,
+    "Vorsaison.Spiele": 32,
     "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 1565
+    "Vorsaison.Wert": 1550
   },
   {
     "player.id": 353943,
@@ -6049,10 +6049,10 @@ const playersData = [
     "Geburtsdatum": "2004-10-05",
     "Groesse": "192",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 5124,
-    "Vorsaison.Spiele": 67,
-    "Vorsaison.Rating": 7.04,
-    "Vorsaison.Wert": 3144
+    "Vorsaison.Minuten": 2910,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.03,
+    "Vorsaison.Wert": 2037
   },
   {
     "player.id": 624605,
@@ -6084,7 +6084,7 @@ const playersData = [
     "Groesse": "",
     "Gewicht": "",
     "Vorsaison.Minuten": 0,
-    "Vorsaison.Spiele": 3,
+    "Vorsaison.Spiele": 2,
     "Vorsaison.Rating": 0,
     "Vorsaison.Wert": 0
   },
@@ -6101,7 +6101,7 @@ const playersData = [
     "Groesse": "187",
     "Gewicht": "84",
     "Vorsaison.Minuten": 850,
-    "Vorsaison.Spiele": 17,
+    "Vorsaison.Spiele": 16,
     "Vorsaison.Rating": 6.73,
     "Vorsaison.Wert": 595
   },
@@ -6117,10 +6117,10 @@ const playersData = [
     "Geburtsdatum": "1996-04-05",
     "Groesse": "191",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 4058,
-    "Vorsaison.Spiele": 50,
-    "Vorsaison.Rating": 7.17,
-    "Vorsaison.Wert": 3639
+    "Vorsaison.Minuten": 3698,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 3459
   },
   {
     "player.id": 61837,
@@ -6134,10 +6134,10 @@ const playersData = [
     "Geburtsdatum": "1994-09-07",
     "Groesse": "185",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 4054,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 7.09,
-    "Vorsaison.Wert": 3504
+    "Vorsaison.Minuten": 3514,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3234
   },
   {
     "player.id": 404443,
@@ -6152,7 +6152,7 @@ const playersData = [
     "Groesse": "187",
     "Gewicht": "75",
     "Vorsaison.Minuten": 245,
-    "Vorsaison.Spiele": 18,
+    "Vorsaison.Spiele": 14,
     "Vorsaison.Rating": 6.58,
     "Vorsaison.Wert": 200
   },
@@ -6168,10 +6168,10 @@ const playersData = [
     "Geburtsdatum": "1996-06-12",
     "Groesse": "187",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 3714,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 7.06,
-    "Vorsaison.Wert": 3362
+    "Vorsaison.Minuten": 3444,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 3227
   },
   {
     "player.id": 50057,
@@ -6185,10 +6185,10 @@ const playersData = [
     "Geburtsdatum": "2000-07-07",
     "Groesse": "183",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2051,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 1620
+    "Vorsaison.Minuten": 1908,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1548
   },
   {
     "player.id": 158121,
@@ -6202,10 +6202,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-17",
     "Groesse": "184",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2539,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 6.67,
-    "Vorsaison.Wert": 2403
+    "Vorsaison.Minuten": 2429,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.66,
+    "Vorsaison.Wert": 2348
   },
   {
     "player.id": 25448,
@@ -6219,10 +6219,10 @@ const playersData = [
     "Geburtsdatum": "1994-11-10",
     "Groesse": "185",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 660,
-    "Vorsaison.Spiele": 31,
-    "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 463
+    "Vorsaison.Minuten": 558,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 412
   },
   {
     "player.id": 145057,
@@ -6253,10 +6253,10 @@ const playersData = [
     "Geburtsdatum": "1997-05-22",
     "Groesse": "183",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3548,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 6.8,
-    "Vorsaison.Wert": 3145
+    "Vorsaison.Minuten": 3274,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 3008
   },
   {
     "player.id": 30504,
@@ -6270,10 +6270,10 @@ const playersData = [
     "Geburtsdatum": "2000-12-25",
     "Groesse": "190",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 1885,
-    "Vorsaison.Spiele": 34,
-    "Vorsaison.Rating": 6.86,
-    "Vorsaison.Wert": 1614
+    "Vorsaison.Minuten": 1525,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 1434
   },
   {
     "player.id": 568393,
@@ -6321,10 +6321,10 @@ const playersData = [
     "Geburtsdatum": "1999-06-26",
     "Groesse": "176",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2600,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 7.14,
-    "Vorsaison.Wert": 2405
+    "Vorsaison.Minuten": 2577,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 2394
   },
   {
     "player.id": 633,
@@ -6372,10 +6372,10 @@ const playersData = [
     "Geburtsdatum": "1996-02-11",
     "Groesse": "166",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 3303,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 7.01,
-    "Vorsaison.Wert": 3085
+    "Vorsaison.Minuten": 3213,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3040
   },
   {
     "player.id": 518567,
@@ -6407,7 +6407,7 @@ const playersData = [
     "Groesse": "",
     "Gewicht": "",
     "Vorsaison.Minuten": 1,
-    "Vorsaison.Spiele": 8,
+    "Vorsaison.Spiele": 2,
     "Vorsaison.Rating": 0,
     "Vorsaison.Wert": 1
   },
@@ -6423,10 +6423,10 @@ const playersData = [
     "Geburtsdatum": "2000-03-01",
     "Groesse": "181",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 230,
-    "Vorsaison.Spiele": 20,
-    "Vorsaison.Rating": 6.48,
-    "Vorsaison.Wert": 161
+    "Vorsaison.Minuten": 195,
+    "Vorsaison.Spiele": 18,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 144
   },
   {
     "player.id": 63274,
@@ -6440,10 +6440,10 @@ const playersData = [
     "Geburtsdatum": "2000-05-23",
     "Groesse": "186",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 3483,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 3194
+    "Vorsaison.Minuten": 3341,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 3123
   },
   {
     "player.id": 585709,
@@ -6475,7 +6475,7 @@ const playersData = [
     "Groesse": "176",
     "Gewicht": "",
     "Vorsaison.Minuten": 0,
-    "Vorsaison.Spiele": 12,
+    "Vorsaison.Spiele": 9,
     "Vorsaison.Rating": 0,
     "Vorsaison.Wert": 0
   },
@@ -6491,10 +6491,10 @@ const playersData = [
     "Geburtsdatum": "1996-01-11",
     "Groesse": "183",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 3290,
-    "Vorsaison.Spiele": 47,
+    "Vorsaison.Minuten": 3228,
+    "Vorsaison.Spiele": 46,
     "Vorsaison.Rating": 7.09,
-    "Vorsaison.Wert": 2826
+    "Vorsaison.Wert": 2795
   },
   {
     "player.id": 2780,
@@ -6508,10 +6508,10 @@ const playersData = [
     "Geburtsdatum": "1998-12-29",
     "Groesse": "185",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 3276,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 7.18,
-    "Vorsaison.Wert": 2823
+    "Vorsaison.Minuten": 3110,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 2740
   },
   {
     "player.id": 454,
@@ -6525,10 +6525,10 @@ const playersData = [
     "Geburtsdatum": "2000-07-07",
     "Groesse": "173",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 2480,
-    "Vorsaison.Spiele": 45,
+    "Vorsaison.Minuten": 2304,
+    "Vorsaison.Spiele": 42,
     "Vorsaison.Rating": 7.12,
-    "Vorsaison.Wert": 2057
+    "Vorsaison.Wert": 1969
   },
   {
     "player.id": 449683,
@@ -6576,10 +6576,10 @@ const playersData = [
     "Geburtsdatum": "1994-03-17",
     "Groesse": "194",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 6022,
-    "Vorsaison.Spiele": 67,
-    "Vorsaison.Rating": 7.11,
-    "Vorsaison.Wert": 4226
+    "Vorsaison.Minuten": 2610,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2520
   },
   {
     "player.id": 46988,
@@ -6594,7 +6594,7 @@ const playersData = [
     "Groesse": "191",
     "Gewicht": "78",
     "Vorsaison.Minuten": 1002,
-    "Vorsaison.Spiele": 19,
+    "Vorsaison.Spiele": 15,
     "Vorsaison.Rating": 6.91,
     "Vorsaison.Wert": 726
   },
@@ -6661,10 +6661,10 @@ const playersData = [
     "Geburtsdatum": "1995-07-19",
     "Groesse": "188",
     "Gewicht": "91",
-    "Vorsaison.Minuten": 4134,
-    "Vorsaison.Spiele": 53,
+    "Vorsaison.Minuten": 3870,
+    "Vorsaison.Spiele": 48,
     "Vorsaison.Rating": 7.09,
-    "Vorsaison.Wert": 4184
+    "Vorsaison.Wert": 4052
   },
   {
     "player.id": 392493,
@@ -6713,7 +6713,7 @@ const playersData = [
     "Groesse": "196",
     "Gewicht": "83",
     "Vorsaison.Minuten": 2884,
-    "Vorsaison.Spiele": 38,
+    "Vorsaison.Spiele": 37,
     "Vorsaison.Rating": 7.06,
     "Vorsaison.Wert": 2961
   },
@@ -6747,7 +6747,7 @@ const playersData = [
     "Groesse": "187",
     "Gewicht": "82",
     "Vorsaison.Minuten": 1165,
-    "Vorsaison.Spiele": 37,
+    "Vorsaison.Spiele": 36,
     "Vorsaison.Rating": 6.93,
     "Vorsaison.Wert": 922
   },
@@ -6763,10 +6763,10 @@ const playersData = [
     "Geburtsdatum": "1999-01-07",
     "Groesse": "184",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2632,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 6.86,
-    "Vorsaison.Wert": 2592
+    "Vorsaison.Minuten": 2537,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.87,
+    "Vorsaison.Wert": 2544
   },
   {
     "player.id": 31173,
@@ -6814,10 +6814,10 @@ const playersData = [
     "Geburtsdatum": "1994-02-08",
     "Groesse": "178",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2696,
-    "Vorsaison.Spiele": 38,
-    "Vorsaison.Rating": 7.52,
-    "Vorsaison.Wert": 2511
+    "Vorsaison.Minuten": 2223,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 7.58,
+    "Vorsaison.Wert": 2275
   },
   {
     "player.id": 1457,
@@ -6831,10 +6831,10 @@ const playersData = [
     "Geburtsdatum": "1989-01-21",
     "Groesse": "177",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2611,
-    "Vorsaison.Spiele": 47,
+    "Vorsaison.Minuten": 2345,
+    "Vorsaison.Spiele": 43,
     "Vorsaison.Rating": 6.97,
-    "Vorsaison.Wert": 2399
+    "Vorsaison.Wert": 2266
   },
   {
     "player.id": 383000,
@@ -6916,10 +6916,10 @@ const playersData = [
     "Geburtsdatum": "2003-10-25",
     "Groesse": "183",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3118,
-    "Vorsaison.Spiele": 62,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 2931
+    "Vorsaison.Minuten": 3021,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 6.93,
+    "Vorsaison.Wert": 2882
   },
   {
     "player.id": 329,
@@ -6933,10 +6933,10 @@ const playersData = [
     "Geburtsdatum": "1994-05-20",
     "Groesse": "180",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3090,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 7.08,
-    "Vorsaison.Wert": 3206
+    "Vorsaison.Minuten": 3017,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 3169
   },
   {
     "player.id": 395849,
@@ -6967,10 +6967,10 @@ const playersData = [
     "Geburtsdatum": "2003-10-25",
     "Groesse": "189",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 1723,
-    "Vorsaison.Spiele": 49,
+    "Vorsaison.Minuten": 1720,
+    "Vorsaison.Spiele": 48,
     "Vorsaison.Rating": 6.72,
-    "Vorsaison.Wert": 1729
+    "Vorsaison.Wert": 1727
   },
   {
     "player.id": 345808,
@@ -7001,10 +7001,10 @@ const playersData = [
     "Geburtsdatum": "1997-08-22",
     "Groesse": "174",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3669,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 7.19,
-    "Vorsaison.Wert": 3389
+    "Vorsaison.Minuten": 3122,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 3115
   },
   {
     "player.id": 10077,
@@ -7018,10 +7018,10 @@ const playersData = [
     "Geburtsdatum": "2001-12-14",
     "Groesse": "181",
     "Gewicht": "85",
-    "Vorsaison.Minuten": 2573,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 2463
+    "Vorsaison.Minuten": 2419,
+    "Vorsaison.Spiele": 47,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 2386
   },
   {
     "player.id": 21509,
@@ -7035,10 +7035,10 @@ const playersData = [
     "Geburtsdatum": "1997-08-06",
     "Groesse": "192",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 3077,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 7.02,
-    "Vorsaison.Wert": 3072
+    "Vorsaison.Minuten": 2979,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 3023
   },
   {
     "player.id": 461830,
@@ -7154,10 +7154,10 @@ const playersData = [
     "Geburtsdatum": "1996-03-20",
     "Groesse": "178",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 3913,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 7.05,
-    "Vorsaison.Wert": 3458
+    "Vorsaison.Minuten": 3473,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 3238
   },
   {
     "player.id": 395589,
@@ -7205,10 +7205,10 @@ const playersData = [
     "Geburtsdatum": "1993-04-26",
     "Groesse": "172",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 1873,
-    "Vorsaison.Spiele": 30,
-    "Vorsaison.Rating": 6.99,
-    "Vorsaison.Wert": 1805
+    "Vorsaison.Minuten": 1783,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 1760
   },
   {
     "player.id": 322984,
@@ -7222,10 +7222,10 @@ const playersData = [
     "Geburtsdatum": "2004-03-31",
     "Groesse": "190",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 2442,
-    "Vorsaison.Spiele": 32,
-    "Vorsaison.Rating": 7.21,
-    "Vorsaison.Wert": 2137
+    "Vorsaison.Minuten": 2397,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 2115
   },
   {
     "player.id": 44594,
@@ -7239,10 +7239,10 @@ const playersData = [
     "Geburtsdatum": "1999-07-18",
     "Groesse": "171",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 4695,
-    "Vorsaison.Spiele": 68,
-    "Vorsaison.Rating": 7.25,
-    "Vorsaison.Wert": 3026
+    "Vorsaison.Minuten": 2119,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 7.2,
+    "Vorsaison.Wert": 1738
   },
   {
     "player.id": 1153,
@@ -7256,10 +7256,10 @@ const playersData = [
     "Geburtsdatum": "1998-01-31",
     "Groesse": "175",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 460,
-    "Vorsaison.Spiele": 15,
+    "Vorsaison.Minuten": 408,
+    "Vorsaison.Spiele": 13,
     "Vorsaison.Rating": 6.76,
-    "Vorsaison.Wert": 359
+    "Vorsaison.Wert": 333
   },
   {
     "player.id": 394950,
@@ -7307,10 +7307,10 @@ const playersData = [
     "Geburtsdatum": "2002-06-26",
     "Groesse": "178",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 3791,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 7.15,
-    "Vorsaison.Wert": 3197
+    "Vorsaison.Minuten": 3645,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 3124
   },
   {
     "player.id": 25634,
@@ -7358,10 +7358,10 @@ const playersData = [
     "Geburtsdatum": "2001-06-17",
     "Groesse": "188",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 1055,
-    "Vorsaison.Spiele": 29,
-    "Vorsaison.Rating": 6.78,
-    "Vorsaison.Wert": 887
+    "Vorsaison.Minuten": 992,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 855
   },
   {
     "player.id": 633361,
@@ -7376,7 +7376,7 @@ const playersData = [
     "Groesse": "",
     "Gewicht": "",
     "Vorsaison.Minuten": 14,
-    "Vorsaison.Spiele": 3,
+    "Vorsaison.Spiele": 1,
     "Vorsaison.Rating": 6.6,
     "Vorsaison.Wert": 14
   },
@@ -7392,10 +7392,10 @@ const playersData = [
     "Geburtsdatum": "1990-10-25",
     "Groesse": "187",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 956,
-    "Vorsaison.Spiele": 34,
-    "Vorsaison.Rating": 6.76,
-    "Vorsaison.Wert": 755
+    "Vorsaison.Minuten": 802,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 678
   },
   {
     "player.id": 1922,
@@ -7426,10 +7426,10 @@ const playersData = [
     "Geburtsdatum": "2000-02-15",
     "Groesse": "172",
     "Gewicht": "64",
-    "Vorsaison.Minuten": 2771,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 7.05,
-    "Vorsaison.Wert": 1925
+    "Vorsaison.Minuten": 2697,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1888
   },
   {
     "player.id": 1135,
@@ -7460,10 +7460,10 @@ const playersData = [
     "Geburtsdatum": "2006-02-12",
     "Groesse": "182",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 1004,
-    "Vorsaison.Spiele": 32,
+    "Vorsaison.Minuten": 980,
+    "Vorsaison.Spiele": 29,
     "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 909
+    "Vorsaison.Wert": 897
   },
   {
     "player.id": 2096,
@@ -7478,7 +7478,7 @@ const playersData = [
     "Groesse": "186",
     "Gewicht": "80",
     "Vorsaison.Minuten": 406,
-    "Vorsaison.Spiele": 10,
+    "Vorsaison.Spiele": 5,
     "Vorsaison.Rating": 6.69,
     "Vorsaison.Wert": 316
   },
@@ -7494,10 +7494,10 @@ const playersData = [
     "Geburtsdatum": "2000-05-25",
     "Groesse": "190",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 4217,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 7.17,
-    "Vorsaison.Wert": 4211
+    "Vorsaison.Minuten": 4037,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 4121
   },
   {
     "player.id": 551417,
@@ -7545,10 +7545,10 @@ const playersData = [
     "Geburtsdatum": "1991-10-22",
     "Groesse": "184",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 4339,
-    "Vorsaison.Spiele": 55,
-    "Vorsaison.Rating": 7.21,
-    "Vorsaison.Wert": 3899
+    "Vorsaison.Minuten": 3709,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 3584
   },
   {
     "player.id": 142691,
@@ -7562,10 +7562,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-09",
     "Groesse": "189",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 814,
-    "Vorsaison.Spiele": 14,
-    "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 736
+    "Vorsaison.Minuten": 634,
+    "Vorsaison.Spiele": 11,
+    "Vorsaison.Rating": 6.71,
+    "Vorsaison.Wert": 646
   },
   {
     "player.id": 37151,
@@ -7579,10 +7579,10 @@ const playersData = [
     "Geburtsdatum": "1997-04-26",
     "Groesse": "174",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 1694,
-    "Vorsaison.Spiele": 32,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 1584
+    "Vorsaison.Minuten": 1622,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.83,
+    "Vorsaison.Wert": 1548
   },
   {
     "player.id": 375,
@@ -7596,10 +7596,10 @@ const playersData = [
     "Geburtsdatum": "1994-08-08",
     "Groesse": "182",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 2501,
-    "Vorsaison.Spiele": 30,
-    "Vorsaison.Rating": 7.06,
-    "Vorsaison.Wert": 2152
+    "Vorsaison.Minuten": 2051,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1927
   },
   {
     "player.id": 394211,
@@ -7647,10 +7647,10 @@ const playersData = [
     "Geburtsdatum": "2003-06-10",
     "Groesse": "183",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 3476,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 6.87,
-    "Vorsaison.Wert": 3310
+    "Vorsaison.Minuten": 3112,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.89,
+    "Vorsaison.Wert": 3128
   },
   {
     "player.id": 20600,
@@ -7698,10 +7698,10 @@ const playersData = [
     "Geburtsdatum": "2007-10-02",
     "Groesse": "186",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3167,
-    "Vorsaison.Spiele": 44,
+    "Vorsaison.Minuten": 3165,
+    "Vorsaison.Spiele": 42,
     "Vorsaison.Rating": 6.77,
-    "Vorsaison.Wert": 3153
+    "Vorsaison.Wert": 3152
   },
   {
     "player.id": 2204,
@@ -7715,10 +7715,10 @@ const playersData = [
     "Geburtsdatum": "1990-08-03",
     "Groesse": "180",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3395,
-    "Vorsaison.Spiele": 40,
-    "Vorsaison.Rating": 7.12,
-    "Vorsaison.Wert": 3249
+    "Vorsaison.Minuten": 3125,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 7.13,
+    "Vorsaison.Wert": 3114
   },
   {
     "player.id": 386287,
@@ -7766,10 +7766,10 @@ const playersData = [
     "Geburtsdatum": "1994-11-24",
     "Groesse": "187",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2320,
-    "Vorsaison.Spiele": 42,
-    "Vorsaison.Rating": 7.16,
-    "Vorsaison.Wert": 2132
+    "Vorsaison.Minuten": 2015,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 1980
   },
   {
     "player.id": 375598,
@@ -7783,10 +7783,10 @@ const playersData = [
     "Geburtsdatum": "2004-11-03",
     "Groesse": "188",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 2858,
-    "Vorsaison.Spiele": 50,
-    "Vorsaison.Rating": 6.71,
-    "Vorsaison.Wert": 2641
+    "Vorsaison.Minuten": 2578,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 2501
   },
   {
     "player.id": 630699,
@@ -7834,10 +7834,10 @@ const playersData = [
     "Geburtsdatum": "2001-01-22",
     "Groesse": "178",
     "Gewicht": "64",
-    "Vorsaison.Minuten": 3331,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 3153
+    "Vorsaison.Minuten": 2952,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 2963
   },
   {
     "player.id": 20732,
@@ -7868,10 +7868,10 @@ const playersData = [
     "Geburtsdatum": "2003-04-10",
     "Groesse": "180",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3772,
-    "Vorsaison.Spiele": 50,
+    "Vorsaison.Minuten": 3413,
+    "Vorsaison.Spiele": 46,
     "Vorsaison.Rating": 6.9,
-    "Vorsaison.Wert": 3578
+    "Vorsaison.Wert": 3399
   },
   {
     "player.id": 318416,
@@ -7885,10 +7885,10 @@ const playersData = [
     "Geburtsdatum": "2004-12-26",
     "Groesse": "",
     "Gewicht": "",
-    "Vorsaison.Minuten": 1699,
-    "Vorsaison.Spiele": 32,
-    "Vorsaison.Rating": 7.03,
-    "Vorsaison.Wert": 1290
+    "Vorsaison.Minuten": 1609,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 1245
   },
   {
     "player.id": 340077,
@@ -7919,10 +7919,10 @@ const playersData = [
     "Geburtsdatum": "2005-10-04",
     "Groesse": "181",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 715,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 6.52,
-    "Vorsaison.Wert": 562
+    "Vorsaison.Minuten": 545,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.53,
+    "Vorsaison.Wert": 477
   },
   {
     "player.id": 2295,
@@ -7953,10 +7953,10 @@ const playersData = [
     "Geburtsdatum": "2001-06-11",
     "Groesse": "170",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 995,
-    "Vorsaison.Spiele": 28,
-    "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 922
+    "Vorsaison.Minuten": 820,
+    "Vorsaison.Spiele": 25,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 835
   },
   {
     "player.id": 487381,
@@ -7987,10 +7987,10 @@ const playersData = [
     "Geburtsdatum": "1992-10-02",
     "Groesse": "193",
     "Gewicht": "91",
-    "Vorsaison.Minuten": 3223,
-    "Vorsaison.Spiele": 36,
+    "Vorsaison.Minuten": 3133,
+    "Vorsaison.Spiele": 35,
     "Vorsaison.Rating": 6.88,
-    "Vorsaison.Wert": 3293
+    "Vorsaison.Wert": 3248
   },
   {
     "player.id": 342467,
@@ -8022,7 +8022,7 @@ const playersData = [
     "Groesse": "188",
     "Gewicht": "83",
     "Vorsaison.Minuten": 302,
-    "Vorsaison.Spiele": 5,
+    "Vorsaison.Spiele": 4,
     "Vorsaison.Rating": 6.99,
     "Vorsaison.Wert": 257
   },
@@ -8107,7 +8107,7 @@ const playersData = [
     "Groesse": "188",
     "Gewicht": "80",
     "Vorsaison.Minuten": 1430,
-    "Vorsaison.Spiele": 34,
+    "Vorsaison.Spiele": 33,
     "Vorsaison.Rating": 6.61,
     "Vorsaison.Wert": 1412
   },
@@ -8123,10 +8123,10 @@ const playersData = [
     "Geburtsdatum": "2003-11-07",
     "Groesse": "180",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 3541,
-    "Vorsaison.Spiele": 53,
+    "Vorsaison.Minuten": 3271,
+    "Vorsaison.Spiele": 48,
     "Vorsaison.Rating": 6.64,
-    "Vorsaison.Wert": 3528
+    "Vorsaison.Wert": 3393
   },
   {
     "player.id": 606814,
@@ -8157,10 +8157,10 @@ const playersData = [
     "Geburtsdatum": "1991-07-08",
     "Groesse": "195",
     "Gewicht": "92",
-    "Vorsaison.Minuten": 5048,
-    "Vorsaison.Spiele": 56,
-    "Vorsaison.Rating": 7.29,
-    "Vorsaison.Wert": 5320
+    "Vorsaison.Minuten": 4958,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 5275
   },
   {
     "player.id": 6716,
@@ -8174,10 +8174,10 @@ const playersData = [
     "Geburtsdatum": "1998-12-24",
     "Groesse": "176",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 4133,
-    "Vorsaison.Spiele": 59,
-    "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 4263
+    "Vorsaison.Minuten": 3914,
+    "Vorsaison.Spiele": 55,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 4153
   },
   {
     "player.id": 407032,
@@ -8208,10 +8208,10 @@ const playersData = [
     "Geburtsdatum": "2001-01-30",
     "Groesse": "185",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 3287,
-    "Vorsaison.Spiele": 55,
+    "Vorsaison.Minuten": 2881,
+    "Vorsaison.Spiele": 49,
     "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 3057
+    "Vorsaison.Wert": 2854
   },
   {
     "player.id": 1096,
@@ -8225,10 +8225,10 @@ const playersData = [
     "Geburtsdatum": "2000-10-25",
     "Groesse": "186",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 5102,
-    "Vorsaison.Spiele": 57,
-    "Vorsaison.Rating": 7.41,
-    "Vorsaison.Wert": 5226
+    "Vorsaison.Minuten": 4753,
+    "Vorsaison.Spiele": 53,
+    "Vorsaison.Rating": 7.34,
+    "Vorsaison.Wert": 5052
   },
   {
     "player.id": 203224,
@@ -8242,10 +8242,10 @@ const playersData = [
     "Geburtsdatum": "2003-05-03",
     "Groesse": "176",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 3587,
-    "Vorsaison.Spiele": 50,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 3833
+    "Vorsaison.Minuten": 3513,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 3796
   },
   {
     "player.id": 287109,
@@ -8276,10 +8276,10 @@ const playersData = [
     "Geburtsdatum": "2000-12-10",
     "Groesse": "171",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 1896,
-    "Vorsaison.Spiele": 36,
-    "Vorsaison.Rating": 6.69,
-    "Vorsaison.Wert": 1952
+    "Vorsaison.Minuten": 1838,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.71,
+    "Vorsaison.Wert": 1923
   },
   {
     "player.id": 389032,
@@ -8310,10 +8310,10 @@ const playersData = [
     "Geburtsdatum": "2002-05-16",
     "Groesse": "190",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 4221,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 7.05,
-    "Vorsaison.Wert": 4570
+    "Vorsaison.Minuten": 4131,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 4525
   },
   {
     "player.id": 397997,
@@ -8328,7 +8328,7 @@ const playersData = [
     "Groesse": "180",
     "Gewicht": "75",
     "Vorsaison.Minuten": 357,
-    "Vorsaison.Spiele": 20,
+    "Vorsaison.Spiele": 18,
     "Vorsaison.Rating": 6.53,
     "Vorsaison.Wert": 227
   },
@@ -8344,10 +8344,10 @@ const playersData = [
     "Geburtsdatum": "1993-02-09",
     "Groesse": "178",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 677,
-    "Vorsaison.Spiele": 15,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 528
+    "Vorsaison.Minuten": 497,
+    "Vorsaison.Spiele": 12,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 438
   },
   {
     "player.id": 2864,
@@ -8361,10 +8361,10 @@ const playersData = [
     "Geburtsdatum": "1999-09-21",
     "Groesse": "192",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 1195,
-    "Vorsaison.Spiele": 24,
-    "Vorsaison.Rating": 6.74,
-    "Vorsaison.Wert": 1240
+    "Vorsaison.Minuten": 1044,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.54,
+    "Vorsaison.Wert": 1164
   },
   {
     "player.id": 247,
@@ -8378,10 +8378,10 @@ const playersData = [
     "Geburtsdatum": "1999-05-07",
     "Groesse": "193",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3676,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 3691
+    "Vorsaison.Minuten": 3618,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 6.86,
+    "Vorsaison.Wert": 3662
   },
   {
     "player.id": 30410,
@@ -8395,10 +8395,10 @@ const playersData = [
     "Geburtsdatum": "1997-10-25",
     "Groesse": "175",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 862,
-    "Vorsaison.Spiele": 40,
-    "Vorsaison.Rating": 6.79,
-    "Vorsaison.Wert": 715
+    "Vorsaison.Minuten": 814,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 691
   },
   {
     "player.id": 174565,
@@ -8412,10 +8412,10 @@ const playersData = [
     "Geburtsdatum": "2002-06-20",
     "Groesse": "190",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3142,
-    "Vorsaison.Spiele": 49,
+    "Vorsaison.Minuten": 3110,
+    "Vorsaison.Spiele": 48,
     "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 3314
+    "Vorsaison.Wert": 3298
   },
   {
     "player.id": 452685,
@@ -8429,10 +8429,10 @@ const playersData = [
     "Geburtsdatum": "2008-08-29",
     "Groesse": "170",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 1444,
-    "Vorsaison.Spiele": 38,
-    "Vorsaison.Rating": 6.87,
-    "Vorsaison.Wert": 1076
+    "Vorsaison.Minuten": 1428,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1068
   },
   {
     "player.id": 338751,
@@ -8532,7 +8532,7 @@ const playersData = [
     "Groesse": "186",
     "Gewicht": "84",
     "Vorsaison.Minuten": 2817,
-    "Vorsaison.Spiele": 42,
+    "Vorsaison.Spiele": 39,
     "Vorsaison.Rating": 6.94,
     "Vorsaison.Wert": 2638
   },
@@ -8548,10 +8548,10 @@ const playersData = [
     "Geburtsdatum": "2000-07-13",
     "Groesse": "182",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 4616,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 7.36,
-    "Vorsaison.Wert": 4262
+    "Vorsaison.Minuten": 4526,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.34,
+    "Vorsaison.Wert": 4217
   },
   {
     "player.id": 129033,
@@ -8599,10 +8599,10 @@ const playersData = [
     "Geburtsdatum": "2001-06-06",
     "Groesse": "180",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 2738,
-    "Vorsaison.Spiele": 44,
-    "Vorsaison.Rating": 7.01,
-    "Vorsaison.Wert": 2207
+    "Vorsaison.Minuten": 2183,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 1930
   },
   {
     "player.id": 284230,
@@ -8616,10 +8616,10 @@ const playersData = [
     "Geburtsdatum": "2004-11-21",
     "Groesse": "170",
     "Gewicht": "64",
-    "Vorsaison.Minuten": 1787,
-    "Vorsaison.Spiele": 40,
-    "Vorsaison.Rating": 6.86,
-    "Vorsaison.Wert": 1329
+    "Vorsaison.Minuten": 1581,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.85,
+    "Vorsaison.Wert": 1226
   },
   {
     "player.id": 567,
@@ -8633,10 +8633,10 @@ const playersData = [
     "Geburtsdatum": "1997-05-14",
     "Groesse": "187",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3087,
-    "Vorsaison.Spiele": 39,
-    "Vorsaison.Rating": 7.16,
-    "Vorsaison.Wert": 3130
+    "Vorsaison.Minuten": 2877,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 3025
   },
   {
     "player.id": 382358,
@@ -8684,10 +8684,10 @@ const playersData = [
     "Geburtsdatum": "2002-11-06",
     "Groesse": "179",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 4804,
-    "Vorsaison.Spiele": 59,
+    "Vorsaison.Minuten": 4735,
+    "Vorsaison.Spiele": 58,
     "Vorsaison.Rating": 7.3,
-    "Vorsaison.Wert": 4571
+    "Vorsaison.Wert": 4536
   },
   {
     "player.id": 2291,
@@ -8718,10 +8718,10 @@ const playersData = [
     "Geburtsdatum": "1998-08-27",
     "Groesse": "183",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 4303,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 6.99,
-    "Vorsaison.Wert": 4018
+    "Vorsaison.Minuten": 4159,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 3946
   },
   {
     "player.id": 156477,
@@ -8735,10 +8735,10 @@ const playersData = [
     "Geburtsdatum": "2003-08-17",
     "Groesse": "180",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 3401,
-    "Vorsaison.Spiele": 61,
-    "Vorsaison.Rating": 7.27,
-    "Vorsaison.Wert": 3003
+    "Vorsaison.Minuten": 3296,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.28,
+    "Vorsaison.Wert": 2950
   },
   {
     "player.id": 161933,
@@ -8753,7 +8753,7 @@ const playersData = [
     "Groesse": "189",
     "Gewicht": "88",
     "Vorsaison.Minuten": 2738,
-    "Vorsaison.Spiele": 48,
+    "Vorsaison.Spiele": 45,
     "Vorsaison.Rating": 7.07,
     "Vorsaison.Wert": 2573
   },
@@ -8786,10 +8786,10 @@ const playersData = [
     "Geburtsdatum": "2000-05-28",
     "Groesse": "171",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 3570,
-    "Vorsaison.Spiele": 64,
-    "Vorsaison.Rating": 7.03,
-    "Vorsaison.Wert": 3353
+    "Vorsaison.Minuten": 3186,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3161
   },
   {
     "player.id": 44,
@@ -8854,10 +8854,10 @@ const playersData = [
     "Geburtsdatum": "1998-07-29",
     "Groesse": "178",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3377,
-    "Vorsaison.Spiele": 52,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 3088
+    "Vorsaison.Minuten": 3107,
+    "Vorsaison.Spiele": 49,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 2953
   },
   {
     "player.id": 19281,
@@ -8871,10 +8871,10 @@ const playersData = [
     "Geburtsdatum": "2000-01-07",
     "Groesse": "185",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 4276,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 6.97,
-    "Vorsaison.Wert": 3844
+    "Vorsaison.Minuten": 3893,
+    "Vorsaison.Spiele": 48,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 3653
   },
   {
     "player.id": 380681,
@@ -8889,7 +8889,7 @@ const playersData = [
     "Groesse": "180",
     "Gewicht": "",
     "Vorsaison.Minuten": 1289,
-    "Vorsaison.Spiele": 23,
+    "Vorsaison.Spiele": 22,
     "Vorsaison.Rating": 6.82,
     "Vorsaison.Wert": 828
   },
@@ -8905,10 +8905,10 @@ const playersData = [
     "Geburtsdatum": "2000-07-21",
     "Groesse": "195",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 4518,
-    "Vorsaison.Spiele": 58,
-    "Vorsaison.Rating": 7.25,
-    "Vorsaison.Wert": 4493
+    "Vorsaison.Minuten": 4308,
+    "Vorsaison.Spiele": 54,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 4388
   },
   {
     "player.id": 1422,
@@ -8922,10 +8922,10 @@ const playersData = [
     "Geburtsdatum": "2002-05-27",
     "Groesse": "173",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 3464,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 7.51,
-    "Vorsaison.Wert": 3260
+    "Vorsaison.Minuten": 3218,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.48,
+    "Vorsaison.Wert": 3137
   },
   {
     "player.id": 460853,
@@ -8956,10 +8956,10 @@ const playersData = [
     "Geburtsdatum": "1999-02-07",
     "Groesse": "180",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 2620,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 6.91,
-    "Vorsaison.Wert": 1909
+    "Vorsaison.Minuten": 2122,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.92,
+    "Vorsaison.Wert": 1660
   },
   {
     "player.id": 266657,
@@ -8973,10 +8973,10 @@ const playersData = [
     "Geburtsdatum": "2004-04-10",
     "Groesse": "179",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 2137,
-    "Vorsaison.Spiele": 42,
-    "Vorsaison.Rating": 7.28,
-    "Vorsaison.Wert": 1867
+    "Vorsaison.Minuten": 1838,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 7.15,
+    "Vorsaison.Wert": 1717
   },
   {
     "player.id": 50132,
@@ -8990,10 +8990,10 @@ const playersData = [
     "Geburtsdatum": "1998-04-14",
     "Groesse": "198",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 810,
-    "Vorsaison.Spiele": 11,
-    "Vorsaison.Rating": 6.53,
-    "Vorsaison.Wert": 675
+    "Vorsaison.Minuten": 540,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 6.58,
+    "Vorsaison.Wert": 540
   },
   {
     "player.id": 18885,
@@ -9007,10 +9007,10 @@ const playersData = [
     "Geburtsdatum": "1990-10-08",
     "Groesse": "190",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 2441,
-    "Vorsaison.Spiele": 30,
-    "Vorsaison.Rating": 7.04,
-    "Vorsaison.Wert": 2213
+    "Vorsaison.Minuten": 2171,
+    "Vorsaison.Spiele": 24,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 2078
   },
   {
     "player.id": 162511,
@@ -9041,10 +9041,10 @@ const playersData = [
     "Geburtsdatum": "2006-09-22",
     "Groesse": "189",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 1022,
-    "Vorsaison.Spiele": 22,
+    "Vorsaison.Minuten": 1012,
+    "Vorsaison.Spiele": 20,
     "Vorsaison.Rating": 6.89,
-    "Vorsaison.Wert": 982
+    "Vorsaison.Wert": 977
   },
   {
     "player.id": 886,
@@ -9092,10 +9092,10 @@ const playersData = [
     "Geburtsdatum": "1993-03-05",
     "Groesse": "194",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 2164,
-    "Vorsaison.Spiele": 33,
-    "Vorsaison.Rating": 6.94,
-    "Vorsaison.Wert": 1955
+    "Vorsaison.Minuten": 1966,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.96,
+    "Vorsaison.Wert": 1856
   },
   {
     "player.id": 342970,
@@ -9109,10 +9109,10 @@ const playersData = [
     "Geburtsdatum": "2005-11-13",
     "Groesse": "190",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 2378,
-    "Vorsaison.Spiele": 42,
+    "Vorsaison.Minuten": 2243,
+    "Vorsaison.Spiele": 39,
     "Vorsaison.Rating": 6.65,
-    "Vorsaison.Wert": 2090
+    "Vorsaison.Wert": 2023
   },
   {
     "player.id": 2467,
@@ -9143,10 +9143,10 @@ const playersData = [
     "Geburtsdatum": "1995-07-12",
     "Groesse": "178",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 3627,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 6.77,
-    "Vorsaison.Wert": 3469
+    "Vorsaison.Minuten": 3429,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 3370
   },
   {
     "player.id": 545,
@@ -9160,10 +9160,10 @@ const playersData = [
     "Geburtsdatum": "1997-11-14",
     "Groesse": "183",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 2382,
-    "Vorsaison.Spiele": 38,
-    "Vorsaison.Rating": 7.14,
-    "Vorsaison.Wert": 1731
+    "Vorsaison.Minuten": 1795,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 1438
   },
   {
     "player.id": 382452,
@@ -9177,10 +9177,10 @@ const playersData = [
     "Geburtsdatum": "2004-10-26",
     "Groesse": "185",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 2005,
-    "Vorsaison.Spiele": 34,
-    "Vorsaison.Rating": 6.96,
-    "Vorsaison.Wert": 1742
+    "Vorsaison.Minuten": 1870,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.91,
+    "Vorsaison.Wert": 1675
   },
   {
     "player.id": 328101,
@@ -9194,10 +9194,10 @@ const playersData = [
     "Geburtsdatum": "2005-02-23",
     "Groesse": "184",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 235,
-    "Vorsaison.Spiele": 5,
-    "Vorsaison.Rating": 6.01,
-    "Vorsaison.Wert": 132
+    "Vorsaison.Minuten": 190,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 5.97,
+    "Vorsaison.Wert": 109
   },
   {
     "player.id": 305834,
@@ -9228,10 +9228,10 @@ const playersData = [
     "Geburtsdatum": "1994-09-08",
     "Groesse": "179",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 4101,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 7.69,
-    "Vorsaison.Wert": 3674
+    "Vorsaison.Minuten": 3651,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.66,
+    "Vorsaison.Wert": 3449
   },
   {
     "player.id": 383770,
@@ -9279,10 +9279,10 @@ const playersData = [
     "Geburtsdatum": "2005-04-19",
     "Groesse": "175",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 1942,
-    "Vorsaison.Spiele": 36,
-    "Vorsaison.Rating": 6.86,
-    "Vorsaison.Wert": 1818
+    "Vorsaison.Minuten": 1882,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1788
   },
   {
     "player.id": 51494,
@@ -9296,10 +9296,10 @@ const playersData = [
     "Geburtsdatum": "2001-04-11",
     "Groesse": "182",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 1560,
-    "Vorsaison.Spiele": 31,
-    "Vorsaison.Rating": 6.75,
-    "Vorsaison.Wert": 1275
+    "Vorsaison.Minuten": 1247,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.74,
+    "Vorsaison.Wert": 1118
   },
   {
     "player.id": 19220,
@@ -9313,10 +9313,10 @@ const playersData = [
     "Geburtsdatum": "1999-01-10",
     "Groesse": "181",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 1158,
-    "Vorsaison.Spiele": 27,
-    "Vorsaison.Rating": 6.89,
-    "Vorsaison.Wert": 1093
+    "Vorsaison.Minuten": 1132,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 1080
   },
   {
     "player.id": 557460,
@@ -9347,10 +9347,10 @@ const playersData = [
     "Geburtsdatum": "1997-05-07",
     "Groesse": "176",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 3029,
-    "Vorsaison.Spiele": 40,
-    "Vorsaison.Rating": 7.19,
-    "Vorsaison.Wert": 2836
+    "Vorsaison.Minuten": 2596,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.25,
+    "Vorsaison.Wert": 2620
   },
   {
     "player.id": 157997,
@@ -9364,10 +9364,10 @@ const playersData = [
     "Geburtsdatum": "2002-07-11",
     "Groesse": "173",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 2878,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Minuten": 2779,
+    "Vorsaison.Spiele": 38,
     "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 2611
+    "Vorsaison.Wert": 2562
   },
   {
     "player.id": 115589,
@@ -9398,10 +9398,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-07",
     "Groesse": "173",
     "Gewicht": "64",
-    "Vorsaison.Minuten": 3566,
-    "Vorsaison.Spiele": 46,
-    "Vorsaison.Rating": 6.94,
-    "Vorsaison.Wert": 3103
+    "Vorsaison.Minuten": 3116,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 2878
   },
   {
     "player.id": 70100,
@@ -9432,10 +9432,10 @@ const playersData = [
     "Geburtsdatum": "1999-05-27",
     "Groesse": "183",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2968,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 7.08,
-    "Vorsaison.Wert": 2742
+    "Vorsaison.Minuten": 2714,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.07,
+    "Vorsaison.Wert": 2615
   },
   {
     "player.id": 557462,
@@ -9636,10 +9636,10 @@ const playersData = [
     "Geburtsdatum": "1997-10-31",
     "Groesse": "185",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2008,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 6.8,
-    "Vorsaison.Wert": 2013
+    "Vorsaison.Minuten": 1827,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 1923
   },
   {
     "player.id": 162032,
@@ -9704,10 +9704,10 @@ const playersData = [
     "Geburtsdatum": "1995-11-16",
     "Groesse": "184",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2025,
-    "Vorsaison.Spiele": 27,
-    "Vorsaison.Rating": 6.73,
-    "Vorsaison.Wert": 1982
+    "Vorsaison.Minuten": 1597,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.79,
+    "Vorsaison.Wert": 1768
   },
   {
     "player.id": 347395,
@@ -9738,10 +9738,10 @@ const playersData = [
     "Geburtsdatum": "2001-06-11",
     "Groesse": "170",
     "Gewicht": "60",
-    "Vorsaison.Minuten": 1055,
-    "Vorsaison.Spiele": 22,
-    "Vorsaison.Rating": 7.03,
-    "Vorsaison.Wert": 1014
+    "Vorsaison.Minuten": 887,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 930
   },
   {
     "player.id": 579072,
@@ -9806,10 +9806,10 @@ const playersData = [
     "Geburtsdatum": "1996-12-08",
     "Groesse": "193",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 3786,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 7.04,
-    "Vorsaison.Wert": 3989
+    "Vorsaison.Minuten": 3706,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 7.06,
+    "Vorsaison.Wert": 3949
   },
   {
     "player.id": 47439,
@@ -9823,10 +9823,10 @@ const playersData = [
     "Geburtsdatum": "1994-11-25",
     "Groesse": "168",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 3845,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 3648
+    "Vorsaison.Minuten": 3221,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 3336
   },
   {
     "player.id": 561707,
@@ -9960,7 +9960,7 @@ const playersData = [
     "Groesse": "173",
     "Gewicht": "70",
     "Vorsaison.Minuten": 2014,
-    "Vorsaison.Spiele": 47,
+    "Vorsaison.Spiele": 46,
     "Vorsaison.Rating": 7,
     "Vorsaison.Wert": 1983
   },
@@ -9976,10 +9976,10 @@ const playersData = [
     "Geburtsdatum": "2003-02-04",
     "Groesse": "191",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 3858,
-    "Vorsaison.Spiele": 48,
-    "Vorsaison.Rating": 6.59,
-    "Vorsaison.Wert": 3920
+    "Vorsaison.Minuten": 3702,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 3842
   },
   {
     "player.id": 907,
@@ -10112,10 +10112,10 @@ const playersData = [
     "Geburtsdatum": "1999-02-25",
     "Groesse": "192",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 2850,
-    "Vorsaison.Spiele": 37,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 3120
+    "Vorsaison.Minuten": 2490,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 2940
   },
   {
     "player.id": 9,
@@ -10129,10 +10129,10 @@ const playersData = [
     "Geburtsdatum": "1998-11-04",
     "Groesse": "181",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 4125,
-    "Vorsaison.Spiele": 50,
-    "Vorsaison.Rating": 7.09,
-    "Vorsaison.Wert": 3904
+    "Vorsaison.Minuten": 3477,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.96,
+    "Vorsaison.Wert": 3580
   },
   {
     "player.id": 307835,
@@ -10146,10 +10146,10 @@ const playersData = [
     "Geburtsdatum": "2003-11-24",
     "Groesse": "186",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 2750,
-    "Vorsaison.Spiele": 37,
-    "Vorsaison.Rating": 7.12,
-    "Vorsaison.Wert": 2198
+    "Vorsaison.Minuten": 2660,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.14,
+    "Vorsaison.Wert": 2153
   },
   {
     "player.id": 610763,
@@ -10197,10 +10197,10 @@ const playersData = [
     "Geburtsdatum": "2002-09-01",
     "Groesse": "189",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 2885,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Minuten": 2795,
+    "Vorsaison.Spiele": 38,
     "Vorsaison.Rating": 7.11,
-    "Vorsaison.Wert": 2852
+    "Vorsaison.Wert": 2807
   },
   {
     "player.id": 33,
@@ -10231,10 +10231,10 @@ const playersData = [
     "Geburtsdatum": "1994-05-14",
     "Groesse": "183",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3176,
-    "Vorsaison.Spiele": 39,
-    "Vorsaison.Rating": 7.18,
-    "Vorsaison.Wert": 3433
+    "Vorsaison.Minuten": 2991,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 3340
   },
   {
     "player.id": 263482,
@@ -10282,10 +10282,10 @@ const playersData = [
     "Geburtsdatum": "2001-10-16",
     "Groesse": "188",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 4479,
-    "Vorsaison.Spiele": 51,
+    "Vorsaison.Minuten": 4108,
+    "Vorsaison.Spiele": 47,
     "Vorsaison.Rating": 6.94,
-    "Vorsaison.Wert": 4757
+    "Vorsaison.Wert": 4572
   },
   {
     "player.id": 328,
@@ -10333,10 +10333,10 @@ const playersData = [
     "Geburtsdatum": "2001-02-19",
     "Groesse": "173",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 2307,
-    "Vorsaison.Spiele": 50,
-    "Vorsaison.Rating": 6.95,
-    "Vorsaison.Wert": 2178
+    "Vorsaison.Minuten": 1897,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.97,
+    "Vorsaison.Wert": 1973
   },
   {
     "player.id": 567804,
@@ -10469,10 +10469,10 @@ const playersData = [
     "Geburtsdatum": "2008-01-24",
     "Groesse": "185",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 1801,
-    "Vorsaison.Spiele": 54,
+    "Vorsaison.Minuten": 1786,
+    "Vorsaison.Spiele": 52,
     "Vorsaison.Rating": 6.78,
-    "Vorsaison.Wert": 1505
+    "Vorsaison.Wert": 1498
   },
   {
     "player.id": 483,
@@ -10520,10 +10520,10 @@ const playersData = [
     "Geburtsdatum": "1996-11-16",
     "Groesse": "192",
     "Gewicht": "89",
-    "Vorsaison.Minuten": 3360,
-    "Vorsaison.Spiele": 37,
-    "Vorsaison.Rating": 7.37,
-    "Vorsaison.Wert": 2292
+    "Vorsaison.Minuten": 3060,
+    "Vorsaison.Spiele": 34,
+    "Vorsaison.Rating": 7.47,
+    "Vorsaison.Wert": 2142
   },
   {
     "player.id": 138804,
@@ -10537,10 +10537,10 @@ const playersData = [
     "Geburtsdatum": "2000-05-17",
     "Groesse": "196",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 4005,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 7.16,
-    "Vorsaison.Wert": 3281
+    "Vorsaison.Minuten": 3870,
+    "Vorsaison.Spiele": 43,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 3213
   },
   {
     "player.id": 37818,
@@ -10555,7 +10555,7 @@ const playersData = [
     "Groesse": "188",
     "Gewicht": "79",
     "Vorsaison.Minuten": 270,
-    "Vorsaison.Spiele": 4,
+    "Vorsaison.Spiele": 3,
     "Vorsaison.Rating": 7.13,
     "Vorsaison.Wert": 189
   },
@@ -10571,10 +10571,10 @@ const playersData = [
     "Geburtsdatum": "2005-02-23",
     "Groesse": "197",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 1350,
-    "Vorsaison.Spiele": 30,
-    "Vorsaison.Rating": 7.06,
-    "Vorsaison.Wert": 927
+    "Vorsaison.Minuten": 1260,
+    "Vorsaison.Spiele": 14,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 882
   },
   {
     "player.id": 307426,
@@ -10589,7 +10589,7 @@ const playersData = [
     "Groesse": "185",
     "Gewicht": "75",
     "Vorsaison.Minuten": 889,
-    "Vorsaison.Spiele": 18,
+    "Vorsaison.Spiele": 14,
     "Vorsaison.Rating": 7.19,
     "Vorsaison.Wert": 566
   },
@@ -10673,10 +10673,10 @@ const playersData = [
     "Geburtsdatum": "2002-12-31",
     "Groesse": "186",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3002,
-    "Vorsaison.Spiele": 51,
-    "Vorsaison.Rating": 7.01,
-    "Vorsaison.Wert": 2059
+    "Vorsaison.Minuten": 2912,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 2014
   },
   {
     "player.id": 38735,
@@ -10690,10 +10690,10 @@ const playersData = [
     "Geburtsdatum": "2000-11-03",
     "Groesse": "173",
     "Gewicht": "62",
-    "Vorsaison.Minuten": 3109,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 2456
+    "Vorsaison.Minuten": 2919,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.95,
+    "Vorsaison.Wert": 2361
   },
   {
     "player.id": 361385,
@@ -10707,10 +10707,10 @@ const playersData = [
     "Geburtsdatum": "2005-01-12",
     "Groesse": "190",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 2923,
-    "Vorsaison.Spiele": 38,
-    "Vorsaison.Rating": 6.95,
-    "Vorsaison.Wert": 2444
+    "Vorsaison.Minuten": 2833,
+    "Vorsaison.Spiele": 37,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 2399
   },
   {
     "player.id": 36905,
@@ -10724,10 +10724,10 @@ const playersData = [
     "Geburtsdatum": "1997-12-22",
     "Groesse": "186",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 3004,
-    "Vorsaison.Spiele": 40,
-    "Vorsaison.Rating": 6.89,
-    "Vorsaison.Wert": 2534
+    "Vorsaison.Minuten": 2959,
+    "Vorsaison.Spiele": 39,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2512
   },
   {
     "player.id": 37890,
@@ -10741,10 +10741,10 @@ const playersData = [
     "Geburtsdatum": "1997-01-12",
     "Groesse": "185",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 3371,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Minuten": 3326,
+    "Vorsaison.Spiele": 39,
     "Vorsaison.Rating": 7.03,
-    "Vorsaison.Wert": 2837
+    "Vorsaison.Wert": 2814
   },
   {
     "player.id": 453712,
@@ -10775,10 +10775,10 @@ const playersData = [
     "Geburtsdatum": "2007-02-11",
     "Groesse": "",
     "Gewicht": "",
-    "Vorsaison.Minuten": 2295,
-    "Vorsaison.Spiele": 33,
-    "Vorsaison.Rating": 7.05,
-    "Vorsaison.Wert": 1602
+    "Vorsaison.Minuten": 2286,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1597
   },
   {
     "player.id": 37749,
@@ -10792,10 +10792,10 @@ const playersData = [
     "Geburtsdatum": "1998-11-19",
     "Groesse": "185",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 3360,
-    "Vorsaison.Spiele": 41,
-    "Vorsaison.Rating": 7.71,
-    "Vorsaison.Wert": 2874
+    "Vorsaison.Minuten": 3270,
+    "Vorsaison.Spiele": 40,
+    "Vorsaison.Rating": 7.73,
+    "Vorsaison.Wert": 2829
   },
   {
     "player.id": 439829,
@@ -10826,10 +10826,10 @@ const playersData = [
     "Geburtsdatum": "2005-01-09",
     "Groesse": "",
     "Gewicht": "",
-    "Vorsaison.Minuten": 2138,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 7.04,
-    "Vorsaison.Wert": 1407
+    "Vorsaison.Minuten": 1869,
+    "Vorsaison.Spiele": 31,
+    "Vorsaison.Rating": 6.98,
+    "Vorsaison.Wert": 1273
   },
   {
     "player.id": 327895,
@@ -10895,7 +10895,7 @@ const playersData = [
     "Groesse": "175",
     "Gewicht": "75",
     "Vorsaison.Minuten": 1273,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Spiele": 39,
     "Vorsaison.Rating": 6.89,
     "Vorsaison.Wert": 1024
   },
@@ -10911,10 +10911,10 @@ const playersData = [
     "Geburtsdatum": "1998-08-26",
     "Groesse": "183",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 2164,
-    "Vorsaison.Spiele": 37,
-    "Vorsaison.Rating": 6.99,
-    "Vorsaison.Wert": 1839
+    "Vorsaison.Minuten": 2058,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.01,
+    "Vorsaison.Wert": 1786
   },
   {
     "player.id": 329409,
@@ -10929,7 +10929,7 @@ const playersData = [
     "Groesse": "175",
     "Gewicht": "64",
     "Vorsaison.Minuten": 1475,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Spiele": 37,
     "Vorsaison.Rating": 7.09,
     "Vorsaison.Wert": 1030
   },
@@ -10945,10 +10945,10 @@ const playersData = [
     "Geburtsdatum": "1989-02-02",
     "Groesse": "186",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 3060,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 7.11,
-    "Vorsaison.Wert": 2512
+    "Vorsaison.Minuten": 2970,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 7.12,
+    "Vorsaison.Wert": 2467
   },
   {
     "player.id": 73868,
@@ -10962,10 +10962,10 @@ const playersData = [
     "Geburtsdatum": "2003-01-09",
     "Groesse": "185",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 1788,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 6.89,
-    "Vorsaison.Wert": 1335
+    "Vorsaison.Minuten": 1701,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.94,
+    "Vorsaison.Wert": 1291
   },
   {
     "player.id": 24814,
@@ -11013,10 +11013,10 @@ const playersData = [
     "Geburtsdatum": "1990-05-06",
     "Groesse": "191",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 2099,
-    "Vorsaison.Spiele": 27,
-    "Vorsaison.Rating": 6.87,
-    "Vorsaison.Wert": 2054
+    "Vorsaison.Minuten": 2009,
+    "Vorsaison.Spiele": 23,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 2009
   },
   {
     "player.id": 98,
@@ -11166,10 +11166,10 @@ const playersData = [
     "Geburtsdatum": "1992-11-03",
     "Groesse": "186",
     "Gewicht": "87",
-    "Vorsaison.Minuten": 3591,
-    "Vorsaison.Spiele": 40,
+    "Vorsaison.Minuten": 3317,
+    "Vorsaison.Spiele": 37,
     "Vorsaison.Rating": 7.29,
-    "Vorsaison.Wert": 3271
+    "Vorsaison.Wert": 3134
   },
   {
     "player.id": 601134,
@@ -11302,10 +11302,10 @@ const playersData = [
     "Geburtsdatum": "2005-04-17",
     "Groesse": "180",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 2365,
-    "Vorsaison.Spiele": 36,
-    "Vorsaison.Rating": 7.12,
-    "Vorsaison.Wert": 2200
+    "Vorsaison.Minuten": 2320,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 7.09,
+    "Vorsaison.Wert": 2178
   },
   {
     "player.id": 328225,
@@ -11336,10 +11336,10 @@ const playersData = [
     "Geburtsdatum": "2005-04-07",
     "Groesse": "185",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 1343,
-    "Vorsaison.Spiele": 41,
+    "Vorsaison.Minuten": 1320,
+    "Vorsaison.Spiele": 39,
     "Vorsaison.Rating": 6.65,
-    "Vorsaison.Wert": 1144
+    "Vorsaison.Wert": 1133
   },
   {
     "player.id": 343286,
@@ -11404,10 +11404,10 @@ const playersData = [
     "Geburtsdatum": "2003-04-20",
     "Groesse": "179",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 1024,
-    "Vorsaison.Spiele": 23,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 902
+    "Vorsaison.Minuten": 904,
+    "Vorsaison.Spiele": 22,
+    "Vorsaison.Rating": 6.81,
+    "Vorsaison.Wert": 842
   },
   {
     "player.id": 383665,
@@ -11574,10 +11574,10 @@ const playersData = [
     "Geburtsdatum": "1996-08-22",
     "Groesse": "184",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 1045,
-    "Vorsaison.Spiele": 19,
-    "Vorsaison.Rating": 6.56,
-    "Vorsaison.Wert": 1012
+    "Vorsaison.Minuten": 955,
+    "Vorsaison.Spiele": 16,
+    "Vorsaison.Rating": 6.5,
+    "Vorsaison.Wert": 967
   },
   {
     "player.id": 1561,
@@ -11676,10 +11676,10 @@ const playersData = [
     "Geburtsdatum": "1996-04-09",
     "Groesse": "177",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 1971,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 7.07,
-    "Vorsaison.Wert": 1876
+    "Vorsaison.Minuten": 1776,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.02,
+    "Vorsaison.Wert": 1779
   },
   {
     "player.id": 745,
@@ -11778,10 +11778,10 @@ const playersData = [
     "Geburtsdatum": "2001-12-17",
     "Groesse": "177",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 4228,
-    "Vorsaison.Spiele": 58,
-    "Vorsaison.Rating": 7.32,
-    "Vorsaison.Wert": 3725
+    "Vorsaison.Minuten": 3668,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.27,
+    "Vorsaison.Wert": 3445
   },
   {
     "player.id": 47119,
@@ -11863,10 +11863,10 @@ const playersData = [
     "Geburtsdatum": "1999-04-20",
     "Groesse": "175",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3187,
-    "Vorsaison.Spiele": 41,
+    "Vorsaison.Minuten": 3127,
+    "Vorsaison.Spiele": 40,
     "Vorsaison.Rating": 6.9,
-    "Vorsaison.Wert": 3158
+    "Vorsaison.Wert": 3128
   },
   {
     "player.id": 443163,
@@ -11932,7 +11932,7 @@ const playersData = [
     "Groesse": "191",
     "Gewicht": "80",
     "Vorsaison.Minuten": 1042,
-    "Vorsaison.Spiele": 13,
+    "Vorsaison.Spiele": 12,
     "Vorsaison.Rating": 7,
     "Vorsaison.Wert": 1106
   },
@@ -12084,10 +12084,10 @@ const playersData = [
     "Geburtsdatum": "1996-04-18",
     "Groesse": "188",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 2068,
-    "Vorsaison.Spiele": 32,
-    "Vorsaison.Rating": 6.69,
-    "Vorsaison.Wert": 2040
+    "Vorsaison.Minuten": 1925,
+    "Vorsaison.Spiele": 30,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 1968
   },
   {
     "player.id": 451355,
@@ -12118,10 +12118,10 @@ const playersData = [
     "Geburtsdatum": "1998-01-18",
     "Groesse": "186",
     "Gewicht": "78",
-    "Vorsaison.Minuten": 1795,
-    "Vorsaison.Spiele": 27,
+    "Vorsaison.Minuten": 1555,
+    "Vorsaison.Spiele": 24,
     "Vorsaison.Rating": 7.19,
-    "Vorsaison.Wert": 1856
+    "Vorsaison.Wert": 1736
   },
   {
     "player.id": 653,
@@ -12152,10 +12152,10 @@ const playersData = [
     "Geburtsdatum": "1999-05-25",
     "Groesse": "194",
     "Gewicht": "95",
-    "Vorsaison.Minuten": 4376,
-    "Vorsaison.Spiele": 52,
+    "Vorsaison.Minuten": 4286,
+    "Vorsaison.Spiele": 51,
     "Vorsaison.Rating": 7.02,
-    "Vorsaison.Wert": 4609
+    "Vorsaison.Wert": 4564
   },
   {
     "player.id": 561033,
@@ -12237,10 +12237,10 @@ const playersData = [
     "Geburtsdatum": "1998-07-22",
     "Groesse": "174",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 5024,
-    "Vorsaison.Spiele": 63,
-    "Vorsaison.Rating": 6.84,
-    "Vorsaison.Wert": 4595
+    "Vorsaison.Minuten": 4454,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.76,
+    "Vorsaison.Wert": 4310
   },
   {
     "player.id": 341640,
@@ -12288,10 +12288,10 @@ const playersData = [
     "Geburtsdatum": "2005-02-25",
     "Groesse": "176",
     "Gewicht": "67",
-    "Vorsaison.Minuten": 3864,
-    "Vorsaison.Spiele": 58,
-    "Vorsaison.Rating": 7.23,
-    "Vorsaison.Wert": 3975
+    "Vorsaison.Minuten": 3684,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 7.21,
+    "Vorsaison.Wert": 3885
   },
   {
     "player.id": 1271,
@@ -12322,10 +12322,10 @@ const playersData = [
     "Geburtsdatum": "1994-08-10",
     "Groesse": "173",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 4254,
-    "Vorsaison.Spiele": 59,
-    "Vorsaison.Rating": 6.87,
-    "Vorsaison.Wert": 4123
+    "Vorsaison.Minuten": 4059,
+    "Vorsaison.Spiele": 56,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 4026
   },
   {
     "player.id": 744,
@@ -12339,10 +12339,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-03",
     "Groesse": "171",
     "Gewicht": "59",
-    "Vorsaison.Minuten": 2717,
-    "Vorsaison.Spiele": 62,
-    "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 2428
+    "Vorsaison.Minuten": 2405,
+    "Vorsaison.Spiele": 57,
+    "Vorsaison.Rating": 6.77,
+    "Vorsaison.Wert": 2272
   },
   {
     "player.id": 386306,
@@ -12424,10 +12424,10 @@ const playersData = [
     "Geburtsdatum": "2003-06-29",
     "Groesse": "186",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3183,
-    "Vorsaison.Spiele": 46,
+    "Vorsaison.Minuten": 3164,
+    "Vorsaison.Spiele": 45,
     "Vorsaison.Rating": 7.24,
-    "Vorsaison.Wert": 3157
+    "Vorsaison.Wert": 3148
   },
   {
     "player.id": 313167,
@@ -12577,10 +12577,10 @@ const playersData = [
     "Geburtsdatum": "2001-01-09",
     "Groesse": "174",
     "Gewicht": "64",
-    "Vorsaison.Minuten": 1502,
-    "Vorsaison.Spiele": 36,
-    "Vorsaison.Rating": 7.16,
-    "Vorsaison.Wert": 1326
+    "Vorsaison.Minuten": 1217,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 1184
   },
   {
     "player.id": 762,
@@ -12594,10 +12594,10 @@ const playersData = [
     "Geburtsdatum": "2000-07-12",
     "Groesse": "176",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 5031,
-    "Vorsaison.Spiele": 62,
-    "Vorsaison.Rating": 7.41,
-    "Vorsaison.Wert": 5098
+    "Vorsaison.Minuten": 4711,
+    "Vorsaison.Spiele": 58,
+    "Vorsaison.Rating": 7.42,
+    "Vorsaison.Wert": 4938
   },
   {
     "player.id": 544640,
@@ -12628,10 +12628,10 @@ const playersData = [
     "Geburtsdatum": "1999-01-30",
     "Groesse": "186",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 1854,
-    "Vorsaison.Spiele": 34,
+    "Vorsaison.Minuten": 1830,
+    "Vorsaison.Spiele": 33,
     "Vorsaison.Rating": 6.81,
-    "Vorsaison.Wert": 1479
+    "Vorsaison.Wert": 1467
   },
   {
     "player.id": 158447,
@@ -12679,10 +12679,10 @@ const playersData = [
     "Geburtsdatum": "2001-07-24",
     "Groesse": "190",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 959,
-    "Vorsaison.Spiele": 17,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 719
+    "Vorsaison.Minuten": 772,
+    "Vorsaison.Spiele": 15,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 625
   },
   {
     "player.id": 547512,
@@ -12764,10 +12764,10 @@ const playersData = [
     "Geburtsdatum": "1996-05-02",
     "Groesse": "182",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 1905,
-    "Vorsaison.Spiele": 37,
-    "Vorsaison.Rating": 7.23,
-    "Vorsaison.Wert": 1506
+    "Vorsaison.Minuten": 1839,
+    "Vorsaison.Spiele": 36,
+    "Vorsaison.Rating": 7.26,
+    "Vorsaison.Wert": 1473
   },
   {
     "player.id": 299925,
@@ -12798,10 +12798,10 @@ const playersData = [
     "Geburtsdatum": "1999-02-27",
     "Groesse": "185",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 2120,
-    "Vorsaison.Spiele": 39,
-    "Vorsaison.Rating": 7.14,
-    "Vorsaison.Wert": 1688
+    "Vorsaison.Minuten": 2030,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 1643
   },
   {
     "player.id": 279792,
@@ -12884,7 +12884,7 @@ const playersData = [
     "Groesse": "183",
     "Gewicht": "69",
     "Vorsaison.Minuten": 1085,
-    "Vorsaison.Spiele": 32,
+    "Vorsaison.Spiele": 31,
     "Vorsaison.Rating": 7.26,
     "Vorsaison.Wert": 888
   },
@@ -13070,10 +13070,10 @@ const playersData = [
     "Geburtsdatum": "2001-12-08",
     "Groesse": "184",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 1337,
-    "Vorsaison.Spiele": 30,
-    "Vorsaison.Rating": 7.67,
-    "Vorsaison.Wert": 883
+    "Vorsaison.Minuten": 1073,
+    "Vorsaison.Spiele": 26,
+    "Vorsaison.Rating": 7.78,
+    "Vorsaison.Wert": 751
   },
   {
     "player.id": 414358,
@@ -13104,10 +13104,10 @@ const playersData = [
     "Geburtsdatum": "2001-01-12",
     "Groesse": "182",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 1194,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 7.18,
-    "Vorsaison.Wert": 709
+    "Vorsaison.Minuten": 652,
+    "Vorsaison.Spiele": 21,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 438
   },
   {
     "player.id": 500094,
@@ -13359,10 +13359,10 @@ const playersData = [
     "Geburtsdatum": "2000-08-07",
     "Groesse": "183",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 2285,
-    "Vorsaison.Spiele": 35,
-    "Vorsaison.Rating": 7.1,
-    "Vorsaison.Wert": 1635
+    "Vorsaison.Minuten": 2254,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.11,
+    "Vorsaison.Wert": 1620
   },
   {
     "player.id": 128772,
@@ -13410,10 +13410,10 @@ const playersData = [
     "Geburtsdatum": "2002-11-02",
     "Groesse": "183",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 803,
-    "Vorsaison.Spiele": 12,
-    "Vorsaison.Rating": 6.74,
-    "Vorsaison.Wert": 404
+    "Vorsaison.Minuten": 283,
+    "Vorsaison.Spiele": 4,
+    "Vorsaison.Rating": 6.41,
+    "Vorsaison.Wert": 144
   },
   {
     "player.id": 551763,
@@ -13461,8 +13461,8 @@ const playersData = [
     "Geburtsdatum": "2000-02-08",
     "Groesse": "187",
     "Gewicht": "",
-    "Vorsaison.Minuten": 1368,
-    "Vorsaison.Spiele": 26,
+    "Vorsaison.Minuten": 1367,
+    "Vorsaison.Spiele": 22,
     "Vorsaison.Rating": 6.63,
     "Vorsaison.Wert": 1042
   },
@@ -13648,10 +13648,10 @@ const playersData = [
     "Geburtsdatum": "1998-05-31",
     "Groesse": "175",
     "Gewicht": "66",
-    "Vorsaison.Minuten": 2019,
-    "Vorsaison.Spiele": 30,
-    "Vorsaison.Rating": 7,
-    "Vorsaison.Wert": 1750
+    "Vorsaison.Minuten": 1945,
+    "Vorsaison.Spiele": 29,
+    "Vorsaison.Rating": 6.99,
+    "Vorsaison.Wert": 1713
   },
   {
     "player.id": 400679,
@@ -13682,10 +13682,10 @@ const playersData = [
     "Geburtsdatum": "2006-04-19",
     "Groesse": "179",
     "Gewicht": "",
-    "Vorsaison.Minuten": 738,
-    "Vorsaison.Spiele": 22,
-    "Vorsaison.Rating": 6.76,
-    "Vorsaison.Wert": 454
+    "Vorsaison.Minuten": 425,
+    "Vorsaison.Spiele": 9,
+    "Vorsaison.Rating": 6.73,
+    "Vorsaison.Wert": 298
   },
   {
     "player.id": 365840,
@@ -13801,10 +13801,10 @@ const playersData = [
     "Geburtsdatum": "1999-05-31",
     "Groesse": "169",
     "Gewicht": "65",
-    "Vorsaison.Minuten": 2746,
-    "Vorsaison.Spiele": 39,
+    "Vorsaison.Minuten": 2656,
+    "Vorsaison.Spiele": 37,
     "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 2383
+    "Vorsaison.Wert": 2338
   },
   {
     "player.id": 66042,
@@ -13818,10 +13818,10 @@ const playersData = [
     "Geburtsdatum": "1998-07-19",
     "Groesse": "173",
     "Gewicht": "63",
-    "Vorsaison.Minuten": 2224,
-    "Vorsaison.Spiele": 32,
-    "Vorsaison.Rating": 6.7,
-    "Vorsaison.Wert": 1827
+    "Vorsaison.Minuten": 1774,
+    "Vorsaison.Spiele": 27,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 1602
   },
   {
     "player.id": 322561,
@@ -13954,10 +13954,10 @@ const playersData = [
     "Geburtsdatum": "1993-09-13",
     "Groesse": "185",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 862,
-    "Vorsaison.Spiele": 24,
-    "Vorsaison.Rating": 6.64,
-    "Vorsaison.Wert": 634
+    "Vorsaison.Minuten": 729,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.63,
+    "Vorsaison.Wert": 567
   },
   {
     "player.id": 66275,
@@ -13971,10 +13971,10 @@ const playersData = [
     "Geburtsdatum": "1999-04-29",
     "Groesse": "187",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 1664,
-    "Vorsaison.Spiele": 37,
-    "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 1276
+    "Vorsaison.Minuten": 1633,
+    "Vorsaison.Spiele": 35,
+    "Vorsaison.Rating": 6.84,
+    "Vorsaison.Wert": 1261
   },
   {
     "player.id": 450921,
@@ -14022,10 +14022,10 @@ const playersData = [
     "Geburtsdatum": "1995-01-26",
     "Groesse": "199",
     "Gewicht": "102",
-    "Vorsaison.Minuten": 2387,
-    "Vorsaison.Spiele": 32,
+    "Vorsaison.Minuten": 2342,
+    "Vorsaison.Spiele": 31,
     "Vorsaison.Rating": 7.1,
-    "Vorsaison.Wert": 2023
+    "Vorsaison.Wert": 2000
   },
   {
     "player.id": 491797,
@@ -14141,10 +14141,10 @@ const playersData = [
     "Geburtsdatum": "2001-09-12",
     "Groesse": "182",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 1803,
-    "Vorsaison.Spiele": 38,
-    "Vorsaison.Rating": 6.85,
-    "Vorsaison.Wert": 1395
+    "Vorsaison.Minuten": 1699,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 1343
   },
   {
     "player.id": 265595,
@@ -14192,10 +14192,10 @@ const playersData = [
     "Geburtsdatum": "2003-12-04",
     "Groesse": "190",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 3090,
-    "Vorsaison.Spiele": 42,
-    "Vorsaison.Rating": 6.95,
-    "Vorsaison.Wert": 2418
+    "Vorsaison.Minuten": 2248,
+    "Vorsaison.Spiele": 32,
+    "Vorsaison.Rating": 7.04,
+    "Vorsaison.Wert": 1997
   },
   {
     "player.id": 41324,
@@ -14413,10 +14413,10 @@ const playersData = [
     "Geburtsdatum": "1999-08-12",
     "Groesse": "178",
     "Gewicht": "72",
-    "Vorsaison.Minuten": 2850,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 7.2,
-    "Vorsaison.Wert": 2222
+    "Vorsaison.Minuten": 2625,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.22,
+    "Vorsaison.Wert": 2110
   },
   {
     "player.id": 286084,
@@ -14481,10 +14481,10 @@ const playersData = [
     "Geburtsdatum": "2000-01-10",
     "Groesse": "186",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 1118,
-    "Vorsaison.Spiele": 25,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 1015
+    "Vorsaison.Minuten": 827,
+    "Vorsaison.Spiele": 20,
+    "Vorsaison.Rating": 6.7,
+    "Vorsaison.Wert": 869
   },
   {
     "player.id": 449624,
@@ -14515,10 +14515,10 @@ const playersData = [
     "Geburtsdatum": "2001-01-26",
     "Groesse": "173",
     "Gewicht": "69",
-    "Vorsaison.Minuten": 3972,
-    "Vorsaison.Spiele": 58,
-    "Vorsaison.Rating": 7.11,
-    "Vorsaison.Wert": 3150
+    "Vorsaison.Minuten": 3353,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 2841
   },
   {
     "player.id": 404574,
@@ -14549,10 +14549,10 @@ const playersData = [
     "Geburtsdatum": "1997-12-02",
     "Groesse": "185",
     "Gewicht": "74",
-    "Vorsaison.Minuten": 4228,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 7.28,
-    "Vorsaison.Wert": 3609
+    "Vorsaison.Minuten": 4089,
+    "Vorsaison.Spiele": 51,
+    "Vorsaison.Rating": 7.31,
+    "Vorsaison.Wert": 3540
   },
   {
     "player.id": 385674,
@@ -14583,10 +14583,10 @@ const playersData = [
     "Geburtsdatum": "2000-02-15",
     "Groesse": "179",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3592,
-    "Vorsaison.Spiele": 47,
-    "Vorsaison.Rating": 6.88,
-    "Vorsaison.Wert": 3219
+    "Vorsaison.Minuten": 3504,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 3175
   },
   {
     "player.id": 41194,
@@ -14668,10 +14668,10 @@ const playersData = [
     "Geburtsdatum": "1995-03-02",
     "Groesse": "190",
     "Gewicht": "87",
-    "Vorsaison.Minuten": 375,
-    "Vorsaison.Spiele": 9,
+    "Vorsaison.Minuten": 360,
+    "Vorsaison.Spiele": 4,
     "Vorsaison.Rating": 6.9,
-    "Vorsaison.Wert": 242
+    "Vorsaison.Wert": 234
   },
   {
     "player.id": 25142,
@@ -14719,10 +14719,10 @@ const playersData = [
     "Geburtsdatum": "2002-03-06",
     "Groesse": "188",
     "Gewicht": "81",
-    "Vorsaison.Minuten": 416,
-    "Vorsaison.Spiele": 10,
-    "Vorsaison.Rating": 6.58,
-    "Vorsaison.Wert": 403
+    "Vorsaison.Minuten": 390,
+    "Vorsaison.Spiele": 8,
+    "Vorsaison.Rating": 6.6,
+    "Vorsaison.Wert": 390
   },
   {
     "player.id": 13,
@@ -14770,10 +14770,10 @@ const playersData = [
     "Geburtsdatum": "2000-12-11",
     "Groesse": "190",
     "Gewicht": "90",
-    "Vorsaison.Minuten": 2137,
-    "Vorsaison.Spiele": 44,
+    "Vorsaison.Minuten": 2072,
+    "Vorsaison.Spiele": 40,
     "Vorsaison.Rating": 6.56,
-    "Vorsaison.Wert": 2020
+    "Vorsaison.Wert": 1988
   },
   {
     "player.id": 38112,
@@ -14787,10 +14787,10 @@ const playersData = [
     "Geburtsdatum": "1998-02-12",
     "Groesse": "195",
     "Gewicht": "95",
-    "Vorsaison.Minuten": 3586,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 7.16,
-    "Vorsaison.Wert": 3346
+    "Vorsaison.Minuten": 3522,
+    "Vorsaison.Spiele": 41,
+    "Vorsaison.Rating": 7.18,
+    "Vorsaison.Wert": 3314
   },
   {
     "player.id": 180731,
@@ -14838,10 +14838,10 @@ const playersData = [
     "Geburtsdatum": "1997-03-18",
     "Groesse": "180",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 3787,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.18,
-    "Vorsaison.Wert": 3507
+    "Vorsaison.Minuten": 3722,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.19,
+    "Vorsaison.Wert": 3475
   },
   {
     "player.id": 420353,
@@ -14872,10 +14872,10 @@ const playersData = [
     "Geburtsdatum": "2000-02-22",
     "Groesse": "187",
     "Gewicht": "82",
-    "Vorsaison.Minuten": 1536,
-    "Vorsaison.Spiele": 41,
+    "Vorsaison.Minuten": 1511,
+    "Vorsaison.Spiele": 38,
     "Vorsaison.Rating": 6.83,
-    "Vorsaison.Wert": 1475
+    "Vorsaison.Wert": 1462
   },
   {
     "player.id": 135883,
@@ -14889,10 +14889,10 @@ const playersData = [
     "Geburtsdatum": "2001-07-18",
     "Groesse": "189",
     "Gewicht": "83",
-    "Vorsaison.Minuten": 3459,
-    "Vorsaison.Spiele": 54,
+    "Vorsaison.Minuten": 3434,
+    "Vorsaison.Spiele": 50,
     "Vorsaison.Rating": 6.77,
-    "Vorsaison.Wert": 3245
+    "Vorsaison.Wert": 3233
   },
   {
     "player.id": 137210,
@@ -14906,10 +14906,10 @@ const playersData = [
     "Geburtsdatum": "2001-04-04",
     "Groesse": "183",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 4322,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.26,
-    "Vorsaison.Wert": 4052
+    "Vorsaison.Minuten": 4258,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.25,
+    "Vorsaison.Wert": 4020
   },
   {
     "player.id": 24963,
@@ -14923,10 +14923,10 @@ const playersData = [
     "Geburtsdatum": "1996-10-13",
     "Groesse": "191",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3826,
-    "Vorsaison.Spiele": 56,
-    "Vorsaison.Rating": 6.82,
-    "Vorsaison.Wert": 3295
+    "Vorsaison.Minuten": 3210,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.8,
+    "Vorsaison.Wert": 2987
   },
   {
     "player.id": 340573,
@@ -14940,10 +14940,10 @@ const playersData = [
     "Geburtsdatum": "2004-05-10",
     "Groesse": "180",
     "Gewicht": "70",
-    "Vorsaison.Minuten": 3428,
-    "Vorsaison.Spiele": 59,
-    "Vorsaison.Rating": 7.07,
-    "Vorsaison.Wert": 2947
+    "Vorsaison.Minuten": 3081,
+    "Vorsaison.Spiele": 50,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 2773
   },
   {
     "player.id": 24854,
@@ -15059,10 +15059,10 @@ const playersData = [
     "Geburtsdatum": "1998-01-09",
     "Groesse": "181",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 2734,
-    "Vorsaison.Spiele": 56,
-    "Vorsaison.Rating": 7.1,
-    "Vorsaison.Wert": 2509
+    "Vorsaison.Minuten": 2670,
+    "Vorsaison.Spiele": 52,
+    "Vorsaison.Rating": 7.08,
+    "Vorsaison.Wert": 2477
   },
   {
     "player.id": 26475,
@@ -15093,10 +15093,10 @@ const playersData = [
     "Geburtsdatum": "1998-03-25",
     "Groesse": "185",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 2850,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 6.7,
-    "Vorsaison.Wert": 2510
+    "Vorsaison.Minuten": 2382,
+    "Vorsaison.Spiele": 38,
+    "Vorsaison.Rating": 6.69,
+    "Vorsaison.Wert": 2276
   },
   {
     "player.id": 128533,
@@ -15110,10 +15110,10 @@ const playersData = [
     "Geburtsdatum": "2001-02-26",
     "Groesse": "185",
     "Gewicht": "86",
-    "Vorsaison.Minuten": 3558,
-    "Vorsaison.Spiele": 53,
+    "Vorsaison.Minuten": 3533,
+    "Vorsaison.Spiele": 50,
     "Vorsaison.Rating": 7.01,
-    "Vorsaison.Wert": 3353
+    "Vorsaison.Wert": 3340
   },
   {
     "player.id": 350799,
@@ -15127,10 +15127,10 @@ const playersData = [
     "Geburtsdatum": "2005-03-19",
     "Groesse": "182",
     "Gewicht": "84",
-    "Vorsaison.Minuten": 1269,
-    "Vorsaison.Spiele": 33,
+    "Vorsaison.Minuten": 1259,
+    "Vorsaison.Spiele": 32,
     "Vorsaison.Rating": 7.1,
-    "Vorsaison.Wert": 859
+    "Vorsaison.Wert": 854
   },
   {
     "player.id": 371911,
@@ -15213,7 +15213,7 @@ const playersData = [
     "Groesse": "188",
     "Gewicht": "78",
     "Vorsaison.Minuten": 90,
-    "Vorsaison.Spiele": 2,
+    "Vorsaison.Spiele": 1,
     "Vorsaison.Rating": 7.3,
     "Vorsaison.Wert": 45
   },
@@ -15229,10 +15229,10 @@ const playersData = [
     "Geburtsdatum": "2001-01-14",
     "Groesse": "194",
     "Gewicht": "88",
-    "Vorsaison.Minuten": 3060,
-    "Vorsaison.Spiele": 34,
-    "Vorsaison.Rating": 6.92,
-    "Vorsaison.Wert": 3240
+    "Vorsaison.Minuten": 2970,
+    "Vorsaison.Spiele": 33,
+    "Vorsaison.Rating": 6.96,
+    "Vorsaison.Wert": 3195
   },
   {
     "player.id": 355994,
@@ -15246,10 +15246,10 @@ const playersData = [
     "Geburtsdatum": "2004-08-09",
     "Groesse": "188",
     "Gewicht": "",
-    "Vorsaison.Minuten": 3816,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 7.23,
-    "Vorsaison.Wert": 2596
+    "Vorsaison.Minuten": 3437,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.25,
+    "Vorsaison.Wert": 2407
   },
   {
     "player.id": 311773,
@@ -15263,10 +15263,10 @@ const playersData = [
     "Geburtsdatum": "2002-02-13",
     "Groesse": "186",
     "Gewicht": "76",
-    "Vorsaison.Minuten": 3098,
-    "Vorsaison.Spiele": 36,
+    "Vorsaison.Minuten": 2918,
+    "Vorsaison.Spiele": 34,
     "Vorsaison.Rating": 6.93,
-    "Vorsaison.Wert": 3275
+    "Vorsaison.Wert": 3185
   },
   {
     "player.id": 455356,
@@ -15297,10 +15297,10 @@ const playersData = [
     "Geburtsdatum": "2001-04-01",
     "Groesse": "190",
     "Gewicht": "91",
-    "Vorsaison.Minuten": 1080,
-    "Vorsaison.Spiele": 14,
-    "Vorsaison.Rating": 7.23,
-    "Vorsaison.Wert": 555
+    "Vorsaison.Minuten": 29,
+    "Vorsaison.Spiele": 2,
+    "Vorsaison.Rating": 6.9,
+    "Vorsaison.Wert": 29
   },
   {
     "player.id": 435552,
@@ -15315,7 +15315,7 @@ const playersData = [
     "Groesse": "185",
     "Gewicht": "72",
     "Vorsaison.Minuten": 2325,
-    "Vorsaison.Spiele": 31,
+    "Vorsaison.Spiele": 30,
     "Vorsaison.Rating": 6.73,
     "Vorsaison.Wert": 2318
   },
@@ -15348,10 +15348,10 @@ const playersData = [
     "Geburtsdatum": "1999-07-08",
     "Groesse": "185",
     "Gewicht": "77",
-    "Vorsaison.Minuten": 2732,
-    "Vorsaison.Spiele": 43,
-    "Vorsaison.Rating": 6.67,
-    "Vorsaison.Wert": 2830
+    "Vorsaison.Minuten": 2657,
+    "Vorsaison.Spiele": 42,
+    "Vorsaison.Rating": 6.68,
+    "Vorsaison.Wert": 2793
   },
   {
     "player.id": 288112,
@@ -15399,10 +15399,10 @@ const playersData = [
     "Geburtsdatum": "2003-09-30",
     "Groesse": "172",
     "Gewicht": "67",
-    "Vorsaison.Minuten": 3066,
-    "Vorsaison.Spiele": 52,
+    "Vorsaison.Minuten": 3058,
+    "Vorsaison.Spiele": 51,
     "Vorsaison.Rating": 6.81,
-    "Vorsaison.Wert": 3026
+    "Vorsaison.Wert": 3022
   },
   {
     "player.id": 548734,
@@ -15433,10 +15433,10 @@ const playersData = [
     "Geburtsdatum": "1999-01-24",
     "Groesse": "189",
     "Gewicht": "79",
-    "Vorsaison.Minuten": 3900,
-    "Vorsaison.Spiele": 54,
-    "Vorsaison.Rating": 7.15,
-    "Vorsaison.Wert": 3552
+    "Vorsaison.Minuten": 3346,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 7.17,
+    "Vorsaison.Wert": 3275
   },
   {
     "player.id": 47541,
@@ -15450,10 +15450,10 @@ const playersData = [
     "Geburtsdatum": "1996-10-05",
     "Groesse": "188",
     "Gewicht": "75",
-    "Vorsaison.Minuten": 3230,
-    "Vorsaison.Spiele": 45,
-    "Vorsaison.Rating": 6.87,
-    "Vorsaison.Wert": 3426
+    "Vorsaison.Minuten": 3152,
+    "Vorsaison.Spiele": 44,
+    "Vorsaison.Rating": 6.88,
+    "Vorsaison.Wert": 3387
   },
   {
     "player.id": 51016,
@@ -15467,10 +15467,10 @@ const playersData = [
     "Geburtsdatum": "1999-02-08",
     "Groesse": "183",
     "Gewicht": "68",
-    "Vorsaison.Minuten": 2929,
-    "Vorsaison.Spiele": 53,
-    "Vorsaison.Rating": 6.81,
-    "Vorsaison.Wert": 2812
+    "Vorsaison.Minuten": 2445,
+    "Vorsaison.Spiele": 45,
+    "Vorsaison.Rating": 6.78,
+    "Vorsaison.Wert": 2570
   },
   {
     "player.id": 362750,
@@ -15518,10 +15518,10 @@ const playersData = [
     "Geburtsdatum": "2000-10-31",
     "Groesse": "176",
     "Gewicht": "71",
-    "Vorsaison.Minuten": 2963,
-    "Vorsaison.Spiele": 45,
+    "Vorsaison.Minuten": 2873,
+    "Vorsaison.Spiele": 44,
     "Vorsaison.Rating": 6.91,
-    "Vorsaison.Wert": 3026
+    "Vorsaison.Wert": 2981
   },
   {
     "player.id": 1707,
@@ -15569,10 +15569,10 @@ const playersData = [
     "Geburtsdatum": "1995-05-29",
     "Groesse": "183",
     "Gewicht": "73",
-    "Vorsaison.Minuten": 3340,
-    "Vorsaison.Spiele": 49,
-    "Vorsaison.Rating": 7.13,
-    "Vorsaison.Wert": 3480
+    "Vorsaison.Minuten": 3183,
+    "Vorsaison.Spiele": 46,
+    "Vorsaison.Rating": 7.16,
+    "Vorsaison.Wert": 3401
   },
   {
     "player.id": 411702,
@@ -15603,9 +15603,9 @@ const playersData = [
     "Geburtsdatum": "2000-05-15",
     "Groesse": "191",
     "Gewicht": "80",
-    "Vorsaison.Minuten": 4036,
-    "Vorsaison.Spiele": 74,
-    "Vorsaison.Rating": 6.98,
-    "Vorsaison.Wert": 3250
+    "Vorsaison.Minuten": 3687,
+    "Vorsaison.Spiele": 67,
+    "Vorsaison.Rating": 7,
+    "Vorsaison.Wert": 3076
   }
 ];
