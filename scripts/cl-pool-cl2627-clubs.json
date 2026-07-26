@@ -1,0 +1,184 @@
+{
+  "tournament": "cl2627",
+  "season": "2026",
+  "sourceSeason": "2025",
+  "clubCount": 29,
+  "playerCount": 917,
+  "openSlots": 7,
+  "clubs": [
+    {
+      "id": 42,
+      "name": "Arsenal",
+      "country": "England",
+      "via": "England / Premier League – Rang 1 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 497,
+      "name": "AS Roma",
+      "country": "Italy",
+      "via": "Italy / Serie A – Rang 3 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 66,
+      "name": "Aston Villa",
+      "country": "England",
+      "via": "England / Premier League – Rang 4 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 530,
+      "name": "Atletico Madrid",
+      "country": "Spain",
+      "via": "Spain / La Liga – Rang 4 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 529,
+      "name": "Barcelona",
+      "country": "Spain",
+      "via": "Spain / La Liga – Rang 1 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 157,
+      "name": "Bayern München",
+      "country": "Germany",
+      "via": "Germany / Bundesliga – Rang 1 (Champions League)"
+    },
+    {
+      "id": 165,
+      "name": "Borussia Dortmund",
+      "country": "Germany",
+      "via": "Germany / Bundesliga – Rang 2 (Champions League)"
+    },
+    {
+      "id": 569,
+      "name": "Club Brugge KV",
+      "country": "Belgium",
+      "via": "Belgium / Jupiler Pro League – Rang 1 (Champions League)"
+    },
+    {
+      "id": 895,
+      "name": "Como",
+      "country": "Italy",
+      "via": "Italy / Serie A – Rang 4 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 212,
+      "name": "FC Porto",
+      "country": "Portugal",
+      "via": "Portugal / Primeira Liga – Rang 1 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 209,
+      "name": "Feyenoord",
+      "country": "Netherlands",
+      "via": "Netherlands / Eredivisie – Rang 2 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 645,
+      "name": "Galatasaray",
+      "country": "Turkey",
+      "via": "Turkey / Süper Lig – Rang 1 (Champions League)"
+    },
+    {
+      "id": 505,
+      "name": "Inter",
+      "country": "Italy",
+      "via": "Italy / Serie A – Rang 1 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 116,
+      "name": "Lens",
+      "country": "France",
+      "via": "France / Ligue 1 – Rang 2 (Champions League)"
+    },
+    {
+      "id": 79,
+      "name": "Lille",
+      "country": "France",
+      "via": "France / Ligue 1 – Rang 3 (Champions League)"
+    },
+    {
+      "id": 40,
+      "name": "Liverpool",
+      "country": "England",
+      "via": "England / Premier League – Rang 5 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 50,
+      "name": "Manchester City",
+      "country": "England",
+      "via": "England / Premier League – Rang 2 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 33,
+      "name": "Manchester United",
+      "country": "England",
+      "via": "England / Premier League – Rang 3 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 492,
+      "name": "Napoli",
+      "country": "Italy",
+      "via": "Italy / Serie A – Rang 2 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 85,
+      "name": "Paris Saint Germain",
+      "country": "France",
+      "via": "France / Ligue 1 – Rang 1 (Champions League)"
+    },
+    {
+      "id": 197,
+      "name": "PSV Eindhoven",
+      "country": "Netherlands",
+      "via": "Netherlands / Eredivisie – Rang 1 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 173,
+      "name": "RB Leipzig",
+      "country": "Germany",
+      "via": "Germany / Bundesliga – Rang 3 (Champions League)"
+    },
+    {
+      "id": 543,
+      "name": "Real Betis",
+      "country": "Spain",
+      "via": "Spain / La Liga – Rang 5 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 541,
+      "name": "Real Madrid",
+      "country": "Spain",
+      "via": "Spain / La Liga – Rang 2 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 550,
+      "name": "Shakhtar Donetsk",
+      "country": "Ukraine",
+      "via": "Ukraine / Premier League – Rang 1 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 560,
+      "name": "Slavia Praha",
+      "country": "Czech-Republic",
+      "via": "Czech-Republic / Czech Liga – Rang 1 (Champions League)"
+    },
+    {
+      "id": 228,
+      "name": "Sporting CP",
+      "country": "Portugal",
+      "via": "Portugal / Primeira Liga – Rang 2 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 172,
+      "name": "VfB Stuttgart",
+      "country": "Germany",
+      "via": "Germany / Bundesliga – Rang 4 (Champions League)"
+    },
+    {
+      "id": 533,
+      "name": "Villarreal",
+      "country": "Spain",
+      "via": "Spain / La Liga – Rang 3 (Promotion - Champions League (League phase))"
+    }
+  ]
+}

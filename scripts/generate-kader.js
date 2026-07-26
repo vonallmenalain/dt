@@ -403,5 +403,13 @@ module.exports = {
   fetchCountryFlagMap,
   mapPosition,
   NATION_FLAG_ALIASES,
-  FLAG_BASE
+  FLAG_BASE,
+  // Von scripts/generate-cl-pool.js mitbenutzt, damit der Vorschau-Pool
+  // exakt dieselbe Transport-, Namens- und Sortierlogik verwendet wie der
+  // reguläre Kader-Generator (siehe dortigen Kopfkommentar).
+  fetchJson,
+  delay,
+  numericOnly,
+  API_HOST,
+  POSITION_ORDER
 };

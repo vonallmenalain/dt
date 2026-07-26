@@ -9,6 +9,7 @@
   "scripts": {
     "auto-upload": "node auto-points-upload.js",
     "sync-fixtures": "node sync-fixtures.js",
+    "generate-cl-pool": "node generate-cl-pool.js",
     "test:points": "node test-points-utils.js && node test-auto-points-upload.js",
     "test:cache": "node test-cache-freshness.js",
     "test:nation-status": "node test-nation-status.js",
@@ -19,7 +20,9 @@
     "test:cl-scope": "node test-cl-fixture-scope.js",
     "test:transfers": "node test-transfer-utils.js",
     "test:kader": "node test-generate-kader.js",
-    "test": "npm run test:points && npm run test:cache && npm run test:nation-status && npm run test:freeze && npm run test:scaffold && npm run test:cl-league && npm run test:cl-preview && npm run test:cl-scope && npm run test:transfers && npm run test:kader"
+    "test:cl-pool": "node test-generate-cl-pool.js",
+    "test:cl2627-pool": "node test-cl2627-pool.js",
+    "test": "npm run test:points && npm run test:cache && npm run test:nation-status && npm run test:freeze && npm run test:scaffold && npm run test:cl-league && npm run test:cl-preview && npm run test:cl-scope && npm run test:transfers && npm run test:kader && npm run test:cl-pool && npm run test:cl2627-pool"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"

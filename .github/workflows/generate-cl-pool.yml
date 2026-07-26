@@ -1,0 +1,159 @@
+name: CL Vorschau-Spielerpool
+
+# Erzeugt den VORSCHAU-Spielerpool einer Champions-League-Saison, deren
+# Ligaphasen-Auslosung noch nicht stattgefunden hat (CL 2026/27). Bewusst
+# ein eigener Workflow neben "Kader generieren": der reguläre Generator
+# liest gespielte Wettbewerbs-Einsätze und liefert vor Saisonstart nichts.
+#
+# Ablauf (scripts/generate-cl-pool.js):
+#   1. Abschlusstabellen der nationalen UEFA-Ligen der Vorsaison lesen und
+#      daraus die direkt für die Ligaphase qualifizierten Klubs ableiten.
+#   2. Titelverteidiger (CL- und Europa-League-Sieger) ergänzen.
+#   3. Aktuellen Kader je Klub + Spielerprofile laden.
+#   4. data-<key>.js schreiben (identisches Schema und identische
+#      Namenslogik wie beim regulären Kader-Generator).
+#
+# Benötigtes Repo-Secret:
+#   RAPIDAPI_KEY   RapidAPI / API-Football Key.
+#
+# Erst mit Probe-Modus laufen lassen: der Lauf kostet dann nur die
+# Tabellen-Calls und loggt, welche Klubs erkannt wurden – ohne Kader-Calls
+# und ohne Dateien zu schreiben.
+#
+# Auslösen:
+#   • Nach dem Merge nach main: Actions → "Run workflow" (workflow_dispatch).
+#   • Solange der Workflow nur auf einem Feature-Branch liegt: Werte in
+#     .github/cl-pool-run.env anpassen und pushen (workflow_dispatch greift
+#     erst, wenn die Datei auf dem Default-Branch liegt).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tournament_key:
+        description: "Turnier-Key (z. B. cl2627)"
+        required: true
+        type: string
+        default: "cl2627"
+      source_season:
+        description: "Saison der Ligatabellen (leer = Turnier-Saison minus 1)"
+        required: false
+        type: string
+        default: ""
+      probe:
+        description: "Nur Klubs ermitteln und loggen (keine Kader-Calls, keine Dateien)"
+        required: false
+        type: boolean
+        default: false
+      max_teams:
+        description: "Debug: nur die ersten N Klubs laden (0 = alle)"
+        required: false
+        type: string
+        default: "0"
+      skip_incomplete:
+        description: "Spieler ohne Stammdaten bei api-football verwerfen (meist Nachwuchs)"
+        required: false
+        type: boolean
+        default: false
+      commit:
+        description: "Ergebnis committen & pushen"
+        required: false
+        type: boolean
+        default: true
+  push:
+    branches:
+      - "claude/**"
+    paths:
+      - ".github/cl-pool-run.env"
+
+concurrency:
+  group: generate-cl-pool-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Laufparameter bestimmen
+        id: cfg
+        env:
+          EVENT: ${{ github.event_name }}
+          IN_KEY: ${{ inputs.tournament_key }}
+          IN_SEASON: ${{ inputs.source_season }}
+          IN_PROBE: ${{ inputs.probe == true && '1' || '0' }}
+          IN_MAX: ${{ inputs.max_teams }}
+          IN_SKIP: ${{ inputs.skip_incomplete == true && '1' || '0' }}
+          IN_COMMIT: ${{ inputs.commit == true && '1' || '0' }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            KEY="${IN_KEY:-cl2627}"; SEASON="${IN_SEASON:-}"
+            PROBE="${IN_PROBE:-0}"; MAX="${IN_MAX:-0}"; COMMIT="${IN_COMMIT:-0}"
+            SKIP="${IN_SKIP:-0}"
+          else
+            # Nur einfache KEY=VALUE-Zeilen aus der Steuerdatei lesen –
+            # bewusst kein `source`, damit nichts ausgeführt wird.
+            read_env() {
+              grep -E "^$1=" .github/cl-pool-run.env | tail -n1 | cut -d= -f2- || true
+            }
+            KEY="$(read_env TOURNAMENT_KEY)"; KEY="${KEY:-cl2627}"
+            SEASON="$(read_env SOURCE_SEASON)"
+            PROBE="$(read_env PROBE)"; PROBE="${PROBE:-1}"
+            MAX="$(read_env MAX_TEAMS)"; MAX="${MAX:-0}"
+            COMMIT="$(read_env COMMIT)"; COMMIT="${COMMIT:-0}"
+            SKIP="$(read_env SKIP_INCOMPLETE)"; SKIP="${SKIP:-0}"
+          fi
+          echo "key=$KEY" >> "$GITHUB_OUTPUT"
+          echo "season=$SEASON" >> "$GITHUB_OUTPUT"
+          echo "probe=$PROBE" >> "$GITHUB_OUTPUT"
+          echo "max=$MAX" >> "$GITHUB_OUTPUT"
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
+          echo "Turnier=$KEY Saison=${SEASON:-auto} Probe=$PROBE MaxTeams=$MAX SkipIncomplete=$SKIP Commit=$COMMIT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package.json
+
+      - name: Install script dependencies
+        working-directory: scripts
+        run: npm install --no-audit --no-fund --omit=dev
+
+      - name: Generate CL preview pool
+        working-directory: scripts
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          TOURNAMENT_KEY: ${{ steps.cfg.outputs.key }}
+          SOURCE_SEASON: ${{ steps.cfg.outputs.season }}
+          PROBE: ${{ steps.cfg.outputs.probe }}
+          MAX_TEAMS: ${{ steps.cfg.outputs.max }}
+          SKIP_INCOMPLETE: ${{ steps.cfg.outputs.skip }}
+        run: node generate-cl-pool.js
+
+      - name: Commit & push generated data
+        if: ${{ steps.cfg.outputs.commit == '1' && steps.cfg.outputs.probe != '1' }}
+        env:
+          KEY: ${{ steps.cfg.outputs.key }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          FILE="data-${KEY}.js"
+          CLUBS="scripts/cl-pool-${KEY}-clubs.json"
+          git add "$FILE" "$CLUBS"
+          if git diff --cached --quiet; then
+            echo "Keine Aenderung – nichts zu committen."
+          else
+            git commit -m "CL Vorschau-Spielerpool: $FILE (via generate-cl-pool Workflow)"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+            echo "Committed $FILE to ${GITHUB_REF_NAME}."
+          fi

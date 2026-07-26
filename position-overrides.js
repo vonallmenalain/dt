@@ -50,5 +50,46 @@ window.POSITION_OVERRIDES = {
         "301771": "ATTACKER", // Simon Adingra
         "41112": "ATTACKER", // Trincão
         "454": "ATTACKER" // Yunus Akgün
+    },
+
+    // CL 2026/27: Übernahme des cl2526-Blocks. Die Overrides hängen an der
+    // `player.id`, nicht am Klub – ein Flügelspieler bleibt also auch nach
+    // einem Transfer als ATTACKER geführt. Einträge für Spieler, die 26/27
+    // nicht im Pool sind, sind stille No-ops. Neue Fälle aus dem 26/27-Kader
+    // kommen über adm-position-overrides.html dazu.
+    cl2627: {
+        "30510": "ATTACKER", // Álex Berenguer
+        "301528": "ATTACKER", // Andreas Schjelderup
+        "247": "ATTACKER", // Cody Mathès Gakpo
+        "1323": "ATTACKER", // Dani Olmo
+        "1605": "ATTACKER", // Daniel Podence
+        "643": "ATTACKER", // Gabriel Jesus
+        "31624": "ATTACKER", // Gabriel Strefezza
+        "118": "ATTACKER", // Gelson Martins
+        "419582": "ATTACKER", // Geovany Tcherno Quenda
+        "323935": "ATTACKER", // Giuliano Simeone
+        "207": "ATTACKER", // Ivan Perišić
+        "19163": "ATTACKER", // Jacob Kai Murphy
+        "1422": "ATTACKER", // Jérémy Baffour Doku
+        "386828": "ATTACKER", // Lamine Yamal
+        "644": "ATTACKER", // Leroy Aziz Sané
+        "2489": "ATTACKER", // Luis Díaz
+        "909": "ATTACKER", // Marcus Rashford
+        "897": "ATTACKER", // Mason Greenwood
+        "219": "ATTACKER", // Matteo Politano
+        "19617": "ATTACKER", // Michael Olise
+        "18946": "ATTACKER", // Mohamed Amine Elyounoussi
+        "306": "ATTACKER", // Mohamed Salah
+        "183799": "ATTACKER", // Nico Williams
+        "3246": "ATTACKER", // Nicolas Pépé
+        "278133": "ATTACKER", // Oscar Bobb
+        "1864": "ATTACKER", // Pedro Neto
+        "1496": "ATTACKER", // Raphinha
+        "2598": "ATTACKER", // Ritsu Dōan
+        "10009": "ATTACKER", // Rodrygo
+        "510": "ATTACKER", // Serge David Gnabry
+        "301771": "ATTACKER", // Simon Adingra
+        "41112": "ATTACKER", // Trincão
+        "454": "ATTACKER" // Yunus Akgün
     }
 };

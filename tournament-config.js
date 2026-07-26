@@ -131,6 +131,68 @@ const APP_CONFIG = (() => {
     }
   ];
 
+  /* ─────────────────────────────────────────────────────────
+   * Spielkalender Champions League 2026/27.
+   *
+   * Die TERMINE stehen bereits fest, die PAARUNGEN nicht: die
+   * Ligaphasen-Auslosung findet Ende August 2026 statt, die
+   * K.-o.-Auslosungen im weiteren Saisonverlauf. Dieser Kalender
+   * hält deshalb nur Runde + Spieltage fest und dient als
+   * Grundlage für die Platzhalter-Spiele weiter unten.
+   *
+   * `round` benutzt bewusst exakt die Runden-Texte von
+   * api-football (siehe isQualificationRound / getLeagueKnockout-
+   * RoundKey), damit Platzhalter und später echte Spiele
+   * identisch klassifiziert werden.
+   *
+   * `kickoff` ist der Haupt-Anstosszeitpunkt (lokale Schweizer
+   * Zeit inkl. Sommer-/Winterzeit-Offset). Die frühen Anstösse
+   * (18:45) und die exakte Verteilung stehen erst nach der
+   * Auslosung fest – bis dahin ist das eine Näherung.
+   * ───────────────────────────────────────────────────────── */
+  const MATCH_CALENDAR_CL2627 = [
+    { round: "League Stage - 1", label: "Spieltag 1", dates: ["2026-09-08", "2026-09-09", "2026-09-10"], kickoff: "21:00", offset: "+02:00" },
+    { round: "League Stage - 2", label: "Spieltag 2", dates: ["2026-10-13", "2026-10-14"], kickoff: "21:00", offset: "+02:00" },
+    { round: "League Stage - 3", label: "Spieltag 3", dates: ["2026-10-20", "2026-10-21"], kickoff: "21:00", offset: "+02:00" },
+    { round: "League Stage - 4", label: "Spieltag 4", dates: ["2026-11-03", "2026-11-04"], kickoff: "21:00", offset: "+01:00" },
+    { round: "League Stage - 5", label: "Spieltag 5", dates: ["2026-11-24", "2026-11-25"], kickoff: "21:00", offset: "+01:00" },
+    { round: "League Stage - 6", label: "Spieltag 6", dates: ["2026-12-08", "2026-12-09"], kickoff: "21:00", offset: "+01:00" },
+    { round: "League Stage - 7", label: "Spieltag 7", dates: ["2027-01-19", "2027-01-20"], kickoff: "21:00", offset: "+01:00" },
+    // Spieltag 8 wird traditionell zeitgleich angepfiffen.
+    { round: "League Stage - 8", label: "Spieltag 8", dates: ["2027-01-27"], kickoff: "21:00", offset: "+01:00" },
+    { round: "Round of 32", label: "K.-o.-Playoffs, Hinspiele", dates: ["2027-02-16", "2027-02-17"], kickoff: "21:00", offset: "+01:00" },
+    { round: "Round of 32", label: "K.-o.-Playoffs, Rückspiele", dates: ["2027-02-23", "2027-02-24"], kickoff: "21:00", offset: "+01:00" },
+    { round: "Round of 16", label: "Achtelfinale, Hinspiele", dates: ["2027-03-09", "2027-03-10"], kickoff: "21:00", offset: "+01:00" },
+    { round: "Round of 16", label: "Achtelfinale, Rückspiele", dates: ["2027-03-16", "2027-03-17"], kickoff: "21:00", offset: "+01:00" },
+    { round: "Quarter-finals", label: "Viertelfinale, Hinspiele", dates: ["2027-04-06", "2027-04-07"], kickoff: "21:00", offset: "+02:00" },
+    { round: "Quarter-finals", label: "Viertelfinale, Rückspiele", dates: ["2027-04-13", "2027-04-14"], kickoff: "21:00", offset: "+02:00" },
+    { round: "Semi-finals", label: "Halbfinale, Hinspiele", dates: ["2027-04-27", "2027-04-28"], kickoff: "21:00", offset: "+02:00" },
+    { round: "Semi-finals", label: "Halbfinale, Rückspiele", dates: ["2027-05-04", "2027-05-05"], kickoff: "21:00", offset: "+02:00" },
+    { round: "Final", label: "Final", dates: ["2027-06-05"], kickoff: "21:00", offset: "+02:00", venue: "Estadio Metropolitano", venueCity: "Madrid" }
+  ];
+
+  /* Platzhalter-Spiele der CL 2026/27, direkt aus dem Kalender oben
+   * abgeleitet – eine Karte pro Spieltag-Datum. Sie zeigen die schon
+   * feststehenden Termine an, solange keine echten Spiele aus
+   * Firestore vorliegen (Paarungen erst nach der Auslosung). Sobald
+   * der Spielplan-Sync echte Fixtures schreibt, haben diese Vorrang
+   * und die Platzhalter verschwinden von selbst. */
+  const FALLBACK_FIXTURES_CL2627 = MATCH_CALENDAR_CL2627.flatMap((entry) =>
+    entry.dates.map((date, index) => ({
+      id: `cl2627_${date}_${index + 1}`,
+      teamA: "TBD",
+      homeLogo: "",
+      teamB: "TBD",
+      awayLogo: "",
+      date: `${date}T${entry.kickoff}:00${entry.offset}`,
+      round: entry.round,
+      roundLabel: entry.label,
+      venue: entry.venue || "",
+      venueCity: entry.venueCity || "",
+      statusShort: "NS"
+    }))
+  );
+
   const GROUP_STAGE_GROUPS_WM2026 = [
     { group: "A", teams: [
       { slot: "A1", name: "Mexico", aliases: ["Mexiko"] },
@@ -404,12 +466,13 @@ const APP_CONFIG = (() => {
       // Auslosung 27.08.2026 (Schweizer Zeit). Genaues Datum TBD.
       defaultActiveFrom: "2026-08-27T00:00:00+02:00",
 
-      // TBD: erster Ligaphasen-Spieltag (Team-Bau-Deadline / Reveal).
-      DREAMTEAM_START: "2026-09-16T21:00:00+02:00",
-      // TBD: aktives Zeitfenster für den Auto-Punkte-Upload (CL-Saison
-      // ~Sep 2026 bis Finale ~Ende Mai/Anfang Juni 2027). Wird in M7
-      // zusammen mit den Cron-Fenstern präzisiert.
-      AUTO_POINTS_FROM: "2026-09-16T18:00:00+02:00",
+      // Erster Ligaphasen-Spieltag (Team-Bau-Deadline / Reveal). Spieltag 1
+      // wird auf drei Abende verteilt (08.–10.09.2026); massgeblich ist der
+      // erste Anpfiff. Quelle: MATCH_CALENDAR_CL2627.
+      DREAMTEAM_START: "2026-09-08T21:00:00+02:00",
+      // Aktives Zeitfenster für den Auto-Punkte-Upload: vom ersten
+      // Ligaphasen-Spieltag bis zum Tag nach dem Final (05.06.2027).
+      AUTO_POINTS_FROM: "2026-09-08T18:00:00+02:00",
       AUTO_POINTS_UNTIL: "2027-06-06T23:59:00+02:00",
 
       storagePrefix: "dreamteam_cl2627",
@@ -441,7 +504,13 @@ const APP_CONFIG = (() => {
 
       // CL hat eine Ligaphase statt Vierergruppen – kein Gruppen-/Bracket-
       // Schema aus der WM, sondern eine gemeinsame 36er-Tabelle.
-      fallbackFixtures: [],
+      //
+      // Die Termine stehen schon fest, die Paarungen erst nach der
+      // Auslosung: `matchCalendar` hält Runde + Spieltage, die daraus
+      // abgeleiteten Platzhalter zeigen sie an, bis der Spielplan-Sync
+      // echte Fixtures liefert (die dann Vorrang haben).
+      matchCalendar: MATCH_CALENDAR_CL2627,
+      fallbackFixtures: FALLBACK_FIXTURES_CL2627,
 
       // Ligaphasen-Parameter (Meilenstein M2a). Steuern die Auflösung
       // „Klub noch im Turnier" in computeTournamentLeagueStatus:
@@ -2512,6 +2581,14 @@ const APP_CONFIG = (() => {
 
     get fallbackFixtures() {
       const list = getActiveTournament().fallbackFixtures;
+      return Array.isArray(list) ? list : [];
+    },
+
+    /* Feststehende Spieltermine des aktiven Turniers (Runde + Datumsliste),
+     * auch wenn die Paarungen noch nicht ausgelost sind. Leer, wenn ein
+     * Turnier keinen Kalender pflegt. */
+    get matchCalendar() {
+      const list = getActiveTournament().matchCalendar;
       return Array.isArray(list) ? list : [];
     },
 
