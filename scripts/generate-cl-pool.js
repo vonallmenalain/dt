@@ -562,6 +562,30 @@ async function main() {
   const sourceSeason = String(
     process.env.SOURCE_SEASON || (Number(t.season) - 1)
   ).trim();
+  /* Diagnose: Rohdaten einzelner Spieler ausgeben und beenden. Dient dazu,
+   * Auffaelligkeiten im Leistungswert zu KLAEREN statt zu erraten – etwa
+   * unmoegliche Minutensummen. Kostet nur einen Call pro Spieler. */
+  const diagIds = String(process.env.DIAG_PLAYER_IDS || '')
+    .split(',').map((s) => s.trim()).filter(Boolean);
+  if (diagIds.length) {
+    logInfo(`DIAGNOSE fuer Spieler ${diagIds.join(', ')} (Saison ${sourceSeason}) – keine Dateien.`);
+    for (const id of diagIds) {
+      const season = await fetchPlayerSeason(id, sourceSeason, apiKey);
+      if (!season) { logWarn(`  ${id}: keine Daten.`); continue; }
+      const stats = season.statistics || [];
+      logInfo(`  ${id} ${season.player.name}: ${stats.length} Statistik-Eintraege`);
+      for (const s of stats) {
+        const lg = s.league || {};
+        const g = s.games || {};
+        logInfo(
+          `     league ${String(lg.id).padStart(4)} "${lg.name}" (${lg.country}, season ${lg.season}) ` +
+          `team "${(s.team || {}).name}" – ${g.appearences} Spiele, ${g.minutes} Min, Rating ${g.rating}`
+        );
+      }
+    }
+    return;
+  }
+
   const probe = envFlag('PROBE');
   const skipIncomplete = envFlag('SKIP_INCOMPLETE');
   const squadDelay = envInt('SQUAD_DELAY_MS', DEFAULT_SQUAD_DELAY_MS);
