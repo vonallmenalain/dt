@@ -1098,9 +1098,14 @@
         const filteredData = playersData.filter(p => {
             /* Deutsche Länderaliasse (siehe country-aliases.js) mit in den
                Heuhaufen aufnehmen, damit z. B. „Schweiz“ Spieler aus dem
-               Nationalteam „Switzerland“ findet. */
+               Nationalteam „Switzerland“ findet.
+
+               BEIDE Entitätsfelder anfragen: bei der CL liegt nach dem
+               Club-Remap (data.js) der Klub im primären und die Nation im
+               sekundären Feld. Klubnamen liefern keine Aliase, der zweite
+               Wert kostet also nichts. */
             const nationAliases = (typeof getCountrySearchAliases === 'function')
-                ? getCountrySearchAliases(p['Nationalteam.name'])
+                ? getCountrySearchAliases(p['Nationalteam.name'], p['Club.name'])
                 : '';
             const matchSearch = !searchTokens.length || searchMatchesAll(
                 [p.Spielername, p['Nationalteam.name'], nationAliases, p['Club.name']],

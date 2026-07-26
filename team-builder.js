@@ -187,10 +187,16 @@
         flag:      p['Nationalteam.logo'] || '',
         club:      p['Club.name'] || 'Vereinslos',
         clubLogo:  p['Club.logo'] || '',
-        sortKey:   `${p['Nationalteam.name'] || ''} ${p.Spielername || ''}`.toLowerCase(),
+        /* Leistung der Vorsaison als Sortierschlüssel (siehe
+           scripts/generate-cl-pool.js). Fehlt das Feld – WM und ältere
+           Kaderdateien –, bleibt es bei 0 und der Name entscheidet. */
+        seasonValue:  Number(p['Vorsaison.Wert']) || 0,
+        seasonRating: Number(p['Vorsaison.Rating']) || 0,
         /* Suche auch über deutsche Länderaliasse (z. B. „Schweiz“ → Switzerland)
-           ermöglichen, indem die Aliase aus country-aliases.js angehängt werden. */
-        searchKey: normalizeSearchText(`${p.Spielername || ''} ${p['Nationalteam.name'] || ''} ${p['Club.name'] || ''} ${(typeof getCountrySearchAliases === 'function' ? getCountrySearchAliases(p['Nationalteam.name']) : '')}`),
+           ermöglichen, indem die Aliase aus country-aliases.js angehängt werden.
+           Beide Entitätsfelder anfragen: bei der CL liegt nach dem Club-Remap
+           (data.js) der Klub im primären und die Nation im sekundären Feld. */
+        searchKey: normalizeSearchText(`${p.Spielername || ''} ${p['Nationalteam.name'] || ''} ${p['Club.name'] || ''} ${(typeof getCountrySearchAliases === 'function' ? getCountrySearchAliases(p['Nationalteam.name'], p['Club.name']) : '')}`),
         _idx:      idx
     }));
 
@@ -1111,6 +1117,37 @@
     /* =========================================================
        PICKER PLAYER LIST
        ========================================================= */
+
+    /* Reihenfolge innerhalb einer Gruppe – identisch zur Spieler-Analyse
+     * (spieleranalyse.js → buildFilteredPlayers/comparePlayersBySeasonForm):
+     * erst die erreichten Punkte, bei Gleichstand die Leistung der
+     * Vorsaison, zuletzt der Name.
+     *
+     * Vorher entschied `sortKey` (primäre Entität + Name). Bei der CL steht
+     * dort nach dem Club-Remap (data.js) der KLUB – die ungefilterte Liste
+     * war damit nach Klub sortiert und begann bei „Arsenal“ statt bei den
+     * bekanntesten Spielern.
+     *
+     * Punkte kommen bewusst aus builderPointsMap (Gesamtpunkte) und nicht
+     * aus getBuilderPlayerPts: die gefensterte Transfer-Wertung gilt nur
+     * für Spieler des eigenen Teams und wäre als Massstab für eine
+     * gemeinsame Liste ungleich. Vor Turnierstart ist die Map leer, dann
+     * entscheidet direkt die Vorsaison-Leistung. */
+    function getPickerSortPoints(playerId) {
+        if (!builderPointsMap) return 0;
+        const value = Number(builderPointsMap[String(playerId)]);
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    function comparePickerPlayers(a, b) {
+        const ptsB = getPickerSortPoints(b.id);
+        const ptsA = getPickerSortPoints(a.id);
+        if (ptsB !== ptsA) return ptsB - ptsA;
+        if (b.seasonValue !== a.seasonValue) return b.seasonValue - a.seasonValue;
+        if (b.seasonRating !== a.seasonRating) return b.seasonRating - a.seasonRating;
+        return String(a.name || '').localeCompare(String(b.name || ''), 'de');
+    }
+
     function getFilteredPickerPlayers() {
         const requiredPos = getRequiredPositionForCurrentSlot();
         if (!requiredPos) return [];
@@ -1149,7 +1186,8 @@
         /* Smart sort:
            1. Currently selected player first
            2. Available (not blocked) players
-           3. Alphabetical within each group */
+           3. Punkte / Vorsaison-Leistung / Name innerhalb jeder Gruppe
+              (siehe comparePickerPlayers) */
         players.sort((a, b) => {
             const elig_a = getPlayerEligibility(a, slotId);
             const elig_b = getPlayerEligibility(b, slotId);
@@ -1162,7 +1200,7 @@
             if (aOk && !bOk) return -1;
             if (!aOk && bOk) return 1;
 
-            return a.sortKey.localeCompare(b.sortKey, 'de');
+            return comparePickerPlayers(a, b);
         });
 
         return players;
@@ -1942,6 +1980,9 @@
             renderAllSlots();
             renderMobileBuilder();
             renderBuilderTransferredOut();
+            // Die Picker-Liste sortiert nach denselben Punkten – sie muss den
+            // frisch geladenen Stand ebenfalls sehen (siehe comparePickerPlayers).
+            if (currentEditingSlotId !== null) renderPickerPlayers(true);
         } catch (e) {
             console.warn('[TeamBuilder] Spieler-Punkte konnten nicht geladen werden:', e);
         } finally {
@@ -2319,7 +2360,8 @@
             flag:      savedPlayer.flag || '',
             club:      savedPlayer.club || '?',
             clubLogo:  savedPlayer.clubLogo || '',
-            sortKey:   `${savedPlayer.nation || ''} ${savedPlayer.name || ''}`.toLowerCase(),
+            seasonValue:  0,
+            seasonRating: 0,
             searchKey: '',
             _idx:      -1,
             isOrphan:  true

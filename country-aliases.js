@@ -6,9 +6,10 @@
  * damit z. B. „Schweiz“ Treffer für „Switzerland“ liefert oder
  * „Deutschland“ alle Spieler aus „Germany“ findet.
  *
- * Abdeckung: Alle Teilnehmer der WM 2026 sowie weitere europäische
- * Nationen aus früheren Turnieren. Neue Turniere können hier ergänzt
- * werden – die Suche bleibt dadurch automatisch konsistent
+ * Abdeckung: Alle Teilnehmer der WM 2026, weitere europäische Nationen
+ * aus früheren Turnieren sowie alle Nationalitäten, die in den
+ * CL-Klubkadern vorkommen. Neue Turniere können hier ergänzt werden –
+ * die Suche bleibt dadurch automatisch konsistent
  * (siehe getCountrySearchAliases()).
  *
  * Schlüssel: Englischer Name in Kleinbuchstaben.
@@ -78,6 +79,45 @@
         'slovakia':             ['Slowakei', 'SVK'],
         'slovenia':             ['Slowenien', 'SVN'],
         'ukraine':              ['UKR'],
+
+        /* Nationalitäten aus den CL-Klubkadern. Anders als bei einem
+           Nationalturnier ist der Spielerpool dort weltweit gemischt –
+           ohne diese Einträge fände „Nordmazedonien“ keinen Spieler mit
+           der API-Nationalität „North Macedonia“. */
+        'armenia':                  ['Armenien', 'ARM'],
+        'azerbaijan':               ['Aserbaidschan', 'AZE'],
+        'belarus':                  ['Weissrussland', 'Weißrussland', 'BLR'],
+        'burkina faso':             ['BFA', 'BUR'],
+        'cameroon':                 ['Kamerun', 'CMR'],
+        'central african republic': ['Zentralafrikanische Republik', 'Zentralafrika', 'CAF'],
+        'congo':                    ['Kongo', 'Republik Kongo', 'CGO', 'COG'],
+        'cyprus':                   ['Zypern', 'CYP'],
+        'finland':                  ['Finnland', 'FIN'],
+        'gabon':                    ['Gabun', 'GAB'],
+        'gambia':                   ['GAM', 'GMB'],
+        'greece':                   ['Griechenland', 'GRE', 'GRC'],
+        'guinea':                   ['GUI', 'GIN'],
+        'guinea-bissau':            ['Guinea Bissau', 'GNB'],
+        'iceland':                  ['Island', 'ISL'],
+        'israel':                   ['ISR'],
+        'jamaica':                  ['Jamaika', 'JAM'],
+        'kazakhstan':               ['Kasachstan', 'KAZ'],
+        'kosovo':                   ['KOS', 'XKX'],
+        'liberia':                  ['LBR'],
+        'luxembourg':               ['Luxemburg', 'LUX'],
+        'mali':                     ['MLI'],
+        'montenegro':               ['MNE'],
+        'mozambique':               ['Mosambik', 'MOZ'],
+        'nigeria':                  ['NGA', 'NGR'],
+        'north macedonia':          ['Nordmazedonien', 'Mazedonien', 'Macedonia', 'MKD'],
+        'northern ireland':         ['Nordirland', 'NIR'],
+        'peru':                     ['PER'],
+        'republic of ireland':      ['Irland', 'Ireland', 'IRL'],
+        'russia':                   ['Russland', 'RUS'],
+        'thailand':                 ['THA'],
+        'venezuela':                ['VEN'],
+        'wales':                    ['WAL'],
+        'zimbabwe':                 ['Simbabwe', 'ZIM', 'ZWE'],
     };
 
     const COUNTRY_ALIAS_GROUPS = [
@@ -144,6 +184,17 @@
             .toLowerCase();
     }
 
+    /* Die deutschen Aliase zusätzlich über den normalisierten Schlüssel
+       erreichbar machen. Die Kaderdaten schreiben dasselbe Land je nach
+       Quelle unterschiedlich („Côte d’Ivoire“, „Guinea-Bissau“); ohne
+       Normalisierung würde der exakte Kleinbuchstaben-Schlüssel dann
+       danebengreifen. */
+    const COUNTRY_ALIASES_DE_LOOKUP = Object.create(null);
+    Object.keys(COUNTRY_ALIASES_DE).forEach(name => {
+        const key = normalizeCountryKey(name);
+        if (key) COUNTRY_ALIASES_DE_LOOKUP[key] = COUNTRY_ALIASES_DE[name];
+    });
+
     const COUNTRY_ALIAS_GROUP_LOOKUP = Object.create(null);
     const COUNTRY_CANONICAL_KEY_LOOKUP = Object.create(null);
 
@@ -184,11 +235,22 @@
             }
         }
 
-        const exactAliases = COUNTRY_ALIASES_DE[exactKey];
+        const exactAliases = COUNTRY_ALIASES_DE[exactKey] || COUNTRY_ALIASES_DE_LOOKUP[normalizedKey];
         if (Array.isArray(exactAliases)) exactAliases.forEach(add);
 
         const groupAliases = COUNTRY_ALIAS_GROUP_LOOKUP[normalizedKey];
-        if (Array.isArray(groupAliases)) groupAliases.forEach(add);
+        if (Array.isArray(groupAliases)) {
+            groupAliases.forEach(add);
+            /* Auch die deutschen Aliase der ÜBRIGEN Schreibweisen mitnehmen.
+               Sonst hängt das Ergebnis davon ab, welche Variante die
+               Datenquelle liefert: „Ivory Coast“ führt zu „Elfenbeinküste“,
+               „Côte d’Ivoire“ dagegen nur zu den Gruppen-Einträgen. */
+            groupAliases.forEach(groupName => {
+                const key = normalizeCountryKey(groupName);
+                const deAliases = COUNTRY_ALIASES_DE_LOOKUP[key];
+                if (Array.isArray(deAliases)) deAliases.forEach(add);
+            });
+        }
 
         return aliases;
     }
@@ -202,11 +264,24 @@
      * Variante mit zusammengesetztem String – praktisch um die Aliase direkt
      * an einen vorhandenen Such-Index anzuhängen (z. B. searchKey).
      *
-     * @param {string} name
+     * Es dürfen MEHRERE Namensfelder übergeben werden. Das ist für die CL
+     * nötig: der Club-Remap in data.js legt dort den Klub in die primären
+     * Felder (Nationalteam.*) und die Nation in die sekundären (Club.*) –
+     * je nach Turnier steckt der Ländername also im einen oder im anderen
+     * Feld. Für Klubnamen liefert die Tabelle nichts, der zusätzliche
+     * Aufruf bleibt damit folgenlos.
+     *
+     * @param {...string} names
      * @returns {string} – Leerzeichen-getrennte Aliasliste (kann leer sein).
      */
-    function getCountrySearchAliases(name) {
-        return getCountryAliases(name).join(' ');
+    function getCountrySearchAliases(...names) {
+        const aliases = [];
+        names.forEach(name => {
+            getCountryAliases(name).forEach(alias => {
+                if (!aliases.includes(alias)) aliases.push(alias);
+            });
+        });
+        return aliases.join(' ');
     }
 
     root.COUNTRY_ALIASES_DE = COUNTRY_ALIASES_DE;
