@@ -78,7 +78,22 @@ for (const page of PAGES) {
     `${page}: der Kaderdatei-Preload muss jede CL-Saison abdecken (Muster statt fester Liste).`);
 }
 
-/* ── 6) Service Worker kennt die neue Kaderdatei ────────────────────────── */
+/* ── 6) Spielplan faellt auf den Terminkalender zurueck ─────────────────── */
+/* Vor der Auslosung gibt es keinen Firestore-Spielplan. buildScheduleCatalog
+ * muss dann die Platzhalter aus tournament-config.js nutzen, sonst steht in
+ * der Spiele-Ansicht „Kein Spielplan verfuegbar", obwohl die Termine
+ * feststehen. */
+const catalogStart = source.indexOf('function buildScheduleCatalog');
+assert.ok(catalogStart > -1, 'buildScheduleCatalog nicht gefunden.');
+const catalogBody = source.slice(catalogStart, source.indexOf('\n    /* ---------- Schedule helpers', catalogStart));
+assert.match(catalogBody, /APP\.fallbackFixtures/,
+  'buildScheduleCatalog muss auf APP.fallbackFixtures zurueckfallen, sonst bleibt die Spiele-Ansicht leer.');
+assert.ok(
+  catalogBody.indexOf('APP.fallbackFixtures') > catalogBody.indexOf('data?.fixtures'),
+  'Der Firestore-Spielplan muss Vorrang vor den Kalender-Platzhaltern haben.'
+);
+
+/* ── 7) Service Worker kennt die neue Kaderdatei ────────────────────────── */
 const sw = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
 for (const file of ['./data-wm2026.js', './data-cl2526.js', './data-cl2627.js']) {
   assert.ok(sw.includes(`'${file}'`),
