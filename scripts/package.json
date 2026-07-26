@@ -18,7 +18,8 @@
     "test:cl-preview": "node test-cl-preview.js",
     "test:cl-scope": "node test-cl-fixture-scope.js",
     "test:transfers": "node test-transfer-utils.js",
-    "test:kader": "node test-generate-kader.js"
+    "test:kader": "node test-generate-kader.js",
+    "test": "npm run test:points && npm run test:cache && npm run test:nation-status && npm run test:freeze && npm run test:scaffold && npm run test:cl-league && npm run test:cl-preview && npm run test:cl-scope && npm run test:transfers && npm run test:kader"
   },
   "dependencies": {
     "firebase-admin": "^12.6.0"

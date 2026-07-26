@@ -100,25 +100,61 @@ assert.deepEqual(
 
 /* ── 3) Captain-Regel (×2) in den WM-Ansichten ─────────────────────────── */
 /* Die WM verdoppelt die Punkte des Captains. Diese Regel ist in den
- * (eingefrorenen) WM-Views hartkodiert. Für andere Turniere wird der
- * Multiplikator später über die Config gesteuert – die WM-Views selbst
- * dürfen dabei nicht angefasst werden. */
-const CAPTAIN_X2_FILES = ['rangliste.html', 'teams.html', 'spieleranalyse.html'];
-const CAPTAIN_X2_PATTERN = 'isCaptain ? basePts * 2 : basePts';
+ * (eingefrorenen) WM-Views hartkodiert. Andere Turniere schalten den Captain
+ * über `captainEnabled: false` ab (CL) – die WM-Verdopplung selbst darf dabei
+ * nicht angefasst werden.
+ *
+ * Gezählt wird über ALLE View-Dateien zusammen statt pro Datei: die Skripte
+ * sind inzwischen aus den <script>-Blöcken der HTML-Seiten in eigene
+ * .js-Dateien gewandert, und ein reiner Umzug von Code soll den Freeze-Guard
+ * nicht auslösen. Fehlt oder ändert sich die Verdopplung, schlägt er an. */
+const VIEW_FILES = [
+  'index.js',
+  'rangliste.js',
+  'spieleranalyse.js',
+  'teams.js',
+  'team-builder.js',
+  'badge-catalog.js'
+];
 
-for (const file of CAPTAIN_X2_FILES) {
-  const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
+const VIEW_SOURCES = VIEW_FILES.map((file) => ({
+  file,
+  src: fs.readFileSync(path.join(ROOT, file), 'utf8')
+}));
+
+function countOccurrences(haystack, needle) {
+  let count = 0;
+  let idx = haystack.indexOf(needle);
+  while (idx !== -1) {
+    count++;
+    idx = haystack.indexOf(needle, idx + needle.length);
+  }
+  return count;
+}
+
+const CAPTAIN_X2_PATTERNS = [
+  { pattern: 'isCaptain ? basePts * 2 : basePts',           minHits: 2, label: 'Team-Anreicherung' },
+  { pattern: 'isCaptain ? baseMatchPts * 2 : baseMatchPts', minHits: 1, label: 'Ranglisten-Verlauf' },
+  { pattern: 'isCaptain ? base * 2 : base',                 minHits: 7, label: 'Team-Summen' },
+  { pattern: 'captainMultiplier: CAPTAIN_ENABLED ? 2 : 1',  minHits: 3, label: 'Transfer-Wertung' }
+];
+
+for (const { pattern, minHits, label } of CAPTAIN_X2_PATTERNS) {
+  const hitsByFile = VIEW_SOURCES
+    .map(({ file, src }) => ({ file, hits: countOccurrences(src, pattern) }))
+    .filter((entry) => entry.hits > 0);
+  const total = hitsByFile.reduce((sum, entry) => sum + entry.hits, 0);
   assert.ok(
-    src.includes(CAPTAIN_X2_PATTERN),
-    `Captain-Multiplikator (×2) fehlt/verändert in ${file} – WM-Freeze verletzt.`
+    total >= minHits,
+    `Captain-Verdopplung (${label}, "${pattern}") nur ${total}× statt mindestens ` +
+    `${minHits}× gefunden – WM-Freeze verletzt. Aktuell in: ` +
+    `${hitsByFile.map((e) => `${e.file}×${e.hits}`).join(', ') || '(keiner Datei)'}.`
   );
 }
 
-// rangliste.html enthält zusätzlich die Summenschleifen-Variante.
-const ranglisteSrc = fs.readFileSync(path.join(ROOT, 'rangliste.html'), 'utf8');
-assert.ok(
-  ranglisteSrc.includes('isCaptain ? baseMatchPts * 2 : baseMatchPts'),
-  'Captain-Multiplikator (×2, Summenschleife) fehlt/verändert in rangliste.html – WM-Freeze verletzt.'
-);
+// Die WM selbst muss den Captain behalten – ein Turnier, das ihn abschaltet
+// (CL), darf das WM-Verhalten nicht mitziehen.
+assert.equal(APP.captainEnabled, true, 'WM 2026 muss das Captain-Feature behalten.');
+assert.equal(APP.captainMultiplier, 2, 'WM-2026-Captain muss ×2 zählen.');
 
 console.log('wm2026 freeze test passed');
