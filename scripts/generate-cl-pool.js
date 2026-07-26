@@ -16,6 +16,12 @@
  *
  *      qualifizierte Klubs  →  aktueller Kader je Klub  →  Spielerprofile
  *
+ *  Zusaetzlich wird pro Spieler die LEISTUNG DER VORSAISON mitgeschrieben
+ *  (Minuten, Spiele, Rating, gewichteter Wert). api-football liefert keine
+ *  Marktwerte; der Wert dient den Ansichten als Ersatz-Sortierschluessel,
+ *  damit vor Turnierstart die Stammspieler oben stehen statt einer
+ *  alphabetischen Liste. Siehe buildPerformance().
+ *
  *  Quelle für „qualifiziert": die Abschlusstabellen der nationalen Ligen der
  *  VORSAISON. api-football hängt an jede Tabellenzeile eine `description`
  *  (z. B. „Promotion - Champions League (League Phase: )"). Daraus lässt sich
@@ -49,7 +55,8 @@
  *                     Einträge ebenfalls enthält.
  *
  *  Ausgabe:
- *    ../data-<key>.js            Spielerpool im bestehenden Schema.
+ *    ../data-<key>.js            Spielerpool im bestehenden Schema, ergaenzt
+ *                                um die Vorsaison.*-Felder.
  *    ./cl-pool-<key>-clubs.json  Nachvollziehbare Herleitung je Klub.
  *
  *  Manuelle Korrektur (optional, wird eingelesen wenn vorhanden):
@@ -207,10 +214,16 @@ async function fetchUefaLeagues(sourceSeason, apiKey) {
   const json = await fetchJson(url, apiKey);
   const resp = Array.isArray(json.response) ? json.response : [];
   const leagues = [];
+  // Alle Ligen-IDs (weltweit, type=League) merken. Damit lässt sich beim
+  // Leistungswert weiter unten „Liga" von „Pokal/sonstiges" unterscheiden,
+  // ohne dafür einen zweiten Call zu machen.
+  const leagueTypeIds = new Set();
   for (const entry of resp) {
     const league = entry && entry.league;
     const country = entry && entry.country;
-    if (!league || league.id == null || !country) continue;
+    if (!league || league.id == null) continue;
+    leagueTypeIds.add(Number(league.id));
+    if (!country) continue;
     if (!UEFA_SET.has(normalizeCountryName(country.name))) continue;
     // Nur Ligen, für die der Anbieter Tabellen führt – sonst ist der
     // /standings-Call garantiert leer.
@@ -220,7 +233,80 @@ async function fetchUefaLeagues(sourceSeason, apiKey) {
     leagues.push({ id: league.id, name: league.name, country: country.name });
   }
   leagues.sort((a, b) => a.id - b.id);
-  return leagues;
+  return { leagues, leagueTypeIds };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Leistungswert der Vorsaison
+ *
+ *  api-football liefert KEINE Marktwerte – kein Endpunkt hat ein solches
+ *  Feld. Als Ersatz für „die bekanntesten Spieler zuerst" dient die
+ *  tatsächliche Einsatzleistung der Vorsaison: wer viel und auf hohem
+ *  Niveau gespielt hat, steht oben.
+ *
+ *  Wert = Σ (Einsatzminuten × Wettbewerbsgewicht)
+ *
+ *  Bewusst NUR gewichtete Minuten, ohne das Rating einzurechnen: Minuten
+ *  sind die robusteste Grösse (das Rating fehlt in schwächer abgedeckten
+ *  Ligen häufig), und die Formel bleibt erklärbar. Das Rating wird
+ *  trotzdem mitgeschrieben – die Ansichten nutzen es als Gleichstand-
+ *  Entscheid und es macht den Wert nachprüfbar.
+ *
+ *  Grenzen, bewusst in Kauf genommen: ein letzte Saison verletzter Star
+ *  rutscht nach unten, ein Dauerspieler aus einer schwächeren Liga nach
+ *  oben. Für eine Vorschau vor Turnierstart ist das der ehrlichste
+ *  automatische Kompromiss.
+ * ───────────────────────────────────────────────────────────────────────────── */
+const COMPETITION_WEIGHTS = {
+  2: 1.5,    // UEFA Champions League – höchstes Niveau
+  3: 1.1,    // UEFA Europa League
+  848: 0.9,  // UEFA Conference League
+  39: 1.0,   // Premier League
+  140: 1.0,  // La Liga
+  135: 1.0,  // Serie A
+  78: 1.0,   // Bundesliga
+  61: 1.0    // Ligue 1
+};
+const OTHER_LEAGUE_WEIGHT = 0.7;  // sonstige erste Ligen
+const CUP_WEIGHT = 0.5;           // Pokale, Supercups, alles ohne type=League
+
+function competitionWeight(leagueId, leagueTypeIds) {
+  const id = Number(leagueId);
+  if (COMPETITION_WEIGHTS[id] !== undefined) return COMPETITION_WEIGHTS[id];
+  if (leagueTypeIds && leagueTypeIds.has(id)) return OTHER_LEAGUE_WEIGHT;
+  return CUP_WEIGHT;
+}
+
+// Rein & nebenwirkungsfrei → unit-testbar.
+function buildPerformance(statistics, leagueTypeIds) {
+  const list = Array.isArray(statistics) ? statistics : [];
+  let minutes = 0;
+  let games = 0;
+  let weighted = 0;
+  let ratingSum = 0;
+  let ratingMinutes = 0;
+
+  for (const stat of list) {
+    if (!stat || !stat.games) continue;
+    const min = Number(stat.games.minutes) || 0;
+    const apps = Number(stat.games.appearences) || 0;
+    if (min <= 0 && apps <= 0) continue;
+    minutes += min;
+    games += apps;
+    weighted += min * competitionWeight(stat.league && stat.league.id, leagueTypeIds);
+    const rating = Number.parseFloat(stat.games.rating);
+    if (Number.isFinite(rating) && min > 0) {
+      ratingSum += rating * min;
+      ratingMinutes += min;
+    }
+  }
+
+  return {
+    minutes,
+    games,
+    rating: ratingMinutes > 0 ? Math.round((ratingSum / ratingMinutes) * 100) / 100 : 0,
+    value: Math.round(weighted)
+  };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -387,39 +473,50 @@ async function fetchSquad(teamId, apiKey) {
   };
 }
 
-// `/players/profiles` liefert den vollständigen Spieler (firstname, lastname,
-// name, birth, nationality, height, weight, photo) – exakt die Felder, aus
-// denen playerDisplayName/buildRecord den Datensatz bauen. Fällt der Endpunkt
-// aus (Plan/Abdeckung), wird einmalig auf `/players?id=…&season=…`
-// umgeschaltet; beide liefern dasselbe Spieler-Objekt, die Namenslogik bleibt
-// also identisch.
+// Spieler-Stammdaten + Vorsaison-Statistik.
+//
+// `/players?id=…&season=…` liefert BEIDES in einem Call: das vollständige
+// Spieler-Objekt (firstname, lastname, name, birth, nationality, height,
+// weight, photo) und die `statistics` der Saison. Deshalb ist das die
+// Primärquelle – ohne zusätzliche Calls für den Leistungswert.
+//
+// Wer in der Vorsaison keinen einzigen Einsatz hatte (Neuzugänge aus dem
+// Nachwuchs, lange Verletzte), fehlt dort. Für die fällt `/players/profiles`
+// ein, das nur die Stammdaten kennt – dann bleibt die Leistung eben 0.
+// Beide Endpunkte liefern dasselbe Spieler-Objekt, die Namenslogik ist
+// also in jedem Fall identisch.
 let profilesEndpointOk = true;
 
-async function fetchPlayerProfile(playerId, sourceSeason, apiKey) {
-  if (profilesEndpointOk) {
-    try {
-      const json = await fetchJson(`https://${API_HOST}/players/profiles?player=${playerId}`, apiKey);
-      const resp = Array.isArray(json.response) ? json.response : [];
-      const player = resp[0] && resp[0].player;
-      if (player && player.id != null) return player;
-      // Leere Antwort ist kein Endpunkt-Ausfall – nur dieser Spieler fehlt.
-    } catch (err) {
-      logWarn(`/players/profiles nicht nutzbar (${err.message}) – wechsle auf /players?id=…`);
-      profilesEndpointOk = false;
-    }
+async function fetchPlayerProfileOnly(playerId, apiKey) {
+  if (!profilesEndpointOk) return null;
+  try {
+    const json = await fetchJson(`https://${API_HOST}/players/profiles?player=${playerId}`, apiKey);
+    const resp = Array.isArray(json.response) ? json.response : [];
+    const player = resp[0] && resp[0].player;
+    if (player && player.id != null) return player;
+  } catch (err) {
+    logWarn(`/players/profiles nicht nutzbar (${err.message}) – nur noch /players?id=…`);
+    profilesEndpointOk = false;
   }
+  return null;
+}
+
+async function fetchPlayerSeason(playerId, sourceSeason, apiKey) {
   try {
     const json = await fetchJson(
       `https://${API_HOST}/players?id=${playerId}&season=${sourceSeason}`,
       apiKey
     );
     const resp = Array.isArray(json.response) ? json.response : [];
-    const player = resp[0] && resp[0].player;
-    if (player && player.id != null) return player;
+    const entry = resp[0];
+    if (entry && entry.player && entry.player.id != null) {
+      return { player: entry.player, statistics: entry.statistics || [] };
+    }
   } catch (err) {
-    logWarn(`Profil für Spieler ${playerId} nicht ladbar: ${err.message}`);
+    logWarn(`Saisondaten für Spieler ${playerId} nicht ladbar: ${err.message}`);
   }
-  return null;
+  const player = await fetchPlayerProfileOnly(playerId, apiKey);
+  return player ? { player, statistics: [] } : null;
 }
 
 // Aus Kader-Eintrag + Klub den „statistics"-Ausschnitt bauen, den
@@ -475,8 +572,9 @@ async function main() {
   if (probe) logInfo('PROBE-Modus: nur Klub-Ermittlung, keine Kader-Calls, keine Dateien.');
 
   /* ── Kandidaten-Ligen ───────────────────────────────────────────────── */
-  const leagues = await fetchUefaLeagues(sourceSeason, apiKey);
+  const { leagues, leagueTypeIds } = await fetchUefaLeagues(sourceSeason, apiKey);
   logInfo(`Nationale Ligen in UEFA-Verbänden (Saison ${sourceSeason}): ${leagues.length}`);
+  logInfo(`Ligen-IDs gesamt (fuer die Wettbewerbsgewichtung): ${leagueTypeIds.size}`);
 
   /* ── Tabellen scannen ───────────────────────────────────────────────── */
   const { direct, qualifying, womens } = await fetchClubsFromStandings(leagues, sourceSeason, apiKey);
@@ -572,15 +670,22 @@ async function main() {
       if (!entry || entry.id == null) continue;
       if (byId.has(entry.id)) continue;      // Spieler bereits über einen anderen Klub erfasst
       await delay(squadDelay);
-      const profile = await fetchPlayerProfile(entry.id, sourceSeason, apiKey);
+      const season = await fetchPlayerSeason(entry.id, sourceSeason, apiKey);
       let record;
-      if (profile) {
-        record = buildRecord(profile, statFromSquadEntry(team, entry), flagMap, unmatchedNations);
+      let performance = { minutes: 0, games: 0, rating: 0, value: 0 };
+      if (season) {
+        record = buildRecord(season.player, statFromSquadEntry(team, entry), flagMap, unmatchedNations);
         if (!record['Spielerfoto'] && entry.photo) record['Spielerfoto'] = entry.photo;
+        performance = buildPerformance(season.statistics, leagueTypeIds);
       } else {
         record = recordFromSquadEntryOnly(team, entry, flagMap, unmatchedNations);
         degraded.push(`${record['Spielername']} (${entry.id}, ${team.name})`);
       }
+      // Vorsaison-Leistung als Sortierschluessel (siehe buildPerformance).
+      record['Vorsaison.Minuten'] = performance.minutes;
+      record['Vorsaison.Spiele'] = performance.games;
+      record['Vorsaison.Rating'] = performance.rating;
+      record['Vorsaison.Wert'] = performance.value;
       // Nachwuchs-/Reservespieler, zu denen api-football keinerlei Stammdaten
       // führt: abgekürzter Name, keine Nationalität, kein Geburtsdatum.
       // data-cl2526.js enthält solche Einträge ebenfalls (70 von 1131), daher
@@ -611,6 +716,17 @@ async function main() {
 
   logInfo(`Fertig: ${players.length} Spieler aus ${clubNames.length} Klubs.`);
   logInfo(`Nationenflaggen gesetzt: ${withFlag}/${players.length} Spieler.`);
+
+  // Leistungswert stichprobenartig sichtbar machen: stehen oben wirklich die
+  // bekannten Namen, hat die Gewichtung funktioniert.
+  const withMinutes = players.filter((p) => p['Vorsaison.Minuten'] > 0).length;
+  logInfo(`Vorsaison-Einsaetze erfasst: ${withMinutes}/${players.length} Spieler.`);
+  const top = players.slice().sort((a, b) => b['Vorsaison.Wert'] - a['Vorsaison.Wert']).slice(0, 20);
+  logInfo('Top 20 nach Vorsaison-Leistung (Kontrolle der Gewichtung):');
+  top.forEach((p, i) => logInfo(
+    `  ${String(i + 1).padStart(2)}. ${p.Spielername} (${p['Club.name']}) – ` +
+    `Wert ${p['Vorsaison.Wert']}, ${p['Vorsaison.Minuten']} Min in ${p['Vorsaison.Spiele']} Spielen, Rating ${p['Vorsaison.Rating']}`
+  ));
   if (degraded.length) {
     logWarn(`Ohne Spielerprofil (nur Kaderdaten): ${degraded.length} – ${degraded.slice(0, 20).join(', ')}${degraded.length > 20 ? ' …' : ''}`);
   }
@@ -646,6 +762,11 @@ async function main() {
     ` *  Qualifikationsrunden fehlen noch und kommen mit einem erneuten Lauf dazu.\n` +
     ` *\n` +
     ` *  Spieler: ${players.length} aus ${clubNames.length} Klubs.\n` +
+    ` *\n` +
+    ` *  Vorsaison.*: Leistung der Saison ${sourceSeason} (Minuten, Spiele, Rating und\n` +
+    ` *  ein nach Wettbewerb gewichteter Wert). api-football liefert keine Marktwerte –\n` +
+    ` *  der Wert dient als Sortierschluessel, damit vor Turnierstart die Stammspieler\n` +
+    ` *  oben stehen statt einer alphabetischen Liste.\n` +
     ` *  Klubs: ${clubNames.join(', ')}.\n` +
     ` *  Club-zentriert: Club.* = Vereinsdaten (primär), Nationalteam.* = Nation (sekundär).\n` +
     ` * ============================================================================= */\n`;
@@ -676,6 +797,9 @@ if (require.main === module) {
 module.exports = {
   classifyClDescription,
   isWomensEntry,
+  buildPerformance,
+  competitionWeight,
+  COMPETITION_WEIGHTS,
   pickFinalWinner,
   applyManualOverrides,
   statFromSquadEntry,
