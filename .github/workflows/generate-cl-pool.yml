@@ -95,7 +95,7 @@ jobs:
           if [ "$EVENT" = "workflow_dispatch" ]; then
             KEY="${IN_KEY:-cl2627}"; SEASON="${IN_SEASON:-}"
             PROBE="${IN_PROBE:-0}"; MAX="${IN_MAX:-0}"; COMMIT="${IN_COMMIT:-0}"
-            SKIP="${IN_SKIP:-0}"
+            SKIP="${IN_SKIP:-0}"; DIAG=""
           else
             # Nur einfache KEY=VALUE-Zeilen aus der Steuerdatei lesen –
             # bewusst kein `source`, damit nichts ausgeführt wird.
@@ -108,12 +108,14 @@ jobs:
             MAX="$(read_env MAX_TEAMS)"; MAX="${MAX:-0}"
             COMMIT="$(read_env COMMIT)"; COMMIT="${COMMIT:-0}"
             SKIP="$(read_env SKIP_INCOMPLETE)"; SKIP="${SKIP:-0}"
+            DIAG="$(read_env DIAG_PLAYER_IDS)"
           fi
           echo "key=$KEY" >> "$GITHUB_OUTPUT"
           echo "season=$SEASON" >> "$GITHUB_OUTPUT"
           echo "probe=$PROBE" >> "$GITHUB_OUTPUT"
           echo "max=$MAX" >> "$GITHUB_OUTPUT"
           echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+          echo "diag=$DIAG" >> "$GITHUB_OUTPUT"
           echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
           echo "Turnier=$KEY Saison=${SEASON:-auto} Probe=$PROBE MaxTeams=$MAX SkipIncomplete=$SKIP Commit=$COMMIT"
 
@@ -137,6 +139,7 @@ jobs:
           PROBE: ${{ steps.cfg.outputs.probe }}
           MAX_TEAMS: ${{ steps.cfg.outputs.max }}
           SKIP_INCOMPLETE: ${{ steps.cfg.outputs.skip }}
+          DIAG_PLAYER_IDS: ${{ steps.cfg.outputs.diag }}
         run: node generate-cl-pool.js
 
       - name: Commit & push generated data

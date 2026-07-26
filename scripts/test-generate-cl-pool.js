@@ -189,6 +189,88 @@ const {
   console.log('ok - Klubdaten stammen aus dem qualifizierten Verein, nicht aus der Statistik');
 })();
 
+/* ── Leistungswert der Vorsaison ────────────────────────────────────────── */
+(function testPerformance() {
+  const { buildPerformance, competitionWeight, COMPETITION_WEIGHTS } = require('./generate-cl-pool.js');
+  // Ligen-IDs, wie sie fetchUefaLeagues sammelt (type=League). 88 =
+  // Eredivisie (erste Liga), 45 = FA Cup (Pokal, also NICHT enthalten).
+  const leagueIds = new Set([39, 140, 135, 78, 61, 88, 106]);
+
+  function stat(leagueId, minutes, appearences, rating) {
+    return { league: { id: leagueId }, games: { minutes, appearences, rating } };
+  }
+
+  // Gewichte: CL hoeher als Topliga, Topliga hoeher als sonstige Liga,
+  // sonstige Liga hoeher als Pokal.
+  assert.ok(competitionWeight(2, leagueIds) > competitionWeight(39, leagueIds));
+  assert.ok(competitionWeight(39, leagueIds) > competitionWeight(106, leagueIds));
+  assert.ok(competitionWeight(106, leagueIds) > competitionWeight(45, leagueIds));
+  assert.equal(competitionWeight(2, leagueIds), COMPETITION_WEIGHTS[2]);
+
+  // Ein Topliga-Stammspieler mit CL-Einsaetzen.
+  const star = buildPerformance([stat(140, 2500, 30, '7.5'), stat(2, 800, 10, '7.8')], leagueIds);
+  assert.equal(star.minutes, 3300);
+  assert.equal(star.games, 40);
+  assert.equal(star.value, Math.round(2500 * 1.0 + 800 * 1.5));
+  // Rating minutengewichtet, nicht einfacher Mittelwert.
+  assert.ok(star.rating > 7.5 && star.rating < 7.6, `Rating war ${star.rating}`);
+
+  // Gleiche Minutenzahl in einer schwaecheren Liga ergibt einen kleineren Wert.
+  const grinder = buildPerformance([stat(106, 3300, 40, '7.0')], leagueIds);
+  assert.ok(grinder.value < star.value,
+    `Dauerspieler aus schwaecherer Liga (${grinder.value}) darf den Topliga-Star (${star.value}) nicht ueberholen.`);
+
+  // Ohne Einsaetze bleibt alles 0 – und faellt damit ans Listenende.
+  const bench = buildPerformance([stat(140, 0, 0, null)], leagueIds);
+  assert.deepEqual(
+    [bench.minutes, bench.games, bench.rating, bench.value],
+    [0, 0, 0, 0]
+  );
+  assert.deepEqual(
+    [buildPerformance(null, leagueIds).value, buildPerformance([], leagueIds).value],
+    [0, 0]
+  );
+
+  /* Sammel-Eimer von api-football duerfen NICHT zaehlen. Echte Zeilen aus
+   * dem Diagnoselauf (Saison 2025): der Anbieter dupliziert Wettbewerbs-
+   * zahlen in "Friendlies Clubs" (667) und in eine "Super Cup"-Zeile ohne
+   * league.id. Ungefiltert summierte das auf bis zu 8207 Minuten – rund
+   * zwei Saisons – und Vanaken stand vor van Dijk. */
+  function raw(league, minutes, appearences) {
+    return { league, games: { minutes, appearences, rating: '7.0' } };
+  }
+  const ndicka = buildPerformance([
+    raw({ id: 135, name: 'Serie A' }, 2683, 31),
+    raw({ id: 667, name: 'Friendlies Clubs' }, 2693, 31),   // Duplikat der Serie A
+    raw({ id: 3, name: 'UEFA Europa League' }, 752, 10)
+  ], leagueIds);
+  assert.equal(ndicka.minutes, 2683 + 752,
+    'Freundschaftsspiel-Eimer (667) darf nicht in die Minuten einfliessen.');
+
+  const vanaken = buildPerformance([
+    raw({ id: null, name: 'Super Cup' }, 3574, 40),          // ein Supercup ist EIN Spiel
+    raw({ id: 2, name: 'UEFA Champions League' }, 1260, 14),
+    raw({ id: 144, name: 'Jupiler Pro League' }, 3373, 39)
+  ], leagueIds);
+  assert.equal(vanaken.minutes, 1260 + 3373,
+    'Zeilen ohne league.id sind nicht zuordenbar und duerfen nicht zaehlen.');
+  assert.ok(vanaken.minutes < 5400,
+    'Nach dem Filter muss die Minutensumme in einer Saison plausibel sein.');
+
+  // Nationen-Freundschaftsspiele (10) ebenso wenig.
+  assert.equal(
+    buildPerformance([raw({ id: 10, name: 'Friendlies' }, 720, 8)], leagueIds).minutes,
+    0
+  );
+
+  // Fehlendes Rating darf den Durchschnitt nicht verfaelschen.
+  const partial = buildPerformance([stat(140, 1000, 12, '7.0'), stat(45, 500, 6, null)], leagueIds);
+  assert.equal(partial.rating, 7, 'Nur bewertete Minuten zaehlen in den Rating-Schnitt.');
+  assert.equal(partial.minutes, 1500);
+
+  console.log('ok - Vorsaison-Leistung gewichtet Wettbewerbe und mittelt das Rating nach Minuten');
+})();
+
 /* ── UEFA-Verbandsliste ─────────────────────────────────────────────────── */
 (function testAssociations() {
   // Die grossen Ligen dürfen nie fehlen – sonst wäre der Pool halb leer.
