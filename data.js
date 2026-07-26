@@ -85,6 +85,49 @@
   //    in den per-Turnier-Daten verbietet zwar Reassignment der Variable,
   //    erlaubt aber Veränderungen an Array-Elementen.
   var serializedKey = JSON.stringify(activeKey);
+
+  // 2c) Spieler ohne Stammdaten aussortieren (opt-in pro Turnier via
+  //     `hidePlayersWithoutProfile`). Fuer einen Teil der gemeldeten
+  //     Kaderspieler fuehrt api-football gar kein Profil: kein
+  //     Geburtsdatum, keine Nationalitaet, kein echtes Foto (nur die
+  //     Silhouette des Anbieters) und ein abgekuerzter Name ("A. Le
+  //     Borgne"). Das sind praktisch ausschliesslich Akademiespieler.
+  //     Sie standen wegen des abgekuerzten Vornamens alphabetisch ganz
+  //     oben und haben die Liste angefuehrt.
+  //
+  //     Bewusst hier und nicht im Generator: die per-Turnier-Datendatei
+  //     bleibt ein vollstaendiger, ehrlicher API-Snapshot; das Ausblenden
+  //     ist eine Anzeige-Entscheidung und mit einem Flag umkehrbar.
+  //     Laeuft VOR den Overrides und dem Club-Remap, damit alle
+  //     nachgelagerten Schritte schon den finalen Pool sehen.
+  document.write(
+    '<script>(function(activeKey){' +
+      'try {' +
+        'var cfg = window.APP_CONFIG;' +
+        'var t = (cfg && cfg.tournaments) ? cfg.tournaments[activeKey] : null;' +
+        'if (!t || t.hidePlayersWithoutProfile !== true) { window.__PLAYER_POOL_FILTER__ = { tournament: activeKey, active: false, removed: 0 }; return; }' +
+        'var data = (typeof playersData !== "undefined" && Array.isArray(playersData)) ? playersData : null;' +
+        'if (!data) { window.__PLAYER_POOL_FILTER__ = { tournament: activeKey, active: true, removed: 0, reason: "no playersData" }; return; }' +
+        'var before = data.length;' +
+        'var removedNames = [];' +
+        'for (var i = data.length - 1; i >= 0; i--) {' +
+          'var p = data[i];' +
+          'if (!p) continue;' +
+          'var hasBirth = String(p["Geburtsdatum"] == null ? "" : p["Geburtsdatum"]).trim() !== "";' +
+          'var hasNation = String(p["Nationalteam.name"] == null ? "" : p["Nationalteam.name"]).trim() !== "";' +
+          // Nur wenn BEIDES fehlt: ein Spieler mit Geburtsdatum ODER
+          // Nationalitaet ist bei api-football gepflegt und bleibt drin.
+          'if (!hasBirth && !hasNation) { removedNames.push(p.Spielername); data.splice(i, 1); }' +
+        '}' +
+        'window.__PLAYER_POOL_FILTER__ = { tournament: activeKey, active: true, before: before, after: data.length, removed: removedNames.length };' +
+        'try { if (removedNames.length) console.log("[data.js] Spieler ohne Stammdaten ausgeblendet (" + activeKey + "): " + removedNames.length + " von " + before + " – " + removedNames.reverse().join(", ")); } catch(_) {}' +
+      '} catch (err) {' +
+        'try { console.warn("[data.js] Pool-Filter fehlgeschlagen:", err); } catch(_) {}' +
+        'window.__PLAYER_POOL_FILTER__ = { tournament: activeKey, active: true, removed: 0, error: String(err && err.message || err) };' +
+      '}' +
+    '})(' + serializedKey + ');<\/script>'
+  );
+
   document.write(
     '<script>(function(activeKey){' +
       'try {' +
