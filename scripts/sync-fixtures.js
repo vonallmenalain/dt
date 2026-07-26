@@ -10,11 +10,17 @@
  *  Ablauf pro Lauf:
  *    1. Lädt alle Fixtures des aktiven Turniers von api-football
  *       (Zeitzone Europe/Zurich).
- *    2. Sammelt eindeutige Venue-IDs und holt jede Venue genau einmal.
- *    3. Baut pro Spiel ein Firestore-Dokument im etablierten Schema.
- *    4. Schreibt die Dokumente in Batches à 400 nach `fixturesCollection`.
- *    5. Schreibt `public_cache/wm2026_fixtures` als öffentliches Bundle.
- *    6. Erhöht `fixturesVersion` und setzt `fixturesUpdatedAt` sowie
+ *    2. Verwirft alle Spiele VOR Turnierstart. Bei Ligaphasen-Turnieren (CL)
+ *       liefert die API auch die Qualifikationsrunden mit – die gehören nicht
+ *       zum gewerteten Turnier und werden weder geschrieben noch gepunktet
+ *       (CL 2025/26: 281 API-Spiele → 189 ab Ligaphase).
+ *    3. Sammelt eindeutige Venue-IDs und holt jede Venue genau einmal.
+ *    4. Baut pro Spiel ein Firestore-Dokument im etablierten Schema.
+ *    5. Schreibt die Dokumente in Batches à 400 nach `fixturesCollection`.
+ *    6. Löscht Dokumente vor Turnierstart, die frühere (ungefilterte) Läufe
+ *       angelegt haben (abschaltbar via SKIP_PURGE).
+ *    7. Schreibt `public_cache/<turnier>_fixtures` als öffentliches Bundle.
+ *    8. Erhöht `fixturesVersion` und setzt `fixturesUpdatedAt` sowie
  *       `fixturesCacheGeneratedAt` im Meta-Dokument – das Signal, mit dem
  *       der Client den Cache invalidiert.
  *
@@ -30,6 +36,8 @@
  *                              auslassen (spart API-Quota).
  *    SKIP_EVENTS               Falls `1`/`true`: Tor-Event-Calls
  *                              auslassen (spart API-Quota).
+ *    SKIP_PURGE                Falls `1`/`true`: bereits gespeicherte Spiele
+ *                              vor Turnierstart NICHT löschen.
  *
  *  Exit-Codes:
  *    0  – Lauf abgeschlossen (Spielplan synchronisiert oder Dry-Run ok).
@@ -217,14 +225,93 @@ function countKnownFixtureTeamSlots(fixtures) {
   }, { names: 0, logos: 0 });
 }
 
-async function getExistingFixtureCount(db, tournament) {
-  const collectionName = tournament && tournament.firestore && tournament.firestore.fixturesCollection;
-  if (!collectionName) return 0;
-  const snap = await db.collection(collectionName).select().get();
-  return snap.size || 0;
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Turnier-Scope: nur Spiele AB Turnierstart
+ *
+ *  Ligaphasen-Turniere (CL) liefern über `fixtures?league=2&season=…` auch die
+ *  Qualifikationsrunden VOR der Ligaphase mit (2025/26: 92 Spiele in "1st/2nd/
+ *  3rd Qualifying Round" und "Play-offs"). Die gehören nicht zum Turnier, das
+ *  die App wertet – sie sollen weder Punkte erzeugen noch im Spielplan stehen
+ *  und deshalb gar nicht erst in Firestore landen. Massgeblich ist der
+ *  Runden-Text; die Klassifikation liegt zentral in tournament-config.js.
+ *  Turniere mit Gruppenphase (WM) sind nicht betroffen → alles bleibt drin.
+ * ───────────────────────────────────────────────────────────────────────────── */
+function isFixtureInTournamentScope(tournament, fixture) {
+  return !APP_CONFIG.isQualificationFixtureFor(tournament, fixture);
 }
 
-async function assertFixtureSyncIsSafe(db, tournament, fixtures) {
+function splitFixturesByTournamentScope(tournament, fixtures) {
+  const inScope = [];
+  const outOfScope = [];
+  (fixtures || []).forEach(fixture => {
+    if (isFixtureInTournamentScope(tournament, fixture)) inScope.push(fixture);
+    else outOfScope.push(fixture);
+  });
+  return { inScope, outOfScope };
+}
+
+function summarizeRounds(fixtures) {
+  const counts = new Map();
+  (fixtures || []).forEach(fixture => {
+    const round = cleanText(fixture && fixture.league && fixture.league.round) || '(ohne Runde)';
+    counts.set(round, (counts.get(round) || 0) + 1);
+  });
+  return Array.from(counts.entries())
+    .sort((a, b) => a[0].localeCompare(b[0], 'de'))
+    .map(([round, count]) => `${round}: ${count}`)
+    .join(', ');
+}
+
+/* Bestandsaufnahme der bereits gespeicherten Fixture-Dokumente. Liefert die
+ * Doc-IDs getrennt nach „gehört zum Turnier" und „gehört nicht dazu", damit
+ * der Rückschritt-Guard nur In-Scope-Dokumente vergleicht und der Purge
+ * gezielt die Altlasten löschen kann. */
+async function readExistingFixtureScope(db, tournament) {
+  const collectionName = tournament && tournament.firestore && tournament.firestore.fixturesCollection;
+  const result = { inScopeIds: [], outOfScopeIds: [] };
+  if (!collectionName) return result;
+
+  const snap = await db.collection(collectionName).select('league').get();
+  snap.forEach(doc => {
+    if (isFixtureInTournamentScope(tournament, doc.data() || {})) result.inScopeIds.push(doc.id);
+    else result.outOfScopeIds.push(doc.id);
+  });
+  return result;
+}
+
+async function deleteFixtureDocuments(db, tournament, docIds, opts) {
+  const collection = tournament.firestore.fixturesCollection;
+  if (!docIds.length) return 0;
+
+  if (opts.dryRun) {
+    logInfo(`[DRY-RUN] Würde ${docIds.length} Dokumente aus "${collection}" löschen.`);
+    return docIds.length;
+  }
+
+  let batch = db.batch();
+  let batchCount = 0;
+  let totalDeleted = 0;
+
+  for (const docId of docIds) {
+    batch.delete(db.collection(collection).doc(docId));
+    batchCount++;
+    if (batchCount === 400) {
+      await batch.commit();
+      totalDeleted += batchCount;
+      batch = db.batch();
+      batchCount = 0;
+    }
+  }
+
+  if (batchCount > 0) {
+    await batch.commit();
+    totalDeleted += batchCount;
+  }
+
+  return totalDeleted;
+}
+
+async function assertFixtureSyncIsSafe(db, tournament, fixtures, existingInScopeCount) {
   const fixtureCount = getFixtureCountConfig(tournament);
   const minPublished = fixtureCount.minPublished;
   const incomingCount = Array.isArray(fixtures) ? fixtures.length : 0;
@@ -236,10 +323,13 @@ async function assertFixtureSyncIsSafe(db, tournament, fixtures) {
     );
   }
 
-  const existingCount = await getExistingFixtureCount(db, tournament);
+  // Vergleich bewusst nur gegen die IN-SCOPE-Dokumente: Qualifikationsspiele
+  // aus alten Laeufen sollen geloescht werden duerfen, ohne dass der
+  // Rueckschritt-Guard anschlaegt.
+  const existingCount = Number(existingInScopeCount) || 0;
   if (existingCount > 0 && incomingCount < existingCount) {
     throw new Error(
-      `Fixture-Sync abgebrochen: API lieferte ${incomingCount} Spiele, ` +
+      `Fixture-Sync abgebrochen: API lieferte ${incomingCount} Spiele im Turnier-Scope, ` +
       `Firestore enthaelt bereits ${existingCount}. Ein Rueckschritt wuerde den Spielplan leeren.`
     );
   }
@@ -509,9 +599,23 @@ async function runSync(db, tournament, opts) {
     throw new Error('API hat keine gültigen Fixture-Daten geliefert.');
   }
 
-  const allFixtures = fixData.response;
-  logInfo(`${allFixtures.length} Spiele von der API erhalten.`);
-  await assertFixtureSyncIsSafe(db, tournament, allFixtures);
+  const apiFixtures = fixData.response;
+  logInfo(`${apiFixtures.length} Spiele von der API erhalten.`);
+
+  // Nur Spiele ab Turnierstart uebernehmen (CL: ab Ligaphase). Alles davor
+  // wird verworfen und – falls aus frueheren Laeufen vorhanden – unten aus
+  // Firestore geloescht.
+  const { inScope: allFixtures, outOfScope } = splitFixturesByTournamentScope(tournament, apiFixtures);
+  if (outOfScope.length > 0) {
+    logInfo(
+      `${outOfScope.length} Spiele VOR Turnierstart verworfen ` +
+      `(${summarizeRounds(outOfScope)}).`
+    );
+  }
+  logInfo(`${allFixtures.length} Spiele im Turnier-Scope (${summarizeRounds(allFixtures)}).`);
+
+  const existingScope = await readExistingFixtureScope(db, tournament);
+  await assertFixtureSyncIsSafe(db, tournament, allFixtures, existingScope.inScopeIds.length);
 
   // Eindeutige Venues sammeln und (optional) laden.
   const uniqueVenueIds = new Set();
@@ -572,6 +676,26 @@ async function runSync(db, tournament, opts) {
   const totalWritten = await writeFixturesToFirestore(db, tournament, fixtureDocuments, opts);
   logInfo(`${totalWritten} Fixture-Dokumente ${opts.dryRun ? '(DRY-RUN) berechnet' : 'in Firestore geschrieben'}.`);
 
+  // Altlasten aufraeumen: Dokumente, die vor Turnierstart liegen (frueher
+  // ungefiltert gesynct), werden geloescht – so bleibt in Firestore wirklich
+  // nur der Spielplan ab Turnierstart stehen.
+  const writtenIds = new Set(fixtureDocuments.map(doc => doc.id));
+  const purgeIds = existingScope.outOfScopeIds.filter(id => !writtenIds.has(id));
+  let totalPurged = 0;
+  if (purgeIds.length > 0) {
+    if (opts.skipPurge) {
+      logWarn(
+        `SKIP_PURGE aktiv – ${purgeIds.length} Dokumente vor Turnierstart bleiben in ` +
+        `"${tournament.firestore.fixturesCollection}" liegen.`
+      );
+    } else {
+      totalPurged = await deleteFixtureDocuments(db, tournament, purgeIds, opts);
+      logInfo(
+        `${totalPurged} Dokumente vor Turnierstart ${opts.dryRun ? '(DRY-RUN) ermittelt' : 'aus Firestore geloescht'}.`
+      );
+    }
+  }
+
   if (totalWritten > 0) {
     const cacheGenerationMs = Date.now();
     const fixturesBundle = buildFixturesMapFromDocuments(fixtureDocuments, cacheGenerationMs);
@@ -593,8 +717,11 @@ async function runSync(db, tournament, opts) {
   }
 
   return {
-    totalFixtures: allFixtures.length,
+    totalFixtures: apiFixtures.length,
+    scopedFixtures: allFixtures.length,
+    skippedBeforeStart: outOfScope.length,
     totalWritten,
+    totalPurged,
     uniqueVenues: uniqueVenueIds.size
   };
 }
@@ -632,13 +759,15 @@ async function main() {
   const opts = {
     dryRun: envBool('DRY_RUN', false),
     skipVenues: envBool('SKIP_VENUES', false),
-    skipEvents: envBool('SKIP_EVENTS', false)
+    skipEvents: envBool('SKIP_EVENTS', false),
+    skipPurge: envBool('SKIP_PURGE', false)
   };
 
   logInfo(`Starte Spielplan-Sync für ${tournament.shortLabel} (${tournament.key}).` +
     (opts.dryRun ? ' [DRY_RUN]' : '') +
     (opts.skipVenues ? ' [SKIP_VENUES]' : '') +
-    (opts.skipEvents ? ' [SKIP_EVENTS]' : ''));
+    (opts.skipEvents ? ' [SKIP_EVENTS]' : '') +
+    (opts.skipPurge ? ' [SKIP_PURGE]' : ''));
 
   let db;
   try {
@@ -651,7 +780,8 @@ async function main() {
   try {
     const result = await runSync(db, tournament, opts);
     logInfo(`✅ Lauf beendet. Fixtures (API): ${result.totalFixtures}, ` +
-      `geschrieben: ${result.totalWritten}, Venues: ${result.uniqueVenues}.`);
+      `im Turnier-Scope: ${result.scopedFixtures}, vor Turnierstart verworfen: ${result.skippedBeforeStart}, ` +
+      `geschrieben: ${result.totalWritten}, geloescht: ${result.totalPurged}, Venues: ${result.uniqueVenues}.`);
   } catch (err) {
     logError(`Spielplan-Sync fehlgeschlagen: ${err.message}`);
     if (err.stack) console.error(err.stack);

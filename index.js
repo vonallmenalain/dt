@@ -5537,17 +5537,26 @@
         SUBBED_IN:     { one: 'Eingewechselt', many: 'Eingewechselt' }
     };
 
-    /* Spielart aus dem Runden-Text der API ableiten. Reihenfolge zaehlt:
-       „Quarter-finals" enthaelt „final", der Final-Test steht deshalb zuletzt.
+    /* Spielart aus dem Runden-Text der API ableiten. Welcher Runden-Text zu
+       welcher K.-o.-Runde gehoert, entscheidet zentral tournament-config.js
+       (APP_CONFIG.leagueKnockoutRoundKey) – dort liegt u. a. das Wissen, dass
+       api-football die CL-Playoffs nach der Ligaphase "Round of 32" nennt.
        Zweiteilige Runden bekommen zusaetzlich Hin-/Rueckspiel (siehe
        clcmAssignMatchTypes) – der Runden-Text der API nennt das Leg nicht. */
-    const CLCM_KO_ROUNDS = [
-        { test: /play[\s-]*off/,                                    label: 'Playoff',      twoLeg: true },
-        { test: /round of 16|last 16|8th final|1\s*\/\s*8|achtel/,   label: 'Achtelfinal',  twoLeg: true },
-        { test: /quarter|viertel|1\s*\/\s*4/,                       label: 'Viertelfinal', twoLeg: true },
-        { test: /semi|halb|1\s*\/\s*2/,                             label: 'Halbfinal',    twoLeg: true },
-        { test: /final/,                                            label: 'Final',        twoLeg: false }
-    ];
+    const CLCM_KO_ROUNDS = {
+        playoffs: { label: 'Playoff',      twoLeg: true },
+        r16:      { label: 'Achtelfinal',  twoLeg: true },
+        qf:       { label: 'Viertelfinal', twoLeg: true },
+        sf:       { label: 'Halbfinal',    twoLeg: true },
+        final:    { label: 'Final',        twoLeg: false }
+    };
+
+    function clcmKnockoutRoundKey(roundText) {
+        const cfg = window.APP_CONFIG;
+        return (cfg && typeof cfg.leagueKnockoutRoundKey === 'function')
+            ? cfg.leagueKnockoutRoundKey(roundText)
+            : null;
+    }
 
     function clcmRoundText(match) {
         return String((match && (match.round || (match.league && match.league.round))) || '').trim();
@@ -5565,8 +5574,8 @@
             return { label: n ? `Ligaphase · Spiel ${n}` : 'Ligaphase', twoLeg: false, key: 'lp' };
         }
 
-        for (const round of CLCM_KO_ROUNDS) {
-            if (!round.test.test(v)) continue;
+        const round = CLCM_KO_ROUNDS[clcmKnockoutRoundKey(roundText)];
+        if (round) {
             // Nennt der Runden-Text das Leg selbst, direkt uebernehmen.
             const leg = /1st leg|hinspiel/.test(v) ? 'Hinspiel'
                 : (/2nd leg|rueckspiel|rückspiel/.test(v) ? 'Rückspiel' : '');

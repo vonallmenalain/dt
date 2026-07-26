@@ -5268,11 +5268,7 @@
 
     // ── Reale KO-Ergebnisse (aus den gesyncten Fixtures) für den Auto-Modus ──
     function isLeagueKnockoutRound(round) {
-        const r = String(round || '').toLowerCase();
-        if (!r) return false;
-        if (/(league|liga|matchday|spieltag|regular season|group|gruppe)/.test(r)) return false;
-        if (/(qualif|vorrunde)/.test(r)) return false;
-        return /(play-?off|playoff|knockout|round of 16|last 16|achtel|1\/8|quarter|viertel|1\/4|semi|halb|1\/2|final)/.test(r);
+        return !!leagueKnockoutTier(round);
     }
 
     function isFixtureFinishedForLeague(m) {
@@ -5466,16 +5462,14 @@
      *  die Einzelresultate. Klappt die Rekonstruktion nicht (Daten noch
      *  unvollständig), fällt die Ansicht auf die Projektion zurück.
      * ===================================================================== */
+    // Runden-Text → Turnierbaum-Spalte. Die Zuordnung liegt zentral in
+    // tournament-config.js, damit alle Ansichten dieselbe Runde meinen –
+    // insbesondere die K.-o.-Playoffs, die api-football bei der CL "Round of
+    // 32" nennt (und die deshalb frueher in keine Spalte fielen).
     function leagueKnockoutTier(round) {
-        const r = String(round || '').toLowerCase();
-        if (!r) return null;
-        if (/(league|liga|matchday|spieltag|regular season|group|gruppe|qualif|vorrunde|preliminary)/.test(r)) return null;
-        if (/play-?off/.test(r)) return 'playoffs';
-        if (/quarter|viertel|1\s*\/\s*4/.test(r)) return 'qf';
-        if (/semi|halb|1\s*\/\s*2/.test(r)) return 'sf';
-        if (/round of 16|last 16|1\s*\/\s*8|8th final|achtel/.test(r)) return 'r16';
-        if (/final/.test(r)) return 'final';
-        return null;
+        return (APP && typeof APP.leagueKnockoutRoundKey === 'function')
+            ? APP.leagueKnockoutRoundKey(round)
+            : null;
     }
 
     // Alle gespielten KO-Spiele nach Runde gruppieren und je Paarung zu einem

@@ -4,6 +4,11 @@ name: Auto Spielplan-Sync
 # tournament-config.js. Lädt einmal pro Tag (Cron) alle Fixtures +
 # Stadiondaten von der API und schreibt sie nach Firestore.
 #
+# Übernommen werden nur Spiele AB Turnierstart. Bei Ligaphasen-Turnieren
+# (Champions League) liefert api-football auch die Qualifikationsrunden
+# davor mit – diese werden verworfen und, falls frühere Läufe sie bereits
+# geschrieben haben, aus Firestore gelöscht (Opt-out: skip_purge).
+#
 # Zusätzlich manuell auslösbar via "Run workflow".
 #
 # Benötigte Repo-Secrets (Settings → Secrets and variables → Actions):
@@ -31,6 +36,11 @@ on:
         default: false
       skip_venues:
         description: "Venue-Detail-Calls auslassen (spart API-Quota)."
+        required: false
+        type: boolean
+        default: false
+      skip_purge:
+        description: "Bereits gespeicherte Spiele VOR Turnierstart nicht löschen."
         required: false
         type: boolean
         default: false
@@ -67,4 +77,5 @@ jobs:
           TOURNAMENT_KEY: ${{ github.event_name == 'workflow_dispatch' && inputs.tournament_key || '' }}
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
           SKIP_VENUES: ${{ inputs.skip_venues == true && '1' || '0' }}
+          SKIP_PURGE: ${{ inputs.skip_purge == true && '1' || '0' }}
         run: node sync-fixtures.js

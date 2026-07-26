@@ -534,6 +534,16 @@ const APP_CONFIG = (() => {
       },
       knockout: { twoLegged: true },
 
+      // Abgeschlossene Saison – die Zahl steht fest und kann nicht mehr
+      // wachsen oder schrumpfen: 144 Ligaphase + 16 K.-o.-Playoffs
+      // ("Round of 32") + 16 Achtel + 8 Viertel + 4 Halb + 1 Final = 189.
+      // Gezählt wird NUR ab Ligaphasen-Start; die 92 Qualifikationsspiele
+      // der Vorrunden werden vor dem Guard herausgefiltert.
+      fixtureCount: {
+        minPublished: 189,
+        expectedFinal: 189
+      },
+
       // Referenz: erster Spieltag der 25/26-Ligaphase.
       DREAMTEAM_START: "2025-09-16T21:00:00+02:00",
 
@@ -1293,11 +1303,24 @@ const APP_CONFIG = (() => {
   }
 
   // Qualifikations-/Vorrunde einer Ligaphasen-Competition (CL): alle Runden
-  // VOR der Ligaphase. Diese sollen in den CL-Ansichten NICHT als „echte"
-  // Champions-League-Spiele gezeigt werden (erst ab der Ligarunde).
+  // VOR der Ligaphase. Diese sind KEIN Teil des Turniers, das die App wertet –
+  // gezählt wird erst ab dem Start der Ligaphase.
+  //
+  // Runden-Texte von api-football (league=2, Saison 2025/26 als Referenz):
+  //   VOR der Ligaphase  → "1st/2nd/3rd Qualifying Round" (78 Spiele),
+  //                        "Play-offs" (14 Spiele)                =  92 Spiele
+  //   AB der Ligaphase   → "League Stage - 1".."League Stage - 8" = 144 Spiele
+  //                        "Round of 32"  (K.-o.-Playoffs)        =  16 Spiele
+  //                        "Round of 16"                          =  16 Spiele
+  //                        "Quarter-finals"                       =   8 Spiele
+  //                        "Semi-finals"                          =   4 Spiele
+  //                        "Final"                                =   1 Spiel
+  //                                                          Total = 189 Spiele
+  //
   //   Ausschluss: Preliminary/Qualifying-Runden sowie die Quali-„Play-offs".
-  //   KEIN Ausschluss: „Knockout Round Play-offs" (K.-o.-Phase), Ligaphase,
-  //   Achtel-/Viertel-/Halbfinale, Finale.
+  //   KEIN Ausschluss: „Round of 32" / „Knockout Round Play-offs" (das ist die
+  //   K.-o.-Playoff-Runde NACH der Ligaphase), Ligaphase, Achtel-/Viertel-/
+  //   Halbfinale, Finale.
   function isQualificationRound(roundText) {
     const v = String(roundText || "").trim().toLowerCase();
     if (!v) return false;
@@ -1306,9 +1329,54 @@ const APP_CONFIG = (() => {
     return false;
   }
 
+  /* Kanonischer K.-o.-Runden-Key eines Runden-Texts für Ligaphasen-Turniere.
+   *
+   *   "playoffs" → K.-o.-Playoffs nach der Ligaphase (Ränge 9–24). api-football
+   *                nennt diese Runde bei der CL "Round of 32"; andere Quellen
+   *                schreiben "Knockout Round Play-offs" oder „1/16".
+   *   "r16" | "qf" | "sf" | "final" → Achtel-/Viertel-/Halbfinale, Finale.
+   *   null       → Ligaphase, Qualifikation oder unbekannte Runde.
+   *
+   * Reihenfolge der Tests zählt: „Quarter-finals"/„8th Finals" enthalten
+   * „final", der Final-Test steht deshalb zuletzt. Einzige Quelle der Wahrheit
+   * für alle Turnierbaum-Ansichten – bitte nicht pro View neu erfinden. */
+  function getLeagueKnockoutRoundKey(roundText) {
+    const v = String(roundText || "").trim().toLowerCase();
+    if (!v) return null;
+    if (isQualificationRound(v)) return null;
+    if (isLeaguePhaseRound(v)) return null;
+    if (/group|gruppe|vorrunde/.test(v)) return null;
+    if (/round of 32|last 32|16th final|1\s*\/\s*16/.test(v)) return "playoffs";
+    if (/play[\s-]*offs?/.test(v)) return "playoffs";
+    if (/quarter|viertel|1\s*\/\s*4/.test(v)) return "qf";
+    if (/semi|halb|1\s*\/\s*2/.test(v)) return "sf";
+    if (/round of 16|last 16|8th final|1\s*\/\s*8|achtel/.test(v)) return "r16";
+    if (/final/.test(v)) return "final";
+    return null;
+  }
+
   function isSingleLegKnockoutRound(roundText) {
     const v = String(roundText || "").trim().toLowerCase();
     return /final/.test(v) && !/semi|quarter|halb|viertel/.test(v);
+  }
+
+  /* Runden-Text aus allem lesen, was die App als „Spiel" herumreicht:
+   * blanker String, API-Fixture (`league.round`) oder Firestore-Dokument
+   * (`league.round` bzw. das flache `round` des Schedule-Katalogs). */
+  function readFixtureRoundText(fixtureOrRound) {
+    if (typeof fixtureOrRound === "string") return fixtureOrRound;
+    return getFixtureRoundText(fixtureOrRound);
+  }
+
+  function resolveTournamentArg(tournamentOrKey) {
+    if (!tournamentOrKey) return null;
+    if (typeof tournamentOrKey === "string") return TOURNAMENTS[tournamentOrKey] || null;
+    return tournamentOrKey;
+  }
+
+  function isQualificationFixtureForTournament(tournament, fixtureOrRound) {
+    if (!tournament || tournament.structure !== "league") return false;
+    return isQualificationRound(readFixtureRoundText(fixtureOrRound));
   }
 
   function decideKnockoutLegLoser(leg) {
@@ -2272,12 +2340,34 @@ const APP_CONFIG = (() => {
     // ausgeblendet werden soll? Nur für Ligaphasen-Turniere (CL) aktiv; die
     // WM (structure ≠ "league") liefert immer false → unverändert.
     isQualificationFixture(fixtureOrRound) {
-      const t = getActiveTournament();
-      if (!t || t.structure !== "league") return false;
-      const round = typeof fixtureOrRound === "string"
-        ? fixtureOrRound
-        : (fixtureOrRound && ((fixtureOrRound.league && fixtureOrRound.league.round) || fixtureOrRound.round)) || "";
-      return isQualificationRound(round);
+      return isQualificationFixtureForTournament(getActiveTournament(), fixtureOrRound);
+    },
+
+    // Wie isQualificationFixture, aber mit EXPLIZITEM Turnier. Die Server-
+    // Skripte (sync-fixtures, auto-points-upload) synchronisieren ein per
+    // TOURNAMENT_KEY gewähltes Turnier und dürfen sich nicht auf das im
+    // Browser „aktive" Turnier verlassen.
+    isQualificationFixtureFor(tournamentOrKey, fixtureOrRound) {
+      return isQualificationFixtureForTournament(
+        resolveTournamentArg(tournamentOrKey),
+        fixtureOrRound
+      );
+    },
+
+    // Gegenstück: Zählt dieses Fixture zum gewerteten Turnier (CL: alles ab
+    // Ligaphasen-Start)? Für Nicht-Ligaphasen-Turniere immer true.
+    isScoredFixtureFor(tournamentOrKey, fixtureOrRound) {
+      return !isQualificationFixtureForTournament(
+        resolveTournamentArg(tournamentOrKey),
+        fixtureOrRound
+      );
+    },
+
+    // Kanonischer K.-o.-Runden-Key ("playoffs" | "r16" | "qf" | "sf" |
+    // "final") eines Fixtures/Runden-Texts; null für Ligaphase, Qualifikation
+    // und unbekannte Runden. Siehe getLeagueKnockoutRoundKey.
+    leagueKnockoutRoundKey(fixtureOrRound) {
+      return getLeagueKnockoutRoundKey(readFixtureRoundText(fixtureOrRound));
     },
 
     get longLabel() {
