@@ -74,6 +74,19 @@ Schreibzugriffe finden ausschliesslich hier statt, nicht im Browser.
 Beide Scripts lesen die Turnier-Konfiguration **direkt aus
 `tournament-config.js`** – keine lokale Kopie pflegen.
 
+**Turnier-Scope: nur Spiele ab Turnierstart.** Bei Ligaphasen-Turnieren
+(Champions League) liefert api-football unter derselben Liga-/Saison-Abfrage
+auch die Qualifikationsrunden *vor* der Ligaphase mit. Die gehören nicht zum
+Turnier, das die App wertet, und werden in beiden Scripts verworfen – der
+Spielplan-Sync löscht bereits gespeicherte Qualifikationsspiele zusätzlich aus
+Firestore (Opt-out: `skip_purge`). Massgeblich ist der Runden-Text; die
+Klassifikation liegt zentral in `tournament-config.js`
+(`isQualificationFixtureFor` / `leagueKnockoutRoundKey`). Referenz CL 2025/26:
+281 API-Spiele → **189 ab Ligaphase** (144 Ligaphase + 16 K.-o.-Playoffs
+("Round of 32") + 16 Achtel + 8 Viertel + 4 Halb + 1 Final), 92 Qualifikations-
+spiele fallen weg. Turniere mit Gruppenphase (WM) sind nicht betroffen.
+Regressionstest: `npm run test:cl-scope`.
+
 Der detaillierte Live-Update-Ablauf inkl. GitHub-Actions-Check,
 Tick-Zeitpunkt, Firestore-Signalen und Betriebs-Checkliste steht in
 [`docs/live-update-prozess.md`](docs/live-update-prozess.md).
@@ -171,6 +184,8 @@ Beim Workflow `Auto Spielplan-Sync` gibt es weiterhin Test-Inputs:
 - `dry_run` – Skript loggt nur, schreibt nichts in Firestore.
 - `skip_venues` – Venue-Detail-Calls auslassen (spart API-Quota, wenn sich
   an den Stadien nichts ändert).
+- `skip_purge` – bereits gespeicherte Spiele *vor* Turnierstart nicht löschen
+  (normalerweise aus: der Sync räumt Qualifikationsspiele aus Firestore weg).
 
 ### Lokal testen
 

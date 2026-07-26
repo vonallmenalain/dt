@@ -179,6 +179,30 @@ function getFixtureCountConfig(tournament) {
   };
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Turnier-Scope: nur Spiele AB Turnierstart punkten
+ *
+ *  Ligaphasen-Turniere (CL) liefern über `fixtures?league=…&season=…` auch die
+ *  Qualifikationsrunden VOR der Ligaphase mit. Die gehören nicht zum Turnier
+ *  und dürfen keine Punkte erzeugen – sonst sammelt z. B. ein Klub, der in der
+ *  Quali durch drei Runden musste, Punkte aus Spielen, die es im DreamTeam gar
+ *  nicht gibt. Die Klassifikation liegt zentral in tournament-config.js.
+ *  Turniere mit Gruppenphase (WM) sind nicht betroffen → alles bleibt drin.
+ * ───────────────────────────────────────────────────────────────────────────── */
+function isApiGameInTournamentScope(tournament, game) {
+  return !APP_CONFIG.isQualificationFixtureFor(tournament, game);
+}
+
+function filterApiGamesToTournamentScope(tournament, games) {
+  const inScope = [];
+  let skipped = 0;
+  (games || []).forEach(game => {
+    if (isApiGameInTournamentScope(tournament, game)) inScope.push(game);
+    else skipped++;
+  });
+  return { inScope, skipped };
+}
+
 function cleanText(value) {
   return value == null ? '' : String(value).trim();
 }
@@ -1007,8 +1031,16 @@ async function refreshFixturePlanCache(db, tournament, opts, cache) {
   cache.loadedAtMs = loadedAtMs;
   cache.lastRefreshTick = tickIndex;
 
+  let skippedBeforeStart = 0;
   snap.forEach(doc => {
     const data = doc.data() || {};
+    // Spiele vor Turnierstart (CL-Qualifikation) gehören nicht in den Plan.
+    // sync-fixtures loescht sie inzwischen aus Firestore; dieser Filter haelt
+    // den Punkte-Lauf auch dann sauber, wenn noch Altlasten herumliegen.
+    if (!isApiGameInTournamentScope(tournament, data)) {
+      skippedBeforeStart++;
+      return;
+    }
     const apiFixtureId = getFirestoreFixtureApiId(data, doc);
     const record = {
       id: apiFixtureId || String(doc.id),
@@ -1021,7 +1053,8 @@ async function refreshFixturePlanCache(db, tournament, opts, cache) {
   });
 
   rememberFixturePlanReadForAudit(opts, snap.size, true, false);
-  logInfo(`Fixture-Plan-Cache aus Firestore geladen (${snap.size} Dokument-Reads geschaetzt).`);
+  logInfo(`Fixture-Plan-Cache aus Firestore geladen (${snap.size} Dokument-Reads geschaetzt` +
+    (skippedBeforeStart > 0 ? `, ${skippedBeforeStart} Spiele vor Turnierstart ignoriert` : '') + ').');
   return cache;
 }
 
@@ -1849,6 +1882,26 @@ async function readExistingPointsFromFirestore(db, tournament) {
   return points;
 }
 
+/* Doc-IDs der bestehenden Punktedokumente (ohne Feld-Payload).
+ *
+ * Bei einer vollstaendigen Neuberechnung ist die frische Rechnung die ganze
+ * Wahrheit: Spieler, die danach KEINE Punkte mehr haben, duerfen kein altes
+ * Dokument behalten. Ohne diese Liste wuerde writePointsToFirestore solche
+ * Spieler stillschweigend ueberspringen (kein Write, aber eben auch kein
+ * Delete) – genau so ueberleben z. B. Punkte aus Spielen, die inzwischen gar
+ * nicht mehr zum Turnier gehoeren (CL-Qualifikation). Nur bei erzwungenen
+ * Laeufen geholt, damit die automatischen Ticks keine zusaetzlichen Reads
+ * bekommen. */
+async function readExistingPointDocIds(db, tournament, opts) {
+  const snap = await db.collection(tournament.firestore.pointsCollection).select().get();
+  if (opts && opts.audit) {
+    opts.audit.firestoreReadEstimate = opts.audit.firestoreReadEstimate || {};
+    opts.audit.firestoreReadEstimate.pointDocIds =
+      (opts.audit.firestoreReadEstimate.pointDocIds || 0) + (snap.size || 0);
+  }
+  return new Set(snap.docs.map(doc => String(doc.id)));
+}
+
 async function readPointsMetaDocument(db, tournament) {
   const ref = db.collection(tournament.firestore.metaCollection).doc(tournament.firestore.metaDocId);
   const snap = await ref.get();
@@ -1949,8 +2002,16 @@ async function writePointsToFirestore(db, tournament, allPlayerPoints, opts, onl
     const obj = allPlayerPoints[pid];
     const hasPoints = hasAnyPointValue(obj);
     const previous = existingPoints ? existingPoints[pid] : null;
+    // Punktloser Spieler mit Alt-Dokument: bei der vollstaendigen
+    // Neuberechnung wird das Dokument geloescht statt uebersprungen
+    // (siehe readExistingPointDocIds).
+    const hasStaleDoc = !!(
+      opts.existingPointDocIds &&
+      typeof opts.existingPointDocIds.has === 'function' &&
+      opts.existingPointDocIds.has(String(pid))
+    );
 
-    if (!hasPoints && !isPartialWrite) continue;
+    if (!hasPoints && !isPartialWrite && !hasStaleDoc) continue;
 
     if (existingPoints) {
       if (hasPoints && previous && pointObjectsEqual(obj, previous)) {
@@ -2638,7 +2699,14 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     throw new Error('API hat keine gültigen Fixture-Daten geliefert.');
   }
 
-  const allApiGames = fixData.response.filter(f => f && f.fixture && f.fixture.id != null);
+  const apiGamesWithId = fixData.response.filter(f => f && f.fixture && f.fixture.id != null);
+  // Qualifikationsspiele vor Turnierstart fliegen raus, BEVOR irgendetwas
+  // gepunktet oder geschrieben wird (siehe filterApiGamesToTournamentScope).
+  const { inScope: allApiGames, skipped: skippedBeforeStart } =
+    filterApiGamesToTournamentScope(tournament, apiGamesWithId);
+  if (skippedBeforeStart > 0) {
+    logInfo(`${skippedBeforeStart} API-Spiele vor Turnierstart ignoriert (keine Punkte, kein Spielplan-Eintrag).`);
+  }
   assertApiFixtureListSafe(tournament, allApiGames, 'Punkte-Workflow');
   const apiGamesById = new Map(allApiGames.map(g => [String(g.fixture.id), g]));
   const finishedGames = allApiGames.filter(isFinishedFixture);
@@ -2741,9 +2809,15 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
 
   let changedPlayerIds = null;
   let existingPoints = null;
+  let existingPointDocIds = null;
   let modeLabel = 'vollstaendige Neuberechnung';
   if (shouldFullRecompute) {
     playersData.forEach(p => { allPlayerPoints[String(p['player.id'])] = buildEmptyPlayerObject(p); });
+    if (opts.forceRun && !opts.dryRun) {
+      existingPointDocIds = await readExistingPointDocIds(db, tournament, opts);
+      logInfo(`${existingPointDocIds.size} bestehende Punktedokumente erfasst – ` +
+        'punktlose Spieler werden in diesem Lauf geloescht statt uebersprungen.');
+    }
   } else {
     modeLabel = 'Delta/Reconciliation';
     changedPlayerIds = new Set();
@@ -2833,7 +2907,7 @@ async function runFullPointsUpload(db, tournament, opts, candidateFixtureIds, fi
     db,
     tournament,
     allPlayerPoints,
-    { ...opts, allowPartialPointDeletes },
+    { ...opts, allowPartialPointDeletes, existingPointDocIds },
     changedPlayerIds,
     existingPoints
   );
