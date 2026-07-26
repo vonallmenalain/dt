@@ -231,6 +231,38 @@ const {
     [0, 0]
   );
 
+  /* Sammel-Eimer von api-football duerfen NICHT zaehlen. Echte Zeilen aus
+   * dem Diagnoselauf (Saison 2025): der Anbieter dupliziert Wettbewerbs-
+   * zahlen in "Friendlies Clubs" (667) und in eine "Super Cup"-Zeile ohne
+   * league.id. Ungefiltert summierte das auf bis zu 8207 Minuten – rund
+   * zwei Saisons – und Vanaken stand vor van Dijk. */
+  function raw(league, minutes, appearences) {
+    return { league, games: { minutes, appearences, rating: '7.0' } };
+  }
+  const ndicka = buildPerformance([
+    raw({ id: 135, name: 'Serie A' }, 2683, 31),
+    raw({ id: 667, name: 'Friendlies Clubs' }, 2693, 31),   // Duplikat der Serie A
+    raw({ id: 3, name: 'UEFA Europa League' }, 752, 10)
+  ], leagueIds);
+  assert.equal(ndicka.minutes, 2683 + 752,
+    'Freundschaftsspiel-Eimer (667) darf nicht in die Minuten einfliessen.');
+
+  const vanaken = buildPerformance([
+    raw({ id: null, name: 'Super Cup' }, 3574, 40),          // ein Supercup ist EIN Spiel
+    raw({ id: 2, name: 'UEFA Champions League' }, 1260, 14),
+    raw({ id: 144, name: 'Jupiler Pro League' }, 3373, 39)
+  ], leagueIds);
+  assert.equal(vanaken.minutes, 1260 + 3373,
+    'Zeilen ohne league.id sind nicht zuordenbar und duerfen nicht zaehlen.');
+  assert.ok(vanaken.minutes < 5400,
+    'Nach dem Filter muss die Minutensumme in einer Saison plausibel sein.');
+
+  // Nationen-Freundschaftsspiele (10) ebenso wenig.
+  assert.equal(
+    buildPerformance([raw({ id: 10, name: 'Friendlies' }, 720, 8)], leagueIds).minutes,
+    0
+  );
+
   // Fehlendes Rating darf den Durchschnitt nicht verfaelschen.
   const partial = buildPerformance([stat(140, 1000, 12, '7.0'), stat(45, 500, 6, null)], leagueIds);
   assert.equal(partial.rating, 7, 'Nur bewertete Minuten zaehlen in den Rating-Schnitt.');

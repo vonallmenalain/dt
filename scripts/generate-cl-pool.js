@@ -270,6 +270,39 @@ const COMPETITION_WEIGHTS = {
 const OTHER_LEAGUE_WEIGHT = 0.7;  // sonstige erste Ligen
 const CUP_WEIGHT = 0.5;           // Pokale, Supercups, alles ohne type=League
 
+/* Nicht zählbare Statistik-Zeilen.
+ *
+ * api-football liefert pro Spieler teils Sammel-Eimer, die die Zahlen
+ * anderer Wettbewerbe DUPLIZIEREN. Aus dem Diagnoselauf (Saison 2025):
+ *
+ *   Vanaken      league null "Super Cup"       40 Spiele, 3574 Min
+ *   Ndicka       league  667 "Friendlies Clubs" 31 Spiele, 2693 Min
+ *                          (seine Serie A:      31 Spiele, 2683 Min)
+ *   Diogo Costa  league  667 "Friendlies Clubs" 32 Spiele, 2880 Min
+ *                          (seine Primeira Liga 33 Spiele, 2907 Min)
+ *   Kobel        Club World Cup 5/450 UND Friendlies Clubs 5/450
+ *
+ * Ein Supercup ist EIN Spiel, keine 40 – die Zeilen sind offensichtlich
+ * kaputt. Ohne Filter summierten sich daraus bis zu 8207 Minuten, also
+ * rund zwei Saisons, und Vanaken stand vor van Dijk.
+ *
+ * Regel: gezählt wird nur, was die API eindeutig als Wettbewerb ausweist.
+ *   • Zeilen ohne `league.id` → nicht zuordenbar, raus.
+ *   • Freundschaftsspiele → kein Leistungsnachweis, raus (und genau der
+ *     Eimer, in den dupliziert wird).
+ * Der Preis: legitime Kleinzeilen ohne ID (z. B. AFCON-Qualifikation,
+ * 450 Min) fallen mit weg. Das ist der ehrlichere Kompromiss – lieber ein
+ * paar Minuten zu wenig als das Doppelte einer ganzen Saison zu viel.
+ */
+const FRIENDLY_COMPETITION_IDS = new Set([667, 10]);
+const FRIENDLY_NAME = /friendl|freundschaft/i;
+
+function isCountedCompetition(league) {
+  if (!league || league.id == null) return false;
+  if (FRIENDLY_COMPETITION_IDS.has(Number(league.id))) return false;
+  return !FRIENDLY_NAME.test(String(league.name || ''));
+}
+
 function competitionWeight(leagueId, leagueTypeIds) {
   const id = Number(leagueId);
   if (COMPETITION_WEIGHTS[id] !== undefined) return COMPETITION_WEIGHTS[id];
@@ -288,6 +321,7 @@ function buildPerformance(statistics, leagueTypeIds) {
 
   for (const stat of list) {
     if (!stat || !stat.games) continue;
+    if (!isCountedCompetition(stat.league)) continue;
     const min = Number(stat.games.minutes) || 0;
     const apps = Number(stat.games.appearences) || 0;
     if (min <= 0 && apps <= 0) continue;
@@ -745,6 +779,20 @@ async function main() {
   // bekannten Namen, hat die Gewichtung funktioniert.
   const withMinutes = players.filter((p) => p['Vorsaison.Minuten'] > 0).length;
   logInfo(`Vorsaison-Einsaetze erfasst: ${withMinutes}/${players.length} Spieler.`);
+  // Plausibilitaet: mehr als ~65 Pflichtspiele bzw. 5400 Minuten schafft
+  // niemand in einer Saison. Schlaegt das an, liefert die API wieder
+  // duplizierte Wettbewerbszeilen (siehe isCountedCompetition) – dann
+  // gehoert der Filter nachgezogen, statt dass es unbemerkt einsickert.
+  const implausible = players.filter((p) => p['Vorsaison.Minuten'] > 5400);
+  if (implausible.length) {
+    logWarn(`Unplausible Minutensummen (>5400) bei ${implausible.length} Spielern – API-Duplikate pruefen:`);
+    implausible.forEach((p) => logWarn(
+      `   ${p.Spielername} (${p['Club.name']}): ${p['Vorsaison.Minuten']} Min in ${p['Vorsaison.Spiele']} Spielen`
+    ));
+  } else {
+    logInfo('Plausibilitaet: kein Spieler ueber 5400 Minuten.');
+  }
+
   const top = players.slice().sort((a, b) => b['Vorsaison.Wert'] - a['Vorsaison.Wert']).slice(0, 20);
   logInfo('Top 20 nach Vorsaison-Leistung (Kontrolle der Gewichtung):');
   top.forEach((p, i) => logInfo(
