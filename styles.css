@@ -1,26 +1,48 @@
 /* --- GRUNDDESIGN --- */
-:root { 
-    --primary: #28a745; 
-    --dark: #343a40; 
-    --light: #eef2f3; 
+:root {
+    --primary: #28a745;
+    --dark: #343a40;
+    --light: #eef2f3;
+
+    /* --- HÖHE DER FIXEN NAVIGATION -------------------------------------
+       Die Leiste ist so hoch wie ihr Innenabstand plus ihr höchstes Kind.
+       Das ist NICHT der Markenschriftzug, sondern der 44px grosse
+       Auth-Knopf – deshalb steht die Höhe hier als Rechnung und nicht als
+       geschätzte Zahl.
+
+       `--dt-nav-space` ist der Platz, den jede Seite oben freihalten muss.
+       Er steht bewusst nur an dieser einen Stelle: vorher trug jede Seite
+       ihre eigene Zahl (80/72/70/62/0 px), und keine davon passte noch zur
+       tatsächlichen Höhe – auf der Rangliste und im Punktesystem lag der
+       Bereichstitel deshalb halb unter der Leiste.
+
+       `env(safe-area-inset-top)` deckt die installierte App ab: dort liegt
+       die Leiste unter der Statusleiste (black-translucent) und wächst um
+       deren Höhe. Weil derselbe Term im Innenabstand der Leiste UND im
+       reservierten Platz steckt, bleiben beide zwangsläufig gleich. Im
+       normalen Browser ist der Wert 0, dort ändert sich nichts. */
+    --dt-nav-pad: 15px;
+    --dt-nav-content: 44px;
+    --dt-nav-space: calc(var(--dt-nav-pad) * 2 + var(--dt-nav-content) + env(safe-area-inset-top, 0px));
 }
 
-body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    background-color: var(--light); 
-    margin: 0; 
-    padding-top: 80px; 
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light);
+    margin: 0;
+    padding-top: var(--dt-nav-space);
     color: #333;
 }
 
 /* --- GLOBALE NAVIGATION (Oben) --- */
-.navbar { 
+.navbar {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     background: linear-gradient(135deg, #13261a 0%, #1b3a27 45%, #1f4d2f 100%);
-    padding: 15px 30px;
+    padding: var(--dt-nav-pad) 30px;
+    padding-top: calc(var(--dt-nav-pad) + env(safe-area-inset-top, 0px));
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -152,6 +174,13 @@ body {
 
 /* --- Responsive Design Navigation --- */
 @media (max-width: 900px) {
+    /* Mobil trägt die Leiste nur noch Marke + Auth-Knopf (die Links
+       stehen unten). Ein knapperer Innenabstand macht sie 10px flacher,
+       ohne den 44px-Knopf als Tippziel zu verkleinern. */
+    :root {
+        --dt-nav-pad: 10px;
+    }
+
     .navbar .nav-links {
         display: none;
     }
@@ -159,7 +188,8 @@ body {
     .navbar {
         flex-direction: row;
         justify-content: space-between;
-        padding: 15px;
+        padding: var(--dt-nav-pad) 15px;
+        padding-top: calc(var(--dt-nav-pad) + env(safe-area-inset-top, 0px));
     }
 
     .navbar-brand {
@@ -173,19 +203,17 @@ body {
     }
 
     body {
-        padding-top: 80px;
         padding-bottom: 90px;
     }
 }
 
-/* --- PWA / INSTALLIERTE APP --- */
+/* --- PWA / INSTALLIERTE APP ---
+   Der Sicherheitsabstand der Statusleiste steckt bereits im Innenabstand
+   der Leiste und in `--dt-nav-space` (beides oben), hier bleibt nur die
+   Mindesthöhe. */
 @media (display-mode: standalone) {
     body {
         min-height: 100vh;
-    }
-
-    .navbar {
-        padding-top: calc(15px + env(safe-area-inset-top));
     }
 }
 

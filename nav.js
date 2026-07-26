@@ -495,6 +495,64 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
+    /* Jede Seite hält oben `--dt-nav-space` frei (styles.css). Der Wert dort
+       ist eine Rechnung aus Innenabstand + höchstem Kind und trifft den
+       Normalfall – er kann die Leiste aber nicht kennen, wenn sie höher
+       ausfällt als vorgesehen: auf schmalen Desktops (rund 900–1120px)
+       brechen die sechs Links auf zwei Reihen um, und der Markenschriftzug
+       ist je nach Turnier unterschiedlich lang. Genau dort lag der
+       Bereichstitel bisher unter der Leiste.
+
+       Deshalb misst die Navigation sich selbst und hebt die Variable an,
+       wenn sie tatsächlich höher steht – bei Umbruch, nachladenden
+       Schriften oder einem Breitenwechsel des Fensters.
+
+       Sie senkt sie NIE unter den CSS-Wert: der Auth-Knopf hängt sich erst
+       später ein (er wartet auf den Anmeldestatus), bis dahin ist die
+       Leiste schmaler als im Endzustand. Ohne diese Untergrenze würde der
+       Inhalt kurz zu weit oben stehen und dann nachrutschen. Der CSS-Wert
+       wird dafür einmal über ein unsichtbares Messelement gelesen, bevor
+       die Variable überhaupt überschrieben wird.
+
+       Ein Kreislauf ist ausgeschlossen: die Höhe der Leiste hängt an
+       `--dt-nav-pad`, nicht an dieser Variablen. */
+    function syncNavHeightVar() {
+        const nav = document.querySelector("body > nav.navbar");
+        if (!nav) return;
+
+        const root = document.documentElement;
+
+        const probe = document.createElement("div");
+        probe.style.cssText = "position:absolute;top:0;left:0;width:0;visibility:hidden;pointer-events:none;height:var(--dt-nav-space)";
+        document.body.appendChild(probe);
+        const cssFloor = probe.getBoundingClientRect().height;
+        probe.remove();
+
+        // Die Untergrenze gilt nur, solange der Auth-Knopf fehlt. Sobald er
+        // steht, ist die Messung in jeder Breite die Wahrheit – sonst würde
+        // ein am Desktop gelesener Startwert die schmalere mobile Leiste
+        // nach einem Breitenwechsel überreservieren.
+        const authSlot = nav.querySelector("#dt-auth-nav-slot");
+        const isSettled = () => !authSlot || authSlot.children.length > 0;
+
+        let applied = null;
+        const apply = () => {
+            const measured = Math.ceil(nav.getBoundingClientRect().height);
+            const height = isSettled() ? measured : Math.max(cssFloor, measured);
+            if (height > 0 && height !== applied) {
+                applied = height;
+                root.style.setProperty("--dt-nav-space", height + "px");
+            }
+        };
+
+        apply();
+        if (typeof ResizeObserver === "function") {
+            new ResizeObserver(apply).observe(nav);
+        } else {
+            window.addEventListener("resize", apply);
+        }
+    }
+
     const navItems = [
         { href: "index.html", label: "🏠 Dashboard", shortLabel: "Dashboard", icon: "🏠" },
         { href: "team-builder.html", label: "➕ Team erstellen", shortLabel: "Team", icon: "➕", action: TEAM_BUILDER_ACTION },
@@ -548,6 +606,8 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     document.body.insertAdjacentHTML("afterbegin", navHTML);
+
+    syncNavHeightVar();
 
     initNavAuth(APP);
     setTeamBuilderStatus(false);

@@ -159,7 +159,7 @@
         .teams-page {
             min-height: 100vh;
             position: relative;
-            padding-top: 80px;
+            padding-top: var(--dt-nav-space);
             padding-bottom: 100px;
             box-sizing: border-box;
         }
@@ -179,7 +179,6 @@
 
         @media (max-width: 900px) {
             .teams-page {
-                padding-top: 70px;
                 padding-bottom: calc(80px + env(safe-area-inset-bottom));
             }
         }
@@ -308,8 +307,8 @@
             width: 260px;
             flex-shrink: 0;
             position: sticky;
-            top: 96px;
-            max-height: calc(100vh - 120px);
+            top: calc(var(--dt-nav-space) + 22px);
+            max-height: calc(100vh - var(--dt-nav-space) - 46px);
             display: flex;
             flex-direction: column;
             background: rgba(255,255,255,0.04);
