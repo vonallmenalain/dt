@@ -78,6 +78,22 @@ for (const page of PAGES) {
     `${page}: der Kaderdatei-Preload muss jede CL-Saison abdecken (Muster statt fester Liste).`);
 }
 
+/* ── 5b) Punktgleichstand entscheidet die Vorsaison-Leistung ────────────── */
+/* Vor Turnierstart stehen alle bei 0 Punkten. Ohne diesen Gleichstand-
+ * Entscheid bliebe nur der alphabetische Vergleich – und die Liste begaenne
+ * wieder mit „A. …" statt mit den bekannten Spielern. */
+assert.match(source, /function comparePlayersBySeasonForm\s*\(/,
+  'comparePlayersBySeasonForm fehlt – der Punktgleichstand faellt sonst auf Alphabet zurueck.');
+assert.match(source, /Vorsaison\.Wert/,
+  'Der Sortierschluessel Vorsaison.Wert wird nicht gelesen.');
+const ptsSortStart = source.indexOf("if (currentSort === 'pts')");
+assert.ok(ptsSortStart > -1, 'Punkte-Sortierung nicht gefunden.');
+const ptsSortBody = source.slice(ptsSortStart, ptsSortStart + 600);
+assert.match(ptsSortBody, /ptsB - ptsA/,
+  'Echte Punkte muessen weiterhin zuerst entscheiden.');
+assert.match(ptsSortBody, /comparePlayersBySeasonForm\s*\(/,
+  'Bei Punktgleichstand muss die Vorsaison-Leistung entscheiden.');
+
 /* ── 6) Spielplan faellt auf den Terminkalender zurueck ─────────────────── */
 /* Vor der Auslosung gibt es keinen Firestore-Spielplan. buildScheduleCatalog
  * muss dann die Platzhalter aus tournament-config.js nutzen, sonst steht in

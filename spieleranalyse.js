@@ -1059,6 +1059,36 @@
     /* =========================================================
        PLAYER LIST RENDERING
        ========================================================= */
+
+    /* Gleichstand-Entscheid nach Punkten: Leistung der VORSAISON.
+     *
+     * Vor Turnierstart stehen alle Spieler bei 0 Punkten – uebrig blieb
+     * damit der rein alphabetische Vergleich, und die Liste begann mit
+     * Namen wie „A. …" statt mit den bekannten Spielern.
+     *
+     * `Vorsaison.Wert` ist die Summe der Einsatzminuten der letzten Saison,
+     * gewichtet nach Wettbewerb (siehe scripts/generate-cl-pool.js).
+     * api-football liefert keine Marktwerte; das ist der beste automatisch
+     * verfuegbare Ersatz. Sobald echte Punkte anfallen, entscheiden die –
+     * dieser Vergleich tritt dann von selbst zurueck.
+     *
+     * Faellt das Feld weg (WM, aeltere Kaderdateien), bleibt es beim
+     * alphabetischen Vergleich wie bisher. */
+    function getSeasonFormValue(player) {
+        const value = player && player['Vorsaison.Wert'];
+        return Number.isFinite(Number(value)) ? Number(value) : 0;
+    }
+
+    function comparePlayersBySeasonForm(a, b) {
+        const formB = getSeasonFormValue(b);
+        const formA = getSeasonFormValue(a);
+        if (formB !== formA) return formB - formA;
+        const ratingB = Number(b && b['Vorsaison.Rating']) || 0;
+        const ratingA = Number(a && a['Vorsaison.Rating']) || 0;
+        if (ratingB !== ratingA) return ratingB - ratingA;
+        return String(a.Spielername || '').localeCompare(String(b.Spielername || ''), 'de');
+    }
+
     function buildFilteredPlayers() {
         const searchTokens = getSearchTokens(document.getElementById('search-input').value);
         const posFilter = document.getElementById('pos-filter').value;
@@ -1088,7 +1118,7 @@
                 const ptsA = getPlayerTotalPoints(a['player.id']);
                 const ptsB = getPlayerTotalPoints(b['player.id']);
                 if (ptsB !== ptsA) return ptsB - ptsA;
-                return a.Spielername.localeCompare(b.Spielername, 'de');
+                return comparePlayersBySeasonForm(a, b);
             });
         } else {
             filteredData.sort((a, b) => a.Spielername.localeCompare(b.Spielername, 'de'));

@@ -46,13 +46,42 @@ for (const id of ids) {
   assert.ok(Number.isFinite(Number(id)), `Ungültige player.id: ${id}`);
 }
 
-/* ── 2) Schema identisch zur bestehenden CL-Kaderdatei ──────────────────── */
+/* ── 2) Schema deckt die bestehende CL-Kaderdatei ab ────────────────────── */
+/* Der Pool traegt zusaetzlich die Vorsaison.*-Felder (Sortierschluessel, siehe
+ * scripts/generate-cl-pool.js). Geprueft wird deshalb Obermenge statt
+ * Gleichheit: jedes Feld aus data-cl2526.js muss da sein und in derselben
+ * Reihenfolge stehen, Zusatzfelder haengen hinten an. */
 const expectedKeys = Object.keys(reference[0]);
+const EXTRA_KEYS = ['Vorsaison.Minuten', 'Vorsaison.Spiele', 'Vorsaison.Rating', 'Vorsaison.Wert'];
 for (const player of pool) {
+  const keys = Object.keys(player);
   assert.deepEqual(
-    Object.keys(player), expectedKeys,
-    `Abweichendes Schema bei player.id ${player['player.id']} (${player.Spielername}).`
+    keys.slice(0, expectedKeys.length), expectedKeys,
+    `Abweichendes Basis-Schema bei player.id ${player['player.id']} (${player.Spielername}).`
   );
+  for (const extra of EXTRA_KEYS) {
+    assert.ok(Object.prototype.hasOwnProperty.call(player, extra),
+      `${player.Spielername}: Feld "${extra}" fehlt – ohne das greift die Leistungssortierung nicht.`);
+    assert.ok(Number.isFinite(Number(player[extra])),
+      `${player.Spielername}: "${extra}" ist keine Zahl (${player[extra]}).`);
+    assert.ok(Number(player[extra]) >= 0,
+      `${player.Spielername}: "${extra}" darf nicht negativ sein (${player[extra]}).`);
+  }
+}
+
+/* ── 2b) Der Sortierschluessel trennt tatsaechlich ──────────────────────── */
+/* Wenn alle Werte 0 waeren, faende die Liste wieder alphabetisch statt nach
+ * Leistung – genau der Zustand, den die Vorsaison-Daten beheben sollen. */
+const withForm = pool.filter((p) => Number(p['Vorsaison.Wert']) > 0);
+assert.ok(withForm.length > pool.length * 0.5,
+  `Nur ${withForm.length} von ${pool.length} Spielern haben Vorsaison-Einsaetze – ` +
+  'da hat der Statistik-Abruf nicht funktioniert.');
+// Wer Minuten hat, muss auch einen Wert haben und umgekehrt.
+for (const player of pool) {
+  const minutes = Number(player['Vorsaison.Minuten']);
+  const value = Number(player['Vorsaison.Wert']);
+  assert.equal(minutes > 0, value > 0,
+    `${player.Spielername}: Minuten (${minutes}) und Wert (${value}) widersprechen sich.`);
 }
 
 /* ── 3) Pflichtfelder ───────────────────────────────────────────────────── */
