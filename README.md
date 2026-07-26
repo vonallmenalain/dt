@@ -142,6 +142,13 @@ importiert `generate-cl-pool.js` aus `generate-kader.js`. Ein Spieler, der
 schon in `data-cl2526.js` steht, erscheint deshalb im neuen Pool mit
 identischem Namen und identischem Schema.
 
+**Spieler ohne Stammdaten.** Für einen Teil der gemeldeten Kaderspieler
+(meist Nachwuchs) führt api-football kein Profil: abgekürzter Name, keine
+Nationalität, kein Geburtsdatum. `data-cl2526.js` enthält solche Einträge
+ebenfalls (70 von 1131), deshalb bleiben sie per Default drin – der Lauf
+listet sie aber vollständig im Log auf. Wer sie draussen haben will,
+setzt den Workflow-Input `skip_incomplete`.
+
 **Nachvollziehbarkeit.** Neben der Kaderdatei entsteht
 `scripts/cl-pool-<key>-clubs.json` mit der Herleitung je Klub (Liga, Rang,
 API-Beschreibung). Korrekturen von Hand gehen über
@@ -280,6 +287,13 @@ cd scripts
 npm test                 # alle Suites nacheinander
 npm run test:freeze      # einzelne Suite, siehe scripts/package.json
 ```
+
+`test:cl2627-pool` prüft die erzeugte `data-cl2627.js` gegen
+`data-cl2526.js`: gleiches Schema, gültige Positionen, eindeutige
+`player.id`, deterministische Sortierung – und vor allem, dass jeder in
+beiden Turnieren vorkommende Spieler **denselben Anzeigenamen** trägt.
+Weil der 26/27-Pool über einen anderen API-Weg entsteht, ist genau das der
+Punkt, an dem eine Abweichung sonst unbemerkt durchrutschen würde.
 
 `test:freeze` ist der **WM-2026-Freeze-Guard**: Punktesystem, Regel-Labels
 und die Captain-Verdopplung (×2) der WM sind eingefroren und dürfen sich

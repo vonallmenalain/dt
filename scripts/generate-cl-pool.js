@@ -43,6 +43,10 @@
  *                     keine Dateien. Für den ersten Blick auf die API.
  *    SQUAD_DELAY_MS   Pause zwischen Spieler-Calls (Default 180 ms).
  *    MAX_TEAMS        Debug-Limit auf die ersten N Klubs (0 = alle).
+ *    SKIP_INCOMPLETE  `1`: Spieler ohne Stammdaten bei api-football (kein
+ *                     Geburtsdatum, keine Nationalität – meist Nachwuchs)
+ *                     verwerfen. Default aus, weil data-cl2526.js solche
+ *                     Einträge ebenfalls enthält.
  *
  *  Ausgabe:
  *    ../data-<key>.js            Spielerpool im bestehenden Schema.
@@ -462,6 +466,7 @@ async function main() {
     process.env.SOURCE_SEASON || (Number(t.season) - 1)
   ).trim();
   const probe = envFlag('PROBE');
+  const skipIncomplete = envFlag('SKIP_INCOMPLETE');
   const squadDelay = envInt('SQUAD_DELAY_MS', DEFAULT_SQUAD_DELAY_MS);
   const maxTeams = envInt('MAX_TEAMS', 0);
 
@@ -537,6 +542,7 @@ async function main() {
 
   const byId = new Map();
   const degraded = [];
+  const incomplete = [];
   const emptySquads = [];
 
   for (let i = 0; i < targets.length; i++) {
@@ -575,6 +581,14 @@ async function main() {
         record = recordFromSquadEntryOnly(team, entry, flagMap, unmatchedNations);
         degraded.push(`${record['Spielername']} (${entry.id}, ${team.name})`);
       }
+      // Nachwuchs-/Reservespieler, zu denen api-football keinerlei Stammdaten
+      // führt: abgekürzter Name, keine Nationalität, kein Geburtsdatum.
+      // data-cl2526.js enthält solche Einträge ebenfalls (70 von 1131), daher
+      // bleiben sie per Default drin – SKIP_INCOMPLETE=1 wirft sie raus.
+      if (!record['Geburtsdatum'] && !record['Nationalteam.name']) {
+        incomplete.push(`${record['Spielername']} (${entry.id}, ${team.name})`);
+        if (skipIncomplete) continue;
+      }
       byId.set(entry.id, record);
       added++;
     }
@@ -599,6 +613,14 @@ async function main() {
   logInfo(`Nationenflaggen gesetzt: ${withFlag}/${players.length} Spieler.`);
   if (degraded.length) {
     logWarn(`Ohne Spielerprofil (nur Kaderdaten): ${degraded.length} – ${degraded.slice(0, 20).join(', ')}${degraded.length > 20 ? ' …' : ''}`);
+  }
+  if (incomplete.length) {
+    logWarn(
+      `Ohne Stammdaten bei api-football (kein Geburtsdatum, keine Nationalität – ` +
+      `meist Nachwuchsspieler): ${incomplete.length} ` +
+      `${skipIncomplete ? 'verworfen (SKIP_INCOMPLETE=1)' : 'behalten (SKIP_INCOMPLETE=1 wirft sie raus)'}.`
+    );
+    logWarn(`  ${incomplete.join(', ')}`);
   }
   if (emptySquads.length) {
     logWarn(`Klubs ohne Kaderdaten: ${emptySquads.join(', ')}`);
