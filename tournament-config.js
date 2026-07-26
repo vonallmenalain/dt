@@ -431,11 +431,16 @@ const APP_CONFIG = (() => {
       key: "cl2627",
       type: "CL",
       year: "2026",
-      name: "Champions League 2026/27",
-      shortLabel: "CL 2026/27",
-      longLabel: "UEFA Champions League 2026/27",
-      brandName: "DreamTeam CL 2026/27",
-      pageTitlePrefix: "CL 2026/27 DreamTeam",
+      name: "Champions League",
+      shortLabel: "Champions League",
+      longLabel: "UEFA Champions League 2026/2027",
+      brandName: "DreamTeam Champions League",
+      pageTitlePrefix: "Champions League DreamTeam",
+      // Saison-Zusatz (klein unter dem Titel); bewusst getrennt vom Namen,
+      // damit „CL" bzw. „26/27" nirgends im Label/Brand auftaucht. Die
+      // Anzeige lautet damit überall „Champions League DreamTeam" +
+      // „Saison 2026/2027" – identisch zur 25/26-Ansicht.
+      seasonLabel: "2026/2027",
       competitionName: "UEFA Champions League",
       timezone: "Europe/Zurich",
 

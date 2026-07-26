@@ -302,6 +302,16 @@ Verdopplung über alle View-Dateien zusammen, damit ein blosser Umzug von
 Code zwischen den Dateien nicht ausschlägt – ein Entfernen oder Ändern
 dagegen schon.
 
+`test:cl-team-writes` bewacht die CL-Ansicht an zwei Stellen, die nur
+zusammen funktionieren: die **Benennung** (beide CL-Turniere heissen
+überall „Champions League DreamTeam" + Saison-Zusatz, nie „CL 26/27") und
+die **Team-Writes** in `firestore.rules`. Fehlt dort der `create`/`update`/
+`delete`-Zweig für die Team-Collection eines CL-Turniers, scheitert jede
+Einreichung mit `permission-denied` – im Builder sichtbar als „Fehler beim
+Speichern. Bitte Verbindung prüfen." Zusätzlich prüft er, dass die
+Deadline-Konstante in den Rules zu `cl2627.DREAMTEAM_START` passt (der Wert
+steht zwangsläufig doppelt).
+
 ---
 
 ## 3) Lazy Registration / Auth
@@ -344,6 +354,26 @@ ein Team unter einer fremden UID liegt, wird mit Code
 „Unter dieser E-Mail-Adresse ist bereits ein Team erfasst." und lädt
 das bestehende Doc zum Editieren.
 
+### Testteam-Modus (nur Admin)
+
+Für Tests, die mehr als ein Team brauchen (Rangliste, Sortierung,
+Punkteverteilung), gibt es im Profil-Dropdown unter **Dev → Team-
+Einreichung → „Testteams (mehrere)"** einen Schalter. Ist er an:
+
+* startet der Builder leer, statt das bestehende Team des Accounts zu
+  laden,
+* legt **jede** Einreichung ein neues Doc an (`saveOrUpdateTeam(payload,
+  { forceCreate: true })` – der Anti-Duplikat-Schutz greift dann nicht),
+* bleibt man nach dem Speichern im Builder stehen: Manager-Namen ändern
+  und das nächste Testteam abschicken, ohne die Aufstellung neu zu bauen.
+  Der Name muss weiterhin eindeutig sein (Duplikat-Prüfung bleibt aktiv).
+
+Der Schalter ist pro Turnier in `localStorage` gemerkt
+(`<storagePrefix>_admin_test_team_mode`) und nur für Admin-UIDs sichtbar
+(`admin.js`). Der Admin-Check steckt zusätzlich in `saveOrUpdateTeam`,
+damit ein manipulierter localStorage-Wert bei normalen Accounts nichts
+bewirkt. Ausschalten lädt wieder das bestehende Team zum Bearbeiten.
+
 ### Public API
 
 ```js
@@ -368,7 +398,9 @@ DreamTeamAuth.hasPendingTeam();
 
 DreamTeamAuth.fetchUserTeam(uid?);             // by userId, dann email-Fallback
 DreamTeamAuth.findTeamByEmail(email);          // case-insensitive
-DreamTeamAuth.saveOrUpdateTeam(payload);       // create-or-update
+DreamTeamAuth.saveOrUpdateTeam(payload, opts?);// create-or-update
+                                               // opts.forceCreate: immer neu (nur Admin)
+DreamTeamAuth.isAdminUser();                   // Admin-Account angemeldet?
 DreamTeamAuth.finalizePendingTeam();           // idempotent
 ```
 
@@ -458,7 +490,15 @@ In der [Firebase Console](https://console.firebase.google.com/project/dreamteam-
 
    - Public-Reads nur für `Teams WM 2026`, `Spiele WM 2026`,
      `Punkte Spieler WM 2026` und das Meta-Dokument
-     `app_meta/turnier_wm2026`.
+     `app_meta/turnier_wm2026` – dazu die beiden CL-Pendants
+     (`Teams CL 2025-26 Test` / `Teams CL 2026-27` samt Spielen, Punkten
+     und Meta-Dokumenten).
+   - Team-Writes gibt es für `Teams WM 2026`, `Teams CL 2025-26 Test`
+     (Test-Turnier, ohne Zeit-Gate) und `Teams CL 2026-27`. Bei der CL
+     2026/27 sind **neue** Teams und Löschungen bis zum ersten
+     Ligaphasen-Spiel (2026-09-08 19:00 UTC) erlaubt, **Updates**
+     dauerhaft – sonst liesse sich das Transferfenster während der Saison
+     nicht nutzen.
    - Team-Writes verlangen verifizierte E-Mail; Eigentum wird über
      `userId` **oder** `userEmailLower` erkannt (Cross-Provider).
    - Team-Schema: genau 15 Spieler, Felder als Allowlist.
