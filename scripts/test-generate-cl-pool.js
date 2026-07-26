@@ -16,6 +16,7 @@ const path = require('node:path');
 
 const {
   classifyClDescription,
+  isWomensEntry,
   pickFinalWinner,
   applyManualOverrides,
   statFromSquadEntry,
@@ -60,6 +61,50 @@ const {
   assert.equal(classifyClDescription('Promotion - CAF Champions League (Group Stage)'), null);
 
   console.log('ok - CL-Tabellenbeschreibungen werden korrekt klassifiziert');
+})();
+
+/* ── Women's Champions League ausschliessen ─────────────────────────────── */
+(function testWomensFilter() {
+  // Alle Fälle stammen aus dem echten Probe-Lauf gegen die API (Saison 2025):
+  // ohne Filter landeten 13 Frauenteams im Pool.
+  const womens = [
+    ['England / FA WSL', 'Champions League', 'Arsenal W'],
+    ['Germany / Frauen Bundesliga', 'Promotion - Champions League Women (League phase)', 'Bayern Munich W'],
+    ['Italy / Serie A Women', 'Champions League', 'Roma W'],
+    ['Spain / Primera División Femenina', 'Champions League', 'Barcelona W'],
+    ['Denmark / Kvindeliga', 'Champions League', 'Køge W'],
+    ['Sweden / Damallsvenskan', 'Promotion - Champions League Women (Qualification - First stage: )', 'Häcken'],
+    ['Romania / Liga 1 Feminin', 'Promotion - Champions League Women (League phase)', 'Farul Constanţa W'],
+    // Ligen ohne Marker im Namen – nur der Teamname verrät sie.
+    ['Norway / Toppserien', 'Champions League', 'Brann W'],
+    ['Finland / Kansallinen Liiga', 'Champions League Qualification', 'HJK W']
+  ];
+  for (const [league, description, team] of womens) {
+    assert.equal(
+      isWomensEntry(league.split(' / ')[1], description, team),
+      true,
+      `${team} (${league}) muss als Frauen-Wettbewerb erkannt werden.`
+    );
+  }
+
+  // Männer-Wettbewerbe dürfen nicht mitgefiltert werden.
+  const mens = [
+    ['Premier League', 'Promotion - Champions League (League phase)', 'Arsenal'],
+    ['Bundesliga', 'Champions League', 'Bayern München'],
+    ['Serie A', 'Promotion - Champions League (League phase)', 'AS Roma'],
+    ['La Liga', 'Promotion - Champions League (League phase)', 'Barcelona'],
+    ['Eliteserien', 'Promotion - Champions League (Qualification)', 'Bodo/Glimt'],
+    ['Süper Lig', 'Champions League', 'Galatasaray'],
+    ['Jupiler Pro League', 'Champions League', 'Club Brugge KV']
+  ];
+  for (const [league, description, team] of mens) {
+    assert.equal(
+      isWomensEntry(league, description, team),
+      false,
+      `${team} (${league}) darf nicht als Frauen-Wettbewerb gelten.`
+    );
+  }
+  console.log('ok - Women\'s Champions League wird zuverlaessig aussortiert');
 })();
 
 /* ── Endspiel-Sieger aus Fixtures ───────────────────────────────────────── */

@@ -117,6 +117,31 @@ const UEFA_ASSOCIATIONS = [
 const UEFA_SET = new Set(UEFA_ASSOCIATIONS.map(normalizeCountryName));
 
 /* ─────────────────────────────────────────────────────────────────────────────
+ *  Women's Champions League ausschliessen
+ *
+ *  Die Frauenligen laufen bei api-football unter demselben Ländernamen und
+ *  tragen in den Tabellen ebenfalls „Champions League"-Beschreibungen. Ohne
+ *  Filter landen Arsenal W, Bayern Munich W, Roma W & Co. im Pool.
+ *
+ *  Drei unabhängige Netze, weil kein einzelnes alles fängt:
+ *    1. Ligaame  – „FA WSL", „Serie A Women", „Frauen Bundesliga", …
+ *    2. Beschreibung – „Promotion - Champions League Women (League phase)".
+ *    3. Teamname – api-football hängt an Frauenteams ein „ W" an
+ *       („Brann W"). Das fängt Ligen ohne Marker im Namen (Toppserien,
+ *       Kansallinen Liiga).
+ *  Rein & nebenwirkungsfrei → unit-testbar.
+ * ───────────────────────────────────────────────────────────────────────────── */
+const WOMENS_MARKERS = /women|\bwsl\b|femen|femin|frauen|damen|kvinde|damallsvenskan/i;
+
+function isWomensEntry(leagueName, description, teamName) {
+  if (WOMENS_MARKERS.test(String(leagueName || ''))) return true;
+  if (WOMENS_MARKERS.test(String(description || ''))) return true;
+  const team = String(teamName || '').trim();
+  if (WOMENS_MARKERS.test(team)) return true;
+  return /\sW$/.test(team);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
  *  Tabellen-Beschreibung klassifizieren
  *
  *  api-football hängt an Tabellenzeilen Texte wie
@@ -200,6 +225,7 @@ async function fetchUefaLeagues(sourceSeason, apiKey) {
 async function fetchClubsFromStandings(leagues, sourceSeason, apiKey) {
   const direct = new Map();      // teamId -> { id, name, logo, country, via }
   const qualifying = [];         // nur zur Info/Logging
+  const womens = [];             // aussortierte Frauen-Wettbewerbe (Logging)
   let scanned = 0;
 
   for (const league of leagues) {
@@ -227,6 +253,10 @@ async function fetchClubsFromStandings(leagues, sourceSeason, apiKey) {
           const via =
             `${league.country} / ${league.name} – Rang ${row.rank} ` +
             `(${String(row.description || '').trim()})`;
+          if (isWomensEntry(league.name, row.description, row.team.name)) {
+            womens.push({ id: row.team.id, name: row.team.name, via });
+            continue;
+          }
           if (kind === 'qualifying') {
             qualifying.push({ id: row.team.id, name: row.team.name, via });
             continue;
@@ -249,7 +279,7 @@ async function fetchClubsFromStandings(leagues, sourceSeason, apiKey) {
     }
   }
 
-  return { direct, qualifying };
+  return { direct, qualifying, womens };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -296,7 +326,7 @@ async function fetchTitleHolder(competitionId, label, sourceSeason, apiKey) {
       name: winner.name,
       logo: winner.logo || '',
       country: '',
-      via: `Titelverteidiger: Sieger ${label} ${sourceSeason}`
+      via: `Titelverteidiger: Sieger ${label} ${sourceSeason}/${String(Number(sourceSeason) + 1).slice(-2)}`
     };
   } catch (err) {
     logWarn(`${label}-Sieger ${sourceSeason} nicht ermittelbar: ${err.message}`);
@@ -444,7 +474,7 @@ async function main() {
   logInfo(`Nationale Ligen in UEFA-Verbänden (Saison ${sourceSeason}): ${leagues.length}`);
 
   /* ── Tabellen scannen ───────────────────────────────────────────────── */
-  const { direct, qualifying } = await fetchClubsFromStandings(leagues, sourceSeason, apiKey);
+  const { direct, qualifying, womens } = await fetchClubsFromStandings(leagues, sourceSeason, apiKey);
   logInfo(`Direkt für die Ligaphase qualifiziert (aus Tabellen): ${direct.size}`);
   for (const c of Array.from(direct.values()).sort((a, b) => a.via.localeCompare(b.via, 'de'))) {
     logInfo(`  ✓ ${c.name} (${c.id}) – ${c.via}`);
@@ -453,6 +483,12 @@ async function main() {
     logInfo(`Nur Qualifikationsrunde (noch NICHT im Pool): ${qualifying.length}`);
     for (const c of qualifying.sort((a, b) => a.via.localeCompare(b.via, 'de'))) {
       logInfo(`  · ${c.name} (${c.id}) – ${c.via}`);
+    }
+  }
+  if (womens.length) {
+    logInfo(`Women's Champions League (nicht Teil dieses Turniers): ${womens.length} aussortiert`);
+    for (const c of womens.sort((a, b) => a.via.localeCompare(b.via, 'de'))) {
+      logInfo(`  ✗ ${c.name} (${c.id}) – ${c.via}`);
     }
   }
 
@@ -617,6 +653,7 @@ if (require.main === module) {
 
 module.exports = {
   classifyClDescription,
+  isWomensEntry,
   pickFinalWinner,
   applyManualOverrides,
   statFromSquadEntry,
