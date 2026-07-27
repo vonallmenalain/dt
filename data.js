@@ -80,6 +80,9 @@
   // 2b) Manuelle Namens-Overrides (synchron) – stellt `window.NAME_OVERRIDES` bereit.
   document.write('<script src="name-overrides.js"><\/script>');
 
+  // 2b2) Namens-Kürzung (synchron) – stellt `window.NAME_SHORTENER` bereit.
+  document.write('<script src="name-shortener.js"><\/script>');
+
   // 3) Overrides direkt anwenden, BEVOR weitere App-Skripte playersData lesen.
   //    Wir mutieren die Array-Einträge in place: `const playersData = [...]`
   //    in den per-Turnier-Daten verbietet zwar Reassignment der Variable,
@@ -175,9 +178,58 @@
     '})(' + serializedKey + ');<\/script>'
   );
 
-  // 3b) Namens-Overrides direkt anwenden (nach den Positions-Overrides, vor
-  //     dem Club-Remap – Namen sind davon unabhängig). Setzt `Spielername`
-  //     und sichert den Originalwert einmalig in `SpielernameOriginal`.
+  // 3a2) Namen auf „Vorname Nachname" kürzen (opt-in pro Turnier via
+  //      `shortenPlayerNames`). Die Kaderdateien kommen aus api-football mit
+  //      Zweitvornamen und spanischen Mutternamen im Anzeigenamen
+  //      ("Aurélien Djani Tchouaméni", "Manuel Obafemi Akanji") – die brechen
+  //      in Karten und Chips um oder werden abgeschnitten.
+  //
+  //      Die Regeln (Partikel wie "van Dijk"/"Mac Allister" bleiben,
+  //      abgekürzte Profile bleiben unangetastet) stehen in
+  //      name-shortener.js und werden vom Kader-Generator mitbenutzt. Der
+  //      Schritt läuft VOR den Namens-Overrides, damit handgepflegte Namen
+  //      (Rufnamen wie "Emiliano Martínez") das letzte Wort behalten.
+  //
+  //      Bewusst hier und nicht nur im Generator: so greift die Kürzung
+  //      sofort auf den bestehenden Kaderdateien, ohne sie neu zu erzeugen.
+  //      Die WM bleibt eingefroren (Flag dort nicht gesetzt).
+  document.write(
+    '<script>(function(activeKey){' +
+      'try {' +
+        'var cfg = window.APP_CONFIG;' +
+        'var t = (cfg && cfg.tournaments) ? cfg.tournaments[activeKey] : null;' +
+        'if (!t || t.shortenPlayerNames !== true) { window.__NAME_SHORTENING_APPLIED__ = { tournament: activeKey, active: false, count: 0 }; return; }' +
+        'var shorten = window.NAME_SHORTENER && window.NAME_SHORTENER.shortenPlayerName;' +
+        'if (typeof shorten !== "function") { window.__NAME_SHORTENING_APPLIED__ = { tournament: activeKey, active: true, count: 0, reason: "no name-shortener.js" }; return; }' +
+        'var data = (typeof playersData !== "undefined" && Array.isArray(playersData)) ? playersData : null;' +
+        'if (!data) { window.__NAME_SHORTENING_APPLIED__ = { tournament: activeKey, active: true, count: 0, reason: "no playersData" }; return; }' +
+        'var applied = 0;' +
+        'var samples = [];' +
+        'for (var i=0;i<data.length;i++) {' +
+          'var p = data[i];' +
+          'if (!p) continue;' +
+          'var current = (p.Spielername == null) ? "" : String(p.Spielername);' +
+          'if (!current) continue;' +
+          'var target = shorten(current);' +
+          'if (!target || target === current) continue;' +
+          'if (typeof p.SpielernameOriginal === "undefined") { p.SpielernameOriginal = p.Spielername; }' +
+          'p.Spielername = target;' +
+          'applied++;' +
+          'if (samples.length < 5) samples.push(current + " → " + target);' +
+        '}' +
+        'window.__NAME_SHORTENING_APPLIED__ = { tournament: activeKey, active: true, count: applied, total: data.length };' +
+        'try { if (applied) console.log("[data.js] Namen gekürzt für " + activeKey + ": " + applied + " von " + data.length + " – z.B. " + samples.join(", ")); } catch(_) {}' +
+      '} catch (err) {' +
+        'try { console.warn("[data.js] Namens-Kürzung fehlgeschlagen:", err); } catch(_) {}' +
+        'window.__NAME_SHORTENING_APPLIED__ = { tournament: activeKey, active: true, count: 0, error: String(err && err.message || err) };' +
+      '}' +
+    '})(' + serializedKey + ');<\/script>'
+  );
+
+  // 3b) Namens-Overrides direkt anwenden (nach den Positions-Overrides und
+  //     der Kürzung, vor dem Club-Remap – Namen sind davon unabhängig). Setzt
+  //     `Spielername` und sichert den Originalwert einmalig in
+  //     `SpielernameOriginal`.
   document.write(
     '<script>(function(activeKey){' +
       'try {' +

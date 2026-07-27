@@ -29,6 +29,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const APP_CONFIG = require('../tournament-config.js');
+const NAME_SHORTENER = require('../name-shortener.js');
 
 const API_HOST = 'v3.football.api-sports.io';
 const PAGE_DELAY_MS = 200;      // freundlich zwischen den Seiten
@@ -125,42 +126,16 @@ function numericOnly(value) {
 }
 
 // Anzeigename: API-Football liefert pro Spieler einen gebräuchlichen
-// Kurznamen (`name`, z. B. "Lamine Yamal", "Vinícius Júnior", "Achraf
-// Hakimi") UND den vollständigen bürgerlichen Namen (firstname+lastname,
-// oft zu lang: "Lamine Yamal Nasraoui Ebana", "Vinícius José Paixão de
-// Oliveira Júnior"). Für die Anzeige wird der kurze `name` bevorzugt;
-// firstname+lastname dient nur als Fallback.
-function firstToken(value) {
-  const parts = String(value == null ? '' : value).trim().split(/\s+/).filter(Boolean);
-  return parts.length ? parts[0] : '';
-}
-
+// Kurznamen (`name`, z. B. "Lamine Yamal", "Vinícius Júnior", oft aber auch
+// nur abgekürzt: "A. Tchouaméni") UND den vollständigen bürgerlichen Namen
+// (firstname+lastname, oft zu lang: firstname "Aurélien Djani" enthält
+// Zweitvornamen, lastname "Cubarsí Paredes" den spanischen Mutternamen).
+//
+// Die eigentliche Logik steht in ../name-shortener.js – dieselbe Datei
+// benutzt data.js im Browser, damit bereits generierte Kaderdateien ohne
+// Neu-Generieren gleich dargestellt werden. Details und Beispiele dort.
 function playerDisplayName(p) {
-  const firstName = String((p && p.firstname) || '').trim();
-  const lastName = String((p && p.lastname) || '').trim();
-  let common = String((p && p.name) || '').trim();
-
-  // Führende Initiale ("A. Hakimi", "J. Bellingham") durch den echten
-  // Vornamen ersetzen, falls vorhanden → "Achraf Hakimi", "Jude Bellingham".
-  const initial = common.match(/^[A-Za-zÀ-ÖØ-öø-ÿ]\.\s+(.+)$/);
-  if (initial && firstName) common = `${firstName} ${initial[1]}`.trim();
-
-  // Kurzer, sauberer Common-Name (≤ 3 Tokens, keine Initiale) direkt nutzen:
-  // deckt "Lamine Yamal", "Vinícius Júnior", "Kylian Mbappé", "Rodri" ab.
-  const tokens = common ? common.split(/\s+/) : [];
-  const looksAbbrev = /(^|\s)[A-Za-zÀ-ÖØ-öø-ÿ]\.(\s|$)/.test(common);
-  if (common && !looksAbbrev && tokens.length >= 1 && tokens.length <= 3) {
-    return common;
-  }
-
-  // Sonst "Vorname Nachname" aus erstem Vornamen- + erstem Nachnamen-Token
-  // bauen (kürzt lange bürgerliche Namen wie "Lucas Rodrigues Carvalho
-  // Anjos" → "Lucas Rodrigues"; spanische/arabische Mehrfachnamen wie
-  // "Achraf Hakimi", "Lamine Yamal" bleiben korrekt).
-  const built = [firstToken(firstName), firstToken(lastName)].filter(Boolean).join(' ').trim();
-  if (built) return built;
-
-  return common || `${firstName} ${lastName}`.trim();
+  return NAME_SHORTENER.buildDisplayName(p || {});
 }
 
 const FLAG_BASE = 'https://media.api-sports.io/flags';
