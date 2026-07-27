@@ -142,6 +142,39 @@ importiert `generate-cl-pool.js` aus `generate-kader.js`. Ein Spieler, der
 schon in `data-cl2526.js` steht, erscheint deshalb im neuen Pool mit
 identischem Namen und identischem Schema.
 
+#### Anzeigenamen: `name-shortener.js`
+
+api-football liefert drei Namensfelder, und keines taugt allein für die
+Anzeige: `name` ist oft abgekürzt („A. Tchouaméni"), `firstname` enthält
+Zweitvornamen („Aurélien Djani") und `lastname` in spanischsprachigen
+Ländern den Mutternamen („Cubarsí Paredes"). Naiv zusammengesetzt entstehen
+Namen mit drei und mehr Wörtern, die in Karten und Chips umbrechen.
+
+`name-shortener.js` kürzt auf „Vorname Nachname" und wird an **zwei**
+Stellen mit derselben Regel benutzt:
+
+* im Generator über `buildDisplayName()` – dort sind `firstname`/`lastname`
+  bekannt, deshalb wird der Rufname anhand der Initiale des Kurznamens
+  gewählt („E. Martínez" + „Damián Emiliano" → „Emiliano") und beim
+  Doppelnachnamen der Vater-, nicht der Muttername behalten;
+* beim Laden im Browser über `data.js` → `shortenPlayerName()`, damit
+  bereits erzeugte Kaderdateien sofort richtig aussehen, ohne sie neu zu
+  generieren. Opt-in pro Turnier via `shortenPlayerNames` (die WM bleibt
+  eingefroren); das Ergebnis steht zur Fehlersuche in
+  `window.__NAME_SHORTENING_APPLIED__`, der Originalname am Spieler in
+  `SpielernameOriginal`.
+
+Erhalten bleiben Nachnamens-Partikel („Virgil van Dijk", „Alexis Mac
+Allister", „Marc-André ter Stegen"), Bindestrich-Namen („Vanja
+Milinković-Savić") und abgekürzte Profile („A. Le Borgne" – dort ist nicht
+erkennbar, was Vor- und was Nachname ist).
+
+Drei Sorten Ausnahmen kann keine Regel kennen; die stehen als
+`player.id` → Name in **`name-overrides.js`** und laufen NACH der Kürzung,
+haben also das letzte Wort: Rufnamen („Noni Madueke"), Doppelnachnamen im
+Browser-Pfad („Pau Cubarsí") und Namen, bei denen drei Wörter richtig sind
+(„Randal Kolo Muani", „Barış Alper Yılmaz").
+
 **Spieler ohne Stammdaten.** Für einen Teil der gemeldeten Kaderspieler
 (meist Nachwuchs) führt api-football kein Profil: abgekürzter Name, keine
 Nationalität, kein Geburtsdatum. `data-cl2526.js` enthält solche Einträge
@@ -294,6 +327,14 @@ npm run test:freeze      # einzelne Suite, siehe scripts/package.json
 beiden Turnieren vorkommende Spieler **denselben Anzeigenamen** trägt.
 Weil der 26/27-Pool über einen anderen API-Weg entsteht, ist genau das der
 Punkt, an dem eine Abweichung sonst unbemerkt durchrutschen würde.
+
+`test:names` bewacht die Anzeigenamen (`name-shortener.js`): Beispiele für
+beide Pfade, dann die **ganze** Spielerliste beider CL-Turniere – nach
+Kürzung und Overrides darf kein Spieler mehr drei Wörter tragen, ausser er
+hat einen erlaubten Grund (Partikel, abgekürztes Profil, ausdrücklicher
+Override). Zusätzlich führt er `data.js` in einem vm-Kontext mit Mini-DOM
+aus: die Blöcke dort sind Strings für `document.write`, ein Syntaxfehler
+darin fiele bei einer reinen Textprüfung nicht auf.
 
 `test:freeze` ist der **WM-2026-Freeze-Guard**: Punktesystem, Regel-Labels
 und die Captain-Verdopplung (×2) der WM sind eingefroren und dürfen sich

@@ -497,6 +497,15 @@ const APP_CONFIG = (() => {
       // dort bewusst nicht gesetzt, um den Teststand nicht zu veraendern.
       hidePlayersWithoutProfile: true,
 
+      // Anzeigenamen auf „Vorname Nachname" kürzen – siehe
+      // name-shortener.js (Regeln) und data.js (Anwendung beim Laden).
+      // api-football liefert Zweitvornamen und spanische Mutternamen mit
+      // ("Aurélien Djani Tchouaméni", "Pau Cubarsí Paredes"); drei und mehr
+      // Wörter brechen in Karten und Chips um. Nachnamens-Partikel
+      // ("van Dijk", "Mac Allister") bleiben erhalten, Rufnamen-Sonderfälle
+      // stehen in name-overrides.js.
+      shortenPlayerNames: true,
+
       api: {
         competitionParam: "league",
         // API-Football Liga-ID der UEFA Champions League.
@@ -640,6 +649,10 @@ const APP_CONFIG = (() => {
       storagePrefix: "dreamteam_cl2526",
       cachePrefix: "dreamteam-cl2526",
       dataFile: "data-cl2526.js",
+
+      // Gleiche Namens-Kürzung wie 26/27 (siehe dort) – der Testkanal soll
+      // die Namen zeigen, die im Ernstfall erscheinen.
+      shortenPlayerNames: true,
 
       firestore: {
         metaCollection: "app_meta",
