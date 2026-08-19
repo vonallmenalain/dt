@@ -162,9 +162,11 @@
 </head>
 <body data-nav-style="hero">
 
-<!-- Der DEV-Umschalter (Pre/Post Spielstart) ist kein Overlay mehr:
-     Er lebt als Eintrag im Dev-Bereich des Profil-Dropdowns oben rechts
-     (siehe index.js → initDevToggle und auth-modal.js → devMenu).
+<!-- Der DEV-Umschalter (Pre/Post Spielstart) ist kein Overlay mehr und
+     auch nicht mehr auf diese Seite beschränkt: Er lebt als Gruppe
+     „Ansicht" im Dev-Bereich des Profil-Dropdowns oben rechts und ist auf
+     JEDER Seite verfügbar (siehe view-mode.js und auth-modal.js → devMenu).
+     index.js hört nur noch auf Änderungen (DreamTeamViewMode.onChange).
      localStorage-Key unverändert: dreamteamIndexViewMode -->
 
 <!-- =====================================================
@@ -646,6 +648,11 @@
 <script src="admin.js"></script>
 <script src="auth.js"></script>
 <script src="auth-modal.js"></script>
+<!-- App-weiter Ansichts-Umschalter (Auto / Vor Start / Nach Start).
+     Registriert die Einträge im Dev-Bereich des Profil-Dropdowns und
+     hält <html data-view> aktuell. Muss nach admin.js + auth-modal.js
+     stehen. -->
+<script src="view-mode.js"></script>
 
 <script src="index.js?v=2026-08-19-firebase-key-13"></script>
 </body>

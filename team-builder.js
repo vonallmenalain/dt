@@ -2812,13 +2812,43 @@
      * frischer Logout aus dem Admin-Account würde nicht zur Sperre
      * zurückführen.
      */
+    /* Hängt einen Callback an den App-weiten Ansichts-Umschalter
+       (view-mode.js → DreamTeamViewMode). Das Modul kann nach diesem
+       Seitenskript geladen werden – dann kurz pollen, wie an den übrigen
+       Dev-Gates im Projekt. */
+    function bindViewModeChange(callback) {
+        function attach() {
+            const ViewMode = window.DreamTeamViewMode;
+            if (!ViewMode || typeof ViewMode.onChange !== 'function') return false;
+            ViewMode.onChange(callback);
+            return true;
+        }
+        if (attach()) return;
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const interval = setInterval(() => {
+            attempts += 1;
+            if (attach() || attempts >= maxAttempts) clearInterval(interval);
+        }, 100);
+    }
+
     function bindTournamentLockToAdminState() {
-        const Admin = window.DreamTeamAdmin;
-        if (!Admin || typeof Admin.onAdminChange !== 'function') return;
-        Admin.onAdminChange(() => {
+        function refreshForViewMode() {
             applyTournamentClosedState();
             updateLateSubmitToggle();
-        });
+        }
+
+        const Admin = window.DreamTeamAdmin;
+        if (Admin && typeof Admin.onAdminChange === 'function') {
+            Admin.onAdminChange(refreshForViewMode);
+        }
+
+        /* Derselbe Neuaufbau, wenn der Admin den App-weiten Ansichts-
+           Umschalter im Profil-Dropdown umstellt (Dev → Ansicht, siehe
+           view-mode.js): „Vor Start“ öffnet die Einreichung hier sofort
+           wieder, „Nach Start“ sperrt sie – ohne Umweg über die Startseite
+           und ohne Page-Reload. */
+        bindViewModeChange(refreshForViewMode);
     }
 
     /* =========================================================

@@ -2425,6 +2425,26 @@
         document.body.classList.toggle('teams-locked', isTeamsLocked());
     }
 
+    /* Hängt einen Callback an den App-weiten Ansichts-Umschalter
+       (view-mode.js → DreamTeamViewMode). Das Modul kann nach diesem
+       Seitenskript geladen werden – dann kurz pollen, wie an den übrigen
+       Dev-Gates im Projekt. */
+    function bindViewModeChange(callback) {
+        function attach() {
+            const ViewMode = window.DreamTeamViewMode;
+            if (!ViewMode || typeof ViewMode.onChange !== 'function') return false;
+            ViewMode.onChange(callback);
+            return true;
+        }
+        if (attach()) return;
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const interval = setInterval(() => {
+            attempts += 1;
+            if (attach() || attempts >= maxAttempts) clearInterval(interval);
+        }, 100);
+    }
+
     async function initRanking() {
         bindStaticEvents();
         applyRanglisteLockState();
@@ -2444,15 +2464,25 @@
         } catch (_) { /* ignore */ }
 
         // Admin-Dev-Override wirkt sofort: bei Statusänderung neu rendern.
+        // Ausgelöst wird das vom Admin-Status selbst (Login/Logout) und vom
+        // App-weiten Ansichts-Umschalter im Profil-Dropdown (Dev → Ansicht,
+        // siehe view-mode.js) – damit lassen sich die gedrafteten Spieler
+        // direkt hier in der Rangliste ein-/ausblenden.
+        function refreshForViewMode() {
+            applyRanglisteLockState();
+            if (typeof renderRankingView === 'function' && hasRenderedOnce) {
+                renderRankingView();
+            }
+        }
+
         try {
             if (window.DreamTeamAdmin && typeof window.DreamTeamAdmin.onAdminChange === 'function') {
-                window.DreamTeamAdmin.onAdminChange(() => {
-                    applyRanglisteLockState();
-                    if (typeof renderRankingView === 'function' && hasRenderedOnce) {
-                        renderRankingView();
-                    }
-                });
+                window.DreamTeamAdmin.onAdminChange(refreshForViewMode);
             }
+        } catch (_) { /* ignore */ }
+
+        try {
+            bindViewModeChange(refreshForViewMode);
         } catch (_) { /* ignore */ }
 
         try {

@@ -11,6 +11,14 @@
        DREAMTEAM_START ist in tournament-config.js definiert.
        localStorage-Key: dreamteamIndexViewMode
        Werte: "auto" | "pre" | "post"
+
+       Der Umschalter selbst lebt seit der App-weiten Umstellung in
+       view-mode.js (window.DreamTeamViewMode) und erscheint im
+       Profil-Dropdown auf JEDER Seite. Diese Datei liest den Modus
+       nur noch und rendert die passende Startseiten-Sektion; auf
+       Moduswechsel reagiert sie über DreamTeamViewMode.onChange().
+       Die Fallbacks unten greifen, falls view-mode.js (entgegen
+       Erwartung) nicht geladen ist.
        ========================================================= */
 
     // Startzeitpunkt aus APP_CONFIG lesen (turnierspezifisch in tournament-config.js).
@@ -29,8 +37,6 @@
         && window.APP_CONFIG.storage.globalKeys
         && window.APP_CONFIG.storage.globalKeys.indexViewMode)
         || "dreamteamIndexViewMode";
-    const DEV_MODES = ["auto", "pre", "post"];
-    const DEV_LABELS = { auto: "Auto", pre: "Vor Start", post: "Nach Start" };
 
     function readStoredDevViewOverride() {
         try {
@@ -66,6 +72,14 @@
      * Ansicht im Frontend ein reines Admin-Werkzeug.
      */
     function getEffectiveIndexViewMode() {
+        // Zentrale Quelle: view-mode.js kennt dieselbe Logik (inkl.
+        // Admin-Gate und Auth-noch-nicht-aufgelöst-Schonfrist) und wird von
+        // allen Seiten geteilt.
+        const ViewMode = window.DreamTeamViewMode;
+        if (ViewMode && typeof ViewMode.getEffective === "function") {
+            return ViewMode.getEffective();
+        }
+
         const Admin = window.DreamTeamAdmin;
         const override = (Admin && typeof Admin.getDevViewOverride === 'function')
             ? Admin.getDevViewOverride()
@@ -227,44 +241,46 @@
     }
 
     /**
-     * Dev-Umschalter für den Ansichtsmodus. Lebt als Eintrag im Dev-Bereich
-     * des Profil-Dropdowns (siehe auth-modal.js → devMenu); früher war das
-     * ein schwebender Knopf oben links. Klick wechselt zyklisch durch
-     * auto → pre → post → auto …, speichert den Modus in localStorage und
-     * wendet ihn sofort an.
+     * Bindet die Startseite an den App-weiten Ansichts-Umschalter.
+     *
+     * Die Menüeinträge (Auto / Vor Start / Nach Start) registriert
+     * view-mode.js zentral – sie erscheinen dadurch im Profil-Dropdown auf
+     * jeder Seite und nicht mehr nur hier. Diese Funktion hängt sich nur
+     * noch an die Änderungen und rendert die Startseite neu.
      *
      * Sichtbarkeit ist Admin-gegated: das Dev-Menü rendert seine Einträge
      * nur für angemeldete Admins (admin.js / DreamTeamAdmin).
      */
     function initDevToggle() {
-        const Modal = window.DreamTeamAuthModal;
-        if (Modal && Modal.devMenu && typeof Modal.devMenu.register === "function") {
-            Modal.devMenu.register({
-                id: "index-view-mode",
-                group: "Ansicht",
-                groupOrder: 10,
-                label: "Startseite",
-                value: () => DEV_LABELS[localStorage.getItem(DEV_TOGGLE_KEY) || "auto"] || DEV_LABELS.auto,
-                accent: "active",
-                title: "Ansichtsmodus umschalten: Auto / Vor Start / Nach Start",
-                // Offen lassen, damit der neue Modus direkt ablesbar ist.
-                keepOpen: true,
-                onSelect: () => {
-                    const current = localStorage.getItem(DEV_TOGGLE_KEY) || "auto";
-                    const nextIdx = (DEV_MODES.indexOf(current) + 1) % DEV_MODES.length;
-                    localStorage.setItem(DEV_TOGGLE_KEY, DEV_MODES[nextIdx]);
-                    updateDevToggleLabel();
-                    if (_lastRenderedData) {
-                        render(_lastRenderedData);
-                    } else {
-                        applyIndexViewMode();
-                    }
-                    // Wenn der Modus wieder auf Auto gestellt wird, planen wir den
-                    // nächsten Live-Flip neu; bei "pre"/"post" wird ein evtl.
-                    // anstehender Auto-Timer in scheduleAutoModeFlip() abgebrochen.
-                    scheduleAutoModeFlip();
+        function rerenderForViewMode() {
+            if (_lastRenderedData) {
+                render(_lastRenderedData);
+            } else {
+                applyIndexViewMode();
+            }
+            // Wenn der Modus wieder auf Auto gestellt wird, planen wir den
+            // nächsten Live-Flip neu; bei "pre"/"post" wird ein evtl.
+            // anstehender Auto-Timer in scheduleAutoModeFlip() abgebrochen.
+            scheduleAutoModeFlip();
+        }
+
+        function hookViewMode() {
+            const ViewMode = window.DreamTeamViewMode;
+            if (!ViewMode || typeof ViewMode.onChange !== "function") return false;
+            ViewMode.onChange(rerenderForViewMode);
+            return true;
+        }
+
+        if (!hookViewMode()) {
+            // view-mode.js kann nach index.js geladen werden – kurz warten.
+            let viewAttempts = 0;
+            const maxViewAttempts = 50; // ~5s
+            const viewInterval = setInterval(() => {
+                viewAttempts += 1;
+                if (hookViewMode() || viewAttempts >= maxViewAttempts) {
+                    clearInterval(viewInterval);
                 }
-            });
+            }, 100);
         }
 
         function hookAdmin() {
