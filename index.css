@@ -3408,6 +3408,16 @@
             color: rgba(255,255,255,0.45);
         }
 
+        /* „n.V." / „n.E." klein unter dem Schlussresultat. */
+        .nm-score-note {
+            display: block;
+            margin-top: 3px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+        }
+
         .nm-live-points {
             display: inline-flex;
             align-items: center;

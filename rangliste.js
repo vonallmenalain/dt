@@ -1931,6 +1931,9 @@
         return rest > 0 ? `Seit ${hours} Std ${rest} Min` : `Seit ${hours} Std`;
     }
 
+    // Schlussresultat eines Spiels. Ein Elfmeterschiessen entscheidet das
+    // Spiel, also steht dessen Resultat da (Final: „4:3 n.E.", nicht „1:1") –
+    // gleiche Konvention wie in der Spiele-Ansicht und im Turnierbaum.
     function formatFixtureScore(fixture) {
         const goals = fixture && fixture.goals;
         if (!goals || goals.home === null || goals.home === undefined || goals.away === null || goals.away === undefined) {
@@ -1939,6 +1942,11 @@
         const home = Number(goals.home);
         const away = Number(goals.away);
         if (!Number.isFinite(home) || !Number.isFinite(away)) return "";
+        const toNum = value => (value === null || value === undefined || value === "" ? null : Number(value));
+        const penalty = (fixture && fixture.score && fixture.score.penalty) || {};
+        const penHome = toNum(penalty.home);
+        const penAway = toNum(penalty.away);
+        if (Number.isFinite(penHome) && Number.isFinite(penAway)) return `${penHome}:${penAway} n.E.`;
         return `${home}:${away}`;
     }
 

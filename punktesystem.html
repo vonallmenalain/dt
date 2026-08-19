@@ -326,6 +326,12 @@
             font-weight: 700;
         }
 
+        /* Mehrere Hinweis-Absätze: etwas Luft dazwischen, damit die Blöcke
+           auseinander lesbar bleiben. Schrift/Grösse/Farbe bleiben gleich. */
+        .captain-notice.notice-stacked .captain-text div + div {
+            margin-top: 8px;
+        }
+
         @media (max-width: 900px) {
             .captain-notice {
                 margin-top: 14px;
@@ -633,9 +639,24 @@
 
         const noticeEl = document.querySelector(".captain-notice");
         if (noticeEl) {
-            noticeEl.setAttribute("aria-label", "Hinweis zur Wertung in der Finalrunde");
+            noticeEl.setAttribute("aria-label", "Hinweise zu Transfers und zur Wertung in der Finalrunde");
+            noticeEl.classList.add("notice-stacked");
+
+            /* Die Transfer-Zahlen kommen aus tournament-config.js
+               (CL_TRANSFERS) – so koennen Erklaertext und Regel-Engine nicht
+               auseinanderlaufen. Turniere ohne Transfer-Feature (WM) zeigen
+               den Absatz gar nicht. */
+            const transfers = (APP.activeTournament && APP.activeTournament.transfers) || null;
+            const transferHtml = (transfers && transfers.enabled !== false && Number(transfers.totalTransfers) > 0)
+                ? `
+                    <div>Über die ganze Saison hast du <strong>maximal ${transfers.totalTransfers} Transfer${Number(transfers.totalTransfers) === 1 ? "" : "s"}</strong> – den Zeitpunkt wählst du frei. Pro Transfer tauschst du <strong>bis zu ${transfers.maxPlayersPerTransfer} Spieler</strong> aus.</div>
+                    <div>Abgegebene Spieler <strong>behalten</strong> alle Punkte bis zum Transfer. Neu geholte Spieler starten bei <strong>0 Punkten</strong> und sammeln erst ab dem Transfer.</div>
+                `
+                : "";
+
             noticeEl.innerHTML = `
                 <div class="captain-text">
+                    ${transferHtml}
                     <div>In der <strong>Finalrunde</strong> werden die Punkte nach regulärer Spielzeit oder nach Verlängerung gewertet (<strong>ohne Elfmeterschiessen</strong>).</div>
                 </div>
             `;
