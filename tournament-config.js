@@ -2131,14 +2131,47 @@ const APP_CONFIG = (() => {
   /* ─────────────────────────────────────────────────────────
    * Firebase-Konfiguration (Projekt-weit identisch).
    * ───────────────────────────────────────────────────────── */
+  /* Firebase-Web-Konfiguration.
+   *
+   * Der API-Key steht bewusst NICHT im Repo. Beim Deploy ersetzt
+   * scripts/build-firebase-config.js den Platzhalter unten durch den Wert
+   * der Umgebungsvariable FIREBASE_API_KEY (Netlify → Site settings →
+   * Environment variables). Fehlt die Variable, bricht der Build ab – ein
+   * Deploy ohne Key gibt es nicht.
+   *
+   * Zur Einordnung: ein Firebase-WEB-Key ist KEIN Geheimnis. Er wird an
+   * jeden Browser ausgeliefert und laesst sich dort im Quelltext lesen.
+   * Ihn aus dem Repo herauszuhalten verhindert Secret-Scanning-Alerts und
+   * macht das Rotieren zu einer Konfig-Aenderung statt eines Commits – der
+   * eigentliche Schutz der Daten kommt aus firestore.rules, den
+   * Key-Restriktionen in der Google Cloud Console und Firebase App Check.
+   *
+   * Die uebrigen Felder sind reine Projekt-Kennungen ohne Schutzbedarf und
+   * bleiben im Repo, damit lokal ohne Build-Step alles ausser Firebase
+   * unveraendert laeuft.
+   */
   const firebaseConfig = {
-    apiKey: "AIzaSyAOrgxmb_NZM1H_HZpMG1XfK9azDgV2zCQ",
+    apiKey: "__FIREBASE_API_KEY__",
     authDomain: "dreamteam-d2121.firebaseapp.com",
     projectId: "dreamteam-d2121",
     storageBucket: "dreamteam-d2121.firebasestorage.app",
     messagingSenderId: "1044159021561",
     appId: "1:1044159021561:web:89c88336b707ab1f4dbd28"
   };
+
+  /* Ist der Platzhalter noch drin (lokale Repo-Kopie ohne Build-Step),
+   * fehlt der Key. Bewusst per Prefix geprueft, damit der Build-Step diese
+   * Zeile nicht selbst mitersetzt. */
+  function hasFirebaseApiKey() {
+    const key = firebaseConfig.apiKey;
+    return typeof key === "string" && key.length > 0 && key.indexOf("__FIREBASE") !== 0;
+  }
+
+  const MISSING_FIREBASE_KEY_MESSAGE =
+    "Firebase-API-Key fehlt. Beim Deploy setzt scripts/build-firebase-config.js "
+    + "den Key aus der Umgebungsvariable FIREBASE_API_KEY ein. Lokal einmalig "
+    + "`FIREBASE_API_KEY=... node scripts/build-firebase-config.js` ausfuehren "
+    + "(die Aenderung danach NICHT committen).";
 
   /* ─────────────────────────────────────────────────────────
    * Punkteregeln & Labels.
@@ -2234,6 +2267,9 @@ const APP_CONFIG = (() => {
     }
 
     if (!window.firebase.apps.length) {
+      if (!hasFirebaseApiKey()) {
+        throw new Error(MISSING_FIREBASE_KEY_MESSAGE);
+      }
       window.firebase.initializeApp(firebaseConfig);
     }
 
@@ -2696,6 +2732,11 @@ const APP_CONFIG = (() => {
     },
 
     firebaseConfig,
+
+    /* Erlaubt anderen Einstiegspunkten (auth-action.html) dieselbe klare
+       Fehlermeldung statt eines kryptischen Firebase-Fehlers. */
+    hasFirebaseApiKey,
+    missingFirebaseApiKeyMessage: MISSING_FIREBASE_KEY_MESSAGE,
 
     /* Punkteregeln & Labels des AKTIVEN Turniers.
      *
