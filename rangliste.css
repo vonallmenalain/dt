@@ -144,22 +144,6 @@
             z-index: 30;
         }
 
-        .rl-hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(var(--rgb-green-1), 0.14);
-            border: 1px solid rgba(var(--rgb-green-1), 0.35);
-            color: var(--green-light);
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            padding: 5px 14px;
-            border-radius: 100px;
-            margin-bottom: 14px;
-        }
-
         .rl-hero-title {
             font-size: clamp(1.8rem, 5vw, 3rem);
             font-weight: 900;
