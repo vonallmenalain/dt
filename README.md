@@ -500,7 +500,89 @@ speichern kann.
 
 ---
 
-## 4) Firebase Console Checklist
+## 4) Firebase-Web-Key & Deploy
+
+Der Firebase-Web-API-Key steht **nicht** im Repo. In `tournament-config.js`
+sitzt nur ein Platzhalter:
+
+```js
+const firebaseConfig = {
+  apiKey: "__FIREBASE_API_KEY__",
+  ...
+};
+```
+
+Beim Deploy ersetzt `scripts/build-firebase-config.js` ihn durch den Wert der
+Umgebungsvariable `FIREBASE_API_KEY`. Netlify ruft das Script automatisch auf
+(`netlify.toml` → `[build]`). Fehlt die Variable, bricht der Build mit
+Exit-Code 1 ab: der Deploy schlägt fehl und die bisherige Version bleibt
+online – besser als eine Seite ohne funktionierendes Firebase.
+
+### Was das bringt – und was nicht
+
+Ein Firebase-**Web**-Key ist kein Geheimnis. Er wird an jeden Browser
+ausgeliefert und lässt sich dort im Quelltext lesen; das gilt für jeden Key,
+egal woher er kommt. Der Build-Step bewirkt zwei Dinge:
+
+- **Kein Secret-Scanning-Alert mehr.** GitHub sieht den Key nie.
+- **Rotieren ist eine Konfig-Änderung**, kein Commit – kein Nachziehen von
+  Git-Historie, kein neuer Alert.
+
+Der eigentliche Schutz der Daten kommt aus drei anderen Ecken:
+
+1. **`firestore.rules`** – Default-Deny, verifizierte E-Mail für Writes,
+   Team-Schema als Allowlist. Das ist die Zugriffskontrolle.
+2. **Key-Restriktionen** (Google Cloud Console → APIs & Services →
+   Credentials → Browser-Key): *Application restrictions* auf HTTP-Referrer
+   (`https://dt.alae.app/*`, Netlify-Preview-Domains, `http://localhost:*/*`),
+   *API restrictions* nur auf die tatsächlich genutzten APIs (Identity
+   Toolkit, Token Service, Firebase Installations, Cloud Firestore).
+   Referrer lassen sich fälschen – das stoppt Gelegenheits-Missbrauch, keinen
+   entschlossenen Angreifer.
+3. **Firebase App Check** (reCAPTCHA v3 + Enforcement auf Firestore/Auth) –
+   der einzige Mechanismus, der fremde Clients wirklich aussperrt. Noch nicht
+   eingebaut.
+
+### Key rotieren
+
+Reihenfolge einhalten, sonst steht die App zwischendurch:
+
+1. **Neuen Key anlegen:** Google Cloud Console → APIs & Services →
+   Credentials → *Create credentials* → *API key*. Sofort einschränken
+   (Referrer + APIs, siehe oben). Projekt bleibt `dreamteam-d2121`; die
+   übrigen Felder (`authDomain`, `projectId`, `appId`, …) ändern sich nicht.
+2. **Netlify:** Site settings → Environment variables → `FIREBASE_API_KEY`
+   auf den neuen Wert setzen, Scope *All deploy contexts* (Deploy Previews
+   brauchen ihn auch, sonst schlagen deren Builds fehl).
+3. **`CACHE_VERSION` in `service-worker.js` erhöhen** und die `?v=`-Parameter
+   in den HTML-Dateien nachziehen. Ohne das behalten Besucher mit warmem
+   Service-Worker-Cache die alte `tournament-config.js` – also den alten Key.
+4. **Deployen** und auf der Live-Seite prüfen: Login, Team speichern,
+   Rangliste laden.
+
+   Achtung: Ist in Netlify **Auto Publishing gesperrt** (Deploys → Button
+   *"Unlock to start auto publishing"*, Kopfzeile zeigt dann *"Published
+   main@<älterer-commit>"*), wird der neue Build zwar erstellt, aber nicht
+   veröffentlicht – live läuft weiter der zuletzt publizierte Stand. Dann den
+   Deploy in der Netlify-Oberfläche manuell publishen, sonst prüfst du die
+   alte Version und hältst den Key fälschlich für kaputt.
+5. **Erst danach** den alten Key in der Cloud Console löschen. Ein paar Tage
+   Abstand einplanen, damit Clients mit altem Cache Zeit haben nachzuziehen.
+
+Lokal mit echtem Key testen:
+
+```bash
+FIREBASE_API_KEY=AIza... node scripts/build-firebase-config.js
+# ... testen ...
+git checkout tournament-config.js   # Key wieder rauswerfen
+```
+
+`npm test` (in `scripts/`) enthält `test:no-key`: der Test schlägt fehl,
+sobald ein Google-API-Key in einer getrackten Datei auftaucht.
+
+---
+
+## 5) Firebase Console Checklist
 
 In der [Firebase Console](https://console.firebase.google.com/project/dreamteam-d2121):
 
@@ -554,7 +636,7 @@ In der [Firebase Console](https://console.firebase.google.com/project/dreamteam-
 
 ---
 
-## 5) Testing-Checkliste (manuell)
+## 6) Testing-Checkliste (manuell)
 
 1. Als Logged-out-Visitor `teams.html`, `rangliste.html`,
    `spieleranalyse.html` öffnen – alles muss lesbar sein.

@@ -388,6 +388,10 @@
             if (!config) {
                 throw new Error('Firebase-Konfiguration fehlt.');
             }
+            // Platzhalter statt Key = Build-Step ist nicht gelaufen.
+            if (window.APP_CONFIG.hasFirebaseApiKey && !window.APP_CONFIG.hasFirebaseApiKey()) {
+                throw new Error(window.APP_CONFIG.missingFirebaseApiKeyMessage || 'Firebase-API-Key fehlt.');
+            }
             if (!window.firebase.apps.length) {
                 window.firebase.initializeApp(config);
             }

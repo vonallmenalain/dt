@@ -1,4 +1,23 @@
 # =============================================================================
+# Netlify-Konfiguration – Build.
+#
+# Die Seite ist statisch (kein Bundler); der Build-Step existiert einzig, um
+# den Firebase-Web-API-Key aus der Umgebungsvariable FIREBASE_API_KEY in
+# tournament-config.js einzusetzen. Im Repo steht dort nur ein Platzhalter.
+#
+# Ist FIREBASE_API_KEY nicht gesetzt, bricht das Script mit Exit-Code 1 ab:
+# Netlify markiert den Deploy als fehlgeschlagen und laesst die bisherige
+# Version online – besser als eine Seite ohne funktionierendes Firebase.
+#
+# Deploy Previews brauchen die Variable ebenfalls (Netlify → Environment
+# variables, Scope "All deploy contexts" bzw. zusaetzlich "Deploy previews").
+# =============================================================================
+
+[build]
+  command = "node scripts/build-firebase-config.js"
+  publish = "."
+
+# =============================================================================
 # Netlify-Konfiguration – Caching.
 #
 # HTML/JS/CSS behalten bewusst Netlifys Default-Verhalten
