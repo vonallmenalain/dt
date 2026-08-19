@@ -225,22 +225,6 @@
             animation: fadeSlideDown 0.55s ease both;
         }
 
-        .ps-hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(var(--rgb-green-1), 0.14);
-            border: 1px solid rgba(var(--rgb-green-1), 0.35);
-            color: var(--green-light);
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            padding: 5px 14px;
-            border-radius: 100px;
-            margin-bottom: 14px;
-        }
-
         .ps-hero-title {
             font-size: clamp(1.8rem, 5vw, 3rem);
             font-weight: 900;
@@ -263,24 +247,26 @@
             background-clip: text;
         }
 
+        /* Intro und Team-Kurzfassung stehen unter dem Hinweis und lesen sich
+           als dessen Fortsetzung – deshalb identisch zu .captain-text. */
         .ps-hero-subtitle {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            margin: 0 0 0;
-            line-height: 1.5;
+            font-size: 0.92rem;
+            line-height: 1.45;
+            color: var(--text-main);
+            margin: 0;
         }
 
         .ps-hero-meta {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.45;
+            color: var(--text-main);
             margin: 8px 0 0;
-            line-height: 1.5;
-            letter-spacing: 0.01em;
         }
 
         @media (max-width: 900px) {
+            .ps-hero-subtitle,
             .ps-hero-meta {
-                font-size: 0.8rem;
+                font-size: 0.86rem;
             }
         }
 
@@ -565,12 +551,9 @@
 
     <!-- HERO -->
     <header class="ps-hero">
-        <div class="ps-hero-badge">📊 Regeln &amp; Punkte</div>
         <h1 class="ps-hero-title" id="page-title">
             <span class="accent">Punkte</span><span class="gold-text">system</span>
         </h1>
-        <p class="ps-hero-subtitle" id="page-intro">So sammeln deine Spieler Punkte für dein DreamTeam.</p>
-        <p class="ps-hero-meta" id="page-meta">15 Spieler&nbsp;&nbsp;·&nbsp;&nbsp;1 Captain&nbsp;&nbsp;·&nbsp;&nbsp;Maximal 1 Spieler pro Nation</p>
 
         <div class="captain-notice" role="note" aria-label="Hinweis zum Captain">
             <span class="captain-badge" aria-hidden="true">C</span>
@@ -579,6 +562,12 @@
                 <div>Stammspieler und Ersatzspieler erhalten gleich viel Punkte</div>
             </div>
         </div>
+
+        <!-- Kurzfassung zum Team: steht bewusst UNTER dem Hinweis, direkt über
+             den Punkte-Kacheln, und übernimmt dessen Schrift, Grösse und Farbe.
+             Die IDs bleiben, das Skript unten füllt beide turnierabhängig. -->
+        <p class="ps-hero-subtitle" id="page-intro">So sammeln deine Spieler Punkte für dein DreamTeam.</p>
+        <p class="ps-hero-meta" id="page-meta">15 Spieler&nbsp;&nbsp;·&nbsp;&nbsp;1 Captain&nbsp;&nbsp;·&nbsp;&nbsp;Maximal 1 Spieler pro Nation</p>
     </header>
 
     <!-- RULES GRID -->
