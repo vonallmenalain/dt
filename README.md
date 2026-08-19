@@ -559,6 +559,13 @@ Reihenfolge einhalten, sonst steht die App zwischendurch:
    Service-Worker-Cache die alte `tournament-config.js` – also den alten Key.
 4. **Deployen** und auf der Live-Seite prüfen: Login, Team speichern,
    Rangliste laden.
+
+   Achtung: Ist in Netlify **Auto Publishing gesperrt** (Deploys → Button
+   *"Unlock to start auto publishing"*, Kopfzeile zeigt dann *"Published
+   main@<älterer-commit>"*), wird der neue Build zwar erstellt, aber nicht
+   veröffentlicht – live läuft weiter der zuletzt publizierte Stand. Dann den
+   Deploy in der Netlify-Oberfläche manuell publishen, sonst prüfst du die
+   alte Version und hältst den Key fälschlich für kaputt.
 5. **Erst danach** den alten Key in der Cloud Console löschen. Ein paar Tage
    Abstand einplanen, damit Clients mit altem Cache Zeit haben nachzuziehen.
 
