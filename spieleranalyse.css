@@ -1620,6 +1620,15 @@
             border-color: var(--glass-border);
         }
 
+        /* „n.E." klein unter dem Resultat der Spielkarte. */
+        .match-score-note {
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
         .match-summary-right {
             display: flex;
             align-items: center;

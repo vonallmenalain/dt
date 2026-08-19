@@ -3786,8 +3786,16 @@
                 </div>
             </div>`;
 
-            const scoreHtml = (isLive || isFinished) && scoreParts ? `
-                <div class="nm-score-display ${isLive ? 'live' : 'finished'}">${escapeHtml(String(scoreParts.home))}<span class="nm-score-sep">:</span>${escapeHtml(String(scoreParts.away))}</div>
+            // Abgeschlossen → Schlussresultat inkl. „n.V."/„n.E." (siehe
+            // getMatchDecisionParts): ein Elfmeterschiessen entscheidet das
+            // Spiel, also steht dessen Resultat da (Final: 4:3, nicht 1:1).
+            // Live zaehlt weiterhin der laufende Stand.
+            const displayScore = isFinished ? (getMatchDecisionParts(match) || scoreParts) : scoreParts;
+            const scoreNoteHtml = (displayScore && displayScore.note)
+                ? `<span class="nm-score-note">${escapeHtml(displayScore.note)}</span>`
+                : '';
+            const scoreHtml = (isLive || isFinished) && displayScore ? `
+                <div class="nm-score-display ${isLive ? 'live' : 'finished'}">${escapeHtml(String(displayScore.home))}<span class="nm-score-sep">:</span>${escapeHtml(String(displayScore.away))}${scoreNoteHtml}</div>
             ` : '';
 
             return `

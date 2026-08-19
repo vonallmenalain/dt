@@ -781,6 +781,14 @@
         return null;
     }
 
+    // Der Resultat-String der Punktedaten kennt nur die Tore. Ging ein Spiel
+    // ins Elfmeterschiessen, holen wir dessen Resultat aus dem gesyncten
+    // Spielplan – entschieden hat das Schiessen (Final: 4:3, nicht 1:1).
+    function getPenaltyShootoutForRawMatchId(rawMatchId) {
+        const entry = findScheduleEntryForRawMatchId(rawMatchId);
+        return entry ? getSchedulePenaltyShootout(entry) : null;
+    }
+
     function getMatchVisualData(matchObj, playerNation) {
         const opponentNation = matchObj.Gegner || '';
         const parsed = parseResultString(matchObj.Resultat || '');
@@ -788,28 +796,49 @@
         let leftName = opponentNation || '-', rightName = playerNation || '-';
         let leftGoals = '-', rightGoals = '-';
         let resultClass = eventOutcome || 'draw';
+        let note = '';
 
         if (parsed) {
+            // Steht links das Heim- oder das Auswaertsteam? Nur so laesst sich
+            // ein Elfmeterschiessen (home/away) richtig herum einsetzen.
+            let leftIsHome = true;
+            // Nur in den ersten beiden Zweigen steht rechts sicher das Team
+            // des Spielers – sonst ist „gewonnen/verloren" nicht aus dem
+            // Resultat ableitbar.
+            let playerSideKnown = true;
             if (parsed.homeName === playerNation) {
                 leftName = opponentNation || parsed.awayName; rightName = playerNation;
                 leftGoals = parsed.awayGoals; rightGoals = parsed.homeGoals;
+                leftIsHome = false;
             } else if (parsed.awayName === playerNation) {
                 leftName = opponentNation || parsed.homeName; rightName = playerNation;
                 leftGoals = parsed.homeGoals; rightGoals = parsed.awayGoals;
             } else if (parsed.homeName === opponentNation) {
+                playerSideKnown = false;
                 leftName = opponentNation; rightName = parsed.awayName;
                 leftGoals = parsed.homeGoals; rightGoals = parsed.awayGoals;
             } else {
+                playerSideKnown = false;
                 leftName = parsed.homeName; rightName = parsed.awayName;
                 leftGoals = parsed.homeGoals; rightGoals = parsed.awayGoals;
             }
-            if (Number(rightGoals) > Number(leftGoals)) resultClass = 'win';
+            const pens = getPenaltyShootoutForRawMatchId(matchObj.MatchID);
+            if (pens) {
+                leftGoals = leftIsHome ? pens.home : pens.away;
+                rightGoals = leftIsHome ? pens.away : pens.home;
+                note = 'n.E.';
+            }
+            if (note && !playerSideKnown && eventOutcome) {
+                // Ohne bekannte Seite weiss das Punkte-Ereignis besser als der
+                // Elfmeter-Stand, ob der Spieler gewonnen oder verloren hat.
+                resultClass = eventOutcome;
+            } else if (Number(rightGoals) > Number(leftGoals)) resultClass = 'win';
             else if (Number(rightGoals) < Number(leftGoals)) resultClass = 'loss';
             else resultClass = eventOutcome || 'draw';
         }
 
         return {
-            leftName, rightName, leftGoals, rightGoals,
+            leftName, rightName, leftGoals, rightGoals, note,
             leftFlag: getNationFlag(leftName), rightFlag: getNationFlag(rightName), resultClass
         };
     }
@@ -1554,6 +1583,7 @@
                                     <div class="match-score ${matchVisual.resultClass}">
                                         ${matchVisual.leftGoals} : ${matchVisual.rightGoals}
                                     </div>
+                                    ${matchVisual.note ? `<div class="match-score-note" title="Nach Elfmeterschiessen">${escapeHtml(matchVisual.note)}</div>` : ''}
                                     ${liveIndicatorHtml}
                                 </div>
                                 <div class="match-side right${rightSideClass}">
@@ -5368,9 +5398,18 @@
             const second = homeIsFirst ? an : hn;
             const pairKey = first + '|' + second;
             let e = map.get(pairKey);
-            if (!e) { e = { firstGoals: 0, secondGoals: 0, firstWin: false, secondWin: false, legs: 0 }; map.set(pairKey, e); }
+            if (!e) { e = { firstGoals: 0, secondGoals: 0, firstWin: false, secondWin: false, legs: 0, pens: null }; map.set(pairKey, e); }
             e.firstGoals += homeIsFirst ? hg : ag;
             e.secondGoals += homeIsFirst ? ag : hg;
+            // Elfmeterschiessen entscheidet die Paarung – Resultat merken
+            // (in der First/Second-Orientierung des Paar-Schluessels).
+            const shootout = getSchedulePenaltyShootout(m);
+            if (shootout) {
+                e.pens = {
+                    first: homeIsFirst ? shootout.home : shootout.away,
+                    second: homeIsFirst ? shootout.away : shootout.home
+                };
+            }
             const hw = m.homeWinner === true;
             const aw = m.awayWinner === true;
             if (homeIsFirst) { if (hw) e.firstWin = true; if (aw) e.secondWin = true; }
@@ -5392,16 +5431,20 @@
         if (!e) return null;
         const homeGoals = homeIsFirst ? e.firstGoals : e.secondGoals;
         const awayGoals = homeIsFirst ? e.secondGoals : e.firstGoals;
+        const penHome = e.pens ? (homeIsFirst ? e.pens.first : e.pens.second) : null;
+        const penAway = e.pens ? (homeIsFirst ? e.pens.second : e.pens.first) : null;
         let winnerKey = null;
         if (homeGoals > awayGoals) winnerKey = homeRow.key;
         else if (awayGoals > homeGoals) winnerKey = awayRow.key;
-        else {
+        else if (Number.isFinite(penHome) && Number.isFinite(penAway) && penHome !== penAway) {
+            winnerKey = penHome > penAway ? homeRow.key : awayRow.key;
+        } else {
             const homeWin = homeIsFirst ? e.firstWin : e.secondWin;
             const awayWin = homeIsFirst ? e.secondWin : e.firstWin;
             if (homeWin && !awayWin) winnerKey = homeRow.key;
             else if (awayWin && !homeWin) winnerKey = awayRow.key;
         }
-        return { winnerKey, homeGoals, awayGoals, legs: e.legs };
+        return { winnerKey, homeGoals, awayGoals, penHome, penAway, legs: e.legs };
     }
 
     function resolveLeagueBracket(context) {
@@ -5416,6 +5459,7 @@
             let winnerKey = null;
             let homeGoals = null;
             let awayGoals = null;
+            let pens = false;
             let resolved = false;
             let hasResult = false;
             if (manual) {
@@ -5428,8 +5472,11 @@
                 const real = lookupLeagueKnockout(koIndex, home.row, away.row);
                 if (real) {
                     hasResult = true;
-                    homeGoals = real.homeGoals;
-                    awayGoals = real.awayGoals;
+                    // Nach einem Elfmeterschiessen steht dessen Resultat als
+                    // Endstand da (Final: 4:3, nicht 1:1).
+                    pens = Number.isFinite(real.penHome) && Number.isFinite(real.penAway);
+                    homeGoals = pens ? real.penHome : real.homeGoals;
+                    awayGoals = pens ? real.penAway : real.awayGoals;
                     if (real.winnerKey) { winnerKey = real.winnerKey; resolved = true; }
                 }
             }
@@ -5439,7 +5486,7 @@
                 awayRow: away ? away.row : null,
                 homeKey: home ? home.key : null,
                 awayKey: away ? away.key : null,
-                winnerKey, homeGoals, awayGoals, resolved, hasResult
+                winnerKey, homeGoals, awayGoals, pens, resolved, hasResult
             };
             return res[id];
         }
@@ -5516,10 +5563,14 @@
         const cls = ['clb-tie', `clb-tie--${roundKey}`];
         if (r && r.resolved) cls.push('clb-tie--done');
         if (pickable) cls.push('clb-tie--pickable');
+        // Nach Elfmeterschiessen entschieden → kleiner Zusatz unter der Paarung
+        // (der Endstand oben ist dann bereits das Elfmeterschiessen-Resultat).
+        const penNote = (r && r.pens) ? '<div class="clb-legs">n.E.</div>' : '';
         return `<div class="${cls.join(' ')}" data-tie="${escapeHtml(id)}">`
             + `<div class="clb-tie-head">${escapeHtml(leagueTieLabel(id))}</div>`
             + renderLeagueSlot(id, 'home', r, homePh, pickable)
             + renderLeagueSlot(id, 'away', r, awayPh, pickable)
+            + penNote
             + '</div>';
     }
 
@@ -5584,14 +5635,28 @@
             e.bGoals += bG;
             const hw = m.homeWinner === true;
             const aw = m.awayWinner === true;
-            e.legs.push({ aG, bG, aWin: homeIsFirst ? hw : aw, bWin: homeIsFirst ? aw : hw, ms: getScheduleKickoffMs(m) || 0 });
+            // Elfmeterschiessen des Legs in dieselbe A/B-Orientierung
+            // bringen wie die Tore.
+            const shootout = getSchedulePenaltyShootout(m);
+            const pens = shootout
+                ? { a: homeIsFirst ? shootout.home : shootout.away, b: homeIsFirst ? shootout.away : shootout.home }
+                : null;
+            e.legs.push({ aG, bG, pens, aWin: homeIsFirst ? hw : aw, bWin: homeIsFirst ? aw : hw, ms: getScheduleKickoffMs(m) || 0 });
         });
-        // Sieger je Paarung bestimmen: Aggregat, bei Gleichstand entscheidet
-        // das (letzte) Spiel per Sieger-Flag → Elfmeterschiessen.
+        // Sieger je Paarung bestimmen: Aggregat, bei Gleichstand das
+        // Elfmeterschiessen – und falls dessen Resultat fehlt, das
+        // Sieger-Flag des (letzten) Spiels.
         Object.values(tiers).forEach(map => map.forEach(e => {
             e.legs.sort((x, y) => x.ms - y.ms);
+            // Entschieden hat ein Elfmeterschiessen das (letzte) Leg, in dem
+            // geschossen wurde – dessen Resultat gilt fuer die ganze Paarung.
+            e.pens = null;
+            for (let i = e.legs.length - 1; i >= 0; i--) {
+                if (e.legs[i].pens) { e.pens = e.legs[i].pens; break; }
+            }
             if (e.aGoals > e.bGoals) e.winner = 'a';
             else if (e.bGoals > e.aGoals) e.winner = 'b';
+            else if (e.pens && e.pens.a !== e.pens.b) e.winner = e.pens.a > e.pens.b ? 'a' : 'b';
             else {
                 const last = e.legs[e.legs.length - 1] || {};
                 if (last.aWin && !last.bWin) e.winner = 'a';
@@ -5636,7 +5701,14 @@
 
     function renderActualSlot(tie, side, row) {
         const part = tie ? (side === 'home' ? tie.a : tie.b) : null;
-        const goals = tie ? (side === 'home' ? tie.aGoals : tie.bGoals) : null;
+        // Nach einem Elfmeterschiessen zaehlt dessen Resultat als Endstand der
+        // Paarung (Final: 4:3, nicht 1:1) – gleiche Konvention wie auf den
+        // Spielkarten unter „Spiele" und im WM-Turnierbaum.
+        const goals = tie
+            ? (tie.pens
+                ? (side === 'home' ? tie.pens.a : tie.pens.b)
+                : (side === 'home' ? tie.aGoals : tie.bGoals))
+            : null;
         const isWinner = !!(tie && tie.winner && (side === 'home' ? tie.winner === 'a' : tie.winner === 'b'));
         const isLoser = !!(tie && tie.winner && !isWinner && part);
         const cls = ['clb-slot'];
@@ -5659,13 +5731,16 @@
     }
 
     // Einzelresultate der Paarung klein unter den beiden Teams (aus Sicht des
-    // oben stehenden Teams A). Zwei-Leg-Ties zeigen Hin- und Rückspiel.
+    // oben stehenden Teams A). Zwei-Leg-Ties zeigen Hin- und Rückspiel; ein
+    // im Elfmeterschiessen entschiedenes Spiel zeigt dessen Resultat.
     function renderActualLegs(tie) {
         if (!tie || !tie.legs || !tie.legs.length) return '';
-        const parts = tie.legs.map(l => `${l.aG}:${l.bG}`);
-        // Aggregat ausgeglichen, aber trotzdem ein Sieger → im
-        // Elfmeterschiessen entschieden (kleiner Zusatz).
-        const pens = !!(tie.winner && tie.aGoals === tie.bGoals);
+        // Pro Leg das offizielle Schlussresultat: ging ein Spiel ins
+        // Elfmeterschiessen, steht dessen Resultat da (Final: 4:3, nicht 1:1).
+        const parts = tie.legs.map(l => (l.pens ? `${l.pens.a}:${l.pens.b}` : `${l.aG}:${l.bG}`));
+        // Elfmeterschiessen entweder durch Daten belegt oder daraus
+        // erschlossen, dass es trotz ausgeglichenem Aggregat einen Sieger gibt.
+        const pens = !!tie.pens || !!(tie.winner && tie.aGoals === tie.bGoals);
         const text = parts.join(' · ') + (pens ? ' · n.E.' : '');
         return `<div class="clb-legs">${escapeHtml(text)}</div>`;
     }
@@ -5722,10 +5797,7 @@
                 + `<span class="clb-champion-name">${escapeHtml(champName)}</span>🏆</div>`
             : '';
 
-        const note = 'Tatsächlicher Turnierbaum aus den gespielten Finalrunden-Spielen: echte Paarungen und Sieger, das Aggregat je Klub rechts, die Einzelresultate (Hin-/Rückspiel) klein unter jeder Paarung.';
-
         return `<div class="clb-wrap clb-wrap--actual">`
-            + `<p class="clb-note">${escapeHtml(note)}</p>`
             + champ
             + `<div class="clb-scroller"><div class="clb-cols">${cols}</div></div>`
             + `</div>`;
@@ -5767,11 +5839,11 @@
             : '';
 
         const note = manual
-            ? 'Manueller Modus: Tippe in jeder Paarung auf den Sieger und spiele dich bis zum Finale durch. Die Setzung folgt deiner (frei sortierbaren) Ligatabelle.'
+            ? ''
             : 'Projektion nach Ligaphasen-Platzierung: Top 8 direkt ins Achtelfinale, Ränge 9–24 in die Playoffs. Ergebnisse werden – sofern gesynct – automatisch übernommen; die tatsächliche Auslosung kann innerhalb der Setzung abweichen.';
 
         return `<div class="clb-wrap">`
-            + `<p class="clb-note">${escapeHtml(note)}</p>`
+            + (note ? `<p class="clb-note">${escapeHtml(note)}</p>` : '')
             + champ
             + `<div class="clb-scroller"><div class="clb-cols">${cols}</div></div>`
             + `</div>`;
@@ -5869,7 +5941,7 @@
         if (leagueTournamentUiReady || !isLeagueStructure()) return;
         leagueTournamentUiReady = true;
         const heroSub = document.querySelector('#view-tournament .tournament-hero .cmp-hero-subtitle');
-        if (heroSub) heroSub.textContent = 'Ligatabelle und Finalrunde der Champions League.';
+        if (heroSub) heroSub.remove();
         const groupsPill = document.querySelector('.tour-pill[data-tournament-tab="groups"]');
         if (groupsPill) groupsPill.textContent = 'Ligatabelle';
         const hintText = document.querySelector('#tournament-manual-hint .tournament-manual-hint-text');
