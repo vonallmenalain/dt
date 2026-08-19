@@ -553,6 +553,7 @@
      *    label       String oder () => String (bei refresh() neu ausgewertet)
      *    value       optional, rechtsbündiger Statustext (String oder Funktion)
      *    accent      optional 'active' | 'info' | 'danger' – nur Farbe
+     *                (String oder Funktion, bei refresh() neu ausgewertet)
      *    disabled    optional Boolean oder () => Boolean
      *    onSelect    Klick-Handler
      *    keepOpen    true → Dropdown bleibt nach dem Klick offen (Default: false)
@@ -604,7 +605,11 @@
 
             const disabled = !!resolveDevValue(item.disabled, item);
             const value = resolveDevValue(item.value, item);
-            const accent = item.accent ? ` is-${item.accent}` : '';
+            // `accent` darf – wie label/value/disabled – auch eine Funktion
+            // sein, damit ein Eintrag seine Hervorhebung bei refresh() neu
+            // bestimmen kann (z.B. die aktive Zeile im Ansichts-Umschalter).
+            const accentName = resolveDevValue(item.accent, item);
+            const accent = accentName ? ` is-${accentName}` : '';
 
             const button = el('button', {
                 type: 'button',

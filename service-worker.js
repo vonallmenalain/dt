@@ -41,7 +41,7 @@
  *  App-Shell mit cache:'no-cache' frisch, aktiviert sich per skipWaiting,
  *  und nav.js lädt die Seite beim controllerchange einmal neu.
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-08-19-firebase-key-43';
+const CACHE_VERSION = 'v2026-08-19-view-mode-44';
 const NAV_TIMEOUT_MS = 2500;
 const ASSET_TIMEOUT_MS = 3000;
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
@@ -71,6 +71,7 @@ const APP_SHELL = [
   './auth.js',
   './auth-modal.js',
   './auth-modal.css',
+  './view-mode.js',
   './anime.min.js',
   './tournament-config.js',
   './country-aliases.js',

@@ -395,6 +395,53 @@ ein Team unter einer fremden UID liegt, wird mit Code
 „Unter dieser E-Mail-Adresse ist bereits ein Team erfasst." und lädt
 das bestehende Doc zum Editieren.
 
+### Ansicht umschalten: Vor Start / Nach Start / Auto (nur Admin)
+
+Der Anzeigemodus entscheidet **app-weit**, ob die App den Zustand vor
+oder nach dem Anpfiff (`DREAMTEAM_START`) zeigt:
+
+| Modus | Wirkung |
+| --- | --- |
+| **Auto** | folgt dem echten Anpfiff (Default für alle Nutzer) |
+| **Vor Start** | Kader versteckt (`body.teams-locked`), Einreichung offen, Startseite zeigt `#indexHomePreStart` |
+| **Nach Start** | Kader sichtbar, Einreichung gesperrt, Startseite zeigt `#indexHomePostStart` |
+
+Umgestellt wird im **Profil-Dropdown → Dev → Ansicht** – und zwar auf
+*jeder* Seite, nicht nur auf der Startseite. Der Wechsel wirkt sofort und
+ohne Reload: `teams.html`, `rangliste.html` und `spieleranalyse.html`
+blenden die gedrafteten Spieler direkt ein bzw. aus, `team-builder.html`
+öffnet bzw. sperrt die Einreichung, `index.html` tauscht die Sektion.
+
+Die Mechanik steckt in `view-mode.js` (`window.DreamTeamViewMode`):
+
+```js
+DreamTeamViewMode.get();            // "auto" | "pre" | "post" (gespeichert)
+DreamTeamViewMode.set('post');      // umstellen + alle Seiten benachrichtigen
+DreamTeamViewMode.getEffective();   // "pre" | "post" (wirksam, inkl. Admin-Gate)
+DreamTeamViewMode.isPre();          // Kurzform
+DreamTeamViewMode.onChange(({ mode, effective, effectiveChanged }) => { … });
+```
+
+Wer eine neue Seite baut, bindet `view-mode.js` nach `auth-modal.js` ein
+(dann erscheint der Umschalter dort automatisch) und hängt seinen
+Re-Render an `DreamTeamViewMode.onChange`. Zusätzlich hält das Modul
+`<html data-view="pre|post">` aktuell, sodass CSS ohne JS auf den Modus
+reagieren kann (nutzt `index.css` bereits für die Startseiten-Sektionen).
+
+Gespeichert wird global in `localStorage['dreamteamIndexViewMode']` –
+bewusst **nicht** turnier-namespaced, weil das Pre-Flight-Skript im
+`<head>` von `index.html` den Wert liest, bevor `tournament-config.js`
+geladen ist (FOUC-Schutz). Ein zweiter offener Tab zieht über das
+`storage`-Event automatisch nach.
+
+**Sicherheit:** Der Override gilt nur für angemeldete Admin-UIDs
+(`admin.js` → `getDevViewOverride`). Bei allen anderen Nutzern wird ein
+per DevTools gesetzter localStorage-Wert ignoriert und die App fällt auf
+den echten `DREAMTEAM_START` zurück. Das ist eine reine UI-Schranke – die
+Abgabe-Sperre selbst hängt zusätzlich an den Firestore Rules.
+
+Regressionstest: `npm run test:view-mode` (`scripts/test-view-mode.js`).
+
 ### Testteam-Modus (nur Admin)
 
 Für Tests, die mehr als ein Team brauchen (Rangliste, Sortierung,

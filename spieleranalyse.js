@@ -8154,6 +8154,26 @@
         document.body.classList.toggle('teams-locked', isTeamsLocked());
     }
 
+    /* Hängt einen Callback an den App-weiten Ansichts-Umschalter
+       (view-mode.js → DreamTeamViewMode). Das Modul kann nach diesem
+       Seitenskript geladen werden – dann kurz pollen, wie an den übrigen
+       Dev-Gates im Projekt. */
+    function bindViewModeChange(callback) {
+        function attach() {
+            const ViewMode = window.DreamTeamViewMode;
+            if (!ViewMode || typeof ViewMode.onChange !== 'function') return false;
+            ViewMode.onChange(callback);
+            return true;
+        }
+        if (attach()) return;
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const interval = setInterval(() => {
+            attempts += 1;
+            if (attach() || attempts >= maxAttempts) clearInterval(interval);
+        }, 100);
+    }
+
     // Statische „Land/Länder"-Beschriftungen der Analyse-Seite bei
     // club-zentrierten Turnieren (CL) auf „Club" umstellen. Für die WM
     // (nations-zentriert) ein No-op.
@@ -8218,17 +8238,27 @@
             }
         } catch (_) { /* ignore */ }
 
-        // Admin-Override: bei Login/Logout des Admin-Accounts neu rendern.
+        // Admin-Override: neu rendern, wenn sich der wirksame Modus ändert.
+        // Auslöser sind der Admin-Status selbst (Login/Logout) und der
+        // App-weite Ansichts-Umschalter im Profil-Dropdown (Dev → Ansicht,
+        // siehe view-mode.js) – „Gewählt von …“ und Captain-Badges lassen
+        // sich damit direkt hier ein-/ausblenden.
+        function refreshForViewMode() {
+            applyAnalysisLockState();
+            const lastData = window.__spaLastData;
+            if (lastData && hasRenderedOnce && typeof applyDataset === 'function') {
+                applyDataset(lastData, { preserveCurrentPlayer: true });
+            }
+        }
+
         try {
             if (window.DreamTeamAdmin && typeof window.DreamTeamAdmin.onAdminChange === 'function') {
-                window.DreamTeamAdmin.onAdminChange(() => {
-                    applyAnalysisLockState();
-                    const lastData = window.__spaLastData;
-                    if (lastData && hasRenderedOnce && typeof applyDataset === 'function') {
-                        applyDataset(lastData, { preserveCurrentPlayer: true });
-                    }
-                });
+                window.DreamTeamAdmin.onAdminChange(refreshForViewMode);
             }
+        } catch (_) { /* ignore */ }
+
+        try {
+            bindViewModeChange(refreshForViewMode);
         } catch (_) { /* ignore */ }
 
         try {

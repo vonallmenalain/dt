@@ -2110,6 +2110,26 @@
         }
     }
 
+    /* Hängt einen Callback an den App-weiten Ansichts-Umschalter
+       (view-mode.js → DreamTeamViewMode). Das Modul kann nach diesem
+       Seitenskript geladen werden – dann kurz pollen, wie an den übrigen
+       Dev-Gates im Projekt. */
+    function bindViewModeChange(callback) {
+        function attach() {
+            const ViewMode = window.DreamTeamViewMode;
+            if (!ViewMode || typeof ViewMode.onChange !== 'function') return false;
+            ViewMode.onChange(callback);
+            return true;
+        }
+        if (attach()) return;
+        let attempts = 0;
+        const maxAttempts = 50; // ~5s
+        const interval = setInterval(() => {
+            attempts += 1;
+            if (attach() || attempts >= maxAttempts) clearInterval(interval);
+        }, 100);
+    }
+
     /* =====================================================
        INIT
        ===================================================== */
@@ -2125,17 +2145,27 @@
 
         // Wenn ein Admin den Dev-Override umstellt, ändert sich
         // isTeamsLocked() – wir reagieren live, ohne Page-Reload.
-        if (window.DreamTeamAdmin && typeof window.DreamTeamAdmin.onAdminChange === 'function') {
-            window.DreamTeamAdmin.onAdminChange(() => {
-                applyTeamsLockState();
-                const currentDisplayed = document.getElementById('display-manager-name');
-                if (currentDisplayed && Array.isArray(allTeams)) {
-                    const name = currentDisplayed.textContent.trim();
-                    const team = allTeams.find(t => t.manager === name);
-                    if (team) loadTeam(team);
-                }
-            });
+        //
+        // Zwei Auslöser:
+        //   1. Admin-Status (Login/Logout) – der Override gilt nur für Admins.
+        //   2. Der App-weite Ansichts-Umschalter im Profil-Dropdown
+        //      (Dev → Ansicht, siehe view-mode.js). Dadurch lassen sich die
+        //      Kader direkt hier auf teams.html ein-/ausblenden, ohne dafür
+        //      auf die Startseite wechseln zu müssen.
+        function refreshForViewMode() {
+            applyTeamsLockState();
+            const currentDisplayed = document.getElementById('display-manager-name');
+            if (currentDisplayed && Array.isArray(allTeams)) {
+                const name = currentDisplayed.textContent.trim();
+                const team = allTeams.find(t => t.manager === name);
+                if (team) loadTeam(team);
+            }
         }
+
+        if (window.DreamTeamAdmin && typeof window.DreamTeamAdmin.onAdminChange === 'function') {
+            window.DreamTeamAdmin.onAdminChange(refreshForViewMode);
+        }
+        bindViewModeChange(refreshForViewMode);
 
         initSearchListeners();
         initModalEvents();
