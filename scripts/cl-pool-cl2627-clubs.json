@@ -2,10 +2,16 @@
   "tournament": "cl2627",
   "season": "2026",
   "sourceSeason": "2025",
-  "clubCount": 29,
-  "playerCount": 826,
-  "openSlots": 7,
+  "clubCount": 36,
+  "playerCount": 1188,
+  "openSlots": 0,
   "clubs": [
+    {
+      "id": 575,
+      "name": "AEK Athens FC",
+      "country": "",
+      "via": "Qualifikation: Sieger der Play-off-Runde 2026/27"
+    },
     {
       "id": 42,
       "name": "Arsenal",
@@ -43,6 +49,12 @@
       "via": "Germany / Bundesliga – Rang 1 (Champions League)"
     },
     {
+      "id": 327,
+      "name": "Bodo/Glimt",
+      "country": "",
+      "via": "Qualifikation: Sieger der Play-off-Runde 2026/27"
+    },
+    {
       "id": 165,
       "name": "Borussia Dortmund",
       "country": "Germany",
@@ -67,6 +79,12 @@
       "via": "Portugal / Primeira Liga – Rang 1 (Promotion - Champions League (League phase))"
     },
     {
+      "id": 611,
+      "name": "Fenerbahçe",
+      "country": "",
+      "via": "Qualifikation: Sieger der Play-off-Runde 2026/27"
+    },
+    {
       "id": 209,
       "name": "Feyenoord",
       "country": "Netherlands",
@@ -83,6 +101,12 @@
       "name": "Inter",
       "country": "Italy",
       "via": "Italy / Serie A – Rang 1 (Promotion - Champions League (League phase))"
+    },
+    {
+      "id": 1026,
+      "name": "Lask Linz",
+      "country": "",
+      "via": "Qualifikation: Sieger der Play-off-Runde 2026/27"
     },
     {
       "id": 116,
@@ -151,6 +175,12 @@
       "via": "Spain / La Liga – Rang 2 (Promotion - Champions League (League phase))"
     },
     {
+      "id": 13976,
+      "name": "Sabah FA",
+      "country": "",
+      "via": "Qualifikation: Sieger der Play-off-Runde 2026/27"
+    },
+    {
       "id": 550,
       "name": "Shakhtar Donetsk",
       "country": "Ukraine",
@@ -163,6 +193,12 @@
       "via": "Czech-Republic / Czech Liga – Rang 1 (Champions League)"
     },
     {
+      "id": 656,
+      "name": "Slovan Bratislava",
+      "country": "",
+      "via": "Qualifikation: Sieger der Play-off-Runde 2026/27"
+    },
+    {
       "id": 228,
       "name": "Sporting CP",
       "country": "Portugal",
@@ -173,6 +209,12 @@
       "name": "VfB Stuttgart",
       "country": "Germany",
       "via": "Germany / Bundesliga – Rang 4 (Champions League)"
+    },
+    {
+      "id": 759,
+      "name": "Viking",
+      "country": "",
+      "via": "Qualifikation: Sieger der Play-off-Runde 2026/27"
     },
     {
       "id": 533,
