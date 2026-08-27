@@ -9,8 +9,10 @@ name: CL Vorschau-Spielerpool
 #   1. Abschlusstabellen der nationalen UEFA-Ligen der Vorsaison lesen und
 #      daraus die direkt für die Ligaphase qualifizierten Klubs ableiten.
 #   2. Titelverteidiger (CL- und Europa-League-Sieger) ergänzen.
-#   3. Aktuellen Kader je Klub + Spielerprofile laden.
-#   4. data-<key>.js schreiben (identisches Schema und identische
+#   3. Sieger der Qualifikations-Play-offs aus dem Wettbewerb selbst lesen
+#      (Runde "Play-offs", Gesamtscore beider Spiele).
+#   4. Aktuellen Kader je Klub + Spielerprofile laden.
+#   5. data-<key>.js schreiben (identisches Schema und identische
 #      Namenslogik wie beim regulären Kader-Generator).
 #
 # Benötigtes Repo-Secret:

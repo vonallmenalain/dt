@@ -26,9 +26,15 @@
  *  VORSAISON. api-football hängt an jede Tabellenzeile eine `description`
  *  (z. B. „Promotion - Champions League (League Phase: )"). Daraus lässt sich
  *  ableiten, wer DIREKT in der Ligaphase steht und wer nur in die
- *  Qualifikation geht – letztere zählen (noch) nicht zum Pool. Dazu kommen
- *  die Titelverteidiger (CL- und Europa-League-Sieger der Vorsaison), die
- *  gesetzt sind.
+ *  Qualifikation geht. Dazu kommen die Titelverteidiger (CL- und Europa-
+ *  League-Sieger der Vorsaison), die gesetzt sind.
+ *
+ *  Die restlichen Startplätze vergibt die Play-off-Runde der laufenden Saison
+ *  (Ende August). Deren Sieger stehen in keiner Ligatabelle – sie werden
+ *  direkt aus dem Wettbewerb gelesen (`/fixtures?league=<comp>&season=<saison>`,
+ *  Runde „Play-offs") und über den Gesamtscore beider Spiele ermittelt.
+ *  Solange die Runde nicht gespielt ist, bleibt der Pool bei den direkt
+ *  qualifizierten Klubs; ein späterer Lauf ergänzt die fehlenden.
  *
  *  Namenslogik: bewusst KEINE zweite Implementierung. `buildRecord`,
  *  `playerDisplayName`, `resolveNationFlag`, `mapPosition` und die
@@ -459,6 +465,137 @@ async function fetchTitleHolder(competitionId, label, sourceSeason, apiKey) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+ *  Schritt 3b: Sieger der Qualifikations-Play-offs
+ *
+ *  Die letzten sieben Ligaphasen-Plätze vergibt nicht die nationale Tabelle,
+ *  sondern die Play-off-Runde der laufenden Saison (Ende August). Die
+ *  Tabellen der Vorsaison kennen diese Klubs nur als „Qualifikation" – erst
+ *  das Hinspiel/Rückspiel entscheidet.
+ *
+ *  Quelle ist deshalb der Wettbewerb selbst: `/fixtures?league=<comp>&
+ *  season=<turniersaison>` liefert auch die Qualifikationsrunden. Gesucht ist
+ *  ausschliesslich die Runde „Play-offs" (14 Spiele = 7 Paarungen); die
+ *  gleichnamige K.-o.-Runde NACH der Ligaphase („Knockout Round Play-offs" /
+ *  „Round of 32") fällt bewusst raus – dieselbe Unterscheidung wie in
+ *  tournament-config.js (isQualificationRound).
+ *
+ *  Solange die Runde noch nicht gespielt ist, liefert der Schritt nichts und
+ *  der Pool bleibt beim Stand der direkt qualifizierten Klubs.
+ * ───────────────────────────────────────────────────────────────────────────── */
+function isQualifyingPlayoffRound(roundText) {
+  const v = String(roundText || '').trim().toLowerCase();
+  if (!v) return false;
+  // „Knockout Round Play-offs" und „League Stage" gehören zur Ligaphase bzw.
+  // dahinter – nur die Quali-Play-offs sind gemeint.
+  if (/knockout|league/.test(v)) return false;
+  return /play[\s-]*offs?\b/.test(v);
+}
+
+function isFinishedFixture(fixture) {
+  const short = String(
+    (fixture && fixture.fixture && fixture.fixture.status && fixture.fixture.status.short) || ''
+  );
+  return short === 'FT' || short === 'AET' || short === 'PEN';
+}
+
+/* Gesamtscore einer Paarung auswerten.
+ *
+ * `goals` enthält bei api-football den Endstand INKLUSIVE Verlängerung, das
+ * Elfmeterschiessen steht separat in `score.penalty`. Der Sieger ergibt sich
+ * deshalb aus der Summe beider Spiele und – bei Gleichstand – aus dem
+ * Elfmeterschiessen des Rückspiels. Die `winner`-Flags der API beziehen sich
+ * jeweils nur auf EIN Spiel und taugen für eine Paarung nicht.
+ */
+function pickTieWinners(fixtures) {
+  const ties = new Map();   // "id1:id2" (sortiert) -> { legs, goals, teams }
+  for (const fx of (fixtures || [])) {
+    const home = fx && fx.teams && fx.teams.home;
+    const away = fx && fx.teams && fx.teams.away;
+    if (!home || !away || home.id == null || away.id == null) continue;
+    const key = [Number(home.id), Number(away.id)].sort((a, b) => a - b).join(':');
+    let tie = ties.get(key);
+    if (!tie) {
+      tie = { legs: 0, finished: 0, goals: new Map(), teams: new Map(), shootout: null };
+      ties.set(key, tie);
+    }
+    tie.teams.set(Number(home.id), home);
+    tie.teams.set(Number(away.id), away);
+    tie.legs++;
+    if (!isFinishedFixture(fx)) continue;
+    tie.finished++;
+    const goals = fx.goals || {};
+    const add = (teamId, value) => {
+      const id = Number(teamId);
+      tie.goals.set(id, (tie.goals.get(id) || 0) + (Number(value) || 0));
+    };
+    add(home.id, goals.home);
+    add(away.id, goals.away);
+    const pen = (fx.score && fx.score.penalty) || {};
+    if (pen.home != null && pen.away != null) {
+      tie.shootout = Number(pen.home) === Number(pen.away)
+        ? null
+        : (Number(pen.home) > Number(pen.away) ? Number(home.id) : Number(away.id));
+    }
+  }
+
+  const winners = [];
+  const pending = [];
+  for (const tie of ties.values()) {
+    const entries = Array.from(tie.goals.entries());
+    const names = Array.from(tie.teams.values()).map((t) => t.name).join(' vs ');
+    if (!tie.finished || tie.finished < tie.legs) {
+      pending.push(names);
+      continue;
+    }
+    let winnerId = null;
+    if (entries.length === 2) {
+      const [[idA, goalsA], [idB, goalsB]] = entries;
+      if (goalsA > goalsB) winnerId = idA;
+      else if (goalsB > goalsA) winnerId = idB;
+      else winnerId = tie.shootout;
+    }
+    if (winnerId == null) {
+      pending.push(names);
+      continue;
+    }
+    const team = tie.teams.get(winnerId);
+    if (team) winners.push(team);
+  }
+  return { winners, pending };
+}
+
+async function fetchPlayoffQualifiers(competitionId, season, apiKey) {
+  let json;
+  try {
+    json = await fetchJson(
+      `https://${API_HOST}/fixtures?league=${competitionId}&season=${season}`,
+      apiKey
+    );
+  } catch (err) {
+    logWarn(`Play-off-Runde ${season} nicht ladbar: ${err.message}`);
+    return [];
+  }
+  const all = Array.isArray(json.response) ? json.response : [];
+  const playoffs = all.filter((fx) => isQualifyingPlayoffRound(fx && fx.league && fx.league.round));
+  if (!playoffs.length) {
+    logInfo('Play-off-Runde: noch keine Spiele angesetzt – Pool bleibt bei den direkt qualifizierten Klubs.');
+    return [];
+  }
+  const { winners, pending } = pickTieWinners(playoffs);
+  logInfo(`Play-off-Runde: ${playoffs.length} Spiele, ${winners.length} entschiedene Paarungen.`);
+  if (pending.length) {
+    logWarn(`Play-off-Paarungen noch offen (kommen mit einem späteren Lauf dazu): ${pending.join(', ')}`);
+  }
+  return winners.map((team) => ({
+    id: Number(team.id),
+    name: team.name,
+    logo: team.logo || '',
+    country: '',
+    via: `Qualifikation: Sieger der Play-off-Runde ${season}/${String(Number(season) + 1).slice(-2)}`
+  }));
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
  *  Schritt 4: Manuelle Korrekturen
  * ───────────────────────────────────────────────────────────────────────────── */
 function applyManualOverrides(clubs, manualPath) {
@@ -608,6 +745,13 @@ async function main() {
       if (!season) { logWarn(`  ${id}: keine Daten.`); continue; }
       const stats = season.statistics || [];
       logInfo(`  ${id} ${season.player.name}: ${stats.length} Statistik-Eintraege`);
+      // Die drei Namensfelder mit ausgeben: der Anzeigename entsteht aus
+      // ihrem Zusammenspiel (name-shortener.js/buildDisplayName). Steht ein
+      // Spieler falsch in der Liste, ist hier zu sehen, WARUM.
+      logInfo(
+        `     name="${season.player.name}" firstname="${season.player.firstname}" ` +
+        `lastname="${season.player.lastname}" → Anzeige "${buildRecord(season.player, null, new Map(), new Set())['Spielername']}"`
+      );
       for (const s of stats) {
         const lg = s.league || {};
         const g = s.games || {};
@@ -668,17 +812,28 @@ async function main() {
     logInfo(`  ✓ ${h.name} (${h.id}) – ${h.via}`);
   }
 
+  /* ── Sieger der Qualifikations-Play-offs ────────────────────────────── */
+  const playoffWinners = await fetchPlayoffQualifiers(t.competitionId, t.season, apiKey);
+  for (const w of playoffWinners) {
+    if (direct.has(w.id)) {
+      logInfo(`  ↺ ${w.name} (${w.id}) – ${w.via} (bereits über die Liga qualifiziert)`);
+      continue;
+    }
+    direct.set(w.id, w);
+    logInfo(`  ✓ ${w.name} (${w.id}) – ${w.via}`);
+  }
+
   /* ── Manuelle Korrekturen ───────────────────────────────────────────── */
   const manualPath = path.join(__dirname, `cl-pool-${t.key}-clubs.manual.json`);
   let clubs = applyManualOverrides(Array.from(direct.values()), manualPath);
   clubs.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
 
   logInfo(`Klubs im Vorschau-Pool: ${clubs.length}`);
+  const openSlots = t.teamCount ? Math.max(0, t.teamCount - clubs.length) : null;
   if (t.teamCount) {
-    const open = t.teamCount - clubs.length;
     logInfo(
-      open > 0
-        ? `Noch offen (Qualifikationsrunden): ${open} von ${t.teamCount} Startplätzen.`
+      openSlots > 0
+        ? `Noch offen (Qualifikationsrunden): ${openSlots} von ${t.teamCount} Startplätzen.`
         : `Alle ${t.teamCount} Startplätze abgedeckt.`
     );
   }
@@ -828,10 +983,14 @@ async function main() {
     ` *  AUTO-GENERIERT von scripts/generate-cl-pool.js – nicht von Hand editieren.\n` +
     ` *  Turnier: ${t.key} (league=${t.competitionId}, Saison ${t.season}).\n` +
     ` *\n` +
-    ` *  VORSCHAU-STAND vor der Ligaphasen-Auslosung: enthält die aktuellen Kader\n` +
-    ` *  der bereits fix qualifizierten Klubs (abgeleitet aus den Abschluss-\n` +
-    ` *  tabellen der Saison ${sourceSeason} plus Titelverteidiger). Klubs aus den\n` +
-    ` *  Qualifikationsrunden fehlen noch und kommen mit einem erneuten Lauf dazu.\n` +
+    ` *  VORSCHAU-STAND vor den offiziellen Kadermeldungen: enthält die aktuellen\n` +
+    ` *  Klubkader der qualifizierten Teilnehmer (abgeleitet aus den Abschluss-\n` +
+    ` *  tabellen der Saison ${sourceSeason}, Titelverteidiger und den Siegern der\n` +
+    ` *  Qualifikations-Play-offs).\n` +
+    (openSlots
+      ? ` *  Noch offen: ${openSlots} von ${t.teamCount} Startplätzen – die fehlenden Klubs\n` +
+        ` *  kommen mit einem erneuten Lauf dazu.\n`
+      : ` *  Vollständig: alle ${clubs.length} Startplätze der Ligaphase sind abgedeckt.\n`) +
     ` *\n` +
     ` *  Spieler: ${players.length} aus ${clubNames.length} Klubs.\n` +
     ` *\n` +
@@ -852,7 +1011,7 @@ async function main() {
     sourceSeason,
     clubCount: clubs.length,
     playerCount: players.length,
-    openSlots: t.teamCount ? Math.max(0, t.teamCount - clubs.length) : null,
+    openSlots,
     clubs: clubs.map((c) => ({ id: c.id, name: c.name, country: c.country, via: c.via }))
   };
   fs.writeFileSync(clubsPath, `${JSON.stringify(clubsDoc, null, 2)}\n`, 'utf8');
@@ -873,6 +1032,8 @@ module.exports = {
   competitionWeight,
   COMPETITION_WEIGHTS,
   pickFinalWinner,
+  isQualifyingPlayoffRound,
+  pickTieWinners,
   applyManualOverrides,
   statFromSquadEntry,
   UEFA_ASSOCIATIONS

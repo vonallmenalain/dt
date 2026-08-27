@@ -18,6 +18,8 @@ const {
   classifyClDescription,
   isWomensEntry,
   pickFinalWinner,
+  isQualifyingPlayoffRound,
+  pickTieWinners,
   applyManualOverrides,
   statFromSquadEntry,
   UEFA_ASSOCIATIONS
@@ -282,6 +284,95 @@ const {
     assert.ok(!UEFA_ASSOCIATIONS.includes(country), `${country} gehört nicht in UEFA_ASSOCIATIONS.`);
   }
   console.log('ok - UEFA-Verbandsliste deckt die Topligen ab und bleibt auf Europa beschränkt');
+})();
+
+/* ── Quali-Play-offs von der K.-o.-Runde unterscheiden ──────────────────── */
+(function testPlayoffRoundDetection() {
+  // Die Runde, die die letzten sieben Ligaphasen-Plätze vergibt.
+  for (const round of ['Play-offs', 'Play Offs', 'play-offs', 'Playoff Round']) {
+    assert.ok(isQualifyingPlayoffRound(round), `"${round}" ist die Quali-Play-off-Runde.`);
+  }
+  // Die gleichnamige K.-o.-Runde NACH der Ligaphase gehört NICHT dazu –
+  // sonst landeten im Februar plötzlich Ligaphasen-Klubs als "Qualifikanten"
+  // im Pool. Ebenso wenig die früheren Qualifikationsrunden (dort steht noch
+  // nicht fest, wer die Ligaphase erreicht).
+  for (const round of [
+    'Knockout Round Play-offs',
+    'League Stage - 3',
+    'Round of 32',
+    'Round of 16',
+    '3rd Qualifying Round',
+    'Final',
+    '',
+    null
+  ]) {
+    assert.ok(!isQualifyingPlayoffRound(round), `"${round}" ist nicht die Quali-Play-off-Runde.`);
+  }
+  console.log('ok - Quali-Play-offs werden von der K.-o.-Runde nach der Ligaphase getrennt');
+})();
+
+/* ── Paarungen über den Gesamtscore entscheiden ─────────────────────────── */
+(function testTieWinners() {
+  // api-football-Form: `goals` ist der Endstand INKLUSIVE Verlängerung,
+  // das Elfmeterschiessen steht separat unter `score.penalty`.
+  const leg = (home, away, hg, ag, opts = {}) => ({
+    fixture: { id: opts.id || 0, status: { short: opts.status || 'FT' } },
+    league: { round: 'Play-offs' },
+    teams: {
+      home: { id: home[0], name: home[1], logo: `https://x/${home[0]}.png` },
+      away: { id: away[0], name: away[1], logo: `https://x/${away[0]}.png` }
+    },
+    goals: { home: hg, away: ag },
+    score: { penalty: opts.penalty || { home: null, away: null } }
+  });
+
+  const CELTIC = [247, 'Celtic'];
+  const LASK = [1004, 'LASK'];
+  const LYON = [80, 'Lyon'];
+  const FENER = [611, 'Fenerbahce'];
+  const ZAGREB = [604, 'Dinamo Zagreb'];
+  const VIKING = [327, 'Viking'];
+
+  const { winners, pending } = pickTieWinners([
+    // Rückspiel nach Verlängerung: 5:1 dreht das 3:0 aus dem Hinspiel.
+    leg(CELTIC, LASK, 3, 0, { id: 1 }),
+    leg(LASK, CELTIC, 5, 1, { id: 2, status: 'AET' }),
+    // Gesamtscore 3:2 – die `winner`-Flags einzelner Spiele taugen dafür nicht,
+    // denn Lyon gewinnt das Hinspiel und verliert die Paarung.
+    leg(LYON, FENER, 1, 0, { id: 3 }),
+    leg(FENER, LYON, 3, 1, { id: 4 })
+  ]);
+  const names = winners.map((t) => t.name).sort();
+  assert.deepEqual(names, ['Fenerbahce', 'LASK'], `Unerwartete Sieger: ${names.join(', ')}`);
+  assert.deepEqual(pending, []);
+  const lask = winners.find((t) => t.name === 'LASK');
+  assert.equal(lask.id, 1004, 'Die Team-ID wird für den Kader-Call gebraucht.');
+  assert.equal(lask.logo, 'https://x/1004.png');
+
+  // Gleichstand nach beiden Spielen → das Elfmeterschiessen entscheidet.
+  const shootout = pickTieWinners([
+    leg(ZAGREB, VIKING, 2, 1, { id: 5 }),
+    leg(VIKING, ZAGREB, 1, 0, { id: 6, status: 'PEN', penalty: { home: 4, away: 2 } })
+  ]);
+  assert.deepEqual(shootout.winners.map((t) => t.name), ['Viking']);
+
+  // Rückspiel noch nicht gespielt: kein Sieger raten, sondern offen melden.
+  const open = pickTieWinners([
+    leg(ZAGREB, VIKING, 2, 1, { id: 7 }),
+    leg(VIKING, ZAGREB, 0, 0, { id: 8, status: 'NS' })
+  ]);
+  assert.deepEqual(open.winners, []);
+  assert.equal(open.pending.length, 1, 'Unfertige Paarungen gehören in die Warnung.');
+
+  // Gleichstand ohne Elfmeterdaten: ebenfalls offen statt Zufallssieger.
+  const unresolved = pickTieWinners([
+    leg(ZAGREB, VIKING, 1, 1, { id: 9 }),
+    leg(VIKING, ZAGREB, 0, 0, { id: 10 })
+  ]);
+  assert.deepEqual(unresolved.winners, []);
+  assert.equal(unresolved.pending.length, 1);
+
+  console.log('ok - Play-off-Paarungen werden über den Gesamtscore inkl. Elfmeterschiessen entschieden');
 })();
 
 console.log('generate-cl-pool tests passed');
