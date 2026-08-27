@@ -127,7 +127,17 @@ und geht über die Klubs:
    geht. Nur Erstere zählen zum Vorschau-Pool.
 2. Titelverteidiger ergänzen (CL- und Europa-League-Sieger der Vorsaison,
    ermittelt aus dem jeweiligen Endspiel).
-3. Aktuellen Kader je Klub laden und je Spieler das Profil holen.
+3. Sieger der Qualifikations-Play-offs ergänzen. Die letzten sieben
+   Ligaphasen-Plätze vergibt keine nationale Tabelle, sondern die
+   Play-off-Runde Ende August. Sie wird direkt aus dem Wettbewerb gelesen
+   (`/fixtures?league=<comp>&season=<saison>`, Runde „Play-offs") und über
+   den **Gesamtscore beider Spiele** ausgewertet – die `winner`-Flags der
+   API gelten je Spiel und taugen für eine Paarung nicht; bei Gleichstand
+   entscheidet `score.penalty`. Die gleichnamige K.-o.-Runde *nach* der
+   Ligaphase („Knockout Round Play-offs") bleibt aussen vor. Noch nicht
+   gespielte Paarungen werden gemeldet, nicht geraten – ein späterer Lauf
+   holt sie nach.
+4. Aktuellen Kader je Klub laden und je Spieler das Profil holen.
 
 **Frauen-Wettbewerbe.** api-football führt die Frauenligen unter denselben
 Ländern und hängt an deren Tabellen ebenfalls „Champions League"-
@@ -153,10 +163,17 @@ Namen mit drei und mehr Wörtern, die in Karten und Chips umbrechen.
 `name-shortener.js` kürzt auf „Vorname Nachname" und wird an **zwei**
 Stellen mit derselben Regel benutzt:
 
-* im Generator über `buildDisplayName()` – dort sind `firstname`/`lastname`
-  bekannt, deshalb wird der Rufname anhand der Initiale des Kurznamens
-  gewählt („E. Martínez" + „Damián Emiliano" → „Emiliano") und beim
-  Doppelnachnamen der Vater-, nicht der Muttername behalten;
+* im Generator über `buildDisplayName()` – dort ist der abgekürzte
+  Kurzname bekannt, und der trägt beide Antworten: die Initiale wählt den
+  Rufnamen („E. Martínez" + „Damián Emiliano" → „Emiliano"), der Rest
+  nennt den Nachnamen („H. Mkhitaryan" → „Mkhitaryan"). Der Nachname
+  kommt bewusst **nicht** aus `lastname`: dort steht je nach Herkunft ein
+  Muttername („Cubarsí Paredes" → „Cubarsí", erstes Wort) oder ein
+  Mittelname („Braut Haaland" → „Haaland", letztes Wort), und dem Feld ist
+  nicht anzusehen, welche Sorte. Eine Regel darüber trifft immer die eine
+  Sorte falsch – so stand Erling Haaland als „Erling Braut" im Pool. Nur
+  ohne abgekürzten Kurznamen bleibt `lastname` die Quelle (dann weiterhin
+  ohne Mutternamen);
 * beim Laden im Browser über `data.js` → `shortenPlayerName()`, damit
   bereits erzeugte Kaderdateien sofort richtig aussehen, ohne sie neu zu
   generieren. Opt-in pro Turnier via `shortenPlayerNames` (die WM bleibt
