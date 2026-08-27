@@ -34,6 +34,40 @@ function loadPlayersData(file) {
   return context.playersData;
 }
 
+/* Anzeigename eines Turniers – also das, was die App am Ende zeigt.
+ *
+ * data.js schiebt jede Kaderdatei beim Laden durch dieselbe Kette:
+ * erst die Kürzung auf „Vorname Nachname" (opt-in via `shortenPlayerNames`),
+ * dann die handgepflegten Overrides, die das letzte Wort haben. Der Vergleich
+ * unten muss auf DIESER Ebene laufen: die rohen Dateien entstanden zu
+ * verschiedenen Zeitpunkten mit verschiedenen Generator-Ständen
+ * (data-cl2526.js trägt noch ungekürzte Namen wie „Harry Edward Kane"), und
+ * ob zwei Dateien byteweise dasselbe schreiben, sieht ohnehin niemand –
+ * gleich heissen muss der Spieler in der Anzeige. */
+function displayNames(file, tournamentKey) {
+  const shortener = require('../name-shortener.js');
+  const overridesContext = { window: {} };
+  vm.createContext(overridesContext);
+  vm.runInContext(
+    fs.readFileSync(path.join(__dirname, '..', 'name-overrides.js'), 'utf8'),
+    overridesContext,
+    { filename: 'name-overrides.js' }
+  );
+  const overrides = (overridesContext.window.NAME_OVERRIDES || {})[tournamentKey] || {};
+  const shorten = APP.tournaments[tournamentKey].shortenPlayerNames === true;
+
+  const names = new Map();
+  for (const player of loadPlayersData(file)) {
+    let name = player.Spielername;
+    if (shorten) name = shortener.shortenPlayerName(name);
+    if (Object.prototype.hasOwnProperty.call(overrides, player['player.id'])) {
+      name = overrides[player['player.id']];
+    }
+    names.set(player['player.id'], name);
+  }
+  return names;
+}
+
 const pool = loadPlayersData('data-cl2627.js');
 const reference = loadPlayersData('data-cl2526.js');
 
@@ -98,22 +132,24 @@ for (const player of pool) {
 /* ── 4) Namen bleiben zur CL 25/26 identisch ────────────────────────────── */
 /* Das ist der eigentliche Zweck des geteilten Mappings: derselbe Spieler
  * heisst in beiden Turnieren gleich, obwohl die Daten aus unterschiedlichen
- * API-Endpunkten stammen. */
-const byId = new Map(reference.map((p) => [p['player.id'], p]));
+ * API-Endpunkten und von unterschiedlichen Generator-Ständen stammen.
+ * Verglichen wird der Anzeigename (Kürzung + Overrides), nicht der Rohwert
+ * in der Datei – siehe displayNames(). */
+const poolNames = displayNames('data-cl2627.js', 'cl2627');
+const referenceNames = displayNames('data-cl2526.js', 'cl2526');
 const mismatches = [];
 let overlap = 0;
-for (const player of pool) {
-  const previous = byId.get(player['player.id']);
-  if (!previous) continue;
+for (const [id, name] of poolNames) {
+  if (!referenceNames.has(id)) continue;
   overlap++;
-  if (previous.Spielername !== player.Spielername) {
-    mismatches.push(`${player['player.id']}: "${previous.Spielername}" → "${player.Spielername}"`);
-  }
+  const previous = referenceNames.get(id);
+  if (previous !== name) mismatches.push(`${id}: "${previous}" → "${name}"`);
 }
 assert.ok(overlap > 100,
   `Nur ${overlap} Spieler überlappen mit der CL 25/26 – das deutet auf einen kaputten Lauf hin.`);
 assert.deepEqual(mismatches, [],
-  `Anzeigenamen weichen von data-cl2526.js ab:\n  ${mismatches.join('\n  ')}`);
+  `Anzeigenamen weichen von data-cl2526.js ab (Eintrag in name-overrides.js fehlt?):\n  ` +
+  `${mismatches.join('\n  ')}`);
 
 /* ── 5) Klubzahl passt zur Ligaphase ────────────────────────────────────── */
 const clubs = new Set(pool.map((p) => p['Club.name']));
