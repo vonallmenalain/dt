@@ -61,14 +61,25 @@ var CL_NAME_OVERRIDES = {
     465786: "Thierno Barry",       // Mamadou Thierno Barry
     19235:  "Djed Spence",         // Diop Tehuti Spence
     19030:  "Matt O'Riley",        // Matthew Sean O&apos;Riley (Kurzform)
+    2194:   "Ramy Bensebaïni",     // Amir Selmane Rami Bensebaini
+    15683:  "Gustaf Nilsson",      // Håkan Gustaf Nilsson
+    67971:  "Marc Guéhi",          // Addji Keaninkin Marc-Israel Guéhi
+    311773: "Santiago Mouriño",    // Álvaro Santiago Mouriño
 
-    // ── 2) Doppelnachname: Vatername gebräuchlich, Muttername weg ────────
+    // ── 2) Mehrteiliger Nachnamen-Teil: welches Wort zählt? ──────────────
+    // Steht im Nachnamen-Teil mehr als ein Wort, ist ihm nicht anzusehen,
+    // ob das zweite ein Muttername ist (dann zählt das erste) oder ein
+    // Mittelname (dann das letzte). name-shortener.js entscheidet sich für
+    // das erste Wort – wo das danebenliegt, steht der Name hier.
     396623: "Pau Cubarsí",         // Pau Cubarsí Paredes
     433395: "Álvaro Cortés",       // Álvaro Cortés Moyano
     386305: "Jacobo Ramón",        // Jacobo Ramón Naveros
     288112: "Willy Kambwala",      // Willy Kambwala Ndengushi
     371916: "Christian Mawissa",   // Christian Mawissa Elebi
     337933: "Alexei Rojas",        // Alexei Rojas Fedorushchenko
+    151510: "Ole Blomberg",        // api-football: "O. Didrik Blomberg" – Didrik ist Zweitvorname
+    18767:  "Ademola Lookman",     // Ademola Alade Lookman
+    471107: "Quentin Ndjantou",    // Quentin Ndjantou Mbitcha
 
     // ── 3) Drei Wörter sind hier richtig ─────────────────────────────────
     21104:  "Randal Kolo Muani",           // Nachname "Kolo Muani"
@@ -76,6 +87,9 @@ var CL_NAME_OVERRIDES = {
     63274:  "Barış Alper Yılmaz",          // Doppelvorname
     345808: "Francesco Pio Esposito",      // Doppelvorname
     3406:   "André-Frank Zambo Anguissa",  // Nachname "Zambo Anguissa"
+    39178:  "Julian Faye Lund",            // Nachname "Faye Lund"
+    434623: "Joel van den Berg",           // Nachname "van den Berg"
+    524875: "El Hadji Mbodji",             // Vorname "El Hadji"
 
     // ── 4) Schreibweise ──────────────────────────────────────────────────
     16367:  "William Pacho",       // api-football: "Willian Joel Pacho"

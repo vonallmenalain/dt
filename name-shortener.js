@@ -194,8 +194,9 @@
   //   1. Ein kurzer, gebräuchlicher `name` (≤ 2 Wörter, keine Initiale) ist
   //      die beste Quelle und wird unverändert übernommen – "Rodri",
   //      "Lamine Yamal", "Vinícius Júnior", "Dayot Upamecano".
-  //   2. Sonst aus firstname/lastname bauen: Rufname (per Initiale des
-  //      Kurznamens bestimmt) + Nachname ohne Mutternamen.
+  //   2. Sonst aus Kurzname und firstname/lastname bauen: Rufname (per
+  //      Initiale des Kurznamens bestimmt) + der Nachname, den der
+  //      abgekürzte Kurzname nennt.
   //   3. Ohne firstname/lastname bleibt nur der Kurzname, gekürzt.
   function buildDisplayName(player) {
     var p = player || {};
@@ -209,12 +210,29 @@
 
     var initial = commonAbbreviated ? commonTokens[0].charAt(0) : '';
     var given = givenNameFromFirstName(firstName, initial);
-    var surname = surnameFromLastName(lastName);
-    // Fehlt `lastname`, steckt der Nachname noch im abgekürzten Kurznamen
-    // ("A. Hakimi" → "Hakimi").
-    if (!surname && commonAbbreviated && commonTokens.length > 1) {
+    // Nachname: der abgekürzte Kurzname hat Vorrang vor dem lastname-Feld.
+    //
+    // Im `lastname` steckt je nach Herkunft Verschiedenes, und dem Feld ist
+    // nicht anzusehen, was davon:
+    //
+    //   "Cubarsí Paredes"      → Vater- + Muttername   → "Cubarsí"  (erstes)
+    //   "Hamlet Mkhitaryan"    → Mittel- + Nachname    → "Mkhitaryan" (letztes)
+    //   "Braut Haaland"        → Mittel- + Nachname    → "Haaland"
+    //   "Blom Due Hjulmand"    → zwei Mittelnamen      → "Hjulmand"
+    //
+    // Eine Regel über das Feld allein trifft immer die eine oder die andere
+    // Sorte falsch – so standen Erling Haaland als "Erling Braut" und
+    // Henrikh Mkhitaryan als "Henrikh Hamlet" im Pool. Der Kurzname
+    // ("E. Haaland", "H. Mkhitaryan") nennt dagegen genau den Nachnamen, den
+    // die API als gebräuchlich führt; er ist deshalb die bessere Quelle.
+    // Partikel bleiben dabei erhalten ("T. van der Leij" → "van der Leij").
+    var surname = '';
+    if (commonAbbreviated && commonTokens.length > 1) {
       surname = surnameFromLastName(commonTokens.slice(1).join(' '));
     }
+    // Kein abgekürzter Kurzname (oder einer ohne Nachnamen-Teil): dann bleibt
+    // nur das lastname-Feld – dort weiterhin ohne Mutternamen.
+    if (!surname) surname = surnameFromLastName(lastName);
     if (given && surname) return shortenPlayerName(given + ' ' + surname);
 
     return shortenPlayerName(common) || cleanName(given + ' ' + surname) ||

@@ -154,10 +154,36 @@ function words(name) {
     buildDisplayName({ name: 'Pau Cubarsí Paredes', firstname: 'Pau', lastname: 'Cubarsí Paredes' }),
     'Pau Cubarsí'
   );
+  // Mittelnamen im lastname-Feld: der Kurzname nennt den richtigen
+  // Nachnamen. Alle Fälle stammen aus dem Diagnoselauf gegen die API –
+  // vorher standen sie als "Erling Braut", "Henrikh Hamlet" usw. im Pool,
+  // weil vom lastname-Feld das ERSTE Wort genommen wurde (Mutternamen-Regel).
+  const middleNames = [
+    [{ name: 'E. Haaland', firstname: 'Erling', lastname: 'Braut Haaland' }, 'Erling Haaland'],
+    [{ name: 'H. Mkhitaryan', firstname: 'Henrikh', lastname: 'Hamlet Mkhitaryan' }, 'Henrikh Mkhitaryan'],
+    [{ name: 'A. Christensen', firstname: 'Andreas', lastname: 'Bødtker Christensen' }, 'Andreas Christensen'],
+    [{ name: 'C. Nørgaard', firstname: 'Christian', lastname: 'Thers Nørgaard' }, 'Christian Nørgaard'],
+    [{ name: 'W. Anton', firstname: 'Waldemar', lastname: 'Riptsov Anton' }, 'Waldemar Anton'],
+    [{ name: 'T. Setford', firstname: 'Tommy', lastname: 'Hogan Setford' }, 'Tommy Setford'],
+    // Auch zwei Mittelnamen.
+    [{ name: 'M. Hjulmand', firstname: 'Morten', lastname: 'Blom Due Hjulmand' }, 'Morten Hjulmand'],
+    [{ name: 'D. Mukasa', firstname: 'Divine', lastname: 'Tayon Mahogany Mukasa' }, 'Divine Mukasa']
+  ];
+  middleNames.forEach(([player, want]) => {
+    assert.equal(buildDisplayName(player), want,
+      `${player.name} / ${player.lastname} muss "${want}" ergeben.`);
+  });
+
   // Zusammengesetzte Nachnamen bleiben dreiteilig.
   assert.equal(
     buildDisplayName({ name: 'A. Mac Allister', firstname: 'Alexis', lastname: 'Mac Allister' }),
     'Alexis Mac Allister'
+  );
+  // Partikel-Nachname aus dem abgekürzten Kurznamen – nicht nach dem ersten
+  // Wort abschneiden.
+  assert.equal(
+    buildDisplayName({ name: 'T. van der Leij', firstname: 'Thom', lastname: 'van der Leij' }),
+    'Thom van der Leij'
   );
   assert.equal(
     buildDisplayName({ name: 'M. ter Stegen', firstname: 'Marc-André', lastname: 'ter Stegen' }),
@@ -248,10 +274,16 @@ function runDataJs(tournamentKey) {
   const cl = runDataJs('cl2627');
   assert.ok(cl.loaded.includes('name-shortener.js'), 'data.js muss name-shortener.js einhängen.');
   assert.equal(cl.context.__NAME_SHORTENING_APPLIED__.active, true);
-  assert.ok(cl.context.__NAME_SHORTENING_APPLIED__.count > 0,
-    'Für cl2627 muss die Kürzung greifen.');
   assert.equal(cl.context.__NAME_SHORTENING_APPLIED__.error, undefined);
   assert.equal(cl.context.__NAME_OVERRIDES_APPLIED__.error, undefined);
+  assert.ok(cl.context.__NAME_SHORTENING_APPLIED__.total > 0,
+    'Für cl2627 muss ein Kaderpool geladen worden sein.');
+  // Bewusst KEINE Erwartung an `count`: die Kaderdateien laufen schon im
+  // Generator durch dieselbe name-shortener.js (generate-kader.js →
+  // playerDisplayName). Für die Ladezeit-Kürzung bleibt dann nichts mehr
+  // übrig – sie ist der Fallback für ältere/fremde Dateien. Geprüft wird
+  // deshalb das ERGEBNIS: die Namen unten müssen stimmen, egal ob sie im
+  // Generator oder erst beim Laden gekürzt wurden.
 
   const byId = new Map(cl.players.map((p) => [p['player.id'], p]));
   const expected = {
@@ -277,9 +309,11 @@ function runDataJs(tournamentKey) {
     assert.equal(player.Spielername, expected[id]);
   });
 
-  // Der Originalname bleibt für die Fehlersuche erhalten.
-  assert.equal(byId.get(1271).SpielernameOriginal, 'Aurélien Djani Tchouaméni');
-  assert.equal(byId.get(19599).SpielernameOriginal, 'Damián Emiliano Martínez');
+  // Wo die Kette zur Ladezeit wirklich eingreift, bleibt der Originalname
+  // für die Fehlersuche erhalten (hier der Rufname-Override).
+  assert.equal(byId.get(1149).SpielernameOriginal, 'Dayotchanculle Upamecano');
+  // Und wo nichts zu tun war, wird auch kein Original erfunden.
+  assert.equal(byId.get(290).SpielernameOriginal, undefined);
 
   // Die WM läuft durch dieselbe Kette, ohne einen Namen zu verändern.
   const wm = runDataJs('wm2026');
