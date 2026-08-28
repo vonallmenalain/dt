@@ -7115,10 +7115,76 @@
             }
         ];
 
-        // Turnierabhängige Auswahl: CL-Turniere nutzen die CL-Stars, alle
-        // anderen (WM) die bisherige WM-Rotation.
-        const IS_CL = !!(window.APP_CONFIG && String(window.APP_CONFIG.key || "").toLowerCase().indexOf("cl") === 0);
-        const starRotation = IS_CL ? cl2526StarRotation : wm2026StarRotation;
+        // Champions-League-„Players to Watch" (Saison 2026/27, Pickphase):
+        // kuratierte Liste junger Stammspieler (TALENT), grosser Sommer-
+        // Transfers (NEUZUGANG) und Spieler im Rampenlicht (FORM). Alle
+        // Einträge sind über ihre player.id in `data-cl2627.js` vorhanden –
+        // Foto, Klublogo und Klubname kommen also direkt aus dem Kaderpool.
+        // Titel bewusst leer (kein „Stars der …" über dem Karussell in der CL).
+        //
+        // `tag` ist reine Metadaten-Auszeichnung für die drei Kategorien und
+        // wird (wie `nation`/`position`) aktuell NICHT auf der Karte gerendert
+        // – die Karte zeigt Foto, Name, Klublogo und Klubname. Das Feld steht
+        // bereit, falls die Kategorie später als Badge sichtbar werden soll.
+        //
+        // NICHT ENTHALTEN – im Pool `data-cl2627.js` (Stand: 1188 Spieler aus
+        // 36 Klubs) gibt es zu diesen drei Namen keinen Eintrag; sie würden
+        // ohne Foto und ohne Klublogo als leere Karte erscheinen. Sobald der
+        // Kaderpool neu erzeugt ist (in `scripts/`: `npm run generate-cl-pool`),
+        // können sie mit ihrer player.id ergänzt werden:
+        //   • Franco Mastantuono (Real Madrid, Flügel/OM, TALENT)
+        //   • Said El Mala       (Borussia Dortmund, Flügel, NEUZUGANG)
+        //   • Ousmane Diomande   (Sporting CP, Innenverteidiger, TALENT)
+        //
+        // ABWEICHUNG zum Wunschzettel: Rodrigo Mora steht im Pool bei AS Roma,
+        // nicht beim FC Porto – Klublogo und Klubname der Karte kommen aus dem
+        // Datensatz und zeigen deshalb AS Roma.
+        //
+        // REIHENFOLGE: bewusst so gewählt, dass NIE zwei direkt benachbarte
+        // Spieler demselben Klub angehören – auch über den Ring-Umlauf hinweg
+        // (das Karussell ist zirkulär, letzte Karte grenzt an erste). Die
+        // Klub-Cluster (PSG ×3, Liverpool ×3, Real Madrid ×2, Man City ×2)
+        // sind deshalb gleichmässig verteilt. Welcher Spieler beim Laden im
+        // Zentrum steht, wird zufällig gewählt (siehe pickInitialActive) – die
+        // Ring-Reihenfolge bleibt dabei gültig, egal wo das Zentrum liegt.
+        const cl2627StarRotation = [
+            {
+                id: "cl_stars_set_1",
+                title: "",
+                players: [
+                    { playerId: 513776, name: "Yan Diomande",          nation: "Elfenbeinküste", position: "ANG", tag: "TALENT"    }, // Real Madrid – Sommer-Rekordtransfer von Leipzig
+                    { playerId: 343027, name: "Désiré Doué",           nation: "Frankreich",     position: "ANG", tag: "TALENT"    }, // Paris Saint Germain – Schlüsselspieler
+                    { playerId: 326757, name: "Jobe Bellingham",       nation: "England",        position: "MIT", tag: "TALENT"    }, // Borussia Dortmund – gesetzt im Zentrum
+                    { playerId: 203224, name: "Florian Wirtz",         nation: "Deutschland",    position: "MIT", tag: "FORM"      }, // Liverpool – Beweis-Saison nach dem 125-Mio.-Wechsel
+                    { playerId: 307123, name: "Nico O'Reilly",         nation: "England",        position: "MIT", tag: "TALENT"    }, // Manchester City – Durchbruchspieler der Vorsaison
+                    { playerId: 483,    name: "Khvicha Kvaratskhelia", nation: "Georgien",       position: "ANG", tag: "FORM"      }, // Paris Saint Germain – bester Spieler der CL 2025/26
+                    { playerId: 396623, name: "Pau Cubarsí",           nation: "Spanien",        position: "DEF", tag: "TALENT"    }, // Barcelona – einer der besten jungen IVs Europas
+                    { playerId: 452685, name: "Rio Ngumoha",           nation: "England",        position: "MIT", tag: "TALENT"    }, // Liverpool – Academy-Juwel, Rotation/Joker
+                    { playerId: 494131, name: "Lennart Karl",          nation: "Deutschland",    position: "MIT", tag: "TALENT"    }, // Bayern München – jüngster Startelfspieler der Bayern-CL-Historie
+                    { playerId: 336594, name: "Pablo Barrios",         nation: "Spanien",        position: "MIT", tag: "TALENT"    }, // Atletico Madrid – Box-to-Box-Motor
+                    { playerId: 336657, name: "Warren Zaïre-Emery",    nation: "Frankreich",     position: "MIT", tag: "TALENT"    }, // Paris Saint Germain – etabliert im Zentrum
+                    { playerId: 345808, name: "Pio Esposito",          nation: "Italien",        position: "ANG", tag: "TALENT"    }, // Inter – italienisches Toptalent im Sturm
+                    { playerId: 174565, name: "Hugo Ekitiké",          nation: "Frankreich",     position: "ANG", tag: "FORM"      }, // Liverpool – als Stammstürmer durchgesetzt
+                    { playerId: 314511, name: "Antonio Nusa",          nation: "Norwegen",       position: "ANG", tag: "TALENT"    }, // RB Leipzig – auffälliger Flügelspieler
+                    { playerId: 291964, name: "Arda Güler",            nation: "Türkei",         position: "MIT", tag: "TALENT"    }, // Real Madrid – bester junger Spieler der CL 2025/26
+                    { playerId: 404097, name: "Rodrigo Mora",          nation: "Portugal",       position: "ANG", tag: "TALENT"    }, // AS Roma (im Pool; Wunschzettel nannte FC Porto)
+                    { playerId: 138908, name: "Elliot Anderson",       nation: "Schottland",     position: "MIT", tag: "NEUZUGANG" }, // Manchester City – für 135 Mio. € von Newcastle
+                    { playerId: 442044, name: "Max Dowman",            nation: "England",        position: "MIT", tag: "TALENT"    }  // Arsenal – jüngster CL-Spieler aller Zeiten, Wildcard
+                ]
+            }
+        ];
+
+        // Turnierabhängige Auswahl: jedes CL-Turnier hat seine EIGENE
+        // kuratierte Star-Liste, weil die `playerId`-Referenzen nur im
+        // jeweiligen Kaderpool (`data-<key>.js`) gültig sind. `cl2526` ist der
+        // eingefrorene Admin-Teststand und behält seine 25/26-Liste; jedes
+        // andere CL-Turnier bekommt die aktuelle 26/27-Liste. Alle anderen
+        // Turniere (WM) nutzen unverändert die WM-Rotation.
+        const TOURNAMENT_KEY = String((window.APP_CONFIG && window.APP_CONFIG.key) || "").toLowerCase();
+        const IS_CL = TOURNAMENT_KEY.indexOf("cl") === 0;
+        const starRotation = IS_CL
+            ? (TOURNAMENT_KEY === "cl2526" ? cl2526StarRotation : cl2627StarRotation)
+            : wm2026StarRotation;
 
         const STAR_NAME_ALIASES = {
             "abdukodir khusanov": ["abduqodir khusanov"]
@@ -7289,8 +7355,10 @@
         //  weiter entfernte Karten blenden aus und werden durchgeblättert.
         // ────────────────────────────────────────────────────────────────
         // Anzahl Karten im Karussell (Pool zum Durchblättern). CL zeigt genau
-        // die 14 kuratierten Stars; die WM bleibt unveraendert bei 9.
-        const CARD_COUNT     = IS_CL ? 14 : 9;
+        // die kuratierten Stars des aktiven Turniers (cl2526: 14, cl2627: 18),
+        // die Zahl wird deshalb aus der Liste abgeleitet statt hart gesetzt.
+        // Die WM bleibt unveraendert bei 9.
+        const CARD_COUNT     = IS_CL ? (starRotation[0]?.players?.length || 14) : 9;
         const AUTOPLAY       = false;  // Autoplay deaktiviert – nur manuelle Navigation
         const MAX_VISIBLE    = 2;      // aktive Karte + 2 je Seite = 5 sichtbar
         const SCALE_STEP     = 0.16;   // Verkleinerung je Schritt
