@@ -7623,9 +7623,14 @@
         const hintEl = document.getElementById('tccDragHint');
         const HINT_SEEN_KEY = 'tcc_field_hint_seen';
 
-        const GAP = 12;                 // Zellabstand im Muster
-        const SC_MAX = 1.22;            // Lupen-Skala im Zentrum
-        const SC_MIN = 0.64;            // Skala am Buehnenrand
+        /* Responsive Feintuning (gesetzt in applyResponsiveTuning):
+           Mobil ist das Feld dicht (12px), auf dem Desktop luftiger
+           (30px Abstand, Lupe etwas dezenter) - dort blendet zusaetzlich
+           eine Seitenmaske die Karten links/rechts aus (index.css). */
+        let gapPx = 12;                 // Zellabstand im Muster
+        let scMax = 1.22;               // Lupen-Skala im Zentrum
+        let scMin = 0.64;               // Skala am Buehnenrand
+        const DESKTOP_MIN_W = 900;      // ab hier: Desktop-Tuning + Seitenmaske
         const MAX_FLING = 4200;         // px/s: Wurf-Deckel (wie native Scroller)
         const DIM_MAX = 0.42;           // max. Abdunklung am Rand
         const DECEL = 0.998;            // Momentum-Abklang pro ms (Apple-Wert)
@@ -7684,16 +7689,24 @@
             } catch (_) { /* Fallback darf nie selbst werfen */ }
         }
 
+        function applyResponsiveTuning() {
+            const desktop = stageW >= DESKTOP_MIN_W;
+            gapPx = desktop ? 30 : 12;
+            scMax = desktop ? 1.18 : 1.22;
+            scMin = desktop ? 0.70 : 0.64;
+        }
+
         /* offsetWidth/-Height statt getBoundingClientRect: die Zellen tragen
            Transforms (Parken, Lupe) - Layoutmasse sind davon unabhaengig. */
         function readMetrics() {
             stageW = stage.clientWidth;
             stageH = stage.clientHeight;
             if (stageW <= 0 || stageH <= 0 || !cells.length) return false;
+            applyResponsiveTuning();
             cellW = cells[0].el.offsetWidth || 1;
             cellH = cells[0].el.offsetHeight || 1;
-            stepX = cellW + GAP;
-            stepY = cellH + GAP;
+            stepX = cellW + gapPx;
+            stepY = cellH + gapPx;
             return true;
         }
 
@@ -7722,13 +7735,48 @@
            Duplikate desselben Spielers ausserhalb einer Bildschirmflaeche
            liegen. */
         function planGrid(n, w, h) {
-            const sX = w + GAP;
-            const sY = h + GAP;
+            const sX = w + gapPx;
+            const sY = h + gapPx;
             const needW = stageW + 2 * w + 80;
-            const needH = stageH + 2 * h + 80;
+            // Vertikal so KNAPP wie moeglich: jede zusaetzliche Muster-Zeile
+            // verkleinert den garantierten Duplikat-Abstand (floor(n/rows)
+            // Spalten, siehe chooseRowShift). Deckung braucht nur
+            // Buehne + eine Kartenhoehe + Puffer.
+            const needH = stageH + h + 60;
             const colRepeat = Math.max(1, Math.ceil(needW / (n * sX)));
             gridCols = n * colRepeat;
             gridRows = Math.max(3, Math.ceil(needH / sY));
+        }
+
+        /* Zeilen-Versatz so waehlen, dass DERSELBE Spieler nie zweimal auf
+           dem Bildschirm steht. Duplikate desselben Spielers liegen bei
+           Versatz s und Zeilen-Distanz dr genau (dr*s) mod n Spalten
+           auseinander - auch ueber den vertikalen Muster-Uebergang hinweg
+           (die Versatz-Menge wiederholt sich dort; ein fixer Versatz wie
+           frueher konnte an der Naht auf 1 Spalte zusammenfallen, siehe
+           Screenshot "Elliot Anderson 2x nebeneinander"). Wir suchen das s,
+           das den KLEINSTEN dieser Spalten-Abstaende maximiert, gemessen
+           gegen das echte Sichtfenster (Buehne + Rand in Zellen). */
+        function chooseRowShift(n, rows, sX, sY, w, h) {
+            const visCols = Math.ceil((stageW + w) / sX) + 1;
+            const visRows = Math.ceil((stageH + h) / sY) + 1;
+            let best = 1;
+            let bestScore = -1;
+            for (let s = 1; s < n; s++) {
+                let worst = Infinity;
+                for (let dr = 1; dr < rows; dr++) {
+                    // Vertikal nie gleichzeitig sichtbar? Dann egal.
+                    if (Math.min(dr, rows - dr) > visRows) continue;
+                    const diff = (dr * s) % n;
+                    const hDist = Math.min(diff, n - diff);
+                    if (hDist < worst) worst = hDist;
+                }
+                if (worst === Infinity) worst = n;
+                if (worst > bestScore) { bestScore = worst; best = s; }
+            }
+            // bestScore >= visCols => garantiert duplikatfrei im Fenster
+            // (gleiche Zeile: n Spalten Abstand; n >= visCols vorausgesetzt).
+            return best;
         }
 
         /* Feld aufbauen. keepPlayerIdx haelt bei Rebuilds (Resize,
@@ -7740,10 +7788,12 @@
             stageW = stage.clientWidth;
             stageH = stage.clientHeight;
             if (stageW <= 0 || stageH <= 0) { pendingBuild = true; return; }
+            applyResponsiveTuning();
             const probe = measureCellSize();
             planGrid(items.length, probe.w, probe.h);
 
-            const rowShift = Math.max(2, Math.round(items.length * 0.4));
+            const rowShift = chooseRowShift(items.length, gridRows,
+                probe.w + gapPx, probe.h + gapPx, probe.w, probe.h);
             track.innerHTML = '';
             cells = [];
             const frag = document.createDocumentFragment();
@@ -7802,6 +7852,8 @@
                 cell.cx = cell.col * stepX + cellW / 2;
                 // Versetzte Spalten: jede zweite ruht eine halbe Zelle tiefer.
                 cell.cy = cell.row * stepY + cellH / 2 + (cell.col % 2) * (stepY / 2);
+                // Cache der zuletzt geschriebenen Werte (Schreib-Schwellen).
+                cell.lx = null; cell.ly = null; cell.ls = null; cell.ld = null;
             }
         }
 
@@ -7814,12 +7866,25 @@
             }
         }
 
-        /* ── Render: pro Frame nur Transform/Opacity-Writes ── */
+        /* ── Render: pro Frame nur Transform/Opacity-Writes.
+           Mobil-Optimierungen (Geraete-Ruckeln, z.B. Xiaomi 13 Ultra):
+           - will-change nur auf SICHTBAREN Zellen (.is-on, index.css):
+             promotete Layer animieren rein im Compositor, ohne Re-Raster
+             pro Frame; geparkte Zellen kosten keinen GPU-Speicher.
+           - Dim-Overlay ebenfalls promotet (will-change: opacity), sonst
+             malt jede Opazitaets-Aenderung die halbe Karte neu.
+           - z-index nur in 3 groben Ebenen (staendige Stacking-Wechsel
+             erzwingen Layer-Tree-Updates).
+           - Schreib-Schwellen: unveraenderte Werte werden nicht erneut
+             in den Style geschrieben.
+           - Grosszuegiger Unpark-Rand (1.5 Karten): frisch aufgedeckte
+             Karten rastern, BEVOR sie ins Bild fahren. ── */
         function render() {
             const cxMid = stageW / 2;
             const cyMid = stageH / 2;
             const lensR = Math.max(cxMid, cyMid) * 1.06;
-            const margin = Math.max(cellW, cellH);
+            const marginX = cellW * 1.5;
+            const marginY = cellH * 1.2;
             const padX = cellW / 2 + 40;
             const padY = cellH / 2 + 40;
             let best = -1;
@@ -7831,12 +7896,14 @@
                 const sy = wrap(cell.cy - camY + padY, patH) - padY;
                 cell.sx = sx; cell.sy = sy;
 
-                const visible = sx > -margin && sx < stageW + margin
-                    && sy > -margin && sy < stageH + margin;
+                const visible = sx > -marginX && sx < stageW + marginX
+                    && sy > -marginY && sy < stageH + marginY;
                 if (!visible) {
                     if (cell.on) {
                         cell.on = false;
                         cell.el.style.transform = PARKED;
+                        cell.el.classList.remove('is-on');
+                        cell.lx = null; cell.ly = null; cell.ls = null;
                     }
                     continue;
                 }
@@ -7848,13 +7915,25 @@
 
                 const t = Math.min(dist / lensR, 1);
                 const s = t * t * (3 - 2 * t); // smoothstep: weiche Lupe
-                const scale = SC_MAX - (SC_MAX - SC_MIN) * s;
-                cell.el.style.transform = 'translate3d(' + (sx - cellW / 2).toFixed(1) + 'px,'
-                    + (sy - cellH / 2).toFixed(1) + 'px,0) scale(' + scale.toFixed(4) + ')';
-                if (cell.dimEl) cell.dimEl.style.opacity = (DIM_MAX * s).toFixed(3);
-                const z = 300 - Math.round(s * 40) * 5; // grobe Stufen: seltene Writes
+                const scale = scMax - (scMax - scMin) * s;
+                if (!cell.on) {
+                    cell.on = true;
+                    cell.el.classList.add('is-on');
+                }
+                if (cell.lx === null
+                    || Math.abs(sx - cell.lx) > 0.2 || Math.abs(sy - cell.ly) > 0.2
+                    || Math.abs(scale - cell.ls) > 0.0015) {
+                    cell.lx = sx; cell.ly = sy; cell.ls = scale;
+                    cell.el.style.transform = 'translate3d(' + (sx - cellW / 2).toFixed(1) + 'px,'
+                        + (sy - cellH / 2).toFixed(1) + 'px,0) scale(' + scale.toFixed(4) + ')';
+                }
+                const dim = DIM_MAX * s;
+                if (cell.dimEl && (cell.ld === null || Math.abs(dim - cell.ld) > 0.012)) {
+                    cell.ld = dim;
+                    cell.dimEl.style.opacity = dim.toFixed(3);
+                }
+                const z = t < 0.28 ? 300 : (t < 0.6 ? 200 : 100);
                 if (z !== cell.z) { cell.z = z; cell.el.style.zIndex = String(z); }
-                cell.on = true;
             }
 
             if (best !== centerCellIdx) {
