@@ -4999,8 +4999,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 6px;
+            margin-top: 4px;
             width: 100%;
+            /* Fuellt in der Vor-Start-Ansicht (Flex-Spalte, siehe unten)
+               den kompletten Rest bis zur Unterkante - randlos. */
+            flex: 1 1 auto;
+            min-height: 140px;
         }
         .tcc-section-title {
             margin: 0 0 2px;
@@ -5029,21 +5033,21 @@
         .tcc-stage {
             position: relative;
             z-index: 2;
-            width: min(96vw, 900px);
-            height: clamp(360px, 56vh, 520px);
-            margin-top: 6px;
+            width: 100%;
+            height: 100%;
+            min-height: 140px;
             overflow: hidden;
             outline: none;
             background: transparent;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: pan-y;
+            /* Jede Geste auf der Buehne gehoert dem Feld - die Vor-Start-
+               Seite scrollt selbst nicht (html[data-view="pre"], unten). */
+            touch-action: none;
             cursor: grab;
-            border-radius: 18px;
-            /* Fenster in den unendlichen Raum: Karten loesen sich zum
-               Rand hin auf statt hart zu enden. */
-            -webkit-mask-image: radial-gradient(ellipse 74% 68% at 50% 50%, #000 55%, transparent 99%);
-            mask-image: radial-gradient(ellipse 74% 68% at 50% 50%, #000 55%, transparent 99%);
+            /* Randlos bis an alle Kanten - bewusst KEINE Maske und kein
+               Radius mehr: die frueheren Fade-Raender wirkten auf kleinen
+               Bildschirmen wie leere Luecken an den Seiten. */
         }
         .tcc-stage.is-grabbing { cursor: grabbing; }
         .tcc-stage:focus-visible {
@@ -5146,6 +5150,75 @@
         }
         @media (prefers-reduced-motion: reduce) {
             .tcc-drag-hint { animation: none; }
+        }
+
+        /* ================================================================
+           VOR-START = EINE BILDSCHIRMSEITE (kein Seiten-Scroll)
+           Runter-Scrollen/Wischen steuert IMMER die Spieler-Konstellation,
+           nie die Seite (Mobil wie Desktop). Der Hero-Text wird kompakt,
+           das Feld fuellt den kompletten Rest randlos: links/rechts/unten
+           bis an die Kanten (im Shell-Frame endet der Frame ohnehin exakt
+           ueber der unteren Navigationsleiste; body traegt den Platz der
+           oberen Leiste bereits als padding-top via --dt-nav-space).
+           Der fruehere Pre-Start-Inhalt unterhalb des Felds
+           (.dashboard-area) und der Scroll-Pfeil entfallen dadurch.
+           Die Nach-Start-Ansicht (WM-Archiv) bleibt unveraendert
+           scrollbar - alle Regeln sind auf data-view="pre" gescopet.
+           ================================================================ */
+        html[data-view="pre"] {
+            height: 100%;
+            overflow: hidden;
+        }
+        /* theme-cl.css reserviert die Scrollbar-Spur (scrollbar-gutter:
+           stable) gegen Layout-Spruenge auf scrollbaren Seiten - hier
+           scrollt nichts, die Spur waere nur ein 15px-Leerstreifen rechts.
+           Doppeltes Attribut fuer hoehere Spezifitaet, unabhaengig von der
+           Stylesheet-Reihenfolge. */
+        html[data-view="pre"][data-tournament] {
+            scrollbar-gutter: auto;
+        }
+        html[data-view="pre"] body {
+            height: 100dvh;
+            box-sizing: border-box; /* padding-top (--dt-nav-space) inklusive */
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+        html[data-view="pre"] .prestart-home,
+        html[data-view="pre"] .hero {
+            height: 100%;
+        }
+        html[data-view="pre"] .hero {
+            min-height: 0;
+            padding: 10px 0 0;
+            justify-content: flex-start;
+        }
+        html[data-view="pre"] .hero-content {
+            padding: 0 16px;
+            flex: 0 0 auto;
+        }
+        html[data-view="pre"] .hero-title {
+            font-size: clamp(1.3rem, 3.4vw, 2rem);
+            line-height: 1.12;
+            letter-spacing: -0.5px;
+            margin: 0 0 4px;
+        }
+        html[data-view="pre"] .hero-season {
+            margin: 0 0 10px;
+            font-size: clamp(0.72rem, 1.8vw, 0.85rem);
+        }
+        html[data-view="pre"] .hero-badge,
+        html[data-view="pre"] .hero-claim,
+        html[data-view="pre"] .hero-stats,
+        html[data-view="pre"] .scroll-hint,
+        html[data-view="pre"] .dashboard-area {
+            display: none;
+        }
+        html[data-view="pre"] .hero-cta-wrap {
+            margin: 0;
+        }
+        html[data-view="pre"] .btn-primary-hero {
+            padding: 11px 26px;
+            font-size: 0.95rem;
         }
         .tcc-player-card.is-active {
             box-shadow: 0 26px 60px rgba(0,0,0,0.6), 0 0 46px rgba(var(--rgb-gold), 0.22);
@@ -5254,13 +5327,15 @@
             max-width: 100%;
             font-size: 0.72rem;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.25;
             letter-spacing: -0.01em;
             color: rgba(230,237,243,0.9);
             text-align: center;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            /* Nicht abschneiden: index.js passt lange Klubnamen wie die
+               Spielernamen per Mess-Fit ein (fitPlayerNames). */
+            overflow: visible;
+            text-overflow: clip;
         }
         .tcc-drafts {
             margin-top: 4px;
@@ -5425,10 +5500,6 @@
         @media (max-width: 560px) {
             .test-carousel-copy { margin-top: 2px; }
             .tcc-section-title { margin: 0; }
-            .tcc-stage {
-                margin-top: 2px;
-                height: clamp(340px, 52vh, 460px);
-            }
             .tcc-player-card { padding: 8px; gap: 6px; }
             .tcc-player-info { gap: 4px; }
             .tcc-player-name {
