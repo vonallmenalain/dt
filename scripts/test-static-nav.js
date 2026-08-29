@@ -39,6 +39,12 @@ const PAGES = [
   'spieleranalyse.html', 'team-builder.html', 'teams.html'
 ];
 
+/* Die App-Shell (app.html) traegt denselben Nav-Block, aber ohne
+ * active-Link (den setzt shell.js zur Laufzeit) und ohne Speculation
+ * Rules (sie faengt ihre Nav-Klicks selbst ab). */
+const SHELL_PAGE = 'app.html';
+const NAV_BLOCK_PAGES = PAGES.concat([SHELL_PAGE]);
+
 const START = '<!-- ===== STATIC NAV';
 const END = '<!-- ===== /STATIC NAV ===== -->';
 
@@ -61,15 +67,17 @@ function extractBlock(page, src) {
 
 /* ── 1+2+3) Bloecke einsammeln, normalisieren, vergleichen ─────────────── */
 const blocks = {};
-for (const page of PAGES) {
+for (const page of NAV_BLOCK_PAGES) {
   const block = extractBlock(page, readRoot(page));
   if (!block) continue;
   blocks[page] = block;
 
   // Der active-Link der Seite muss auf die Seite selbst zeigen –
   // einmal oben (Textlink) und einmal unten (Icon-Link), sonst nirgends.
+  // Die Shell startet ohne active (shell.js setzt ihn beim Routen).
+  const expectedActive = page === SHELL_PAGE ? 0 : 2;
   const activeCount = (block.match(/class="nav-item active"/g) || []).length;
-  check(`${page}: genau zwei active-Links (oben + unten)`, activeCount === 2,
+  check(`${page}: genau ${expectedActive} active-Link(s)`, activeCount === expectedActive,
     `gefunden: ${activeCount}`);
   const wrongActive = [...block.matchAll(/href="([^"]+)" class="nav-item active"/g)]
     .map((m) => m[1])
@@ -182,7 +190,7 @@ if (normalized.length > 1) {
  * <head> liegen; theme-cl.css ist vollstaendig auf [data-tournament^="cl"]
  * gescopet und fuer die WM ein No-op. */
 {
-  for (const page of PAGES.concat(['liga-tabelle.html'])) {
+  for (const page of NAV_BLOCK_PAGES.concat(['liga-tabelle.html'])) {
     const src = readRoot(page);
     check(`${page}: theme-cl.css statisch verlinkt (id="cl-theme-css")`,
       /<link rel="stylesheet" href="theme-cl\.css\?v=[^"]+" id="cl-theme-css">/.test(src));
@@ -190,7 +198,7 @@ if (normalized.length > 1) {
 
   // theme-color-Meta steht VOR dem Pre-Flight und wird dort fuer CL gesetzt –
   // sonst blitzt die Android-Statusleiste kurz gruen.
-  for (const page of PAGES) {
+  for (const page of NAV_BLOCK_PAGES) {
     const src = readRoot(page);
     const metaIdx = src.indexOf('name="theme-color"');
     const preflightIdx = src.indexOf('FOUC-Schutz');
@@ -207,6 +215,47 @@ if (normalized.length > 1) {
   check('styles.css: Auth-Slot reserviert Knopf-Flaeche',
     !!slotBlock && slotBlock[0].includes('min-height: var(--dt-nav-content)')
     && slotBlock[0].includes('min-width: var(--dt-nav-content)'));
+}
+
+/* ── 6d) App-Shell: Verdrahtung von app.html und Embed-Modus ────────────── */
+{
+  const shell = readRoot(SHELL_PAGE);
+  check('app.html: Buehne vorhanden', shell.includes('id="dtShellStage"'));
+  check('app.html: Fortschritts-Haarlinie vorhanden', shell.includes('id="dtShellProgress"'));
+  check('app.html: shell.js versioniert eingebunden', /<script src="shell\.js\?v=[^"]+">/.test(shell));
+  check('app.html: keine Speculation Rules (Shell faengt Klicks selbst ab)',
+    !shell.includes('speculationrules'));
+  check('app.html: keine Kader-/Cache-Skripte (Daten laufen nur in den Frames)',
+    !shell.includes('src="data.js') && !shell.includes('src="cache.js'));
+
+  // Jede einbettbare Seite erkennt den Embed-Modus im Pre-Flight …
+  for (const page of PAGES) {
+    check(`${page}: Pre-Flight setzt data-dt-embedded im Frame`,
+      readRoot(page).includes('data-dt-embedded'));
+  }
+
+  // … styles.css versteckt dann die Seiten-Navigation, und nav.js laesst
+  // SW-Registrierung + Hoehenmessung der Shell den Vortritt.
+  const styles = readRoot('styles.css');
+  check('styles.css: Embed-Modus versteckt Seiten-Navigation',
+    styles.includes('html[data-dt-embedded] body > nav.navbar'));
+  check('styles.css: Embed-Modus reserviert keinen Nav-Platz',
+    styles.includes('html[data-dt-embedded] { --dt-nav-space: 0px; }'));
+
+  const navJs = readRoot('nav.js');
+  check('nav.js: Embed-Guard vorhanden', navJs.includes('data-dt-embedded'));
+
+  const sw = readRoot('service-worker.js');
+  check('service-worker.js: Shell in der App-Shell-Liste',
+    sw.includes("'./app.html'") && sw.includes("'./shell.js'"));
+
+  // shell.js: Sicherheitsnetz (echte Navigation als Fallback) und
+  // Nest-Schutz muessen erhalten bleiben.
+  const shellJs = readRoot('shell.js');
+  check('shell.js: Fallback auf echte Navigation vorhanden',
+    shellJs.includes('window.location.href = fullUrl'));
+  check('shell.js: Nest-Schutz vorhanden',
+    shellJs.includes('window.self !== window.top'));
 }
 
 /* ── 7) View-Transition-Opt-in und Leisten-Namen in styles.css ──────────── */

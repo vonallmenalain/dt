@@ -335,6 +335,89 @@ body.dark-page .bottom-nav a.active .icon { filter: none; opacity: 1; }
     transition: transform 0.08s ease;
 }
 
+/* --- EINGEBETTETER MODUS (App-Shell) -------------------------------------
+   app.html laedt die bestehenden Seiten unveraendert als persistente
+   Frames. Eingebettete Seiten (das Pre-Flight setzt data-dt-embedded,
+   sobald window.top ≠ window.self) verstecken ihre eigene Navigation und
+   reservieren keinen Platz dafuer - die Shell bringt ihre eigene,
+   feststehende Leiste mit. Direkt geoeffnete Seiten (Deep-Links,
+   Lesezeichen) tragen das Attribut nie und bleiben unveraendert. */
+html[data-dt-embedded] { --dt-nav-space: 0px; }
+
+html[data-dt-embedded] body {
+    padding-top: 0;
+    padding-bottom: 0 !important;
+}
+
+html[data-dt-embedded] body > nav.navbar,
+html[data-dt-embedded] nav.bottom-nav {
+    display: none !important;
+}
+
+/* --- APP-SHELL (app.html) ------------------------------------------------
+   Buehne fuer die Seiten-Frames: fixiert zwischen Navbar (oben) und
+   Bottom-Nav (unten, shell.js misst die Hoehe). Die Frames liegen
+   uebereinander; shell.js blendet sie mit transform/opacity um. */
+body.dt-shell-body {
+    overflow: hidden;
+    padding-bottom: 0 !important;
+}
+
+.dt-shell-stage {
+    position: fixed;
+    top: var(--dt-nav-space);
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.dt-shell-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: transparent;
+}
+
+.dt-shell-frame[hidden] { display: none; }
+
+/* Haarlinien-Fortschritt direkt unter der Navbar: erscheint nur, wenn die
+   Zielseite laenger als ~350 ms zum Fertigrendern braucht (shell.js). Bis
+   dahin bleibt die alte Seite sichtbar und bedienbar. */
+.dt-shell-progress {
+    position: fixed;
+    top: var(--dt-nav-space);
+    left: 0;
+    height: 2px;
+    width: 40%;
+    border-radius: 2px;
+    background: var(--green-main, #28a745);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1200;
+}
+
+.dt-shell-progress.active {
+    opacity: 0.9;
+    animation: dt-shell-progress-slide 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes dt-shell-progress-slide {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(350%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dt-shell-progress.active {
+        animation: none;
+        width: 100%;
+        transform: none;
+        opacity: 0.4;
+    }
+}
+
 /* --- LOADING SKELETON (geteilt) ------------------------------------------
    Kopie des Skeleton-Looks von der Startseite (index.css), damit auch
    Rangliste & Co. beim Laden Platzhalter statt Spinner-Text zeigen

@@ -52,7 +52,7 @@
     }catch(e){}})();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>DreamTeam - Rangliste</title>
+    <title>DreamTeam</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -66,39 +66,7 @@
     <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
     <meta name="view-transition" content="same-origin">
-    <!-- ===== SPECULATION RULES (nur Chromium) =====
-         Prerendert die meistgewechselten Seiten, sobald ein Link angefasst
-         wird (eagerness moderate = Hover bzw. Touch-Down): Beim eigentlichen
-         Tap ist die Zielseite samt JS-Boot bereits fertig gerendert - der
-         Wechsel fuehlt sich augenblicklich an. Punktesystem/Team-Builder
-         werden nur geprefetcht (HTML in den Cache, kein voller Render).
-         Die URL-Pattern decken Query-Varianten ab (?tournament=..., Suche =
-         Wildcard). Safari/Firefox ignorieren den Block einfach; Firestore-
-         Reads beim Prerender deckelt der Session-Meta-Cache (cache.js, 30 s).
-         Der Block ist auf allen Seiten identisch - scripts/test-static-nav.js
-         prueft das. -->
-    <script type="speculationrules">
-    {
-      "prerender": [{
-        "where": { "or": [
-          { "href_matches": "/" },
-          { "href_matches": "/index.html" },
-          { "href_matches": "/rangliste.html" },
-          { "href_matches": "/spieleranalyse.html" },
-          { "href_matches": "/teams.html" }
-        ]},
-        "eagerness": "moderate"
-      }],
-      "prefetch": [{
-        "where": { "or": [
-          { "href_matches": "/punktesystem.html" },
-          { "href_matches": "/team-builder.html" }
-        ]},
-        "eagerness": "moderate"
-      }]
-    }
-    </script>
-    <meta name="description" content="DreamTeam – Rangliste und Managerpunkte auf einen Blick.">
+    <meta name="description" content="DreamTeam – Fantasy-Fussball. Baue dein Team und verfolge Live-Punkte.">
 
     <!-- Frühe Verbindungsöffnung zu Firebase + CDN; spart auf Mobile
          häufig 100–300 ms TLS/DNS. -->
@@ -120,7 +88,6 @@
 
 <link rel="stylesheet" href="styles.css?v=__BUILD__">
 
-    <link rel="stylesheet" href="rangliste.css?v=__BUILD__">
     <!-- CL-Theme STATISCH und render-blocking: vollstaendig auf
          [data-tournament^="cl"] gescopet, fuer die WM also ein No-op.
          Vorher haengte tournament-config.js dieses Stylesheet erst nach
@@ -129,7 +96,7 @@
          dynamische Lader als Schon-da-Signal. -->
     <link rel="stylesheet" href="theme-cl.css?v=__BUILD__" id="cl-theme-css">
 </head>
-<body>
+<body class="dt-shell-body">
 <!-- ===== STATIC NAV (Spiegel von nav.js) =====
      Die Navigation steht statisch im HTML, damit sie mit dem ersten Frame
      gezeichnet wird (kein spätes Aufploppen nach dem JS-Boot) und bei
@@ -150,7 +117,7 @@
             <a href="team-builder.html" class="nav-item" data-nav-action="team-builder">➕ Team erstellen</a>
             <a href="teams.html" class="nav-item">🛡️ Teams</a>
             <a href="spieleranalyse.html" class="nav-item">🔍 Analyse</a>
-            <a href="rangliste.html" class="nav-item active">🏆 Rangliste</a>
+            <a href="rangliste.html" class="nav-item">🏆 Rangliste</a>
             <a href="punktesystem.html" class="nav-item">📊 Punktesystem</a>
         </div>
         <div id="dt-auth-nav-slot" class="dt-auth-nav-slot" aria-label="Anmeldestatus"></div>
@@ -162,7 +129,7 @@
     <a href="team-builder.html" class="nav-item" data-nav-action="team-builder"><span class="icon">➕</span><span>Team</span></a>
     <a href="teams.html" class="nav-item"><span class="icon">🛡️</span><span>Teams</span></a>
     <a href="spieleranalyse.html" class="nav-item"><span class="icon">🔍</span><span>Analyse</span></a>
-    <a href="rangliste.html" class="nav-item active"><span class="icon">🏆</span><span>Rangliste</span></a>
+    <a href="rangliste.html" class="nav-item"><span class="icon">🏆</span><span>Rangliste</span></a>
     <a href="punktesystem.html" class="nav-item"><span class="icon">📊</span><span>Punkte</span></a>
 </nav>
 <script>
@@ -179,169 +146,41 @@
 </script>
 <!-- ===== /STATIC NAV ===== -->
 
+<!-- =====================================================
+     APP-SHELL-BUEHNE
+     shell.js laedt die Seiten hier als persistente Frames und blendet
+     sie erst um, wenn die Zielseite fertig gerendert ist. Die alte
+     Seite bleibt bis dahin sichtbar und bedienbar; der zuletzt
+     besuchte Frame bleibt warm (Zurueck ist sofort da).
+     ===================================================== -->
+<main class="dt-shell-stage" id="dtShellStage" aria-label="Seiteninhalt"></main>
+<div class="dt-shell-progress" id="dtShellProgress" aria-hidden="true"></div>
 
-<div class="rl-page">
-
-    <!-- =====================================================
-         HERO / PAGE HEADER
-         ===================================================== -->
-    <div class="rl-hero">
-        <h1 id="ranking-title" class="rl-hero-title">
-            <span class="gold-text">Rangliste</span>
-        </h1>
-
-        <!-- Last-Update Info, oben rechts -->
-        <div class="rl-hero-update" id="rl-hero-update" style="display:none;" aria-live="polite">
-            <div class="rl-hero-update-label" id="rl-hero-update-label">Zuletzt aktualisiert</div>
-            <div class="rl-hero-update-time" id="rl-hero-update-time">—</div>
-            <div class="rl-hero-update-game" id="rl-hero-update-game"></div>
-        </div>
-
-        <!-- Runden-Filter -->
-        <div class="rl-round-filter" aria-label="Runden-Filter">
-            <label class="rl-round-filter-label" for="round-filter-toggle">Runden</label>
-            <div id="round-filter-multi" class="multi-select rl-round-filter-select">
-                <button type="button" id="round-filter-toggle" class="multi-select-toggle">
-                    <span id="round-filter-label">Alle Runden</span>
-                    <span class="arrow">▼</span>
-                </button>
-                <div id="round-filter-menu" class="multi-select-menu">
-                    <div class="round-filter-toggle-all-wrap">
-                        <button type="button" id="round-filter-toggle-all" class="round-filter-toggle-all">Alle abwählen</button>
-                    </div>
-                    <div id="round-filter-options"></div>
-                </div>
-            </div>
-        </div>
+<noscript>
+    <div style="padding:24px;text-align:center;">
+        Die App-Ansicht braucht JavaScript.
+        <a href="index.html">Weiter zur Startseite</a>
     </div>
-
-    <!-- =====================================================
-         TOGGLE
-         ===================================================== -->
-    <div class="rl-toggle-wrap">
-        <div class="toggle-container">
-            <button id="btn-ranking" class="toggle-btn active" aria-pressed="true">Aktuelle Rangliste</button>
-            <button id="btn-history" class="toggle-btn" aria-pressed="false">Manager</button>
-        </div>
-    </div>
-
-    <div class="page-shell">
-
-        <!-- Pre-Start Hinweisbanner: bleibt nur sichtbar, solange das
-             Turnier noch nicht angefangen hat (DREAMTEAM_START). Sobald
-             der Anpfiff erreicht ist, blendet ihn body.teams-locked aus. -->
-        <div id="rl-prestart-banner" class="rl-prestart-banner" role="status" aria-live="polite">
-            <span class="rl-prestart-icon" aria-hidden="true">🔒</span>
-            <div class="rl-prestart-text">
-                <strong>Kader noch versteckt</strong>
-                <span>Die Spieler der Teilnehmer werden mit dem Anpfiff automatisch enthüllt.</span>
-            </div>
-        </div>
-
-        <!-- Loading: Skeleton in der Form des echten Layouts (Podium +
-             Listenzeilen) statt Spinner-Text – die Seite wirkt sofort
-             „da", auch wenn die Berechnung noch läuft. Fehlerpfade in
-             rangliste.js ersetzen den Inhalt weiterhin per innerHTML. -->
-        <div id="loading" role="status" aria-live="polite" aria-label="Berechne Rangliste">
-            <div class="rl-skel-podium" aria-hidden="true">
-                <div class="skel" style="height:110px;border-radius:14px 14px 0 0;"></div>
-                <div class="skel" style="height:150px;border-radius:14px 14px 0 0;"></div>
-                <div class="skel" style="height:88px;border-radius:14px 14px 0 0;"></div>
-            </div>
-            <div class="rl-skel-rows" aria-hidden="true">
-                <div class="skel" style="height:56px;"></div>
-                <div class="skel" style="height:56px;"></div>
-                <div class="skel" style="height:56px;"></div>
-                <div class="skel" style="height:56px;"></div>
-                <div class="skel" style="height:56px;"></div>
-            </div>
-        </div>
-
-        <!-- Ranking View -->
-        <div id="view-ranking" class="view-section active">
-            <div id="podium" class="podium-container" style="display:none;" aria-label="Top 3 Podium"></div>
-            <div id="rank-list" class="rank-list" style="display:none;" aria-label="Rangliste ab Platz 4"></div>
-        </div>
-
-        <!-- History View -->
-        <div id="view-history" class="view-section">
-            <div class="history-layout">
-                <div class="history-top">
-                    <div class="history-card history-controls-card">
-                        <div class="control-block">
-                            <label for="history-main-manager">Manager</label>
-                            <select id="history-main-manager" class="history-select"></select>
-                        </div>
-
-                        <div class="control-block">
-                            <label>Vergleich mit...</label>
-                            <div id="compare-multi-select" class="multi-select">
-                                <button type="button" id="compare-toggle" class="multi-select-toggle">
-                                    <span id="compare-toggle-label">Keine weiteren Manager gewählt</span>
-                                    <span class="arrow">▼</span>
-                                </button>
-                                <div id="compare-menu" class="multi-select-menu"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="history-card history-summary-card">
-                        <div class="summary-header">
-                            <h2 id="summary-manager-name" class="summary-manager-name">-</h2>
-                            <div id="summary-total-points" class="summary-total-points">0 Pkt.</div>
-                        </div>
-                        <div id="history-summary-grid" class="summary-grid"></div>
-                    </div>
-                </div>
-
-                <div class="history-card history-chart-card">
-                    <div class="history-chart-header">
-                        <h3 class="history-chart-title">Rangentwicklung</h3>
-
-                        <div class="chart-mode-toggle">
-                            <button id="chart-mode-rank" class="chart-mode-btn active" type="button">Rang</button>
-                            <button id="chart-mode-points" class="chart-mode-btn" type="button">Punkte</button>
-                        </div>
-                    </div>
-
-                    <div class="chart-wrap">
-                        <canvas id="history-chart"></canvas>
-                    </div>
-                    <div id="history-empty" class="history-empty" style="display:none;">Noch keine Historie verfügbar.</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
+</noscript>
 
 <!-- Firebase-Compat-SDK: per preload im <head> bereits heruntergeladen,
-     hier nur noch ausgefuehrt – VOR tournament-config.js, damit
-     APP.getDb() und alle nachfolgenden Skripte firebase sicher sehen. -->
+     hier nur noch ausgefuehrt – VOR tournament-config.js (siehe uebrige
+     Seiten). Die Shell selbst braucht keine Kader-/Cache-Skripte: Daten
+     laufen ausschliesslich in den eingebetteten Seiten. -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="tournament-config.js?v=__BUILD__"></script>
 <script src="nav.js?v=__BUILD__"></script>
-
-<!-- Chart.js (lokal, gepinnt 4.5.0) wird NICHT mehr hier geladen: rangliste.js
-     laedt chart.umd.min.js lazy, sobald die Manager-Ansicht den Chart wirklich
-     braucht – die Rangliste selbst kommt ohne aus. -->
-<script src="data.js?v=__BUILD__"></script>
-<script src="points-utils.js?v=__BUILD__"></script>
-<script src="transfer-utils.js?v=__BUILD__"></script>
-<script src="cache.js?v=__BUILD__"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
 <link rel="stylesheet" href="auth-modal.css?v=__BUILD__">
 <script src="admin.js?v=__BUILD__"></script>
 <script src="auth.js?v=__BUILD__"></script>
 <script src="auth-modal.js?v=__BUILD__"></script>
 <!-- App-weiter Ansichts-Umschalter (Auto / Vor Start / Nach Start).
-     Registriert die Einträge im Dev-Bereich des Profil-Dropdowns und
-     hält <html data-view> aktuell. Muss nach admin.js + auth-modal.js
-     stehen. -->
+     Muss nach admin.js + auth-modal.js stehen. -->
 <script src="view-mode.js?v=__BUILD__"></script>
 
-<script src="rangliste.js?v=__BUILD__"></script>
+<script src="shell.js?v=__BUILD__"></script>
 </body>
 </html>

@@ -35,7 +35,7 @@ const VERSION_SUFFIX = `?v=${PLACEHOLDER}`;
 const PAGES = [
   'index.html', 'punktesystem.html', 'rangliste.html',
   'spieleranalyse.html', 'team-builder.html', 'teams.html',
-  'liga-tabelle.html'
+  'liga-tabelle.html', 'app.html'
 ];
 
 let failures = 0;

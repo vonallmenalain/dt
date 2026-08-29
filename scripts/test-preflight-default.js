@@ -34,7 +34,8 @@ const readRoot = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
  * dazu – fehlt eine, blitzt dort das falsche Theme auf. */
 const PAGES = [
   'index.html', 'punktesystem.html', 'rangliste.html',
-  'spieleranalyse.html', 'team-builder.html', 'teams.html'
+  'spieleranalyse.html', 'team-builder.html', 'teams.html',
+  'app.html'
 ];
 
 /* Aus dem Pre-Flight die Domain-Map und den Fallback lesen, so wie sie

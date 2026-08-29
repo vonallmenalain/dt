@@ -498,6 +498,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    /* In der App-Shell eingebettet (app.html laedt die Seite als Frame)?
+       Dann ist die eigene Navigation versteckt (styles.css) - Hoehen-
+       Messung und Service-Worker-Registrierung uebernimmt die Shell.
+       Auth-Init, Team-Status und Menue-Eintraege laufen normal weiter,
+       damit die Seite selbst identisch funktioniert. */
+    const isEmbedded = document.documentElement.hasAttribute("data-dt-embedded");
+
 
     function withTournamentParam(href) {
         if (!href) return href;
@@ -735,13 +742,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (document.querySelector("body > nav.navbar")) {
         hydrateStaticNav();
-    } else {
+    } else if (!isEmbedded) {
         // Seiten ohne statisches Markup (liga-tabelle.html, Admin-
         // Einstiege) bekommen die Leiste weiterhin komplett injiziert.
         document.body.insertAdjacentHTML("afterbegin", navHTML);
     }
 
-    syncNavHeightVar();
+    if (!isEmbedded) {
+        syncNavHeightVar();
+    }
 
     initNavAuth(APP);
     setTeamBuilderStatus(false);
@@ -793,5 +802,7 @@ document.addEventListener("DOMContentLoaded", () => {
     buildTournamentUserMenu(APP);
     buildDevTournamentSwitcher(APP);
 
-    registerServiceWorker();
+    if (!isEmbedded) {
+        registerServiceWorker();
+    }
 });
