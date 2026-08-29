@@ -27,6 +27,27 @@
   publish = "."
 
 # =============================================================================
+# Netlify-Konfiguration – Einstieg: App-Shell (Vorschlag E, Stufe 2).
+#
+# `/` liefert die App-Shell (app.html) als Rewrite (Status 200, URL bleibt
+# `/`): Seitenwechsel laufen dann ohne Neuladen in der Shell. `force` ist
+# noetig, weil sonst die an `/` liegende index.html das Rewrite verdeckt
+# (Netlify-Shadowing).
+#
+# Bewusst NUR `/`: alle direkten Seiten-URLs (index.html, rangliste.html,
+# teams.html?manager=..., Deep-Links) bleiben nackte Seiten – einerseits
+# als geteilte Links rueckwaerts­kompatibel, andererseits laedt die Shell
+# selbst genau diese Dateien in ihre Frames (ein Rewrite darauf ergaebe
+# Shell-in-Shell).
+# =============================================================================
+
+[[redirects]]
+  from = "/"
+  to = "/app.html"
+  status = 200
+  force = true
+
+# =============================================================================
 # Netlify-Konfiguration – Caching.
 #
 # HTML/JS/CSS behalten bewusst Netlifys Default-Verhalten

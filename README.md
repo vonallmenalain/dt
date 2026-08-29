@@ -979,10 +979,16 @@ Verdrahtung:
 - Einschränkung: Ansichts-/Turnier-Umschalter im Shell-Dropdown wirken
   auf bereits geladene Frames erst nach deren Reload (Admin-Werkzeug).
 
-**Stufe 2 (bewusst noch nicht aktiv):** `/` per Netlify-Rewrite auf die
-Shell legen und `start_url` im Manifest umstellen, sobald sich Stufe 1 im
-Alltag bewährt hat. Bis dahin ist die Shell unter `dt.alae.app/app.html`
-erreichbar; alle bisherigen URLs funktionieren unverändert.
+**Stufe 2 (aktiv):** `/` liefert per Netlify-Rewrite (Status 200,
+`force = true` gegen das Shadowing der index.html) die Shell; die
+installierte PWA startet über `start_url: "/"` ebenfalls dort, und die
+Manifest-Splash-Farben folgen dem CL-Theme. Bewusst wird NUR `/`
+umgeschrieben: alle direkten Seiten-URLs (`index.html`,
+`teams.html?manager=…`, Deep-Links) bleiben nackte Seiten – als geteilte
+Links rückwärtskompatibel, und die Shell lädt genau diese Dateien in
+ihre Frames (ein Rewrite darauf ergäbe Shell-in-Shell). Wer die App vor
+der Umstellung auf dem Homescreen installiert hat, startet noch auf der
+alten `start_url` – einmal neu „Zum Home-Bildschirm" hinzufügen genügt.
 
 ### Back/Forward-Cache (bfcache)
 

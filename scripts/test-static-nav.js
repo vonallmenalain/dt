@@ -256,6 +256,23 @@ if (normalized.length > 1) {
     shellJs.includes('window.location.href = fullUrl'));
   check('shell.js: Nest-Schutz vorhanden',
     shellJs.includes('window.self !== window.top'));
+
+  // Stufe 2: `/` liefert die Shell (Netlify-Rewrite mit force, sonst
+  // verdeckt die an `/` liegende index.html das Rewrite), und die
+  // installierte App startet auf `/`. NICHT /index.html rewriten – die
+  // Shell laedt genau diese Datei in ihre Frames (Shell-in-Shell-Gefahr).
+  const netlify = readRoot('netlify.toml');
+  check('netlify.toml: Root-Rewrite auf die Shell',
+    netlify.includes('from = "/"') && netlify.includes('to = "/app.html"')
+    && netlify.includes('status = 200') && netlify.includes('force = true'));
+  check('netlify.toml: kein Rewrite auf /index.html',
+    !netlify.includes('from = "/index.html"'));
+
+  const manifest = JSON.parse(readRoot('Icons/site.webmanifest'));
+  check('site.webmanifest: start_url ist die Root (= Shell)',
+    manifest.start_url === '/');
+  check('site.webmanifest: Splash-Farben passen zum CL-Theme',
+    manifest.theme_color === '#0a1633' && manifest.background_color === '#0a1633');
 }
 
 /* ── 7) View-Transition-Opt-in und Leisten-Namen in styles.css ──────────── */
