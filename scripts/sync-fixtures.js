@@ -32,6 +32,9 @@
  *                              tournament-config.js. Aktuell ist nur
  *                              `wm2026` produktiv konfiguriert.
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
+ *                              Gibt zusaetzlich einen Spielplan-Report je
+ *                              Runde aus (Termine, Anstosszeiten, Paarungs-
+ *                              und Venue-Abdeckung, Status).
  *    SKIP_VENUES               Falls `1`/`true`: Venue-Detail-Calls
  *                              auslassen (spart API-Quota).
  *    SKIP_EVENTS               Falls `1`/`true`: Tor-Event-Calls
@@ -260,6 +263,60 @@ function summarizeRounds(fixtures) {
     .sort((a, b) => a[0].localeCompare(b[0], 'de'))
     .map(([round, count]) => `${round}: ${count}`)
     .join(', ');
+}
+
+/* Detail-Report des geladenen Spielplans: pro Runde Anzahl, Spieltermine,
+ * Paarungs- und Venue-Abdeckung. Im DRY_RUN ist das der eigentliche Nutzen des
+ * Laufs – man sieht, was die API zu diesem Zeitpunkt wirklich hergibt (z. B.
+ * ob nach einer Auslosung schon Spieltage, Anstosszeiten und Stadien stehen),
+ * ohne dass etwas nach Firestore geschrieben wird. */
+function summarizeFixturePlan(fixtures) {
+  const rounds = new Map();
+  (fixtures || []).forEach(fixture => {
+    const round = cleanText(fixture && fixture.league && fixture.league.round) || '(ohne Runde)';
+    let entry = rounds.get(round);
+    if (!entry) {
+      entry = { count: 0, dates: new Set(), times: new Set(), venues: 0, venueIds: 0, teams: 0, statuses: new Map() };
+      rounds.set(round, entry);
+    }
+    entry.count++;
+
+    const iso = cleanText(fixture && fixture.fixture && fixture.fixture.date);
+    if (iso) {
+      entry.dates.add(iso.slice(0, 10));
+      entry.times.add(iso.slice(11, 16));
+    }
+
+    const venue = (fixture && fixture.fixture && fixture.fixture.venue) || {};
+    if (venue.id) entry.venueIds++;
+    if (cleanText(venue.name)) entry.venues++;
+
+    const teams = (fixture && fixture.teams) || {};
+    if (isKnownTeamName(teams.home && teams.home.name) && isKnownTeamName(teams.away && teams.away.name)) {
+      entry.teams++;
+    }
+
+    const status = getFixtureStatusShort(fixture) || '(ohne Status)';
+    entry.statuses.set(status, (entry.statuses.get(status) || 0) + 1);
+  });
+
+  return Array.from(rounds.entries())
+    .sort((a, b) => a[0].localeCompare(b[0], 'de'))
+    .map(([round, entry]) => {
+      const dates = Array.from(entry.dates).sort();
+      const times = Array.from(entry.times).sort();
+      const dateInfo = dates.length
+        ? `${dates.length} Termin(e) ${dates[0]}..${dates[dates.length - 1]}`
+        : 'ohne Datum';
+      const timeInfo = times.length ? `Anstoss ${times.join('/')}` : 'ohne Anstosszeit';
+      const statusInfo = Array.from(entry.statuses.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([short, count]) => `${short}:${count}`)
+        .join(' ');
+      return `  • ${round}: ${entry.count} Spiele, ${dateInfo}, ${timeInfo}, ` +
+        `Paarung bekannt ${entry.teams}/${entry.count}, Venue-Name ${entry.venues}/${entry.count}, ` +
+        `Venue-ID ${entry.venueIds}/${entry.count}, Status ${statusInfo}`;
+    });
 }
 
 /* Bestandsaufnahme der bereits gespeicherten Fixture-Dokumente. Liefert die
@@ -613,6 +670,11 @@ async function runSync(db, tournament, opts) {
     );
   }
   logInfo(`${allFixtures.length} Spiele im Turnier-Scope (${summarizeRounds(allFixtures)}).`);
+
+  if (opts.dryRun) {
+    logInfo('Spielplan-Report (DRY-RUN):');
+    summarizeFixturePlan(allFixtures).forEach(line => console.log(`[sync-fixtures] ${line}`));
+  }
 
   const existingScope = await readExistingFixtureScope(db, tournament);
   await assertFixtureSyncIsSafe(db, tournament, allFixtures, existingScope.inScopeIds.length);
