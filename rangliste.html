@@ -42,6 +42,9 @@
       var shBroken="";try{shBroken=sessionStorage.getItem("dreamteam_shell_broken")||"";}catch(eSH){}
       if(!d.hasAttribute("data-dt-embedded")&&q.get("standalone")!=="1"&&shBroken!=="1"){
         var pf=(location.pathname.split("/").pop()||"index.html").toLowerCase();
+        // Endungslose Pfade (Netlify Pretty-URL-Erbe, z.B. /rangliste)
+        // zaehlen als dieselbe Seite.
+        if(pf.indexOf(".")===-1)pf+=".html";
         var pk=["index.html","team-builder.html","teams.html","spieleranalyse.html","rangliste.html","punktesystem.html"];
         if(pk.indexOf(pf)!==-1){location.replace("app.html#/"+pf+location.search);return;}
       }
