@@ -47,10 +47,35 @@
 
     var PAGE_FILES = ['index.html', 'team-builder.html', 'teams.html',
         'spieleranalyse.html', 'rangliste.html', 'punktesystem.html'];
-    var MAX_LIVE_FRAMES = 2;         // sichtbarer + zuletzt besuchter Frame
+    // iOS/WebKit beendet speicherhungrige Tabs rigoros und laedt sie neu -
+    // mit Shell + zwei kompletten Seiten-Dokumenten kann genau das nach
+    // jedem Wechsel passieren und sieht dann aus wie "die App laedt bei
+    // jedem Klick neu". Dort halten wir deshalb nur den sichtbaren Frame;
+    // Zurueck laedt den Frame neu (SW-Cache, weiterhin in der Shell).
+    var IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent)
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var MAX_LIVE_FRAMES = IS_IOS ? 1 : 2;
     var READY_GRACE_MS = 60;         // nach load: ein Atemzug fuers erste Rendern
     var PROGRESS_AFTER_MS = 350;     // Haarlinie erst, wenn es wirklich dauert
     var HARD_NAV_TIMEOUT_MS = 10000; // danach echte Navigation als Fallback
+
+    /* Kaputt-Schalter gegen das Weiterleitungs-Ping-Pong: Scheitert die
+       Shell DETERMINISTISCH (Boot-Fehler, Code-Fehler beim Wechseln),
+       merkt sich die Sitzung das - die Seiten-Pre-Flights lassen die
+       Stufe-3-Weiterleitung dann aus, und die App laeuft fuer diese
+       Sitzung als klassische Navigation weiter statt bei jedem Klick
+       Shell -> Fehler -> echte Navigation -> Weiterleitung -> Shell ...
+       im Kreis zu laden. Beim naechsten App-Start (neue Sitzung) wird die
+       Shell wieder versucht. Transiente Probleme (Netz-Timeout eines
+       Frames) setzen den Schalter bewusst NICHT. */
+    var SHELL_BROKEN_KEY = 'dreamteam_shell_broken';
+    function markShellBroken(err) {
+        try { console.error('[shell] Deaktiviert fuer diese Sitzung:', err); } catch (_) {}
+        try { sessionStorage.setItem(SHELL_BROKEN_KEY, '1'); } catch (_) {}
+    }
+    function markShellHealthy() {
+        try { sessionStorage.removeItem(SHELL_BROKEN_KEY); } catch (_) {}
+    }
 
     var stage = document.getElementById('dtShellStage');
     var progressEl = document.getElementById('dtShellProgress');
@@ -299,51 +324,87 @@
         var search = target.search || '';
         var fullUrl = file + search;
 
-        // Sofortige Antwort auf den Tap: Tab wechselt, bevor irgendetwas
-        // laedt (Feedback auf Pointer-Down-Niveau, nicht erst am Ende).
-        setActiveTab(file);
+        try {
+            // Sofortige Antwort auf den Tap: Tab wechselt, bevor irgendetwas
+            // laedt (Feedback auf Pointer-Down-Niveau, nicht erst am Ende).
+            setActiveTab(file);
 
-        if (push) {
-            try { history.pushState(null, '', routeToHash(file, search)); } catch (_) {}
+            if (push) {
+                try { history.pushState(null, '', routeToHash(file, search)); } catch (_) {}
+            }
+
+            if (file === currentFile) {
+                var cur = frames.get(file);
+                if (cur) { progressClear(); syncTitle(cur.el); return; }
+            }
+
+            var rec = frames.get(file);
+            var isFresh = false;
+            if (!rec) {
+                rec = createFrame(file, search);
+                isFresh = true;
+            }
+            touchFrame(file, rec);
+            progressArm();
+
+            var retriedFresh = isFresh;
+            var attempt = function (useRec, budget) {
+                waitForFrameReady(useRec, budget)
+                    .then(function () {
+                        if (seq !== navSeq) return; // unterbrochen: neuere Navigation laeuft
+                        try {
+                            progressClear();
+
+                            var oldRec = currentFile ? frames.get(currentFile) : null;
+                            currentFile = file;
+                            syncTitle(useRec.el);
+                            markShellHealthy();
+
+                            var oldEl = oldRec && oldRec !== useRec ? oldRec.el : null;
+                            swapFrames(oldEl, useRec.el, dir).then(function () {
+                                if (seq !== navSeq) return;
+                                if (oldEl) oldEl.hidden = true;
+                                pruneFrames();
+                            });
+                        } catch (err) {
+                            // Code-Fehler in der Swap-Phase = deterministisch:
+                            // Kaputt-Schalter + klassische Navigation.
+                            markShellBroken(err);
+                            progressClear();
+                            window.location.href = fullUrl;
+                        }
+                    })
+                    .catch(function () {
+                        if (seq !== navSeq) return;
+                        // Antwortet ein WARMER Frame nicht rechtzeitig
+                        // (z.B. mitten in einer internen Navigation
+                        // eingeschlafen), wird zuerst der FRAME frisch
+                        // geladen - nicht gleich die ganze App.
+                        if (!retriedFresh) {
+                            retriedFresh = true;
+                            frames.delete(useRec.file);
+                            if (useRec.el) useRec.el.remove();
+                            var freshRec = createFrame(file, search);
+                            touchFrame(file, freshRec);
+                            attempt(freshRec, HARD_NAV_TIMEOUT_MS);
+                            return;
+                        }
+                        progressClear();
+                        // Letztes Sicherheitsnetz: echte Navigation. Bewusst
+                        // OHNE Kaputt-Schalter - ein Netz-Timeout ist
+                        // transient, die Shell darf es erneut versuchen.
+                        window.location.href = fullUrl;
+                    });
+            };
+            attempt(rec, isFresh ? HARD_NAV_TIMEOUT_MS : 1500);
+        } catch (err) {
+            // Synchroner Code-Fehler = deterministisch: Kaputt-Schalter
+            // setzen (bricht das Weiterleitungs-Ping-Pong) und klassisch
+            // navigieren.
+            markShellBroken(err);
+            progressClear();
+            window.location.href = fullUrl;
         }
-
-        if (file === currentFile) {
-            var cur = frames.get(file);
-            if (cur) { progressClear(); syncTitle(cur.el); return; }
-        }
-
-        var rec = frames.get(file);
-        var isFresh = false;
-        if (!rec) {
-            rec = createFrame(file, search);
-            isFresh = true;
-        }
-        touchFrame(file, rec);
-        progressArm();
-
-        waitForFrameReady(rec, isFresh ? HARD_NAV_TIMEOUT_MS : 1500)
-            .then(function () {
-                if (seq !== navSeq) return; // unterbrochen: neuere Navigation laeuft
-                progressClear();
-
-                var oldRec = currentFile ? frames.get(currentFile) : null;
-                currentFile = file;
-                syncTitle(rec.el);
-
-                var oldEl = oldRec && oldRec !== rec ? oldRec.el : null;
-                swapFrames(oldEl, rec.el, dir).then(function () {
-                    if (seq !== navSeq) return;
-                    if (oldEl) oldEl.hidden = true;
-                    pruneFrames();
-                });
-            })
-            .catch(function () {
-                if (seq !== navSeq) return;
-                progressClear();
-                // Sicherheitsnetz: echte Navigation - schlimmstenfalls
-                // verhaelt sich die App wie ohne Shell.
-                window.location.href = fullUrl;
-            });
     }
 
     /* Klicks auf die Shell-Navigation abfangen; alles andere (Modifier,
@@ -351,17 +412,23 @@
     function interceptNavClicks(nav) {
         if (!nav) return;
         nav.addEventListener('click', function (event) {
-            if (event.defaultPrevented) return;
-            if (event.button !== 0) return;
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-            var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
-            if (!link || !nav.contains(link)) return;
-            if (link.target && link.target !== '_self') return;
-            if (link.hasAttribute('download')) return;
-            var target = pageFileFromUrl(link.href);
-            if (!target) return;
-            event.preventDefault();
-            navigateTo(target, { push: true, dir: 'forward' });
+            try {
+                if (event.defaultPrevented) return;
+                if (event.button !== 0) return;
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+                if (!link || !nav.contains(link)) return;
+                if (link.target && link.target !== '_self') return;
+                if (link.hasAttribute('download')) return;
+                var target = pageFileFromUrl(link.href);
+                if (!target) return;
+                event.preventDefault();
+                navigateTo(target, { push: true, dir: 'forward' });
+            } catch (err) {
+                // Nicht preventDefault-et -> der Browser navigiert normal;
+                // der Kaputt-Schalter verhindert das Zurueck-Weiterleiten.
+                markShellBroken(err);
+            }
         });
     }
 
@@ -388,6 +455,20 @@
     }
 
     function boot() {
+        try {
+            bootInner();
+        } catch (err) {
+            // Boot-Fehler = deterministisch fuer dieses Geraet: Kaputt-
+            // Schalter setzen und zur nackten Zielseite wechseln. Ohne den
+            // Schalter wuerde deren Pre-Flight sofort wieder hierher
+            // weiterleiten - die App laege in einer Reload-Schleife.
+            markShellBroken(err);
+            var target = routeFromHash();
+            window.location.replace(target.file + (target.search || ''));
+        }
+    }
+
+    function bootInner() {
         interceptNavClicks(document.querySelector('body > nav.navbar'));
         interceptNavClicks(document.querySelector('body > nav.bottom-nav'));
         syncStageInsets();

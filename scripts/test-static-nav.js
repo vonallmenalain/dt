@@ -258,6 +258,18 @@ if (normalized.length > 1) {
   check('shell.js: Nest-Schutz vorhanden',
     shellJs.includes('window.self !== window.top'));
 
+  // Kaputt-Schalter gegen das Weiterleitungs-Ping-Pong: shell.js setzt bei
+  // deterministischen Fehlern dreamteam_shell_broken, die Seiten-Pre-Flights
+  // lassen die Weiterleitung dann aus. Beide Seiten muessen denselben
+  // Schluessel fuehren, sonst laeuft die App bei einem Shell-Fehler in einer
+  // Reload-Schleife (Klick -> Navigation -> Weiterleitung -> Fehler -> ...).
+  check('shell.js: Kaputt-Schalter vorhanden',
+    shellJs.includes("'dreamteam_shell_broken'") && shellJs.includes('markShellBroken'));
+  for (const page of PAGES) {
+    check(`${page}: Pre-Flight respektiert den Kaputt-Schalter`,
+      readRoot(page).includes('sessionStorage.getItem("dreamteam_shell_broken")'));
+  }
+
   // Stufe 2: `/` liefert die Shell (Netlify-Rewrite mit force, sonst
   // verdeckt die an `/` liegende index.html das Rewrite), und die
   // installierte App startet auf `/`. NICHT /index.html rewriten – die
