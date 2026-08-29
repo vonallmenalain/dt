@@ -92,8 +92,23 @@ body {
 .dt-auth-nav-slot {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     line-height: 0;
     flex-shrink: 0;
+    /* Der Auth-Knopf (44px, auth-modal.js) haengt sich erst nach dem
+       JS-Boot ein. Der leere Slot reserviert seine Flaeche von Anfang an,
+       sonst waechst die ganze Leiste sichtbar nach, sobald der Knopf
+       erscheint – die Hoehe entspricht --dt-nav-content, derselben
+       Groesse, mit der --dt-nav-space den Platz unter der Leiste rechnet. */
+    min-width: var(--dt-nav-content);
+    min-height: var(--dt-nav-content);
+}
+
+/* Solange der Knopf fehlt, zeigt der Slot einen dezenten Platzhalter-
+   Kreis (Skeleton-Look) statt leerer Luft. */
+.dt-auth-nav-slot:empty {
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .nav-links a {
