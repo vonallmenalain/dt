@@ -1415,6 +1415,21 @@
         /* "Spiel N"-Label: nur in der mobilen Fusszeile sichtbar. */
         .match-meta-label { display: none; }
 
+        /* Kommende Spiele (Spieler-Detail): das Spieltag-Label steht auch
+           am Desktop in der Fusszeile - den Termin zeigt dort die
+           Mittelspalte. Der kompakte Termin-Span ist nur mobil sichtbar,
+           wo die Mittelspalte ausgeblendet wird. */
+        .match-card.is-upcoming .match-meta-label {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .match-upcoming-when { display: none; }
+
         .match-side-copy {
             display: flex;
             flex-direction: column;
@@ -5795,6 +5810,17 @@
                als Chip in der jeweiligen Team-Zeile. Das Live-Badge
                wandert dafuer in die Fusszeile. */
             .match-center { display: none; }
+
+            /* Kommende Spiele: mobil uebernimmt die Fusszeile den Termin
+               aus der versteckten Mittelspalte. */
+            .match-card.is-upcoming .match-upcoming-when {
+                display: inline-block;
+                font-size: 0.7rem;
+                font-weight: 800;
+                letter-spacing: 0.4px;
+                color: var(--text-main);
+                white-space: nowrap;
+            }
             .match-summary-right .match-live-indicator { display: inline-flex; }
 
             .match-side,

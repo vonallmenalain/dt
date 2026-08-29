@@ -1612,8 +1612,15 @@
                     `;
                     gameBox.appendChild(card);
                 });
+                // Darunter die restlichen Partien des Klubs (bis 8 gesamt).
+                const playedIds = new Set(gamesArray.map((g) => String(g.MatchID)));
+                gameBox.insertAdjacentHTML('beforeend',
+                    buildUpcomingClubMatchesHtml(player, playedIds, gamesArray.length));
+                syncGamesCardTitle(gameBox, gamesArray.length);
             } else {
-                gameBox.innerHTML = '<div style="color:var(--text-muted);padding:10px;font-style:italic;">Noch keine Spiele absolviert.</div>';
+                gameBox.innerHTML = buildUpcomingClubMatchesHtml(player, new Set(), 0)
+                    || '<div style="color:var(--text-muted);padding:10px;font-style:italic;">Noch keine Spiele absolviert.</div>';
+                syncGamesCardTitle(gameBox, 0);
             }
         } else {
             combinedPointsBox.innerHTML = `
@@ -1642,7 +1649,11 @@
                     <div class="empty-cat">Keine Daten vorhanden.</div>
                 </div>
             `;
-            gameBox.innerHTML = '<div style="color:var(--text-muted);padding:10px;font-style:italic;">Noch keine Spiele absolviert.</div>';
+            // Vor dem ersten bepunkteten Spiel (z.B. Pickphase) zeigt die
+            // Spiele-Box direkt die kommenden Partien des Klubs.
+            gameBox.innerHTML = buildUpcomingClubMatchesHtml(player, new Set(), 0)
+                || '<div style="color:var(--text-muted);padding:10px;font-style:italic;">Noch keine Spiele absolviert.</div>';
+            syncGamesCardTitle(gameBox, 0);
         }
 
         document.querySelectorAll('.list-item').forEach(el => {
@@ -1651,6 +1662,153 @@
         });
 
         syncSidebarHeight();
+    }
+
+    /* =========================================================
+       KOMMENDE KLUB-SPIELE (Spieler-Detail)
+
+       Zeigt unter den bepunkteten Spielen die naechsten Partien des
+       Klubs, bis insgesamt 8 Spiele sichtbar sind (gespielte plus
+       ausstehende) - so ist die Ligaphase von Anfang an komplett zu
+       sehen. In der CL traegt player['Nationalteam.name'] nach dem
+       data.js-Remap den KLUB; die Zuordnung laeuft ueber den
+       Klubnamen (Fixtures und Kaderpool stammen aus derselben
+       api-football-Quelle, die Namen sind identisch).
+
+       Solange der Spielplan-Sync nach der Auslosung noch keine
+       echten Termine geschrieben hat (Platzhalter-Guard im Sync),
+       gibt es keine Klub-Fixtures - dann zeigen die 8 Ligaphasen-
+       Spieltage aus dem Kalender (tournament-config, matchCalendar)
+       Datum und "Gegner folgt". Sobald der Sync echte Fixtures
+       schreibt, erscheinen automatisch Gegner, Logos und Uhrzeit.
+       ========================================================= */
+    function buildUpcomingClubMatchesHtml(player, playedMatchIds, playedCount) {
+        const clubName = String(player?.['Nationalteam.name'] || '').trim();
+        const clubLogo = player?.['Nationalteam.logo'] || '';
+        const normName = (s) => String(s || '')
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .toLowerCase().trim();
+        const clubKey = normName(clubName);
+        const limit = Math.max(0, 8 - (playedCount || 0));
+        if (!limit) return '';
+
+        const flagHtml = (logo, name) => logo
+            ? `<img src="${logo}" class="match-flag" alt="${escapeHtml(name)}" loading="lazy">`
+            : `<span class="match-flag" style="display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🏳️</span>`;
+
+        const upcomingCard = (leftName, leftLogo, rightName, rightLogo, centerTop, centerBottom, metaLabel) => `
+            <div class="match-card is-upcoming" style="opacity:0.92;">
+                <div class="match-header" style="cursor:default;">
+                    <div class="match-duel">
+                        <div class="match-side">
+                            ${flagHtml(leftLogo, leftName)}
+                            <div class="match-side-copy">
+                                <span class="match-side-name" style="font-weight:700;">${escapeHtml(leftName)}</span>
+                            </div>
+                        </div>
+                        <div class="match-center">
+                            <div class="match-score" style="font-size:0.82rem;letter-spacing:0;">${escapeHtml(centerTop)}</div>
+                            ${centerBottom ? `<div class="match-score-note">${escapeHtml(centerBottom)}</div>` : ''}
+                        </div>
+                        <div class="match-side right">
+                            <div class="match-side-copy">
+                                <span class="match-side-name" style="font-weight:700;">${escapeHtml(rightName)}</span>
+                            </div>
+                            ${flagHtml(rightLogo, rightName)}
+                        </div>
+                    </div>
+                    <div class="match-summary-right">
+                        ${metaLabel ? `<span class="match-meta-label">${escapeHtml(metaLabel)}</span>` : ''}
+                        <span class="match-upcoming-when">${escapeHtml(centerTop)}${centerBottom ? ' · ' + escapeHtml(centerBottom) : ''}</span>
+                        <span style="font-size:0.62rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--glass-border);border-radius:999px;padding:3px 8px;margin-left:auto;">ausstehend</span>
+                    </div>
+                </div>
+            </div>`;
+
+        const fmtDay = (ms) => {
+            try {
+                return new Date(ms).toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            } catch (_) { return 'Termin folgt'; }
+        };
+        const fmtTime = (ms) => {
+            try {
+                return new Date(ms).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+            } catch (_) { return ''; }
+        };
+
+        let cards = [];
+
+        // 1) Echte, noch nicht (fertig) gespielte Fixtures des Klubs.
+        if (clubKey && Array.isArray(scheduleCatalog) && scheduleCatalog.length) {
+            cards = scheduleCatalog
+                .filter((m) => normName(m.teamA) === clubKey || normName(m.teamB) === clubKey)
+                .filter((m) => !playedMatchIds.has(String(m.id)))
+                .filter((m) => !getScheduleTimingState(m).isFinished)
+                .slice(0, limit)
+                .map((m) => {
+                    const kickoffMs = m.kickoffMs || (m.date ? Date.parse(m.date) : null);
+                    const roundLabel = /league stage/i.test(m.round || '')
+                        ? `Spieltag ${String(m.round).replace(/\D+/g, '') || ''}`.trim()
+                        : (m.round || '');
+                    return upcomingCard(
+                        m.teamA, m.teamALogo, m.teamB, m.teamBLogo,
+                        kickoffMs ? fmtDay(kickoffMs) : 'Termin folgt',
+                        kickoffMs ? fmtTime(kickoffMs) : '',
+                        roundLabel
+                    );
+                });
+        }
+
+        // 2) Kalender-Fallback: Spieltag-Termine stehen fest, Paarungen noch
+        //    nicht. Eine Karte pro Ligaphasen-Spieltag.
+        if (!cards.length && clubName) {
+            const calendar = (APP && Array.isArray(APP.matchCalendar)) ? APP.matchCalendar : [];
+            cards = calendar
+                .filter((e) => /^league stage/i.test(e.round || ''))
+                .slice(0, limit)
+                .map((e) => {
+                    const dates = Array.isArray(e.dates) ? e.dates : [];
+                    const fmt = (iso) => {
+                        const parts = String(iso).split('-');
+                        return parts.length === 3 ? `${parts[2]}.${parts[1]}.` : iso;
+                    };
+                    const dateLabel = dates.length > 1
+                        ? `${fmt(dates[0])}–${fmt(dates[dates.length - 1])}`
+                        : (dates[0] ? fmt(dates[0]) : 'Termin folgt');
+                    return upcomingCard(
+                        clubName, clubLogo, 'Gegner folgt', '',
+                        dateLabel,
+                        e.kickoff ? `${e.kickoff} Uhr` : '',
+                        e.label || e.round
+                    );
+                });
+        }
+
+        if (!cards.length) return '';
+        // Die Trenn-Ueberschrift braucht es nur im Mischfall (gespielte
+        // plus kommende Partien). Ohne gespielte Spiele uebernimmt der
+        // Kartentitel selbst "Kommende Spiele" (syncGamesCardTitle).
+        const heading = playedCount > 0 ? `
+            <div style="display:flex;align-items:center;gap:8px;margin:14px 0 8px;font-size:0.78rem;font-weight:800;letter-spacing:0.04em;color:var(--text-muted);text-transform:uppercase;">
+                📅 Kommende Spiele
+            </div>` : '';
+        return heading + cards.join('');
+    }
+
+    /* Passt den statischen Kartentitel "Gespielte Spiele" an den
+       Inhalt an: vor dem ersten Anpfiff (nur ausstehende Partien)
+       heisst die Karte "Kommende Spiele", im Mischfall neutral
+       "Spiele". Abgeschlossene Turniere (nur gespielte Partien)
+       behalten den bisherigen Titel. */
+    function syncGamesCardTitle(gameBox, playedCount) {
+        const card = gameBox ? gameBox.closest('.analysis-card') : null;
+        const titleEl = card ? card.querySelector('.analysis-card-title') : null;
+        if (!titleEl) return;
+        const hasUpcoming = !!gameBox.querySelector('.match-card.is-upcoming');
+        const label = hasUpcoming
+            ? (playedCount > 0 ? '📅 Spiele' : '📅 Kommende Spiele')
+            : '📅 Gespielte Spiele';
+        titleEl.innerHTML = '<span class="act-accent" aria-hidden="true"></span>' + label;
     }
 
     /* =========================================================
