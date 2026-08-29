@@ -142,8 +142,11 @@
      scripts/test-static-nav.js prüft das. -->
 <nav class="navbar">
     <a href="index.html" class="navbar-brand" aria-label="DreamTeam">
-        <span class="brand-gold">&nbsp;</span>
-        <span class="brand-green">DreamTeam</span>
+        <span class="brand-line">
+            <span class="brand-gold">&nbsp;</span>
+            <span class="brand-green">DreamTeam</span>
+        </span>
+        <span class="brand-season" hidden></span>
     </a>
     <div class="nav-actions">
         <div class="nav-links">
@@ -176,6 +179,11 @@
     var k=document.documentElement.getAttribute("data-tournament")||"";
     var el=document.querySelector(".navbar-brand .brand-gold");
     if(el) el.textContent=/^cl/.test(k)?"Champions League":"WM 2026";
+    // Saison-Zeile unter dem Markennamen (Stil wie .hero-season) - nur CL.
+    // Statischer Spiegel fuer den ersten Frame; nav.js setzt nach dem Boot
+    // den echten Wert aus APP_CONFIG.seasonLabel.
+    var se=document.querySelector(".navbar-brand .brand-season");
+    if(se&&/^cl/.test(k)){se.textContent="Saison 2026/2027";se.hidden=false;}
 }catch(e){}})();
 </script>
 <!-- ===== /STATIC NAV ===== -->

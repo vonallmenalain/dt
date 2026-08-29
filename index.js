@@ -7717,7 +7717,10 @@
             const desktop = stageW >= DESKTOP_MIN_W;
             gapPx = desktop ? 30 : 12;
             scMax = desktop ? 1.22 : 1.26;
-            scMin = desktop ? 0.34 : 0.38;
+            // Randskala nach Feedback wieder etwas angehoben (war 0.34/0.38
+            // "fast verschwunden" - zu extrem): Rand bleibt klein, aber
+            // erkennbar; mobil bewusst nur LEICHT groesser.
+            scMin = desktop ? 0.42 : 0.48;
         }
 
         /* offsetWidth/-Height statt getBoundingClientRect: die Zellen tragen
