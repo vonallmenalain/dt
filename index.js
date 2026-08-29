@@ -7143,14 +7143,25 @@
         // – die Karte zeigt Foto, Name, Klublogo und Klubname. Das Feld steht
         // bereit, falls die Kategorie später als Badge sichtbar werden soll.
         //
-        // NICHT ENTHALTEN – im Pool `data-cl2627.js` (Stand: 1188 Spieler aus
-        // 36 Klubs) gibt es zu diesen drei Namen keinen Eintrag; sie würden
-        // ohne Foto und ohne Klublogo als leere Karte erscheinen. Sobald der
-        // Kaderpool neu erzeugt ist (in `scripts/`: `npm run generate-cl-pool`),
-        // können sie mit ihrer player.id ergänzt werden:
+        // NICHT ENTHALTEN, weil im Pool `data-cl2627.js` (Stand: 1188 Spieler
+        // aus 36 Klubs) kein Eintrag existiert; sie würden ohne Foto und ohne
+        // Klublogo als leere Karte erscheinen. Sobald der Kaderpool neu erzeugt
+        // ist (in `scripts/`: `npm run generate-cl-pool`), können sie mit ihrer
+        // player.id ergänzt werden:
         //   • Franco Mastantuono (Real Madrid, Flügel/OM, TALENT)
         //   • Said El Mala       (Borussia Dortmund, Flügel, NEUZUGANG)
         //   • Ousmane Diomande   (Sporting CP, Innenverteidiger, TALENT)
+        //
+        // NICHT ENTHALTEN, weil api-football kein Spielerfoto hat:
+        //   • Max Dowman (442044, Arsenal, TALENT)
+        // Sein Datensatz ist sonst vollständig – Geburtsdatum, Nationalität,
+        // Klub stehen da, weshalb ihn auch der Pool-Filter
+        // (`hidePlayersWithoutProfile`, siehe data.js) nicht aussortiert. Nur
+        // unter seiner Foto-URL liegt die Silhouette des Anbieters, und die
+        // Karte ist zu 2/3 Foto. Am Bild lässt sich das nicht erkennen: der
+        // Platzhalter wird unter der normalen `players/<id>.png` ausgeliefert,
+        // es gibt also keine Marker-URL, an der man ihn abfangen könnte.
+        // Wieder aufnehmen, sobald api-football ein Foto führt.
         //
         // ABWEICHUNG zum Wunschzettel: Rodrigo Mora steht im Pool bei AS Roma,
         // nicht beim FC Porto – Klublogo und Klubname der Karte kommen aus dem
@@ -7184,8 +7195,7 @@
                     { playerId: 314511, name: "Antonio Nusa",          nation: "Norwegen",       position: "ANG", tag: "TALENT"    }, // RB Leipzig – auffälliger Flügelspieler
                     { playerId: 291964, name: "Arda Güler",            nation: "Türkei",         position: "MIT", tag: "TALENT"    }, // Real Madrid – bester junger Spieler der CL 2025/26
                     { playerId: 404097, name: "Rodrigo Mora",          nation: "Portugal",       position: "ANG", tag: "TALENT"    }, // AS Roma (im Pool; Wunschzettel nannte FC Porto)
-                    { playerId: 138908, name: "Elliot Anderson",       nation: "Schottland",     position: "MIT", tag: "NEUZUGANG" }, // Manchester City – für 135 Mio. € von Newcastle
-                    { playerId: 442044, name: "Max Dowman",            nation: "England",        position: "MIT", tag: "TALENT"    }  // Arsenal – jüngster CL-Spieler aller Zeiten, Wildcard
+                    { playerId: 138908, name: "Elliot Anderson",       nation: "Schottland",     position: "MIT", tag: "NEUZUGANG" }  // Manchester City – für 135 Mio. € von Newcastle
                 ]
             }
         ];
