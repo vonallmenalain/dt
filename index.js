@@ -7402,6 +7402,54 @@
         const prefersReducedMotion = !!(window.matchMedia
             && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+        /* Neutraler Platzhalter (Spieler-Silhouette, Inline-SVG) fuer
+           fehlende oder fehlgeschlagene Fotos. Die Karten duerfen NIE als
+           dunkle Rueckseiten erscheinen (siehe wirePhotoLoadState). */
+        const TCC_PHOTO_FALLBACK = 'data:image/svg+xml;charset=utf-8,'
+            + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">'
+                + '<rect width="96" height="96" fill="#1b2740"/>'
+                + '<circle cx="48" cy="37" r="15" fill="#33456b"/>'
+                + '<path d="M16 88c4-19 17-28 32-28s28 9 32 28z" fill="#33456b"/></svg>');
+
+        /* Ladezustand des Kartenfotos verdrahten.
+           Warum das noetig ist: Die Fotos kommen vom externen Bilder-Host
+           und wurden frueher mit loading="lazy" geladen. In der App-Shell
+           bootet die Startseite aber UNSICHTBAR im Frame – lazy-Bilder
+           beginnen dort gar nicht erst zu laden, und beim Einblenden
+           standen die Seitenkarten dann als dunkle Rueckseiten da (bzw.
+           fuer immer, wenn ein Download scheiterte). Deshalb: eager laden,
+           bis zum Eintreffen schimmert der Foto-Rahmen (CSS .is-loaded),
+           und bei Fehlern erscheint die Silhouette statt Leere. */
+        function wirePhotoLoadState(el, p) {
+            const wrap = el.querySelector('.tcc-player-photo-wrap');
+            const photo = el.querySelector('.tcc-player-photo');
+            if (!wrap || !photo) return;
+
+            const markLoaded = () => wrap.classList.add('is-loaded');
+            const useFallback = () => {
+                photo.src = TCC_PHOTO_FALLBACK;
+                markLoaded();
+            };
+
+            if (!p.img) {
+                useFallback();
+                return;
+            }
+            photo.addEventListener('load', markLoaded, { once: true });
+            photo.addEventListener('error', useFallback, { once: true });
+            // Aus dem Cache bediente Bilder koennen schon fertig sein, bevor
+            // die Listener haengen – dann feuert 'load' nie mehr.
+            if (photo.complete && photo.naturalWidth > 0) markLoaded();
+
+            const badge = el.querySelector('.tcc-badge-img');
+            if (badge) {
+                badge.addEventListener('error', () => {
+                    const badgeWrap = badge.closest('.tcc-badge-wrap');
+                    if (badgeWrap) badgeWrap.remove(); // Label-Text bleibt stehen
+                }, { once: true });
+            }
+        }
+
         function renderPlayerCard(p) {
             const el = document.createElement('article');
             el.className = 'tcc-player-card';
@@ -7409,18 +7457,19 @@
             el.dataset.playerId = p.id;
             el.innerHTML = `
                 <div class="tcc-player-photo-wrap">
-                    <img class="tcc-player-photo" loading="lazy" src="${escapeHtml(p.img)}" alt="Spielerfoto von ${escapeHtml(p.name)}">
+                    <img class="tcc-player-photo" decoding="async" src="${escapeHtml(p.img || TCC_PHOTO_FALLBACK)}" alt="Spielerfoto von ${escapeHtml(p.name)}">
                 </div>
                 <div class="tcc-player-info">
                     <h3 class="tcc-player-name">${escapeHtml(p.name)}</h3>
                     ${p.badgeLogo ? `<div class="tcc-badge-wrap">
-                        <img class="tcc-badge-img" loading="lazy" src="${escapeHtml(p.badgeLogo)}" alt="${escapeHtml(p.badgeLabel)}">
+                        <img class="tcc-badge-img" decoding="async" src="${escapeHtml(p.badgeLogo)}" alt="${escapeHtml(p.badgeLabel)}">
                     </div>` : ''}
                     <div class="tcc-badge-label">${escapeHtml(p.badgeLabel)}</div>
                 </div>
                 <div class="tcc-card-dim" aria-hidden="true"></div>
             `;
             el.style.transition = TRANSITION_CSS;
+            wirePhotoLoadState(el, p);
             return el;
         }
 
@@ -7462,6 +7511,10 @@
             cards = items.map((it) => renderPlayerCard(it));
             cards.forEach((c) => track.appendChild(c));
             active = pickInitialActive(cards.length);
+            // Das Zentrums-Foto zuerst: die Karte, auf die alle schauen,
+            // gewinnt das Rennen um die Verbindung zum Bilder-Host.
+            const activePhoto = cards[active] && cards[active].querySelector('.tcc-player-photo');
+            if (activePhoto) activePhoto.setAttribute('fetchpriority', 'high');
             fitPlayerNames();
             measure();
             render();
@@ -7699,6 +7752,24 @@
             measure();
             render();
         }, { passive: true });
+
+        // In der App-Shell bootet die Startseite UNSICHTBAR im Frame:
+        // measure()/fitPlayerNames() sehen dort nur Breite 0, cardW bleibt
+        // auf dem Startwert und der Faecher stand nach dem Einblenden
+        // gestaucht uebereinander (dunkler Kartenstapel statt Karussell).
+        // Ein window-resize feuert beim Einblenden nicht zwingend – der
+        // ResizeObserver auf dem Karussell dagegen meldet sich, sobald es
+        // zum ersten Mal echtes Layout bekommt (und bei jeder weiteren
+        // Groessenaenderung), und vermisst dann Karten + Namen neu.
+        if (typeof ResizeObserver === 'function') {
+            const ro = new ResizeObserver(() => {
+                if (!cards.length) return;
+                fitPlayerNames();
+                measure();
+                render();
+            });
+            ro.observe(carousel);
+        }
 
         initCarousel();
     })();
