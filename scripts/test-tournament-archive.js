@@ -149,39 +149,147 @@ function runUserMenu({ activeKey }) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
  *  3) auth-modal.js: Nutzer-Bereich ist NICHT admin-gegatet
+ *
+ *  Hier laeuft das echte Modul in einem Mini-DOM. Der Punkt, um den es geht,
+ *  laesst sich mit Textsuche nicht pruefen: dass ein Nutzer-Eintrag auch
+ *  OHNE Admin-Status im Dropdown landet – und der Dev-Bereich weiterhin
+ *  nicht. Vorher gab es nur den Dev-Kanal, der Umschalter waere also fuer
+ *  normale Nutzer unsichtbar geblieben.
  * ───────────────────────────────────────────────────────────────────────────── */
-const modalSrc = readRoot('auth-modal.js');
+function makeNode(tag) {
+  const node = {
+    tagName: String(tag).toUpperCase(), children: [], attrs: {}, className: '',
+    hidden: false, listeners: {}, parent: null, style: {}, dataset: {},
+    setAttribute(k, v) { this.attrs[k] = String(v); if (k === 'id') this.id = String(v); },
+    getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; },
+    removeAttribute(k) { delete this.attrs[k]; },
+    addEventListener(ev, fn) { (this.listeners[ev] = this.listeners[ev] || []).push(fn); },
+    appendChild(c) { c.parent = this; this.children.push(c); return c; },
+    contains() { return false; },
+    querySelector(sel) { return findById(this, sel.replace('#', '')); },
+    classList: { add() {}, remove() {}, contains() { return false; } }
+  };
+  // innerHTML wird nur zum Leeren benutzt (host.innerHTML = '').
+  Object.defineProperty(node, 'innerHTML', {
+    get() { return ''; }, set(v) { if (v === '') this.children = []; }, configurable: true
+  });
+  return node;
+}
 
-assert.match(modalSrc, /\bmenu\b\s*$|devMenu,\s*\n\s*menu/m,
-  'auth-modal.js muss `menu` exportieren');
-assert.ok(modalSrc.includes('function renderUserMenu()'), 'renderUserMenu fehlt');
+function findById(root, id) {
+  const stack = root.children.slice();
+  while (stack.length) {
+    const n = stack.shift();
+    if (n.id === id) return n;
+    stack.push(...n.children);
+  }
+  return null;
+}
 
-// Der Dev-Bereich haengt am Admin-Status, der Nutzer-Bereich nicht.
-const userMenuBody = modalSrc.slice(
-  modalSrc.indexOf('function renderUserMenu()'),
-  modalSrc.indexOf('function renderDevMenu()')
-);
-assert.ok(userMenuBody.length > 0);
-assert.ok(!userMenuBody.includes('devIsAdmin'),
-  'renderUserMenu darf den Admin-Status nicht abfragen – sonst sehen normale Nutzer nichts');
-const devMenuBody = modalSrc.slice(modalSrc.indexOf('function renderDevMenu()'));
-assert.ok(devMenuBody.slice(0, 400).includes('devIsAdmin'),
-  'renderDevMenu muss weiterhin am Admin-Status haengen');
+function textOf(node) {
+  return node.text !== undefined ? node.text : node.children.map(textOf).join('');
+}
 
-// Reihenfolge im Dropdown: Nutzer-Eintraege vor „Abmelden".
-const menuHostAt = modalSrc.indexOf("id: 'dt-auth-nav-menu'");
-const logoutAt = modalSrc.indexOf("id: 'dt-auth-nav-logout'");
-assert.ok(menuHostAt > 0 && logoutAt > 0);
-assert.ok(menuHostAt < logoutAt, '„Abmelden" muss der letzte Haupteintrag bleiben');
+function renderDropdown({ isAdmin }) {
+  const body = makeNode('body');
+  const documentStub = {
+    body, head: makeNode('head'), documentElement: makeNode('html'),
+    createElement: makeNode,
+    createTextNode: (t) => { const n = makeNode('#text'); n.text = String(t); return n; },
+    querySelector: (sel) => (sel === '#dt-auth-nav-slot' ? body : null),
+    getElementById: () => null,
+    addEventListener() {}, removeEventListener() {},
+    readyState: 'complete'
+  };
 
-// Bestehende Aufrufer bleiben admin-only.
-assert.ok(modalSrc.includes('registerMenuItem(item, true)'), 'devMenu muss adminOnly=true setzen');
-assert.ok(modalSrc.includes('registerMenuItem(item, false)'), 'menu muss adminOnly=false setzen');
+  const sandbox = {
+    console, setTimeout, clearTimeout, setInterval: () => 0, clearInterval: () => {},
+    document: documentStub, URL, URLSearchParams,
+    navigator: { userAgent: 'node' },
+    location: { href: 'https://dt.alae.app/', hostname: 'dt.alae.app', search: '' },
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} }
+  };
+  sandbox.sessionStorage = sandbox.localStorage;
+  sandbox.window = sandbox;
+  sandbox.globalThis = sandbox;
+  sandbox.DreamTeamAdmin = {
+    isAdmin: () => isAdmin,
+    isAuthResolved: () => true,
+    getDevViewOverride: () => null,
+    onAdminChange(cb) { cb({ isAdmin, uid: isAdmin ? 'admin' : null, authResolved: true }); return () => {}; }
+  };
+
+  vm.createContext(sandbox);
+  vm.runInContext(readRoot('auth-modal.js'), sandbox, { filename: 'auth-modal.js' });
+
+  const Modal = sandbox.window.DreamTeamAuthModal;
+  assert.ok(Modal, 'DreamTeamAuthModal muss exportiert sein');
+  assert.ok(Modal.menu && typeof Modal.menu.register === 'function',
+    'auth-modal.js muss den Nutzer-Kanal `menu` exportieren');
+
+  Modal.install({ teamBuilderHref: 'team-builder.html' });
+
+  const clicks = [];
+  Modal.menu.register({
+    id: 'tournament-switch-wm2026', icon: '📚',
+    label: 'WM 2026 ansehen', value: 'Archiv',
+    onSelect: () => clicks.push('user')
+  });
+  Modal.devMenu.register({
+    id: 'dev-eintrag', group: 'Turnier', label: 'Nur fuer Admins',
+    onSelect: () => clicks.push('dev')
+  });
+
+  const menuHost = findById(body, 'dt-auth-nav-menu');
+  const devHost = findById(body, 'dt-auth-nav-dev');
+  assert.ok(menuHost && devHost, 'beide Bereiche muessen im Dropdown liegen');
+  return { body, menuHost, devHost, clicks, dropdown: menuHost.parent };
+}
+
+// (a) Normale angemeldete Person: sieht den Turnier-Wechsel, nicht den Dev-Bereich.
+{
+  const { menuHost, devHost, clicks, dropdown } = renderDropdown({ isAdmin: false });
+
+  assert.equal(menuHost.hidden, false, 'der Nutzer-Bereich muss ohne Admin sichtbar sein');
+  assert.equal(menuHost.children.length, 1, 'genau der registrierte Eintrag');
+  assert.match(textOf(menuHost.children[0]), /WM 2026 ansehen/);
+  assert.match(textOf(menuHost.children[0]), /Archiv/, 'die Archiv-Markierung wird gerendert');
+
+  assert.equal(devHost.hidden, true, 'der Dev-Bereich bleibt ohne Admin versteckt');
+  assert.equal(devHost.children.length, 0, 'ohne Admin werden keine Dev-Eintraege gerendert');
+
+  // Klick loest den Handler aus.
+  menuHost.children[0].listeners.click[0]({ stopPropagation() {} });
+  assert.deepEqual(clicks, ['user']);
+
+  // Reihenfolge: „Abmelden" bleibt der letzte Haupteintrag, der Dev-Bereich
+  // ganz unten.
+  const order = dropdown.children.map((c) => c.id || c.className);
+  const at = (id) => order.indexOf(id);
+  assert.ok(at('dt-auth-nav-myteam') < at('dt-auth-nav-menu'), 'Turnier-Wechsel steht unter „Mein Team"');
+  assert.ok(at('dt-auth-nav-menu') < at('dt-auth-nav-logout'), '„Abmelden" bleibt der letzte Haupteintrag');
+  assert.ok(at('dt-auth-nav-logout') < at('dt-auth-nav-dev'), 'der Dev-Bereich bleibt ganz unten');
+}
+
+// (b) Admin: sieht beides – die bestehenden devMenu-Aufrufer bleiben unberuehrt.
+{
+  const { menuHost, devHost } = renderDropdown({ isAdmin: true });
+  assert.equal(menuHost.hidden, false, 'der Nutzer-Bereich gilt auch fuer Admins');
+  assert.equal(menuHost.children.length, 1);
+  assert.equal(devHost.hidden, false, 'mit Admin erscheint der Dev-Bereich');
+  assert.ok(devHost.children.length >= 1, 'der Dev-Eintrag wird fuer Admins gerendert');
+  assert.ok(devHost.children.some((c) => /Nur fuer Admins/.test(textOf(c))),
+    'der registrierte Dev-Eintrag steht im Dev-Bereich, nicht im Nutzer-Bereich');
+  assert.ok(!menuHost.children.some((c) => /Nur fuer Admins/.test(textOf(c))),
+    'ein Dev-Eintrag darf nie im Nutzer-Bereich landen');
+}
 
 // Das CSS fuer den neuen Bereich existiert.
-const modalCss = readRoot('auth-modal.css');
-['.dt-auth-nav-menu[hidden]', '.dt-auth-nav-menu-label', '.dt-auth-nav-menu-value']
-  .forEach(sel => assert.ok(modalCss.includes(sel), `CSS-Regel fehlt: ${sel}`));
+{
+  const modalCss = readRoot('auth-modal.css');
+  ['.dt-auth-nav-menu[hidden]', '.dt-auth-nav-menu-label', '.dt-auth-nav-menu-value']
+    .forEach((sel) => assert.ok(modalCss.includes(sel), `CSS-Regel fehlt: ${sel}`));
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
  *  4) Team-Builder: das Archiv ist fuer alle gesperrt
