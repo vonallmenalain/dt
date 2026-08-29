@@ -4,10 +4,20 @@ name: Auto Spielplan-Sync
 # tournament-config.js. Lädt einmal pro Tag (Cron) alle Fixtures +
 # Stadiondaten von der API und schreibt sie nach Firestore.
 #
+# Welches Turnier: ohne tournament_key nimmt das Skript
+# APP_CONFIG.serverTournamentKey – das Turnier, dessen `defaultActiveFrom`
+# zuletzt erreicht wurde (seit 27.08.2026: cl2627).
+#
 # Übernommen werden nur Spiele AB Turnierstart. Bei Ligaphasen-Turnieren
 # (Champions League) liefert api-football auch die Qualifikationsrunden
 # davor mit – diese werden verworfen und, falls frühere Läufe sie bereits
 # geschrieben haben, aus Firestore gelöscht (Opt-out: skip_purge).
+#
+# Solange api-football nach einer Auslosung erst die Paarungen und noch
+# keinen Spieltag-Kalender hat (alle Ligaphasen-Spiele an einem Datum),
+# bricht der Lauf bewusst ab, statt einen Platzhalter-Spielplan zu
+# schreiben. Der nächste tägliche Lauf zieht den Kalender nach, sobald er
+# publiziert ist (Opt-out: allow_placeholder_schedule).
 #
 # Zusätzlich manuell auslösbar via "Run workflow".
 #
@@ -41,6 +51,11 @@ on:
         default: false
       skip_purge:
         description: "Bereits gespeicherte Spiele VOR Turnierstart nicht löschen."
+        required: false
+        type: boolean
+        default: false
+      allow_placeholder_schedule:
+        description: "Ligaphasen-Spielplan auch schreiben, wenn die API noch keinen Spieltag-Kalender liefert (alle Spiele an einem Datum)."
         required: false
         type: boolean
         default: false
@@ -78,4 +93,5 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
           SKIP_VENUES: ${{ inputs.skip_venues == true && '1' || '0' }}
           SKIP_PURGE: ${{ inputs.skip_purge == true && '1' || '0' }}
+          ALLOW_PLACEHOLDER_SCHEDULE: ${{ inputs.allow_placeholder_schedule == true && '1' || '0' }}
         run: node sync-fixtures.js

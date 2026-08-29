@@ -48,10 +48,11 @@
  *  oder lokalen Tests; Scheduled Runs nutzen bei leeren Werten die Defaults):
  *    RAPIDAPI_KEY              RapidAPI / API-Football Key (zwingend)
  *    FIREBASE_SERVICE_ACCOUNT  Service-Account-JSON als String (zwingend)
- *    TOURNAMENT_KEY            Optional. Default = Fallback aus
- *                              tournament-config.js. Aktuell ist nur
- *                              `wm2026` produktiv konfiguriert; andere
- *                              Keys führen zu einem expliziten Abbruch.
+ *    TOURNAMENT_KEY            Optional. Default = das Turnier, das laut
+ *                              Kalender gerade läuft (APP_CONFIG.
+ *                              serverTournamentKey); nicht verfügbare und
+ *                              nicht als Vorschau ladbare Keys führen zu
+ *                              einem expliziten Abbruch.
  *    POINTS_WINDOW_START_MIN   Optional, Default -30. Start des Live-
  *                              Fensters relativ zum Anpfiff.
  *    POINTS_WINDOW_END_MIN     Optional, Default 150. Normales Ende des
@@ -3174,7 +3175,10 @@ async function maybeWaitForNextLiveWindow(tickResult, opts, reason) {
 
 async function main() {
   const envKey = (process.env.TOURNAMENT_KEY || '').trim().toLowerCase();
-  const tournamentKey = envKey || APP_CONFIG.activeTournamentKey;
+  // Kein Hostname in Node: der aktive Turnier-Key kommt aus dem Kalender
+  // (defaultActiveFrom), nicht aus dem Domain-Mapping. Siehe
+  // resolveServerTournamentKey in tournament-config.js.
+  const tournamentKey = envKey || APP_CONFIG.serverTournamentKey;
   const tournament = TOURNAMENTS[tournamentKey];
   const forceRun = envBool('FORCE_RUN', false);
   const dryRun = envBool('DRY_RUN', false);

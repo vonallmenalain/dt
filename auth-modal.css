@@ -210,6 +210,46 @@
 }
 
 /* -----------------------------------------------------------------------------
+ *  Nutzer-Bereich im Profil-Dropdown
+ *  Fuer JEDE angemeldete Person sichtbar (siehe auth-modal.js -> menu).
+ *  Optisch wie die uebrigen Haupteintraege ("Mein Team"), nur mit einem
+ *  rechtsbuendigen Statustext - z. B. "Archiv" beim Turnier-Wechsel.
+ * -------------------------------------------------------------------------- */
+.dt-auth-nav-menu[hidden] { display: none; }
+
+.dt-auth-nav-menu-item {
+    justify-content: flex-start;
+}
+
+.dt-auth-nav-menu-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dt-auth-nav-menu-value {
+    margin-left: auto;
+    padding-left: 12px;
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--dt-auth-muted, #9ba9b7);
+}
+
+.dt-auth-nav-menu-item:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.dt-auth-nav-menu-item:disabled:hover {
+    background: transparent;
+    color: var(--dt-auth-text, #e6edf3);
+}
+
+/* -----------------------------------------------------------------------------
  *  Dev-Bereich im Profil-Dropdown
  *  Nur für angemeldete Admins sichtbar (siehe auth-modal.js → devMenu).
  *  Bewusst ruhiger als die normalen Einträge: kleinere Schrift, gedämpfte

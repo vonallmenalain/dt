@@ -3,17 +3,18 @@
 /* =============================================================================
  *  test-cl2627-scaffold.js
  *
- *  Guard für das Champions-League-2026/27-Gerüst (Meilenstein M1).
+ *  Guard für den Champions-League-2026/27-Config-Block.
  *
- *  Das CL-Turnier existiert ab M1 als Config-Block, ist aber noch
- *  vollständig INERT: nicht verfügbar, nicht auswählbar, kein Domain-
- *  Default. Dieser Test schlägt fehl, falls die CL versehentlich
- *  freigeschaltet wird, bevor Daten (data-cl2627.js) und Logik (M2 ff.)
- *  bereit sind, oder falls sie die WM als Default verdrängt.
+ *  Bis zur Freischaltung am 29.08.2026 hat dieser Test bewacht, dass die CL
+ *  vollständig INERT bleibt. Jetzt ist sie das produktive Turnier, und der
+ *  Test bewacht die Gegenrichtung: dass sie freigeschaltet bleibt, dass
+ *  dt.alae.app auf sie defaultet, und dass die Turnierstruktur (Ligaphase,
+ *  club-zentriert, kein Captain) und der Spielkalender unverändert stimmen.
  *
  *  Läuft ohne Browser/Firebase: tournament-config.js wird als reines
- *  Node-Modul geladen (window undefined → aktives Turnier = Fallback
- *  wm2026).
+ *  Node-Modul geladen. Ohne `window` gibt es keinen Hostname, deshalb ist
+ *  das aktive Turnier dort der Fallback (wm2026) – die Domain-Auflösung
+ *  wird unten explizit mit einem Hostnamen geprüft.
  * ============================================================================= */
 
 const assert = require('node:assert/strict');
@@ -37,19 +38,28 @@ assert.ok(Array.isArray(cl.defaultDomains) && cl.defaultDomains.includes('dt.ala
   'cl2627.defaultDomains soll dt.alae.app enthalten.');
 assert.ok(cl.defaultActiveFrom, 'cl2627.defaultActiveFrom muss gesetzt sein.');
 
-/* ── 2) CL ist INERT: nicht verfügbar, nicht auswählbar ────────────────── */
-assert.equal(cl.available, false, 'cl2627 darf (noch) nicht available sein.');
-assert.equal(cl.dataReady, false, 'cl2627 darf (noch) nicht dataReady sein.');
-assert.equal(APP.isTournamentAvailable('cl2627'), false, 'cl2627 darf nicht verfügbar sein.');
-assert.ok(!APP.availableTournamentKeys.includes('cl2627'),
-  'cl2627 darf nicht in availableTournamentKeys auftauchen.');
+/* ── 2) CL ist freigeschaltet ──────────────────────────────────────────── */
+assert.equal(cl.available, true, 'cl2627 muss available sein.');
+assert.equal(cl.dataReady, true, 'cl2627 muss dataReady sein.');
+assert.equal(APP.isTournamentAvailable('cl2627'), true, 'cl2627 muss verfügbar sein.');
+assert.ok(APP.availableTournamentKeys.includes('cl2627'),
+  'cl2627 muss in availableTournamentKeys auftauchen.');
+assert.equal(cl.archived, undefined, 'Das laufende Turnier darf kein Archiv sein.');
 
-/* ── 3) WM bleibt aktiv und Default ────────────────────────────────────── */
-assert.equal(APP.activeTournamentKey, 'wm2026', 'Aktives Turnier muss wm2026 bleiben.');
-assert.equal(APP.primaryEntity, 'nation', 'WM bleibt nation-zentriert (Default).');
-assert.equal(APP.domainDefaultKey, 'wm2026', 'Domain-Default muss wm2026 bleiben.');
-assert.deepEqual(APP.availableTournamentKeys, ['wm2026'],
-  'Nur wm2026 darf verfügbar sein.');
+/* ── 3) WM bleibt als Archiv erreichbar ────────────────────────────────── */
+/* Die WM ist gespielt, verschwindet aber nicht: sie bleibt verfügbar, damit
+ * angemeldete Nutzer Rangliste und Resultate nachlesen können. Schreibschutz
+ * und Umschalter siehe test-tournament-archive.js. */
+assert.equal(APP.isTournamentAvailable('wm2026'), true, 'wm2026 muss als Archiv verfügbar bleiben.');
+assert.equal(APP.isTournamentArchived('wm2026'), true, 'wm2026 muss als Archiv markiert sein.');
+assert.deepEqual(APP.availableTournamentKeys.slice().sort(), ['cl2627', 'wm2026'],
+  'Verfügbar sind genau die CL und die WM – der Teststand cl2526 nie.');
+
+/* In Node gibt es keinen Hostname; das aktive Turnier ist deshalb weiterhin
+ * der globale Fallback. Wichtig, damit die Cron-Skripte nicht versehentlich
+ * über diesen Weg aufgelöst werden (sie nutzen serverTournamentKey). */
+assert.equal(APP.activeTournamentKey, 'wm2026',
+  'Ohne window bleibt der globale Fallback das aktive Turnier.');
 
 /* ── 3b) Spielkalender 2026/27: Termine stehen, Paarungen nicht ────────── */
 /* Die Termine der Ligaphase und der K.-o.-Runden sind veröffentlicht, die
@@ -107,16 +117,24 @@ const lastKickoff = cl.fallbackFixtures
 assert.ok(new Date(cl.AUTO_POINTS_UNTIL).getTime() > lastKickoff,
   'Das Auto-Punkte-Fenster muss den Final noch abdecken.');
 
-/* ── 4) Zeit-Default ist dormant, solange die CL nicht available ist ───── */
-/* Selbst mit korrekter Domain und einem Zeitpunkt NACH dem Stichtag darf
- * die CL nicht als Domain-Default greifen, weil sie (noch) gesperrt ist. */
+/* ── 4) Zeit-Default: dt.alae.app zeigt ab dem Stichtag die CL ─────────── */
 assert.equal(typeof APP.resolveScheduledDomainKey, 'function',
   'resolveScheduledDomainKey sollte exponiert sein.');
 const afterDraw = new Date('2026-09-01T12:00:00+02:00').getTime();
 assert.equal(
   APP.resolveScheduledDomainKey('dt.alae.app', afterDraw),
-  null,
-  'Solange cl2627 nicht available ist, darf der Zeit-Default nicht greifen.'
+  'cl2627',
+  'dt.alae.app muss ab dem Stichtag auf die CL defaulten.'
 );
+/* Vor dem Stichtag greift der Zeit-Default nicht – dann gilt weiter das
+ * statische Domain-Mapping. Die Kette bleibt damit lückenlos. */
+assert.equal(
+  APP.resolveScheduledDomainKey('dt.alae.app', new Date(cl.defaultActiveFrom).getTime() - 1),
+  null,
+  'Vor defaultActiveFrom darf der Zeit-Default nicht greifen.'
+);
+/* Fremde Domains bleiben unberührt. */
+assert.equal(APP.resolveScheduledDomainKey('localhost', afterDraw), null,
+  'Der Zeit-Default gilt nur für die konfigurierten Domains.');
 
 console.log('cl2627 scaffold test passed');

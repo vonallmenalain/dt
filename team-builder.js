@@ -1867,15 +1867,27 @@
        ========================================================= */
     function isTournamentStarted() {
         const Admin = window.DreamTeamAdmin;
+        const override = (Admin && typeof Admin.getDevViewOverride === 'function')
+            ? Admin.getDevViewOverride()
+            : null;
+
+        // Archiv-Turnier (`archived: true` in tournament-config.js): ein
+        // gespieltes Turnier, das nur noch zum Nachlesen offen steht. Die
+        // Einreichung bleibt dort für ALLE gesperrt – auch dann, wenn im
+        // Meta-Dokument noch ein alter `lateSubmitOpen`-Schalter aus der
+        // Turnierzeit steht. Ein Admin kommt weiterhin über den
+        // Ansichts-Umschalter („Vor Start") heran; die Firestore-Rules
+        // erlauben ihm das ebenfalls, allen anderen nicht.
+        if (window.APP_CONFIG && window.APP_CONFIG.isArchived) {
+            return override !== 'pre';
+        }
+
         // Globaler Nachzuegler-Schalter: Hat der Admin die Einreichung
         // wieder geöffnet (Feld `lateSubmitOpen` im Meta-Dokument), gilt
         // das für ALLE Nutzer – nicht nur für den Admin. Der Wert kommt
         // aus Firestore (siehe subscribeLateSubmitFlag) und wird zusätzlich
         // von den Firestore Rules durchgesetzt.
         if (lateSubmitOpen) return false;
-        const override = (Admin && typeof Admin.getDevViewOverride === 'function')
-            ? Admin.getDevViewOverride()
-            : null;
         if (override === 'pre') return false;
         if (override === 'post') return true;
         // Startzeitpunkt kommt zentral aus APP_CONFIG.DREAMTEAM_START

@@ -12,11 +12,15 @@
  *  zweite Firestore-Collection-Liste existieren – wer ein neues Turnier
  *  ergänzen oder Regeln ändern will, tut das ausschliesslich hier.
  *
- *  Aktuell ist NUR `wm2026` produktiv. Andere Turniere bleiben als Templates
- *  in der Konfiguration, sind aber per `available: false` und/oder
- *  `dataReady: false` deaktiviert und können weder per URL-Parameter, per
- *  Dev-Switcher noch per Domain-Mapping aktiviert werden, solange keine
- *  passende `data-<key>.js`-Datei existiert.
+ *  Produktiv ist die Champions League 2026/27 (`cl2627`). Die WM 2026 bleibt
+ *  als ARCHIV verfügbar: jede angemeldete Person kann über das Profil-Menü
+ *  dorthin wechseln und Rangliste, Teams und Resultate nachlesen – schreiben
+ *  kann dort niemand mehr (`archived: true`).
+ *
+ *  Weitere Turniere bleiben als Templates in der Konfiguration, sind aber per
+ *  `available: false` und/oder `dataReady: false` deaktiviert und können
+ *  weder per URL-Parameter, per Dev-Switcher noch per Domain-Mapping
+ *  aktiviert werden, solange keine passende `data-<key>.js`-Datei existiert.
  *
  *  Aktives Turnier wird in dieser Reihenfolge bestimmt (nur Browser):
  *    1. URL-Parameter ?tournament=<key>             (Test-Override, nicht
@@ -46,9 +50,13 @@ const APP_CONFIG = (() => {
 
   /* ─────────────────────────────────────────────────────────
    * Domain → Turnier Mapping.
-   * Diese Map ist die einzige Quelle der Wahrheit für die
-   * Auswahl des Standard-Turniers pro Domain.
-   * Aktuell ist nur `dt.alae.app → wm2026` produktiv aktiv.
+   *
+   * Der STATISCHE Standard pro Domain. Darüber liegt der zeitgesteuerte
+   * Default (`defaultDomains` + `defaultActiveFrom`, siehe
+   * resolveScheduledDomainKey): seit dem 27.08.2026 zeigt dt.alae.app
+   * deshalb die Champions League. Dieser Eintrag hier ist das, worauf die
+   * Domain VOR diesem Stichtag fiel – er bleibt stehen, damit die Kette
+   * lückenlos bleibt.
    * ───────────────────────────────────────────────────────── */
   const DOMAIN_TOURNAMENT_MAP = {
     "dt.alae.app": "wm2026"
@@ -372,6 +380,18 @@ const APP_CONFIG = (() => {
       timezone: "Europe/Zurich",
       available: true,
       dataReady: true,
+
+      // ARCHIV: das Turnier ist gespielt und bleibt nur noch zum Nachlesen
+      // erreichbar (Rangliste, Teams, Resultate, Analyse). Jede angemeldete
+      // Person kommt über das Profil-Menü hin und zurück; der Team-Builder
+      // ist dort für alle gesperrt – auch dann, wenn im Meta-Dokument noch
+      // ein alter `lateSubmitOpen`-Schalter aus der Turnierzeit steht.
+      // Ein Admin kommt weiterhin über den Ansichts-Umschalter („Vor
+      // Start") heran, falls doch einmal etwas zu korrigieren ist.
+      // Serverseitig sperren die Firestore-Rules Team-Writes ohnehin seit
+      // dem Anpfiff; dieses Flag ist die passende UI dazu.
+      archived: true,
+
       DREAMTEAM_START: "2026-06-11T21:00:00+02:00",
       // Aktives Zeitfenster für den serverseitigen Auto-Punkte-Upload
       // (scripts/auto-points-upload.js). Außerhalb dieses Fensters
@@ -408,24 +428,25 @@ const APP_CONFIG = (() => {
     },
 
     /* ═════════════════════════════════════════════════════════════
-     * Champions League 2026/27  —  GERÜST (Meilenstein M1)
+     * Champions League 2026/27  —  DAS PRODUKTIVE TURNIER
      *
-     * Bewusst `available: false` UND `dataReady: false`: dieses Turnier
-     * ist weder per URL-Parameter, Dev-Switcher noch Domain-Mapping
-     * auswählbar, solange keine `data-cl2627.js` existiert und die Flags
-     * nicht auf true stehen. Der Block ist damit vollständig INERT – die
-     * produktive WM 2026 bleibt unberührt.
+     * Seit dem 29.08.2026 freigeschaltet: dt.alae.app zeigt die CL, weil
+     * `defaultActiveFrom` (27.08.2026, Auslosung) erreicht ist und der
+     * zeitgesteuerte Domain-Default vor dem statischen Mapping greift.
      *
-     * Freischaltung (später, ~27.08.2026 nach der Auslosung):
-     *   1. `data-cl2627.js` (Kader der 36 qualifizierten Klubs) deployen.
-     *   2. `available: true`, `dataReady: true` setzen.
-     *   3. `defaultActiveFrom` sorgt dann dafür, dass dt.alae.app ab
-     *      diesem Datum automatisch auf die CL defaultet (die WM bleibt
-     *      per Admin-Switcher / `?tournament=wm2026` erreichbar).
+     * Die WM 2026 bleibt als Archiv erreichbar – über das Profil-Menü
+     * (für alle Angemeldeten), `?tournament=wm2026` oder den
+     * Admin-Switcher. Siehe `archived` im wm2026-Block.
      *
-     * Viele Werte unten sind PLATZHALTER (TBD) und werden präzisiert,
-     * sobald Auslosung und Spielplan feststehen. Da der Block inert ist,
-     * hat das keine Laufzeitwirkung.
+     * Offen bis zur Kalender-Publikation durch api-football: der
+     * Spielplan in `Spiele CL 2026-27`. Der tägliche Sync zieht ihn nach,
+     * sobald die 144 Ligaphasen-Spiele nicht mehr alle auf einem Termin
+     * liegen – Details und Checkliste in docs/live-update-prozess.md.
+     * Bis dahin zeigen die Platzhalter aus `matchCalendar` die schon
+     * feststehenden Spieltage.
+     *
+     * Team-Bau-Deadline: die Firestore-Rules lassen NEUE CL-Teams nur bis
+     * 2026-09-08 19:00 UTC zu (= DREAMTEAM_START).
      * ═════════════════════════════════════════════════════════════ */
     cl2627: {
       key: "cl2627",
@@ -444,9 +465,9 @@ const APP_CONFIG = (() => {
       competitionName: "UEFA Champions League",
       timezone: "Europe/Zurich",
 
-      // NOCH NICHT freigeschaltet – siehe Kommentar oben.
-      available: false,
-      dataReady: false,
+      // Freigeschaltet – siehe Kommentar oben.
+      available: true,
+      dataReady: true,
 
       // Turnierstruktur-Diskriminator. Die CL 2024/25+ hat KEINE
       // Vierergruppen mehr, sondern eine gemeinsame Ligaphase (36 Klubs,
@@ -700,6 +721,20 @@ const APP_CONFIG = (() => {
 
   function getAvailableTournamentKeys() {
     return Object.keys(TOURNAMENTS).filter(isTournamentAvailable);
+  }
+
+  /* ─────────────────────────────────────────────────────────
+   * Archiv-Turnier? Ein gespieltes Turnier, das nur noch zum
+   * Nachlesen offen steht (Rangliste, Teams, Resultate) – der
+   * Team-Builder bleibt dort für alle gesperrt.
+   *
+   * Bewusst ein eigenes Flag statt „DREAMTEAM_START liegt in der
+   * Vergangenheit": das gilt während der ganzen laufenden Saison
+   * genauso und würde das aktive Turnier mitsperren.
+   * ───────────────────────────────────────────────────────── */
+  function isTournamentArchived(key) {
+    const t = key ? TOURNAMENTS[key] : null;
+    return !!(t && t.archived === true);
   }
 
   function normalizeTournamentTeamName(value) {
@@ -1399,10 +1434,27 @@ const APP_CONFIG = (() => {
     return String(a.key).localeCompare(String(b.key), "de");
   }
 
+  /* Runden-Text der Ligaphase eines Ligaphasen-Turniers (CL).
+   *
+   * api-football ist beim Namen der Runde nicht stabil: die Saison 2025/26
+   * lief unter "League Stage - 1".."League Stage - 8", die 2026/27 kam nach
+   * der Auslosung zunaechst als schlichtes "Group Stage" ohne Spieltag-Nummer
+   * herein. Beides meint dieselbe Ligaphase, deshalb erkennt diese Funktion
+   * auch die Gruppen-Schreibweise.
+   *
+   * Konsumiert wird sie ausschliesslich in Ligaphasen-Kontexten
+   * (computeTournamentLeagueStatus, getLeagueKnockoutRoundKey, CL-Spielkacheln
+   * auf der Startseite). Fuer die WM ist das ohne Wirkung: dort laeuft der
+   * Gruppen-Pfad (computeTournamentNationStatus), und
+   * getLeagueKnockoutRoundKey lieferte fuer "Group Stage - 1" schon vorher
+   * null. Ohne diese Toleranz landen bei einem "Group Stage"-Spielplan alle
+   * 144 Ligaphasen-Spiele im K.-o.-Zweig: die Ligatabelle bliebe leer und der
+   * Turnierbaum voller Phantom-Paarungen. */
   function isLeaguePhaseRound(roundText) {
     const v = String(roundText || "").trim().toLowerCase();
     if (!v) return false;
-    return /league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v);
+    if (/league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v)) return true;
+    return /group\s*(stage|phase)|gruppenphase|vorrunde/.test(v);
   }
 
   // Qualifikations-/Vorrunde einer Ligaphasen-Competition (CL): alle Runden
@@ -1794,6 +1846,45 @@ const APP_CONFIG = (() => {
       }
     });
     return bestKey;
+  }
+
+  /**
+   * Turnier für die SERVER-Jobs (GitHub-Actions-Cron: Spielplan-Sync und
+   * Auto-Punkte-Upload).
+   *
+   * Node hat keinen Hostname, `resolveScheduledDomainKey` greift dort also
+   * nie und die Cron-Jobs liefen bisher immer auf `FALLBACK_TOURNAMENT_KEY`
+   * – nach der WM also weiter auf ein Turnier, das die API gar nicht mehr
+   * ausliefert. Deshalb dieselbe Kalender-Logik ohne Domain-Filter: es
+   * gewinnt das Turnier mit dem jüngsten bereits erreichten
+   * `defaultActiveFrom`.
+   *
+   * Bewusst NICHT auf `isTournamentAvailable` eingeschränkt: der Server muss
+   * Spielplan und Punkte schon vorbereiten können, solange das Turnier im
+   * Browser noch gesperrt ist (`available: false`). Massgeblich ist deshalb
+   * „regulär verfügbar ODER als Vorschau ladbar" – exakt das, was
+   * sync-fixtures.js und auto-points-upload.js ohnehin akzeptieren. Ein
+   * Turnier ohne `defaultActiveFrom` (WM 2026, Teststand cl2526) kommt hier
+   * nie zum Zug.
+   *
+   * @param {number} [nowMs]  Default: Date.now() (für Tests injizierbar).
+   */
+  function resolveServerTournamentKey(nowMs) {
+    const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+
+    let bestKey = null;
+    let bestFrom = -Infinity;
+    Object.keys(TOURNAMENTS).forEach((key) => {
+      if (!isTournamentAvailable(key) && !isTournamentPreviewable(key)) return;
+      const t = TOURNAMENTS[key];
+      const fromMs = t.defaultActiveFrom ? new Date(t.defaultActiveFrom).getTime() : NaN;
+      if (!Number.isFinite(fromMs) || now < fromMs) return;
+      if (fromMs > bestFrom) {
+        bestFrom = fromMs;
+        bestKey = key;
+      }
+    });
+    return bestKey || FALLBACK_TOURNAMENT_KEY;
   }
 
   /**
@@ -2397,6 +2488,14 @@ const APP_CONFIG = (() => {
 
     isTournamentAvailable,
     getAvailableTournamentKeys,
+    isTournamentArchived,
+
+    /* Ist das AKTIVE Turnier ein Archiv (nur lesen)? Siehe
+       isTournamentArchived. Konsumiert von team-builder.js (Einreichung
+       gesperrt) und nav.js (Beschriftung im Profil-Menü). */
+    get isArchived() {
+      return isTournamentArchived(ACTIVE_TOURNAMENT_KEY);
+    },
 
     // Preview-Kanal (Admin-Vorschau nicht freigeschalteter Turniere).
     isTournamentPreviewable,
@@ -2431,7 +2530,15 @@ const APP_CONFIG = (() => {
     isUrlOverrideActive,
     resolveTournamentKey,
     resolveScheduledDomainKey,
+    resolveServerTournamentKey,
     getDomainTournamentKey,
+
+    // Turnier-Key fuer die serverseitigen Cron-Jobs (siehe
+    // resolveServerTournamentKey). Im Browser bewusst ungenutzt.
+    get serverTournamentKey() {
+      return resolveServerTournamentKey();
+    },
+
     resetToDomainDefault,
     clearDevOverride,
 
@@ -2511,6 +2618,12 @@ const APP_CONFIG = (() => {
 
     // Kanonischer K.-o.-Runden-Key ("playoffs" | "r16" | "qf" | "sf" |
     // "final") eines Fixtures/Runden-Texts; null für Ligaphase, Qualifikation
+    // Ligaphasen-Runde eines Ligaphasen-Turniers? Siehe isLeaguePhaseRound
+    // (kennt sowohl "League Stage - 3" als auch das blanke "Group Stage").
+    isLeaguePhaseRound(fixtureOrRound) {
+      return isLeaguePhaseRound(readFixtureRoundText(fixtureOrRound));
+    },
+
     // und unbekannte Runden. Siehe getLeagueKnockoutRoundKey.
     leagueKnockoutRoundKey(fixtureOrRound) {
       return getLeagueKnockoutRoundKey(readFixtureRoundText(fixtureOrRound));

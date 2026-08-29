@@ -112,21 +112,122 @@ function registerServiceWorker() {
 }
 
 /* =============================================================================
+ *  TURNIER-WECHSEL FÜR ALLE ANGEMELDETEN NUTZER
+ *
+ *  Die WM 2026 ist gespielt, die Champions League läuft. Wer eingeloggt ist,
+ *  soll trotzdem jederzeit in der abgeschlossenen WM nachlesen können –
+ *  Rangliste, Teams, Resultate, Analyse. Dafür registriert diese Funktion
+ *  Einträge im Nutzer-Bereich des Profil-Dropdowns (auth-modal.js → menu),
+ *  gleich über „Abmelden".
+ *
+ *  Abgrenzung zum Dev-Switcher weiter unten:
+ *    • Dieser hier ist für ALLE angemeldeten Nutzer und zeigt nur die
+ *      regulär verfügbaren Turniere.
+ *    • Der Dev-Switcher ist admin-only und kann zusätzlich Vorschau-Turniere
+ *      laden, die (noch) nicht freigeschaltet sind.
+ *
+ *  Beide benutzen denselben Kanal wie eh und je: `setActiveTournament()`
+ *  legt einen host-spezifischen Override in localStorage ab,
+ *  `resetToDomainDefault()` räumt ihn weg. Ein Klick auf das Standard-
+ *  Turnier räumt den Override also von selbst auf – es braucht keinen
+ *  separaten „Zurück"-Eintrag.
+ *
+ *  Schreibschutz: Archiv-Turniere sind read-only. Das erzwingen die
+ *  Firestore-Rules (Team-Writes seit dem Anpfiff gesperrt) und, damit die
+ *  UI dazu passt, `archived: true` in tournament-config.js – der
+ *  Team-Builder bleibt dort für alle gesperrt.
+ * ============================================================================= */
+function buildTournamentUserMenu(APP) {
+    if (!APP || typeof APP.tournaments !== 'object') return;
+
+    whenAuthModalReady((Modal) => {
+        if (!Modal.menu || typeof Modal.menu.register !== 'function') return;
+
+        const keys = (typeof APP.getAvailableTournamentKeys === 'function')
+            ? APP.getAvailableTournamentKeys()
+            : (Array.isArray(APP.availableTournamentKeys) ? APP.availableTournamentKeys.slice() : []);
+
+        // Nichts zu wechseln → gar keinen Eintrag zeigen.
+        if (keys.length < 2) return;
+
+        const activeKey = APP.activeTournamentKey;
+        const domainDefaultKey = APP.domainDefaultKey;
+        let order = 0;
+
+        keys.forEach((key) => {
+            if (key === activeKey) return;
+            const t = APP.tournaments[key] || {};
+            const label = t.shortLabel || key;
+            const archived = typeof APP.isTournamentArchived === 'function'
+                && APP.isTournamentArchived(key);
+
+            order += 1;
+            Modal.menu.register({
+                id: `tournament-switch-${key}`,
+                order,
+                icon: archived ? '📚' : '🏆',
+                // „Zurück zu …" nur, wenn wir gerade woanders sind als beim
+                // Standard – sonst ist es schlicht ein Wechsel.
+                label: key === domainDefaultKey
+                    ? `Zurück zu ${label}`
+                    : `${label} ansehen`,
+                value: archived ? 'Archiv' : '',
+                title: archived
+                    ? `${label} ist abgeschlossen – nur zum Nachlesen, Teams lassen sich dort nicht mehr ändern.`
+                    : `Zu ${label} wechseln`,
+                onSelect: () => {
+                    if (key === domainDefaultKey && typeof APP.resetToDomainDefault === 'function') {
+                        APP.resetToDomainDefault();
+                    } else if (typeof APP.setActiveTournament === 'function') {
+                        APP.setActiveTournament(key);
+                    }
+                }
+            });
+        });
+    });
+}
+
+/* auth-modal.js wird nach nav.js geladen. Beim regulären Boot steht es zu
+ * DOMContentLoaded längst bereit; falls eine Seite es doch später einbindet,
+ * warten wir kurz – sonst gäbe es still keine Einträge. */
+function whenAuthModalReady(callback) {
+    const Modal = window.DreamTeamAuthModal;
+    if (Modal && Modal.devMenu && typeof Modal.devMenu.register === 'function') {
+        callback(Modal);
+        return;
+    }
+    let attempts = 0;
+    const maxAttempts = 50; // ~5s
+    const interval = setInterval(() => {
+        attempts += 1;
+        const M = window.DreamTeamAuthModal;
+        if (M && M.devMenu && typeof M.devMenu.register === 'function') {
+            clearInterval(interval);
+            callback(M);
+        } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+        }
+    }, 100);
+}
+
+/* =============================================================================
  *  DEV TOURNAMENT SWITCHER
  *
  *  Turnier-Wechsel für Admins. Früher ein schwebendes Popover oben links,
  *  heute eine Gruppe von Einträgen im Dev-Bereich des Profil-Dropdowns
  *  (siehe auth-modal.js → devMenu) – zusammen mit den übrigen Dev-Optionen.
  *
- *  Aktuell ist nur `wm2026` produktiv verfügbar. Solange es nur ein Turnier
- *  zu wählen gibt, werden gar keine Einträge registriert – es gibt schlicht
- *  nichts auszuwählen. Sobald weitere Turniere in tournament-config.js
- *  aktiviert werden (`available: true && dataReady: true`) oder ein Turnier
- *  über den Preview-Kanal ladbar ist, erscheinen sie automatisch.
+ *  Der Wechsel zwischen den regulär verfügbaren Turnieren steht inzwischen
+ *  ALLEN angemeldeten Nutzern offen (siehe buildTournamentUserMenu oben).
+ *  Dieser Block bleibt für das, was nur Admins dürfen: Vorschau-Turniere
+ *  laden, die (noch) nicht freigeschaltet sind, und den Override wieder
+ *  auflösen. Er zeigt zusätzlich an, welches Turnier gerade aktiv ist und
+ *  welches der Domain-Default wäre.
  *
  *  Wichtig:
- *  - Der eigentliche Standard kommt aus dem Domain-Mapping in
- *    tournament-config.js (dt.alae.app → WM 2026).
+ *  - Der eigentliche Standard kommt aus tournament-config.js: zuerst der
+ *    zeitgesteuerte Default (`defaultActiveFrom`, seit 27.08.2026
+ *    dt.alae.app → Champions League), dann das statische Domain-Mapping.
  *  - Die Auswahl ist nur ein TEST-OVERRIDE und wird host-spezifisch in
  *    localStorage abgelegt (`dreamteam_dev_override_${hostname}`).
  *  - Ist ein Override aktiv, gibt es zusätzlich den Eintrag
@@ -141,24 +242,9 @@ function registerServiceWorker() {
 function buildDevTournamentSwitcher(APP) {
     if (!APP || typeof APP.tournaments !== 'object') return;
 
-    // auth-modal.js wird nach nav.js geladen. Beim regulären Boot steht es
-    // zu DOMContentLoaded längst bereit; falls die Seite es doch später
-    // einbindet, warten wir kurz – sonst gäbe es für Admins still keine
-    // Turnier-Einträge.
     const Modal = window.DreamTeamAuthModal;
     if (!Modal || !Modal.devMenu || typeof Modal.devMenu.register !== 'function') {
-        let attempts = 0;
-        const maxAttempts = 50; // ~5s
-        const interval = setInterval(() => {
-            attempts += 1;
-            const M = window.DreamTeamAuthModal;
-            if (M && M.devMenu && typeof M.devMenu.register === 'function') {
-                clearInterval(interval);
-                buildDevTournamentSwitcher(APP);
-            } else if (attempts >= maxAttempts) {
-                clearInterval(interval);
-            }
-        }, 100);
+        whenAuthModalReady(() => buildDevTournamentSwitcher(APP));
         return;
     }
 
@@ -668,6 +754,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pageTitlePrefix: APP.pageTitlePrefix
     });
 
+    buildTournamentUserMenu(APP);
     buildDevTournamentSwitcher(APP);
 
     registerServiceWorker();
