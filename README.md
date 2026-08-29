@@ -920,3 +920,34 @@ zurück. Firestore-Reads beim Prerender deckelt der Session-Meta-Cache
 
 Damit lädt ausser dem Firebase-SDK (gstatic, per HTTP-Cache langlebig)
 kein Skript mehr von fremden Hosts.
+
+### Kaderdatei-Format: kompaktes JSON, ohne tote Felder
+
+Die Kaderdatei wird bei jedem Seitenaufruf synchron geparst – ihr Format
+ist deshalb auf Parse-Geschwindigkeit optimiert
+(`scripts/kader-serializer.js`, benutzt von beiden Generatoren):
+
+- **`const playersData = JSON.parse('…')`** statt Objektliteral: kompaktes
+  JSON ohne Pretty-Print-Whitespace (−120 KB bei `data-cl2627.js`), und
+  `JSON.parse` eines Strings parst in allen Engines deutlich schneller als
+  ein gleich grosses JS-Objektliteral.
+- **Anzeige-tote Felder entfallen** (`Gewicht`, `Vorsaison.Minuten`,
+  `Vorsaison.Spiele` – kein einziger Leser in App, Admin-Seiten oder
+  Cron-Scripts). Die Generatoren berechnen sie weiterhin für Logging und
+  Plausibilität, serialisieren sie aber nicht mehr. Wer eines wieder
+  braucht: aus `DISPLAY_DEAD_FIELDS` nehmen und die Anzeige ergänzen.
+- Alle Node-Konsumenten (Cron-Scripts, Tests) laden die Datei per
+  `vm.runInContext` – das Format ist für sie transparent.
+  `npm run test:cl2627-pool` prüft das Schema inklusive der Abwesenheit
+  der toten Felder. **`data-wm2026.js` bleibt als Archiv eingefroren**
+  (`test:freeze`), `data-cl2526.js` als historischer Teststand ebenso.
+
+### Back/Forward-Cache (bfcache)
+
+Rangliste, Spieleranalyse und Teams räumen ihre Listener bei `pagehide`
+(nur bei echtem Verlassen, `persisted=false`) statt bei `beforeunload`
+auf – damit nimmt auch Firefox die Seiten in den Back/Forward-Cache und
+die Zurück-Navigation ist sofort da. Wandert eine Seite in den bfcache,
+bleiben Meta-Listener bewusst aktiv: Firestore friert den Stream ein und
+setzt ihn beim Restore fort, die `visibilitychange`/`focus`-Resume-Pfade
+in `cache.js` holen dann frische Daten.

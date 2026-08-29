@@ -30,6 +30,7 @@ const path = require('node:path');
 
 const APP_CONFIG = require('../tournament-config.js');
 const NAME_SHORTENER = require('../name-shortener.js');
+const { serializePlayersData, FORMAT_BANNER_LINES } = require('./kader-serializer.js');
 
 const API_HOST = 'v3.football.api-sports.io';
 const PAGE_DELAY_MS = 200;      // freundlich zwischen den Seiten
@@ -353,8 +354,9 @@ async function main() {
     ` *  Turnier: ${t.key} (${t.competitionParam}=${t.competitionId}, Saison ${t.season}).\n` +
     ` *  Spieler: ${players.length} aus ${clubs.size} Klubs.\n` +
     ` *  Club-zentriert: Club.* = Vereinsdaten (primär), Nationalteam.* = Nation (sekundär).\n` +
+    `${FORMAT_BANNER_LINES.join('\n')}\n` +
     ` * ============================================================================= */\n`;
-  const body = `const playersData = ${JSON.stringify(players, null, 2)};\n`;
+  const body = serializePlayersData(players);
 
   fs.writeFileSync(outPath, banner + body, 'utf8');
   logInfo(`Geschrieben: ${outPath}`);

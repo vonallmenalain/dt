@@ -2654,7 +2654,15 @@
 
     document.addEventListener("DOMContentLoaded", initRanking);
 
-    window.addEventListener("beforeunload", () => {
+    /* pagehide statt beforeunload: gleicher Zeitpunkt beim echten Verlassen,
+       aber Back/Forward-Cache-tauglich (Firefox nimmt Seiten mit
+       beforeunload-Listener nicht auf; Chrome/Safari taten es schon).
+       Wandert die Seite nur in den bfcache (persisted), bleibt alles
+       aktiv: Firestore friert den Stream ein und setzt ihn beim Restore
+       fort, die visibilitychange/focus-Resume-Pfade in cache.js holen
+       dann frische Daten – genau wie bisher beim Tab-Wechsel. */
+    window.addEventListener("pagehide", (event) => {
+        if (event.persisted) return;
         if (typeof metaUnsubscribe === "function") {
             metaUnsubscribe();
         }

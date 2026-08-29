@@ -81,12 +81,16 @@ for (const id of ids) {
 }
 
 /* ── 2) Schema deckt die bestehende CL-Kaderdatei ab ────────────────────── */
-/* Der Pool traegt zusaetzlich die Vorsaison.*-Felder (Sortierschluessel, siehe
- * scripts/generate-cl-pool.js). Geprueft wird deshalb Obermenge statt
- * Gleichheit: jedes Feld aus data-cl2526.js muss da sein und in derselben
- * Reihenfolge stehen, Zusatzfelder haengen hinten an. */
-const expectedKeys = Object.keys(reference[0]);
-const EXTRA_KEYS = ['Vorsaison.Minuten', 'Vorsaison.Spiele', 'Vorsaison.Rating', 'Vorsaison.Wert'];
+/* Der Pool traegt zusaetzlich die Vorsaison.*-Felder (Sortierschluessel,
+ * siehe scripts/generate-cl-pool.js), aber KEINE Anzeige-toten Felder mehr:
+ * Der Serializer (scripts/kader-serializer.js) laesst Felder weg, die keine
+ * einzige App-Ansicht liest (Gewicht, Vorsaison.Minuten, Vorsaison.Spiele) –
+ * sie wuerden im Browser bei jedem Seitenaufruf nur Parse-Zeit kosten.
+ * Geprueft wird deshalb: Basis-Schema aus data-cl2526.js minus tote Felder,
+ * in derselben Reihenfolge, die serialisierten Zusatzfelder hinten dran. */
+const { DISPLAY_DEAD_FIELDS } = require('./kader-serializer.js');
+const expectedKeys = Object.keys(reference[0]).filter((k) => !DISPLAY_DEAD_FIELDS.includes(k));
+const EXTRA_KEYS = ['Vorsaison.Rating', 'Vorsaison.Wert'];
 for (const player of pool) {
   const keys = Object.keys(player);
   assert.deepEqual(
@@ -101,22 +105,22 @@ for (const player of pool) {
     assert.ok(Number(player[extra]) >= 0,
       `${player.Spielername}: "${extra}" darf nicht negativ sein (${player[extra]}).`);
   }
+  for (const dead of DISPLAY_DEAD_FIELDS) {
+    assert.ok(!Object.prototype.hasOwnProperty.call(player, dead),
+      `${player.Spielername}: totes Feld "${dead}" ist wieder da – alter Generator-Stand? ` +
+      'Serialisierung laeuft ueber scripts/kader-serializer.js.');
+  }
 }
 
 /* ── 2b) Der Sortierschluessel trennt tatsaechlich ──────────────────────── */
 /* Wenn alle Werte 0 waeren, faende die Liste wieder alphabetisch statt nach
- * Leistung – genau der Zustand, den die Vorsaison-Daten beheben sollen. */
+ * Leistung – genau der Zustand, den die Vorsaison-Daten beheben sollen.
+ * (Der fruehere Minuten↔Wert-Abgleich entfiel mit den Minuten selbst; die
+ * Abdeckungsquote unten faengt einen kaputten Statistik-Abruf genauso.) */
 const withForm = pool.filter((p) => Number(p['Vorsaison.Wert']) > 0);
 assert.ok(withForm.length > pool.length * 0.5,
   `Nur ${withForm.length} von ${pool.length} Spielern haben Vorsaison-Einsaetze – ` +
   'da hat der Statistik-Abruf nicht funktioniert.');
-// Wer Minuten hat, muss auch einen Wert haben und umgekehrt.
-for (const player of pool) {
-  const minutes = Number(player['Vorsaison.Minuten']);
-  const value = Number(player['Vorsaison.Wert']);
-  assert.equal(minutes > 0, value > 0,
-    `${player.Spielername}: Minuten (${minutes}) und Wert (${value}) widersprechen sich.`);
-}
 
 /* ── 3) Pflichtfelder ───────────────────────────────────────────────────── */
 const POSITIONS = new Set(['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'ATTACKER']);
