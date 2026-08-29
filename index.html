@@ -319,10 +319,17 @@
             </div>
         </div>
 
-        <section class="test-carousel-copy" id="test-carousel-copy" aria-label="Karussell der Fan-Lieblinge">
+        <section class="test-carousel-copy" id="test-carousel-copy" aria-label="Spieler-Galerie">
             <h2 class="tcc-section-title" id="indexTestCarouselTitle" aria-live="polite">Stars der WM 2026</h2>
-            <div class="tcc-carousel" id="indexTestCarousel" aria-label="Fan-Lieblinge-Karussell">
-                <div class="tcc-track" id="indexTestCarouselTrack"></div>
+            <!-- Spieler-Konstellation: unendlich pannbares 2D-Feld mit
+                 Zentrums-Lupe (index.js baut die Zellen, index.css stylt).
+                 Die IDs bleiben die des frueheren Karussells - index.js
+                 haengt sich daran auf. -->
+            <div class="tcc-stage" id="indexTestCarousel" role="group" aria-roledescription="Spieler-Galerie" aria-label="Spieler-Galerie – ziehen, um zu entdecken">
+                <div class="tcc-field" id="indexTestCarouselTrack"></div>
+                <div class="tcc-drag-hint" id="tccDragHint" aria-hidden="true">
+                    <span class="tcc-drag-hint-icon">✥</span>&nbsp;Ziehen&nbsp;&amp;&nbsp;entdecken
+                </div>
             </div>
         </section>
     </div>
