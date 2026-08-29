@@ -47,6 +47,26 @@
 
     var PAGE_FILES = ['index.html', 'team-builder.html', 'teams.html',
         'spieleranalyse.html', 'rangliste.html', 'punktesystem.html'];
+
+    /* Turnier-Kontext gehoert der SHELL, nie der Route. Traegt app.html
+       selbst ?tournament=/?preview= (Admin-Deep-Link), reicht die Shell
+       genau diese Parameter an JEDEN Frame weiter - Leiste und Inhalt
+       loesen damit garantiert identisch auf. Ein Turnier-Parameter in
+       Hash-Routen oder Seiten-Links stammt dagegen aus alten Lesezeichen
+       oder der frueheren Link-Hydrierung und wird entfernt (siehe
+       pageFileFromUrl): er wuerde einen einzelnen Frame auf ein anderes
+       Turnier pinnen als die Shell-Leiste - genau die Durchmischung, die
+       nie passieren darf. */
+    var TOURNAMENT_PARAMS = ['tournament', 'preview'];
+    var SHELL_CONTEXT_SEARCH = '';
+    try {
+        var ownParams = new URLSearchParams(window.location.search);
+        var ctxParams = new URLSearchParams();
+        TOURNAMENT_PARAMS.forEach(function (name) {
+            if (ownParams.has(name)) ctxParams.set(name, ownParams.get(name));
+        });
+        SHELL_CONTEXT_SEARCH = ctxParams.toString();
+    } catch (_) { /* ohne Kontext loesen Frames ambient auf (Storage/Domain) */ }
     // iOS/WebKit beendet speicherhungrige Tabs rigoros und laedt sie neu -
     // mit Shell + zwei kompletten Seiten-Dokumenten kann genau das nach
     // jedem Wechsel passieren und sieht dann aus wie "die App laedt bei
@@ -94,7 +114,7 @@
 
     /* Fern-Diagnose: Zaehler + letzte Ereignisse, ablesbar ueber das
        ?shelldebug=1-Overlay (siehe initShellDebug unten). */
-    var DIAG = { boot: 'ausstehend', intercepted: 0, defaulted: 0, lastTap: '-', swaps: 0 };
+    var DIAG = { boot: 'ausstehend', intercepted: 0, defaulted: 0, lastTap: '-', swaps: 0, heals: 0 };
     window.__dtShellDiag = DIAG;
     window.addEventListener('error', function (e) {
         rememberError(e && (e.error || e.message), 'window');
@@ -147,26 +167,32 @@
                 var frameInfo = [];
                 try {
                     document.querySelectorAll('.dt-shell-frame').forEach(function (f) {
-                        var d = '-'; var emb = '-'; var nav = '-';
+                        var d = '-'; var emb = '-'; var nav = '-'; var tk = '-';
                         try {
                             var cd = f.contentDocument;
                             d = f.contentWindow.location.pathname;
                             emb = cd.documentElement.hasAttribute('data-dt-embedded') ? 'ja' : 'NEIN';
+                            tk = cd.documentElement.getAttribute('data-tournament') || '-';
                             var bn = cd.querySelector('nav.bottom-nav');
                             nav = bn ? getComputedStyle(bn).display : 'fehlt';
                         } catch (_) { d = 'unlesbar'; }
-                        frameInfo.push(d + ' [embed:' + emb + ', eigene BottomNav:' + nav + (f.hidden ? ', versteckt' : ', sichtbar') + ']');
+                        frameInfo.push(d + ' [turnier:' + tk + ', embed:' + emb + ', eigene BottomNav:' + nav + (f.hidden ? ', versteckt' : ', sichtbar') + ']');
                     });
                 } catch (_) {}
+                var shellTk = '-';
+                try { shellTk = document.documentElement.getAttribute('data-tournament') || '-'; } catch (_) {}
                 text.textContent = 'DreamTeam Shell-Debug'
                     + '\nVersion: ' + ownVersion
                     + '\nBoot: ' + DIAG.boot
+                    + '\nShell-Turnier: ' + shellTk
+                    + '\nTurnier-Kontext (URL): ' + (SHELL_CONTEXT_SEARCH || '-')
                     + '\nKaputt-Schalter: ' + flag
                     + '\nLetzter Fehler: ' + err
                     + '\nAbgefangene Nav-Klicks: ' + DIAG.intercepted
                     + '\nDurchgelassene Nav-Klicks: ' + DIAG.defaulted
                     + '\nLetzter Tap: ' + DIAG.lastTap
                     + '\nSwaps: ' + DIAG.swaps
+                    + '\nTurnier-Heilungen: ' + DIAG.heals
                     + '\nService Worker: ' + sw
                     + '\nFrames:\n  ' + (frameInfo.join('\n  ') || 'keine');
             };
@@ -222,6 +248,10 @@
             // Formen zaehlen deshalb als dieselbe Seite.
             if (file.indexOf('.') === -1) file += '.html';
             if (file === 'app.html') file = 'index.html';
+            // Turnier-Parameter aus jeder Route entfernen - das Turnier
+            // bestimmt die Shell (SHELL_CONTEXT_SEARCH bzw. ambiente
+            // Aufloesung), nie eine einzelne Route (Durchmischungsschutz).
+            TOURNAMENT_PARAMS.forEach(function (name) { u.searchParams.delete(name); });
             return PAGE_FILES.indexOf(file) !== -1 ? { file: file, search: u.search || '' } : null;
         } catch (_) {
             return null;
@@ -356,6 +386,43 @@
         frames.set(file, rec);
     }
 
+    /* Wachhund gegen Turnier-Durchmischung. data-tournament setzt das
+       Pre-Flight jeder Seite (und der Shell) synchron im <head> - beim
+       load-Event ist es also immer da und sagt, in welchem Turnier das
+       Dokument WIRKLICH gebootet hat. Zeigt ein Frame ein anderes Turnier
+       als die Shell-Leiste, wird er einmal auf die bereinigte Route +
+       Shell-Kontext neu geladen. Hilft das nicht (z.B. Turnier-Wechsel in
+       einem zweiten Tab: die Leiste HIER ist veraltet), startet die App
+       komplett neu in die saubere Welt - und wenn selbst das nichts
+       aendert, faellt sie per Kaputt-Schalter auf klassische Navigation
+       zurueck (EIN Dokument kann nicht gemischt sein). Gemischte Anzeige
+       gibt es damit in keinem Fall dauerhaft. */
+    var HEAL_LIMIT = 2;
+    var healCount = 0;
+    var HEAL_RESTART_KEY = 'dreamteam_shell_heal_restarts';
+
+    function shellTournamentKey() {
+        return (document.documentElement.getAttribute('data-tournament') || '').toLowerCase();
+    }
+
+    function frameTournamentKey(rec) {
+        try {
+            return (rec.el.contentDocument.documentElement.getAttribute('data-tournament') || '').toLowerCase();
+        } catch (_) { return ''; }
+    }
+
+    function healRestart(targetFile) {
+        var n = 0;
+        try { n = parseInt(sessionStorage.getItem(HEAL_RESTART_KEY) || '0', 10) || 0; } catch (_) {}
+        if (n >= 2) {
+            markShellBroken(new Error('Turnier-Durchmischung nicht heilbar'));
+            window.location.replace(targetFile || 'index.html');
+            return;
+        }
+        try { sessionStorage.setItem(HEAL_RESTART_KEY, String(n + 1)); } catch (_) {}
+        window.location.replace('./');
+    }
+
     /* Interne Navigationen eines Frames (Links im Seiteninhalt, z.B.
        teams.html?manager=X oder spieleranalyse.html?view=games) zurueck in
        Shell-Zustand spiegeln: Map-Schluessel, Tab, Hash, Titel. */
@@ -368,6 +435,23 @@
         }
         var target = pageFileFromUrl(loc.href);
         if (!target) return;
+
+        var shellKey = shellTournamentKey();
+        var frameKey = frameTournamentKey(rec);
+        if (shellKey && frameKey && frameKey !== shellKey) {
+            DIAG.heals++;
+            if (healCount >= HEAL_LIMIT) {
+                healRestart(target.file);
+                return;
+            }
+            healCount++;
+            try {
+                rec.el.contentWindow.location.replace(frameSrc(target.file, target.search));
+            } catch (_) {
+                healRestart(target.file);
+            }
+            return; // erst der konsistente Neu-Load wird synchronisiert
+        }
 
         if (target.file !== rec.file) {
             var clash = frames.get(target.file);
@@ -391,6 +475,14 @@
         }
     }
 
+    /* Frame-URL = bereinigte Route + Turnier-Kontext der Shell. Die Route
+       ist durch pageFileFromUrl garantiert frei von tournament/preview. */
+    function frameSrc(file, search) {
+        var s = search || '';
+        if (SHELL_CONTEXT_SEARCH) s += (s ? '&' : '?') + SHELL_CONTEXT_SEARCH;
+        return file + s;
+    }
+
     function createFrame(file, search) {
         var el = document.createElement('iframe');
         el.className = 'dt-shell-frame';
@@ -399,7 +491,7 @@
         el.setAttribute('title', 'DreamTeam – ' + file.replace('.html', ''));
         var rec = { el: el, file: file };
         el.addEventListener('load', function () { handleFrameLoad(rec); });
-        el.src = file + (search || '');
+        el.src = frameSrc(file, search);
         stage.appendChild(el);
         frames.set(file, rec);
         return rec;

@@ -2046,16 +2046,30 @@ const APP_CONFIG = (() => {
     return false;
   }
 
-  // Neuladen mit bereinigter URL (entfernt volatile ?tournament=/?preview=,
-  // da die Auswahl nun persistiert ist).
+  // Nach einem Turnier-/Vorschau-Wechsel in eine KOMPLETT saubere Welt
+  // starten: zur Root navigieren, ohne Query und ohne Hash. Die Auswahl
+  // ist zu diesem Zeitpunkt persistiert (localStorage) - jede Seite loest
+  // sie daraus frisch auf.
+  //
+  // Frueher wurde nur ?tournament=/?preview= aus der SUCHE der aktuellen
+  // URL entfernt und in place neu geladen. In der App-Shell steckt der
+  // Turnier-Parameter aber im HASH (app.html#/seite.html?tournament=...):
+  // der blieb stehen, der Frame las den alten Parameter (hoehere
+  // Prioritaet als der frisch gesetzte Override) - Shell-Leiste im neuen,
+  // Inhalt im ALTEN Turnier. Genau diese Durchmischung darf nie
+  // passieren; der Wechsel laedt die App deshalb bewusst komplett neu.
+  // Läuft der Aufrufer eingebettet in der App-Shell (iframe), muss das
+  // TOP-Fenster neu starten - sonst würde app.html IN den Frame geladen
+  // (Shell in der Shell).
   function reloadWithCleanUrl() {
+    let target = window;
     try {
-      const url = new URL(window.location.href);
-      url.searchParams.delete(URL_PARAM_NAME);
-      url.searchParams.delete("preview");
-      window.location.replace(url.toString());
+      if (window.top && window.top !== window.self) target = window.top;
+    } catch (_) { /* cross-origin: im eigenen Fenster bleiben */ }
+    try {
+      target.location.replace("./");
     } catch (err) {
-      window.location.reload();
+      try { target.location.reload(); } catch (_) { window.location.reload(); }
     }
   }
 
@@ -2417,15 +2431,10 @@ const APP_CONFIG = (() => {
       return true;
     }
 
-    try {
-      const url = new URL(window.location.href);
-      // ?tournament=... bewusst entfernen, damit der frisch gesetzte
-      // Override nicht mit einer alten URL-Selektion kollidiert.
-      url.searchParams.delete(URL_PARAM_NAME);
-      window.location.replace(url.toString());
-    } catch (err) {
-      window.location.reload();
-    }
+    // Kompletter Neustart in die saubere Welt des neuen Turniers -
+    // niemals in place neu laden (Hash/Query koennten das alte Turnier
+    // pinnen, siehe reloadWithCleanUrl).
+    reloadWithCleanUrl();
 
     return true;
   }
@@ -2445,13 +2454,9 @@ const APP_CONFIG = (() => {
       return true;
     }
 
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.delete(URL_PARAM_NAME);
-      window.location.replace(url.toString());
-    } catch (err) {
-      window.location.reload();
-    }
+    // Kompletter Neustart in die saubere Welt des Domain-Defaults
+    // (siehe reloadWithCleanUrl - nie in place, nie mit altem Hash).
+    reloadWithCleanUrl();
 
     return true;
   }

@@ -2528,7 +2528,12 @@
             setTimeout(() => {
                 const targetUrl = new URL('teams.html', window.location.href);
                 targetUrl.searchParams.set('manager', payload.manager);
-                if (APP && APP.key) targetUrl.searchParams.set('tournament', APP.key);
+                // Turnier-Parameter nur bei aktivem URL-Override - sonst
+                // wuerde er die Zielseite (im Shell-Frame) auf das beim
+                // Speichern aktive Turnier pinnen (siehe nav.js).
+                if (APP && APP.key && typeof APP.isUrlOverrideActive === 'function' && APP.isUrlOverrideActive()) {
+                    targetUrl.searchParams.set('tournament', APP.key);
+                }
                 window.location.href = targetUrl.toString();
             }, 600);
         }
@@ -2576,7 +2581,10 @@
             setTimeout(() => {
                 const targetUrl = new URL('teams.html', window.location.href);
                 targetUrl.searchParams.set('manager', pending.manager);
-                if (APP && APP.key) targetUrl.searchParams.set('tournament', APP.key);
+                // Nur bei aktivem URL-Override, siehe Kommentar oben.
+                if (APP && APP.key && typeof APP.isUrlOverrideActive === 'function' && APP.isUrlOverrideActive()) {
+                    targetUrl.searchParams.set('tournament', APP.key);
+                }
                 window.location.href = targetUrl.toString();
             }, 700);
         } catch (err) {
