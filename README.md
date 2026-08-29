@@ -982,13 +982,30 @@ Verdrahtung:
 **Stufe 2 (aktiv):** `/` liefert per Netlify-Rewrite (Status 200,
 `force = true` gegen das Shadowing der index.html) die Shell; die
 installierte PWA startet über `start_url: "/"` ebenfalls dort, und die
-Manifest-Splash-Farben folgen dem CL-Theme. Bewusst wird NUR `/`
-umgeschrieben: alle direkten Seiten-URLs (`index.html`,
-`teams.html?manager=…`, Deep-Links) bleiben nackte Seiten – als geteilte
-Links rückwärtskompatibel, und die Shell lädt genau diese Dateien in
-ihre Frames (ein Rewrite darauf ergäbe Shell-in-Shell). Wer die App vor
-der Umstellung auf dem Homescreen installiert hat, startet noch auf der
-alten `start_url` – einmal neu „Zum Home-Bildschirm" hinzufügen genügt.
+Manifest-Splash-Farben folgen dem CL-Theme.
+
+**Stufe 3 (aktiv): nur noch die Shell.** Jeder **Direktaufruf** einer
+Seite (alte Lesezeichen, geteilte Deep-Links wie `teams.html?manager=…`,
+Homescreen-Installationen mit alter `start_url`) leitet im Pre-Flight
+sofort in die Shell auf dieselbe Route weiter
+(`app.html#/<seite>?<query>`, Query bleibt erhalten) – die alte
+Voll-Navigation existiert für Nutzer damit nicht mehr, und das
+Profil-/Auth-UI lädt beim Seitenwechsel nie wieder neu. Regeln:
+
+- Weitergeleitet wird **nie im Frame** (`data-dt-embedded` – sonst
+  Shell-in-Shell-Schleife) und nie auf `app.html` selbst.
+- **`?standalone=1`** ist der bewusste Notausstieg: lädt die nackte
+  Einzelseite (Debugging; der Parameter überlebt keine Navigation).
+- Die Speculation Rules (früher Teil 3) sind entfernt – sie prerenderten
+  die alte Vollansicht, die es nicht mehr gibt; im Shell-Modus übernimmt
+  das Warmhalten der Frames diese Rolle.
+- Die Seitenliste der Weiterleitung ist per Test deckungsgleich mit
+  `PAGE_FILES` in shell.js (`npm run test:staticnav`).
+- Edge (nur Admin/Test): Bei einem **rein per URL-Parameter** erzwungenen
+  Turnier (`?tournament=`/`?preview=` ohne localStorage-Override) laufen
+  die Frames im Parameter-Turnier, die Shell-Leiste zeigt aber Marke/Theme
+  des regulär aufgelösten Turniers. Der normale Wechsel über das
+  Profil-Dropdown (localStorage + Reload) ist davon nicht betroffen.
 
 ### Back/Forward-Cache (bfcache)
 
