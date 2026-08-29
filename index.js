@@ -7385,20 +7385,6 @@
         // die Zahl wird deshalb aus der Liste abgeleitet statt hart gesetzt.
         // Die WM bleibt unveraendert bei 9.
         const CARD_COUNT     = IS_CL ? (starRotation[0]?.players?.length || 14) : 9;
-        const AUTOPLAY       = false;  // Autoplay deaktiviert – nur manuelle Navigation
-        const MAX_VISIBLE    = 2;      // aktive Karte + 2 je Seite = 5 sichtbar
-        const SCALE_STEP     = 0.16;   // Verkleinerung je Schritt
-        const SPREAD_FACTOR  = 0.62;   // horizontaler Abstand relativ zur Kartenbreite
-        const DEPTH_FACTOR   = 0.6;    // Tiefe (translateZ) relativ zur Kartenbreite
-        const TILT           = 12;     // rotateY je Schritt (Grad)
-        const SIDE_TILT      = 8;      // rotateZ je Schritt (Grad)
-        const INACTIVE_DIM   = 0.4;    // Abdunklung inaktiver Karten (opacity 60 → dim 0.4)
-        const MOVE_DUR       = 0.6;    // Übergangsdauer (Sekunden)
-        const MOVE_EASE      = 'cubic-bezier(0.22, 1, 0.36, 1)';
-        const TRANSITION_CSS = `transform ${MOVE_DUR}s ${MOVE_EASE}, opacity ${MOVE_DUR}s ${MOVE_EASE}`;
-        const AUTOPLAY_DELAY = 2500;   // ms Haltezeit je Karte
-        const SWIPE_THRESHOLD = 40;    // px, ab denen eine Wischgeste zählt (statt Tap)
-
         const prefersReducedMotion = !!(window.matchMedia
             && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -7468,7 +7454,6 @@
                 </div>
                 <div class="tcc-card-dim" aria-hidden="true"></div>
             `;
-            el.style.transition = TRANSITION_CSS;
             wirePhotoLoadState(el, p);
             return el;
         }
@@ -7516,9 +7501,8 @@
             const activePhoto = cards[active] && cards[active].querySelector('.tcc-player-photo');
             if (activePhoto) activePhoto.setAttribute('fetchpriority', 'high');
             fitPlayerNames();
-            measure();
-            render();
-            startAutoplay();
+            centerCard(active, false);
+            queueVisuals();
         }
 
         let currentVariant = null;
@@ -7580,100 +7564,89 @@
         }
 
         // ── Coverflow-Zustand ──
-        let active = 0;      // Index der Karte in der Mitte
-        let cardW = 200;     // aktuelle Kartenbreite (px), responsiv gemessen
-        let locked = false;  // sperrt Eingaben, solange eine Bewegung läuft
+        let active = 0;        // Karte, die der Mitte am naechsten steht
+        let pendingCenter = null; // im unsichtbaren Boot gemerkte Zentrums-Karte
 
-        // Kartenbreite live aus dem Layout lesen, damit Abstand und Tiefe
-        // responsiv mitskalieren.
-        function measure() {
-            const first = cards[0];
-            if (first) {
-                const w = first.getBoundingClientRect().width;
-                if (w > 0) cardW = w;
+        /* =========================================================
+           FLACHES SNAP-KARUSSELL
+           Frueher stand hier eine 3D-Coverflow-Engine (preserve-3d,
+           rotateY/translateZ, JS-vermessene Positionen). Auf echten
+           Geraeten produzierte sie wiederholt Render-Artefakte
+           (gestauchte Stapel, abgeschnittene Streifen, leere
+           Kartenruecken) und hing an Messungen, die im unsichtbar
+           bootenden Shell-Frame 0 ergaben. Jetzt uebernimmt der
+           Browser Wisch-Physik und Zentrierung (overflow-x +
+           scroll-snap, index.css); JS setzt nur noch pro Frame
+           Skalierung und Dimmung nach Distanz zur Mitte - flache
+           2D-Transforms, 1:1 am Finger, jederzeit unterbrechbar.
+           ========================================================= */
+
+        function centerScrollLeftFor(card) {
+            return Math.round(card.offsetLeft + card.offsetWidth / 2 - carousel.clientWidth / 2);
+        }
+
+        function centerCard(i, smooth) {
+            const card = cards[i];
+            if (!card) return;
+            if (carousel.clientWidth <= 0 || card.offsetWidth <= 0) {
+                // Unsichtbar gebootet (Shell-Frame): merken und zentrieren,
+                // sobald der ResizeObserver echtes Layout meldet.
+                pendingCenter = i;
+                return;
+            }
+            pendingCenter = null;
+            active = i;
+            try {
+                carousel.scrollTo({
+                    left: centerScrollLeftFor(card),
+                    behavior: smooth && !prefersReducedMotion ? 'smooth' : 'auto'
+                });
+            } catch (_) {
+                carousel.scrollLeft = centerScrollLeftFor(card);
             }
         }
 
-        // Positioniert alle Karten relativ zur aktiven Karte: die Mitte steht
-        // aufrecht und ganz vorne, die Nachbarn kippen (rotateY/rotateZ) nach
-        // hinten weg und werden abgedunkelt. Über den halben Ring (loop) wird
-        // die kürzeste Richtung gewählt, damit der Übergang nie „durchläuft".
-        function render() {
-            const n = cards.length;
-            if (!n) return;
-            for (let i = 0; i < n; i++) {
-                let rel = i - active;
-                if (rel > n / 2) rel -= n;
-                if (rel < -n / 2) rel += n;
-
-                const ax = Math.abs(rel);
-                const visible = ax <= MAX_VISIBLE;
-                const isActive = rel === 0;
-                const sc = Math.max(0.4, 1 - ax * SCALE_STEP);
-                const tx = rel * cardW * SPREAD_FACTOR;
-                const tz = -ax * cardW * DEPTH_FACTOR;
-                const ry = -rel * TILT;
-                const rz = rel * SIDE_TILT;
-
+        /* Skalierung/Dimmung pro Karte nach Distanz zur Mitte; nebenbei
+           wird die naechstgelegene Karte als aktiv markiert (Glow). */
+        function updateVisuals() {
+            if (!cards.length || carousel.clientWidth <= 0) return;
+            const mid = carousel.scrollLeft + carousel.clientWidth / 2;
+            let best = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < cards.length; i++) {
                 const card = cards[i];
-                card.style.transform =
-                    `translate(-50%, -50%) translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${sc})`;
-                card.style.opacity = visible ? '1' : '0';
-                card.style.zIndex = String(100 - ax);
-                card.style.pointerEvents = visible ? 'auto' : 'none';
-                card.classList.toggle('is-active', isActive);
-
+                const w = card.offsetWidth || 1;
+                const d = Math.abs(card.offsetLeft + w / 2 - mid);
+                if (d < bestDist) { bestDist = d; best = i; }
+                const t = Math.min(d / (w * 1.15), 1);
+                card.style.transform = 'scale(' + (1 - 0.12 * t).toFixed(4) + ')';
                 const dim = card.querySelector('.tcc-card-dim');
-                if (dim) dim.style.opacity = isActive ? '0' : String(INACTIVE_DIM);
+                if (dim) dim.style.opacity = (0.38 * t).toFixed(3);
+            }
+            active = best;
+            for (let i = 0; i < cards.length; i++) {
+                cards[i].classList.toggle('is-active', i === active);
             }
         }
 
-        // Kurzzeitige Eingabesperre, damit schnelle Klicks/Tasten nicht
-        // stapeln (Bewegung darf erst auslaufen).
-        function lock() {
-            locked = true;
-            window.setTimeout(() => { locked = false; }, Math.max(50, MOVE_DUR * 1000));
+        let visualsQueued = false;
+        function queueVisuals() {
+            if (visualsQueued) return;
+            visualsQueued = true;
+            window.requestAnimationFrame(() => {
+                visualsQueued = false;
+                updateVisuals();
+            });
         }
 
-        function goTo(i) {
-            const n = cards.length;
-            if (!n) return;
-            active = ((i % n) + n) % n;
-            render();
-        }
+        carousel.addEventListener('scroll', queueVisuals, { passive: true });
 
-        function step(dir) {
-            if (locked) return;
-            lock();
-            goTo(active + dir);
-        }
-
-        // ── Autoplay: lässt das Karussell ruhig weiterlaufen ──
-        let autoplayId = null;
-        function startAutoplay() {
-            stopAutoplay();
-            if (!AUTOPLAY || prefersReducedMotion || cards.length < 2) return;
-            autoplayId = window.setInterval(() => {
-                if (!locked) goTo(active + 1);
-            }, AUTOPLAY_DELAY);
-        }
-        function stopAutoplay() {
-            if (autoplayId !== null) { window.clearInterval(autoplayId); autoplayId = null; }
-        }
-        // Nach manueller Interaktion den Timer neu anstoßen, damit nicht
-        // sofort weitergesprungen wird.
-        function bumpAutoplay() {
-            if (autoplayId !== null) startAutoplay();
-        }
-
-        // Klick/Tap auf eine Karte: Seitenkarte → in die Mitte holen,
-        // aktive Karte → Spieleranalyse öffnen.
+        // Klick/Tap: Seitenkarte -> sanft in die Mitte holen, zentrierte
+        // Karte -> Spieleranalyse oeffnen. Die Wischgesten erledigt das
+        // native Scrollen; nach einem Drag feuert der Browser keinen Klick.
         function handleCardClick(i) {
-            if (locked) return;
             if (i !== active) {
-                lock();
-                goTo(i);
-                bumpAutoplay();
+                centerCard(i, true);
                 return;
             }
             const card = cards[i];
@@ -7686,87 +7659,44 @@
             }
         }
 
-        // Zeiger-Handling: unterscheidet Tap (Klick) von horizontaler
-        // Wischgeste. Kein Drag-Impuls mehr – die Bewegung folgt der
-        // Coverflow-Transition.
-        let pDown = null;
-        carousel.addEventListener('pointerdown', (e) => {
-            pDown = {
-                x: e.clientX,
-                y: e.clientY,
-                card: e.target?.closest?.('.tcc-player-card') || null
-            };
+        carousel.addEventListener('click', (e) => {
+            const card = e.target?.closest?.('.tcc-player-card');
+            if (!card) return;
+            const i = cards.indexOf(card);
+            if (i >= 0) handleCardClick(i);
         });
-        carousel.addEventListener('pointerup', (e) => {
-            if (!pDown) return;
-            const dx = e.clientX - pDown.x;
-            const dy = e.clientY - pDown.y;
-            const card = pDown.card;
-            pDown = null;
 
-            if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
-                step(dx < 0 ? 1 : -1);
-                bumpAutoplay();
-                return;
-            }
-            // Nur als Tap werten, wenn sich der Zeiger kaum bewegt hat –
-            // ein vertikales Scrollen über dem Karussell darf keine Karte
-            // öffnen.
-            if (card && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
-                const i = cards.indexOf(card);
-                if (i >= 0) handleCardClick(i);
-            }
-        });
-        carousel.addEventListener('pointercancel', () => { pDown = null; });
-
-        // Mausrad / horizontales Scrollen → ein Schritt (leicht entprellt).
-        let wheelCooldown = false;
-        carousel.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-            if (Math.abs(d) < 8 || wheelCooldown) return;
-            wheelCooldown = true;
-            window.setTimeout(() => { wheelCooldown = false; }, 220);
-            step(d > 0 ? 1 : -1);
-            bumpAutoplay();
-        }, { passive: false });
-
-        // Tastatur: Pfeil links/rechts.
+        // Tastatur: Pfeil links/rechts zentriert die Nachbarkarte.
         carousel.tabIndex = 0;
         carousel.setAttribute('role', 'group');
         carousel.setAttribute('aria-roledescription', 'carousel');
         carousel.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') { e.preventDefault(); step(1); bumpAutoplay(); }
-            else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); bumpAutoplay(); }
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                centerCard(Math.min(active + 1, cards.length - 1), true);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                centerCard(Math.max(active - 1, 0), true);
+            }
         });
-
-        // Autoplay bei Maus-Hover/Fokus pausieren (nur feine Zeiger, damit ein
-        // Tap auf Touch das Autoplay nicht dauerhaft stoppt).
-        carousel.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') stopAutoplay(); });
-        carousel.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') startAutoplay(); });
-        carousel.addEventListener('focusin', stopAutoplay);
-        carousel.addEventListener('focusout', startAutoplay);
 
         window.addEventListener('resize', () => {
             fitPlayerNames();
-            measure();
-            render();
+            centerCard(active, false);
+            queueVisuals();
         }, { passive: true });
 
-        // In der App-Shell bootet die Startseite UNSICHTBAR im Frame:
-        // measure()/fitPlayerNames() sehen dort nur Breite 0, cardW bleibt
-        // auf dem Startwert und der Faecher stand nach dem Einblenden
-        // gestaucht uebereinander (dunkler Kartenstapel statt Karussell).
-        // Ein window-resize feuert beim Einblenden nicht zwingend – der
-        // ResizeObserver auf dem Karussell dagegen meldet sich, sobald es
-        // zum ersten Mal echtes Layout bekommt (und bei jeder weiteren
-        // Groessenaenderung), und vermisst dann Karten + Namen neu.
+        // In der App-Shell bootet die Startseite UNSICHTBAR im Frame - alle
+        // Masse sind dort 0. Der ResizeObserver meldet sich, sobald das
+        // Karussell echtes Layout bekommt (und bei jeder Groessenaenderung):
+        // Namen einpassen, gemerkte bzw. aktive Karte zentrieren, Visuals
+        // setzen.
         if (typeof ResizeObserver === 'function') {
             const ro = new ResizeObserver(() => {
                 if (!cards.length) return;
                 fitPlayerNames();
-                measure();
-                render();
+                centerCard(pendingCenter !== null ? pendingCenter : active, false);
+                queueVisuals();
             });
             ro.observe(carousel);
         }
