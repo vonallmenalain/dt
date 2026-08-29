@@ -69,9 +69,105 @@
        Shell wieder versucht. Transiente Probleme (Netz-Timeout eines
        Frames) setzen den Schalter bewusst NICHT. */
     var SHELL_BROKEN_KEY = 'dreamteam_shell_broken';
+    var SHELL_ERROR_KEY = 'dreamteam_shell_error';
+
+    function rememberError(err, where) {
+        try {
+            if (sessionStorage.getItem(SHELL_ERROR_KEY)) return; // erster Fehler zaehlt
+            var msg = (where ? where + ': ' : '')
+                + String(err && err.message ? err.message : err).slice(0, 300)
+                + (err && err.stack ? ' | ' + String(err.stack).slice(0, 300) : '');
+            sessionStorage.setItem(SHELL_ERROR_KEY, msg);
+        } catch (_) { /* Diagnose darf nie selbst stoeren */ }
+    }
+
     function markShellBroken(err) {
         try { console.error('[shell] Deaktiviert fuer diese Sitzung:', err); } catch (_) {}
+        rememberError(err, 'broken');
         try { sessionStorage.setItem(SHELL_BROKEN_KEY, '1'); } catch (_) {}
+    }
+
+    /* Fern-Diagnose: Zaehler + letzte Ereignisse, ablesbar ueber das
+       ?shelldebug=1-Overlay (siehe initShellDebug unten). */
+    var DIAG = { boot: 'ausstehend', intercepted: 0, defaulted: 0, lastTap: '-', swaps: 0 };
+    window.__dtShellDiag = DIAG;
+    window.addEventListener('error', function (e) {
+        rememberError(e && (e.error || e.message), 'window');
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+        rememberError(e && e.reason, 'promise');
+    });
+
+    var DEBUG_ON = false;
+    try { DEBUG_ON = new URLSearchParams(location.search).get('shelldebug') === '1'; } catch (_) {}
+
+    /* ?shelldebug=1: Diagnose-Overlay fuer Geraete ohne DevTools (Handy).
+       Zeigt Boot-Status, Kaputt-Schalter, gespeicherten Fehler, Zaehler,
+       Frames samt Embed-Status - ein Screenshot davon reicht, um ein
+       Geraete-Problem einzugrenzen. Loest selbst nie etwas aus. */
+    function initShellDebug() {
+        if (!DEBUG_ON) return;
+        try {
+            var box = document.createElement('div');
+            box.style.cssText = 'position:fixed;top:70px;left:8px;right:8px;z-index:99999;'
+                + 'background:rgba(5,10,25,0.94);color:#cfe3ff;border:1px solid #3d8bff;'
+                + 'border-radius:10px;padding:10px;font:11px/1.5 monospace;white-space:pre-wrap;'
+                + 'word-break:break-all;pointer-events:auto;max-height:60vh;overflow:auto;';
+            var btn = document.createElement('button');
+            btn.textContent = 'Shell zuruecksetzen + neu laden';
+            btn.style.cssText = 'display:block;margin-top:8px;padding:8px 10px;font:12px monospace;';
+            btn.addEventListener('click', function () {
+                try { sessionStorage.removeItem(SHELL_BROKEN_KEY); } catch (_) {}
+                try { sessionStorage.removeItem(SHELL_ERROR_KEY); } catch (_) {}
+                window.location.replace('./?shelldebug=1');
+            });
+            var text = document.createElement('div');
+            box.appendChild(text);
+            box.appendChild(btn);
+            (document.body || document.documentElement).appendChild(box);
+
+            var ownVersion = '?';
+            try {
+                var own = document.querySelector('script[src*="shell.js"]');
+                var m = own && own.src.match(/[?&]v=([^&]+)/);
+                if (m) ownVersion = m[1];
+            } catch (_) {}
+
+            var refresh = function () {
+                var flag = '-'; var err = '-';
+                try { flag = sessionStorage.getItem(SHELL_BROKEN_KEY) || '-'; } catch (_) {}
+                try { err = sessionStorage.getItem(SHELL_ERROR_KEY) || '-'; } catch (_) {}
+                var sw = '-';
+                try { sw = navigator.serviceWorker.controller ? 'aktiv' : 'KEIN Controller'; } catch (_) {}
+                var frameInfo = [];
+                try {
+                    document.querySelectorAll('.dt-shell-frame').forEach(function (f) {
+                        var d = '-'; var emb = '-'; var nav = '-';
+                        try {
+                            var cd = f.contentDocument;
+                            d = f.contentWindow.location.pathname;
+                            emb = cd.documentElement.hasAttribute('data-dt-embedded') ? 'ja' : 'NEIN';
+                            var bn = cd.querySelector('nav.bottom-nav');
+                            nav = bn ? getComputedStyle(bn).display : 'fehlt';
+                        } catch (_) { d = 'unlesbar'; }
+                        frameInfo.push(d + ' [embed:' + emb + ', eigene BottomNav:' + nav + (f.hidden ? ', versteckt' : ', sichtbar') + ']');
+                    });
+                } catch (_) {}
+                text.textContent = 'DreamTeam Shell-Debug'
+                    + '\nVersion: ' + ownVersion
+                    + '\nBoot: ' + DIAG.boot
+                    + '\nKaputt-Schalter: ' + flag
+                    + '\nLetzter Fehler: ' + err
+                    + '\nAbgefangene Nav-Klicks: ' + DIAG.intercepted
+                    + '\nDurchgelassene Nav-Klicks: ' + DIAG.defaulted
+                    + '\nLetzter Tap: ' + DIAG.lastTap
+                    + '\nSwaps: ' + DIAG.swaps
+                    + '\nService Worker: ' + sw
+                    + '\nFrames:\n  ' + (frameInfo.join('\n  ') || 'keine');
+            };
+            refresh();
+            window.setInterval(refresh, 800);
+        } catch (_) { /* Debug darf nie stoeren */ }
     }
     function markShellHealthy() {
         try { sessionStorage.removeItem(SHELL_BROKEN_KEY); } catch (_) {}
@@ -79,7 +175,23 @@
 
     var stage = document.getElementById('dtShellStage');
     var progressEl = document.getElementById('dtShellProgress');
-    if (!stage) return;
+    if (!stage) {
+        // Frueher stiller Abbruch - dann fing niemand die Nav-Klicks ab und
+        // jede Navigation lief als Weiterleitungs-Ping-Pong. Jetzt: Kaputt-
+        // Schalter setzen und klassisch zur Zielseite wechseln.
+        markShellBroken(new Error('dtShellStage fehlt im DOM'));
+        try {
+            var t0 = routeFromHashEarly();
+            window.location.replace(t0);
+        } catch (_) { window.location.replace('index.html'); }
+        return;
+    }
+
+    function routeFromHashEarly() {
+        var h = String(window.location.hash || '');
+        if (h.indexOf('#/') === 0) return h.slice(2) || 'index.html';
+        return 'index.html';
+    }
 
     var reduceMotion = false;
     try {
@@ -359,6 +471,7 @@
                             currentFile = file;
                             syncTitle(useRec.el);
                             markShellHealthy();
+                            DIAG.swaps++;
 
                             var oldEl = oldRec && oldRec !== useRec ? oldRec.el : null;
                             swapFrames(oldEl, useRec.el, dir).then(function () {
@@ -408,28 +521,39 @@
     }
 
     /* Klicks auf die Shell-Navigation abfangen; alles andere (Modifier,
-       neue Tabs, Downloads, fremde Ziele) laeuft normal weiter. */
-    function interceptNavClicks(nav) {
-        if (!nav) return;
-        nav.addEventListener('click', function (event) {
-            try {
-                if (event.defaultPrevented) return;
-                if (event.button !== 0) return;
-                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
-                if (!link || !nav.contains(link)) return;
-                if (link.target && link.target !== '_self') return;
-                if (link.hasAttribute('download')) return;
-                var target = pageFileFromUrl(link.href);
-                if (!target) return;
-                event.preventDefault();
-                navigateTo(target, { push: true, dir: 'forward' });
-            } catch (err) {
-                // Nicht preventDefault-et -> der Browser navigiert normal;
-                // der Kaputt-Schalter verhindert das Zurueck-Weiterleiten.
-                markShellBroken(err);
-            }
-        });
+       neue Tabs, Downloads, fremde Ziele) laeuft normal weiter.
+
+       Bewusst EIN Listener auf document in der CAPTURE-Phase statt je
+       einem Bubble-Listener auf den beiden Leisten: Capture laeuft vor
+       jedem anderen Click-Handler (nichts kann den Klick vorher schlucken
+       oder stoppen), und die Delegation ueberlebt jeden spaeteren Umbau
+       der Leisten-DOM-Knoten. Ein frueherer Geraete-Befund (Android:
+       Bottom-Taps navigierten hart auf /rangliste.html statt in der Shell
+       zu bleiben) ist mit gebundenen Bubble-Listenern nicht sicher
+       auszuschliessen - mit Capture-Delegation schon. */
+    function handleShellNavClick(event) {
+        try {
+            if (event.defaultPrevented) return;
+            if (event.button !== 0) return;
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+            DIAG.lastTap = link
+                ? (link.getAttribute('href') || link.href || '?')
+                : String(event.target && event.target.tagName || '?');
+            if (!link) return;
+            if (!link.closest('body > nav.navbar, body > nav.bottom-nav')) return;
+            if (link.target && link.target !== '_self') return;
+            if (link.hasAttribute('download')) return;
+            var target = pageFileFromUrl(link.href);
+            if (!target) { DIAG.defaulted++; return; }
+            event.preventDefault();
+            DIAG.intercepted++;
+            navigateTo(target, { push: true, dir: 'forward' });
+        } catch (err) {
+            // Nicht preventDefault-et -> der Browser navigiert normal;
+            // der Kaputt-Schalter verhindert das Zurueck-Weiterleiten.
+            markShellBroken(err);
+        }
     }
 
     /* Buehne exakt zwischen Navbar und Bottom-Nav aufspannen – gemessen,
@@ -455,22 +579,25 @@
     }
 
     function boot() {
+        initShellDebug();
         try {
             bootInner();
+            DIAG.boot = 'ok';
         } catch (err) {
             // Boot-Fehler = deterministisch fuer dieses Geraet: Kaputt-
             // Schalter setzen und zur nackten Zielseite wechseln. Ohne den
             // Schalter wuerde deren Pre-Flight sofort wieder hierher
             // weiterleiten - die App laege in einer Reload-Schleife.
+            DIAG.boot = 'FEHLER';
             markShellBroken(err);
+            if (DEBUG_ON) return; // Overlay stehen lassen statt wegzunavigieren
             var target = routeFromHash();
             window.location.replace(target.file + (target.search || ''));
         }
     }
 
     function bootInner() {
-        interceptNavClicks(document.querySelector('body > nav.navbar'));
-        interceptNavClicks(document.querySelector('body > nav.bottom-nav'));
+        document.addEventListener('click', handleShellNavClick, true);
         syncStageInsets();
 
         window.addEventListener('popstate', function () {
