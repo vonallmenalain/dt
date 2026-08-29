@@ -83,6 +83,55 @@
     <link rel="stylesheet" href="teams.css?v=__BUILD__">
 </head>
 <body>
+<!-- ===== STATIC NAV (Spiegel von nav.js) =====
+     Die Navigation steht statisch im HTML, damit sie mit dem ersten Frame
+     gezeichnet wird (kein spätes Aufploppen nach dem JS-Boot) und bei
+     Seitenübergängen (View Transitions, styles.css) als feststehende
+     Leiste durchläuft. nav.js baut sie nicht mehr neu, sondern hydriert
+     sie nur: ?tournament=-Parameter auf den Links, Markenlabel aus
+     APP_CONFIG, Team-Builder-Status, Auth-Knopf. Der Block muss auf allen
+     Seiten identisch sein (bis auf den active-Link) –
+     scripts/test-static-nav.js prüft das. -->
+<nav class="navbar">
+    <a href="index.html" class="navbar-brand" aria-label="DreamTeam">
+        <span class="brand-gold">&nbsp;</span>
+        <span class="brand-green">DreamTeam</span>
+    </a>
+    <div class="nav-actions">
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">🏠 Dashboard</a>
+            <a href="team-builder.html" class="nav-item" data-nav-action="team-builder">➕ Team erstellen</a>
+            <a href="teams.html" class="nav-item active">🛡️ Teams</a>
+            <a href="spieleranalyse.html" class="nav-item">🔍 Analyse</a>
+            <a href="rangliste.html" class="nav-item">🏆 Rangliste</a>
+            <a href="punktesystem.html" class="nav-item">📊 Punktesystem</a>
+        </div>
+        <div id="dt-auth-nav-slot" class="dt-auth-nav-slot" aria-label="Anmeldestatus"></div>
+    </div>
+</nav>
+
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item"><span class="icon">🏠</span><span>Dashboard</span></a>
+    <a href="team-builder.html" class="nav-item" data-nav-action="team-builder"><span class="icon">➕</span><span>Team</span></a>
+    <a href="teams.html" class="nav-item active"><span class="icon">🛡️</span><span>Teams</span></a>
+    <a href="spieleranalyse.html" class="nav-item"><span class="icon">🔍</span><span>Analyse</span></a>
+    <a href="rangliste.html" class="nav-item"><span class="icon">🏆</span><span>Rangliste</span></a>
+    <a href="punktesystem.html" class="nav-item"><span class="icon">📊</span><span>Punkte</span></a>
+</nav>
+<script>
+/* Markenlabel synchron füllen, bevor dieser Bereich gemalt wird:
+   data-tournament setzt das Pre-Flight im <head>. Spiegel der
+   shortLabel-Werte aus tournament-config.js (hier ist noch nichts davon
+   geladen); scripts/test-static-nav.js hält beide deckungsgleich, und
+   nav.js korrigiert nach dem Boot ohnehin aus APP_CONFIG. */
+(function(){try{
+    var k=document.documentElement.getAttribute("data-tournament")||"";
+    var el=document.querySelector(".navbar-brand .brand-gold");
+    if(el) el.textContent=/^cl/.test(k)?"Champions League":"WM 2026";
+}catch(e){}})();
+</script>
+<!-- ===== /STATIC NAV ===== -->
+
 
 <!-- nav.js injects .navbar and .bottom-nav here -->
 

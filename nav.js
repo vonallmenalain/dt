@@ -703,7 +703,43 @@ document.addEventListener("DOMContentLoaded", () => {
         </nav>
     `;
 
-    document.body.insertAdjacentHTML("afterbegin", navHTML);
+    /* Statische Navigation hydrieren statt neu bauen: Die Hauptseiten
+       tragen die Leiste seit „Instant Navigation" direkt im HTML (siehe
+       STATIC-NAV-Block dort), damit sie mit dem ersten Frame steht und
+       bei View Transitions als feststehende Leiste durchläuft. Hier
+       fehlen ihr nur noch die Laufzeit-Anteile: der ?tournament=-Parameter
+       auf den Links (gleicher Kanal wie beim dynamischen Bau – hält
+       Admin-/Test-Overrides beim Navigieren stabil) und das Markenlabel
+       aus der echten Config (der statische Stand kommt aus dem
+       Pre-Flight-Spiegel und kann bei Overrides abweichen). */
+    function hydrateStaticNav() {
+        document.querySelectorAll("body > nav.navbar a[href], body > nav.bottom-nav a[href]").forEach((link) => {
+            const href = link.getAttribute("href");
+            if (!href || /^(https?:|#)/i.test(href)) return;
+            link.setAttribute("href", withTournamentParam(href));
+        });
+
+        const brandLink = document.querySelector("body > nav.navbar .navbar-brand");
+        if (brandLink) {
+            brandLink.setAttribute("aria-label", brandAria);
+            const gold = brandLink.querySelector(".brand-gold");
+            if (gold && gold.textContent !== brandShortLabel) {
+                gold.textContent = brandShortLabel;
+            }
+            const green = brandLink.querySelector(".brand-green");
+            if (green && green.textContent !== brandSecondary) {
+                green.textContent = brandSecondary;
+            }
+        }
+    }
+
+    if (document.querySelector("body > nav.navbar")) {
+        hydrateStaticNav();
+    } else {
+        // Seiten ohne statisches Markup (liga-tabelle.html, Admin-
+        // Einstiege) bekommen die Leiste weiterhin komplett injiziert.
+        document.body.insertAdjacentHTML("afterbegin", navHTML);
+    }
 
     syncNavHeightVar();
 

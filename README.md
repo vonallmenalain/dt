@@ -868,6 +868,33 @@ lokal), erkennt der SW das (`IS_DEV_BUILD`) und fällt für Navigationen und
 versionierte Assets auf network-first zurück – Code-Änderungen bleiben
 beim Entwickeln sofort sichtbar.
 
+### Seitenübergänge & statische Navigation
+
+- **Cross-Document View Transitions** (`@view-transition` in `styles.css`)
+  ersetzen den harten Seitenwechsel durch einen kurzen Fade + leichtes
+  Hochgleiten (110/230 ms). Das alte `<meta name="view-transition">` war
+  ein wirkungsloser Origin-Trial-Rest. Browser ohne Unterstützung
+  navigieren wie bisher; `prefers-reduced-motion` schaltet den Übergang
+  komplett ab.
+- **Die Navigationsleiste steht statisch im HTML** jeder Hauptseite
+  (STATIC-NAV-Block direkt nach `<body>`): Sie wird mit dem ersten Frame
+  gezeichnet (kein spätes Aufploppen mehr) und ist über
+  `view-transition-name` aus dem Root-Übergang herausgelöst – bei
+  Seitenwechseln wirkt sie wie eine feststehende App-Leiste. `nav.js`
+  baut sie nicht mehr neu, sondern **hydriert** sie (Markenlabel aus
+  `APP_CONFIG`, `?tournament=`-Parameter auf den Links, Auth-Knopf,
+  Team-Builder-Status); Seiten ohne statisches Markup (liga-tabelle.html,
+  Admin-Einstiege) bekommen sie weiterhin injiziert. Das Markenlabel wird
+  vor dem ersten Paint von einem Mini-Inline-Skript aus
+  `data-tournament` gefüllt (Spiegel der `shortLabel`-Werte).
+  Regressionstest: `npm run test:staticnav`.
+- **Skeletons statt Spinner:** Die Rangliste zeigt beim Laden eine
+  Platzhalter-Vorschau des echten Layouts (Podium + Listenzeilen, Klasse
+  `.skel` jetzt geteilt in `styles.css`); Fehlermeldungen ersetzen sie
+  wie bisher.
+- **Touch-Feedback:** Nav-Links, Pills und Toggles reagieren sofort auf
+  den Tap (`:active`-Scale, eigener Ersatz für das graue Tap-Highlight).
+
 ### Drittanbieter-Bibliotheken: lokal & gepinnt
 
 - **Chart.js 4.5.0** liegt als `chart.umd.min.js` im Repo (vorher

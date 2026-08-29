@@ -240,3 +240,99 @@ body.dark-page .bottom-nav a { color: #8b949e; }
 body.dark-page .bottom-nav a.active { color: #4ade80; }
 body.dark-page .bottom-nav a .icon { filter: grayscale(100%) brightness(0.7); }
 body.dark-page .bottom-nav a.active .icon { filter: none; opacity: 1; }
+
+/* --- SEITENÜBERGÄNGE (Cross-Document View Transitions) ------------------
+   Ersetzt das wirkungslose <meta name="view-transition"> (alter
+   Origin-Trial-Opt-in): Moderne Browser (Chrome/Edge 126+, Safari 18.2+)
+   brauchen die CSS-Regel @view-transition. Beide Seiten einer Navigation
+   laden styles.css, damit gilt das Opt-in app-weit; Browser ohne
+   Unterstützung ignorieren alles hier und navigieren wie bisher.
+
+   Choreografie: Die alte Seite blendet schnell aus (110 ms), die neue
+   gleitet mit leichtem Versatz ein (230 ms, entspannte Kurve). Navigation
+   oben und unten sind über view-transition-name aus dem Root-Übergang
+   herausgelöst: Sie stehen auf jeder Seite an identischer Position und
+   wirken dadurch wie eine feststehende App-Leiste – nur der aktive
+   Punkt blendet weich um. */
+@view-transition {
+    navigation: auto;
+}
+
+.navbar { view-transition-name: dt-topnav; }
+.bottom-nav { view-transition-name: dt-bottomnav; }
+
+@keyframes dt-vt-fade-out {
+    to { opacity: 0; }
+}
+
+@keyframes dt-vt-rise-in {
+    from { opacity: 0; transform: translateY(10px); }
+}
+
+::view-transition-old(root) {
+    animation: dt-vt-fade-out 110ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+    animation: dt-vt-rise-in 230ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Reduzierte Bewegung: Übergang komplett aus (kein Fade, kein Versatz). */
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
+/* --- TOUCH-FEEDBACK ------------------------------------------------------
+   Jeder Tap auf ein Navigationsziel antwortet sofort sichtbar (<50 ms),
+   statt erst mit der neuen Seite. Der graue Standard-Tap-Blitz der
+   Mobil-Browser weicht dem eigenen, dezenteren Druck-Feedback. */
+.navbar-brand,
+.nav-links a,
+.btn-pill,
+.toggle-btn,
+.pt-toggle-btn,
+.chart-mode-btn {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-links a:active {
+    transform: translateY(-2px) scale(0.96);
+}
+
+.bottom-nav a:active {
+    transform: scale(0.92);
+    transition: transform 0.08s ease;
+}
+
+.btn-pill:active,
+.toggle-btn:active,
+.pt-toggle-btn:active,
+.chart-mode-btn:active {
+    transform: scale(0.96);
+    transition: transform 0.08s ease;
+}
+
+/* --- LOADING SKELETON (geteilt) ------------------------------------------
+   Kopie des Skeleton-Looks von der Startseite (index.css), damit auch
+   Rangliste & Co. beim Laden Platzhalter statt Spinner-Text zeigen
+   können. Eigener Keyframes-Name, damit sich beide Definitionen nie in
+   die Quere kommen. */
+@keyframes dt-skel-shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.skel {
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 800px 100%;
+    animation: dt-skel-shimmer 1.4s infinite;
+}

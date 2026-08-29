@@ -145,7 +145,11 @@
     }
 
     if (loadingEl) {
-        loadingEl.textContent = `Berechne Rangliste für ${TOURNAMENT_LABEL}... ⏳`;
+        // Nur das zugängliche Label aktualisieren – der sichtbare Inhalt
+        // ist seit dem Skeleton-Umbau eine Platzhalter-Vorschau des
+        // Layouts (rangliste.html) und soll bis zum ersten Render stehen
+        // bleiben. Fehlerpfade ersetzen ihn weiterhin per innerHTML.
+        loadingEl.setAttribute("aria-label", `Berechne Rangliste für ${TOURNAMENT_LABEL}`);
     }
 
     let metaUnsubscribe = null;
