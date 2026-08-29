@@ -5011,44 +5011,48 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        /* ── Coverflow-Bühne: perspektivischer Container, transparenter
-              Hintergrund. Die aktive Karte steht aufrecht vorne, die
-              Nachbarn kippen in der Tiefe zurück (siehe render() in index.js). */
+        /* ── Flacher Snap-Scroller: nativer horizontaler Scroll mit
+              Schnapp-Zentrierung. Frueher stand hier eine 3D-Coverflow-
+              Buehne (perspective + preserve-3d + JS-Transforms) - die
+              produzierte auf echten Geraete-GPUs wiederholt Render-
+              Artefakte (gestauchte Stapel, abgeschnittene Streifen,
+              leere Kartenruecken) und ist bewusst ersetzt: der Browser
+              uebernimmt Wisch-Physik und Zentrierung, index.js setzt nur
+              noch Skalierung/Dimmung nach Distanz zur Mitte. */
         .tcc-carousel {
             position: relative;
             z-index: 2;
             width: min(92vw, 760px);
-            height: min(52svh, 400px);
             margin-top: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            perspective: 1600px;
-            perspective-origin: 50% 50%;
-            isolation: isolate;
-            overflow: hidden;
+            padding: 16px 0 26px; /* Luft fuer Schatten/Glow der aktiven Karte */
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            overscroll-behavior-x: contain;
+            -webkit-overflow-scrolling: touch;
             outline: none;
             background: transparent;
-            touch-action: pan-y;
             user-select: none;
+            scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
         }
+        .tcc-carousel::-webkit-scrollbar { display: none; }
         .tcc-track {
-            position: relative;
-            width: var(--card-w);
-            height: var(--card-h);
-            transform-style: preserve-3d;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: max-content;
+            /* Erste/letzte Karte muss sich zentrieren koennen. */
+            padding-inline: calc(50% - var(--card-w) / 2);
         }
         .tcc-player-card {
-            position: absolute;
-            left: 50%;
-            top: 50%;
+            flex: 0 0 var(--card-w);
             width: var(--card-w);
             height: var(--card-h);
-            /* Ausgangswert; index.js überschreibt transform pro Frame. */
-            transform: translate(-50%, -50%);
+            scroll-snap-align: center;
             transform-origin: center center;
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
+            cursor: pointer;
             border-radius: 22px;
             overflow: hidden;
             padding: 11px;
@@ -5057,12 +5061,11 @@
             justify-content: center;
             gap: 10px;
             background:
-                linear-gradient(165deg, rgba(29,39,59,0.95) 0%, rgba(19,27,43,0.96) 65%, rgba(13,18,31,0.98) 100%),
+                linear-gradient(165deg, rgba(29,39,59,0.97) 0%, rgba(19,27,43,0.97) 65%, rgba(13,18,31,0.98) 100%),
                 radial-gradient(circle at 20% 0%, rgba(var(--rgb-gold), 0.14), transparent 52%);
             border: 1px solid rgba(255,255,255,0.16);
-            box-shadow: 0 22px 55px rgba(0,0,0,0.55);
-            backdrop-filter: blur(var(--blur));
-            will-change: transform, opacity;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.5);
+            will-change: transform;
         }
         .tcc-player-card.is-active {
             box-shadow: 0 26px 60px rgba(0,0,0,0.6), 0 0 46px rgba(var(--rgb-gold), 0.22);
@@ -5076,7 +5079,8 @@
             opacity: 0;
             border-radius: inherit;
             pointer-events: none;
-            transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            /* Keine Transition: die Dimmung haengt 1:1 am Scrollwert
+               (updateVisuals in index.js) - ein Nachlauf wuerde ruckeln. */
         }
         .tcc-player-photo-wrap {
             position: relative;
@@ -5342,9 +5346,10 @@
             .test-carousel-copy { margin-top: 2px; }
             .tcc-section-title { margin: 0; }
             .tcc-carousel {
-                height: min(48svh, 320px);
                 margin-top: 0;
+                padding: 12px 0 20px;
             }
+            .tcc-track { gap: 12px; }
             .tcc-player-card { padding: 8px; gap: 6px; }
             .tcc-player-info { gap: 4px; }
             .tcc-player-name {
