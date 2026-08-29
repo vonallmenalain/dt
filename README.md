@@ -708,9 +708,12 @@ Reihenfolge einhalten, sonst steht die App zwischendurch:
 2. **Netlify:** Site settings → Environment variables → `FIREBASE_API_KEY`
    auf den neuen Wert setzen, Scope *All deploy contexts* (Deploy Previews
    brauchen ihn auch, sonst schlagen deren Builds fehl).
-3. **`CACHE_VERSION` in `service-worker.js` erhöhen** und die `?v=`-Parameter
-   in den HTML-Dateien nachziehen. Ohne das behalten Besucher mit warmem
-   Service-Worker-Cache die alte `tournament-config.js` – also den alten Key.
+3. **Nichts von Hand nachziehen:** `CACHE_VERSION` und alle `?v=`-Parameter
+   werden beim Deploy automatisch mit dem Commit-SHA gestempelt (siehe
+   „Performance: Asset-Versionierung & Service Worker" unten). Jeder Deploy
+   invalidiert damit den Service-Worker-Cache von selbst – Besucher ziehen
+   die neue `tournament-config.js` (also den neuen Key) beim nächsten
+   Besuch automatisch.
 4. **Deployen** und auf der Live-Seite prüfen: Login, Team speichern,
    Rangliste laden.
 
@@ -806,3 +809,74 @@ In der [Firebase Console](https://console.firebase.google.com/project/dreamteam-
 8. Spieler ändern + submit → Firestore-Doc wird **aktualisiert** (gleiche ID).
 9. In der Firestore Console: `userId` matcht eigene Auth-UID, anonyme
    Writes werden abgelehnt.
+
+---
+
+## 7) Performance: Asset-Versionierung, Service Worker & Seitenwechsel
+
+Ziel: Ein Seitenwechsel (index → Rangliste → Analyse …) kommt **komplett
+ohne Netz-Roundtrip** aus – die App-Shell (HTML/JS/CSS/Kaderdaten) liegt
+vollständig und versioniert im Service-Worker-Cache. Live-Daten sind davon
+unabhängig: Punkte, Rangliste und Spiele kommen weiterhin über `cache.js`
+versionsgeprüft aus Firestore (Meta-Dokument + Live-Listener).
+
+### Eine Asset-Version für alles: `?v=__BUILD__`
+
+Alle lokalen Script-/Stylesheet-/Daten-Referenzen der Nutzer-Seiten tragen
+im Repo den Platzhalter `?v=__BUILD__`; dieselbe Marke steht als
+`CACHE_VERSION = 'v__BUILD__'` im Service Worker. Beim Deploy ersetzt
+`scripts/build-asset-versions.js` (läuft nach `build-firebase-config.js`,
+siehe `netlify.toml`) den Platzhalter überall durch den **Commit-SHA**.
+Folgen:
+
+- **Eine Datei = eine URL = ein Cache-Eintrag.** Früher pflegte jede Seite
+  eigene `?v=`-Strings (index `-13`, rangliste `-16`, spieleranalyse `-25`,
+  …) – gemeinsame Dateien lagen dadurch mehrfach im Cache und wurden beim
+  ersten Wechsel auf jede Seite erneut heruntergeladen.
+- **Auch die grossen Brocken sind versioniert:** `data-*.js` (Kaderdatei),
+  `admin.js`, `auth.js`, `auth-modal.js`, `view-mode.js`, Overrides usw.
+  waren früher unversioniert und gingen bei **jedem** Seitenwechsel übers
+  Netz (Revalidierung mit bis zu 3 s Timeout) – das war die Hauptursache
+  der 1–2 s Ladezeit beim Navigieren.
+- **Deploy = automatische Invalidierung.** Neue URLs + neue
+  `CACHE_VERSION` → der neue SW installiert die Shell frisch, übernimmt
+  per `skipWaiting`, und `nav.js` lädt die Seite beim `controllerchange`
+  einmal neu. Manuelles Hochzählen entfällt.
+
+`data.js` liest die Version aus dem `?v=` seines eigenen `<script>`-Tags
+und reicht sie an die per `document.write` nachgeladenen Dateien weiter
+(Kaderdatei, Positions-/Namens-Overrides, Namens-Kürzung); der
+Kaderdatei-Preload im Pre-Flight jeder Seite hängt denselben Suffix an,
+damit Preload und echter Request dieselbe URL treffen.
+
+Regressionstest: `npm run test:versions`
+(`scripts/test-asset-versions.js`) – schlägt fehl, sobald eine Referenz
+den Platzhalter verliert oder ein externes Skript (ausser Firebase)
+auftaucht.
+
+### Service-Worker-Strategie
+
+| Request                    | Strategie                                     |
+| -------------------------- | --------------------------------------------- |
+| Navigation (HTML)          | **stale-while-revalidate**: Cache antwortet sofort, Netz aktualisiert im Hintergrund |
+| Asset mit `?v=` (gestempelt) | **cache-first** – kein Netz-Roundtrip        |
+| Asset ohne `?v=` (Admin-Seiten) | network-first mit 3 s Timeout            |
+| Bilder                     | stale-while-revalidate                        |
+
+Dev-Modus: Läuft die Seite ungebaut (Platzhalter nicht ersetzt, z. B.
+lokal), erkennt der SW das (`IS_DEV_BUILD`) und fällt für Navigationen und
+versionierte Assets auf network-first zurück – Code-Änderungen bleiben
+beim Entwickeln sofort sichtbar.
+
+### Drittanbieter-Bibliotheken: lokal & gepinnt
+
+- **Chart.js 4.5.0** liegt als `chart.umd.min.js` im Repo (vorher
+  ungepinnt von jsdelivr). Die Rangliste lädt es **lazy**: erst wenn die
+  Manager-Ansicht den Rangentwicklungs-Chart wirklich rendert
+  (`ensureChartJs()` in `rangliste.js`); nach dem Boot wird die Datei per
+  `fetch()` im Leerlauf in den SW-Cache vorgewärmt.
+- **vanilla-tilt 1.8.0** liegt als `vanilla-tilt.min.js` im Repo (vorher
+  cdnjs). Teams/Team-Builder binden es unverändert synchron ein.
+
+Damit lädt ausser dem Firebase-SDK (gstatic, per HTTP-Cache langlebig)
+kein Skript mehr von fremden Hosts.

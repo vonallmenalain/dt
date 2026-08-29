@@ -32,6 +32,59 @@
     ].forEach(name => APP.storage.migrate(name, name, { storage: "session" }));
 
     /* =====================================================
+       CHART.JS – LAZY LOADER
+       Chart.js (lokal, gepinnt: chart.umd.min.js) haengt nicht mehr als
+       <script> in rangliste.html: Die Rangliste selbst braucht es nie,
+       nur die Manager-Ansicht (Rangentwicklungs-Chart). Es wird deshalb
+       erst geladen, wenn renderHistoryChart() es wirklich benoetigt –
+       und nach dem Seiten-Boot einmal per fetch() in den SW-Cache
+       vorgewaermt, damit der erste Tab-Wechsel nicht am Netz haengt.
+       ===================================================== */
+    // Gleiche Asset-Version wie das eigene <script>-Tag (Build-Stempel),
+    // damit chart.umd.min.js im Service Worker cache-first laeuft.
+    const CHART_JS_URL = (() => {
+        let suffix = "";
+        try {
+            const own = document.currentScript;
+            const m = own && own.src ? own.src.match(/[?&]v=([^&]+)/) : null;
+            if (m && m[1]) {
+                const safe = m[1].replace(/[^0-9A-Za-z._-]/g, "");
+                if (safe) suffix = `?v=${safe}`;
+            }
+        } catch (_) { /* ohne Version laden */ }
+        return `chart.umd.min.js${suffix}`;
+    })();
+
+    let chartJsLoadPromise = null;
+    function ensureChartJs() {
+        if (typeof Chart !== "undefined") return Promise.resolve();
+        if (!chartJsLoadPromise) {
+            chartJsLoadPromise = new Promise((resolve, reject) => {
+                const s = document.createElement("script");
+                s.src = CHART_JS_URL;
+                s.onload = () => resolve();
+                s.onerror = () => {
+                    // Fehlversuch vergessen, damit ein spaeterer Aufruf
+                    // (z.B. nach Netz-Rueckkehr) erneut laden darf.
+                    chartJsLoadPromise = null;
+                    reject(new Error("Chart.js konnte nicht geladen werden"));
+                };
+                document.head.appendChild(s);
+            });
+        }
+        return chartJsLoadPromise;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 2500));
+        idle(() => {
+            // Nur in den HTTP/SW-Cache holen, NICHT ausfuehren: das Parsen
+            // der ~200 KB bleibt vom kritischen Pfad der Rangliste weg.
+            try { fetch(CHART_JS_URL, { credentials: "same-origin" }).catch(() => {}); } catch (_) { /* egal */ }
+        });
+    });
+
+    /* =====================================================
        ROUND FILTER – Konfiguration
        ===================================================== */
     const ROUND_OPTIONS = [
@@ -1398,6 +1451,23 @@
     }
 
     function renderHistoryChart() {
+        // Chart.js kommt lazy (siehe ensureChartJs): beim allerersten
+        // Wechsel in die Manager-Ansicht evtl. noch nicht da – nachladen
+        // und danach erneut rendern. Folgeaufrufe treffen das geladene
+        // Global und laufen synchron weiter.
+        if (typeof Chart === "undefined") {
+            ensureChartJs()
+                .then(() => renderHistoryChart())
+                .catch(() => {
+                    const emptyFallback = document.getElementById("history-empty");
+                    if (emptyFallback) {
+                        emptyFallback.textContent = "Diagramm konnte nicht geladen werden – bitte Verbindung prüfen.";
+                        emptyFallback.style.display = "block";
+                    }
+                });
+            return;
+        }
+
         const canvas = document.getElementById("history-chart");
         const emptyEl = document.getElementById("history-empty");
 

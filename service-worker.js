@@ -16,32 +16,43 @@
  *  - Beim activate-Event werden ALLE alten dreamteam-* Caches entfernt
  *    (alles ausser dem aktuellen CACHE_NAME).
  *
- *  Fetch-Strategie (Performance-Überarbeitung):
- *  - Navigationen (HTML): network-first mit kurzem Timeout. Das HTML bleibt
- *    damit immer frisch (Netlify liefert per ETag billige 304er), aber bei
- *    schlechtem Empfang erscheint nach NAV_TIMEOUT_MS der letzte gute
- *    Cache-Stand statt eines weissen Bildschirms.
- *  - Assets MIT `?v=`-Parameter (styles.css, nav.js, cache.js, …):
- *    cache-first. Der Versions-Parameter IST die Inhalts-Identität – eine
- *    neue Version bekommt eine neue URL und damit automatisch einen
- *    frischen Download. Bereits gecachte Versionen kommen ohne jeden
- *    Netz-Roundtrip aus dem Cache (grösster Gewinn beim Seitenwechsel).
- *  - Assets OHNE `?v=` (admin.js, auth.js, data-*.js, …): network-first mit
- *    Timeout. Sie bleiben dank ETag-Revalidierung (304) frisch, kosten
- *    online aber nur noch einen parallelen Roundtrip statt eines vollen
- *    Downloads; offline/langsam greift der Cache.
+ *  Fetch-Strategie (Performance-Überarbeitung, Stand „Instant Navigation"):
+ *  - Navigationen (HTML): stale-while-revalidate. Der letzte gute
+ *    Cache-Stand erscheint SOFORT (kein Netz-Roundtrip beim Seitenwechsel),
+ *    parallel wird der Cache im Hintergrund aufgefrischt. Frisch nach einem
+ *    Deploy wird die App über den SW-Update-Mechanismus: CACHE_VERSION
+ *    trägt den Build-Stempel (siehe unten) → neuer SW installiert die
+ *    App-Shell mit cache:'no-cache', aktiviert sich per skipWaiting, und
+ *    nav.js lädt die Seite beim controllerchange einmal neu. Live-Daten
+ *    (Punkte, Rangliste, Spiele) sind davon unabhängig – sie kommen über
+ *    cache.js versionsgeprüft aus Firestore.
+ *  - Assets MIT `?v=`-Parameter: cache-first. Der Versions-Parameter IST
+ *    die Inhalts-Identität – seit dem Build-Stempel (`?v=__BUILD__` →
+ *    Commit-SHA, siehe scripts/build-asset-versions.js) tragen ihn ALLE
+ *    lokalen JS/CSS/Daten-Dateien, auch data-*.js, admin.js, auth.js usw.
+ *    Bereits gecachte Versionen kommen ohne jeden Netz-Roundtrip aus dem
+ *    Cache (grösster Gewinn beim Seitenwechsel).
+ *  - Assets OHNE `?v=` (nur noch Admin-/Sonderseiten): network-first mit
+ *    Timeout, offline/langsam greift der Cache.
  *  - Bilder: stale-while-revalidate (unverändert).
  *
+ *  Dev-Modus: Läuft die Seite ungebaut (Platzhalter `__BUILD__` nicht
+ *  ersetzt, z.B. lokal via `python -m http.server`), wäre die Version
+ *  konstant und cache-first würde jede Code-Änderung verschlucken. Der SW
+ *  erkennt das und fällt für Navigationen UND versionierte Assets auf
+ *  network-first zurück – wie vor der Umstellung.
+ *
  *  Der frühere `bypassHttpCache`-Zwang (cache:'reload' für alle kritischen
- *  Assets) ist bewusst entfernt: Er hat bei JEDEM Seitenwechsel alle
+ *  Assets) bleibt entfernt: Er hat bei JEDEM Seitenwechsel alle
  *  HTML/JS/CSS-Dateien komplett neu über das Netz geladen und war die
- *  Hauptursache für mehrsekündige Navigationszeiten. Deploy-Frischheit ist
- *  weiterhin garantiert: Beim Deploy wird CACHE_VERSION (zusammen mit den
- *  `?v=`-Parametern in den HTML-Seiten) erhöht → neuer SW installiert die
- *  App-Shell mit cache:'no-cache' frisch, aktiviert sich per skipWaiting,
- *  und nav.js lädt die Seite beim controllerchange einmal neu.
+ *  Hauptursache für mehrsekündige Navigationszeiten.
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-08-29-carousel-46';
+// Wird von scripts/build-asset-versions.js beim Deploy durch den
+// Commit-SHA ersetzt – identisch mit den `?v=`-Werten der HTML-Seiten.
+const CACHE_VERSION = 'v__BUILD__';
+// Ungestempelt (= lokale Entwicklung ohne Build)? Token geteilt, damit der
+// Build-Stempel diese Prüfung nicht mit-ersetzt.
+const IS_DEV_BUILD = CACHE_VERSION.indexOf('__BU' + 'ILD__') !== -1;
 const NAV_TIMEOUT_MS = 2500;
 const ASSET_TIMEOUT_MS = 3000;
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
@@ -85,6 +96,8 @@ const APP_SHELL = [
   './points-utils.js',
   './transfer-utils.js',
   './cache.js',
+  './chart.umd.min.js',
+  './vanilla-tilt.min.js',
   './theme-cl.css',
   './liga-tabelle.html',
   './Icons/site.webmanifest',
@@ -247,6 +260,38 @@ function networkFirst(request) {
   return networkFirstWithTimeout(request);
 }
 
+/**
+ * stale-while-revalidate für Navigationen: Der letzte gute Cache-Stand
+ * antwortet SOFORT (kein Netz-Roundtrip beim Seitenwechsel), parallel wird
+ * der Cache im Hintergrund aufgefrischt. Nach einem Deploy sorgt der
+ * SW-Update-Mechanismus (neue CACHE_VERSION → skipWaiting →
+ * controllerchange-Reload in nav.js) für frisches Markup; bis dahin ist ein
+ * kurzzeitig veralteter Shell-Stand akzeptabel, weil Live-Daten über
+ * cache.js versionsgeprüft aus Firestore kommen und nicht im HTML stecken.
+ */
+async function navigationStaleWhileRevalidate(event, request) {
+  const cacheKey = normalizedCacheKey(request);
+  const cached = await caches.match(cacheKey)
+    || await caches.match(request, { ignoreSearch: true });
+
+  const refresh = fetchAndCache(request, { cacheKey }).catch(() => null);
+
+  if (cached) {
+    // Hintergrund-Refresh zu Ende laufen lassen, auch wenn die Antwort
+    // längst ausgeliefert ist – sonst darf der Browser den Fetch abbrechen.
+    if (event && typeof event.waitUntil === 'function') {
+      event.waitUntil(refresh);
+    }
+    return cached;
+  }
+
+  // Erstbesuch dieser Seite (noch kein Cache): auf das Netz warten; fällt
+  // es komplett aus, dient die vorgecachte index.html als App-Shell-Fallback.
+  const response = await refresh;
+  if (response) return response;
+  return (await caches.match('./index.html')) || Response.error();
+}
+
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
@@ -275,22 +320,25 @@ self.addEventListener('fetch', event => {
   const isImageAsset = /\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$/.test(pathname);
 
   if (request.mode === 'navigate') {
-    // HTML bleibt network-first (frisches Markup inkl. neuer `?v=`-Referenzen
-    // nach einem Deploy); der Cache-Fallback greift per Timeout bei
-    // schlechtem Empfang. ignoreSearch, damit z.B. teams.html?manager=X den
-    // gecachten teams.html-Stand als Fallback nutzt.
-    event.respondWith(networkFirstWithTimeout(
-      request,
-      NAV_TIMEOUT_MS,
-      { ignoreSearch: true },
-      { cacheKey: normalizedCacheKey(request) }
-    ));
+    // Produktion: Cache sofort, Netz im Hintergrund (Details am
+    // Funktionskopf). Dev ohne Build-Stempel: network-first wie früher,
+    // damit Code-Änderungen beim lokalen Entwickeln sichtbar bleiben.
+    if (IS_DEV_BUILD) {
+      event.respondWith(networkFirstWithTimeout(
+        request,
+        NAV_TIMEOUT_MS,
+        { ignoreSearch: true },
+        { cacheKey: normalizedCacheKey(request) }
+      ));
+    } else {
+      event.respondWith(navigationStaleWhileRevalidate(event, request));
+    }
     return;
   }
 
   if (isCriticalAsset) {
     const isVersioned = url.searchParams.has('v');
-    if (isVersioned) {
+    if (isVersioned && !IS_DEV_BUILD) {
       event.respondWith(cacheFirstVersioned(request));
     } else {
       event.respondWith(networkFirstWithTimeout(request, ASSET_TIMEOUT_MS));

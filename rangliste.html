@@ -38,7 +38,7 @@
       // Abweichung kostet es ohnehin nur einen unnoetigen Request.
       var df=/^cl\d{4}$/.test(k)?("data-"+k+".js"):"data-wm2026.js";
       var pl=document.createElement("link");
-      pl.rel="preload";pl.as="script";pl.href=df;
+      pl.rel="preload";pl.as="script";pl.href=df+"?v=__BUILD__";
       (document.head||d).appendChild(pl);
     }catch(e){}})();
     </script>
@@ -49,7 +49,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DreamTeam">
-<link rel="manifest" href="Icons/site.webmanifest?v=2026-08-19-firebase-key-16">
+<link rel="manifest" href="Icons/site.webmanifest?v=__BUILD__">
     <link rel="icon" type="image/x-icon" href="Icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="Icons/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="Icons/favicon-32x32.png">
@@ -65,7 +65,6 @@
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <!-- Firebase-Compat-SDK: Download startet dank preload sofort und
          parallel zum HTML-Parsing; die eigentlichen <script>-Tags stehen
@@ -79,9 +78,9 @@
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js">
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
-<link rel="stylesheet" href="styles.css?v=2026-08-19-firebase-key-16">
+<link rel="stylesheet" href="styles.css?v=__BUILD__">
 
-    <link rel="stylesheet" href="rangliste.css?v=2026-08-19-firebase-key-16">
+    <link rel="stylesheet" href="rangliste.css?v=__BUILD__">
 </head>
 <body>
 
@@ -210,26 +209,27 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="tournament-config.js?v=2026-08-19-firebase-key-16"></script>
-<script src="nav.js?v=2026-08-19-firebase-key-16"></script>
+<script src="tournament-config.js?v=__BUILD__"></script>
+<script src="nav.js?v=__BUILD__"></script>
 
-<!-- firebase-*-compat werden bereits im <head> mit defer geladen. -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="data.js?v=2026-08-19-firebase-key-16"></script>
-<script src="points-utils.js?v=2026-08-19-firebase-key-16"></script>
-<script src="transfer-utils.js?v=2026-08-19-firebase-key-16"></script>
-<script src="cache.js?v=2026-08-19-firebase-key-16"></script>
+<!-- Chart.js (lokal, gepinnt 4.5.0) wird NICHT mehr hier geladen: rangliste.js
+     laedt chart.umd.min.js lazy, sobald die Manager-Ansicht den Chart wirklich
+     braucht – die Rangliste selbst kommt ohne aus. -->
+<script src="data.js?v=__BUILD__"></script>
+<script src="points-utils.js?v=__BUILD__"></script>
+<script src="transfer-utils.js?v=__BUILD__"></script>
+<script src="cache.js?v=__BUILD__"></script>
 <!-- Navbar Login: Auth-Modal + Helpers (siehe auch nav.js) -->
-<link rel="stylesheet" href="auth-modal.css?v=2026-08-19-firebase-key-16">
-<script src="admin.js"></script>
-<script src="auth.js"></script>
-<script src="auth-modal.js"></script>
+<link rel="stylesheet" href="auth-modal.css?v=__BUILD__">
+<script src="admin.js?v=__BUILD__"></script>
+<script src="auth.js?v=__BUILD__"></script>
+<script src="auth-modal.js?v=__BUILD__"></script>
 <!-- App-weiter Ansichts-Umschalter (Auto / Vor Start / Nach Start).
      Registriert die Einträge im Dev-Bereich des Profil-Dropdowns und
      hält <html data-view> aktuell. Muss nach admin.js + auth-modal.js
      stehen. -->
-<script src="view-mode.js"></script>
+<script src="view-mode.js?v=__BUILD__"></script>
 
-<script src="rangliste.js?v=2026-08-19-firebase-key-16"></script>
+<script src="rangliste.js?v=__BUILD__"></script>
 </body>
 </html>
