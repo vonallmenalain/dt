@@ -7169,57 +7169,79 @@
         // nicht beim FC Porto – Klublogo und Klubname der Karte kommen aus dem
         // Datensatz und zeigen deshalb AS Roma.
         //
-        // REIHENFOLGE: bewusst so gewählt, dass NIE zwei direkt benachbarte
-        // Spieler demselben Klub angehören – auch über den Ring-Umlauf hinweg
-        // (das Muster kachelt zirkulär, letzte Karte grenzt an erste). Die
-        // Klub-Cluster (Real Madrid ×6, PSG ×4, Bayern ×4, Man City ×4,
-        // Barcelona ×3, Liverpool ×3, Arsenal ×2, Atlético ×2) sind deshalb
-        // gleichmässig verteilt. Welcher Spieler beim Laden im Zentrum steht,
-        // wird zufällig gewählt (siehe pickInitialActive) – die
-        // Ring-Reihenfolge bleibt dabei gültig, egal wo das Zentrum liegt.
+        // REIHENFOLGE: maschinell erzeugt und verifiziert - NIE zwei direkt
+        // benachbarte Spieler desselben Klubs (auch über den Ring-Umlauf,
+        // das Muster kachelt zirkulär) und nie zwei Torhüter nebeneinander.
+        // 52 Spieler, davon 7 Torhüter (Kobel, Donnarumma, Courtois,
+        // Alisson, Oblak, Raya, Chevalier). Klub-Cluster: PSG ×8, Real ×7,
+        // City/Liverpool/Bayern/Arsenal ×5, Inter/Barcelona ×4,
+        // Atlético/BVB ×3, Leipzig/Roma/Galatasaray ×1. Welcher Spieler beim
+        // Laden im Zentrum steht, wird zufällig gewählt (pickInitialActive) -
+        // die Ring-Reihenfolge bleibt dabei gültig, egal wo das Zentrum liegt.
         //
         // NICHT ENTHALTEN trotz Topwert, weil im Pool `data-cl2627.js` kein
-        // (eindeutiger) Eintrag existiert: Mohamed Salah, Cole Palmer,
-        // Nico Williams, Rafael Leão (Klub nicht in der CL 26/27 bzw. kein
-        // Datensatz); „Rodri" im Pool ist ein Barcelona-Spieler, nicht der
-        // City-Sechser – deshalb ausgelassen.
+        // (eindeutiger/aktueller) Eintrag existiert: Mohamed Salah,
+        // Cole Palmer, Nico Williams, Rafael Leão, ter Stegen, Griezmann
+        // (kein Datensatz bzw. Klub nicht in der CL 26/27); „Rodri" im Pool
+        // ist ein Barcelona-Spieler, nicht der City-Sechser; Yann Sommer
+        // steht im Pool bei Club Brügge - deshalb ausgelassen.
         const cl2627StarRotation = [
             {
                 id: "cl_stars_set_1",
                 title: "",
                 players: [
-                    { playerId: 278,    name: "Kylian Mbappé",         nation: "Frankreich",     position: "ANG", tag: "STAR"      }, // Real Madrid – wertvollster Spieler der Welt
-                    { playerId: 483,    name: "Khvicha Kvaratskhelia", nation: "Georgien",       position: "ANG", tag: "FORM"      }, // Paris Saint Germain – bester Spieler der CL 2025/26
-                    { playerId: 1100,   name: "Erling Haaland",        nation: "Norwegen",       position: "ANG", tag: "STAR"      }, // Manchester City – Tormaschine
-                    { playerId: 386828, name: "Lamine Yamal",          nation: "Spanien",        position: "ANG", tag: "STAR"      }, // Barcelona – Jahrhunderttalent
-                    { playerId: 203224, name: "Florian Wirtz",         nation: "Deutschland",    position: "MIT", tag: "FORM"      }, // Liverpool – Beweis-Saison nach dem 125-Mio.-Wechsel
-                    { playerId: 129718, name: "Jude Bellingham",       nation: "England",        position: "MIT", tag: "STAR"      }, // Real Madrid – Mittelfeld-Star
-                    { playerId: 181812, name: "Jamal Musiala",         nation: "Deutschland",    position: "MIT", tag: "STAR"      }, // Bayern München – Magier im Zwischenraum
-                    { playerId: 1460,   name: "Bukayo Saka",           nation: "England",        position: "ANG", tag: "STAR"      }, // Arsenal – Dauerbrenner rechts
-                    { playerId: 343027, name: "Désiré Doué",           nation: "Frankreich",     position: "ANG", tag: "TALENT"    }, // Paris Saint Germain – Schlüsselspieler
-                    { playerId: 631,    name: "Phil Foden",            nation: "England",        position: "MIT", tag: "STAR"      }, // Manchester City – (Pool-Name: Philip Foden)
-                    { playerId: 762,    name: "Vinícius Júnior",       nation: "Brasilien",      position: "ANG", tag: "STAR"      }, // Real Madrid – Flügelstürmer
-                    { playerId: 184,    name: "Harry Kane",            nation: "England",        position: "ANG", tag: "STAR"      }, // Bayern München – Torgarant
-                    { playerId: 174565, name: "Hugo Ekitiké",          nation: "Frankreich",     position: "ANG", tag: "FORM"      }, // Liverpool – als Stammstürmer durchgesetzt
-                    { playerId: 336594, name: "Pablo Barrios",         nation: "Spanien",        position: "MIT", tag: "TALENT"    }, // Atletico Madrid – Box-to-Box-Motor
-                    { playerId: 396623, name: "Pau Cubarsí",           nation: "Spanien",        position: "DEF", tag: "TALENT"    }, // Barcelona – einer der besten jungen IVs Europas
-                    { playerId: 756,    name: "Federico Valverde",     nation: "Uruguay",        position: "MIT", tag: "STAR"      }, // Real Madrid – Motor im Mittelfeld
-                    { playerId: 336657, name: "Warren Zaïre-Emery",    nation: "Frankreich",     position: "MIT", tag: "TALENT"    }, // Paris Saint Germain – etabliert im Zentrum
-                    { playerId: 307123, name: "Nico O'Reilly",         nation: "England",        position: "MIT", tag: "TALENT"    }, // Manchester City – Durchbruchspieler der Vorsaison
-                    { playerId: 326757, name: "Jobe Bellingham",       nation: "England",        position: "MIT", tag: "TALENT"    }, // Borussia Dortmund – gesetzt im Zentrum
-                    { playerId: 19617,  name: "Michael Olise",         nation: "Frankreich",     position: "MIT", tag: "STAR"      }, // Bayern München – Unterschiedsspieler
-                    { playerId: 2937,   name: "Declan Rice",           nation: "England",        position: "MIT", tag: "STAR"      }, // Arsenal – Anker und Standard-Waffe
-                    { playerId: 291964, name: "Arda Güler",            nation: "Türkei",         position: "MIT", tag: "TALENT"    }, // Real Madrid – bester junger Spieler der CL 2025/26
-                    { playerId: 452685, name: "Rio Ngumoha",           nation: "England",        position: "MIT", tag: "TALENT"    }, // Liverpool – Academy-Juwel, Rotation/Joker
-                    { playerId: 345808, name: "Pio Esposito",          nation: "Italien",        position: "ANG", tag: "TALENT"    }, // Inter – italienisches Toptalent im Sturm
-                    { playerId: 6009,   name: "Julián Álvarez",        nation: "Argentinien",    position: "ANG", tag: "STAR"      }, // Atletico Madrid – Vollstrecker
-                    { playerId: 153,    name: "Ousmane Dembélé",       nation: "Frankreich",     position: "ANG", tag: "STAR"      }, // Paris Saint Germain – Ballon-d'Or-Format
-                    { playerId: 133609, name: "Pedri",                 nation: "Spanien",        position: "MIT", tag: "STAR"      }, // Barcelona – Taktgeber
-                    { playerId: 494131, name: "Lennart Karl",          nation: "Deutschland",    position: "MIT", tag: "TALENT"    }, // Bayern München – jüngster Startelfspieler der Bayern-CL-Historie
-                    { playerId: 138908, name: "Elliot Anderson",       nation: "Schottland",     position: "MIT", tag: "NEUZUGANG" }, // Manchester City – für 135 Mio. € von Newcastle
-                    { playerId: 513776, name: "Yan Diomande",          nation: "Elfenbeinküste", position: "ANG", tag: "TALENT"    }, // Real Madrid – Sommer-Rekordtransfer von Leipzig
-                    { playerId: 314511, name: "Antonio Nusa",          nation: "Norwegen",       position: "ANG", tag: "TALENT"    }, // RB Leipzig – auffälliger Flügelspieler
-                    { playerId: 404097, name: "Rodrigo Mora",          nation: "Portugal",       position: "ANG", tag: "TALENT"    }  // AS Roma (im Pool; Wunschzettel nannte FC Porto)
+                    { playerId: 25282,  name: "Gregor Kobel",           nation: "Schweiz",        position: "TOR", tag: "STAR"     }, // Borussia Dortmund – Schweizer Nummer 1
+                    { playerId: 278,    name: "Kylian Mbappé",          nation: "Frankreich",     position: "ANG", tag: "STAR"     }, // Real Madrid – wertvollster Spieler der Welt
+                    { playerId: 343027, name: "Désiré Doué",            nation: "Frankreich",     position: "ANG", tag: "TALENT"   }, // Paris Saint Germain – Schlüsselspieler
+                    { playerId: 129718, name: "Jude Bellingham",        nation: "England",        position: "MIT", tag: "STAR"     }, // Real Madrid – Mittelfeld-Star
+                    { playerId: 336657, name: "Warren Zaïre-Emery",     nation: "Frankreich",     position: "MIT", tag: "TALENT"   }, // Paris Saint Germain – etabliert im Zentrum
+                    { playerId: 762,    name: "Vinícius Júnior",        nation: "Brasilien",      position: "ANG", tag: "STAR"     }, // Real Madrid – Flügelstürmer
+                    { playerId: 162453, name: "Lucas Chevalier",        nation: "Frankreich",     position: "TOR", tag: "TALENT"   }, // Paris Saint Germain – PSG-Nummer-1-Erbe
+                    { playerId: 1100,   name: "Erling Haaland",         nation: "Norwegen",       position: "ANG", tag: "STAR"     }, // Manchester City – Tormaschine
+                    { playerId: 203224, name: "Florian Wirtz",          nation: "Deutschland",    position: "MIT", tag: "FORM"     }, // Liverpool – Beweis-Saison nach dem 125-Mio.-Wechsel
+                    { playerId: 181812, name: "Jamal Musiala",          nation: "Deutschland",    position: "MIT", tag: "STAR"     }, // Bayern München – Magier im Zwischenraum
+                    { playerId: 1460,   name: "Bukayo Saka",            nation: "England",        position: "ANG", tag: "STAR"     }, // Arsenal – Dauerbrenner rechts
+                    { playerId: 730,    name: "Thibaut Courtois",       nation: "Belgien",        position: "TOR", tag: "STAR"     }, // Real Madrid – Rückhalt der Königlichen
+                    { playerId: 153,    name: "Ousmane Dembélé",        nation: "Frankreich",     position: "ANG", tag: "STAR"     }, // Paris Saint Germain – Ballon-d'Or-Format
+                    { playerId: 631,    name: "Phil Foden",             nation: "England",        position: "MIT", tag: "STAR"     }, // Manchester City – (Pool-Name: Philip Foden)
+                    { playerId: 386828, name: "Lamine Yamal",           nation: "Spanien",        position: "ANG", tag: "STAR"     }, // Barcelona – Jahrhunderttalent
+                    { playerId: 174565, name: "Hugo Ekitiké",           nation: "Frankreich",     position: "ANG", tag: "FORM"     }, // Liverpool – als Stammstürmer durchgesetzt
+                    { playerId: 184,    name: "Harry Kane",             nation: "England",        position: "ANG", tag: "STAR"     }, // Bayern München – Torgarant
+                    { playerId: 2937,   name: "Declan Rice",            nation: "England",        position: "MIT", tag: "STAR"     }, // Arsenal – Anker und Standard-Waffe
+                    { playerId: 345808, name: "Pio Esposito",           nation: "Italien",        position: "ANG", tag: "TALENT"   }, // Inter – italienisches Toptalent im Sturm
+                    { playerId: 756,    name: "Federico Valverde",      nation: "Uruguay",        position: "MIT", tag: "STAR"     }, // Real Madrid – Motor im Mittelfeld
+                    { playerId: 9,      name: "Achraf Hakimi",          nation: "Marokko",        position: "DEF", tag: "STAR"     }, // Paris Saint Germain – bester Rechtsverteidiger der Welt
+                    { playerId: 1622,   name: "Gianluigi Donnarumma",   nation: "Italien",        position: "TOR", tag: "STAR"     }, // Manchester City – Welttorhüter
+                    { playerId: 396623, name: "Pau Cubarsí",            nation: "Spanien",        position: "DEF", tag: "TALENT"   }, // Barcelona – einer der besten jungen IVs Europas
+                    { playerId: 280,    name: "Alisson Becker",         nation: "Brasilien",      position: "TOR", tag: "STAR"     }, // Liverpool – Brasiliens Nummer 1
+                    { playerId: 19617,  name: "Michael Olise",          nation: "Frankreich",     position: "MIT", tag: "STAR"     }, // Bayern München – Unterschiedsspieler
+                    { playerId: 19465,  name: "David Raya",             nation: "Spanien",        position: "TOR", tag: "STAR"     }, // Arsenal – Ruhepol der Gunners
+                    { playerId: 336594, name: "Pablo Barrios",          nation: "Spanien",        position: "MIT", tag: "TALENT"   }, // Atletico Madrid – Box-to-Box-Motor
+                    { playerId: 326757, name: "Jobe Bellingham",        nation: "England",        position: "MIT", tag: "TALENT"   }, // Borussia Dortmund – gesetzt im Zentrum
+                    { playerId: 31009,  name: "Alessandro Bastoni",     nation: "Italien",        position: "DEF", tag: "STAR"     }, // Inter – moderner Innenverteidiger
+                    { playerId: 291964, name: "Arda Güler",             nation: "Türkei",         position: "MIT", tag: "TALENT"   }, // Real Madrid – bester junger Spieler der CL 2025/26
+                    { playerId: 128384, name: "Vitinha",                nation: "Portugal",       position: "MIT", tag: "STAR"     }, // Paris Saint Germain – Taktgeber des CL-Siegers
+                    { playerId: 307123, name: "Nico O'Reilly",          nation: "England",        position: "MIT", tag: "TALENT"   }, // Manchester City – Durchbruchspieler der Vorsaison
+                    { playerId: 133609, name: "Pedri",                  nation: "Spanien",        position: "MIT", tag: "STAR"     }, // Barcelona – Taktgeber
+                    { playerId: 452685, name: "Rio Ngumoha",            nation: "England",        position: "MIT", tag: "TALENT"   }, // Liverpool – Academy-Juwel, Rotation/Joker
+                    { playerId: 494131, name: "Lennart Karl",           nation: "Deutschland",    position: "MIT", tag: "TALENT"   }, // Bayern München – jüngster Startelfspieler der Bayern-CL-Historie
+                    { playerId: 22090,  name: "William Saliba",         nation: "Frankreich",     position: "DEF", tag: "STAR"     }, // Arsenal – Abwehrchef
+                    { playerId: 29,     name: "Jan Oblak",              nation: "Slowenien",      position: "TOR", tag: "STAR"     }, // Atletico Madrid – seit Jahren Weltklasse
+                    { playerId: 483,    name: "Khvicha Kvaratskhelia",  nation: "Georgien",       position: "ANG", tag: "FORM"     }, // Paris Saint Germain – bester Spieler der CL 2025/26
+                    { playerId: 217,    name: "Lautaro Martínez",       nation: "Argentinien",    position: "ANG", tag: "STAR"     }, // Inter – Kapitän und Torjäger
+                    { playerId: 513776, name: "Yan Diomande",           nation: "Elfenbeinküste", position: "ANG", tag: "TALENT"   }, // Real Madrid – Sommer-Rekordtransfer von Leipzig
+                    { playerId: 263482, name: "Nuno Mendes",            nation: "Portugal",       position: "DEF", tag: "STAR"     }, // Paris Saint Germain – Weltklasse links
+                    { playerId: 138908, name: "Elliot Anderson",        nation: "Schottland",     position: "MIT", tag: "NEUZUGANG"}, // Manchester City – für 135 Mio. € von Newcastle
+                    { playerId: 1496,   name: "Raphinha",               nation: "Brasilien",      position: "ANG", tag: "STAR"     }, // Barcelona – CL-Topscorer 2024/25
+                    { playerId: 2864,   name: "Alexander Isak",         nation: "Schweden",       position: "ANG", tag: "STAR"     }, // Liverpool – Rekord-Neuner
+                    { playerId: 502,    name: "Joshua Kimmich",         nation: "Deutschland",    position: "MIT", tag: "STAR"     }, // Bayern München – Kapitän und Stratege
+                    { playerId: 18979,  name: "Viktor Gyökeres",        nation: "Schweden",       position: "ANG", tag: "STAR"     }, // Arsenal – Tore am Fliessband
+                    { playerId: 6009,   name: "Julián Álvarez",         nation: "Argentinien",    position: "ANG", tag: "STAR"     }, // Atletico Madrid – Vollstrecker
+                    { playerId: 21393,  name: "Serhou Guirassy",        nation: "Guinea",         position: "ANG", tag: "STAR"     }, // Borussia Dortmund – BVB-Lebensversicherung
+                    { playerId: 30558,  name: "Nicolò Barella",         nation: "Italien",        position: "MIT", tag: "STAR"     }, // Inter – Herz des Inter-Spiels
+                    { playerId: 314511, name: "Antonio Nusa",           nation: "Norwegen",       position: "ANG", tag: "TALENT"   }, // RB Leipzig – auffälliger Flügelspieler
+                    { playerId: 404097, name: "Rodrigo Mora",           nation: "Portugal",       position: "ANG", tag: "TALENT"   }, // AS Roma – (im Pool; Wunschzettel nannte FC Porto)
+                    { playerId: 2780,   name: "Victor Osimhen",         nation: "Nigeria",        position: "ANG", tag: "STAR"     }  // Galatasaray – Sturm-Urgewalt
                 ]
             }
         ];
@@ -7395,7 +7417,7 @@
         let players = [];
 
         // Anzahl Spieler im Feld. CL zeigt genau die kuratierten Stars des
-        // aktiven Turniers (cl2526: 14, cl2627: 32), die Zahl wird deshalb
+        // aktiven Turniers (cl2526: 14, cl2627: 52), die Zahl wird deshalb
         // aus der Liste abgeleitet statt hart gesetzt. Die WM bleibt bei 9.
         const CARD_COUNT     = IS_CL ? (starRotation[0]?.players?.length || 14) : 9;
         const prefersReducedMotion = !!(window.matchMedia
@@ -7625,14 +7647,16 @@
 
         /* Responsive Feintuning (gesetzt in applyResponsiveTuning):
            Mobil ist das Feld dicht (12px), auf dem Desktop luftiger
-           (30px Abstand, Lupe etwas dezenter) - dort blendet zusaetzlich
-           eine Seitenmaske die Karten links/rechts aus (index.css). */
+           (30px Abstand) - dort blendet zusaetzlich eine Seitenmaske die
+           Karten links/rechts aus (index.css). Die Lupe ist bewusst
+           DRAMATISCH: das Zentrum dominiert, Randkarten schrumpfen fast
+           bis zum Verschwinden. */
         let gapPx = 12;                 // Zellabstand im Muster
-        let scMax = 1.22;               // Lupen-Skala im Zentrum
-        let scMin = 0.64;               // Skala am Buehnenrand
+        let scMax = 1.26;               // Lupen-Skala im Zentrum
+        let scMin = 0.38;               // Skala am Buehnenrand (fast weg)
         const DESKTOP_MIN_W = 900;      // ab hier: Desktop-Tuning + Seitenmaske
         const MAX_FLING = 4200;         // px/s: Wurf-Deckel (wie native Scroller)
-        const DIM_MAX = 0.42;           // max. Abdunklung am Rand
+        const DIM_MAX = 0.52;           // max. Abdunklung am Rand
         const DECEL = 0.998;            // Momentum-Abklang pro ms (Apple-Wert)
         const STOP_SPEED = 16;          // px/s: darunter kommt das Feld zur Ruhe
         const CLICK_SPEED = 110;        // px/s: schneller -> Tap stoppt nur, kein Klick
@@ -7692,8 +7716,8 @@
         function applyResponsiveTuning() {
             const desktop = stageW >= DESKTOP_MIN_W;
             gapPx = desktop ? 30 : 12;
-            scMax = desktop ? 1.18 : 1.22;
-            scMin = desktop ? 0.70 : 0.64;
+            scMax = desktop ? 1.22 : 1.26;
+            scMin = desktop ? 0.34 : 0.38;
         }
 
         /* offsetWidth/-Height statt getBoundingClientRect: die Zellen tragen
@@ -7823,6 +7847,7 @@
 
             if (!readMetrics()) { pendingBuild = true; return; }
             centerCellIdx = -1;
+            highlightedIdx = -1;
             layoutPattern();
             fitPlayerNames();
 
@@ -7842,6 +7867,7 @@
             if (startPhoto) startPhoto.setAttribute('fetchpriority', 'high');
 
             render();
+            applyHighlight();
             playIntro();
         }
 
@@ -7882,7 +7908,9 @@
         function render() {
             const cxMid = stageW / 2;
             const cyMid = stageH / 2;
-            const lensR = Math.max(cxMid, cyMid) * 1.06;
+            // Enger Lupen-Radius: schon die direkten Nachbarn sind deutlich
+            // kleiner, der Rand laeuft gegen scMin (fast verschwunden).
+            const lensR = Math.min(stageW, stageH) * 0.62;
             const marginX = cellW * 1.5;
             const marginY = cellH * 1.2;
             const padX = cellW / 2 + 40;
@@ -7937,14 +7965,24 @@
             }
 
             if (best !== centerCellIdx) {
-                if (centerCellIdx >= 0 && cells[centerCellIdx]) {
-                    cells[centerCellIdx].cardEl.classList.remove('is-active');
-                }
                 centerCellIdx = best;
-                if (best >= 0) {
-                    cells[best].cardEl.classList.add('is-active');
-                    active = cells[best].playerIdx;
-                }
+                if (best >= 0) active = cells[best].playerIdx;
+            }
+        }
+
+        /* Glow-/Fokus-Klasse NUR im Stillstand wechseln: der Schatten-/
+           Rahmen-Wechsel rastert die Karte neu - waehrend der Bewegung
+           waere das auf schwachen Geraeten sichtbares Ruckeln (der alte
+           Glow bleibt im Flug einfach stehen und springt beim Stopp um). */
+        let highlightedIdx = -1;
+        function applyHighlight() {
+            if (highlightedIdx === centerCellIdx) return;
+            if (highlightedIdx >= 0 && cells[highlightedIdx]) {
+                cells[highlightedIdx].cardEl.classList.remove('is-active');
+            }
+            highlightedIdx = centerCellIdx;
+            if (highlightedIdx >= 0 && cells[highlightedIdx]) {
+                cells[highlightedIdx].cardEl.classList.add('is-active');
             }
         }
 
@@ -7992,6 +8030,7 @@
                     }
                 }
                 render();
+                if (mode === 'rest') applyHighlight();
             } catch (err) {
                 breakToFallback(err);
                 return;
@@ -8010,6 +8049,7 @@
                 camX = tx; camY = ty;
                 mode = 'rest';
                 render();
+                applyHighlight();
                 return;
             }
             mode = 'spring';
@@ -8120,6 +8160,7 @@
             if (prefersReducedMotion || speed <= STOP_SPEED * 3) {
                 stopMotion();
                 render();
+                applyHighlight();
                 return;
             }
             // Wurf-Deckel: absurde Spitzen (ruckartige Gesten, synthetische
@@ -8149,6 +8190,7 @@
             camX += e.deltaX;
             camY += e.deltaY;
             render();
+            applyHighlight();
         }, { passive: false });
 
         /* Tap/Klick: Randkarte federt ins Zentrum, Zentrums-Karte oeffnet
@@ -8241,6 +8283,7 @@
                 camX = keepCell.cx - stageW / 2;
                 camY = keepCell.cy - stageH / 2;
                 render();
+                applyHighlight();
                 playIntro();
             } catch (err) {
                 breakToFallback(err);

@@ -5117,7 +5117,10 @@
                 linear-gradient(165deg, rgba(29,39,59,0.97) 0%, rgba(19,27,43,0.97) 65%, rgba(13,18,31,0.98) 100%),
                 radial-gradient(circle at 20% 0%, rgba(var(--rgb-gold), 0.14), transparent 52%);
             border: 1px solid rgba(255,255,255,0.16);
-            box-shadow: 0 18px 45px rgba(0,0,0,0.5);
+            /* Kompakter Schatten: grosse Blur-Radien verteuern das Rastern
+               jeder frisch aufgedeckten Karte - auf schwachen Geraeten
+               genau die Momente, in denen Frames fallen. */
+            box-shadow: 0 10px 24px rgba(0,0,0,0.45);
         }
         /* Notfall-Modus (Engine-Init fehlgeschlagen): einfacher
            horizontaler Wisch-Streifen, damit die Sektion nie leer bleibt. */
@@ -5160,13 +5163,16 @@
             font-weight: 700;
             letter-spacing: 0.02em;
             color: rgba(240,246,255,0.92);
-            background: rgba(10,18,36,0.55);
+            /* Solide Flaeche statt backdrop-filter: der Blur muesste sonst
+               bei JEDER Feldbewegung darunter neu gefiltert werden -
+               Dauerkosten auf schwachen Geraeten. */
+            background: rgba(8,14,30,0.82);
             border: 1px solid rgba(255,255,255,0.18);
-            backdrop-filter: blur(10px) saturate(150%);
-            -webkit-backdrop-filter: blur(10px) saturate(150%);
             pointer-events: none;
             transition: opacity 320ms ease, visibility 320ms;
-            animation: tcc-hint-breathe 2.6s ease-in-out infinite;
+            /* Endlich statt infinite: nach 4 Atemzuegen ist Ruhe (keine
+               dauerhafte Compositor-Animation). */
+            animation: tcc-hint-breathe 2.6s ease-in-out 4;
         }
         .tcc-drag-hint.is-hidden {
             opacity: 0;
@@ -5250,8 +5256,11 @@
             padding: 11px 26px;
             font-size: 0.95rem;
         }
+        /* Dezenter Fokus-Glow. Wechselt NUR im Stillstand (index.js,
+           applyHighlight) - im Flug wuerde jeder Wechsel die Karte neu
+           rastern. Bewusst kompakte Radien (Raster-Kosten). */
         .tcc-player-card.is-active {
-            box-shadow: 0 26px 60px rgba(0,0,0,0.6), 0 0 46px rgba(var(--rgb-gold), 0.22);
+            box-shadow: 0 14px 32px rgba(0,0,0,0.55), 0 0 26px rgba(var(--rgb-gold), 0.20);
             border-color: rgba(var(--rgb-gold), 0.4);
         }
         /* Abdunklungs-Overlay für inaktive Karten (Opazität via JS). */
