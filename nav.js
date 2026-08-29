@@ -713,8 +713,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const navHTML = `
         <nav class="navbar">
             <a href="${withTournamentParam('index.html')}" class="navbar-brand" aria-label="${brandAria}">
-                <span class="brand-gold">${brandShortLabel}</span>
-                <span class="brand-green">${brandSecondary}</span>
+                <span class="brand-line">
+                    <span class="brand-gold">${brandShortLabel}</span>
+                    <span class="brand-green">${brandSecondary}</span>
+                </span>
+                <span class="brand-season"${APP.seasonLabel ? '' : ' hidden'}>${APP.seasonLabel ? `Saison ${APP.seasonLabel}` : ''}</span>
             </a>
             <div class="nav-actions">
                 <div class="nav-links">
@@ -755,6 +758,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const green = brandLink.querySelector(".brand-green");
             if (green && green.textContent !== brandSecondary) {
                 green.textContent = brandSecondary;
+            }
+            // Saison-Zeile unter dem Markennamen: echte Quelle ist
+            // APP.seasonLabel (nur CL gesetzt); der statische Brand-Filler
+            // hat fuer den ersten Frame einen Spiegelwert eingesetzt.
+            const seasonEl = brandLink.querySelector(".brand-season");
+            if (seasonEl) {
+                const season = (APP.seasonLabel || "").trim();
+                const text = season ? `Saison ${season}` : "";
+                if (seasonEl.textContent !== text) seasonEl.textContent = text;
+                seasonEl.hidden = !text;
             }
         }
     }

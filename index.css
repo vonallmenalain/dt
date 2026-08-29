@@ -5225,23 +5225,39 @@
         }
         html[data-view="pre"] .hero {
             min-height: 0;
-            padding: 10px 0 0;
+            padding: 0;
             justify-content: flex-start;
         }
+        /* Die Konstellation ist die BUEHNE: sie fuellt den ganzen Bereich
+           zwischen oberer Leiste und Unterkante (im Shell-Frame endet der
+           Frame ueber der Bottom-Nav). Der Team-Knopf schwebt als einziges
+           UI-Element unten DAVOR; der fruehere Hero-Titel ("Baue dein ...")
+           und die Saison-Zeile sind entfernt - die Saison steht jetzt in
+           der oberen Leiste (brand-season, styles.css). */
+        html[data-view="pre"] .test-carousel-copy {
+            position: absolute;
+            inset: 0;
+            margin: 0;
+            flex: none;
+            min-height: 0;
+        }
+        html[data-view="pre"] .tcc-section-title {
+            display: none;
+        }
         html[data-view="pre"] .hero-content {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+            z-index: 5;
+            max-width: none;
             padding: 0 16px;
-            flex: 0 0 auto;
+            display: flex;
+            justify-content: center;
+            pointer-events: none; /* nur der Knopf selbst faengt Eingaben */
         }
-        html[data-view="pre"] .hero-title {
-            font-size: clamp(1.3rem, 3.4vw, 2rem);
-            line-height: 1.12;
-            letter-spacing: -0.5px;
-            margin: 0 0 4px;
-        }
-        html[data-view="pre"] .hero-season {
-            margin: 0 0 10px;
-            font-size: clamp(0.72rem, 1.8vw, 0.85rem);
-        }
+        html[data-view="pre"] .hero-title,
+        html[data-view="pre"] .hero-season,
         html[data-view="pre"] .hero-badge,
         html[data-view="pre"] .hero-claim,
         html[data-view="pre"] .hero-stats,
@@ -5251,10 +5267,29 @@
         }
         html[data-view="pre"] .hero-cta-wrap {
             margin: 0;
+            pointer-events: none;
         }
         html[data-view="pre"] .btn-primary-hero {
-            padding: 11px 26px;
-            font-size: 0.95rem;
+            padding: 12px 30px;
+            font-size: 0.98rem;
+            pointer-events: auto;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.5);
+        }
+        /* Wisch-Hinweis ueber den Team-Knopf heben (beide leben unten). */
+        html[data-view="pre"] .tcc-drag-hint {
+            bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+        }
+        /* Nur im STANDALONE-Betrieb (Debug, ?standalone=1) liegt die fixe
+           Bottom-Nav ueber dem unteren Rand - Knopf und Hinweis darueber
+           heben. Im Shell-Frame (Normalfall) endet der Frame bereits ueber
+           der Leiste, dort gilt der normale Abstand. */
+        @media (max-width: 768px) {
+            html[data-view="pre"]:not([data-dt-embedded]) .hero-content {
+                bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+            }
+            html[data-view="pre"]:not([data-dt-embedded]) .tcc-drag-hint {
+                bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+            }
         }
         /* Dezenter Fokus-Glow. Wechselt NUR im Stillstand (index.js,
            applyHighlight) - im Flug wuerde jeder Wechsel die Karte neu
