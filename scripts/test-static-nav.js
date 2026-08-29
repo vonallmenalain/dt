@@ -174,6 +174,23 @@ if (normalized.length > 1) {
   check('app.html: KEINE Shell-Weiterleitung (Schleifen-Gefahr)',
     !shellSrc.includes(FORWARD_SNIPPET));
 
+  // Pretty-URL-Erbe: Netlify hat frueher Links in ausgelieferten Seiten
+  // auf endungslose Pfade umgeschrieben (rangliste statt rangliste.html)
+  // und damit Klick-Abfangung + Weiterleitung auf dem Live-Server
+  // ausgehebelt. Drei Schutzschichten muessen bestehen bleiben:
+  const netlifyToml = readRoot('netlify.toml');
+  check('netlify.toml: Post-Processing abgeschaltet (skip_processing)',
+    netlifyToml.includes('skip_processing = true'));
+  for (const page of PAGES) {
+    const bare = '/' + page.replace('.html', '');
+    check(`netlify.toml: Rewrite fuer ${bare} vorhanden`,
+      netlifyToml.includes(`from = "${bare}"`));
+    check(`${page}: Pre-Flight normalisiert endungslose Pfade`,
+      readRoot(page).includes('if(pf.indexOf(".")===-1)pf+=".html";'));
+  }
+  check('shell.js: Klick-Abfangung normalisiert endungslose Pfade',
+    readRoot('shell.js').includes("if (file.indexOf('.') === -1) file += '.html';"));
+
   // Seitenliste der Weiterleitung == PAGE_FILES in shell.js.
   const shellJsSrc = readRoot('shell.js');
   const pf = shellJsSrc.match(/var PAGE_FILES = \[([^\]]+)\]/);

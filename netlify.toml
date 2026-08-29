@@ -27,6 +27,23 @@
   publish = "."
 
 # =============================================================================
+# Netlify-Konfiguration – Post-Processing AUS.
+#
+# Netlifys "Asset optimization" (insb. Pretty URLs) schreibt in den
+# ausgelieferten HTML-Seiten interne Links um: aus href="rangliste.html"
+# wird href="rangliste". Genau das hat die App-Shell auf dem Live-Server
+# gebrochen (lokal nie reproduzierbar): Klick-Abfangung und
+# Shell-Weiterleitung kannten nur die .html-Dateinamen, die Bottom-Taps
+# liefen deshalb als harte Navigation auf /rangliste hinaus. Die Seite
+# hat eine eigene, getestete Versionierungs- und Cache-Strategie
+# (?v=-Stempel + Service Worker) – Netlify soll die Dateien EXAKT so
+# ausliefern, wie sie gebaut wurden.
+# =============================================================================
+
+[build.processing]
+  skip_processing = true
+
+# =============================================================================
 # Netlify-Konfiguration – Einstieg: App-Shell (Vorschlag E, Stufe 2).
 #
 # `/` liefert die App-Shell (app.html) als Rewrite (Status 200, URL bleibt
@@ -46,6 +63,46 @@
   to = "/app.html"
   status = 200
   force = true
+
+# Endungslose Seiten-URLs weiter bedienen: Solange Pretty URLs aktiv war,
+# sind Links wie /rangliste in Umlauf gekommen (Lesezeichen, offene Tabs,
+# geteilte Links). Ohne Post-Processing waeren das 404er – diese Rewrites
+# liefern die echten Dateien aus; deren Pre-Flight leitet dann normal in
+# die Shell weiter.
+[[redirects]]
+  from = "/index"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/team-builder"
+  to = "/team-builder.html"
+  status = 200
+
+[[redirects]]
+  from = "/teams"
+  to = "/teams.html"
+  status = 200
+
+[[redirects]]
+  from = "/spieleranalyse"
+  to = "/spieleranalyse.html"
+  status = 200
+
+[[redirects]]
+  from = "/rangliste"
+  to = "/rangliste.html"
+  status = 200
+
+[[redirects]]
+  from = "/punktesystem"
+  to = "/punktesystem.html"
+  status = 200
+
+[[redirects]]
+  from = "/app"
+  to = "/app.html"
+  status = 200
 
 # =============================================================================
 # Netlify-Konfiguration – Caching.

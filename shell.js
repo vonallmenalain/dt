@@ -73,9 +73,14 @@
 
     function rememberError(err, where) {
         try {
+            var raw = String(err && err.message ? err.message : err);
+            // Harmloses Rauschen nicht als "erster Fehler" festhalten - es
+            // wuerde echte Fehler im Debug-Overlay verdecken (View
+            // Transitions melden uebersprungene Uebergaenge als Rejection).
+            if (/transition was skipped|abort/i.test(raw)) return;
             if (sessionStorage.getItem(SHELL_ERROR_KEY)) return; // erster Fehler zaehlt
             var msg = (where ? where + ': ' : '')
-                + String(err && err.message ? err.message : err).slice(0, 300)
+                + raw.slice(0, 300)
                 + (err && err.stack ? ' | ' + String(err.stack).slice(0, 300) : '');
             sessionStorage.setItem(SHELL_ERROR_KEY, msg);
         } catch (_) { /* Diagnose darf nie selbst stoeren */ }
@@ -208,7 +213,15 @@
             var u = new URL(url, window.location.href);
             if (u.origin !== window.location.origin) return null;
             var file = (u.pathname.split('/').pop() || 'index.html').toLowerCase();
-            if (file === '' || file === 'app.html') file = 'index.html';
+            // Netlify "Pretty URLs" hat in ausgelieferten Seiten die Links
+            // auf endungslose Pfade umgeschrieben (rangliste statt
+            // rangliste.html) - genau daran ist die Klick-Abfangung auf dem
+            // Live-Server vorbeigelaufen (Debug-Overlay: "Durchgelassene
+            // Nav-Klicks"). Das Post-Processing ist inzwischen abgeschaltet
+            // (netlify.toml), aber solche Links kursieren weiter - beide
+            // Formen zaehlen deshalb als dieselbe Seite.
+            if (file.indexOf('.') === -1) file += '.html';
+            if (file === 'app.html') file = 'index.html';
             return PAGE_FILES.indexOf(file) !== -1 ? { file: file, search: u.search || '' } : null;
         } catch (_) {
             return null;
