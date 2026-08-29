@@ -6,11 +6,11 @@ ganze Saison verfolgen. Die App ist statisch ausgeliefert (Netlify), Daten
 liegen in Firebase Firestore; serverseitige Cron-Jobs aktualisieren
 Spielplan und Punkte automatisch.
 
-Aktuell ist im Browser nur die **WM 2026** produktiv konfiguriert. Die
-**Champions League 2026/27** (`cl2627`) steht bereit, ist aber noch
-`available: false` – erreichbar nur über den Preview-Kanal. Die
-**serverseitigen Cron-Jobs laufen bereits auf der CL**, damit Spielplan und
-Punkte zur Freischaltung fertig sind (siehe „Aktives Turnier auflösen").
+Produktiv ist die **Champions League 2026/27** (`cl2627`): dt.alae.app zeigt
+sie seit dem 29.08.2026 standardmässig. Die gespielte **WM 2026** bleibt als
+**Archiv** erreichbar – jede angemeldete Person kann im Profil-Dropdown
+dorthin wechseln und Rangliste, Teams und Resultate nachlesen. Schreiben kann
+dort niemand mehr (siehe „Archiv-Turnier").
 
 ---
 
@@ -56,15 +56,58 @@ Ein turnier-eigener Multiplikator wird bewusst **nicht** konfiguriert: das
 Flag ist die einzige Quelle. `APP_CONFIG.captainMultiplier` liefert daraus
 abgeleitet 2 (Captain an) bzw. 1 (Captain aus).
 
+### Archiv-Turnier
+
+Ein gespieltes Turnier verschwindet nicht, es wird zum **Archiv**:
+`archived: true` im Turnier-Block (aktuell `wm2026`). Das bedeutet:
+
+- Es bleibt `available` – Rangliste, Teams, Spiele und Analyse sind normal
+  benutzbar.
+- Der **Team-Builder ist dort für alle gesperrt**. `isTournamentStarted()`
+  liefert für ein Archiv immer `true`, noch vor dem Nachzügler-Schalter –
+  sonst würde ein `lateSubmitOpen`, das aus der Turnierzeit im Meta-Dokument
+  stehengeblieben ist, das Archiv wieder für alle öffnen. Ein Admin kommt
+  über den Ansichts-Umschalter („Vor Start") weiterhin heran.
+- Serverseitig sperren die Firestore-Rules Team-Writes ohnehin seit dem
+  Anpfiff; das Flag ist die dazu passende UI.
+
+**Wechseln** kann jede angemeldete Person im Profil-Dropdown: `nav.js`
+registriert für jedes verfügbare Turnier ausser dem aktiven einen Eintrag
+über `DreamTeamAuthModal.menu` (siehe unten). Der Klick benutzt denselben
+Kanal wie der Admin-Switcher – `setActiveTournament()` legt den
+host-spezifischen Override ab, ein Klick auf das Standard-Turnier räumt ihn
+über `resetToDomainDefault()` wieder weg.
+
+`DreamTeamAuthModal` hat dafür zwei Register-Kanäle mit derselben Mechanik:
+
+| Kanal     | Sichtbar für            | Ort im Dropdown        |
+| --------- | ----------------------- | ---------------------- |
+| `menu`    | jede angemeldete Person | über „Abmelden"        |
+| `devMenu` | nur Admins              | Dev-Bereich ganz unten |
+
+Regressionstest: `npm run test:archive`.
+
 ### Aktives Turnier auflösen
 
 Browser-Reihenfolge:
 
-1. URL-Parameter `?tournament=<key>` (Test-Override, nicht persistent).
-2. Host-spezifischer Dev-Override (`localStorage` →
-   `dreamteam_dev_override_<hostname>`).
-3. Domain-Mapping (`DOMAIN_TOURNAMENT_MAP`).
-4. Globaler Fallback (`FALLBACK_TOURNAMENT_KEY = "wm2026"`).
+1. Preview-Kanal (`?preview=<key>` bzw. persistierter Preview-Override) –
+   nur für nicht freigeschaltete Turniere, Admin-Werkzeug.
+2. URL-Parameter `?tournament=<key>` (Test-Override, nicht persistent).
+3. Host-spezifischer Override (`localStorage` →
+   `dreamteam_dev_override_<hostname>`). Den setzt heute auch der
+   Turnier-Wechsel im Profil-Dropdown – siehe „Archiv-Turnier".
+4. Zeitgesteuerter Domain-Default (`defaultDomains` + `defaultActiveFrom`):
+   dt.alae.app → Champions League ab 27.08.2026.
+5. Statisches Domain-Mapping (`DOMAIN_TOURNAMENT_MAP`).
+6. Globaler Fallback (`FALLBACK_TOURNAMENT_KEY = "wm2026"`).
+
+Dieselbe Auflösung steht ein zweites Mal als Inline-Skript im `<head>` jeder
+Seite („Pre-Flight"): Theme, Kaderdatei-Preload und die Pre-/Post-Start-
+Sektion müssen vor dem ersten Paint feststehen, da ist `tournament-config.js`
+noch nicht geladen. Weil so eine Doppelung still driftet – bei der
+CL-Freischaltung zeigte die Config auf `cl2627`, das Pre-Flight noch auf
+`wm2026` – vergleicht `npm run test:preflight` beide Seiten gegeneinander.
 
 Node-Cron-Scripts:
 
@@ -396,6 +439,16 @@ einer Auslosung liefert api-football zuerst nur die Paarungen und legt alle
 144 Ligaphasen-Spiele auf ein einziges Datum. Dieser Stand darf nicht nach
 Firestore – sonst lägen in der App 144 Spiele auf Spieltag 1 und der
 Live-Monitor öffnete am Anpfiff alle gleichzeitig als Kandidaten.
+
+`test:archive` bewacht den Turnier-Wechsel: dass die CL Standard ist und die
+WM als Archiv verfügbar bleibt, dass der Umschalter im **nicht**
+admin-gegateten Bereich des Dropdowns landet (vorher sah ihn nur der Admin),
+und dass die Archiv-Prüfung im Team-Builder vor dem Nachzügler-Schalter
+steht.
+
+`test:preflight` vergleicht die Inline-Pre-Flight-Skripte im `<head>` aller
+Seiten mit `tournament-config.js` – Domain-Default, Fallback, Anpfiff-Map und
+die Ableitung der Kaderdatei.
 
 `test:cl-team-writes` bewacht die CL-Ansicht an zwei Stellen, die nur
 zusammen funktionieren: die **Benennung** (beide CL-Turniere heissen

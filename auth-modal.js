@@ -41,6 +41,11 @@
  *    close()
  *    setMode(mode)
  *
+ *    menu
+ *        Einträge im Profil-Dropdown für ALLE angemeldeten Nutzer
+ *        (über „Abmelden"). Gleiche Felder wie devMenu, zusätzlich `icon`.
+ *          menu.register({ id, label, value, icon, disabled, onSelect })
+ *
  *    devMenu
  *        Registry für die Admin-/Dev-Werkzeuge, die im Profil-Dropdown
  *        erscheinen (siehe "Dev-Menü im Profil-Dropdown" weiter unten):
@@ -74,7 +79,7 @@
         navWrapperEl:     null,
         navDevEl:         null,
         navAuthListener:  null,
-        devItems:         new Map(),   // id → Item-Definition (siehe devMenu)
+        devItems:         new Map(),   // id → Item-Definition (siehe devMenu/menu)
         devIsAdmin:       false,
         devAdminHooked:   false,
         teamBuilderHref:  'team-builder.html',
@@ -462,6 +467,10 @@
                 el('span', { class: 'dt-auth-nav-dropdown-icon', html: '🛡️' }),
                 el('span', {}, ['Mein Team'])
             ]),
+            // Nutzer-Einträge (z. B. Turnier-Wechsel ins Archiv). Bleibt
+            // leer und versteckt, solange keine Seite etwas registriert hat.
+            // Bewusst VOR „Abmelden": das soll der letzte Eintrag bleiben.
+            el('div', { class: 'dt-auth-nav-menu', id: 'dt-auth-nav-menu', hidden: '' }),
             el('button', {
                 type: 'button',
                 role: 'menuitem',
@@ -485,8 +494,10 @@
         state.navDropdownEl = dropdown;
         state.navWrapperEl  = wrapper;
         state.navDevEl      = dropdown.querySelector('#dt-auth-nav-dev');
+        state.navMenuEl     = dropdown.querySelector('#dt-auth-nav-menu');
 
         hookDevMenuAdmin();
+        renderUserMenu();
         renderDevMenu();
 
         // Close dropdown on outside click / Escape.
@@ -571,8 +582,16 @@
         }
     }
 
-    function sortedDevItems() {
-        return Array.from(state.devItems.values()).sort((a, b) => {
+    /* Ein Eintrag ist per Default ein DEV-Eintrag (admin-only) – so bleiben
+       alle bestehenden devMenu.register()-Aufrufe unverändert. Nur wer
+       ausdrücklich `adminOnly: false` setzt (siehe `menu.register`), landet
+       im Nutzer-Bereich, den jede angemeldete Person sieht. */
+    function isDevItem(item) {
+        return item.adminOnly !== false;
+    }
+
+    function sortedItems(filter) {
+        return Array.from(state.devItems.values()).filter(filter).sort((a, b) => {
             const ga = Number(a.groupOrder) || 0;
             const gb = Number(b.groupOrder) || 0;
             if (ga !== gb) return ga - gb;
@@ -583,11 +602,61 @@
         });
     }
 
+    /* Nutzer-Bereich: normale Dropdown-Einträge mit Icon, optisch wie
+       „Mein Team". Kein Admin-Gate – sichtbar für jede angemeldete Person,
+       die das Dropdown überhaupt öffnen kann. */
+    function renderUserMenu() {
+        const host = state.navMenuEl;
+        if (!host) return;
+
+        const items = sortedItems((item) => !isDevItem(item));
+        host.innerHTML = '';
+        host.hidden = items.length === 0;
+        if (!items.length) return;
+
+        items.forEach((item) => {
+            const disabled = !!resolveDevValue(item.disabled, item);
+            const value = resolveDevValue(item.value, item);
+            const icon = resolveDevValue(item.icon, item);
+
+            const children = [];
+            if (icon) {
+                children.push(el('span', { class: 'dt-auth-nav-dropdown-icon', html: String(icon) }));
+            }
+            children.push(el('span', { class: 'dt-auth-nav-menu-label' },
+                [String(resolveDevValue(item.label, item) ?? '')]));
+            if (value) {
+                children.push(el('span', { class: 'dt-auth-nav-menu-value' }, [String(value)]));
+            }
+
+            host.appendChild(el('button', {
+                type: 'button',
+                role: 'menuitem',
+                class: 'dt-auth-nav-dropdown-item dt-auth-nav-menu-item',
+                disabled: disabled ? '' : null,
+                title: item.title || null,
+                on: {
+                    click: (event) => {
+                        event.stopPropagation();
+                        if (resolveDevValue(item.disabled, item)) return;
+                        try {
+                            if (typeof item.onSelect === 'function') item.onSelect(item);
+                        } catch (err) {
+                            console.error('[AuthModal] Menüeintrag fehlgeschlagen:', err);
+                        }
+                        if (item.keepOpen) renderUserMenu();
+                        else closeNavDropdown();
+                    }
+                }
+            }, children));
+        });
+    }
+
     function renderDevMenu() {
         const host = state.navDevEl;
         if (!host) return;
 
-        const items = state.devIsAdmin ? sortedDevItems() : [];
+        const items = state.devIsAdmin ? sortedItems(isDevItem) : [];
         host.innerHTML = '';
         host.hidden = items.length === 0;
         if (!items.length) return;
@@ -666,25 +735,49 @@
         }, 100);
     }
 
+    /* Eintrag registrieren. `adminOnly` entscheidet, in welchem Bereich er
+       landet – Default true (Dev), damit die bestehenden Aufrufer sich nicht
+       ändern. Seiten registrieren u. U. bevor das Icon gemountet ist; dann
+       ziehen die render*-Aufrufe beim Mount nach. */
+    function registerMenuItem(item, adminOnly) {
+        if (!item || !item.id) return function () {};
+        const entry = Object.assign({}, item, {
+            id: String(item.id),
+            adminOnly: item.adminOnly === undefined ? adminOnly : !!item.adminOnly
+        });
+        state.devItems.set(entry.id, entry);
+        hookDevMenuAdmin();
+        renderUserMenu();
+        renderDevMenu();
+        return function () { unregisterMenuItem(entry.id); };
+    }
+
+    function unregisterMenuItem(id) {
+        if (!state.devItems.delete(String(id))) return;
+        renderUserMenu();
+        renderDevMenu();
+    }
+
     const devMenu = {
-        register(item) {
-            if (!item || !item.id) return function () {};
-            state.devItems.set(String(item.id), Object.assign({}, item, { id: String(item.id) }));
-            // Seiten registrieren u. U. bevor das Icon gemountet ist – dann
-            // zieht renderDevMenu() beim Mount nach.
-            hookDevMenuAdmin();
-            renderDevMenu();
-            return function () { devMenu.unregister(item.id); };
-        },
-        unregister(id) {
-            if (state.devItems.delete(String(id))) renderDevMenu();
-        },
+        register(item) { return registerMenuItem(item, true); },
+        unregister(id) { unregisterMenuItem(id); },
         refresh() { renderDevMenu(); },
+        has(id) { return state.devItems.has(String(id)); }
+    };
+
+    /* Nutzer-Menü: dieselbe Mechanik wie devMenu, aber ohne Admin-Gate und
+       im Bereich über „Abmelden". Zusätzlich zu den devMenu-Feldern kennt
+       ein Eintrag `icon` (Emoji/HTML, wie bei „Mein Team"). */
+    const menu = {
+        register(item) { return registerMenuItem(item, false); },
+        unregister(id) { unregisterMenuItem(id); },
+        refresh() { renderUserMenu(); },
         has(id) { return state.devItems.has(String(id)); }
     };
 
     function openNavDropdown() {
         if (!state.navDropdownEl || !state.navIconEl) return;
+        renderUserMenu();
         renderDevMenu();
         state.navDropdownEl.hidden = false;
         state.navDropdownEl.classList.add('is-open');
@@ -1573,6 +1666,7 @@
         close,
         setMode,
         showVerifyPending,
-        devMenu
+        devMenu,
+        menu
     };
 })();

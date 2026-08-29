@@ -14,7 +14,12 @@
       function L(n){try{return localStorage.getItem(n);}catch(e){return null;}}
       // Gleiche Reihenfolge wie resolveTournamentKey() in tournament-config.js:
       // Preview > URL(?tournament) > Dev-Override > Domain > Fallback.
-      var k=q.get("preview")||L("dreamteam_preview_"+h)||q.get("tournament")||L("dreamteam_dev_override_"+h)||({"dt.alae.app":"wm2026"})[h]||"wm2026";
+      // Die Domain-Zeile ist der EFFEKTIVE Default (zeitgesteuerter
+      // defaultActiveFrom hat Vorrang vor DOMAIN_TOURNAMENT_MAP); der
+      // Fallback bleibt FALLBACK_TOURNAMENT_KEY. Beides bewusst doppelt
+      // gepflegt, weil APP_CONFIG hier noch nicht geladen ist –
+      // scripts/test-preflight-default.js haelt es deckungsgleich.
+      var k=q.get("preview")||L("dreamteam_preview_"+h)||q.get("tournament")||L("dreamteam_dev_override_"+h)||({"dt.alae.app":"cl2627"})[h]||"wm2026";
       k=String(k).trim().toLowerCase();
       var d=document.documentElement;
       d.setAttribute("data-tournament",k);
@@ -137,11 +142,12 @@
 
             // 3) Hartkodierte Domain → Tournament-Start-Map (Spiegel aus
             //    tournament-config.js). Bewusst doppelt gepflegt, weil
-            //    APP_CONFIG hier noch nicht geladen ist. Aktuell ist nur
-            //    `dt.alae.app → wm2026` produktiv aktiv – der globale
-            //    Fallback zeigt deshalb ebenfalls auf den WM-2026-Anpfiff.
+            //    APP_CONFIG hier noch nicht geladen ist. Der Wert je Domain
+            //    ist DREAMTEAM_START des dort effektiv aktiven Turniers,
+            //    der Fallback der von FALLBACK_TOURNAMENT_KEY.
+            //    scripts/test-preflight-default.js haelt beides deckungsgleich.
             var DOMAIN_START = {
-                'dt.alae.app': '2026-06-11T21:00:00+02:00'
+                'dt.alae.app': '2026-09-08T21:00:00+02:00'  // = cl2627
             };
             var FALLBACK_START = '2026-06-11T21:00:00+02:00'; // = wm2026
 

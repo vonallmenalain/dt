@@ -15,15 +15,16 @@ const T = require('../transfer-utils.js');
 // WM 2026 hat kein Transfer-Feature.
 assert.equal(T.getTransferConfig(APP), null, 'WM darf keine Transfer-Config haben.');
 
-// CL 2026/27 (per Vorschau aktivieren) liefert die Regeln.
-assert.equal(APP.setPreviewTournament('cl2627', { reload: false }), true);
+// CL 2026/27 liefert die Regeln. Seit der Freischaltung ist sie ein
+// regulaeres Turnier, wird hier also normal aktiviert statt per Vorschau.
+assert.equal(APP.setActiveTournament('cl2627', { reload: false }), true);
 const clCfg = T.getTransferConfig(APP);
 assert.ok(clCfg && clCfg.enabled, 'CL muss eine Transfer-Config haben.');
 assert.equal(clCfg.totalTransfers, 2, 'CL: 2 Transfers gesamt.');
 assert.equal(clCfg.maxPlayersPerTransfer, 3, 'CL: bis zu 3 Spieler pro Transfer.');
 assert.equal(clCfg.anytime, true, 'CL: vorerst jederzeit.');
-APP.clearPreview({ reload: false });
-assert.equal(T.getTransferConfig(APP), null, 'Nach Beenden der Vorschau wieder keine Config.');
+APP.resetToDomainDefault({ reload: false });
+assert.equal(T.getTransferConfig(APP), null, 'Zurueck beim Turnier ohne Transfers: keine Config.');
 
 /* ── 2) validateTransfer ──────────────────────────────────────────────── */
 const config = { enabled: true, totalTransfers: 2, maxPlayersPerTransfer: 3, anytime: true };

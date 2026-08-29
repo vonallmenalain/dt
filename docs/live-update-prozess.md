@@ -23,6 +23,9 @@ Stand des Checks: 2026-08-29.
   Domain-Mapping) und liefen weiter auf der WM.
 - **Cron-Fenster** des Punkte-Workflows: die Spieltage der CL-Saison,
   jeweils 15:00–23:59 UTC (siehe unten).
+- **Freischaltung**: `available`/`dataReady` auf `true`; dt.alae.app
+  defaultet über `defaultActiveFrom` auf die CL. Die WM ist `archived` –
+  lesbar für alle Angemeldeten, Team-Builder gesperrt.
 - **Runden-Erkennung**: `isLeaguePhaseRound` kennt neben
   `League Stage - 1`..`- 8` auch das blanke `Group Stage`, das
   api-football fuer die Saison 2026/27 liefert.
@@ -126,8 +129,9 @@ Public Reads und Team-Writes fuer diese Collections stehen in
    Ligaphasen-Spiele auf acht verschiedenen Terminen.
 2. `app_meta/turnier_cl2627` hat eine positive `fixturesVersion` und ein
    `fixturesCacheGeneratedAt`, das zur `cacheGenerationMs` im Bundle passt.
-3. `cl2627` steht auf `available: true` + `dataReady: true` – sonst zeigt
-   dt.alae.app weiter die WM und niemand kann ein Team einreichen.
+3. `cl2627` steht auf `available: true` + `dataReady: true` (seit
+   29.08.2026 erledigt) – dt.alae.app zeigt die CL, die WM bleibt als
+   Archiv im Profil-Dropdown erreichbar.
 4. Ein manueller `Auto Punkte-Upload` mit `force_run` laeuft sauber durch
    (Guard, API-Call, Firestore-Write, Meta-Bump).
 5. Die Firestore-Rules sind deployt (`Deploy Firestore Rules`).
