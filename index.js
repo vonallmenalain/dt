@@ -7369,21 +7369,10 @@
         }
 
         let players = [];
-        let cards = [];
 
-        // ────────────────────────────────────────────────────────────────
-        //  COVERFLOW-KONSTANTEN
-        //  Portiert aus der Framer-Vorlage „Smooth 3D Slideshow": die aktive
-        //  Karte steht aufrecht im Fokus, die Nachbarn kippen in der
-        //  Perspektive nach hinten. Klick/Tap holt eine Seitenkarte in die
-        //  Mitte, Klick auf die aktive Karte öffnet die Spieleranalyse.
-        //  Der sichtbare Fächer umfasst 5 Karten (aktive + 2 je Seite);
-        //  weiter entfernte Karten blenden aus und werden durchgeblättert.
-        // ────────────────────────────────────────────────────────────────
-        // Anzahl Karten im Karussell (Pool zum Durchblättern). CL zeigt genau
-        // die kuratierten Stars des aktiven Turniers (cl2526: 14, cl2627: 18),
-        // die Zahl wird deshalb aus der Liste abgeleitet statt hart gesetzt.
-        // Die WM bleibt unveraendert bei 9.
+        // Anzahl Spieler im Feld. CL zeigt genau die kuratierten Stars des
+        // aktiven Turniers (cl2526: 14, cl2627: 17), die Zahl wird deshalb
+        // aus der Liste abgeleitet statt hart gesetzt. Die WM bleibt bei 9.
         const CARD_COUNT     = IS_CL ? (starRotation[0]?.players?.length || 14) : 9;
         const prefersReducedMotion = !!(window.matchMedia
             && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -7483,26 +7472,21 @@
         }
 
         function renderCarouselItems(items) {
-            track.innerHTML = '';
             players = items;
-            cards = [];
             lastRenderedSignature = itemsSignature(items);
             if (!items.length) {
                 // Sollte dank Fallback nie eintreten – wir rendern bewusst keine
-                // sichtbare Fehlermeldung mehr, sondern lassen das Karussell leer
+                // sichtbare Fehlermeldung mehr, sondern lassen das Feld leer
                 // (statt "Noch keine Draft-Daten gefunden" anzuzeigen).
+                track.innerHTML = '';
+                cells = [];
+                centerCellIdx = -1;
                 return;
             }
-            cards = items.map((it) => renderPlayerCard(it));
-            cards.forEach((c) => track.appendChild(c));
-            active = pickInitialActive(cards.length);
-            // Das Zentrums-Foto zuerst: die Karte, auf die alle schauen,
-            // gewinnt das Rennen um die Verbindung zum Bilder-Host.
-            const activePhoto = cards[active] && cards[active].querySelector('.tcc-player-photo');
-            if (activePhoto) activePhoto.setAttribute('fetchpriority', 'high');
-            fitPlayerNames();
-            centerCard(active, false);
-            queueVisuals();
+            // Der eigentliche Feld-Aufbau lebt in der Konstellations-Engine
+            // weiter unten; im unsichtbaren Shell-Boot merkt sie sich den
+            // Auftrag und baut, sobald die Buehne echtes Layout hat.
+            requestBuild();
         }
 
         let currentVariant = null;
@@ -7539,12 +7523,26 @@
         window.__tccCarouselRefresh = refreshCarousel;
 
         function fitPlayerNames() {
+            // Jeder Spieler steht im Feld mehrfach (Muster-Kacheln); alle
+            // Instanzen sind gleich breit. Deshalb wird pro NAME nur einmal
+            // gemessen (Layout-Reads sind teuer) und das Ergebnis auf die
+            // Klone uebertragen.
+            const fitted = new Map(); // name -> { fontSize, scaleX }
             root.querySelectorAll('.tcc-player-name').forEach((nameEl) => {
-                nameEl.style.fontSize = '';
-                nameEl.style.transform = '';
                 nameEl.style.transformOrigin = 'center center';
                 nameEl.style.whiteSpace = 'nowrap';
                 nameEl.style.display = 'block';
+
+                const key = nameEl.textContent || '';
+                const cached = fitted.get(key);
+                if (cached) {
+                    nameEl.style.fontSize = cached.fontSize;
+                    nameEl.style.transform = cached.scaleX ? `scaleX(${cached.scaleX})` : '';
+                    return;
+                }
+
+                nameEl.style.fontSize = '';
+                nameEl.style.transform = '';
 
                 const computed = window.getComputedStyle(nameEl);
                 let size = parseFloat(computed.fontSize);
@@ -7555,103 +7553,548 @@
                     nameEl.style.fontSize = `${size}px`;
                 }
 
+                let scaleX = 0;
                 if (nameEl.scrollWidth > nameEl.clientWidth && nameEl.scrollWidth > 0) {
-                    const scale = nameEl.clientWidth / nameEl.scrollWidth;
-                    nameEl.style.transform = `scaleX(${scale})`;
-                    nameEl.style.transformOrigin = 'center center';
+                    scaleX = nameEl.clientWidth / nameEl.scrollWidth;
+                    nameEl.style.transform = `scaleX(${scaleX})`;
                 }
+                fitted.set(key, { fontSize: nameEl.style.fontSize, scaleX });
             });
         }
 
-        // ── Coverflow-Zustand ──
-        let active = 0;        // Karte, die der Mitte am naechsten steht
-        let pendingCenter = null; // im unsichtbaren Boot gemerkte Zentrums-Karte
+        // ── Konstellations-Zustand ──
+        let active = 0; // Spieler-Index der Karte, die der Mitte am naechsten steht
 
         /* =========================================================
-           FLACHES SNAP-KARUSSELL
-           Frueher stand hier eine 3D-Coverflow-Engine (preserve-3d,
-           rotateY/translateZ, JS-vermessene Positionen). Auf echten
-           Geraeten produzierte sie wiederholt Render-Artefakte
-           (gestauchte Stapel, abgeschnittene Streifen, leere
-           Kartenruecken) und hing an Messungen, die im unsichtbar
-           bootenden Shell-Frame 0 ergaben. Jetzt uebernimmt der
-           Browser Wisch-Physik und Zentrierung (overflow-x +
-           scroll-snap, index.css); JS setzt nur noch pro Frame
-           Skalierung und Dimmung nach Distanz zur Mitte - flache
-           2D-Transforms, 1:1 am Finger, jederzeit unterbrechbar.
+           SPIELER-KONSTELLATION
+           Unendlich pannbares 2D-Feld mit Zentrums-Lupe. Frueher
+           stand hier ein einreihiges Snap-Karussell (davor eine
+           3D-Coverflow-Engine, die auf echten Geraete-GPUs
+           Artefakte produzierte). Jetzt: die kuratierten Karten
+           kacheln als nahtloses Muster in beide Achsen (Modulo-
+           Wrapping), die Kamera folgt dem Finger 1:1 (Pointer
+           Capture, Multi-Touch-Schutz), ein Wurf traegt mit
+           Apple-Physik weiter (exponentieller Abklang 0.998/ms)
+           und landet ueber eine kritisch gedaempfte Feder exakt
+           auf einer zentrierten Karte (Velocity-Handoff, kein
+           Ruck). Skalierung/Dimmung haengen an der Distanz zur
+           Mitte (Lupe), die naechste Karte traegt Glow + Fokus.
+           Nur transform/opacity, ein rAF-Loop, keine Layout-Reads
+           im Frame - und ohne Interaktion driftet das Feld nach
+           kurzer Ruhe fast unmerklich weiter (lebendiges Intro,
+           pausiert unsichtbar/reduced-motion).
            ========================================================= */
 
-        function centerScrollLeftFor(card) {
-            return Math.round(card.offsetLeft + card.offsetWidth / 2 - carousel.clientWidth / 2);
-        }
+        const stage = carousel; // Klarname: das Element ist jetzt die Buehne
+        const hintEl = document.getElementById('tccDragHint');
+        const HINT_SEEN_KEY = 'tcc_field_hint_seen';
 
-        function centerCard(i, smooth) {
-            const card = cards[i];
-            if (!card) return;
-            if (carousel.clientWidth <= 0 || card.offsetWidth <= 0) {
-                // Unsichtbar gebootet (Shell-Frame): merken und zentrieren,
-                // sobald der ResizeObserver echtes Layout meldet.
-                pendingCenter = i;
-                return;
+        const GAP = 12;                 // Zellabstand im Muster
+        const SC_MAX = 1.22;            // Lupen-Skala im Zentrum
+        const SC_MIN = 0.64;            // Skala am Buehnenrand
+        const MAX_FLING = 4200;         // px/s: Wurf-Deckel (wie native Scroller)
+        const DIM_MAX = 0.42;           // max. Abdunklung am Rand
+        const DECEL = 0.998;            // Momentum-Abklang pro ms (Apple-Wert)
+        const SNAP_AT_SPEED = 90;       // px/s: darunter uebernimmt die Snap-Feder
+        const SPRING_RESPONSE = 0.45;   // s, kritisch gedaempft (kein Overshoot)
+        const DRIFT_SPEED = 11;         // px/s Idle-Drift
+        const DRIFT_DELAY = 2600;       // ms Ruhe bis zum Drift
+        const DRAG_SLOP = 8;            // px bis zum Richtungs-Entscheid
+        const PARKED = 'translate3d(-200vw,-200vh,0)';
+
+        let cells = [];                 // { el, cardEl, dimEl, playerIdx, cx, cy, sx, sy, on, z }
+        let stageW = 0, stageH = 0;
+        let cellW = 0, cellH = 0;
+        let stepX = 0, stepY = 0;       // Zellraster (Karte + GAP)
+        let patW = 0, patH = 0;         // Muster-Periode je Achse
+        let gridCols = 0, gridRows = 0;
+        let camX = 0, camY = 0;         // Kamera (Weltverschiebung)
+        let velX = 0, velY = 0;         // px/s
+        let springTX = 0, springTY = 0;
+        let mode = 'rest';              // rest | drag | momentum | spring | drift
+        let rafId = 0, lastTs = 0;
+        let centerCellIdx = -1;
+        let introPlayed = false;
+        let pendingBuild = false;
+        let driftTimer = 0;
+        let wheelSnapTimer = 0;
+        let lastDragEndTs = 0;
+        let inView = true;
+        let engineBroken = false;
+
+        const now = () => (window.performance && performance.now) ? performance.now() : Date.now();
+        const wrap = (v, p) => ((v % p) + p) % p;
+
+        function hideHint(remember) {
+            if (hintEl) hintEl.classList.add('is-hidden');
+            if (remember) {
+                try { sessionStorage.setItem(HINT_SEEN_KEY, '1'); } catch (_) {}
             }
-            pendingCenter = null;
-            active = i;
+        }
+        (() => {
             try {
-                carousel.scrollTo({
-                    left: centerScrollLeftFor(card),
-                    behavior: smooth && !prefersReducedMotion ? 'smooth' : 'auto'
-                });
-            } catch (_) {
-                carousel.scrollLeft = centerScrollLeftFor(card);
+                if (sessionStorage.getItem(HINT_SEEN_KEY) === '1') hideHint(false);
+            } catch (_) {}
+        })();
+
+        /* Notfall-Modus: laeuft die Engine auf einen Code-Fehler, wird das
+           Feld zum simplen Wisch-Streifen (CSS .tcc-fallback) - die Sektion
+           bleibt in jedem Fall benutzbar. */
+        function breakToFallback(err) {
+            if (engineBroken) return;
+            engineBroken = true;
+            try { console.error('[Konstellation] Fallback-Modus:', err); } catch (_) {}
+            try {
+                stopMotion();
+                if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+                stage.classList.add('tcc-fallback');
+                hideHint(false);
+                cells.forEach((c) => { c.el.style.transform = ''; });
+            } catch (_) { /* Fallback darf nie selbst werfen */ }
+        }
+
+        /* offsetWidth/-Height statt getBoundingClientRect: die Zellen tragen
+           Transforms (Parken, Lupe) - Layoutmasse sind davon unabhaengig. */
+        function readMetrics() {
+            stageW = stage.clientWidth;
+            stageH = stage.clientHeight;
+            if (stageW <= 0 || stageH <= 0 || !cells.length) return false;
+            cellW = cells[0].el.offsetWidth || 1;
+            cellH = cells[0].el.offsetHeight || 1;
+            stepX = cellW + GAP;
+            stepY = cellH + GAP;
+            return true;
+        }
+
+        /* Echte Zellgroesse messen. Der --card-w-Rohtext ("clamp(...)") ist
+           per getPropertyValue NICHT aufgeloest - deshalb eine unsichtbare
+           Probe-Zelle ins Layout haengen (bzw. eine bestehende nutzen). */
+        function measureCellSize() {
+            if (cells.length) {
+                return { w: cells[0].el.offsetWidth || 170, h: cells[0].el.offsetHeight || 240 };
+            }
+            const probe = document.createElement('div');
+            probe.className = 'tcc-cell';
+            probe.style.visibility = 'hidden';
+            track.appendChild(probe);
+            const w = probe.offsetWidth || 170;
+            const h = probe.offsetHeight || 240;
+            probe.remove();
+            return { w, h };
+        }
+
+        /* Muster-Geometrie: Spalten = alle Spieler (ggf. mehrfach, bis die
+           horizontale Periode die Buehne sicher ueberdeckt), Zeilen so
+           viele, dass auch die vertikale Periode reicht. Versetzte Spalten
+           (halbe Zellhoehe) geben den Collage-Look; der Zeilen-Shift sorgt
+           dafuer, dass vertikale Nachbarn nie derselbe Spieler sind und
+           Duplikate desselben Spielers ausserhalb einer Bildschirmflaeche
+           liegen. */
+        function planGrid(n, w, h) {
+            const sX = w + GAP;
+            const sY = h + GAP;
+            const needW = stageW + 2 * w + 80;
+            const needH = stageH + 2 * h + 80;
+            const colRepeat = Math.max(1, Math.ceil(needW / (n * sX)));
+            gridCols = n * colRepeat;
+            gridRows = Math.max(3, Math.ceil(needH / sY));
+        }
+
+        /* Feld aufbauen. keepPlayerIdx haelt bei Rebuilds (Resize,
+           Rotation) den aktuellen Zentrums-Spieler - nur ein ECHTER
+           Erstaufbau wuerfelt das Startzentrum (pickInitialActive). */
+        function buildField(keepPlayerIdx) {
+            const items = players;
+            if (!items.length) return;
+            stageW = stage.clientWidth;
+            stageH = stage.clientHeight;
+            if (stageW <= 0 || stageH <= 0) { pendingBuild = true; return; }
+            const probe = measureCellSize();
+            planGrid(items.length, probe.w, probe.h);
+
+            const rowShift = Math.max(2, Math.round(items.length * 0.4));
+            track.innerHTML = '';
+            cells = [];
+            const frag = document.createDocumentFragment();
+            for (let row = 0; row < gridRows; row++) {
+                for (let col = 0; col < gridCols; col++) {
+                    const playerIdx = (col + row * rowShift) % items.length;
+                    const cellEl = document.createElement('div');
+                    cellEl.className = 'tcc-cell';
+                    cellEl.dataset.cellIdx = String(cells.length);
+                    const cardEl = renderPlayerCard(items[playerIdx]);
+                    cellEl.appendChild(cardEl);
+                    frag.appendChild(cellEl);
+                    cells.push({
+                        el: cellEl,
+                        cardEl,
+                        dimEl: cardEl.querySelector('.tcc-card-dim'),
+                        playerIdx,
+                        col, row,
+                        cx: 0, cy: 0,       // Muster-Position (Zentrum)
+                        sx: 0, sy: 0,       // letzte Bildschirm-Position
+                        on: false,           // sichtbar (nicht geparkt)
+                        z: -1
+                    });
+                }
+            }
+            track.appendChild(frag);
+
+            if (!readMetrics()) { pendingBuild = true; return; }
+            centerCellIdx = -1;
+            layoutPattern();
+            fitPlayerNames();
+
+            // Startzentrum: zufaelliger Star (CL) bzw. erste Karte (WM),
+            // nie zweimal hintereinander derselbe (pickInitialActive) -
+            // bei Rebuilds bleibt der aktuelle Spieler im Zentrum.
+            const startIdx = (keepPlayerIdx != null)
+                ? keepPlayerIdx
+                : pickInitialActive(players.length);
+            const startCell = cells.find((c) => c.playerIdx === startIdx
+                && c.row === Math.floor(gridRows / 2)) || cells[0];
+            camX = startCell.cx - stageW / 2;
+            camY = startCell.cy - stageH / 2;
+            velX = 0; velY = 0;
+            mode = 'rest';
+            const startPhoto = startCell.cardEl.querySelector('.tcc-player-photo');
+            if (startPhoto) startPhoto.setAttribute('fetchpriority', 'high');
+
+            render();
+            playIntro();
+            scheduleDrift();
+        }
+
+        function layoutPattern() {
+            patW = gridCols * stepX;
+            patH = gridRows * stepY;
+            for (const cell of cells) {
+                cell.cx = cell.col * stepX + cellW / 2;
+                // Versetzte Spalten: jede zweite ruht eine halbe Zelle tiefer.
+                cell.cy = cell.row * stepY + cellH / 2 + (cell.col % 2) * (stepY / 2);
             }
         }
 
-        /* Skalierung/Dimmung pro Karte nach Distanz zur Mitte; nebenbei
-           wird die naechstgelegene Karte als aktiv markiert (Glow). */
-        function updateVisuals() {
-            if (!cards.length || carousel.clientWidth <= 0) return;
-            const mid = carousel.scrollLeft + carousel.clientWidth / 2;
-            let best = 0;
+        function requestBuild() {
+            if (stage.clientWidth <= 0) { pendingBuild = true; return; }
+            try {
+                buildField(null);
+            } catch (err) {
+                breakToFallback(err);
+            }
+        }
+
+        /* ── Render: pro Frame nur Transform/Opacity-Writes ── */
+        function render() {
+            const cxMid = stageW / 2;
+            const cyMid = stageH / 2;
+            const lensR = Math.max(cxMid, cyMid) * 1.06;
+            const margin = Math.max(cellW, cellH);
+            const padX = cellW / 2 + 40;
+            const padY = cellH / 2 + 40;
+            let best = -1;
             let bestDist = Infinity;
-            for (let i = 0; i < cards.length; i++) {
-                const card = cards[i];
-                const w = card.offsetWidth || 1;
-                const d = Math.abs(card.offsetLeft + w / 2 - mid);
-                if (d < bestDist) { bestDist = d; best = i; }
-                const t = Math.min(d / (w * 1.15), 1);
-                card.style.transform = 'scale(' + (1 - 0.12 * t).toFixed(4) + ')';
-                const dim = card.querySelector('.tcc-card-dim');
-                if (dim) dim.style.opacity = (0.38 * t).toFixed(3);
+
+            for (let i = 0; i < cells.length; i++) {
+                const cell = cells[i];
+                const sx = wrap(cell.cx - camX + padX, patW) - padX;
+                const sy = wrap(cell.cy - camY + padY, patH) - padY;
+                cell.sx = sx; cell.sy = sy;
+
+                const visible = sx > -margin && sx < stageW + margin
+                    && sy > -margin && sy < stageH + margin;
+                if (!visible) {
+                    if (cell.on) {
+                        cell.on = false;
+                        cell.el.style.transform = PARKED;
+                    }
+                    continue;
+                }
+
+                const dx = sx - cxMid;
+                const dy = sy - cyMid;
+                const dist = Math.hypot(dx, dy);
+                if (dist < bestDist) { bestDist = dist; best = i; }
+
+                const t = Math.min(dist / lensR, 1);
+                const s = t * t * (3 - 2 * t); // smoothstep: weiche Lupe
+                const scale = SC_MAX - (SC_MAX - SC_MIN) * s;
+                cell.el.style.transform = 'translate3d(' + (sx - cellW / 2).toFixed(1) + 'px,'
+                    + (sy - cellH / 2).toFixed(1) + 'px,0) scale(' + scale.toFixed(4) + ')';
+                if (cell.dimEl) cell.dimEl.style.opacity = (DIM_MAX * s).toFixed(3);
+                const z = 300 - Math.round(s * 40) * 5; // grobe Stufen: seltene Writes
+                if (z !== cell.z) { cell.z = z; cell.el.style.zIndex = String(z); }
+                cell.on = true;
             }
-            active = best;
-            for (let i = 0; i < cards.length; i++) {
-                cards[i].classList.toggle('is-active', i === active);
+
+            if (best !== centerCellIdx) {
+                if (centerCellIdx >= 0 && cells[centerCellIdx]) {
+                    cells[centerCellIdx].cardEl.classList.remove('is-active');
+                }
+                centerCellIdx = best;
+                if (best >= 0) {
+                    cells[best].cardEl.classList.add('is-active');
+                    active = cells[best].playerIdx;
+                }
             }
         }
 
-        let visualsQueued = false;
-        function queueVisuals() {
-            if (visualsQueued) return;
-            visualsQueued = true;
-            window.requestAnimationFrame(() => {
-                visualsQueued = false;
-                updateVisuals();
-            });
+        /* ── Bewegungs-Loop ── */
+        function kick() {
+            if (rafId || engineBroken) return;
+            lastTs = now();
+            rafId = requestAnimationFrame(tick);
         }
 
-        carousel.addEventListener('scroll', queueVisuals, { passive: true });
-
-        // Klick/Tap: Seitenkarte -> sanft in die Mitte holen, zentrierte
-        // Karte -> Spieleranalyse oeffnen. Die Wischgesten erledigt das
-        // native Scrollen; nach einem Drag feuert der Browser keinen Klick.
-        function handleCardClick(i) {
-            if (i !== active) {
-                centerCard(i, true);
+        function tick(ts) {
+            rafId = 0;
+            const dtMs = Math.min(64, Math.max(1, ts - lastTs));
+            lastTs = ts;
+            const dt = dtMs / 1000;
+            try {
+                if (mode === 'momentum') {
+                    camX += velX * dt;
+                    camY += velY * dt;
+                    const f = Math.pow(DECEL, dtMs);
+                    velX *= f; velY *= f;
+                    if (Math.hypot(velX, velY) < SNAP_AT_SPEED) beginSnap(velX, velY);
+                } else if (mode === 'spring') {
+                    // Kritisch gedaempfte Feder je Achse (Apple: reposition,
+                    // damping 1.0) - startet mit der Wurf-Geschwindigkeit.
+                    const om = 2 * Math.PI / SPRING_RESPONSE;
+                    velX += (-om * om * (camX - springTX) - 2 * om * velX) * dt;
+                    velY += (-om * om * (camY - springTY) - 2 * om * velY) * dt;
+                    camX += velX * dt;
+                    camY += velY * dt;
+                    if (Math.abs(camX - springTX) < 0.4 && Math.abs(camY - springTY) < 0.4
+                        && Math.hypot(velX, velY) < 6) {
+                        camX = springTX; camY = springTY;
+                        velX = 0; velY = 0;
+                        mode = 'rest';
+                        scheduleDrift();
+                    }
+                } else if (mode === 'drift') {
+                    camX += DRIFT_SPEED * 0.94 * dt;
+                    camY += DRIFT_SPEED * 0.34 * dt;
+                }
+                render();
+            } catch (err) {
+                breakToFallback(err);
                 return;
             }
-            const card = cards[i];
-            const playerId = card?.dataset.playerId || '';
-            const playerName = card?.dataset.playerName || '';
+            if (mode !== 'rest') kick();
+        }
+
+        function stopMotion() {
+            mode = 'rest';
+            velX = 0; velY = 0;
+            if (driftTimer) { clearTimeout(driftTimer); driftTimer = 0; }
+            if (wheelSnapTimer) { clearTimeout(wheelSnapTimer); wheelSnapTimer = 0; }
+        }
+
+        /* Naechstgelegene Karte exakt in die Mitte federn. Uebergebene
+           Geschwindigkeit laeuft nahtlos in die Feder weiter (kein Ruck
+           zwischen Abklang und Zentrierung). */
+        function beginSnap(vx, vy) {
+            if (!cells.length || centerCellIdx < 0) { mode = 'rest'; return; }
+            const cell = cells[centerCellIdx];
+            springTX = camX + (cell.sx - stageW / 2);
+            springTY = camY + (cell.sy - stageH / 2);
+            if (prefersReducedMotion) {
+                camX = springTX; camY = springTY;
+                velX = 0; velY = 0;
+                mode = 'rest';
+                render();
+                return;
+            }
+            velX = vx || 0; velY = vy || 0;
+            mode = 'spring';
+            kick();
+        }
+
+        function springCamTo(tx, ty) {
+            springTX = tx; springTY = ty;
+            if (prefersReducedMotion) {
+                camX = tx; camY = ty;
+                mode = 'rest';
+                render();
+                return;
+            }
+            mode = 'spring';
+            kick();
+        }
+
+        /* ── Idle-Drift: nach kurzer Ruhe wandert das Feld fast unmerklich
+           weiter - das Feld wirkt lebendig und laedt zum Anfassen ein.
+           Nie bei reduzierter Bewegung, unsichtbarer Buehne oder Tab im
+           Hintergrund. ── */
+        function driftAllowed() {
+            return !prefersReducedMotion && inView && !document.hidden
+                && !engineBroken && cells.length > 0;
+        }
+
+        function scheduleDrift() {
+            if (driftTimer) clearTimeout(driftTimer);
+            if (!driftAllowed()) return;
+            driftTimer = setTimeout(() => {
+                driftTimer = 0;
+                if (!driftAllowed() || mode !== 'rest') return;
+                mode = 'drift';
+                kick();
+            }, DRIFT_DELAY);
+        }
+
+        /* ── Intro: die sichtbaren Karten wellen gestaffelt aus der Mitte
+           auf (einmalig). fill:'backwards' haelt sie waehrend des Delays
+           unsichtbar und gibt die Karte danach wieder frei (keine
+           dauerhafte WAAPI-Transform, die mit :active kollidieren
+           koennte). ── */
+        function playIntro() {
+            if (introPlayed) return;
+            introPlayed = true;
+            if (prefersReducedMotion) return;
+            const cxMid = stageW / 2;
+            const cyMid = stageH / 2;
+            const maxD = Math.hypot(cxMid, cyMid) || 1;
+            for (const cell of cells) {
+                if (!cell.on || typeof cell.cardEl.animate !== 'function') continue;
+                const d = Math.hypot(cell.sx - cxMid, cell.sy - cyMid);
+                cell.cardEl.animate([
+                    { opacity: 0, transform: 'scale(0.86)' },
+                    { opacity: 1, transform: 'scale(1)' }
+                ], {
+                    duration: 480,
+                    delay: 60 + (d / maxD) * 340,
+                    easing: 'cubic-bezier(0.23, 1, 0.32, 1)',
+                    fill: 'backwards'
+                });
+            }
+        }
+
+        /* ── Zeigereingabe: 1:1 am Finger. Erst ab DRAG_SLOP faellt der
+           Richtungs-Entscheid: ueberwiegend vertikal -> Geste gehoert der
+           Seite (touch-action: pan-y laesst sie durch), sonst greift das
+           Feld und bewegt ab dann frei in ALLE Richtungen. ── */
+        let drag = null; // { id, lastX, lastY, startX, startY, claimed, dead, hist }
+
+        function onPointerDown(e) {
+            if (engineBroken || drag || !cells.length) return;
+            if (e.button !== undefined && e.button !== 0) return;
+            const wasMoving = mode === 'momentum' || mode === 'spring' || mode === 'drift';
+            stopMotion(); // Greifen haelt die Praesentation an Ort und Stelle
+            drag = {
+                id: e.pointerId,
+                lastX: e.clientX, lastY: e.clientY,
+                startX: e.clientX, startY: e.clientY,
+                claimed: false, dead: false,
+                wasMoving,
+                hist: [{ t: now(), x: e.clientX, y: e.clientY }]
+            };
+        }
+
+        function onPointerMove(e) {
+            if (!drag || e.pointerId !== drag.id || drag.dead) return;
+            const dxTotal = e.clientX - drag.startX;
+            const dyTotal = e.clientY - drag.startY;
+
+            if (!drag.claimed) {
+                if (Math.hypot(dxTotal, dyTotal) < DRAG_SLOP) return;
+                if (Math.abs(dxTotal) < Math.abs(dyTotal)) {
+                    // Vertikale Absicht: Seite scrollt. Feld sanft zurueck
+                    // in die Ruhe-Zentrierung, falls es mitten in Bewegung
+                    // angehalten wurde.
+                    drag.dead = true;
+                    if (drag.wasMoving) beginSnap(0, 0); else scheduleDrift();
+                    return;
+                }
+                drag.claimed = true;
+                try { stage.setPointerCapture(drag.id); } catch (_) {}
+                stage.classList.add('is-grabbing');
+                hideHint(true);
+                mode = 'drag';
+            }
+
+            camX -= e.clientX - drag.lastX;
+            camY -= e.clientY - drag.lastY;
+            drag.lastX = e.clientX;
+            drag.lastY = e.clientY;
+
+            const t = now();
+            drag.hist.push({ t, x: e.clientX, y: e.clientY });
+            while (drag.hist.length > 2 && t - drag.hist[0].t > 110) drag.hist.shift();
+
+            if (!rafId) { lastTs = now(); rafId = requestAnimationFrame(tick); }
+        }
+
+        function endDrag(e) {
+            if (!drag || (e && e.pointerId !== drag.id)) return;
+            const d = drag;
+            drag = null;
+            stage.classList.remove('is-grabbing');
+            try { stage.releasePointerCapture(d.id); } catch (_) {}
+            if (!d.claimed) {
+                if (d.dead) return;               // vertikal: Snap laeuft ggf. bereits
+                if (d.wasMoving) beginSnap(0, 0); // Tap hat Bewegung angehalten -> sauber einrasten
+                else scheduleDrift();
+                return;
+            }
+            lastDragEndTs = Date.now();
+
+            // Wurf-Geschwindigkeit aus den letzten ~110 ms (px/s). Die
+            // Kamera bewegt sich GEGEN den Finger, daher das Minus.
+            let vx = 0, vy = 0;
+            const hist = d.hist;
+            if (hist.length >= 2) {
+                const a = hist[0];
+                const b = hist[hist.length - 1];
+                const span = Math.max(16, b.t - a.t);
+                vx = -((b.x - a.x) / span) * 1000;
+                vy = -((b.y - a.y) / span) * 1000;
+            }
+            const speed = Math.hypot(vx, vy);
+            if (prefersReducedMotion || speed <= SNAP_AT_SPEED * 2) {
+                beginSnap(0, 0);
+                return;
+            }
+            // Wurf-Deckel: absurde Spitzen (ruckartige Gesten, synthetische
+            // Events) wuerden das Feld sekundenlang durchrauschen lassen.
+            if (speed > MAX_FLING) {
+                vx *= MAX_FLING / speed;
+                vy *= MAX_FLING / speed;
+            }
+            velX = vx; velY = vy;
+            mode = 'momentum';
+            kick();
+        }
+
+        stage.addEventListener('pointerdown', onPointerDown);
+        stage.addEventListener('pointermove', onPointerMove);
+        stage.addEventListener('pointerup', endDrag);
+        stage.addEventListener('pointercancel', endDrag);
+
+        /* Trackpad/Maus: horizontales Radeln pannt das Feld; vertikales
+           Radeln scrollt weiterhin die Seite (kein Kidnapping). */
+        stage.addEventListener('wheel', (e) => {
+            if (engineBroken || !cells.length) return;
+            if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+            e.preventDefault();
+            stopMotion();
+            hideHint(true);
+            camX += e.deltaX;
+            render();
+            if (wheelSnapTimer) clearTimeout(wheelSnapTimer);
+            wheelSnapTimer = setTimeout(() => { wheelSnapTimer = 0; beginSnap(0, 0); }, 160);
+        }, { passive: false });
+
+        /* Tap/Klick: Randkarte federt ins Zentrum, Zentrums-Karte oeffnet
+           die Spieleranalyse. Nach einem echten Drag ist der Klick tot. */
+        function handleCardClick(cell) {
+            if (cell !== cells[centerCellIdx]) {
+                springCamTo(camX + (cell.sx - stageW / 2), camY + (cell.sy - stageH / 2));
+                return;
+            }
+            const playerId = cell.cardEl.dataset.playerId || '';
+            const playerName = cell.cardEl.dataset.playerName || '';
             if (playerId && !playerId.startsWith('static:')) {
                 window.location.href = `spieleranalyse.html?playerId=${encodeURIComponent(playerId)}`;
             } else if (playerName) {
@@ -7659,49 +8102,120 @@
             }
         }
 
-        carousel.addEventListener('click', (e) => {
-            const card = e.target?.closest?.('.tcc-player-card');
-            if (!card) return;
-            const i = cards.indexOf(card);
-            if (i >= 0) handleCardClick(i);
+        stage.addEventListener('click', (e) => {
+            if (Date.now() - lastDragEndTs < 300) return;
+            const cellEl = e.target?.closest?.('.tcc-cell');
+            if (!cellEl) return;
+            const cell = cells[parseInt(cellEl.dataset.cellIdx || '-1', 10)];
+            if (cell) handleCardClick(cell);
         });
 
-        // Tastatur: Pfeil links/rechts zentriert die Nachbarkarte.
-        carousel.tabIndex = 0;
-        carousel.setAttribute('role', 'group');
-        carousel.setAttribute('aria-roledescription', 'carousel');
-        carousel.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') {
+        /* Tastatur: Pfeile wandern zellenweise durchs Feld, Enter oeffnet
+           die fokussierte Karte. */
+        stage.tabIndex = 0;
+        stage.addEventListener('keydown', (e) => {
+            if (engineBroken || !cells.length) return;
+            const step = {
+                ArrowRight: [stepX, 0], ArrowLeft: [-stepX, 0],
+                ArrowDown: [0, stepY], ArrowUp: [0, -stepY]
+            }[e.key];
+            if (step) {
                 e.preventDefault();
-                centerCard(Math.min(active + 1, cards.length - 1), true);
-            } else if (e.key === 'ArrowLeft') {
+                stopMotion();
+                hideHint(true);
+                camX += step[0];
+                camY += step[1];
+                render();          // Zentrum neu bestimmen ...
+                beginSnap(0, 0);   // ... und exakt einrasten
+                return;
+            }
+            if ((e.key === 'Enter' || e.key === ' ') && centerCellIdx >= 0) {
                 e.preventDefault();
-                centerCard(Math.max(active - 1, 0), true);
+                handleCardClick(cells[centerCellIdx]);
             }
         });
 
-        window.addEventListener('resize', () => {
-            fitPlayerNames();
-            centerCard(active, false);
-            queueVisuals();
-        }, { passive: true });
+        /* Sichtbarkeit: Drift nur, wenn die Buehne wirklich zu sehen ist. */
+        if (typeof IntersectionObserver === 'function') {
+            const io = new IntersectionObserver((entries) => {
+                inView = !!(entries[0] && entries[0].isIntersecting);
+                if (!inView && mode === 'drift') { stopMotion(); }
+                if (inView && mode === 'rest') scheduleDrift();
+            }, { threshold: 0.15 });
+            io.observe(stage);
+        }
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && mode === 'drift') { stopMotion(); return; }
+            if (!document.hidden && mode === 'rest') scheduleDrift();
+        });
 
-        // In der App-Shell bootet die Startseite UNSICHTBAR im Frame - alle
-        // Masse sind dort 0. Der ResizeObserver meldet sich, sobald das
-        // Karussell echtes Layout bekommt (und bei jeder Groessenaenderung):
-        // Namen einpassen, gemerkte bzw. aktive Karte zentrieren, Visuals
-        // setzen.
-        if (typeof ResizeObserver === 'function') {
-            const ro = new ResizeObserver(() => {
-                if (!cards.length) return;
+        /* ── Layout-Aenderungen: In der App-Shell bootet die Startseite
+           UNSICHTBAR im Frame - alle Masse sind dort 0. Der ResizeObserver
+           meldet sich, sobald die Buehne echtes Layout bekommt (und bei
+           jeder Groessenaenderung): dann wird gebaut bzw. das Muster neu
+           vermessen und der aktive Spieler wieder zentriert. ── */
+        function relayout() {
+            if (engineBroken) return;
+            if (stage.clientWidth <= 0) return;
+            // Mitten in einer gegriffenen Geste (mobile Adressleiste atmet
+            // beim Ziehen) nichts umbauen - der naechste Ruhe-Zustand
+            // raeumt auf.
+            if (drag && drag.claimed) return;
+            try {
+                if (pendingBuild || !cells.length) {
+                    if (!players.length) return;
+                    pendingBuild = false;
+                    buildField(null);
+                    return;
+                }
+                const keepIdx = active;
+                const prevRows = gridRows;
+                const prevCols = gridCols;
+                if (!readMetrics()) return;
+                planGrid(players.length, cellW, cellH);
+                if (gridRows !== prevRows || gridCols !== prevCols) {
+                    // Zeilen-/Spaltenbedarf hat sich geaendert (z.B. Geraet
+                    // gedreht): Muster frisch aufbauen, aktiven Spieler im
+                    // Zentrum behalten.
+                    buildField(keepIdx);
+                    return;
+                }
+                layoutPattern();
                 fitPlayerNames();
-                centerCard(pendingCenter !== null ? pendingCenter : active, false);
-                queueVisuals();
-            });
-            ro.observe(carousel);
+                stopMotion();
+                const keepCell = cells.find((c) => c.playerIdx === keepIdx
+                    && c.row === Math.floor(gridRows / 2)) || cells[0];
+                camX = keepCell.cx - stageW / 2;
+                camY = keepCell.cy - stageH / 2;
+                render();
+                playIntro();
+                scheduleDrift();
+            } catch (err) {
+                breakToFallback(err);
+            }
         }
 
-        initCarousel();
+        let relayoutQueued = false;
+        function queueRelayout() {
+            if (relayoutQueued) return;
+            relayoutQueued = true;
+            window.requestAnimationFrame(() => {
+                relayoutQueued = false;
+                relayout();
+            });
+        }
+
+        window.addEventListener('resize', queueRelayout, { passive: true });
+        if (typeof ResizeObserver === 'function') {
+            const ro = new ResizeObserver(queueRelayout);
+            ro.observe(stage);
+        }
+
+        try {
+            initCarousel();
+        } catch (err) {
+            breakToFallback(err);
+        }
     })();
 
     function renderIndexHome(data) {

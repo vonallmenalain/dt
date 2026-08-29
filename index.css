@@ -4989,13 +4989,18 @@
            verlangsamen oder das Layout brechen.
            =================================================================== */
         .test-carousel-copy {
-            --card-w: clamp(150px, 34vw, 230px);
-            --card-h: clamp(210px, 47vw, 322px);
+            /* Basisgroesse der Feld-Karten. Bewusst etwas kompakter als im
+               frueheren Einzelreihen-Karussell: die Zentrums-Lupe skaliert
+               die fokussierte Karte auf das ~1.22-fache (index.js), die
+               effektive Zentrumsgroesse bleibt also vergleichbar. */
+            --card-w: clamp(138px, 31vw, 205px);
+            --card-h: clamp(192px, 43vw, 285px);
             --blur: 14px;
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-top: 6px;
+            width: 100%;
         }
         .tcc-section-title {
             margin: 0 0 2px;
@@ -5011,46 +5016,60 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        /* ── Flacher Snap-Scroller: nativer horizontaler Scroll mit
-              Schnapp-Zentrierung. Frueher stand hier eine 3D-Coverflow-
-              Buehne (perspective + preserve-3d + JS-Transforms) - die
-              produzierte auf echten Geraete-GPUs wiederholt Render-
-              Artefakte (gestauchte Stapel, abgeschnittene Streifen,
-              leere Kartenruecken) und ist bewusst ersetzt: der Browser
-              uebernimmt Wisch-Physik und Zentrierung, index.js setzt nur
-              noch Skalierung/Dimmung nach Distanz zur Mitte. */
-        .tcc-carousel {
+        /* ── Spieler-Konstellation: unendlich pannbares 2D-Feld mit
+              Zentrums-Lupe. Die Karten liegen absolut in .tcc-field;
+              index.js setzt pro Frame NUR translate3d + scale auf den
+              .tcc-cell-Huellen und die Dimm-Opazitaet (Compositor-Pfad,
+              kein Layout). Kein preserve-3d, keine Perspektive - genau
+              die Effekte, die auf echten Geraete-GPUs frueher Artefakte
+              produziert haben, bleiben bewusst draussen.
+              touch-action: pan-y = vertikales Wischen scrollt die SEITE
+              (niemand bleibt im Feld haengen), horizontales/diagonales
+              Wischen greift das Feld und bewegt dann frei in 2D. */
+        .tcc-stage {
             position: relative;
             z-index: 2;
-            width: min(92vw, 760px);
+            width: min(96vw, 900px);
+            height: clamp(360px, 56vh, 520px);
             margin-top: 6px;
-            padding: 16px 0 26px; /* Luft fuer Schatten/Glow der aktiven Karte */
-            overflow-x: auto;
-            overflow-y: hidden;
-            scroll-snap-type: x mandatory;
-            overscroll-behavior-x: contain;
-            -webkit-overflow-scrolling: touch;
+            overflow: hidden;
             outline: none;
             background: transparent;
             user-select: none;
-            scrollbar-width: none;
-            -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
-            mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+            -webkit-user-select: none;
+            touch-action: pan-y;
+            cursor: grab;
+            border-radius: 18px;
+            /* Fenster in den unendlichen Raum: Karten loesen sich zum
+               Rand hin auf statt hart zu enden. */
+            -webkit-mask-image: radial-gradient(ellipse 74% 68% at 50% 50%, #000 55%, transparent 99%);
+            mask-image: radial-gradient(ellipse 74% 68% at 50% 50%, #000 55%, transparent 99%);
         }
-        .tcc-carousel::-webkit-scrollbar { display: none; }
-        .tcc-track {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            width: max-content;
-            /* Erste/letzte Karte muss sich zentrieren koennen. */
-            padding-inline: calc(50% - var(--card-w) / 2);
+        .tcc-stage.is-grabbing { cursor: grabbing; }
+        .tcc-stage:focus-visible {
+            outline: 2px solid rgba(var(--rgb-gold), 0.65);
+            outline-offset: -2px;
         }
-        .tcc-player-card {
-            flex: 0 0 var(--card-w);
+        .tcc-field {
+            position: absolute;
+            inset: 0;
+        }
+        /* Huelle pro Feld-Zelle: Ziel der Engine-Transforms. Die Karte
+           darin bleibt frei fuer Intro-Animation und :active-Feedback
+           (zwei Transform-Ebenen = keine Ueberschreib-Konflikte). */
+        .tcc-cell {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: var(--card-w);
             height: var(--card-h);
-            scroll-snap-align: center;
+            transform-origin: center center;
+            transform: translate3d(-200vw, -200vh, 0); /* geparkt bis zur ersten Positionierung */
+            contain: layout style;
+        }
+        .tcc-player-card {
+            position: absolute;
+            inset: 0;
             transform-origin: center center;
             cursor: pointer;
             border-radius: 22px;
@@ -5065,7 +5084,68 @@
                 radial-gradient(circle at 20% 0%, rgba(var(--rgb-gold), 0.14), transparent 52%);
             border: 1px solid rgba(255,255,255,0.16);
             box-shadow: 0 18px 45px rgba(0,0,0,0.5);
-            will-change: transform;
+        }
+        /* Notfall-Modus (Engine-Init fehlgeschlagen): einfacher
+           horizontaler Wisch-Streifen, damit die Sektion nie leer bleibt. */
+        .tcc-stage.tcc-fallback {
+            touch-action: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+            height: calc(var(--card-h) + 32px);
+            scrollbar-width: none;
+        }
+        .tcc-stage.tcc-fallback::-webkit-scrollbar { display: none; }
+        .tcc-stage.tcc-fallback .tcc-field {
+            position: static;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: max-content;
+            padding: 16px calc(50% - var(--card-w) / 2);
+        }
+        .tcc-stage.tcc-fallback .tcc-cell {
+            position: relative;
+            transform: none !important;
+            flex: 0 0 var(--card-w);
+        }
+        /* Wisch-Hinweis: dezenter Pill am unteren Buehnenrand, atmet leicht
+           und verschwindet beim ersten Griff ins Feld. */
+        .tcc-drag-hint {
+            position: absolute;
+            left: 50%;
+            bottom: 12px;
+            transform: translateX(-50%);
+            z-index: 400;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: rgba(240,246,255,0.92);
+            background: rgba(10,18,36,0.55);
+            border: 1px solid rgba(255,255,255,0.18);
+            backdrop-filter: blur(10px) saturate(150%);
+            -webkit-backdrop-filter: blur(10px) saturate(150%);
+            pointer-events: none;
+            transition: opacity 320ms ease, visibility 320ms;
+            animation: tcc-hint-breathe 2.6s ease-in-out infinite;
+        }
+        .tcc-drag-hint.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            animation: none;
+        }
+        .tcc-drag-hint-icon { font-size: 0.86rem; line-height: 1; }
+        @keyframes tcc-hint-breathe {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%      { transform: translateX(-50%) translateY(-3px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .tcc-drag-hint { animation: none; }
         }
         .tcc-player-card.is-active {
             box-shadow: 0 26px 60px rgba(0,0,0,0.6), 0 0 46px rgba(var(--rgb-gold), 0.22);
@@ -5345,11 +5425,10 @@
         @media (max-width: 560px) {
             .test-carousel-copy { margin-top: 2px; }
             .tcc-section-title { margin: 0; }
-            .tcc-carousel {
-                margin-top: 0;
-                padding: 12px 0 20px;
+            .tcc-stage {
+                margin-top: 2px;
+                height: clamp(340px, 52vh, 460px);
             }
-            .tcc-track { gap: 12px; }
             .tcc-player-card { padding: 8px; gap: 6px; }
             .tcc-player-info { gap: 4px; }
             .tcc-player-name {
