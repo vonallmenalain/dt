@@ -26,6 +26,10 @@
       k=String(k).trim().toLowerCase();
       var d=document.documentElement;
       d.setAttribute("data-tournament",k);
+      // Eingebettet in die App-Shell (app.html)? Dann eigene Navigation
+      // verstecken und keinen Platz dafuer reservieren (CSS in styles.css)
+      // - die Shell bringt ihre eigene, persistente Leiste mit.
+      try{if(window.self!==window.top)d.setAttribute("data-dt-embedded","1");}catch(eEmb){d.setAttribute("data-dt-embedded","1");}
       if(/^cl/.test(k)){
         d.style.background="#0a1633";
         var tc=document.querySelector('meta[name="theme-color"]');

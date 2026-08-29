@@ -942,6 +942,48 @@ ist deshalb auf Parse-Geschwindigkeit optimiert
   der toten Felder. **`data-wm2026.js` bleibt als Archiv eingefroren**
   (`test:freeze`), `data-cl2526.js` als historischer Teststand ebenso.
 
+### App-Shell (app.html): Seitenwechsel ohne Neuladen
+
+`app.html` + `shell.js` sind „Vorschlag E, Stufe 1": Die bestehenden
+Seiten bleiben unveränderte, eigenständige Dokumente – die Shell lädt sie
+als **persistente Frames** und blendet erst um, wenn die Zielseite fertig
+gerendert ist. Bis dahin bleibt die alte Seite sichtbar und bedienbar
+(dauert es >350 ms, erscheint eine Haarlinie unter der Navbar). Der
+zuletzt besuchte Frame bleibt warm: Zurück ist augenblicklich, inklusive
+Scrollposition und Zustand. Die Swap-Choreografie ist kritisch gedämpft
+(340 ms, ohne Overshoot), vorwärts/rückwärts räumlich gespiegelt,
+unterbrechbar (der jüngste Tap gewinnt, animiert ab dem aktuellen
+Präsentationswert) und respektiert `prefers-reduced-motion`.
+
+Warum Frames statt eines Seiten-Merges: Die Seitenskripte sind
+unabhängige Vollseiten-Programme (globale Konstanten, Inline-Handler,
+eigene History-Logik) mit kollidierenden CSS-Klassen. In eigenen
+Dokumenten laufen sie **byte-identisch wie beim Direktaufruf** – die
+Datenpfade verhalten sich exakt wie bisher (verifiziert: identische
+Pipeline-Ergebnisse nackt vs. Shell). Bei jedem Fehler oder Timeout
+fällt die Shell auf eine echte Navigation zurück.
+
+Verdrahtung:
+
+- Das Pre-Flight jeder Seite setzt `<html data-dt-embedded>`, sobald sie
+  eingebettet läuft (`window.top ≠ window.self`); `styles.css` versteckt
+  dann ihre Navigation und reserviert keinen Platz, `nav.js` überlässt
+  Höhenmessung + SW-Registrierung der Shell. Direkt geöffnete Seiten
+  (Deep-Links wie `teams.html?manager=…`) bleiben unverändert.
+- Routen laufen als `app.html#/<seite>?<query>` – Reload landet wieder in
+  der Shell. Interne Frame-Navigationen (Manager-Links etc.) synchronisiert
+  der load-Listener zurück in Hash, Titel und aktiven Tab.
+- Es leben höchstens 2 Frames (aktueller + letzter, LRU). Beide halten
+  ihre Firestore-Meta-Listener – wie zwei offene Tabs heute; beim
+  Zurückwechseln ist der Stand dadurch bereits aktuell.
+- Einschränkung: Ansichts-/Turnier-Umschalter im Shell-Dropdown wirken
+  auf bereits geladene Frames erst nach deren Reload (Admin-Werkzeug).
+
+**Stufe 2 (bewusst noch nicht aktiv):** `/` per Netlify-Rewrite auf die
+Shell legen und `start_url` im Manifest umstellen, sobald sich Stufe 1 im
+Alltag bewährt hat. Bis dahin ist die Shell unter `dt.alae.app/app.html`
+erreichbar; alle bisherigen URLs funktionieren unverändert.
+
 ### Back/Forward-Cache (bfcache)
 
 Rangliste, Spieleranalyse und Teams räumen ihre Listener bei `pagehide`

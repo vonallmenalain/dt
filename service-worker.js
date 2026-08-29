@@ -59,6 +59,8 @@ const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';
 const CACHE_NAME = `dreamteam-${SW_HOSTNAME}-${CACHE_VERSION}`;
 const APP_SHELL = [
   './',
+  './app.html',
+  './shell.js',
   './index.html',
   './team-builder.html',
   './punktesystem.html',
