@@ -139,50 +139,51 @@ if (normalized.length > 1) {
     navJs.includes('insertAdjacentHTML("afterbegin", navHTML)'));
 }
 
-/* ── 6b) Speculation Rules: identisch, gueltiges JSON, richtige Ziele ───── */
+/* ── 6b) Stufe 3: nur noch die Shell ────────────────────────────────────── */
+/* Direktaufrufe der Seiten leiten im Pre-Flight in die Shell weiter
+ * (app.html#/<seite>?<query>) – die alte Voll-Navigation existiert fuer
+ * Nutzer nicht mehr. Deshalb: (a) jede Seite traegt die Weiterleitung
+ * samt ?standalone=1-Notausstieg und Frame-Guard, (b) app.html selbst
+ * NIE (Shell-in-Shell-Schleife), (c) die Seitenliste der Weiterleitung
+ * ist deckungsgleich mit PAGE_FILES in shell.js, (d) Speculation Rules
+ * sind ueberall entfernt (sie prerenderten die alte Vollansicht). */
 {
-  const ruleBlocks = {};
+  const FORWARD_SNIPPET = 'location.replace("app.html#/"+pf+location.search)';
+  let forwardList = null;
+
   for (const page of PAGES) {
     const src = readRoot(page);
-    const m = src.match(/<script type="speculationrules">\s*([\s\S]*?)\s*<\/script>/);
-    check(`${page}: speculationrules-Block vorhanden`, !!m);
-    if (m) ruleBlocks[page] = m[1];
+    check(`${page}: Shell-Weiterleitung im Pre-Flight`, src.includes(FORWARD_SNIPPET));
+    check(`${page}: Notausstieg ?standalone=1 vorhanden`,
+      src.includes('q.get("standalone")!=="1"'));
+    check(`${page}: Weiterleitung nie im Frame`,
+      src.includes('!d.hasAttribute("data-dt-embedded")&&q.get("standalone")'));
+    check(`${page}: keine Speculation Rules mehr`, !src.includes('speculationrules'));
+
+    const m = src.match(/var pk=\[([^\]]+)\]/);
+    check(`${page}: Weiterleitungs-Seitenliste gefunden`, !!m);
+    if (m) {
+      const list = m[1].split(',').map((x) => x.trim().replace(/"/g, ''));
+      if (!forwardList) forwardList = list;
+      assert.deepEqual(list, forwardList,
+        `${page}: Weiterleitungs-Seitenliste weicht von den anderen Seiten ab.`);
+    }
   }
 
-  const entries = Object.entries(ruleBlocks);
-  if (entries.length) {
-    const [refPage, refRules] = entries[0];
-    for (const [page, rules] of entries.slice(1)) {
-      check(`${page}: speculationrules identisch mit ${refPage}`, rules === refRules);
-    }
+  const shellSrc = readRoot(SHELL_PAGE);
+  check('app.html: KEINE Shell-Weiterleitung (Schleifen-Gefahr)',
+    !shellSrc.includes(FORWARD_SNIPPET));
 
-    let parsed = null;
-    try {
-      parsed = JSON.parse(refRules);
-    } catch (err) {
-      check('speculationrules: gueltiges JSON', false, err.message);
-    }
-    if (parsed) {
-      const flatten = (list) => (list || []).flatMap((rule) => (rule.where && rule.where.or || [])
-        .map((c) => c.href_matches).filter(Boolean));
-      const prerender = flatten(parsed.prerender);
-      const prefetch = flatten(parsed.prefetch);
-      // Die vier meistgewechselten Seiten werden prerendert, die uebrigen
-      // beiden Nav-Ziele geprefetcht – zusammen decken sie alle navItems ab.
-      ['/', '/index.html', '/rangliste.html', '/spieleranalyse.html', '/teams.html'].forEach((p) => {
-        check(`speculationrules: prerender enthaelt ${p}`, prerender.includes(p));
-      });
-      ['/punktesystem.html', '/team-builder.html'].forEach((p) => {
-        check(`speculationrules: prefetch enthaelt ${p}`, prefetch.includes(p));
-      });
-      (parsed.prerender || []).concat(parsed.prefetch || []).forEach((rule) => {
-        check('speculationrules: eagerness moderate (Hover/Touch-Down, nicht eager)',
-          rule.eagerness === 'moderate');
-      });
-    }
+  // Seitenliste der Weiterleitung == PAGE_FILES in shell.js.
+  const shellJsSrc = readRoot('shell.js');
+  const pf = shellJsSrc.match(/var PAGE_FILES = \[([^\]]+)\]/);
+  check('shell.js: PAGE_FILES gefunden', !!pf);
+  if (pf && forwardList) {
+    const shellList = pf[1].split(',').map((x) => x.trim().replace(/['\n]/g, '')).filter(Boolean);
+    assert.deepEqual([...forwardList].sort(), [...shellList].sort(),
+      'Weiterleitungs-Seitenliste (Pre-Flight) und PAGE_FILES (shell.js) fuehren nicht dieselben Seiten.');
   }
 }
-
 /* ── 6c) Kein Theme-Blitz: CL-Styling steht render-blocking im <head> ───── */
 /* Die Navigation ist seit dem STATIC-NAV-Block ab dem ersten Frame sichtbar.
  * Ihr CL-Look darf deshalb nicht erst vom dynamischen Lader in

@@ -30,6 +30,16 @@
       // verstecken und keinen Platz dafuer reservieren (CSS in styles.css)
       // - die Shell bringt ihre eigene, persistente Leiste mit.
       try{if(window.self!==window.top)d.setAttribute("data-dt-embedded","1");}catch(eEmb){d.setAttribute("data-dt-embedded","1");}
+      // App-Shell-Weiterleitung (Stufe 3): Direktaufrufe der Seiten landen
+      // in der Shell auf derselben Route (Query bleibt erhalten) - die
+      // alte Voll-Navigation existiert fuer Nutzer damit nicht mehr.
+      // Nie im Frame (data-dt-embedded, sonst Shell-in-Shell-Schleife);
+      // ?standalone=1 ist der bewusste Notausstieg fuer Debugging.
+      if(!d.hasAttribute("data-dt-embedded")&&q.get("standalone")!=="1"){
+        var pf=(location.pathname.split("/").pop()||"index.html").toLowerCase();
+        var pk=["index.html","team-builder.html","teams.html","spieleranalyse.html","rangliste.html","punktesystem.html"];
+        if(pk.indexOf(pf)!==-1){location.replace("app.html#/"+pf+location.search);return;}
+      }
       if(/^cl/.test(k)){
         d.style.background="#0a1633";
         var tc=document.querySelector('meta[name="theme-color"]');
@@ -66,38 +76,6 @@
     <link rel="mask-icon" href="Icons/maskable-icon-192x192.png" color="#28a745">
     <meta name="msapplication-config" content="Icons/browserconfig.xml">
     <meta name="view-transition" content="same-origin">
-    <!-- ===== SPECULATION RULES (nur Chromium) =====
-         Prerendert die meistgewechselten Seiten, sobald ein Link angefasst
-         wird (eagerness moderate = Hover bzw. Touch-Down): Beim eigentlichen
-         Tap ist die Zielseite samt JS-Boot bereits fertig gerendert - der
-         Wechsel fuehlt sich augenblicklich an. Punktesystem/Team-Builder
-         werden nur geprefetcht (HTML in den Cache, kein voller Render).
-         Die URL-Pattern decken Query-Varianten ab (?tournament=..., Suche =
-         Wildcard). Safari/Firefox ignorieren den Block einfach; Firestore-
-         Reads beim Prerender deckelt der Session-Meta-Cache (cache.js, 30 s).
-         Der Block ist auf allen Seiten identisch - scripts/test-static-nav.js
-         prueft das. -->
-    <script type="speculationrules">
-    {
-      "prerender": [{
-        "where": { "or": [
-          { "href_matches": "/" },
-          { "href_matches": "/index.html" },
-          { "href_matches": "/rangliste.html" },
-          { "href_matches": "/spieleranalyse.html" },
-          { "href_matches": "/teams.html" }
-        ]},
-        "eagerness": "moderate"
-      }],
-      "prefetch": [{
-        "where": { "or": [
-          { "href_matches": "/punktesystem.html" },
-          { "href_matches": "/team-builder.html" }
-        ]},
-        "eagerness": "moderate"
-      }]
-    }
-    </script>
     <meta name="description" content="DreamTeam Builder – Baue dein Fantasy-Team.">
 
     <!-- Frühe Verbindungsöffnung zu Firebase + CDN; spart auf Mobile
