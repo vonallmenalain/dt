@@ -175,6 +175,40 @@ if (normalized.length > 1) {
   }
 }
 
+/* ── 6c) Kein Theme-Blitz: CL-Styling steht render-blocking im <head> ───── */
+/* Die Navigation ist seit dem STATIC-NAV-Block ab dem ersten Frame sichtbar.
+ * Ihr CL-Look darf deshalb nicht erst vom dynamischen Lader in
+ * tournament-config.js kommen (gruener WM-Blitz), sondern muss statisch im
+ * <head> liegen; theme-cl.css ist vollstaendig auf [data-tournament^="cl"]
+ * gescopet und fuer die WM ein No-op. */
+{
+  for (const page of PAGES.concat(['liga-tabelle.html'])) {
+    const src = readRoot(page);
+    check(`${page}: theme-cl.css statisch verlinkt (id="cl-theme-css")`,
+      /<link rel="stylesheet" href="theme-cl\.css\?v=[^"]+" id="cl-theme-css">/.test(src));
+  }
+
+  // theme-color-Meta steht VOR dem Pre-Flight und wird dort fuer CL gesetzt –
+  // sonst blitzt die Android-Statusleiste kurz gruen.
+  for (const page of PAGES) {
+    const src = readRoot(page);
+    const metaIdx = src.indexOf('name="theme-color"');
+    const preflightIdx = src.indexOf('FOUC-Schutz');
+    check(`${page}: theme-color-Meta vor dem Pre-Flight`,
+      metaIdx > -1 && preflightIdx > -1 && metaIdx < preflightIdx);
+    check(`${page}: Pre-Flight setzt theme-color fuer CL`,
+      src.includes('tc.setAttribute("content","#0a1633")'));
+  }
+
+  // Der leere Auth-Slot reserviert die Knopf-Flaeche (44px), sonst waechst
+  // die Leiste sichtbar nach, sobald der Auth-Knopf erscheint.
+  const styles = readRoot('styles.css');
+  const slotBlock = styles.match(/\.dt-auth-nav-slot \{[\s\S]*?\}/);
+  check('styles.css: Auth-Slot reserviert Knopf-Flaeche',
+    !!slotBlock && slotBlock[0].includes('min-height: var(--dt-nav-content)')
+    && slotBlock[0].includes('min-width: var(--dt-nav-content)'));
+}
+
 /* ── 7) View-Transition-Opt-in und Leisten-Namen in styles.css ──────────── */
 {
   const styles = readRoot('styles.css');

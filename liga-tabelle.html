@@ -21,6 +21,13 @@
     <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
 
     <link rel="stylesheet" href="styles.css?v=__BUILD__">
+    <!-- CL-Theme STATISCH und render-blocking: vollstaendig auf
+         [data-tournament^="cl"] gescopet, fuer die WM also ein No-op.
+         Vorher haengte tournament-config.js dieses Stylesheet erst nach
+         dem JS-Boot ein - die ab dem ersten Frame sichtbare Navigation
+         blitzte deshalb kurz im gruenen WM-Look auf. Die id behaelt der
+         dynamische Lader als Schon-da-Signal. -->
+    <link rel="stylesheet" href="theme-cl.css?v=__BUILD__" id="cl-theme-css">
 
     <style>
         /* Seiten-Layout (dunkelblau; nutzt die CL-Palette-Variablen aus
