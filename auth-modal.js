@@ -828,11 +828,24 @@
         }
     }
 
+    /* Turnier-Parameter nur anhaengen, wenn ein URL-Override die Aufloesung
+       wirklich treibt (?tournament= in der Adresszeile). Sonst bleiben die
+       Links sauber: Die ambiente Aufloesung (localStorage/Domain) liefert
+       ueberall dasselbe Turnier - ein fest angehefteter Key wuerde nach
+       einem Turnier-Wechsel dagegen das alte Turnier zurueckholen
+       (in der App-Shell: Leiste neu, Frame-Inhalt alt - Durchmischung). */
+    function isUrlTournamentOverrideActive() {
+        try {
+            const APP = window.APP_CONFIG;
+            return !!(APP && typeof APP.isUrlOverrideActive === 'function' && APP.isUrlOverrideActive());
+        } catch (_) { return false; }
+    }
+
     function resolveTeamBuilderHref() {
         let href = state.teamBuilderHref || 'team-builder.html';
         try {
             const APP = window.APP_CONFIG;
-            if (APP && APP.key) {
+            if (APP && APP.key && isUrlTournamentOverrideActive()) {
                 const url = new URL(href, window.location.href);
                 url.searchParams.set('tournament', APP.key);
                 const fileName = url.pathname.split('/').pop() || 'team-builder.html';
@@ -852,7 +865,7 @@
         try {
             const APP = window.APP_CONFIG;
             const url = new URL(href, window.location.href);
-            if (APP && APP.key) url.searchParams.set('tournament', APP.key);
+            if (APP && APP.key && isUrlTournamentOverrideActive()) url.searchParams.set('tournament', APP.key);
             if (managerName) url.searchParams.set('manager', managerName);
             const fileName = url.pathname.split('/').pop() || 'teams.html';
             href = `${fileName}${url.search ? url.search : ''}${url.hash || ''}`;

@@ -426,7 +426,13 @@ function initNavAuth(APP) {
     function buildTeamBuilderHref() {
         let href = 'team-builder.html';
         try {
-            if (APP && APP.key) {
+            // Turnier-Parameter nur bei aktivem URL-Override (gleiches
+            // Prinzip wie withTournamentParam unten): ein fest angehefteter
+            // Key wuerde den Link nach einem Turnier-Wechsel auf das alte
+            // Turnier pinnen - die ambiente Aufloesung reicht.
+            const urlOverride = APP && typeof APP.isUrlOverrideActive === 'function'
+                && APP.isUrlOverrideActive();
+            if (urlOverride && APP && APP.key) {
                 const url = new URL(href, window.location.href);
                 url.searchParams.set('tournament', APP.key);
                 const file = url.pathname.split('/').pop() || 'team-builder.html';
@@ -506,8 +512,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const isEmbedded = document.documentElement.hasAttribute("data-dt-embedded");
 
 
+    /* Turnier-Parameter NUR anhaengen, wenn wirklich ein URL-Override die
+       Aufloesung treibt (?tournament=... in der Adresszeile, das gerade
+       benutzt wird). Frueher trug JEDER Link den aktiven Key - in der
+       App-Shell landete der dann in der Hash-Route (app.html#/seite.html
+       ?tournament=...) und pinnte den Frame nach einem Turnier-Wechsel
+       auf das ALTE Turnier: Leiste neu, Inhalt alt (Durchmischung).
+       Ohne Parameter loesen Shell und Frames identisch aus localStorage/
+       Domain auf - der persistierte Wechsel greift damit ueberall. */
     function withTournamentParam(href) {
         if (!href) return href;
+        let urlOverride = false;
+        try {
+            urlOverride = typeof APP.isUrlOverrideActive === 'function' && APP.isUrlOverrideActive();
+        } catch (_) { /* im Zweifel: Links sauber lassen */ }
+        if (!urlOverride) return href;
         try {
             const url = new URL(href, window.location.href);
             if (APP && APP.key) url.searchParams.set('tournament', APP.key);
@@ -715,10 +734,10 @@ document.addEventListener("DOMContentLoaded", () => {
        STATIC-NAV-Block dort), damit sie mit dem ersten Frame steht und
        bei View Transitions als feststehende Leiste durchläuft. Hier
        fehlen ihr nur noch die Laufzeit-Anteile: der ?tournament=-Parameter
-       auf den Links (gleicher Kanal wie beim dynamischen Bau – hält
-       Admin-/Test-Overrides beim Navigieren stabil) und das Markenlabel
-       aus der echten Config (der statische Stand kommt aus dem
-       Pre-Flight-Spiegel und kann bei Overrides abweichen). */
+       auf den Links (nur bei aktivem URL-Override, siehe
+       withTournamentParam) und das Markenlabel aus der echten Config
+       (der statische Stand kommt aus dem Pre-Flight-Spiegel und kann
+       bei Overrides abweichen). */
     function hydrateStaticNav() {
         document.querySelectorAll("body > nav.navbar a[href], body > nav.bottom-nav a[href]").forEach((link) => {
             const href = link.getAttribute("href");

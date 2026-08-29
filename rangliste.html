@@ -31,8 +31,15 @@
       // - die Shell bringt ihre eigene, persistente Leiste mit.
       try{if(window.self!==window.top)d.setAttribute("data-dt-embedded","1");}catch(eEmb){d.setAttribute("data-dt-embedded","1");}
       // App-Shell-Weiterleitung (Stufe 3): Direktaufrufe der Seiten landen
-      // in der Shell auf derselben Route (Query bleibt erhalten) - die
-      // alte Voll-Navigation existiert fuer Nutzer damit nicht mehr.
+      // in der Shell auf derselben Route - die alte Voll-Navigation
+      // existiert fuer Nutzer damit nicht mehr. Die Query wird dabei
+      // AUFGETEILT: ?tournament/?preview (Turnier-Kontext) und ?shelldebug
+      // gehoeren der Shell selbst und wandern in die app.html-URL - die
+      // Shell reicht den Kontext kontrolliert an jeden Frame weiter
+      // (shell.js). Im Hash wuerde ein Turnier-Parameter einen einzelnen
+      // Frame auf ein anderes Turnier pinnen als die Shell-Leiste
+      // (Durchmischung). Alle uebrigen Parameter (z.B. ?manager=,
+      // ?view=) bleiben auf der Route.
       // Nie im Frame (data-dt-embedded, sonst Shell-in-Shell-Schleife);
       // ?standalone=1 ist der bewusste Notausstieg fuer Debugging.
       // Kaputt-Schalter: hat die Shell in DIESER Sitzung deterministisch
@@ -46,7 +53,15 @@
         // zaehlen als dieselbe Seite.
         if(pf.indexOf(".")===-1)pf+=".html";
         var pk=["index.html","team-builder.html","teams.html","spieleranalyse.html","rangliste.html","punktesystem.html"];
-        if(pk.indexOf(pf)!==-1){location.replace("app.html#/"+pf+location.search);return;}
+        if(pk.indexOf(pf)!==-1){
+          var sq="",rq="";
+          try{
+            var sh=new URLSearchParams(),rt=new URLSearchParams();
+            q.forEach(function(v,n){(n==="tournament"||n==="preview"||n==="shelldebug"?sh:rt).append(n,v);});
+            sq=sh.toString();rq=rt.toString();
+          }catch(eQ){rq=(location.search||"").replace(/^\?/,"");}
+          location.replace("app.html"+(sq?"?"+sq:"")+"#/"+pf+(rq?"?"+rq:""));return;
+        }
       }
       if(/^cl/.test(k)){
         d.style.background="#0a1633";

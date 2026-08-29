@@ -76,7 +76,10 @@ registriert für jedes verfügbare Turnier ausser dem aktiven einen Eintrag
 über `DreamTeamAuthModal.menu` (siehe unten). Der Klick benutzt denselben
 Kanal wie der Admin-Switcher – `setActiveTournament()` legt den
 host-spezifischen Override ab, ein Klick auf das Standard-Turnier räumt ihn
-über `resetToDomainDefault()` wieder weg.
+über `resetToDomainDefault()` wieder weg. Beides startet die App danach
+**komplett neu auf der Root** (ohne Query/Hash) – nie in place, damit
+Shell-Leiste und Inhalt garantiert im selben Turnier booten (siehe
+„Turnier-Wechsel & Durchmischungsschutz" in Abschnitt 7).
 
 `DreamTeamAuthModal` hat dafür zwei Register-Kanäle mit derselben Mechanik:
 
@@ -976,8 +979,10 @@ Verdrahtung:
 - Es leben höchstens 2 Frames (aktueller + letzter, LRU). Beide halten
   ihre Firestore-Meta-Listener – wie zwei offene Tabs heute; beim
   Zurückwechseln ist der Stand dadurch bereits aktuell.
-- Einschränkung: Ansichts-/Turnier-Umschalter im Shell-Dropdown wirken
-  auf bereits geladene Frames erst nach deren Reload (Admin-Werkzeug).
+- Einschränkung: der Ansichts-Umschalter (Vor-/Nach-Start) im Shell-Dropdown
+  wirkt auf bereits geladene Frames erst nach deren Reload (Admin-Werkzeug).
+  Der **Turnier-Wechsel** ist davon ausgenommen – er startet die App komplett
+  neu (siehe unten).
 
 **Stufe 2 (aktiv):** `/` liefert per Netlify-Rewrite (Status 200,
 `force = true` gegen das Shadowing der index.html) die Shell; die
@@ -988,9 +993,12 @@ Manifest-Splash-Farben folgen dem CL-Theme.
 Seite (alte Lesezeichen, geteilte Deep-Links wie `teams.html?manager=…`,
 Homescreen-Installationen mit alter `start_url`) leitet im Pre-Flight
 sofort in die Shell auf dieselbe Route weiter
-(`app.html#/<seite>?<query>`, Query bleibt erhalten) – die alte
-Voll-Navigation existiert für Nutzer damit nicht mehr, und das
-Profil-/Auth-UI lädt beim Seitenwechsel nie wieder neu. Regeln:
+(`app.html#/<seite>?<query>`) – die alte Voll-Navigation existiert für
+Nutzer damit nicht mehr, und das Profil-/Auth-UI lädt beim Seitenwechsel
+nie wieder neu. Die Query wird dabei **aufgeteilt**: `?tournament=`/
+`?preview=` (Turnier-Kontext) und `?shelldebug=` wandern in die
+app.html-URL, alle Seiten-Parameter (`?manager=`, `?view=` …) bleiben auf
+der Hash-Route. Regeln:
 
 - Weitergeleitet wird **nie im Frame** (`data-dt-embedded` – sonst
   Shell-in-Shell-Schleife) und nie auf `app.html` selbst.
@@ -1001,11 +1009,39 @@ Profil-/Auth-UI lädt beim Seitenwechsel nie wieder neu. Regeln:
   das Warmhalten der Frames diese Rolle.
 - Die Seitenliste der Weiterleitung ist per Test deckungsgleich mit
   `PAGE_FILES` in shell.js (`npm run test:staticnav`).
-- Edge (nur Admin/Test): Bei einem **rein per URL-Parameter** erzwungenen
-  Turnier (`?tournament=`/`?preview=` ohne localStorage-Override) laufen
-  die Frames im Parameter-Turnier, die Shell-Leiste zeigt aber Marke/Theme
-  des regulär aufgelösten Turniers. Der normale Wechsel über das
-  Profil-Dropdown (localStorage + Reload) ist davon nicht betroffen.
+
+**Turnier-Wechsel & Durchmischungsschutz.** Es darf nie passieren, dass
+Shell-Leiste und Seiteninhalt verschiedene Turniere zeigen. Dafür greifen
+vier Schichten ineinander (Guards: `npm run test:staticnav`, Abschnitt 6e):
+
+1. **Wechsel = kompletter Neustart.** `setActiveTournament()`,
+   `resetToDomainDefault()` und die Vorschau-Funktionen persistieren die
+   Wahl und rufen `reloadWithCleanUrl()`: `location.replace("./")` auf dem
+   **Top-Fenster** – Root, ohne Query, ohne Hash. Nie in place: In der
+   Shell wäre ein Replace auf dieselbe URL samt `#/`-Hash nur eine
+   Fragment-Navigation, also **gar kein Reload** (genau so fühlte sich der
+   Wechsel früher „tot" an), und ein stehen gebliebener Hash mit
+   `?tournament=` pinnte den Frame aufs alte Turnier (die Durchmischung).
+2. **Links ohne Turnier-Parameter.** `nav.js`, `auth-modal.js` und die
+   Speichern-Weiterleitungen in `team-builder.js` hängen `?tournament=`
+   nur noch an, wenn wirklich ein **URL-Override** die Auflösung treibt
+   (`APP.isUrlOverrideActive()`). Sonst lösen alle Dokumente ambient
+   (localStorage/Domain) auf – identisch, ohne gepinnte Links.
+3. **Die Shell besitzt den Turnier-Kontext.** shell.js entfernt
+   `tournament`/`preview` aus **jeder** Route (Hash, Klicks, interne
+   Frame-Navigationen) und reicht stattdessen die Parameter der eigenen
+   app.html-URL an jeden Frame weiter – Leiste und Frames lösen damit
+   garantiert aus denselben Eingaben auf, auch beim Admin-Deep-Link
+   `/?tournament=…`.
+4. **Wachhund.** Beim Frame-Load vergleicht shell.js `data-tournament`
+   von Shell und Frame (beide Pre-Flights setzen es synchron im Head).
+   Abweichung → Frame einmal bereinigt neu laden; hilft das nicht (z. B.
+   Wechsel in einem zweiten Tab, die Leiste hier ist veraltet) → Neustart
+   auf die Root; bringt auch das nichts (max. 2×/Sitzung,
+   `dreamteam_shell_heal_restarts`) → Kaputt-Schalter + klassische
+   Navigation, denn EIN Dokument kann nicht gemischt sein. Zähler im
+   `?shelldebug=1`-Overlay: „Turnier-Heilungen", „Shell-Turnier" und
+   das Turnier jedes Frames.
 
 ### Back/Forward-Cache (bfcache)
 

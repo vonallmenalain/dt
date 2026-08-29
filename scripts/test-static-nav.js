@@ -148,12 +148,21 @@ if (normalized.length > 1) {
  * ist deckungsgleich mit PAGE_FILES in shell.js, (d) Speculation Rules
  * sind ueberall entfernt (sie prerenderten die alte Vollansicht). */
 {
-  const FORWARD_SNIPPET = 'location.replace("app.html#/"+pf+location.search)';
+  // Die Weiterleitung teilt die Query auf: Turnier-Kontext (?tournament/
+  // ?preview) und ?shelldebug wandern in die app.html-URL, der Rest bleibt
+  // auf der Hash-Route. Ein Turnier-Parameter im Hash wuerde einen Frame
+  // auf ein anderes Turnier pinnen als die Shell-Leiste (Durchmischung).
+  const FORWARD_SNIPPET = 'location.replace("app.html"+(sq?"?"+sq:"")+"#/"+pf+(rq?"?"+rq:""))';
+  const FORWARD_SPLIT = 'n==="tournament"||n==="preview"||n==="shelldebug"';
   let forwardList = null;
 
   for (const page of PAGES) {
     const src = readRoot(page);
     check(`${page}: Shell-Weiterleitung im Pre-Flight`, src.includes(FORWARD_SNIPPET));
+    check(`${page}: Weiterleitung teilt Turnier-Kontext in die Shell-URL ab`,
+      src.includes(FORWARD_SPLIT));
+    check(`${page}: alte Weiterleitung (Query komplett im Hash) entfernt`,
+      !src.includes('location.replace("app.html#/"+pf+location.search)'));
     check(`${page}: Notausstieg ?standalone=1 vorhanden`,
       src.includes('q.get("standalone")!=="1"'));
     check(`${page}: Weiterleitung nie im Frame`,
@@ -303,6 +312,56 @@ if (normalized.length > 1) {
     manifest.start_url === '/');
   check('site.webmanifest: Splash-Farben passen zum CL-Theme',
     manifest.theme_color === '#0a1633' && manifest.background_color === '#0a1633');
+}
+
+/* ── 6e) Turnier-Wechsel: kompletter Neustart, nie Durchmischung ────────── */
+/* Der Wechsel (WM 2026 ansehen / Zurueck zur CL) muss die App IMMER
+ * komplett neu auf der Root starten - nie in place (in der Shell waere ein
+ * Replace auf dieselbe URL samt Hash nur eine Fragment-Navigation, also
+ * GAR KEIN Reload) und nie mit altem Hash (der wuerde den Frame ueber den
+ * ?tournament=-Parameter auf das alte Turnier pinnen: Leiste neu, Inhalt
+ * alt). Dazu: Links tragen den Turnier-Parameter nur noch bei echtem
+ * URL-Override, die Shell entfernt ihn aus jeder Route, reicht ihren
+ * eigenen Kontext an jeden Frame weiter und heilt jede data-tournament-
+ * Abweichung zwischen Leiste und Frame. */
+{
+  const cfg = readRoot('tournament-config.js');
+  check('tournament-config.js: reloadWithCleanUrl startet auf der Root neu',
+    cfg.includes('function reloadWithCleanUrl') && cfg.includes('target.location.replace("./")'));
+  check('tournament-config.js: Neustart zielt im Frame auf das Top-Fenster',
+    cfg.includes('if (window.top && window.top !== window.self) target = window.top;'));
+  const reloadCalls = cfg.split('reloadWithCleanUrl();').length - 1;
+  check('tournament-config.js: alle Wechsel-/Vorschau-Pfade nutzen reloadWithCleanUrl',
+    reloadCalls >= 5, `gefunden: ${reloadCalls} Aufrufe (erwartet: setActiveTournament, resetToDomainDefault, setPreviewTournament, clearPreview, recoverFromBrokenPreview)`);
+  const navJs = readRoot('nav.js');
+  check('nav.js: withTournamentParam nur bei aktivem URL-Override',
+    navJs.includes('if (!urlOverride) return href;')
+    && navJs.includes('APP.isUrlOverrideActive()'));
+
+  const authModal = readRoot('auth-modal.js');
+  const authGuarded = authModal.split('isUrlTournamentOverrideActive()').length - 1;
+  check('auth-modal.js: Dropdown-Links haengen den Turnier-Parameter nur bei URL-Override an',
+    authModal.includes('function isUrlTournamentOverrideActive') && authGuarded >= 2,
+    `gefunden: ${authGuarded} bewachte Stellen (erwartet >= 2)`);
+
+  const teamBuilder = readRoot('team-builder.js');
+  const tbGuarded = teamBuilder.split("typeof APP.isUrlOverrideActive === 'function' && APP.isUrlOverrideActive()").length - 1;
+  check('team-builder.js: Speichern-Weiterleitungen nur mit Parameter bei URL-Override',
+    tbGuarded >= 2, `gefunden: ${tbGuarded} bewachte Stellen (erwartet >= 2)`);
+
+  const shellJs = readRoot('shell.js');
+  check('shell.js: Routen werden von Turnier-Parametern befreit',
+    shellJs.includes("var TOURNAMENT_PARAMS = ['tournament', 'preview']")
+    && shellJs.includes('u.searchParams.delete(name)'));
+  check('shell.js: Shell-Kontext wird an jeden Frame weitergereicht',
+    shellJs.includes('SHELL_CONTEXT_SEARCH')
+    && shellJs.includes('el.src = frameSrc(file, search)'));
+  check('shell.js: Wachhund vergleicht data-tournament von Shell und Frame',
+    shellJs.includes('function frameTournamentKey')
+    && shellJs.includes('frameKey !== shellKey'));
+  check('shell.js: Heilung endet notfalls im kompletten Neustart (mit Bremse)',
+    shellJs.includes('function healRestart')
+    && shellJs.includes("'dreamteam_shell_heal_restarts'"));
 }
 
 /* ── 7) View-Transition-Opt-in und Leisten-Namen in styles.css ──────────── */
