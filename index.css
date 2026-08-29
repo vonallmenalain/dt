@@ -5147,46 +5147,6 @@
             transform: none !important;
             flex: 0 0 var(--card-w);
         }
-        /* Wisch-Hinweis: dezenter Pill am unteren Buehnenrand, atmet leicht
-           und verschwindet beim ersten Griff ins Feld. */
-        .tcc-drag-hint {
-            position: absolute;
-            left: 50%;
-            bottom: 12px;
-            transform: translateX(-50%);
-            z-index: 400;
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            color: rgba(240,246,255,0.92);
-            /* Solide Flaeche statt backdrop-filter: der Blur muesste sonst
-               bei JEDER Feldbewegung darunter neu gefiltert werden -
-               Dauerkosten auf schwachen Geraeten. */
-            background: rgba(8,14,30,0.82);
-            border: 1px solid rgba(255,255,255,0.18);
-            pointer-events: none;
-            transition: opacity 320ms ease, visibility 320ms;
-            /* Endlich statt infinite: nach 4 Atemzuegen ist Ruhe (keine
-               dauerhafte Compositor-Animation). */
-            animation: tcc-hint-breathe 2.6s ease-in-out 4;
-        }
-        .tcc-drag-hint.is-hidden {
-            opacity: 0;
-            visibility: hidden;
-            animation: none;
-        }
-        .tcc-drag-hint-icon { font-size: 0.86rem; line-height: 1; }
-        @keyframes tcc-hint-breathe {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50%      { transform: translateX(-50%) translateY(-3px); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .tcc-drag-hint { animation: none; }
-        }
 
         /* ================================================================
            VOR-START = EINE BILDSCHIRMSEITE (kein Seiten-Scroll)
@@ -5275,10 +5235,6 @@
             pointer-events: auto;
             box-shadow: 0 10px 28px rgba(0,0,0,0.5);
         }
-        /* Wisch-Hinweis ueber den Team-Knopf heben (beide leben unten). */
-        html[data-view="pre"] .tcc-drag-hint {
-            bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-        }
         /* Nur im STANDALONE-Betrieb (Debug, ?standalone=1) liegt die fixe
            Bottom-Nav ueber dem unteren Rand - Knopf und Hinweis darueber
            heben. Im Shell-Frame (Normalfall) endet der Frame bereits ueber
@@ -5286,9 +5242,6 @@
         @media (max-width: 768px) {
             html[data-view="pre"]:not([data-dt-embedded]) .hero-content {
                 bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-            }
-            html[data-view="pre"]:not([data-dt-embedded]) .tcc-drag-hint {
-                bottom: calc(150px + env(safe-area-inset-bottom, 0px));
             }
         }
         /* Dezenter Fokus-Glow. Wechselt NUR im Stillstand (index.js,

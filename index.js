@@ -7642,8 +7642,6 @@
            ========================================================= */
 
         const stage = carousel; // Klarname: das Element ist jetzt die Buehne
-        const hintEl = document.getElementById('tccDragHint');
-        const HINT_SEEN_KEY = 'tcc_field_hint_seen';
 
         /* Responsive Feintuning (gesetzt in applyResponsiveTuning):
            Mobil ist das Feld dicht (12px), auf dem Desktop luftiger
@@ -7685,18 +7683,6 @@
         const now = () => (window.performance && performance.now) ? performance.now() : Date.now();
         const wrap = (v, p) => ((v % p) + p) % p;
 
-        function hideHint(remember) {
-            if (hintEl) hintEl.classList.add('is-hidden');
-            if (remember) {
-                try { sessionStorage.setItem(HINT_SEEN_KEY, '1'); } catch (_) {}
-            }
-        }
-        (() => {
-            try {
-                if (sessionStorage.getItem(HINT_SEEN_KEY) === '1') hideHint(false);
-            } catch (_) {}
-        })();
-
         /* Notfall-Modus: laeuft die Engine auf einen Code-Fehler, wird das
            Feld zum simplen Wisch-Streifen (CSS .tcc-fallback) - die Sektion
            bleibt in jedem Fall benutzbar. */
@@ -7708,7 +7694,6 @@
                 stopMotion();
                 if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
                 stage.classList.add('tcc-fallback');
-                hideHint(false);
                 cells.forEach((c) => { c.el.style.transform = ''; });
             } catch (_) { /* Fallback darf nie selbst werfen */ }
         }
@@ -8121,7 +8106,6 @@
                 drag.claimed = true;
                 try { stage.setPointerCapture(drag.id); } catch (_) {}
                 stage.classList.add('is-grabbing');
-                hideHint(true);
                 mode = 'drag';
             }
 
@@ -8189,7 +8173,6 @@
             if (engineBroken || !cells.length) return;
             e.preventDefault();
             stopMotion();
-            hideHint(true);
             camX += e.deltaX;
             camY += e.deltaY;
             render();
@@ -8235,7 +8218,6 @@
             if (step) {
                 e.preventDefault();
                 stopMotion();
-                hideHint(true);
                 // Zellenweise weiterfedern (bewusste Einzelschritte).
                 springCamTo(camX + step[0], camY + step[1]);
                 return;
