@@ -6,7 +6,11 @@ ganze Saison verfolgen. Die App ist statisch ausgeliefert (Netlify), Daten
 liegen in Firebase Firestore; serverseitige Cron-Jobs aktualisieren
 Spielplan und Punkte automatisch.
 
-Aktuell ist nur die **WM 2026** produktiv konfiguriert.
+Aktuell ist im Browser nur die **WM 2026** produktiv konfiguriert. Die
+**Champions League 2026/27** (`cl2627`) steht bereit, ist aber noch
+`available: false` – erreichbar nur über den Preview-Kanal. Die
+**serverseitigen Cron-Jobs laufen bereits auf der CL**, damit Spielplan und
+Punkte zur Freischaltung fertig sind (siehe „Aktives Turnier auflösen").
 
 ---
 
@@ -64,8 +68,26 @@ Browser-Reihenfolge:
 
 Node-Cron-Scripts:
 
-- `process.env.TOURNAMENT_KEY` (siehe Workflows weiter unten).
-- Sonst Fallback aus `tournament-config.js`.
+1. `process.env.TOURNAMENT_KEY` (siehe Workflows weiter unten) – bei
+   Scheduled Runs bewusst leer, nur für manuelle Einmal-Läufe.
+2. Sonst `resolveServerTournamentKey()`: das Turnier, dessen
+   `defaultActiveFrom` zuletzt erreicht wurde.
+3. Sonst `FALLBACK_TOURNAMENT_KEY`.
+
+**Warum der Server anders auflöst als der Browser.** In Node gibt es keinen
+Hostname, also greifen weder `DOMAIN_TOURNAMENT_MAP` noch der zeitgesteuerte
+Domain-Default – die Cron-Jobs landeten deshalb immer auf dem globalen
+Fallback und liefen nach dem Turnierende weiter auf der WM. Das fiel erst
+auf, als api-football `league=1&season=2026` nicht mehr auslieferte und der
+tägliche Spielplan-Sync ab dem 08.08.2026 jeden Tag mit „API lieferte nur 0
+Spiele" scheiterte. `resolveServerTournamentKey()` benutzt dieselbe
+Kalender-Logik wie der Browser (`defaultActiveFrom`), nur ohne Domain-Filter.
+
+Bewusst **nicht** an `isTournamentAvailable` gekoppelt: der Server muss
+Spielplan und Punkte vorbereiten können, solange das Turnier im Browser noch
+gesperrt ist. Massgeblich ist „regulär verfügbar **oder** als Vorschau
+ladbar" – genau das, was beide Skripte ohnehin akzeptieren. Ein Turnier ohne
+`defaultActiveFrom` (WM 2026, Teststand `cl2526`) kommt hier nie zum Zug.
 
 Ungültige oder nicht verfügbare Keys werden ignoriert und fallen auf
 den Default zurück.
@@ -79,7 +101,7 @@ Schreibzugriffe finden ausschliesslich hier statt, nicht im Browser.
 
 | Script                  | Zweck                                                                     | Cron                          |
 | ----------------------- | ------------------------------------------------------------------------- | ----------------------------- |
-| `auto-points-upload.js` | Punkte berechnen + nach Firestore schreiben, Meta-Version hochzählen.     | alle 5 Minuten im WM-Fenster  |
+| `auto-points-upload.js` | Punkte berechnen + nach Firestore schreiben, Meta-Version hochzählen.     | alle 5 Minuten an CL-Spieltagen |
 | `sync-fixtures.js`      | Fixtures + Venues von api-football laden + nach Firestore schreiben.      | täglich 04:00 UTC (≈ 06:00 CH)|
 | `generate-kader.js`     | `data-<key>.js` aus den Wettbewerbs-Einsätzen einer Saison erzeugen.      | manuell                       |
 | `generate-cl-pool.js`   | `data-<key>.js` einer CL-Saison **vor** der Auslosung erzeugen.           | manuell                       |
@@ -359,6 +381,21 @@ durch Änderungen an anderen Turnieren nicht mitverändern. Er zählt die
 Verdopplung über alle View-Dateien zusammen, damit ein blosser Umzug von
 Code zwischen den Dateien nicht ausschlägt – ein Entfernen oder Ändern
 dagegen schon.
+
+`test:live-schedule` bewacht den Live-Modus: dass die Cron-Jobs in Node auf
+dem richtigen Turnier landen (`resolveServerTournamentKey`), dass **jeder**
+Spieltag aus `MATCH_CALENDAR_CL2627` in einem Cron-Fenster des
+Punkte-Workflows liegt – inklusive beider Anstosszeiten und der 30 Minuten
+Vorlauf, in Sommer- wie Winterzeit – und dass ein spielfreier Tag eben
+**kein** Fenster hat. Die Cron-Zeilen sind zwangsläufig eine handgepflegte
+Kopie des Kalenders (YAML kann nicht rechnen); dieser Test ist die Klammer
+dazwischen. Verschieben sich Termine, wird er rot.
+
+`test:fixture-guard` bewacht den Platzhalter-Guard im Spielplan-Sync: nach
+einer Auslosung liefert api-football zuerst nur die Paarungen und legt alle
+144 Ligaphasen-Spiele auf ein einziges Datum. Dieser Stand darf nicht nach
+Firestore – sonst lägen in der App 144 Spiele auf Spieltag 1 und der
+Live-Monitor öffnete am Anpfiff alle gleichzeitig als Kandidaten.
 
 `test:cl-team-writes` bewacht die CL-Ansicht an zwei Stellen, die nur
 zusammen funktionieren: die **Benennung** (beide CL-Turniere heissen

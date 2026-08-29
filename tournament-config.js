@@ -408,24 +408,31 @@ const APP_CONFIG = (() => {
     },
 
     /* ═════════════════════════════════════════════════════════════
-     * Champions League 2026/27  —  GERÜST (Meilenstein M1)
+     * Champions League 2026/27
      *
-     * Bewusst `available: false` UND `dataReady: false`: dieses Turnier
-     * ist weder per URL-Parameter, Dev-Switcher noch Domain-Mapping
-     * auswählbar, solange keine `data-cl2627.js` existiert und die Flags
-     * nicht auf true stehen. Der Block ist damit vollständig INERT – die
-     * produktive WM 2026 bleibt unberührt.
+     * Im BROWSER noch gesperrt (`available: false`, `dataReady: false`):
+     * weder per URL-Parameter, Dev-Switcher noch Domain-Mapping
+     * auswählbar – nur über den Preview-Kanal (`?preview=cl2627`).
+     * dt.alae.app zeigt bis zur Freischaltung weiter die WM 2026.
      *
-     * Freischaltung (später, ~27.08.2026 nach der Auslosung):
-     *   1. `data-cl2627.js` (Kader der 36 qualifizierten Klubs) deployen.
-     *   2. `available: true`, `dataReady: true` setzen.
-     *   3. `defaultActiveFrom` sorgt dann dafür, dass dt.alae.app ab
-     *      diesem Datum automatisch auf die CL defaultet (die WM bleibt
-     *      per Admin-Switcher / `?tournament=wm2026` erreichbar).
+     * SERVERSEITIG läuft die CL dagegen schon: die Cron-Jobs lösen ihr
+     * Turnier über `defaultActiveFrom` auf (resolveServerTournamentKey),
+     * nicht über `available`. So sind Spielplan und Punkte fertig, bevor
+     * freigeschaltet wird.
      *
-     * Viele Werte unten sind PLATZHALTER (TBD) und werden präzisiert,
-     * sobald Auslosung und Spielplan feststehen. Da der Block inert ist,
-     * hat das keine Laufzeitwirkung.
+     * FREISCHALTUNG — genau zwei Zeilen weiter unten:
+     *   available: true,
+     *   dataReady: true
+     * Ab dann defaultet dt.alae.app auf die CL (`defaultActiveFrom`
+     * 27.08.2026 ist erreicht); die WM bleibt über `?tournament=wm2026`
+     * und den Admin-Switcher erreichbar.
+     *
+     * Vorher prüfen (siehe docs/live-update-prozess.md, Checkliste):
+     *   • `Spiele CL 2026-27` enthält den echten Spielplan (144
+     *     Ligaphasen-Spiele auf acht Terminen, nicht alle auf einem).
+     *   • Der Team-Bau muss VOR dem ersten Anpfiff möglich sein – die
+     *     Firestore-Rules lassen neue CL-Teams nur bis
+     *     2026-09-08 19:00 UTC zu (= DREAMTEAM_START).
      * ═════════════════════════════════════════════════════════════ */
     cl2627: {
       key: "cl2627",
@@ -444,7 +451,8 @@ const APP_CONFIG = (() => {
       competitionName: "UEFA Champions League",
       timezone: "Europe/Zurich",
 
-      // NOCH NICHT freigeschaltet – siehe Kommentar oben.
+      // NOCH NICHT freigeschaltet – beide auf true setzen, siehe
+      // Kommentar oben („FREISCHALTUNG").
       available: false,
       dataReady: false,
 

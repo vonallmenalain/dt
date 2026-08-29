@@ -50,7 +50,11 @@
  *  Exit-Codes:
  *    0  – Lauf abgeschlossen (Spielplan synchronisiert oder Dry-Run ok).
  *    1  – Konfigurationsfehler / nicht behebbar.
- *    2  – API/Netzwerkfehler oder Firestore-Schreibfehler.
+ *    2  – API/Netzwerkfehler, Firestore-Schreibfehler oder ein Spielplan,
+ *         der die Sicherheits-Guards nicht besteht (zu wenige Spiele,
+ *         Rueckschritt, fehlende Paarungen, Platzhalter-Kalender). Der Lauf
+ *         hat dann nichts geschrieben; der naechste taegliche Lauf versucht
+ *         es erneut.
  * ============================================================================= */
 
 'use strict';
