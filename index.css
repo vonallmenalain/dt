@@ -5045,9 +5045,32 @@
                Seite scrollt selbst nicht (html[data-view="pre"], unten). */
             touch-action: none;
             cursor: grab;
-            /* Randlos bis an alle Kanten - bewusst KEINE Maske und kein
-               Radius mehr: die frueheren Fade-Raender wirkten auf kleinen
+            /* Mobil randlos bis an alle Kanten - bewusst KEINE Maske und
+               kein Radius: die frueheren Fade-Raender wirkten auf kleinen
                Bildschirmen wie leere Luecken an den Seiten. */
+        }
+        /* Desktop: Karten links/rechts sanft AUSBLENDEN (Wunsch: weniger
+           voll) - der sichtbare Kern ist auf ~1280px gedeckelt, auf sehr
+           breiten Monitoren waechst nur der Fade-Bereich. Nebeneffekt:
+           es sind nie mehr Karten sichtbar als es Spieler gibt (der
+           Duplikat-Schutz in index.js greift auf dem ganzen Fenster). */
+        @media (min-width: 900px) {
+            .tcc-stage {
+                /* Sichtkern ~1080px + feste Fade-Rampe (180px): auf sehr
+                   breiten Monitoren waechst NUR der schwarze Rand, nie das
+                   Sichtfenster - so bleibt der Duplikat-Abstand des Musters
+                   (8 Spalten ≈ 1880px) immer groesser als das Fenster. */
+                -webkit-mask-image: linear-gradient(90deg,
+                    transparent max(0%, calc(50% - 720px)),
+                    #000 max(10%, calc(50% - 540px)),
+                    #000 min(90%, calc(50% + 540px)),
+                    transparent min(100%, calc(50% + 720px)));
+                mask-image: linear-gradient(90deg,
+                    transparent max(0%, calc(50% - 720px)),
+                    #000 max(10%, calc(50% - 540px)),
+                    #000 min(90%, calc(50% + 540px)),
+                    transparent min(100%, calc(50% + 720px)));
+            }
         }
         .tcc-stage.is-grabbing { cursor: grabbing; }
         .tcc-stage:focus-visible {
@@ -5071,6 +5094,13 @@
             transform: translate3d(-200vw, -200vh, 0); /* geparkt bis zur ersten Positionierung */
             contain: layout style;
         }
+        /* Nur SICHTBARE Zellen werden zu Compositor-Layern promotet
+           (index.js setzt .is-on beim Entparken): ihre Transforms und die
+           Dimm-Opazitaet laufen dann ohne Re-Raster/Repaint pro Frame -
+           das war die Ruckel-Quelle auf Android-Geraeten. Geparkte Zellen
+           bleiben unpromotet und kosten keinen GPU-Speicher. */
+        .tcc-cell.is-on { will-change: transform; }
+        .tcc-cell.is-on .tcc-card-dim { will-change: opacity; }
         .tcc-player-card {
             position: absolute;
             inset: 0;
