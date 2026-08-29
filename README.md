@@ -895,6 +895,19 @@ beim Entwickeln sofort sichtbar.
 - **Touch-Feedback:** Nav-Links, Pills und Toggles reagieren sofort auf
   den Tap (`:active`-Scale, eigener Ersatz für das graue Tap-Highlight).
 
+### Prerendering (Speculation Rules, nur Chromium)
+
+Jede Hauptseite trägt einen identischen `speculationrules`-Block im
+`<head>`: Die vier meistgewechselten Seiten (Dashboard, Rangliste,
+Analyse, Teams) werden **prerendert**, sobald ein Link angefasst wird
+(`eagerness: moderate` = Hover bzw. Touch-Down); Punktesystem und
+Team-Builder werden nur geprefetcht. Beim eigentlichen Tap ist die
+Zielseite samt komplettem JS-Boot bereits fertig gerendert – auf
+Android-Chrome fühlt sich der Wechsel damit augenblicklich an.
+Safari/Firefox ignorieren den Block und fallen auf den SW-Cache-Pfad
+zurück. Firestore-Reads beim Prerender deckelt der Session-Meta-Cache
+(`cache.js`, 30 s). Konsistenz-Guard: Teil von `npm run test:staticnav`.
+
 ### Drittanbieter-Bibliotheken: lokal & gepinnt
 
 - **Chart.js 4.5.0** liegt als `chart.umd.min.js` im Repo (vorher

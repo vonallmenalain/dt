@@ -44,6 +44,38 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="view-transition" content="same-origin">
+    <!-- ===== SPECULATION RULES (nur Chromium) =====
+         Prerendert die meistgewechselten Seiten, sobald ein Link angefasst
+         wird (eagerness moderate = Hover bzw. Touch-Down): Beim eigentlichen
+         Tap ist die Zielseite samt JS-Boot bereits fertig gerendert - der
+         Wechsel fuehlt sich augenblicklich an. Punktesystem/Team-Builder
+         werden nur geprefetcht (HTML in den Cache, kein voller Render).
+         Die URL-Pattern decken Query-Varianten ab (?tournament=..., Suche =
+         Wildcard). Safari/Firefox ignorieren den Block einfach; Firestore-
+         Reads beim Prerender deckelt der Session-Meta-Cache (cache.js, 30 s).
+         Der Block ist auf allen Seiten identisch - scripts/test-static-nav.js
+         prueft das. -->
+    <script type="speculationrules">
+    {
+      "prerender": [{
+        "where": { "or": [
+          { "href_matches": "/" },
+          { "href_matches": "/index.html" },
+          { "href_matches": "/rangliste.html" },
+          { "href_matches": "/spieleranalyse.html" },
+          { "href_matches": "/teams.html" }
+        ]},
+        "eagerness": "moderate"
+      }],
+      "prefetch": [{
+        "where": { "or": [
+          { "href_matches": "/punktesystem.html" },
+          { "href_matches": "/team-builder.html" }
+        ]},
+        "eagerness": "moderate"
+      }]
+    }
+    </script>
     <meta name="description" content="DreamTeam Teams – Alle Teilnehmer-Teams auf einen Blick.">
     <title>DreamTeam - Teams</title>
     <meta name="theme-color" content="#28a745">

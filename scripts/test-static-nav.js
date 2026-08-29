@@ -131,6 +131,50 @@ if (normalized.length > 1) {
     navJs.includes('insertAdjacentHTML("afterbegin", navHTML)'));
 }
 
+/* ── 6b) Speculation Rules: identisch, gueltiges JSON, richtige Ziele ───── */
+{
+  const ruleBlocks = {};
+  for (const page of PAGES) {
+    const src = readRoot(page);
+    const m = src.match(/<script type="speculationrules">\s*([\s\S]*?)\s*<\/script>/);
+    check(`${page}: speculationrules-Block vorhanden`, !!m);
+    if (m) ruleBlocks[page] = m[1];
+  }
+
+  const entries = Object.entries(ruleBlocks);
+  if (entries.length) {
+    const [refPage, refRules] = entries[0];
+    for (const [page, rules] of entries.slice(1)) {
+      check(`${page}: speculationrules identisch mit ${refPage}`, rules === refRules);
+    }
+
+    let parsed = null;
+    try {
+      parsed = JSON.parse(refRules);
+    } catch (err) {
+      check('speculationrules: gueltiges JSON', false, err.message);
+    }
+    if (parsed) {
+      const flatten = (list) => (list || []).flatMap((rule) => (rule.where && rule.where.or || [])
+        .map((c) => c.href_matches).filter(Boolean));
+      const prerender = flatten(parsed.prerender);
+      const prefetch = flatten(parsed.prefetch);
+      // Die vier meistgewechselten Seiten werden prerendert, die uebrigen
+      // beiden Nav-Ziele geprefetcht – zusammen decken sie alle navItems ab.
+      ['/', '/index.html', '/rangliste.html', '/spieleranalyse.html', '/teams.html'].forEach((p) => {
+        check(`speculationrules: prerender enthaelt ${p}`, prerender.includes(p));
+      });
+      ['/punktesystem.html', '/team-builder.html'].forEach((p) => {
+        check(`speculationrules: prefetch enthaelt ${p}`, prefetch.includes(p));
+      });
+      (parsed.prerender || []).concat(parsed.prefetch || []).forEach((rule) => {
+        check('speculationrules: eagerness moderate (Hover/Touch-Down, nicht eager)',
+          rule.eagerness === 'moderate');
+      });
+    }
+  }
+}
+
 /* ── 7) View-Transition-Opt-in und Leisten-Namen in styles.css ──────────── */
 {
   const styles = readRoot('styles.css');
