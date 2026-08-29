@@ -1399,10 +1399,27 @@ const APP_CONFIG = (() => {
     return String(a.key).localeCompare(String(b.key), "de");
   }
 
+  /* Runden-Text der Ligaphase eines Ligaphasen-Turniers (CL).
+   *
+   * api-football ist beim Namen der Runde nicht stabil: die Saison 2025/26
+   * lief unter "League Stage - 1".."League Stage - 8", die 2026/27 kam nach
+   * der Auslosung zunaechst als schlichtes "Group Stage" ohne Spieltag-Nummer
+   * herein. Beides meint dieselbe Ligaphase, deshalb erkennt diese Funktion
+   * auch die Gruppen-Schreibweise.
+   *
+   * Konsumiert wird sie ausschliesslich in Ligaphasen-Kontexten
+   * (computeTournamentLeagueStatus, getLeagueKnockoutRoundKey, CL-Spielkacheln
+   * auf der Startseite). Fuer die WM ist das ohne Wirkung: dort laeuft der
+   * Gruppen-Pfad (computeTournamentNationStatus), und
+   * getLeagueKnockoutRoundKey lieferte fuer "Group Stage - 1" schon vorher
+   * null. Ohne diese Toleranz landen bei einem "Group Stage"-Spielplan alle
+   * 144 Ligaphasen-Spiele im K.-o.-Zweig: die Ligatabelle bliebe leer und der
+   * Turnierbaum voller Phantom-Paarungen. */
   function isLeaguePhaseRound(roundText) {
     const v = String(roundText || "").trim().toLowerCase();
     if (!v) return false;
-    return /league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v);
+    if (/league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v)) return true;
+    return /group\s*(stage|phase)|gruppenphase|vorrunde/.test(v);
   }
 
   // Qualifikations-/Vorrunde einer Ligaphasen-Competition (CL): alle Runden
@@ -1794,6 +1811,45 @@ const APP_CONFIG = (() => {
       }
     });
     return bestKey;
+  }
+
+  /**
+   * Turnier für die SERVER-Jobs (GitHub-Actions-Cron: Spielplan-Sync und
+   * Auto-Punkte-Upload).
+   *
+   * Node hat keinen Hostname, `resolveScheduledDomainKey` greift dort also
+   * nie und die Cron-Jobs liefen bisher immer auf `FALLBACK_TOURNAMENT_KEY`
+   * – nach der WM also weiter auf ein Turnier, das die API gar nicht mehr
+   * ausliefert. Deshalb dieselbe Kalender-Logik ohne Domain-Filter: es
+   * gewinnt das Turnier mit dem jüngsten bereits erreichten
+   * `defaultActiveFrom`.
+   *
+   * Bewusst NICHT auf `isTournamentAvailable` eingeschränkt: der Server muss
+   * Spielplan und Punkte schon vorbereiten können, solange das Turnier im
+   * Browser noch gesperrt ist (`available: false`). Massgeblich ist deshalb
+   * „regulär verfügbar ODER als Vorschau ladbar" – exakt das, was
+   * sync-fixtures.js und auto-points-upload.js ohnehin akzeptieren. Ein
+   * Turnier ohne `defaultActiveFrom` (WM 2026, Teststand cl2526) kommt hier
+   * nie zum Zug.
+   *
+   * @param {number} [nowMs]  Default: Date.now() (für Tests injizierbar).
+   */
+  function resolveServerTournamentKey(nowMs) {
+    const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+
+    let bestKey = null;
+    let bestFrom = -Infinity;
+    Object.keys(TOURNAMENTS).forEach((key) => {
+      if (!isTournamentAvailable(key) && !isTournamentPreviewable(key)) return;
+      const t = TOURNAMENTS[key];
+      const fromMs = t.defaultActiveFrom ? new Date(t.defaultActiveFrom).getTime() : NaN;
+      if (!Number.isFinite(fromMs) || now < fromMs) return;
+      if (fromMs > bestFrom) {
+        bestFrom = fromMs;
+        bestKey = key;
+      }
+    });
+    return bestKey || FALLBACK_TOURNAMENT_KEY;
   }
 
   /**
@@ -2431,7 +2487,15 @@ const APP_CONFIG = (() => {
     isUrlOverrideActive,
     resolveTournamentKey,
     resolveScheduledDomainKey,
+    resolveServerTournamentKey,
     getDomainTournamentKey,
+
+    // Turnier-Key fuer die serverseitigen Cron-Jobs (siehe
+    // resolveServerTournamentKey). Im Browser bewusst ungenutzt.
+    get serverTournamentKey() {
+      return resolveServerTournamentKey();
+    },
+
     resetToDomainDefault,
     clearDevOverride,
 
@@ -2511,6 +2575,12 @@ const APP_CONFIG = (() => {
 
     // Kanonischer K.-o.-Runden-Key ("playoffs" | "r16" | "qf" | "sf" |
     // "final") eines Fixtures/Runden-Texts; null für Ligaphase, Qualifikation
+    // Ligaphasen-Runde eines Ligaphasen-Turniers? Siehe isLeaguePhaseRound
+    // (kennt sowohl "League Stage - 3" als auch das blanke "Group Stage").
+    isLeaguePhaseRound(fixtureOrRound) {
+      return isLeaguePhaseRound(readFixtureRoundText(fixtureOrRound));
+    },
+
     // und unbekannte Runden. Siehe getLeagueKnockoutRoundKey.
     leagueKnockoutRoundKey(fixtureOrRound) {
       return getLeagueKnockoutRoundKey(readFixtureRoundText(fixtureOrRound));

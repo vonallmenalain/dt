@@ -1,7 +1,7 @@
 name: Auto Punkte-Upload
 
 # Vollautomatisches Punkte-Update für das aktive Turnier laut
-# tournament-config.js. Läuft während des WM-Zeitraums alle 5
+# tournament-config.js. Läuft an den Spieltagen des Turniers alle 5
 # Minuten als GitHub-Cron-Job (zusätzlich jederzeit manuell auslösbar
 # via "Run workflow"). Innerhalb des Skripts gibt es einen Pre-Check,
 # der prüft, ob im aktuellen Tick überhaupt ein Spiel im Live-/Catch-up-
@@ -15,9 +15,27 @@ name: Auto Punkte-Upload
 # Das ist bewusst robuster als sich darauf zu verlassen, dass GitHub den
 # Cron wirklich alle 5 Minuten startet.
 #
-# WICHTIG: Der Cron unten ist bewusst auf den WM-Zeitraum
-# (11.06.2026 – 21.07.2026) beschränkt, damit nicht das ganze Jahr
-# alle 5 Minuten Scheduled-Runs starten und Firestore-Reads erzeugen.
+# WELCHES TURNIER: Scheduled Runs setzen TOURNAMENT_KEY nicht. Das Skript
+# nimmt dann APP_CONFIG.serverTournamentKey – das Turnier, dessen
+# `defaultActiveFrom` zuletzt erreicht wurde (seit 27.08.2026: cl2627).
+# Nicht am Domain-Mapping: in Node gibt es keinen Hostname.
+#
+# WICHTIG: Der Cron unten ist bewusst auf die SPIELTAGE der Champions
+# League 2026/27 beschränkt, damit nicht das ganze Jahr alle 5 Minuten
+# Scheduled-Runs starten und Firestore-Reads erzeugen. Quelle der Daten
+# ist MATCH_CALENDAR_CL2627 in tournament-config.js; die Cron-Zeilen sind
+# eine handgepflegte Kopie davon (YAML kann nicht rechnen).
+# `scripts/test-live-schedule.js` (npm run test:live-schedule) prüft, dass
+# jeder Spieltag aus dem Kalender von einem Cron-Fenster abgedeckt ist –
+# wenn sich Termine verschieben, wird der Test rot.
+#
+# Die Fenster laufen 15:00–23:59 UTC am Spieltag. Das deckt beide
+# Anstosszeiten in beiden Zeitzonen ab (18:45/21:00 Schweizer Zeit =
+# 16:45/19:00 UTC im Sommer, 17:45/20:00 UTC im Winter) inklusive der
+# 30 Minuten Vorlauf. Der Final-Recheck nach Mitternacht braucht keine
+# eigenen Cron-Zeilen: ein Run, der abends startet, monitort mit seiner
+# langen Session (bis 350 Minuten) über den Abpfiff hinaus.
+#
 # Zusätzlich gibt es im Skript einen harten Guard auf Basis von
 # AUTO_POINTS_FROM / AUTO_POINTS_UNTIL aus tournament-config.js, der
 # außerhalb des Turnierfensters sofort exit 0 macht – ohne Firebase-
@@ -42,15 +60,23 @@ on:
       - "scripts/points-public-cache.js"
       - "tournament-config.js"
       - "data-wm2026.js"
+      - "data-cl2627.js"
       - "position-overrides.js"
   schedule:
-    # Alle 5 Minuten vom 11.–30. Juni 2026 (WM-Gruppenphase + KO-Start).
+    # Champions League 2026/27 – Ligaphase (Spieltage 1–8).
     # Bewusst bei Minute 2 statt 0 gestartet, weil GitHub Cron-Jobs am
     # Stundenwechsel haeufiger verzoegert oder auslaesst.
-    - cron: "2-59/5 * 11-30 6 *"
-    # Alle 5 Minuten vom 01.–21. Juli 2026 (KO-Runden + Sicherheitsbuffer
-    # nach dem Finale am 19.07.2026).
-    - cron: "2-59/5 * 1-21 7 *"
+    - cron: "2-59/5 15-23 8-10 9 *"             # Spieltag 1: 08.–10.09.2026
+    - cron: "2-59/5 15-23 13-14,20-21 10 *"     # Spieltag 2+3: 13./14. + 20./21.10.
+    - cron: "2-59/5 15-23 3-4,24-25 11 *"       # Spieltag 4+5: 03./04. + 24./25.11.
+    - cron: "2-59/5 15-23 8-9 12 *"             # Spieltag 6: 08./09.12.2026
+    - cron: "2-59/5 15-23 19-20,27 1 *"         # Spieltag 7+8: 19./20. + 27.01.2027
+    # Champions League 2026/27 – K.-o.-Phase.
+    - cron: "2-59/5 15-23 16-17,23-24 2 *"      # K.-o.-Playoffs Hin-/Rueckspiele
+    - cron: "2-59/5 15-23 9-10,16-17 3 *"       # Achtelfinale Hin-/Rueckspiele
+    - cron: "2-59/5 15-23 6-7,13-14,27-28 4 *"  # Viertelfinale + Halbfinale Hinspiele
+    - cron: "2-59/5 15-23 4-5 5 *"              # Halbfinale Rueckspiele
+    - cron: "2-59/5 15-23 5 6 *"                # Final: 05.06.2027
   workflow_dispatch:
     inputs:
       force_run:

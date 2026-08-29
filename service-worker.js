@@ -41,7 +41,7 @@
  *  App-Shell mit cache:'no-cache' frisch, aktiviert sich per skipWaiting,
  *  und nav.js lädt die Seite beim controllerchange einmal neu.
  * ============================================================================= */
-const CACHE_VERSION = 'v2026-08-19-view-mode-44';
+const CACHE_VERSION = 'v2026-08-29-cl-live-45';
 const NAV_TIMEOUT_MS = 2500;
 const ASSET_TIMEOUT_MS = 3000;
 const SW_HOSTNAME = (self.location && self.location.hostname) || 'unknown';

@@ -5582,6 +5582,19 @@
             : null;
     }
 
+    // Ligaphasen-Runde? Zentral in tournament-config.js, damit nicht jede
+    // View ihre eigene Runden-Liste pflegt. Fallback auf die alte lokale
+    // Regex, falls ein Client noch eine aeltere tournament-config.js aus dem
+    // Service-Worker-Cache hat (dann fehlt bloss „Group Stage").
+    function clcmIsLeaguePhaseRound(roundText) {
+        const cfg = window.APP_CONFIG;
+        if (cfg && typeof cfg.isLeaguePhaseRound === 'function') {
+            return cfg.isLeaguePhaseRound(roundText);
+        }
+        return /league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/
+            .test(String(roundText || '').toLowerCase());
+    }
+
     function clcmRoundText(match) {
         return String((match && (match.round || (match.league && match.league.round))) || '').trim();
     }
@@ -5592,8 +5605,11 @@
         const v = String(roundText || '').toLowerCase();
         if (!v) return null;
 
-        // Ligaphase: „League Stage - 3", „Regular Season - 3", „Spieltag 3", …
-        if (/league\s*(stage|phase)|liga.?phase|regular season|matchday|spieltag/.test(v)) {
+        // Ligaphase: „League Stage - 3", „Regular Season - 3", „Spieltag 3",
+        // und – so nennt api-football die Ligaphase 2026/27 – „Group Stage".
+        // Die Erkennung liegt zentral in tournament-config.js, damit nicht
+        // jede View ihre eigene Runden-Liste pflegt.
+        if (clcmIsLeaguePhaseRound(roundText)) {
             const n = (v.match(/(\d+)\s*$/) || [])[1];
             return { label: n ? `Ligaphase · Spiel ${n}` : 'Ligaphase', twoLeg: false, key: 'lp' };
         }

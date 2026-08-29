@@ -28,9 +28,9 @@
  *  oder lokalen Tests; Scheduled Runs nutzen bei leeren Werten die Defaults):
  *    RAPIDAPI_KEY              RapidAPI / API-Football Key (zwingend)
  *    FIREBASE_SERVICE_ACCOUNT  Service-Account-JSON als String (zwingend)
- *    TOURNAMENT_KEY            Optional. Default = Fallback aus
- *                              tournament-config.js. Aktuell ist nur
- *                              `wm2026` produktiv konfiguriert.
+ *    TOURNAMENT_KEY            Optional. Default = das Turnier, das laut
+ *                              Kalender gerade laeuft (APP_CONFIG.
+ *                              serverTournamentKey).
  *    DRY_RUN                   Falls `1`/`true`: nichts schreiben, nur loggen.
  *                              Gibt zusaetzlich einen Spielplan-Report je
  *                              Runde aus (Termine, Anstosszeiten, Paarungs-
@@ -41,6 +41,11 @@
  *                              auslassen (spart API-Quota).
  *    SKIP_PURGE                Falls `1`/`true`: bereits gespeicherte Spiele
  *                              vor Turnierstart NICHT löschen.
+ *    ALLOW_PLACEHOLDER_SCHEDULE
+ *                              Falls `1`/`true`: einen Ligaphasen-Spielplan
+ *                              auch dann schreiben, wenn die API noch keinen
+ *                              Spieltag-Kalender liefert (alle Spiele an
+ *                              einem Datum). Siehe assertFixtureSyncIsSafe.
  *
  *  Exit-Codes:
  *    0  – Lauf abgeschlossen (Spielplan synchronisiert oder Dry-Run ok).
@@ -368,7 +373,20 @@ async function deleteFixtureDocuments(db, tournament, docIds, opts) {
   return totalDeleted;
 }
 
-async function assertFixtureSyncIsSafe(db, tournament, fixtures, existingInScopeCount) {
+/* Anzahl unterschiedlicher Anstoss-Tage der Ligaphasen-Spiele. Basis fuer den
+ * Platzhalter-Guard unten. */
+function countLeaguePhaseKickoffDates(fixtures) {
+  const dates = new Set();
+  (fixtures || []).forEach(fixture => {
+    const round = fixture && fixture.league && fixture.league.round;
+    if (!APP_CONFIG.isLeaguePhaseRound(round)) return;
+    const iso = cleanText(fixture && fixture.fixture && fixture.fixture.date);
+    if (iso) dates.add(iso.slice(0, 10));
+  });
+  return dates.size;
+}
+
+async function assertFixtureSyncIsSafe(db, tournament, fixtures, existingInScopeCount, opts) {
   const fixtureCount = getFixtureCountConfig(tournament);
   const minPublished = fixtureCount.minPublished;
   const incomingCount = Array.isArray(fixtures) ? fixtures.length : 0;
@@ -399,6 +417,42 @@ async function assertFixtureSyncIsSafe(db, tournament, fixtures, existingInScope
         `Fixture-Sync abgebrochen: API-Daten wirken unvollstaendig ` +
         `(${knownSlots.names}/${requiredKnownSlots} Teamnamen, ` +
         `${knownSlots.logos}/${requiredKnownSlots} Logos fuer die publizierten Spiele).`
+      );
+    }
+  }
+
+  // Platzhalter-Spielplan erkennen (nur Ligaphasen-Turniere).
+  //
+  // Nach der Auslosung stehen bei api-football zuerst nur die PAARUNGEN; der
+  // Spieltag-Kalender folgt ein paar Tage spaeter. Bis dahin liegen alle 144
+  // Ligaphasen-Spiele auf EINEM Datum (CL 2026/27: alle auf 2026-09-08 21:00,
+  // Runde "Group Stage" statt "League Stage - 1".."- 8", keine Venue-IDs).
+  // Dieser Stand darf nicht nach Firestore: die App wuerde 144 Spiele auf den
+  // ersten Spieltag legen, "naechstes Spiel" und Countdown waeren falsch, und
+  // der Live-Monitor wuerde am 8.9. alle 144 Partien gleichzeitig als
+  // Kandidaten oeffnen.
+  //
+  // 36 Klubs x 8 Spiele verteilen sich zwingend auf mindestens 8 Spieltage,
+  // also auch auf mindestens 8 verschiedene Anstoss-Tage. Weniger heisst: der
+  // Kalender ist noch nicht publiziert. Der taegliche Sync zieht ihn nach,
+  // sobald er da ist.
+  const leaguePhase = (tournament && tournament.leaguePhase) || null;
+  const requiredKickoffDates = Number(leaguePhase && leaguePhase.matchesPerTeam) || 0;
+  if (tournament && tournament.structure === 'league' && requiredKickoffDates > 0) {
+    const kickoffDates = countLeaguePhaseKickoffDates(fixtures);
+    if (kickoffDates > 0 && kickoffDates < requiredKickoffDates) {
+      const hint = 'Opt-out fuer einen bewussten Einmal-Lauf: ALLOW_PLACEHOLDER_SCHEDULE=1.';
+      if (!opts || !opts.allowPlaceholderSchedule) {
+        throw new Error(
+          `Fixture-Sync abgebrochen: die Ligaphase liegt auf nur ${kickoffDates} ` +
+          `Anstoss-Tag(en), erwartet sind mindestens ${requiredKickoffDates}. ` +
+          `api-football hat nach der Auslosung offenbar erst die Paarungen und ` +
+          `noch keinen Spieltag-Kalender. ${hint}`
+        );
+      }
+      logWarn(
+        `ALLOW_PLACEHOLDER_SCHEDULE aktiv – Spielplan mit nur ${kickoffDates} ` +
+        `Anstoss-Tag(en) wird trotzdem geschrieben.`
       );
     }
   }
@@ -677,7 +731,7 @@ async function runSync(db, tournament, opts) {
   }
 
   const existingScope = await readExistingFixtureScope(db, tournament);
-  await assertFixtureSyncIsSafe(db, tournament, allFixtures, existingScope.inScopeIds.length);
+  await assertFixtureSyncIsSafe(db, tournament, allFixtures, existingScope.inScopeIds.length, opts);
 
   // Eindeutige Venues sammeln und (optional) laden.
   const uniqueVenueIds = new Set();
@@ -793,7 +847,10 @@ async function runSync(db, tournament, opts) {
  * ───────────────────────────────────────────────────────────────────────────── */
 async function main() {
   const envKey = (process.env.TOURNAMENT_KEY || '').trim().toLowerCase();
-  const tournamentKey = envKey || APP_CONFIG.activeTournamentKey;
+  // Kein Hostname in Node: der aktive Turnier-Key kommt aus dem Kalender
+  // (defaultActiveFrom), nicht aus dem Domain-Mapping. Siehe
+  // resolveServerTournamentKey in tournament-config.js.
+  const tournamentKey = envKey || APP_CONFIG.serverTournamentKey;
   const tournament = TOURNAMENTS[tournamentKey];
 
   // Sync akzeptiert regulär verfügbare UND als Vorschau ladbare Turniere
@@ -822,14 +879,16 @@ async function main() {
     dryRun: envBool('DRY_RUN', false),
     skipVenues: envBool('SKIP_VENUES', false),
     skipEvents: envBool('SKIP_EVENTS', false),
-    skipPurge: envBool('SKIP_PURGE', false)
+    skipPurge: envBool('SKIP_PURGE', false),
+    allowPlaceholderSchedule: envBool('ALLOW_PLACEHOLDER_SCHEDULE', false)
   };
 
   logInfo(`Starte Spielplan-Sync für ${tournament.shortLabel} (${tournament.key}).` +
     (opts.dryRun ? ' [DRY_RUN]' : '') +
     (opts.skipVenues ? ' [SKIP_VENUES]' : '') +
     (opts.skipEvents ? ' [SKIP_EVENTS]' : '') +
-    (opts.skipPurge ? ' [SKIP_PURGE]' : ''));
+    (opts.skipPurge ? ' [SKIP_PURGE]' : '') +
+    (opts.allowPlaceholderSchedule ? ' [ALLOW_PLACEHOLDER_SCHEDULE]' : ''));
 
   let db;
   try {
@@ -851,8 +910,19 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  logError('Unerwarteter Fehler: ' + (err && err.message || err));
-  if (err && err.stack) console.error(err.stack);
-  process.exit(2);
-});
+if (require.main === module) {
+  main().catch(err => {
+    logError('Unerwarteter Fehler: ' + (err && err.message || err));
+    if (err && err.stack) console.error(err.stack);
+    process.exit(2);
+  });
+}
+
+// Fuer Tests (scripts/test-fixture-guard.js). Der Lauf oben wird durch die
+// require.main-Guard nicht ausgeloest, wenn diese Datei importiert wird.
+module.exports = {
+  assertFixtureSyncIsSafe,
+  countLeaguePhaseKickoffDates,
+  summarizeFixturePlan,
+  splitFixturesByTournamentScope
+};
