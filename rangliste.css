@@ -770,26 +770,43 @@
         /* =====================================================
            LOADING STATE
            ===================================================== */
+        /* Skeleton-Zustand in der Form des echten Layouts (Podium oben,
+           Listenzeilen darunter) – vorher Spinner + Text. Fehlermeldungen
+           ersetzen den Inhalt per innerHTML und erben die Textstile. */
         #loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            padding: 80px 20px;
+            display: block;
+            padding: 8px 0 40px;
             color: var(--text-muted);
             font-size: 1rem;
             font-weight: 600;
+            text-align: center;
             animation: fadeSlideDown 0.5s ease both;
         }
 
-        #loading::before {
-            content: "";
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(var(--rgb-green-1), 0.2);
-            border-top-color: var(--green-main);
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
+        .rl-skel-podium {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 14px;
+            max-width: 520px;
+            margin: 0 auto 22px;
+        }
+
+        .rl-skel-podium .skel {
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .rl-skel-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .rl-skel-rows .skel {
+            border-radius: 12px;
         }
 
         @keyframes spin {

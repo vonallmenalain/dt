@@ -2289,7 +2289,11 @@
         }
     });
 
-    window.addEventListener('beforeunload', () => {
+    /* pagehide statt beforeunload: bfcache-tauglich (siehe rangliste.js).
+       Bei persisted=true bleiben Listener und Countdown bewusst aktiv –
+       beim Restore uebernehmen die Resume-Pfade in cache.js. */
+    window.addEventListener('pagehide', (event) => {
+        if (event.persisted) return;
         if (typeof metaUnsubscribe === 'function') metaUnsubscribe();
         stopLockCountdown();
         if (typeof _autoRevealCancel === 'function') _autoRevealCancel();

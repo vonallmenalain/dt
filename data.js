@@ -37,6 +37,28 @@
   var fileName = "data-wm2026.js";
   var activeKey = "wm2026";
 
+  // Asset-Version dieser data.js-Instanz: kommt aus dem `?v=`-Parameter des
+  // eigenen <script>-Tags (beim Deploy gestempelt, siehe
+  // scripts/build-asset-versions.js). Alle hier synchron nachgeladenen
+  // Dateien (Kaderdatei + Overrides) erben sie – so treffen sie im Service
+  // Worker denselben cache-first-Pfad wie die restliche App-Shell und
+  // muessen beim Seitenwechsel nicht mehr uebers Netz revalidiert werden.
+  // Der Preload im <head> (Pre-Flight) haengt denselben Suffix an, damit
+  // Preload und echter Request dieselbe URL treffen.
+  var vSuffix = "";
+  try {
+    var ownScript = document.currentScript;
+    var vMatch = ownScript && ownScript.src ? ownScript.src.match(/[?&]v=([^&]+)/) : null;
+    if (vMatch && vMatch[1]) {
+      // Auf URL-sichere Zeichen einschränken – der Wert landet unkodiert
+      // in einem document.write('<script src=…>').
+      var vSafe = vMatch[1].replace(/[^0-9A-Za-z._-]/g, "");
+      if (vSafe) vSuffix = "?v=" + vSafe;
+    }
+  } catch (errVersion) {
+    vSuffix = "";
+  }
+
   try {
     if (window.APP_CONFIG && window.APP_CONFIG.data && typeof window.APP_CONFIG.data.fileName === "function") {
       var resolved = window.APP_CONFIG.data.fileName();
@@ -72,16 +94,16 @@
   }
 
   // 1) Per-Turnier Kaderdaten (synchron) – stellt globales `playersData` bereit.
-  document.write('<script src="' + fileName + '"><\/script>');
+  document.write('<script src="' + fileName + vSuffix + '"><\/script>');
 
   // 2) Manuelle Positions-Overrides (synchron) – stellt `window.POSITION_OVERRIDES` bereit.
-  document.write('<script src="position-overrides.js"><\/script>');
+  document.write('<script src="position-overrides.js' + vSuffix + '"><\/script>');
 
   // 2b) Manuelle Namens-Overrides (synchron) – stellt `window.NAME_OVERRIDES` bereit.
-  document.write('<script src="name-overrides.js"><\/script>');
+  document.write('<script src="name-overrides.js' + vSuffix + '"><\/script>');
 
   // 2b2) Namens-Kürzung (synchron) – stellt `window.NAME_SHORTENER` bereit.
-  document.write('<script src="name-shortener.js"><\/script>');
+  document.write('<script src="name-shortener.js' + vSuffix + '"><\/script>');
 
   // 3) Overrides direkt anwenden, BEVOR weitere App-Skripte playersData lesen.
   //    Wir mutieren die Array-Einträge in place: `const playersData = [...]`

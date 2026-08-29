@@ -77,6 +77,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const APP_CONFIG = require('../tournament-config.js');
+const { serializePlayersData, FORMAT_BANNER_LINES } = require('./kader-serializer.js');
 const {
   buildRecord,
   fetchCountryFlagMap,
@@ -1000,8 +1001,9 @@ async function main() {
     ` *  oben stehen statt einer alphabetischen Liste.\n` +
     ` *  Klubs: ${clubNames.join(', ')}.\n` +
     ` *  Club-zentriert: Club.* = Vereinsdaten (primär), Nationalteam.* = Nation (sekundär).\n` +
+    `${FORMAT_BANNER_LINES.join('\n')}\n` +
     ` * ============================================================================= */\n`;
-  fs.writeFileSync(outPath, `${banner}const playersData = ${JSON.stringify(players, null, 2)};\n`, 'utf8');
+  fs.writeFileSync(outPath, `${banner}${serializePlayersData(players)}`, 'utf8');
   logInfo(`Geschrieben: ${outPath}`);
 
   const clubsPath = path.join(__dirname, `cl-pool-${t.key}-clubs.json`);

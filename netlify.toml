@@ -1,20 +1,29 @@
 # =============================================================================
 # Netlify-Konfiguration – Build.
 #
-# Die Seite ist statisch (kein Bundler); der Build-Step existiert einzig, um
-# den Firebase-Web-API-Key aus der Umgebungsvariable FIREBASE_API_KEY in
-# tournament-config.js einzusetzen. Im Repo steht dort nur ein Platzhalter.
+# Die Seite ist statisch (kein Bundler); der Build-Step besteht aus zwei
+# Schritten:
+#   1. build-firebase-config.js – setzt den Firebase-Web-API-Key aus der
+#      Umgebungsvariable FIREBASE_API_KEY in tournament-config.js ein.
+#      Im Repo steht dort nur ein Platzhalter.
+#   2. build-asset-versions.js – ersetzt den Platzhalter `__BUILD__` in den
+#      `?v=`-Parametern aller HTML-Seiten und in der CACHE_VERSION des
+#      Service Workers durch den Commit-SHA des Deploys. So teilen sich
+#      alle Seiten EINE Asset-Version (Cache-Treffer beim Seitenwechsel),
+#      und jeder Deploy erzeugt automatisch frische URLs + frischen
+#      SW-Cache.
 #
-# Ist FIREBASE_API_KEY nicht gesetzt, bricht das Script mit Exit-Code 1 ab:
-# Netlify markiert den Deploy als fehlgeschlagen und laesst die bisherige
-# Version online – besser als eine Seite ohne funktionierendes Firebase.
+# Schlaegt einer der Schritte fehl (Exit-Code 1), markiert Netlify den
+# Deploy als fehlgeschlagen und laesst die bisherige Version online –
+# besser als eine halbgestempelte Seite.
 #
-# Deploy Previews brauchen die Variable ebenfalls (Netlify → Environment
-# variables, Scope "All deploy contexts" bzw. zusaetzlich "Deploy previews").
+# Deploy Previews brauchen FIREBASE_API_KEY ebenfalls (Netlify →
+# Environment variables, Scope "All deploy contexts" bzw. zusaetzlich
+# "Deploy previews").
 # =============================================================================
 
 [build]
-  command = "node scripts/build-firebase-config.js"
+  command = "node scripts/build-firebase-config.js && node scripts/build-asset-versions.js"
   publish = "."
 
 # =============================================================================
@@ -23,11 +32,11 @@
 # HTML/JS/CSS behalten bewusst Netlifys Default-Verhalten
 # (ETag + `max-age=0, must-revalidate` → billige 304-Revalidierung):
 # Zusammen mit dem Service Worker (cache-first fuer `?v=`-versionierte
-# Assets, network-first mit Cache-Fallback fuer den Rest) ist das der
-# gewollte Frische-Mechanismus. KEINE langen Cache-Header fuer JS/CSS
-# setzen – viele Dateien (admin.js, auth.js, data-*.js, …) werden ohne
-# Versions-Parameter eingebunden und wuerden sonst nach einem Deploy
-# tagelang veraltet ausgeliefert.
+# Assets, stale-while-revalidate fuer Navigationen) ist das der gewollte
+# Frische-Mechanismus. KEINE langen Cache-Header fuer JS/CSS setzen –
+# service-worker.js selbst wuerde sonst veraltet ausgeliefert und der
+# Update-Mechanismus (neue CACHE_VERSION → einmaliger Reload) kaeme zum
+# Erliegen; fuer alle anderen Dateien uebernimmt ohnehin der SW-Cache.
 #
 # Nur echte Langzeit-Assets (App-Icons) bekommen lange Cache-Header;
 # sie aendern sich praktisch nie und haben keinen Code-Einfluss.

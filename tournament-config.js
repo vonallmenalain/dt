@@ -3121,7 +3121,20 @@ if (typeof window !== "undefined") {
           var __link = document.createElement("link");
           __link.id = "cl-theme-css";
           __link.rel = "stylesheet";
-          __link.href = "theme-cl.css";
+          // Gleiche Asset-Version wie das eigene <script>-Tag (Build-
+          // Stempel, siehe scripts/build-asset-versions.js): so trifft
+          // theme-cl.css im Service Worker den cache-first-Pfad, statt
+          // bei jedem Seitenwechsel übers Netz revalidiert zu werden.
+          var __v = "";
+          try {
+            var __own = document.currentScript;
+            var __vm = __own && __own.src ? __own.src.match(/[?&]v=([^&]+)/) : null;
+            if (__vm && __vm[1]) {
+              var __vs = __vm[1].replace(/[^0-9A-Za-z._-]/g, "");
+              if (__vs) __v = "?v=" + __vs;
+            }
+          } catch (__errV) { __v = ""; }
+          __link.href = "theme-cl.css" + __v;
           __head.appendChild(__link);
         }
 

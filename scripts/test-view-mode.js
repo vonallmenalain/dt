@@ -286,8 +286,10 @@ function loadViewMode({ startMs, isAdmin = false, authResolved = true, stored = 
 
   PAGES.forEach((page) => {
     const html = readRoot(page);
-    const viewIdx = html.indexOf('<script src="view-mode.js">');
-    const modalIdx = html.indexOf('auth-modal.js"></script>');
+    // `?v=…` toleriert: die Seiten binden Skripte mit dem gestempelten
+    // Versions-Parameter ein (siehe scripts/build-asset-versions.js).
+    const viewIdx = html.search(/<script src="view-mode\.js(\?v=[^"]*)?">/);
+    const modalIdx = html.search(/auth-modal\.js(\?v=[^"]*)?"><\/script>/);
     assert.ok(viewIdx > -1, `${page}: view-mode.js wird nicht geladen – dort fehlt der Umschalter.`);
     assert.ok(modalIdx > -1 && viewIdx > modalIdx,
       `${page}: view-mode.js muss nach auth-modal.js stehen (devMenu wird dort definiert).`);
