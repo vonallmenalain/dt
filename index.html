@@ -307,32 +307,30 @@
             </div>
         </div>
 
-        <!-- CTA -->
+        <!-- CTA (die frueheren Sekundaer-Pills Punktesystem/Analyse/Teams
+             sind bewusst entfernt - die Navigation dafuer liegt in der
+             unteren Leiste; hier zaehlt nur noch Titel -> CTA -> Feld) -->
         <div class="hero-cta-wrap">
             <a href="team-builder.html" class="btn-primary-hero" id="hero-cta-btn" aria-label="Team erstellen für das Turnier">
                 ⚽ Team erstellen
             </a>
-            <div class="hero-secondary-btns">
-                <a href="punktesystem.html" class="btn-pill">📊 Punktesystem</a>
-                <a href="spieleranalyse.html" class="btn-pill">🔍 Analyse</a>
-                <a href="teams.html" class="btn-pill">🛡️ Teams</a>
+        </div>
+    </div>
+
+    <!-- Spieler-Konstellation: unendlich pannbares 2D-Feld mit Zentrums-
+         Lupe (index.js baut die Zellen, index.css stylt). Bewusst
+         AUSSERHALB von .hero-content (max-width): das Feld fuellt die
+         Seite randlos bis links/rechts/unten. Die IDs bleiben die des
+         frueheren Karussells - index.js haengt sich daran auf. -->
+    <section class="test-carousel-copy" id="test-carousel-copy" aria-label="Spieler-Galerie">
+        <h2 class="tcc-section-title" id="indexTestCarouselTitle" aria-live="polite">Stars der WM 2026</h2>
+        <div class="tcc-stage" id="indexTestCarousel" role="group" aria-roledescription="Spieler-Galerie" aria-label="Spieler-Galerie – ziehen, um zu entdecken">
+            <div class="tcc-field" id="indexTestCarouselTrack"></div>
+            <div class="tcc-drag-hint" id="tccDragHint" aria-hidden="true">
+                <span class="tcc-drag-hint-icon">✥</span>&nbsp;Ziehen&nbsp;&amp;&nbsp;entdecken
             </div>
         </div>
-
-        <section class="test-carousel-copy" id="test-carousel-copy" aria-label="Spieler-Galerie">
-            <h2 class="tcc-section-title" id="indexTestCarouselTitle" aria-live="polite">Stars der WM 2026</h2>
-            <!-- Spieler-Konstellation: unendlich pannbares 2D-Feld mit
-                 Zentrums-Lupe (index.js baut die Zellen, index.css stylt).
-                 Die IDs bleiben die des frueheren Karussells - index.js
-                 haengt sich daran auf. -->
-            <div class="tcc-stage" id="indexTestCarousel" role="group" aria-roledescription="Spieler-Galerie" aria-label="Spieler-Galerie – ziehen, um zu entdecken">
-                <div class="tcc-field" id="indexTestCarouselTrack"></div>
-                <div class="tcc-drag-hint" id="tccDragHint" aria-hidden="true">
-                    <span class="tcc-drag-hint-icon">✥</span>&nbsp;Ziehen&nbsp;&amp;&nbsp;entdecken
-                </div>
-            </div>
-        </section>
-    </div>
+    </section>
 
     <div class="scroll-hint" aria-hidden="true">
         <div class="scroll-hint-arrow"></div>

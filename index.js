@@ -7131,12 +7131,14 @@
             }
         ];
 
-        // Champions-League-„Players to Watch" (Saison 2026/27, Pickphase):
-        // kuratierte Liste junger Stammspieler (TALENT), grosser Sommer-
-        // Transfers (NEUZUGANG) und Spieler im Rampenlicht (FORM). Alle
-        // Einträge sind über ihre player.id in `data-cl2627.js` vorhanden –
-        // Foto, Klublogo und Klubname kommen also direkt aus dem Kaderpool.
-        // Titel bewusst leer (kein „Stars der …" über dem Karussell in der CL).
+        // Champions-League-Feld (Saison 2026/27, Pickphase): kuratierte
+        // Liste aus den WERTVOLLSTEN Spielern der Welt (STAR, Transfermarkt-
+        // Topwerte), jungen Stammspielern (TALENT), grossen Sommer-Transfers
+        // (NEUZUGANG) und Spielern im Rampenlicht (FORM). Alle Einträge sind
+        // über ihre player.id in `data-cl2627.js` vorhanden UND haben dort
+        // Spielerfoto + Klublogo (geprüft) – Foto, Klublogo und Klubname
+        // kommen direkt aus dem Kaderpool.
+        // Titel bewusst leer (kein „Stars der …" über dem Feld in der CL).
         //
         // `tag` ist reine Metadaten-Auszeichnung für die drei Kategorien und
         // wird (wie `nation`/`position`) aktuell NICHT auf der Karte gerendert
@@ -7169,33 +7171,55 @@
         //
         // REIHENFOLGE: bewusst so gewählt, dass NIE zwei direkt benachbarte
         // Spieler demselben Klub angehören – auch über den Ring-Umlauf hinweg
-        // (das Karussell ist zirkulär, letzte Karte grenzt an erste). Die
-        // Klub-Cluster (PSG ×3, Liverpool ×3, Real Madrid ×2, Man City ×2)
-        // sind deshalb gleichmässig verteilt. Welcher Spieler beim Laden im
-        // Zentrum steht, wird zufällig gewählt (siehe pickInitialActive) – die
+        // (das Muster kachelt zirkulär, letzte Karte grenzt an erste). Die
+        // Klub-Cluster (Real Madrid ×6, PSG ×4, Bayern ×4, Man City ×4,
+        // Barcelona ×3, Liverpool ×3, Arsenal ×2, Atlético ×2) sind deshalb
+        // gleichmässig verteilt. Welcher Spieler beim Laden im Zentrum steht,
+        // wird zufällig gewählt (siehe pickInitialActive) – die
         // Ring-Reihenfolge bleibt dabei gültig, egal wo das Zentrum liegt.
+        //
+        // NICHT ENTHALTEN trotz Topwert, weil im Pool `data-cl2627.js` kein
+        // (eindeutiger) Eintrag existiert: Mohamed Salah, Cole Palmer,
+        // Nico Williams, Rafael Leão (Klub nicht in der CL 26/27 bzw. kein
+        // Datensatz); „Rodri" im Pool ist ein Barcelona-Spieler, nicht der
+        // City-Sechser – deshalb ausgelassen.
         const cl2627StarRotation = [
             {
                 id: "cl_stars_set_1",
                 title: "",
                 players: [
-                    { playerId: 513776, name: "Yan Diomande",          nation: "Elfenbeinküste", position: "ANG", tag: "TALENT"    }, // Real Madrid – Sommer-Rekordtransfer von Leipzig
-                    { playerId: 343027, name: "Désiré Doué",           nation: "Frankreich",     position: "ANG", tag: "TALENT"    }, // Paris Saint Germain – Schlüsselspieler
-                    { playerId: 326757, name: "Jobe Bellingham",       nation: "England",        position: "MIT", tag: "TALENT"    }, // Borussia Dortmund – gesetzt im Zentrum
-                    { playerId: 203224, name: "Florian Wirtz",         nation: "Deutschland",    position: "MIT", tag: "FORM"      }, // Liverpool – Beweis-Saison nach dem 125-Mio.-Wechsel
-                    { playerId: 307123, name: "Nico O'Reilly",         nation: "England",        position: "MIT", tag: "TALENT"    }, // Manchester City – Durchbruchspieler der Vorsaison
+                    { playerId: 278,    name: "Kylian Mbappé",         nation: "Frankreich",     position: "ANG", tag: "STAR"      }, // Real Madrid – wertvollster Spieler der Welt
                     { playerId: 483,    name: "Khvicha Kvaratskhelia", nation: "Georgien",       position: "ANG", tag: "FORM"      }, // Paris Saint Germain – bester Spieler der CL 2025/26
-                    { playerId: 396623, name: "Pau Cubarsí",           nation: "Spanien",        position: "DEF", tag: "TALENT"    }, // Barcelona – einer der besten jungen IVs Europas
-                    { playerId: 452685, name: "Rio Ngumoha",           nation: "England",        position: "MIT", tag: "TALENT"    }, // Liverpool – Academy-Juwel, Rotation/Joker
-                    { playerId: 494131, name: "Lennart Karl",          nation: "Deutschland",    position: "MIT", tag: "TALENT"    }, // Bayern München – jüngster Startelfspieler der Bayern-CL-Historie
-                    { playerId: 336594, name: "Pablo Barrios",         nation: "Spanien",        position: "MIT", tag: "TALENT"    }, // Atletico Madrid – Box-to-Box-Motor
-                    { playerId: 336657, name: "Warren Zaïre-Emery",    nation: "Frankreich",     position: "MIT", tag: "TALENT"    }, // Paris Saint Germain – etabliert im Zentrum
-                    { playerId: 345808, name: "Pio Esposito",          nation: "Italien",        position: "ANG", tag: "TALENT"    }, // Inter – italienisches Toptalent im Sturm
+                    { playerId: 1100,   name: "Erling Haaland",        nation: "Norwegen",       position: "ANG", tag: "STAR"      }, // Manchester City – Tormaschine
+                    { playerId: 386828, name: "Lamine Yamal",          nation: "Spanien",        position: "ANG", tag: "STAR"      }, // Barcelona – Jahrhunderttalent
+                    { playerId: 203224, name: "Florian Wirtz",         nation: "Deutschland",    position: "MIT", tag: "FORM"      }, // Liverpool – Beweis-Saison nach dem 125-Mio.-Wechsel
+                    { playerId: 129718, name: "Jude Bellingham",       nation: "England",        position: "MIT", tag: "STAR"      }, // Real Madrid – Mittelfeld-Star
+                    { playerId: 181812, name: "Jamal Musiala",         nation: "Deutschland",    position: "MIT", tag: "STAR"      }, // Bayern München – Magier im Zwischenraum
+                    { playerId: 1460,   name: "Bukayo Saka",           nation: "England",        position: "ANG", tag: "STAR"      }, // Arsenal – Dauerbrenner rechts
+                    { playerId: 343027, name: "Désiré Doué",           nation: "Frankreich",     position: "ANG", tag: "TALENT"    }, // Paris Saint Germain – Schlüsselspieler
+                    { playerId: 631,    name: "Phil Foden",            nation: "England",        position: "MIT", tag: "STAR"      }, // Manchester City – (Pool-Name: Philip Foden)
+                    { playerId: 762,    name: "Vinícius Júnior",       nation: "Brasilien",      position: "ANG", tag: "STAR"      }, // Real Madrid – Flügelstürmer
+                    { playerId: 184,    name: "Harry Kane",            nation: "England",        position: "ANG", tag: "STAR"      }, // Bayern München – Torgarant
                     { playerId: 174565, name: "Hugo Ekitiké",          nation: "Frankreich",     position: "ANG", tag: "FORM"      }, // Liverpool – als Stammstürmer durchgesetzt
-                    { playerId: 314511, name: "Antonio Nusa",          nation: "Norwegen",       position: "ANG", tag: "TALENT"    }, // RB Leipzig – auffälliger Flügelspieler
+                    { playerId: 336594, name: "Pablo Barrios",         nation: "Spanien",        position: "MIT", tag: "TALENT"    }, // Atletico Madrid – Box-to-Box-Motor
+                    { playerId: 396623, name: "Pau Cubarsí",           nation: "Spanien",        position: "DEF", tag: "TALENT"    }, // Barcelona – einer der besten jungen IVs Europas
+                    { playerId: 756,    name: "Federico Valverde",     nation: "Uruguay",        position: "MIT", tag: "STAR"      }, // Real Madrid – Motor im Mittelfeld
+                    { playerId: 336657, name: "Warren Zaïre-Emery",    nation: "Frankreich",     position: "MIT", tag: "TALENT"    }, // Paris Saint Germain – etabliert im Zentrum
+                    { playerId: 307123, name: "Nico O'Reilly",         nation: "England",        position: "MIT", tag: "TALENT"    }, // Manchester City – Durchbruchspieler der Vorsaison
+                    { playerId: 326757, name: "Jobe Bellingham",       nation: "England",        position: "MIT", tag: "TALENT"    }, // Borussia Dortmund – gesetzt im Zentrum
+                    { playerId: 19617,  name: "Michael Olise",         nation: "Frankreich",     position: "MIT", tag: "STAR"      }, // Bayern München – Unterschiedsspieler
+                    { playerId: 2937,   name: "Declan Rice",           nation: "England",        position: "MIT", tag: "STAR"      }, // Arsenal – Anker und Standard-Waffe
                     { playerId: 291964, name: "Arda Güler",            nation: "Türkei",         position: "MIT", tag: "TALENT"    }, // Real Madrid – bester junger Spieler der CL 2025/26
-                    { playerId: 404097, name: "Rodrigo Mora",          nation: "Portugal",       position: "ANG", tag: "TALENT"    }, // AS Roma (im Pool; Wunschzettel nannte FC Porto)
-                    { playerId: 138908, name: "Elliot Anderson",       nation: "Schottland",     position: "MIT", tag: "NEUZUGANG" }  // Manchester City – für 135 Mio. € von Newcastle
+                    { playerId: 452685, name: "Rio Ngumoha",           nation: "England",        position: "MIT", tag: "TALENT"    }, // Liverpool – Academy-Juwel, Rotation/Joker
+                    { playerId: 345808, name: "Pio Esposito",          nation: "Italien",        position: "ANG", tag: "TALENT"    }, // Inter – italienisches Toptalent im Sturm
+                    { playerId: 6009,   name: "Julián Álvarez",        nation: "Argentinien",    position: "ANG", tag: "STAR"      }, // Atletico Madrid – Vollstrecker
+                    { playerId: 153,    name: "Ousmane Dembélé",       nation: "Frankreich",     position: "ANG", tag: "STAR"      }, // Paris Saint Germain – Ballon-d'Or-Format
+                    { playerId: 133609, name: "Pedri",                 nation: "Spanien",        position: "MIT", tag: "STAR"      }, // Barcelona – Taktgeber
+                    { playerId: 494131, name: "Lennart Karl",          nation: "Deutschland",    position: "MIT", tag: "TALENT"    }, // Bayern München – jüngster Startelfspieler der Bayern-CL-Historie
+                    { playerId: 138908, name: "Elliot Anderson",       nation: "Schottland",     position: "MIT", tag: "NEUZUGANG" }, // Manchester City – für 135 Mio. € von Newcastle
+                    { playerId: 513776, name: "Yan Diomande",          nation: "Elfenbeinküste", position: "ANG", tag: "TALENT"    }, // Real Madrid – Sommer-Rekordtransfer von Leipzig
+                    { playerId: 314511, name: "Antonio Nusa",          nation: "Norwegen",       position: "ANG", tag: "TALENT"    }, // RB Leipzig – auffälliger Flügelspieler
+                    { playerId: 404097, name: "Rodrigo Mora",          nation: "Portugal",       position: "ANG", tag: "TALENT"    }  // AS Roma (im Pool; Wunschzettel nannte FC Porto)
                 ]
             }
         ];
@@ -7371,7 +7395,7 @@
         let players = [];
 
         // Anzahl Spieler im Feld. CL zeigt genau die kuratierten Stars des
-        // aktiven Turniers (cl2526: 14, cl2627: 17), die Zahl wird deshalb
+        // aktiven Turniers (cl2526: 14, cl2627: 32), die Zahl wird deshalb
         // aus der Liste abgeleitet statt hart gesetzt. Die WM bleibt bei 9.
         const CARD_COUNT     = IS_CL ? (starRotation[0]?.players?.length || 14) : 9;
         const prefersReducedMotion = !!(window.matchMedia
@@ -7522,44 +7546,52 @@
 
         window.__tccCarouselRefresh = refreshCarousel;
 
-        function fitPlayerNames() {
-            // Jeder Spieler steht im Feld mehrfach (Muster-Kacheln); alle
-            // Instanzen sind gleich breit. Deshalb wird pro NAME nur einmal
-            // gemessen (Layout-Reads sind teuer) und das Ergebnis auf die
-            // Klone uebertragen.
-            const fitted = new Map(); // name -> { fontSize, scaleX }
-            root.querySelectorAll('.tcc-player-name').forEach((nameEl) => {
-                nameEl.style.transformOrigin = 'center center';
-                nameEl.style.whiteSpace = 'nowrap';
-                nameEl.style.display = 'block';
+        /* Text horizontal einpassen: Schrift schrittweise verkleinern,
+           notfalls per scaleX stauchen - nie abschneiden. Jeder Spieler
+           steht im Feld mehrfach (Muster-Kacheln); alle Instanzen sind
+           gleich breit, deshalb wird pro TEXT nur einmal gemessen
+           (Layout-Reads sind teuer) und das Ergebnis auf die Klone
+           uebertragen. */
+        function fitTextRun(selector, minSize) {
+            const fitted = new Map(); // text -> { fontSize, scaleX }
+            root.querySelectorAll(selector).forEach((el) => {
+                el.style.transformOrigin = 'center center';
+                el.style.whiteSpace = 'nowrap';
+                el.style.display = 'block';
 
-                const key = nameEl.textContent || '';
+                const key = el.textContent || '';
                 const cached = fitted.get(key);
                 if (cached) {
-                    nameEl.style.fontSize = cached.fontSize;
-                    nameEl.style.transform = cached.scaleX ? `scaleX(${cached.scaleX})` : '';
+                    el.style.fontSize = cached.fontSize;
+                    el.style.transform = cached.scaleX ? `scaleX(${cached.scaleX})` : '';
                     return;
                 }
 
-                nameEl.style.fontSize = '';
-                nameEl.style.transform = '';
+                el.style.fontSize = '';
+                el.style.transform = '';
 
-                const computed = window.getComputedStyle(nameEl);
+                const computed = window.getComputedStyle(el);
                 let size = parseFloat(computed.fontSize);
-                const minSize = 8.5;
 
-                while (nameEl.scrollWidth > nameEl.clientWidth && size > minSize) {
+                while (el.scrollWidth > el.clientWidth && size > minSize) {
                     size -= 0.5;
-                    nameEl.style.fontSize = `${size}px`;
+                    el.style.fontSize = `${size}px`;
                 }
 
                 let scaleX = 0;
-                if (nameEl.scrollWidth > nameEl.clientWidth && nameEl.scrollWidth > 0) {
-                    scaleX = nameEl.clientWidth / nameEl.scrollWidth;
-                    nameEl.style.transform = `scaleX(${scaleX})`;
+                if (el.scrollWidth > el.clientWidth && el.scrollWidth > 0) {
+                    scaleX = el.clientWidth / el.scrollWidth;
+                    el.style.transform = `scaleX(${scaleX})`;
                 }
-                fitted.set(key, { fontSize: nameEl.style.fontSize, scaleX });
+                fitted.set(key, { fontSize: el.style.fontSize, scaleX });
             });
+        }
+
+        function fitPlayerNames() {
+            fitTextRun('.tcc-player-name', 8.5);
+            // Klubnamen genauso einpassen ("Paris Saint Germain" war auf
+            // schmalen Karten abgeschnitten).
+            fitTextRun('.tcc-badge-label', 8);
         }
 
         // ── Konstellations-Zustand ──
@@ -7573,16 +7605,18 @@
            Artefakte produzierte). Jetzt: die kuratierten Karten
            kacheln als nahtloses Muster in beide Achsen (Modulo-
            Wrapping), die Kamera folgt dem Finger 1:1 (Pointer
-           Capture, Multi-Touch-Schutz), ein Wurf traegt mit
-           Apple-Physik weiter (exponentieller Abklang 0.998/ms)
-           und landet ueber eine kritisch gedaempfte Feder exakt
-           auf einer zentrierten Karte (Velocity-Handoff, kein
-           Ruck). Skalierung/Dimmung haengen an der Distanz zur
-           Mitte (Lupe), die naechste Karte traegt Glow + Fokus.
-           Nur transform/opacity, ein rAF-Loop, keine Layout-Reads
-           im Frame - und ohne Interaktion driftet das Feld nach
-           kurzer Ruhe fast unmerklich weiter (lebendiges Intro,
-           pausiert unsichtbar/reduced-motion).
+           Capture, Multi-Touch-Schutz) - in ALLE Richtungen, denn
+           die Vor-Start-Seite scrollt selbst nicht (index.css,
+           html[data-view="pre"]). Ein Wurf rollt mit Apple-Physik
+           frei aus (exponentieller Abklang 0.998/ms) und bleibt
+           GENAU dort stehen - bewusst KEIN Einrasten: waehrend
+           des Ausrollens laesst sich das Feld jederzeit greifen
+           (anhalten) oder mit einem weiteren Wurf beschleunigen.
+           Ohne Eingabe bewegt sich nichts (kein Idle-Drift).
+           Skalierung/Dimmung haengen an der Distanz zur Mitte
+           (Lupe), die naechste Karte traegt Glow + Fokus. Klick
+           oeffnet nur bei (fast) stehendem Feld. Nur transform/
+           opacity, ein rAF-Loop, keine Layout-Reads im Frame.
            ========================================================= */
 
         const stage = carousel; // Klarname: das Element ist jetzt die Buehne
@@ -7595,11 +7629,10 @@
         const MAX_FLING = 4200;         // px/s: Wurf-Deckel (wie native Scroller)
         const DIM_MAX = 0.42;           // max. Abdunklung am Rand
         const DECEL = 0.998;            // Momentum-Abklang pro ms (Apple-Wert)
-        const SNAP_AT_SPEED = 90;       // px/s: darunter uebernimmt die Snap-Feder
-        const SPRING_RESPONSE = 0.45;   // s, kritisch gedaempft (kein Overshoot)
-        const DRIFT_SPEED = 11;         // px/s Idle-Drift
-        const DRIFT_DELAY = 2600;       // ms Ruhe bis zum Drift
-        const DRAG_SLOP = 8;            // px bis zum Richtungs-Entscheid
+        const STOP_SPEED = 16;          // px/s: darunter kommt das Feld zur Ruhe
+        const CLICK_SPEED = 110;        // px/s: schneller -> Tap stoppt nur, kein Klick
+        const SPRING_RESPONSE = 0.45;   // s, kritisch gedaempft (Tap-to-Center/Tastatur)
+        const DRAG_SLOP = 8;            // px, bis eine Beruehrung als Griff zaehlt
         const PARKED = 'translate3d(-200vw,-200vh,0)';
 
         let cells = [];                 // { el, cardEl, dimEl, playerIdx, cx, cy, sx, sy, on, z }
@@ -7611,15 +7644,13 @@
         let camX = 0, camY = 0;         // Kamera (Weltverschiebung)
         let velX = 0, velY = 0;         // px/s
         let springTX = 0, springTY = 0;
-        let mode = 'rest';              // rest | drag | momentum | spring | drift
+        let mode = 'rest';              // rest | drag | momentum | spring
         let rafId = 0, lastTs = 0;
         let centerCellIdx = -1;
         let introPlayed = false;
         let pendingBuild = false;
-        let driftTimer = 0;
-        let wheelSnapTimer = 0;
         let lastDragEndTs = 0;
-        let inView = true;
+        let lastGrabSpeed = 0;          // Tempo beim Anfassen (Tap-Stopp vs. Klick)
         let engineBroken = false;
 
         const now = () => (window.performance && performance.now) ? performance.now() : Date.now();
@@ -7762,7 +7793,6 @@
 
             render();
             playIntro();
-            scheduleDrift();
         }
 
         function layoutPattern() {
@@ -7853,14 +7883,23 @@
             const dt = dtMs / 1000;
             try {
                 if (mode === 'momentum') {
+                    // Freies Ausrollen wie ein nativer Scroller - KEIN
+                    // Einrasten: das Feld bleibt genau dort stehen, wo der
+                    // Schwung endet, und ist waehrenddessen jederzeit
+                    // greifbar (Touch haelt an, erneutes Ziehen stapelt
+                    // neuen Schwung drauf).
                     camX += velX * dt;
                     camY += velY * dt;
                     const f = Math.pow(DECEL, dtMs);
                     velX *= f; velY *= f;
-                    if (Math.hypot(velX, velY) < SNAP_AT_SPEED) beginSnap(velX, velY);
+                    if (Math.hypot(velX, velY) < STOP_SPEED) {
+                        velX = 0; velY = 0;
+                        mode = 'rest';
+                    }
                 } else if (mode === 'spring') {
-                    // Kritisch gedaempfte Feder je Achse (Apple: reposition,
-                    // damping 1.0) - startet mit der Wurf-Geschwindigkeit.
+                    // Kritisch gedaempfte Feder je Achse (nur fuer bewusste
+                    // Ziele: Tap-to-Center, Tastatur) - startet mit der
+                    // aktuellen Geschwindigkeit.
                     const om = 2 * Math.PI / SPRING_RESPONSE;
                     velX += (-om * om * (camX - springTX) - 2 * om * velX) * dt;
                     velY += (-om * om * (camY - springTY) - 2 * om * velY) * dt;
@@ -7871,11 +7910,7 @@
                         camX = springTX; camY = springTY;
                         velX = 0; velY = 0;
                         mode = 'rest';
-                        scheduleDrift();
                     }
-                } else if (mode === 'drift') {
-                    camX += DRIFT_SPEED * 0.94 * dt;
-                    camY += DRIFT_SPEED * 0.34 * dt;
                 }
                 render();
             } catch (err) {
@@ -7888,28 +7923,6 @@
         function stopMotion() {
             mode = 'rest';
             velX = 0; velY = 0;
-            if (driftTimer) { clearTimeout(driftTimer); driftTimer = 0; }
-            if (wheelSnapTimer) { clearTimeout(wheelSnapTimer); wheelSnapTimer = 0; }
-        }
-
-        /* Naechstgelegene Karte exakt in die Mitte federn. Uebergebene
-           Geschwindigkeit laeuft nahtlos in die Feder weiter (kein Ruck
-           zwischen Abklang und Zentrierung). */
-        function beginSnap(vx, vy) {
-            if (!cells.length || centerCellIdx < 0) { mode = 'rest'; return; }
-            const cell = cells[centerCellIdx];
-            springTX = camX + (cell.sx - stageW / 2);
-            springTY = camY + (cell.sy - stageH / 2);
-            if (prefersReducedMotion) {
-                camX = springTX; camY = springTY;
-                velX = 0; velY = 0;
-                mode = 'rest';
-                render();
-                return;
-            }
-            velX = vx || 0; velY = vy || 0;
-            mode = 'spring';
-            kick();
         }
 
         function springCamTo(tx, ty) {
@@ -7922,26 +7935,6 @@
             }
             mode = 'spring';
             kick();
-        }
-
-        /* ── Idle-Drift: nach kurzer Ruhe wandert das Feld fast unmerklich
-           weiter - das Feld wirkt lebendig und laedt zum Anfassen ein.
-           Nie bei reduzierter Bewegung, unsichtbarer Buehne oder Tab im
-           Hintergrund. ── */
-        function driftAllowed() {
-            return !prefersReducedMotion && inView && !document.hidden
-                && !engineBroken && cells.length > 0;
-        }
-
-        function scheduleDrift() {
-            if (driftTimer) clearTimeout(driftTimer);
-            if (!driftAllowed()) return;
-            driftTimer = setTimeout(() => {
-                driftTimer = 0;
-                if (!driftAllowed() || mode !== 'rest') return;
-                mode = 'drift';
-                kick();
-            }, DRIFT_DELAY);
         }
 
         /* ── Intro: die sichtbaren Karten wellen gestaffelt aus der Mitte
@@ -7971,42 +7964,38 @@
             }
         }
 
-        /* ── Zeigereingabe: 1:1 am Finger. Erst ab DRAG_SLOP faellt der
-           Richtungs-Entscheid: ueberwiegend vertikal -> Geste gehoert der
-           Seite (touch-action: pan-y laesst sie durch), sonst greift das
-           Feld und bewegt ab dann frei in ALLE Richtungen. ── */
-        let drag = null; // { id, lastX, lastY, startX, startY, claimed, dead, hist }
+        /* ── Zeigereingabe: 1:1 am Finger, in ALLE Richtungen (die Seite
+           selbst scrollt in der Vor-Start-Ansicht nicht - jede Geste auf
+           der Buehne gehoert dem Feld, touch-action: none). Anfassen
+           waehrend einer Bewegung haelt sie exakt an Ort und Stelle an
+           (Interruptibility); ein erneuter Wurf setzt frisch auf. ── */
+        let drag = null; // { id, lastX, lastY, startX, startY, claimed, hist }
 
         function onPointerDown(e) {
             if (engineBroken || drag || !cells.length) return;
             if (e.button !== undefined && e.button !== 0) return;
-            const wasMoving = mode === 'momentum' || mode === 'spring' || mode === 'drift';
+            // Tempo im Moment des Anfassens: schnelle Bewegung -> dieser
+            // Touch ist ein "Stopp", kein Klick (siehe Click-Handler).
+            lastGrabSpeed = (mode === 'momentum' || mode === 'spring')
+                ? Math.hypot(velX, velY)
+                : 0;
             stopMotion(); // Greifen haelt die Praesentation an Ort und Stelle
             drag = {
                 id: e.pointerId,
                 lastX: e.clientX, lastY: e.clientY,
                 startX: e.clientX, startY: e.clientY,
-                claimed: false, dead: false,
-                wasMoving,
+                claimed: false,
                 hist: [{ t: now(), x: e.clientX, y: e.clientY }]
             };
         }
 
         function onPointerMove(e) {
-            if (!drag || e.pointerId !== drag.id || drag.dead) return;
-            const dxTotal = e.clientX - drag.startX;
-            const dyTotal = e.clientY - drag.startY;
+            if (!drag || e.pointerId !== drag.id) return;
 
             if (!drag.claimed) {
+                const dxTotal = e.clientX - drag.startX;
+                const dyTotal = e.clientY - drag.startY;
                 if (Math.hypot(dxTotal, dyTotal) < DRAG_SLOP) return;
-                if (Math.abs(dxTotal) < Math.abs(dyTotal)) {
-                    // Vertikale Absicht: Seite scrollt. Feld sanft zurueck
-                    // in die Ruhe-Zentrierung, falls es mitten in Bewegung
-                    // angehalten wurde.
-                    drag.dead = true;
-                    if (drag.wasMoving) beginSnap(0, 0); else scheduleDrift();
-                    return;
-                }
                 drag.claimed = true;
                 try { stage.setPointerCapture(drag.id); } catch (_) {}
                 stage.classList.add('is-grabbing');
@@ -8023,7 +8012,7 @@
             drag.hist.push({ t, x: e.clientX, y: e.clientY });
             while (drag.hist.length > 2 && t - drag.hist[0].t > 110) drag.hist.shift();
 
-            if (!rafId) { lastTs = now(); rafId = requestAnimationFrame(tick); }
+            kick();
         }
 
         function endDrag(e) {
@@ -8032,12 +8021,7 @@
             drag = null;
             stage.classList.remove('is-grabbing');
             try { stage.releasePointerCapture(d.id); } catch (_) {}
-            if (!d.claimed) {
-                if (d.dead) return;               // vertikal: Snap laeuft ggf. bereits
-                if (d.wasMoving) beginSnap(0, 0); // Tap hat Bewegung angehalten -> sauber einrasten
-                else scheduleDrift();
-                return;
-            }
+            if (!d.claimed) return; // Tap: hat hoechstens eine Bewegung gestoppt
             lastDragEndTs = Date.now();
 
             // Wurf-Geschwindigkeit aus den letzten ~110 ms (px/s). Die
@@ -8052,8 +8036,11 @@
                 vy = -((b.y - a.y) / span) * 1000;
             }
             const speed = Math.hypot(vx, vy);
-            if (prefersReducedMotion || speed <= SNAP_AT_SPEED * 2) {
-                beginSnap(0, 0);
+            // Reduzierte Bewegung oder kaum Schwung: einfach stehen lassen
+            // (kein Einrasten, keine Auto-Bewegung).
+            if (prefersReducedMotion || speed <= STOP_SPEED * 3) {
+                stopMotion();
+                render();
                 return;
             }
             // Wurf-Deckel: absurde Spitzen (ruckartige Gesten, synthetische
@@ -8072,18 +8059,17 @@
         stage.addEventListener('pointerup', endDrag);
         stage.addEventListener('pointercancel', endDrag);
 
-        /* Trackpad/Maus: horizontales Radeln pannt das Feld; vertikales
-           Radeln scrollt weiterhin die Seite (kein Kidnapping). */
+        /* Trackpad/Mausrad: Radeln in JEDE Richtung steuert das Feld - die
+           Vor-Start-Seite selbst scrollt nicht (Wunsch: Scrollen gehoert
+           immer der Animation). */
         stage.addEventListener('wheel', (e) => {
             if (engineBroken || !cells.length) return;
-            if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
             e.preventDefault();
             stopMotion();
             hideHint(true);
             camX += e.deltaX;
+            camY += e.deltaY;
             render();
-            if (wheelSnapTimer) clearTimeout(wheelSnapTimer);
-            wheelSnapTimer = setTimeout(() => { wheelSnapTimer = 0; beginSnap(0, 0); }, 160);
         }, { passive: false });
 
         /* Tap/Klick: Randkarte federt ins Zentrum, Zentrums-Karte oeffnet
@@ -8104,6 +8090,9 @@
 
         stage.addEventListener('click', (e) => {
             if (Date.now() - lastDragEndTs < 300) return;
+            // War das Feld beim Anfassen (schnell) in Bewegung, war dieser
+            // Tap ein STOPP - kein Klick auf den Spieler.
+            if (lastGrabSpeed > CLICK_SPEED) { lastGrabSpeed = 0; return; }
             const cellEl = e.target?.closest?.('.tcc-cell');
             if (!cellEl) return;
             const cell = cells[parseInt(cellEl.dataset.cellIdx || '-1', 10)];
@@ -8123,10 +8112,8 @@
                 e.preventDefault();
                 stopMotion();
                 hideHint(true);
-                camX += step[0];
-                camY += step[1];
-                render();          // Zentrum neu bestimmen ...
-                beginSnap(0, 0);   // ... und exakt einrasten
+                // Zellenweise weiterfedern (bewusste Einzelschritte).
+                springCamTo(camX + step[0], camY + step[1]);
                 return;
             }
             if ((e.key === 'Enter' || e.key === ' ') && centerCellIdx >= 0) {
@@ -8135,19 +8122,6 @@
             }
         });
 
-        /* Sichtbarkeit: Drift nur, wenn die Buehne wirklich zu sehen ist. */
-        if (typeof IntersectionObserver === 'function') {
-            const io = new IntersectionObserver((entries) => {
-                inView = !!(entries[0] && entries[0].isIntersecting);
-                if (!inView && mode === 'drift') { stopMotion(); }
-                if (inView && mode === 'rest') scheduleDrift();
-            }, { threshold: 0.15 });
-            io.observe(stage);
-        }
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && mode === 'drift') { stopMotion(); return; }
-            if (!document.hidden && mode === 'rest') scheduleDrift();
-        });
 
         /* ── Layout-Aenderungen: In der App-Shell bootet die Startseite
            UNSICHTBAR im Frame - alle Masse sind dort 0. Der ResizeObserver
@@ -8189,7 +8163,6 @@
                 camY = keepCell.cy - stageH / 2;
                 render();
                 playIntro();
-                scheduleDrift();
             } catch (err) {
                 breakToFallback(err);
             }
