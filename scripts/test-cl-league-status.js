@@ -58,6 +58,33 @@ const LP = 'League Phase - ';
   });
 })();
 
+/* ── 1b) Auslosung da, noch kein Anpfiff → Tabelle mit 0er-Zeilen ─────── */
+(function seededBeforeKickoff() {
+  // Realer Zustand nach dem Spielplan-Sync 2026/27: alle Paarungen bekannt,
+  // Status NS, Runden-Text pauschal "Group Stage". Die Tabelle muss trotzdem
+  // schon alle Klubs zeigen (alles 0), damit Analyse-Ligatabelle und
+  // manueller Modus vor dem ersten Spieltag bedienbar sind.
+  const fixtures = [
+    fx('Group Stage', 'Real Madrid', 'Bayern München', null, null, 'NS'),
+    fx('Group Stage', 'Paris Saint-Germain', 'Manchester City', null, null, 'NS'),
+    // Platzhalter-Paarung (Kalender-Fallback) darf KEINE Zeile erzeugen.
+    fx('League Stage - 1', 'TBD', 'TBD', null, null, 'NS')
+  ];
+  const s = APP.computeLeagueStatus(fixtures, SMALL_LEAGUE_OPTS);
+  assert.deepEqual(
+    s.standings.map((r) => r.key),
+    ['bayern munchen', 'manchester city', 'paris saint germain', 'real madrid'],
+    'Vor dem ersten Anpfiff: alle ausgelosten Klubs als 0er-Zeilen, alphabetisch.'
+  );
+  assert.ok(s.standings.every((r) => r.played === 0 && r.pts === 0),
+    'Ohne beendete Spiele stehen alle Zeilen auf 0.');
+  assert.equal(s.standings[0].rank, 1, 'Auch 0er-Zeilen tragen einen Rang.');
+  assert.equal(s.standings[0].name, 'Bayern München', '0er-Zeile trägt den Anzeigenamen.');
+  assert.equal(s.leaguePhaseComplete, false, 'Ligaphase natürlich nicht komplett.');
+  assert.equal(s.eliminatedKeys.size, 0, 'Niemand ausgeschieden.');
+  assert.equal(s.knockoutStarted, false, 'Keine K.-o.-Phase erkannt.');
+})();
+
 /* ── 2) Ligaphase komplett → Rang-Grenze greift ───────────────────────── */
 (function completePhase() {
   // Ergebnisse so gewählt, dass die Tabelle eindeutig ist:
