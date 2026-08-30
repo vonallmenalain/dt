@@ -1736,6 +1736,34 @@
             } catch (_) { return ''; }
         };
 
+        // Runden-Text → Anzeige-Label. api-football nennt die Ligaphase
+        // 2026/27 pauschal "Group Stage" (ohne Spieltag-Nummer); der
+        // Spieltag steckt dann nur im Datum. Aufloesung deshalb: Nummer im
+        // Runden-Text → "Spieltag N"; sonst Anstoss-Datum gegen den
+        // Kalender (APP.matchCalendar, Termine je Spieltag) → dessen Label;
+        // sonst neutral "Ligaphase". K.-o.-Runden bleiben unveraendert.
+        const upcomingRoundLabel = (m) => {
+            const round = m.round || '';
+            const isLeaguePhase = (APP && typeof APP.isLeaguePhaseRound === 'function')
+                ? APP.isLeaguePhaseRound(round)
+                : /league stage/i.test(round);
+            if (!isLeaguePhase) return round;
+            const num = (String(round).match(/(\d+)\s*$/) || [])[1];
+            if (num) return `Spieltag ${num}`;
+            // kickoffIso ist Europe/Zurich – der ISO-Praefix ist das lokale
+            // Spieltag-Datum und passt damit direkt auf die Kalender-Daten.
+            const dateKey = /^\d{4}-\d{2}-\d{2}T/.test(m.date || '') ? m.date.slice(0, 10) : '';
+            const calendar = (APP && Array.isArray(APP.matchCalendar)) ? APP.matchCalendar : [];
+            const entry = dateKey
+                ? calendar.find((e) => Array.isArray(e.dates)
+                    && e.dates.includes(dateKey)
+                    && (APP && typeof APP.isLeaguePhaseRound === 'function'
+                        ? APP.isLeaguePhaseRound(e.round)
+                        : /league stage/i.test(e.round || '')))
+                : null;
+            return (entry && entry.label) || 'Ligaphase';
+        };
+
         let cards = [];
 
         // 1) Echte, noch nicht (fertig) gespielte Fixtures des Klubs.
@@ -1747,9 +1775,7 @@
                 .slice(0, limit)
                 .map((m) => {
                     const kickoffMs = m.kickoffMs || (m.date ? Date.parse(m.date) : null);
-                    const roundLabel = /league stage/i.test(m.round || '')
-                        ? `Spieltag ${String(m.round).replace(/\D+/g, '') || ''}`.trim()
-                        : (m.round || '');
+                    const roundLabel = upcomingRoundLabel(m);
                     return upcomingCard(
                         m.teamA, m.teamALogo, m.teamB, m.teamBLogo,
                         kickoffMs ? fmtDay(kickoffMs) : 'Termin folgt',

@@ -1418,6 +1418,15 @@ const APP_CONFIG = (() => {
     return rows.get(key);
   }
 
+  // Platzhalter-Paarungen (Kalender-Fallback vor der Auslosung) duerfen
+  // keine Tabellenzeile erzeugen. Nach normalizeTournamentTeamName bleiben
+  // von "TBD"/"TBA" genau diese Keys uebrig ("-"/"?" normalisieren zu "").
+  const PLACEHOLDER_TEAM_KEYS = new Set(["tbd", "tba"]);
+
+  function isRealLeagueTeamKey(key) {
+    return !!key && !PLACEHOLDER_TEAM_KEYS.has(key);
+  }
+
   function applyLeagueMatchToRows(rows, homeKey, awayKey, hg, ag) {
     const home = getLeagueRow(rows, homeKey);
     const away = getLeagueRow(rows, awayKey);
@@ -1596,6 +1605,13 @@ const APP_CONFIG = (() => {
       const isFinished = FINISHED_FIXTURE_STATUSES.has(getFixtureStatusShort(fixture));
 
       if (isLeaguePhaseRound(roundText)) {
+        // Ligatabelle ab der Auslosung: jede bekannte Paarung legt fuer
+        // beide Klubs sofort eine 0er-Zeile an. So steht die Tabelle
+        // (alle Werte 0, deterministisch alphabetisch) schon vor dem
+        // ersten Anpfiff, und die Analyse-Ansicht kann Reihenfolge und
+        // Turnierbaum manuell bespielen, sobald der Spielplan gesynct ist.
+        if (isRealLeagueTeamKey(homeKey)) getLeagueRow(rows, homeKey);
+        if (isRealLeagueTeamKey(awayKey)) getLeagueRow(rows, awayKey);
         if (isFinished && homeKey && awayKey) {
           const { home: hg, away: ag } = getFixtureGoals(fixture);
           if (Number.isFinite(hg) && Number.isFinite(ag)) {
