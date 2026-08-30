@@ -6077,6 +6077,17 @@
             + `<span><i class="clt-dot clt-dot--po"></i> Playoffs (${lp.directThrough + 1}–${lp.playoffThrough})</span>`
             + `<span><i class="clt-dot clt-dot--out"></i> Ausgeschieden (${lp.playoffThrough + 1}–${lp.teamCount})</span>`
             + '</div>';
+        // Vor dem ersten gewerteten Spiel steht die Tabelle nicht alphabetisch,
+        // sondern nach der Setzliste der Auslosung (tournament-config,
+        // leaguePhase.drawPots) – das kurz erklären, sonst wirkt die
+        // Reihenfolge willkürlich. Sobald Resultate zählen, entfällt der Satz.
+        const seededZeroTable = !isTournamentManualMode()
+            && context.standings.length > 0
+            && context.standings.every(r => !r.played)
+            && context.standings.some(r => r.pot);
+        const seedNote = seededZeroTable
+            ? '<div class="tournament-data-note">Noch kein Spiel gewertet – sortiert nach Auslosungs-Topf 1–4, innerhalb der Töpfe nach Einschätzung der Titelchancen.</div>'
+            : '';
         let content;
         if (isTournamentManualMode()) {
             content = renderLeagueManualList(context);
@@ -6088,7 +6099,7 @@
                 + '<th>Sp</th><th>S-U-N</th><th>Tore</th><th>Diff</th><th>Pkt</th>'
                 + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
         }
-        return '<div class="clt-panel">' + legend + content + '</div>';
+        return '<div class="clt-panel">' + legend + seedNote + content + '</div>';
     }
 
     function setLeagueManualWinner(id, key) {

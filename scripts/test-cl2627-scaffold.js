@@ -117,6 +117,33 @@ const lastKickoff = cl.fallbackFixtures
 assert.ok(new Date(cl.AUTO_POINTS_UNTIL).getTime() > lastKickoff,
   'Das Auto-Punkte-Fenster muss den Final noch abdecken.');
 
+/* ── 3c) Auslosungs-Töpfe: 4 × 9, deckungsgleich mit dem Klub-Pool ─────── */
+/* leaguePhase.drawPots sortiert die 0er-Ligatabelle vor dem ersten Anpfiff
+ * (Topf 1–4, innerhalb des Topfs Prognose-Reihenfolge). Die Namen müssen
+ * exakt die api-football-Klubs des Turniers treffen – ein Tippfehler würde
+ * den Klub still ans Tabellenende (alphabetischer Rest) rutschen lassen. */
+const drawPots = cl.leaguePhase && cl.leaguePhase.drawPots;
+assert.ok(Array.isArray(drawPots) && drawPots.length === 4,
+  'cl2627.leaguePhase.drawPots muss genau 4 Töpfe enthalten.');
+assert.deepEqual(drawPots.map((p) => p.pot), [1, 2, 3, 4],
+  'Die Töpfe müssen als 1–4 nummeriert und aufsteigend sortiert sein.');
+
+const potTeamKeys = [];
+for (const pot of drawPots) {
+  assert.ok(Array.isArray(pot.teams) && pot.teams.length === 9,
+    `Topf ${pot.pot} muss genau 9 Klubs enthalten.`);
+  pot.teams.forEach((name) => potTeamKeys.push(APP.normalizeTeamName(name)));
+}
+assert.equal(new Set(potTeamKeys).size, 36,
+  'Die 4 Töpfe müssen zusammen 36 verschiedene Klubs ergeben.');
+
+const poolClubs = require('./cl-pool-cl2627-clubs.json').clubs;
+const poolKeys = new Set(poolClubs.map((c) => APP.normalizeTeamName(c.name)));
+for (const key of potTeamKeys) {
+  assert.ok(poolKeys.has(key),
+    `Topf-Klub "${key}" fehlt im Klub-Pool (cl-pool-cl2627-clubs.json) – Tippfehler?`);
+}
+
 /* ── 4) Zeit-Default: dt.alae.app zeigt ab dem Stichtag die CL ─────────── */
 assert.equal(typeof APP.resolveScheduledDomainKey, 'function',
   'resolveScheduledDomainKey sollte exponiert sein.');
