@@ -7160,6 +7160,45 @@
             padding: 4px 12px;
             font-size: 0.7rem;
         }
+        /* „Live"-Tab: nur sichtbar, solange mindestens ein Spiel läuft
+           (index.js → clcmUpdateToggle). Roter Puls-Punkt als Live-Signal,
+           Zähler daneben, sobald mehrere Partien parallel laufen. */
+        .clcm-view-toggle .clcm-live-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .clcm-view-toggle .clcm-live-tab[hidden] { display: none; }
+        .clcm-view-toggle .clcm-live-tab.active {
+            background: linear-gradient(135deg, rgba(255, 92, 92, 0.24), rgba(255, 92, 92, 0.10));
+            color: #ff9b9b;
+            box-shadow: inset 0 0 0 1px rgba(255, 92, 92, 0.4);
+        }
+        .clcm-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ff5c5c;
+            animation: clcmLivePulse 1.6s ease-out infinite;
+        }
+        @keyframes clcmLivePulse {
+            0%   { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0.45); }
+            70%  { box-shadow: 0 0 0 6px rgba(255, 92, 92, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .clcm-live-dot { animation: none; }
+        }
+        .clcm-live-count {
+            padding: 0 6px;
+            border-radius: 999px;
+            background: rgba(255, 92, 92, 0.18);
+            color: #ff9b9b;
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1.6;
+        }
+        .clcm-live-count:empty { display: none; }
         /* Nur wenn ÜBERHAUPT keine Spiele vorliegen → kein Toggle. Eine
            leere Einzelseite blendet ihn nicht aus, sie bekommt einen
            Hinweis (siehe .clcm-empty). */

@@ -123,7 +123,40 @@ mit `force_run`.
 Public Reads und Team-Writes fuer diese Collections stehen in
 `firestore.rules` (Regressionstest: `npm run test:cl-team-writes`).
 
-### Checkliste vor dem ersten Anpfiff (08.09.2026, 21:00 CH)
+### Team-Bau-Deadline und Anzeige-Umschaltung: 08.09.2026, 18:45 CH
+
+Seit dem 30.08.2026 steht `DREAMTEAM_START` (cl2627) auf **18:45** statt
+21:00 – dem fruehestmoeglichen Anstoss des ersten Abends (in jeder
+bisherigen Ligaphasen-Saison gab es 18:45-Spiele). Damit schliesst die
+Team-Abgabe, BEVOR ein Spiel laeuft, und die Startseite wechselt zum
+ersten Anpfiff in die Nach-Start-Ansicht mit den Live-Kacheln. Der Wert
+steht dreifach (bewusst, mit Tests dagegen): `tournament-config.js`
+(`DREAMTEAM_START` + `MATCH_CALENDAR_CL2627` Spieltag 1), Pre-Flight in
+`index.html` (`DOMAIN_START`), `firestore.rules`
+(`isBeforeClTeamDeadline`, 1788885900000 ms = 16:45 UTC).
+
+**Nach der Kalender-Publikation pruefen:** beginnt der 08.09. wider
+Erwarten erst um 21:00, schliesst die Abgabe lediglich 2¼ h zu frueh –
+harmlos, kann aber bei Bedarf auf die echte Zeit angehoben werden
+(alle drei Stellen + `npm test`, Rules deployen).
+
+### Startseite: Live-Ansicht der Spiele (Browser-Seite)
+
+Die Sektion „Aktuelle Spiele" der Startseite hat drei Ansichten:
+**Live** (alle gerade laufenden Partien, OHNE Deckel – am letzten
+Ligaphasen-Spieltag laufen alle 18 gleichzeitig), **Abgeschlossen** und
+**Kommend** (je max. 10). Der Live-Tab erscheint nur, solange etwas
+laeuft, traegt einen Zaehler und ist dann die Standard-Ansicht; Kacheln
+zeigen Zwischenstand + Spielminute, Details (Torschuetzen, Spieler,
+Punkte, Manager) oeffnet der Klick. Ein lokaler 30-s-Uhr-Tick haelt
+Countdown („Live in 12 Minuten") und den optimistischen Wechsel auf
+Live am Anstoss aktuell, auch bevor der erste Server-Write eintrifft;
+die Daten selbst kommen weiterhin ausschliesslich ueber den
+Meta-Listener (fixturesVersion → Bundle-Read). Damit die Kacheln am
+Spieltag echte Paarungen zeigen, muss der Spielplan-Sync bis dahin
+gruen gelaufen sein (siehe „Offener Punkt" oben).
+
+### Checkliste vor dem ersten Anpfiff (08.09.2026, 18:45 CH)
 
 1. `Auto Spielplan-Sync` ist gruen und `Spiele CL 2026-27` enthaelt 144
    Ligaphasen-Spiele auf acht verschiedenen Terminen.
@@ -134,7 +167,11 @@ Public Reads und Team-Writes fuer diese Collections stehen in
    Archiv im Profil-Dropdown erreichbar.
 4. Ein manueller `Auto Punkte-Upload` mit `force_run` laeuft sauber durch
    (Guard, API-Call, Firestore-Write, Meta-Bump).
-5. Die Firestore-Rules sind deployt (`Deploy Firestore Rules`).
+5. Die Firestore-Rules sind deployt (`Deploy Firestore Rules`) – auch
+   die neue 18:45-Deadline (Push auf `main` mit geaenderter
+   `firestore.rules` deployt automatisch).
+6. Anstosszeiten des 08.09. gegen `DREAMTEAM_START` pruefen (siehe
+   oben).
 
 ---
 

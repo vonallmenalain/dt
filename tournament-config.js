@@ -159,7 +159,10 @@ const APP_CONFIG = (() => {
    * Auslosung fest – bis dahin ist das eine Näherung.
    * ───────────────────────────────────────────────────────── */
   const MATCH_CALENDAR_CL2627 = [
-    { round: "League Stage - 1", label: "Spieltag 1", dates: ["2026-09-08", "2026-09-09", "2026-09-10"], kickoff: "21:00", offset: "+02:00" },
+    // Spieltag 1 steht auf 18:45: der Termin trägt zugleich DREAMTEAM_START
+    // (Team-Bau-Deadline/Reveal), und dort zählt der FRÜHESTMÖGLICHE
+    // Anstoss des ersten Abends – Begründung beim cl2627-Block.
+    { round: "League Stage - 1", label: "Spieltag 1", dates: ["2026-09-08", "2026-09-09", "2026-09-10"], kickoff: "18:45", offset: "+02:00" },
     { round: "League Stage - 2", label: "Spieltag 2", dates: ["2026-10-13", "2026-10-14"], kickoff: "21:00", offset: "+02:00" },
     { round: "League Stage - 3", label: "Spieltag 3", dates: ["2026-10-20", "2026-10-21"], kickoff: "21:00", offset: "+02:00" },
     { round: "League Stage - 4", label: "Spieltag 4", dates: ["2026-11-03", "2026-11-04"], kickoff: "21:00", offset: "+01:00" },
@@ -446,7 +449,7 @@ const APP_CONFIG = (() => {
      * feststehenden Spieltage.
      *
      * Team-Bau-Deadline: die Firestore-Rules lassen NEUE CL-Teams nur bis
-     * 2026-09-08 19:00 UTC zu (= DREAMTEAM_START).
+     * 2026-09-08 16:45 UTC zu (= DREAMTEAM_START, 18:45 Schweizer Zeit).
      * ═════════════════════════════════════════════════════════════ */
     cl2627: {
       key: "cl2627",
@@ -494,8 +497,16 @@ const APP_CONFIG = (() => {
 
       // Erster Ligaphasen-Spieltag (Team-Bau-Deadline / Reveal). Spieltag 1
       // wird auf drei Abende verteilt (08.–10.09.2026); massgeblich ist der
-      // erste Anpfiff. Quelle: MATCH_CALENDAR_CL2627.
-      DREAMTEAM_START: "2026-09-08T21:00:00+02:00",
+      // erste Anpfiff. Bewusst der FRÜHESTMÖGLICHE Anstoss des Abends
+      // (18:45, in jeder bisherigen Ligaphasen-Saison so angesetzt), nicht
+      // 21:00: Käme ein 18:45-Spiel und die Deadline stünde auf 21:00,
+      // liesse sich während zweier laufender Partien noch ein Team bauen
+      // und die Startseite bliebe bis 21:00 in der Vor-Start-Ansicht –
+      // ohne Live-Kacheln. Steht nach der Kalender-Publikation fest, dass
+      // der 08.09. erst um 21:00 beginnt, schliesst die Abgabe lediglich
+      // 2¼ h früher (harmlos). Wert steht doppelt: firestore.rules
+      // (isBeforeClTeamDeadline) und das Pre-Flight in index.html.
+      DREAMTEAM_START: "2026-09-08T18:45:00+02:00",
       // Aktives Zeitfenster für den Auto-Punkte-Upload: vom ersten
       // Ligaphasen-Spieltag bis zum Tag nach dem Final (05.06.2027).
       AUTO_POINTS_FROM: "2026-09-08T18:00:00+02:00",

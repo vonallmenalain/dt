@@ -351,6 +351,16 @@
  * behält ihr Podest unverändert. */
 [data-tournament^="cl"] .champ-stage { display: none; }
 
+/* ── Startseite NACH Start (CL): kein Hero-Titel ─────────────────────────
+ * „Champions League / DreamTeam / Saison …" steht bereits in der
+ * Navigationsleiste – der Hero der Nach-Start-Ansicht entfällt in der CL
+ * ersatzlos (index.js entfernt ihn beim Boot, diese Regel verhindert den
+ * Pre-Boot-Flash). „Top Manager" rückt an die Spitze und bekommt dafür
+ * den Atem-Abstand, den vorher der Hero mitbrachte. Die WM behält ihren
+ * Post-Start-Hero unverändert. */
+[data-tournament^="cl"] #hero-post { display: none; }
+[data-tournament^="cl"] #clTopManagers.cltm-stage { padding-top: 34px; }
+
 /* ── Scrollbar-Platz permanent reservieren (nur CL) ──────────────────────
  * Beim Öffnen einer Detailkarte (Top Manager / Aktuelle Spiele) wird der
  * Body eingefroren (body.clpop-lock, position: fixed) – dabei verschwindet auf Desktops mit
