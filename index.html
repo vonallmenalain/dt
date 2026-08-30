@@ -188,7 +188,7 @@
             //    der Fallback der von FALLBACK_TOURNAMENT_KEY.
             //    scripts/test-preflight-default.js haelt beides deckungsgleich.
             var DOMAIN_START = {
-                'dt.alae.app': '2026-09-08T21:00:00+02:00'  // = cl2627
+                'dt.alae.app': '2026-09-08T18:45:00+02:00'  // = cl2627
             };
             var FALLBACK_START = '2026-06-11T21:00:00+02:00'; // = wm2026
 
@@ -511,15 +511,18 @@
                 <span class="accent">Spiele</span>
             </h2>
         </header>
-        <!-- Dezenter Ansichts-Toggle: „Abgeschlossen" (die 10 zuletzt
+        <!-- Dezenter Ansichts-Toggle: „Live" (ALLE gerade laufenden
+             Partien, ohne Deckel – der Tab erscheint nur, solange etwas
+             läuft, und ist dann Standard; der Zähler zeigt, wie viele
+             Spiele parallel laufen) / „Abgeschlossen" (die 10 zuletzt
              beendeten Spiele, das neuste zuerst) / „Kommend" (die 10
-             nächsten noch nicht abgeschlossenen Spiele, laufende Partien
-             eingeschlossen). Beide Ansichten zeigen NIE mehr als 10
-             Kacheln. Der Umschalter steht immer da – ist eine Seite leer
-             (nach dem Final gibt es keine kommenden Spiele mehr), erklärt
-             das dort ein Hinweis (siehe clcmUpdateToggle). -->
+             nächsten angesetzten Spiele). Der Umschalter steht immer da –
+             ist eine Seite leer (nach dem Final gibt es keine kommenden
+             Spiele mehr), erklärt das dort ein Hinweis (siehe
+             clcmUpdateToggle). -->
         <div class="clcm-list-toolbar">
             <div class="pt-toggle clcm-view-toggle" role="tablist" aria-label="Spiele-Ansicht">
+                <button type="button" class="pt-toggle-btn clcm-live-tab" data-view="live" role="tab" aria-selected="false" hidden><span class="clcm-live-dot" aria-hidden="true"></span>Live<span class="clcm-live-count" aria-hidden="true"></span></button>
                 <button type="button" class="pt-toggle-btn active" data-view="abgeschlossen" role="tab" aria-selected="true">Abgeschlossen</button>
                 <button type="button" class="pt-toggle-btn" data-view="kommend" role="tab" aria-selected="false">Kommend</button>
             </div>

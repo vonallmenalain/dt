@@ -779,7 +779,8 @@ In der [Firebase Console](https://console.firebase.google.com/project/dreamteam-
    - Team-Writes gibt es für `Teams WM 2026`, `Teams CL 2025-26 Test`
      (Test-Turnier, ohne Zeit-Gate) und `Teams CL 2026-27`. Bei der CL
      2026/27 sind **neue** Teams und Löschungen bis zum ersten
-     Ligaphasen-Spiel (2026-09-08 19:00 UTC) erlaubt, **Updates**
+     Ligaphasen-Spiel (2026-09-08 16:45 UTC, 18:45 Schweizer Zeit –
+     frühestmöglicher Anstoss des ersten Abends) erlaubt, **Updates**
      dauerhaft – sonst liesse sich das Transferfenster während der Saison
      nicht nutzen.
    - Team-Writes verlangen verifizierte E-Mail; Eigentum wird über

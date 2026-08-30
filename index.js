@@ -1954,6 +1954,14 @@
         const postBottom = document.querySelector('#indexHomePostStart .post-bottom');
         if (postBottom && postBottom.children.length === 0) postBottom.remove();
 
+        // Nach-Start-Hero („Champions League / DreamTeam / Saison …"):
+        // In der CL entfällt er ersatzlos – Markenname und Saison stehen
+        // bereits in der Navigationsleiste, „Top Manager" rückt damit an
+        // die Spitze der Seite. theme-cl.css blendet ihn zusätzlich schon
+        // vor dem JS-Boot aus; der WM-Hero bleibt unangetastet.
+        const heroPost = document.getElementById('hero-post');
+        if (heroPost) heroPost.remove();
+
         // Top-Manager-Bereich: In der CL ersetzt die kompakte Top-10-Liste
         // (#clTopManagers, siehe renderClTopManagers) die Champ-Stage samt
         // Podest-Animation. Die Champ-Stage fliegt hier komplett raus
@@ -5519,11 +5527,13 @@
          Klubnamen gross, in der Mitte das Schlussresultat (bei Bedarf mit
          „n.V."/„n.E.") bzw. Startzeit + Datum, wenn das Spiel noch nicht
          angepfiffen ist.
-       • Zwei Ansichten, je GENAU bis 10 Kacheln – nie mehr:
+       • Drei Ansichten: „Live" = ALLE gerade laufenden Partien ohne
+         Deckel (der Tab erscheint nur, solange etwas läuft, und ist dann
+         Standard – an einem CL-Abend laufen bis zu neun Spiele parallel,
+         am letzten Ligaphasen-Spieltag alle 18 gleichzeitig);
          „Abgeschlossen" = die 10 zuletzt beendeten Spiele, das neuste
-         zuerst; „Kommend" = die 10 nächsten noch nicht abgeschlossenen
-         Spiele (laufende Partien eingeschlossen), der nächste Anpfiff
-         zuerst.
+         zuerst; „Kommend" = die 10 nächsten angesetzten Spiele, der
+         nächste Anpfiff zuerst.
        • Klick öffnet über den gemeinsamen Popup-Controller (clpopOpen)
          die Detailkarte – EXAKT dieselbe Animation wie bei Top Manager.
        • In der Detailkarte steht alles, was der Gelegenheits-User sonst
@@ -5537,7 +5547,8 @@
        (extractMatchInfo + data.points + teams) – die Punkte stimmen also
        mit Analyse, Rangliste und Teams überein.
        ========================================================= */
-    const CLCM_VIEW_COUNT = 10;      // Kacheln je Ansicht – hartes Maximum
+    const CLCM_VIEW_COUNT = 10;      // Kacheln in „Abgeschlossen"/„Kommend" –
+                                     // die Live-Ansicht ist bewusst ungedeckelt
 
     // Kurz-Chips auf der Spielerkarte – bewusst NUR Text, keine Emojis.
     // Die Werte in `Aufstellung` sind PUNKTE, nicht Anzahl – die Anzahl
@@ -5653,8 +5664,8 @@
         });
     }
 
-    let clcmView = 'abgeschlossen';  // 'abgeschlossen' | 'kommend'
-    let clcmEntries = [];            // beide Ansichten, „abgeschlossen" zuerst
+    let clcmView = 'abgeschlossen';  // 'live' | 'abgeschlossen' | 'kommend'
+    let clcmEntries = [];            // alle Ansichten, „live" zuerst
     let clcmEntryByKey = new Map();  // Kachel-Key → Eintrag
     let clcmCtx = null;              // { drafted, pointsIndex }
     let clcmResizeTimer = null;
@@ -5663,6 +5674,7 @@
     let clcmSignature = null;
     let clcmRenderedView = null;     // Ansicht, die aktuell im DOM steht
     let clcmViewChosenByUser = false;// true, sobald jemand selbst umgeschaltet hat
+    let clcmLastRenderArgs = null;   // { data, teams } des letzten Renders – für den Uhr-Tick
 
     function clcmSignatureOf(entries) {
         return JSON.stringify(entries.map((e) => [
@@ -5811,24 +5823,37 @@
         const now = Date.now();
         const enriched = source.map((match) => ({ match, timingState: getMatchTimingState(match, now) }));
 
-        // Zwei feste Ansichten mit je höchstens 10 Spielen:
+        // Drei Ansichten:
+        //   „Live"          – ALLE gerade laufenden bzw. auf ihr Update
+        //                     wartenden Partien, OHNE Deckel: an einem
+        //                     CL-Abend laufen bis zu neun Spiele parallel,
+        //                     am letzten Ligaphasen-Spieltag alle 18
+        //                     gleichzeitig – jedes davon muss seinen
+        //                     Zwischenstand zeigen. Der Tab existiert nur,
+        //                     solange mindestens ein Spiel läuft (siehe
+        //                     clcmUpdateToggle) und ist dann die
+        //                     Standard-Ansicht.
         //   „Abgeschlossen" – die 10 zuletzt beendeten, das neuste zuerst.
-        //   „Kommend"       – die 10 nächsten NOCH NICHT abgeschlossenen
-        //                     Spiele; laufende bzw. auf ihr Update wartende
-        //                     Partien gehören dazu und stehen dank der
-        //                     Anpfiff-Sortierung automatisch zuoberst.
+        //   „Kommend"       – die 10 nächsten angesetzten Spiele, der
+        //                     nächste Anpfiff zuerst.
+        const isRunning = (timingState) =>
+            !timingState.isFinished && (timingState.isLive || timingState.isUpdateOpen);
+        const live = enriched
+            .filter(({ timingState }) => isRunning(timingState))
+            .sort(compareMatchEntriesByKickoff)
+            .map((e) => ({ ...e, group: 'live' }));
         const finished = enriched
             .filter(({ timingState }) => timingState.isFinished)
             .sort(compareFinishedMatchEntriesByRecency)
             .slice(0, CLCM_VIEW_COUNT)
             .map((e) => ({ ...e, group: 'abgeschlossen' }));
         const upcoming = enriched
-            .filter(({ timingState }) => !timingState.isFinished)
+            .filter(({ timingState }) => !timingState.isFinished && !isRunning(timingState))
             .sort(compareMatchEntriesByKickoff)
             .slice(0, CLCM_VIEW_COUNT)
             .map((e) => ({ ...e, group: 'kommend' }));
 
-        const ordered = [...finished, ...upcoming];
+        const ordered = [...live, ...finished, ...upcoming];
 
         const entries = ordered.map(({ match, timingState, group }, index) => {
             const matchId = match.gameNumber ?? match.matchId ?? match.id;
@@ -5920,7 +5945,12 @@
     function clcmTileCenterHtml(entry) {
         const state = entry.timingState;
         const showScore = !!entry.score && (state.isFinished || state.isLive || state.isUpdateOpen);
-        const liveBadge = (state.isLive || state.isUpdateOpen)
+        // Badge auf der Kachel: bei laufenden Spielen (Minute), offenem
+        // Update – und im Countdown-Fenster (30 Min vor Anpfiff, „Live in
+        // 12 Minuten"): der lokale Uhr-Tick zählt ihn herunter, bis die
+        // Kachel am Anstoss in die Live-Ansicht wechselt. Sonst reicht
+        // Zeit + Datum.
+        const liveBadge = (state.isLive || state.isUpdateOpen || entry.view.badgeCls === 'countdown')
             ? `<span class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</span>`
             : '';
         if (showScore) {
@@ -5993,10 +6023,22 @@
         // Spiele vorliegen, gibt es nichts umzuschalten.
         const toolbar = document.querySelector('#clCurrentMatches .clcm-list-toolbar');
         if (toolbar) toolbar.classList.toggle('is-single-view', !clcmEntries.length);
+        // Der Live-Tab existiert nur, solange mindestens ein Spiel läuft –
+        // mit Zähler, damit man an einem 9-Spiele-Abend sofort sieht, wie
+        // viele Partien gerade parallel laufen.
+        const liveCount = clcmCountByGroup('live');
         document.querySelectorAll('#clCurrentMatches .clcm-view-toggle .pt-toggle-btn').forEach((btn) => {
             const active = btn.dataset.view === clcmView;
             btn.classList.toggle('active', active);
             btn.setAttribute('aria-selected', active ? 'true' : 'false');
+            if (btn.dataset.view === 'live') {
+                btn.hidden = !liveCount;
+                const countEl = btn.querySelector('.clcm-live-count');
+                if (countEl) countEl.textContent = liveCount > 1 ? String(liveCount) : '';
+                // Der Zähler-Chip ist aria-hidden – der Button-Name trägt
+                // die Zahl für Screenreader mit.
+                btn.setAttribute('aria-label', liveCount > 1 ? `Live – ${liveCount} Spiele laufen` : 'Live');
+            }
         });
     }
 
@@ -6004,7 +6046,7 @@
     // im DOM und werden nur ein-/ausgeblendet (`data-group`). Dadurch bleibt
     // der Wechsel eine reine Opacity-Animation – es „springt" nichts.
     function clcmSetView(view) {
-        if (view !== 'abgeschlossen' && view !== 'kommend') return;
+        if (view !== 'live' && view !== 'abgeschlossen' && view !== 'kommend') return;
         if (view === clcmView) return;
         clcmView = view;
         clcmRenderedView = view;
@@ -6296,12 +6338,56 @@
                 clcmSyncTileScale();
             }, 120);
         });
+
+        /* ── Lokaler Uhr-Tick ────────────────────────────────────────────
+           Die DATEN kommen ausschliesslich über den Firestore-Meta-Listener
+           (cache.js) – aber die ANZEIGE hängt zusätzlich an der Uhr:
+           „Anpfiff in 12 Min" zählt herunter, am Anstoss wechselt eine
+           Kachel von „Heute 21:00" auf Live (optimistisch, siehe
+           getMatchTimingState), und der Live-Tab muss auftauchen, BEVOR
+           der erste Server-Write eintrifft. Dieser Tick rendert deshalb
+           alle 30 s die Spiele-Sektion mit frischem `now` neu – nur wenn
+           der Tab sichtbar ist und ein Spiel im relevanten Fenster liegt;
+           die Render-Signatur verhindert DOM-Arbeit, wenn sich optisch
+           nichts geändert hat. */
+        setInterval(() => {
+            if (document.visibilityState !== 'visible') return;
+            if (!clcmLastRenderArgs || !clcmNeedsClockTick()) return;
+            renderClCurrentMatches(clcmLastRenderArgs.data, clcmLastRenderArgs.teams);
+        }, 30000);
+        document.addEventListener('visibilitychange', () => {
+            // Zurück aus der Hosentasche: Badges sofort auffrischen statt
+            // bis zu 30 s alte Countdown-/Live-Zustände zu zeigen. Frische
+            // Daten holt parallel der Resume-Pfad in cache.js.
+            if (document.visibilityState !== 'visible') return;
+            if (!clcmLastRenderArgs || !clcmNeedsClockTick()) return;
+            renderClCurrentMatches(clcmLastRenderArgs.data, clcmLastRenderArgs.teams);
+        });
+    }
+
+    // Liegt gerade ein Spiel in einem Fenster, in dem sich die Anzeige mit
+    // der Uhr ändert? (laufend, Update offen, oder Anpfiff im Countdown-
+    // Fenster bzw. unmittelbar bevorstehend)
+    function clcmNeedsClockTick() {
+        if (!clcmEntries.length) return false;
+        const now = Date.now();
+        return clcmEntries.some((entry) => {
+            const state = entry.timingState;
+            if (state.isLive || state.isUpdateOpen) return true;
+            if (state.isFinished || !Number.isFinite(state.kickoffMs)) return false;
+            const diffMin = (state.kickoffMs - now) / 60000;
+            // Eine Minute Vorlauf, damit auch der WECHSEL auf den Countdown
+            // ohne Daten-Update kommt; negative Werte decken den Moment ab,
+            // in dem der Anstoss zwischen zwei Ticks vorbeigezogen ist.
+            return diffMin <= PREMATCH_COUNTDOWN_WINDOW_MIN + 1;
+        });
     }
 
     function renderClCurrentMatches(data, teams) {
         const list = clcmListEl();
         if (!list) return;
         clcmBindOnce();
+        clcmLastRenderArgs = { data, teams };
 
         clcmCtx = {
             drafted: clcmBuildDraftedIndex(teams),
@@ -6313,11 +6399,25 @@
         clcmEntries = entries;
         clcmEntryByKey = new Map(entries.map((e) => [e.key, e]));
 
-        // Steht die Standard-Ansicht leer da (z. B. vor dem ersten Anpfiff
-        // gibt es noch nichts Abgeschlossenes), still auf die andere
-        // wechseln – niemand landet beim Aufmachen auf einer leeren Bühne.
-        // Hat jemand selbst umgeschaltet, bleibt seine Wahl stehen, auch
-        // wenn sie leer ist (sonst würde ein Daten-Refresh sie wegziehen).
+        // Ansichts-Wahl:
+        //   1. Verschwindet der Live-Tab (letztes Spiel beendet), landet
+        //      man auf „Abgeschlossen" – dort stehen die eben beendeten
+        //      Spiele zuoberst. Das gilt auch nach einer manuellen Wahl:
+        //      einen Tab, den es nicht mehr gibt, kann niemand „gewählt
+        //      haben"; ab hier entscheidet wieder die Automatik.
+        //   2. Läuft mindestens ein Spiel, ist „Live" die Standard-Ansicht
+        //      – ausser jemand hat in dieser Sitzung selbst umgeschaltet.
+        //   3. Steht die Ansicht sonst leer da (z. B. vor dem ersten
+        //      Anpfiff gibt es noch nichts Abgeschlossenes), still auf die
+        //      andere wechseln – niemand landet auf einer leeren Bühne.
+        const liveCount = clcmCountByGroup('live');
+        if (clcmView === 'live' && !liveCount) {
+            clcmView = 'abgeschlossen';
+            clcmViewChosenByUser = false;
+        }
+        if (!clcmViewChosenByUser && liveCount) {
+            clcmView = 'live';
+        }
         if (!clcmViewChosenByUser && !clcmCountByGroup(clcmView)) {
             const other = clcmView === 'abgeschlossen' ? 'kommend' : 'abgeschlossen';
             if (clcmCountByGroup(other)) clcmView = other;

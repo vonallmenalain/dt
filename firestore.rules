@@ -23,7 +23,7 @@ rules_version = '2';
 //   6) Champions League: Reads fuer beide CL-Turniere, Team-Writes fuer die
 //      Test-Saison (cl2526, 'Teams CL 2025-26 Test') und die produktive
 //      Saison (cl2627, 'Teams CL 2026-27'). Neue Teams/Loeschungen sind bei
-//      cl2627 bis zum ersten Ligaphasen-Spiel (2026-09-08 19:00 UTC)
+//      cl2627 bis zum ersten Ligaphasen-Spiel (2026-09-08 16:45 UTC)
 //      erlaubt, Updates dauerhaft (Transferfenster waehrend der Saison).
 //   7) Default-Deny fuer alles andere.
 //
@@ -64,11 +64,12 @@ service cloud.firestore {
     }
 
     // Abgabe-Deadline Champions League 2026/27: erster Ligaphasen-Anpfiff
-    // 2026-09-08 21:00 Europe/Zurich = 2026-09-08 19:00:00 UTC
-    // = 1788894000000 ms. Quelle: DREAMTEAM_START in tournament-config.js
-    // (cl2627) – beide Werte muessen zusammen gepflegt werden.
+    // 2026-09-08 18:45 Europe/Zurich = 2026-09-08 16:45:00 UTC
+    // = 1788885900000 ms (fruehestmoeglicher Anstoss des ersten Abends).
+    // Quelle: DREAMTEAM_START in tournament-config.js (cl2627) – beide
+    // Werte muessen zusammen gepflegt werden.
     function isBeforeClTeamDeadline() {
-      return request.time.toMillis() < 1788894000000;
+      return request.time.toMillis() < 1788885900000;
     }
 
     // Nachzuegler-Schalter der CL: identisch zum WM-Schalter, nur im
