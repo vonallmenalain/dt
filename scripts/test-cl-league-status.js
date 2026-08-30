@@ -85,6 +85,45 @@ const LP = 'League Phase - ';
   assert.equal(s.knockoutStarted, false, 'Keine K.-o.-Phase erkannt.');
 })();
 
+/* ── 1c) Setzliste (drawPots): 0er-Tabelle nach Topf, nicht Alphabet ───── */
+(function seededByDrawPots() {
+  const OPTS = {
+    leaguePhase: {
+      teamCount: 6, matchesPerTeam: 2, directQualifyThrough: 1, playoffThrough: 2,
+      drawPots: [
+        { pot: 1, teams: ['Paris Saint Germain', 'Real Madrid'] },
+        { pot: 2, teams: ['Como', 'Feyenoord'] }
+      ]
+    }
+  };
+  const fixtures = [
+    fx('Group Stage', 'Real Madrid', 'Como', null, null, 'NS'),
+    fx('Group Stage', 'Feyenoord', 'Paris Saint Germain', null, null, 'NS'),
+    // Ungesetzte Klubs (nicht in drawPots) landen hinter den gesetzten,
+    // untereinander alphabetisch.
+    fx('Group Stage', 'Zebra FC', 'Aarhus', null, null, 'NS')
+  ];
+  const s = APP.computeLeagueStatus(fixtures, OPTS);
+  assert.deepEqual(
+    s.standings.map((r) => r.key),
+    ['paris saint germain', 'real madrid', 'como', 'feyenoord', 'aarhus', 'zebra fc'],
+    '0er-Tabelle muss nach Setzliste sortieren (Topf 1 vor Topf 2, Rest alphabetisch dahinter).'
+  );
+  assert.equal(s.standings[0].pot, 1, 'Gesetzte Zeile trägt ihren Topf.');
+  assert.equal(s.standings[2].pot, 2);
+  assert.equal(s.standings[4].pot, null, 'Ungesetzte Zeile hat keinen Topf.');
+
+  // Sobald Resultate zählen, schlägt die sportliche Wertung die Setzliste:
+  // Como (Topf 2) gewinnt gegen PSG (Topf 1) → Como an die Spitze, PSG
+  // rutscht mit Tordifferenz −1 hinter alle 0:0-Zeilen.
+  const withResult = fixtures.concat([fx('Group Stage', 'Como', 'Paris Saint Germain', 1, 0, 'FT')]);
+  const s2 = APP.computeLeagueStatus(withResult, OPTS);
+  const order2 = s2.standings.map((r) => r.key);
+  assert.equal(order2[0], 'como', 'Punkte gehen vor Setzliste.');
+  assert.ok(order2.indexOf('paris saint germain') > order2.indexOf('real madrid'),
+    'Negative Tordifferenz geht vor Setzlisten-Rang.');
+})();
+
 /* ── 2) Ligaphase komplett → Rang-Grenze greift ───────────────────────── */
 (function completePhase() {
   // Ergebnisse so gewählt, dass die Tabelle eindeutig ist:

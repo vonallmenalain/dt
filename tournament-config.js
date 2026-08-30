@@ -580,7 +580,43 @@ const APP_CONFIG = (() => {
         teamCount: 36,
         matchesPerTeam: 8,
         directQualifyThrough: 8,
-        playoffThrough: 24
+        playoffThrough: 24,
+
+        // Auslosungs-Töpfe der Ligaphase (UEFA, Auslosung vom 27.08.2026;
+        // Topf 1 mit dem Titelhalter topgesetzt). Die REIHENFOLGE innerhalb
+        // eines Topfs ist redaktionelle Einschätzung (Titelchance) und darf
+        // frei umsortiert werden – sie dient nur als Anzeige-Reihenfolge.
+        //
+        // Zweck: Solange die Tabelle keine Resultate hat (alle 0 Punkte),
+        // sortiert computeTournamentLeagueStatus nach dieser Setzliste statt
+        // alphabetisch. Sobald gespielt wird, entscheiden wie gehabt Punkte/
+        // Tordifferenz usw.; die Liste bleibt dann nur letzter Tiebreaker.
+        //
+        // Schreibweise = api-football-Teamnamen (wie in den Fixtures und in
+        // scripts/cl-pool-cl2627-clubs.json); Abgleich läuft über
+        // normalizeTournamentTeamName. Regressionstest: test-cl2627-scaffold.
+        drawPots: [
+          { pot: 1, teams: [
+            "Paris Saint Germain", "Real Madrid", "Liverpool", "Arsenal",
+            "Barcelona", "Bayern München", "Manchester City", "Inter",
+            "Atletico Madrid"
+          ] },
+          { pot: 2, teams: [
+            "Borussia Dortmund", "Manchester United", "Aston Villa",
+            "Sporting CP", "AS Roma", "FC Porto", "PSV Eindhoven",
+            "Real Betis", "Club Brugge KV"
+          ] },
+          { pot: 3, teams: [
+            "Napoli", "Villarreal", "RB Leipzig", "Galatasaray",
+            "Fenerbahçe", "Feyenoord", "Lille", "Shakhtar Donetsk",
+            "Bodo/Glimt"
+          ] },
+          { pot: 4, teams: [
+            "VfB Stuttgart", "Como", "Lens", "Slavia Praha",
+            "AEK Athens FC", "Slovan Bratislava", "Lask Linz", "Viking",
+            "Sabah FA"
+          ] }
+        ]
       },
 
       // K.-o.-Phase: Playoffs/Achtel/Viertel/Halbfinale sind Hin- und
@@ -1441,16 +1477,42 @@ const APP_CONFIG = (() => {
     away.gd = away.gf - away.ga;
   }
 
-  function compareLeagueRows(a, b) {
+  /* Setzliste aus den Auslosungs-Töpfen (leaguePhase.drawPots): normalisierter
+   * Klub-Key → { rank: 1..36 (Topf 1 zuerst, innerhalb des Topfs in der
+   * konfigurierten Prognose-Reihenfolge), pot: 1..4 }. Ohne drawPots bleibt
+   * die Map leer und die Sortierung fällt auf alphabetisch zurück. */
+  function buildLeagueDrawSeedIndex(lp) {
+    const index = new Map();
+    const pots = Array.isArray(lp && lp.drawPots) ? lp.drawPots : [];
+    let rank = 0;
+    pots.forEach((pot) => {
+      const teams = pot && Array.isArray(pot.teams) ? pot.teams : [];
+      teams.forEach((name) => {
+        const key = normalizeTournamentTeamName(name);
+        if (key && !index.has(key)) index.set(key, { rank: ++rank, pot: pot.pot || null });
+      });
+    });
+    return index;
+  }
+
+  function compareLeagueRows(a, b, seedIndex) {
     if (a.pts !== b.pts) return b.pts - a.pts;
     if (a.gd !== b.gd) return b.gd - a.gd;
     if (a.gf !== b.gf) return b.gf - a.gf;
     if (a.awayGf !== b.awayGf) return b.awayGf - a.awayGf;
     if (a.won !== b.won) return b.won - a.won;
     if (a.awayWon !== b.awayWon) return b.awayWon - a.awayWon;
-    // Deterministischer Fallback. Die offiziellen weiteren Tiebreaker
-    // (Disziplinar-Wertung, UEFA-Koeffizient) sind hier bewusst NICHT
-    // abgebildet und werden bei Bedarf später ergänzt.
+    // Deterministischer Fallback: erst die Setzliste der Auslosung
+    // (Topf 1–4, innerhalb des Topfs Prognose-Reihenfolge) – so steht die
+    // 0er-Tabelle vor dem ersten Anpfiff nicht alphabetisch, sondern nach
+    // Topf da. Gesetzte Klubs vor ungesetzten; ohne Setzliste alphabetisch.
+    // Die offiziellen weiteren Tiebreaker (Disziplinar-Wertung,
+    // UEFA-Koeffizient) sind bewusst NICHT abgebildet.
+    const sa = seedIndex ? seedIndex.get(a.key) : null;
+    const sb = seedIndex ? seedIndex.get(b.key) : null;
+    if (sa && sb && sa.rank !== sb.rank) return sa.rank - sb.rank;
+    if (sa && !sb) return -1;
+    if (!sa && sb) return 1;
     return String(a.key).localeCompare(String(b.key), "de");
   }
 
@@ -1652,11 +1714,16 @@ const APP_CONFIG = (() => {
     const eliminated = new Set();
 
     // Tabelle ranken (immer – nützlich für die spätere Analyse-Ansicht).
-    const ranked = leagueParticipants.slice().sort(compareLeagueRows);
+    // Bei komplettem Gleichstand (v. a. vor dem ersten Anpfiff: alles 0)
+    // sortiert die Setzliste der Auslosung statt des Alphabets.
+    const seedIndex = buildLeagueDrawSeedIndex(lp);
+    const ranked = leagueParticipants.slice().sort((a, b) => compareLeagueRows(a, b, seedIndex));
     ranked.forEach((row, idx) => {
       row.rank = idx + 1;
       row.name = names.get(row.key) || row.key;
       row.logo = logos.get(row.key) || "";
+      const seed = seedIndex.get(row.key);
+      row.pot = seed ? seed.pot : null;
     });
 
     if (leaguePhaseComplete) {
