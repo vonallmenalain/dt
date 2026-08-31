@@ -317,7 +317,7 @@ function extractBlock(startMarker) {
 }
 
 // list: NUR query-gebunden – public ODER eigene Mitgliedschaft. Ohne diese
-// Bindung waeren versteckte Gruppen per ungefilterter Query auflistbar.
+// Bindung waeren private Gruppen per ungefilterter Query auflistbar.
 {
   const block = extractBlock('allow list:');
   assert.ok(block.includes("collection == 'tippgruppen'"), 'allow list muss tippgruppen decken');
@@ -354,11 +354,25 @@ assert.ok(/collection == 'tippgruppen'\s*&&\s*validTippgruppeDelete\(\)/.test(RU
     'Update: nur der eigene memberNames-Eintrag darf sich aendern');
 }
 
-// Modul und Rules meinen dieselbe Collection.
+// Modul und Rules meinen dieselbe Collection und dieselben
+// Sichtbarkeits-Werte ('public' | 'private' – NICHT mehr 'hidden').
 {
   const moduleSrc = readRoot('tippgruppen.js');
   assert.ok(moduleSrc.includes("const COLLECTION   = 'tippgruppen'"),
     'tippgruppen.js: Collection-Name muss zu den Rules passen');
+
+  const schemaFn = RULES.slice(RULES.indexOf('function tippgruppeSchemaOk'), RULES.indexOf('function validTippgruppeCreate'));
+  assert.ok(schemaFn.includes("visibility == 'private'"),
+    "firestore.rules: Schema muss visibility 'private' erlauben");
+  assert.ok(!schemaFn.includes("'hidden'"),
+    "firestore.rules: der alte Wert 'hidden' darf im Schema nicht mehr vorkommen");
+  assert.ok(moduleSrc.includes("visibility === 'public' ? 'public' : 'private'"),
+    "tippgruppen.js: Erstellen muss 'private' schreiben (nicht 'hidden')");
+  // Nur CODE pruefen – der Kommentar zum Alt-Wert-Fallback darf 'hidden'
+  // weiterhin erwaehnen.
+  const moduleCode = moduleSrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  assert.ok(!/['"]hidden['"]/.test(moduleCode),
+    "tippgruppen.js: kein String-Wert 'hidden' mehr im Modul-Code");
 }
 
 console.log('✓ test-tippgruppen: Dropdown-Eintrag, Filter, Einbindung und Firestore-Rules sind konsistent.');

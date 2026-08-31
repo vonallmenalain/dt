@@ -16,10 +16,10 @@
  *      dieselbe Gruppe funktioniert damit in jedem Turnier).
  *    • `visibility: "public"`  → erscheint bei allen im Popup unter
  *      „Öffentliche Tippgruppen", jeder kann frei beitreten.
- *    • `visibility: "hidden"`  → erscheint NIRGENDS in Listen. Beitreten
+ *    • `visibility: "private"` → erscheint NIRGENDS in Listen. Beitreten
  *      geht nur über den Einladungs-Link; die zufällige Firestore-Doc-ID
  *      im Link ist das Geheimnis (die Rules erlauben `get` per ID, aber
- *      keine `list`-Query über versteckte Gruppen – siehe firestore.rules).
+ *      keine `list`-Query über private Gruppen – siehe firestore.rules).
  *    • Der Einladungs-Link (`index.html?tippgruppe=<id>`) öffnet die App;
  *      vor dem Beitritt zeigt ein Bestätigungs-Dialog Ersteller und
  *      bisherige Mitglieder. Beitritt erst nach explizitem Klick.
@@ -235,7 +235,9 @@
         return {
             id: doc.id,
             name: typeof data.name === 'string' ? data.name : '(ohne Namen)',
-            visibility: data.visibility === 'public' ? 'public' : 'hidden',
+            // Alles ausser 'public' zaehlt als privat – deckt auch Alt-Docs
+            // mit dem frueheren Wert 'hidden' ab.
+            visibility: data.visibility === 'public' ? 'public' : 'private',
             creatorUid: typeof data.creatorUid === 'string' ? data.creatorUid : '',
             creatorName: typeof data.creatorName === 'string' ? data.creatorName : '',
             memberUids: Array.isArray(data.memberUids) ? data.memberUids.filter(u => typeof u === 'string') : [],
@@ -284,7 +286,7 @@
         const displayName = await resolveOwnDisplayName();
         const docData = {
             name: trimmed,
-            visibility: visibility === 'public' ? 'public' : 'hidden',
+            visibility: visibility === 'public' ? 'public' : 'private',
             creatorUid: user.uid,
             creatorName: displayName,
             memberUids: [user.uid],
@@ -562,7 +564,7 @@
             el('span', { class: 'dt-tg-radio', 'aria-hidden': 'true' }),
             el('span', { class: 'dt-tg-row-label' }, [label]),
             isNone ? null : el('span', { class: 'dt-tg-row-meta' }, [
-                (group.visibility === 'public' ? 'öffentlich · ' : 'versteckt · ')
+                (group.visibility === 'public' ? 'öffentlich · ' : 'privat · ')
                 + group.memberUids.length
                 + (group.memberUids.length === 1 ? ' Mitglied' : ' Mitglieder')
             ])
@@ -669,7 +671,7 @@
 
         const radioName = 'dt-tg-visibility-' + Math.random().toString(36).slice(2);
         const publicRadio = el('input', { type: 'radio', name: radioName, value: 'public' });
-        const hiddenRadio = el('input', { type: 'radio', name: radioName, value: 'hidden', checked: '' });
+        const privateRadio = el('input', { type: 'radio', name: radioName, value: 'private', checked: '' });
 
         const errorSlot = el('div');
 
@@ -679,7 +681,7 @@
                 submit: async (event) => {
                     event.preventDefault();
                     errorSlot.innerHTML = '';
-                    const visibility = publicRadio.checked ? 'public' : 'hidden';
+                    const visibility = publicRadio.checked ? 'public' : 'private';
                     let created;
                     try {
                         created = await createGroup(nameInput.value, visibility);
@@ -694,7 +696,7 @@
                     // Neu erstellte Gruppe direkt aktivieren – wer eine Gruppe
                     // anlegt, will sie in aller Regel auch sehen.
                     writeSelection({ id: created.id, name: created.name, memberUids: created.memberUids });
-                    if (created.visibility === 'hidden') {
+                    if (created.visibility === 'private') {
                         renderInviteCreated(created);
                     } else {
                         await renderOverview({ text: `Tippgruppe „${created.name}" erstellt.`, tone: 'ok' });
@@ -704,9 +706,9 @@
         }, [
             nameInput,
             el('label', { class: 'dt-tg-choice' }, [
-                hiddenRadio,
+                privateRadio,
                 el('span', {}, [
-                    el('strong', {}, ['Versteckt']),
+                    el('strong', {}, ['Privat']),
                     el('span', { class: 'dt-tg-choice-hint' }, [' – nur über Einladungs-Link auffind- und beitretbar.'])
                 ])
             ]),
@@ -726,7 +728,7 @@
         return form;
     }
 
-    /* Nach dem Erstellen einer versteckten Gruppe: der Link ist der einzige
+    /* Nach dem Erstellen einer privaten Gruppe: der Link ist der einzige
        Zugang – also sofort gross anzeigen und zum Kopieren anbieten. */
     function renderInviteCreated(group) {
         const link = buildInviteLink(group.id);
@@ -748,7 +750,7 @@
         setBody([
             messageView(`Tippgruppe „${group.name}" erstellt und aktiviert.`, 'ok'),
             el('p', { class: 'dt-tg-hint' }, [
-                'Die Gruppe ist versteckt. Nur wer diesen Link hat, kann sie sehen und beitreten:'
+                'Die Gruppe ist privat. Nur wer diesen Link hat, kann sie sehen und beitreten:'
             ]),
             el('code', { class: 'dt-tg-link' }, [link]),
             el('div', { class: 'dt-tg-actions' }, [
@@ -864,7 +866,7 @@
         const children = [
             el('h3', { class: 'dt-tg-section' }, ['Einladung: ' + group.name]),
             el('p', { class: 'dt-tg-hint' }, [
-                (group.visibility === 'hidden' ? 'Versteckte Tippgruppe' : 'Öffentliche Tippgruppe')
+                (group.visibility === 'public' ? 'Öffentliche Tippgruppe' : 'Private Tippgruppe')
                 + ' · erstellt von ' + (group.creatorName || 'Unbekannt')
             ]),
             el('p', { class: 'dt-tg-hint' }, [

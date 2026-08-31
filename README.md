@@ -675,7 +675,7 @@ Gruppe funktioniert damit in jedem Turnier):
 // /tippgruppen/{auto-id}
 {
     name:        "Büro-Runde",          // 1..60 Zeichen
-    visibility:  "public" | "hidden",
+    visibility:  "public" | "private",
     creatorUid:  "abc123…",
     creatorName: "Alice Müller",         // Snapshot (Manager-Name/E-Mail)
     memberUids:  ["abc123…", …],         // max. 200
@@ -684,8 +684,8 @@ Gruppe funktioniert damit in jedem Turnier):
 }
 ```
 
-**Öffentlich vs. versteckt.** Öffentliche Gruppen erscheinen bei allen
-im Popup und sind frei beitretbar. Versteckte Gruppen erscheinen in
+**Öffentlich vs. privat.** Öffentliche Gruppen erscheinen bei allen
+im Popup und sind frei beitretbar. Private Gruppen erscheinen in
 keiner Liste; der Zugang ist der Einladungs-Link
 `index.html?tippgruppe=<docId>` – die zufällige Doc-ID ist das
 Geheimnis. Der Link läuft normal durch die Stufe-3-Weiterleitung in die
@@ -699,7 +699,7 @@ angemeldete Nutzer werden zuerst durchs Auth-Modal geschickt).
 - `get`: jede angemeldete Person mit bekannter Doc-ID (Link-Vorschau).
 - `list`: nur query-gebunden – `visibility == 'public'` oder
   `memberUids array-contains eigene UID`. Eine ungefilterte Query würde
-  versteckte Gruppen ausliefern und wird abgelehnt.
+  private Gruppen ausliefern und wird abgelehnt.
 - `create`: verifiziert, selbst Ersteller und einziges Mitglied,
   Schema-Allowlist.
 - `update`: ausschliesslich **Selbst**-Beitritt/-Austritt (exakt die

@@ -27,7 +27,7 @@ rules_version = '2';
 //      erlaubt, Updates dauerhaft (Transferfenster waehrend der Saison).
 //   7) Tippgruppen ('tippgruppen', siehe tippgruppen.js): get per Doc-ID
 //      fuer jeden Angemeldeten (die zufaellige Doc-ID im Einladungs-Link
-//      ist das Geheimnis versteckter Gruppen), list NUR fuer oeffentliche
+//      ist das Geheimnis privater Gruppen), list NUR fuer oeffentliche
 //      Gruppen oder die eigene Mitgliedschaft (query-gebunden). Create nur
 //      als verifizierter Ersteller mit sich selbst als einzigem Mitglied;
 //      Update ausschliesslich Selbst-Beitritt/-Austritt; Delete nur
@@ -218,9 +218,9 @@ service cloud.firestore {
     // -------------------------------------------------------------------
     // Tippgruppen (Collection 'tippgruppen', Client: tippgruppen.js).
     //
-    // Ein Dokument: { name, visibility ('public'|'hidden'), creatorUid,
+    // Ein Dokument: { name, visibility ('public'|'private'), creatorUid,
     // creatorName, memberUids (list), memberNames (map uid->name),
-    // createdAt }. Versteckte Gruppen leben vom Geheimnis ihrer zufaelligen
+    // createdAt }. Private Gruppen leben vom Geheimnis ihrer zufaelligen
     // Doc-ID (Einladungs-Link); list-Queries duerfen sie deshalb nie
     // ausliefern, ein gezieltes get mit bekannter ID schon.
     // -------------------------------------------------------------------
@@ -236,7 +236,7 @@ service cloud.firestore {
           && request.resource.data.name.size() >= 1
           && request.resource.data.name.size() <= 60
           && (request.resource.data.visibility == 'public'
-              || request.resource.data.visibility == 'hidden')
+              || request.resource.data.visibility == 'private')
           && request.resource.data.creatorName is string
           && request.resource.data.creatorName.size() >= 1
           && request.resource.data.creatorName.size() <= 80
@@ -364,7 +364,7 @@ service cloud.firestore {
       //    oeffentliche Gruppen bzw. die eigene Mitgliedschaft, jeweils
       //    query-gebunden (where visibility=='public' bzw.
       //    where memberUids array-contains eigene UID). Eine ungefilterte
-      //    Query wuerde versteckte Gruppen ausliefern und wird abgelehnt.
+      //    Query wuerde private Gruppen ausliefern und wird abgelehnt.
       allow get:
         if collection == 'tippgruppen'
         && request.auth != null;
