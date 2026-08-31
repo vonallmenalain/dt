@@ -50,11 +50,22 @@ Andere Stellen (Cron-Scripts, Workflows, Frontend-Skripte) müssen
 Die **WM 2026** hat einen Captain, dessen Punkte doppelt zählen (×2). Die
 **Champions League hat keinen Captain** – dort setzt der Turnier-Block
 `captainEnabled: false`, und das schaltet Captain-Wahl, „C"-Badge und
-Verdopplung überall ab (Team-Builder, Rangliste, Teams, Punktesystem-Seite;
-gespeicherte `isCaptain`-Flags aus Alt-Teams werden beim Rendern verworfen).
-Ein turnier-eigener Multiplikator wird bewusst **nicht** konfiguriert: das
-Flag ist die einzige Quelle. `APP_CONFIG.captainMultiplier` liefert daraus
-abgeleitet 2 (Captain an) bzw. 1 (Captain aus).
+Verdopplung überall ab (Team-Builder, Rangliste, Teams, Punktesystem-Seite,
+Analyse; gespeicherte `isCaptain`-Flags aus Alt-Teams werden beim Rendern
+verworfen). Ein turnier-eigener Multiplikator wird bewusst **nicht**
+konfiguriert: das Flag ist die einzige Quelle. `APP_CONFIG.captainMultiplier`
+liefert daraus abgeleitet 2 (Captain an) bzw. 1 (Captain aus).
+
+Auf der **Analyse-Seite** betrifft das vor allem den Bereich „Vergleiche":
+ohne Captain entfallen die Karten „Captain-Duell" (Manager-Duell) und
+„Captain-Optimierung" (Was wäre möglich?), die Kachel „Captain-Bonus", die
+Zeile „Captain-Wahlen" (Spieler-Duell) sowie der Captain-Satz in beiden
+Storylines. Wichtig ist dabei das **mögliche Maximum**: das „perfekte Team"
+der What-If-Analyse zählt den Captain-Bonus nur dort mit, wo es einen Captain
+gibt – sonst wären „Verpasste Punkte" und „Quote vom Maximum" um einen Bonus
+verfälscht, den das Turnier gar nicht kennt. Bewacht von
+`npm run test:captain` (`scripts/test-cl-captain-free-analysis.js`), das die
+Render-Funktionen mit und ohne Feature ausführt.
 
 ### Archiv-Turnier
 
@@ -427,6 +438,14 @@ durch Änderungen an anderen Turnieren nicht mitverändern. Er zählt die
 Verdopplung über alle View-Dateien zusammen, damit ein blosser Umzug von
 Code zwischen den Dateien nicht ausschlägt – ein Entfernen oder Ändern
 dagegen schon.
+
+`test:captain` ist das Gegenstück dazu für Turniere **ohne** Captain: er
+schneidet die Render-Funktionen der Analyse-Seite (Manager-Duell, Spieler-
+Duell, What-If, perfektes Team) aus `spieleranalyse.js` heraus und führt sie
+in einem vm-Kontext einmal mit und einmal ohne Captain-Feature aus. Ohne
+Feature darf im gerenderten HTML das Wort „Captain" nicht mehr vorkommen und
+das mögliche Maximum keinen Captain-Bonus enthalten; mit Feature müssen
+Karten, Kachel, Zeile und die ×2-Wertung unverändert dastehen.
 
 `test:live-schedule` bewacht den Live-Modus: dass die Cron-Jobs in Node auf
 dem richtigen Turnier landen (`resolveServerTournamentKey`), dass **jeder**
