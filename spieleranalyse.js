@@ -29,6 +29,10 @@
        STATE
        ========================================================= */
     let allTeams = [];
+    // Ungefilterte Teams aus dem letzten Datensatz: Grundlage fuer den
+    // Re-Apply bei Tippgruppen-Wechsel und fuer popstate-Re-Renders –
+    // allTeams selbst ist ggf. bereits auf die aktive Gruppe gefiltert.
+    let allRawTeams = [];
     let pointsData = {};
     let perfectTeamIds = new Set();
     let currentSort = 'pts';
@@ -7916,6 +7920,18 @@
     /* =========================================================
        MAIN DATASET APPLICATION
        ========================================================= */
+    /* Tippgruppen-Filter (tippgruppen.js): No-op ohne aktive Gruppe oder
+       ohne Modul. Wird in applyDataset auf die rohen Teams angewendet. */
+    function applyTippgruppenFilter(teams) {
+        try {
+            const TG = window.DreamTeamTippgruppen;
+            if (TG && typeof TG.filterTeams === 'function') return TG.filterTeams(teams);
+        } catch (err) {
+            console.warn('[spieleranalyse] Tippgruppen-Filter fehlgeschlagen:', err);
+        }
+        return teams;
+    }
+
     function applyDataset(data, options = {}) {
         const preserveCurrentPlayer = !!options.preserveCurrentPlayer;
         const isFirstRender = !hasRenderedOnce;
@@ -7925,7 +7941,10 @@
         try { window.__spaLastData = data; } catch (_) { /* ignore */ }
 
         pointsData = data.points || {};
-        allTeams = Array.isArray(data.teams) ? data.teams : [];
+        allRawTeams = Array.isArray(data.teams) ? data.teams : [];
+        // Tippgruppen-Filter (tippgruppen.js): aktive Gruppe → nur deren
+        // Mitglieder in Top-Picks, Manager-Nennungen und Team-Zaehlern.
+        allTeams = applyTippgruppenFilter(allRawTeams);
 
         // Preserve fixtures across calls so popstate (e.g. Browser-Back from Länder)
         // does not lose the schedule and trigger "Kein Spielplan verfügbar".
@@ -8336,8 +8355,11 @@
             return;
         }
         closeMobileFilter({ pushHistory: false });
+        // Bewusst die UNGEFILTERTEN Teams uebergeben: applyDataset filtert
+        // selbst – sonst wuerde ein zwischenzeitlich aufgehobener
+        // Tippgruppen-Filter hier nicht mehr zurueckgenommen.
         applyDataset(
-            { points: pointsData, teams: allTeams, fixtures: lastFixtures },
+            { points: pointsData, teams: allRawTeams, fixtures: lastFixtures },
             { preserveCurrentPlayer: false }
         );
     });
@@ -8454,6 +8476,19 @@
 
         try {
             bindViewModeChange(refreshForViewMode);
+        } catch (_) { /* ignore */ }
+
+        // Tippgruppen-Auswahl wirkt sofort: letzten (rohen) Datensatz erneut
+        // anwenden – der Filter sitzt in applyDataset.
+        try {
+            if (window.DreamTeamTippgruppen && typeof window.DreamTeamTippgruppen.onChange === 'function') {
+                window.DreamTeamTippgruppen.onChange(() => {
+                    const lastData = window.__spaLastData;
+                    if (lastData && hasRenderedOnce) {
+                        applyDataset(lastData, { preserveCurrentPlayer: true });
+                    }
+                });
+            }
         } catch (_) { /* ignore */ }
 
         try {

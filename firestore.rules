@@ -25,7 +25,14 @@ rules_version = '2';
 //      Saison (cl2627, 'Teams CL 2026-27'). Neue Teams/Loeschungen sind bei
 //      cl2627 bis zum ersten Ligaphasen-Spiel (2026-09-08 16:45 UTC)
 //      erlaubt, Updates dauerhaft (Transferfenster waehrend der Saison).
-//   7) Default-Deny fuer alles andere.
+//   7) Tippgruppen ('tippgruppen', siehe tippgruppen.js): get per Doc-ID
+//      fuer jeden Angemeldeten (die zufaellige Doc-ID im Einladungs-Link
+//      ist das Geheimnis privater Gruppen), list NUR fuer oeffentliche
+//      Gruppen oder die eigene Mitgliedschaft (query-gebunden). Create nur
+//      als verifizierter Ersteller mit sich selbst als einzigem Mitglied;
+//      Update ausschliesslich Selbst-Beitritt/-Austritt; Delete nur
+//      Ersteller oder Admin.
+//   8) Default-Deny fuer alles andere.
 //
 // Hinweis: Collection-Namen mit Leerzeichen ('Teams WM 2026', ...) lassen
 // sich nicht direkt in match-Pfade schreiben. Wir matchen deshalb auf
@@ -209,6 +216,91 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------
+    // Tippgruppen (Collection 'tippgruppen', Client: tippgruppen.js).
+    //
+    // Ein Dokument: { name, visibility ('public'|'private'), creatorUid,
+    // creatorName, memberUids (list), memberNames (map uid->name),
+    // createdAt }. Private Gruppen leben vom Geheimnis ihrer zufaelligen
+    // Doc-ID (Einladungs-Link); list-Queries duerfen sie deshalb nie
+    // ausliefern, ein gezieltes get mit bekannter ID schon.
+    // -------------------------------------------------------------------
+
+    function tippgruppeSchemaOk() {
+      return request.resource.data.keys().hasAll(
+                ['name', 'visibility', 'creatorUid', 'creatorName', 'memberUids', 'memberNames', 'createdAt']
+             )
+          && request.resource.data.keys().hasOnly(
+                ['name', 'visibility', 'creatorUid', 'creatorName', 'memberUids', 'memberNames', 'createdAt']
+             )
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 1
+          && request.resource.data.name.size() <= 60
+          && (request.resource.data.visibility == 'public'
+              || request.resource.data.visibility == 'private')
+          && request.resource.data.creatorName is string
+          && request.resource.data.creatorName.size() >= 1
+          && request.resource.data.creatorName.size() <= 80
+          && request.resource.data.memberUids is list
+          && request.resource.data.memberNames is map;
+    }
+
+    // Anlegen: verifiziert, selbst der Ersteller und das einzige Mitglied.
+    function validTippgruppeCreate() {
+      return isVerified()
+          && tippgruppeSchemaOk()
+          && request.resource.data.creatorUid == request.auth.uid
+          && request.resource.data.memberUids == [request.auth.uid]
+          && request.resource.data.memberNames.keys().hasOnly([request.auth.uid])
+          && request.resource.data.memberNames[request.auth.uid] is string
+          && request.resource.data.memberNames[request.auth.uid].size() >= 1
+          && request.resource.data.memberNames[request.auth.uid].size() <= 80
+          && request.resource.data.createdAt == request.time;
+    }
+
+    // Beitritt: exakt die eigene UID kommt dazu, sonst bleibt alles gleich.
+    function tippgruppeSelfJoin() {
+      return request.resource.data.memberUids.hasAll(resource.data.memberUids)
+          && request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+          && request.resource.data.memberUids.size() <= 200
+          && (request.auth.uid in request.resource.data.memberUids)
+          && !(request.auth.uid in resource.data.memberUids);
+    }
+
+    // Austritt: exakt die eigene UID verschwindet, sonst bleibt alles gleich.
+    function tippgruppeSelfLeave() {
+      return resource.data.memberUids.hasAll(request.resource.data.memberUids)
+          && request.resource.data.memberUids.size() == resource.data.memberUids.size() - 1
+          && !(request.auth.uid in request.resource.data.memberUids)
+          && (request.auth.uid in resource.data.memberUids);
+    }
+
+    // Updates aendern NUR die Mitgliedschaft (memberUids + eigener Eintrag
+    // in memberNames) – Name, Sichtbarkeit und Ersteller sind unveraenderlich.
+    function validTippgruppeUpdate() {
+      return isVerified()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['memberUids', 'memberNames'])
+          && request.resource.data.memberUids is list
+          && request.resource.data.memberNames is map
+          && request.resource.data.memberNames.diff(resource.data.memberNames)
+               .affectedKeys().hasOnly([request.auth.uid])
+          && (tippgruppeSelfJoin() || tippgruppeSelfLeave())
+          && (
+                !(request.auth.uid in request.resource.data.memberNames)
+                || (
+                    request.resource.data.memberNames[request.auth.uid] is string
+                    && request.resource.data.memberNames[request.auth.uid].size() <= 80
+                )
+             );
+    }
+
+    function validTippgruppeDelete() {
+      return isVerified()
+          && ('creatorUid' in resource.data)
+          && (resource.data.creatorUid == request.auth.uid || isAdmin());
+    }
+
+    // -------------------------------------------------------------------
     // Public + Team Writes
     //
     // Collection-Namen werden per String-Vergleich gegen die exakten
@@ -266,6 +358,25 @@ service cloud.firestore {
         ))
         || (collection == 'Admin Auto Points Logs WM 2026' && isAdmin());
 
+      // ── Tippgruppen: get fuer jeden Angemeldeten (Doc-ID = Geheimnis des
+      //    Einladungs-Links – der Bestaetigungs-Dialog zeigt vor dem
+      //    Beitritt Ersteller + Mitglieder). list bewusst enger: nur
+      //    oeffentliche Gruppen bzw. die eigene Mitgliedschaft, jeweils
+      //    query-gebunden (where visibility=='public' bzw.
+      //    where memberUids array-contains eigene UID). Eine ungefilterte
+      //    Query wuerde private Gruppen ausliefern und wird abgelehnt.
+      allow get:
+        if collection == 'tippgruppen'
+        && request.auth != null;
+
+      allow list:
+        if collection == 'tippgruppen'
+        && request.auth != null
+        && (
+             resource.data.visibility == 'public'
+          || request.auth.uid in resource.data.memberUids
+        );
+
       allow create:
         if (
             collection == 'Teams WM 2026'
@@ -305,6 +416,11 @@ service cloud.firestore {
             collection == 'app_meta'
             && docId == 'turnier_cl2627'
             && isAdmin()
+        )
+        // ── Tippgruppen anlegen (verifiziert, selbst einziges Mitglied).
+        || (
+            collection == 'tippgruppen'
+            && validTippgruppeCreate()
         );
 
       allow update:
@@ -348,6 +464,11 @@ service cloud.firestore {
                 isAdmin()
                 || (isVerified() && isTeamsVersionBumpOnly())
             )
+        )
+        // ── Tippgruppen: ausschliesslich Selbst-Beitritt/-Austritt.
+        || (
+            collection == 'tippgruppen'
+            && validTippgruppeUpdate()
         );
 
       allow delete:
@@ -382,6 +503,11 @@ service cloud.firestore {
             collection == 'app_meta'
             && docId == 'turnier_cl2627'
             && isAdmin()
+        )
+        // ── Tippgruppen loeschen: nur Ersteller oder Admin.
+        || (
+            collection == 'tippgruppen'
+            && validTippgruppeDelete()
         );
     }
 

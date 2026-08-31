@@ -655,6 +655,87 @@ gesperrt, wenn der **Captain** ein Orphan ist – andere Orphans erzeugen
 nur eine Warnung, damit der Manager sein Team überhaupt erst neu
 speichern kann.
 
+### Tippgruppen (versteckter Manager-Filter)
+
+Ein bewusst **unauffälliges** Feature (`tippgruppen.js`,
+`tippgruppen.css`): Der einzige Einstieg ist der Dropdown-Eintrag
+**„Tippgruppen"** zwischen „Mein Team" und dem Turnier-Wechsel (`order:
+-10`, die Turnier-Einträge registrieren mit 1, 2, …). Es gibt keine
+Banner oder Hinweise in der App – ist eine Gruppe aktiv, zeigen
+Rangliste, Teams, Analyse und Dashboard schlicht nur noch die Manager,
+die Mitglied der Gruppe sind. Welche Gruppe aktiv ist, steht allein als
+Statustext am Dropdown-Eintrag.
+
+**Datenmodell.** Ein Dokument pro Gruppe in der globalen Collection
+`tippgruppen` (bewusst NICHT turnier-namespaced – Mitglieder sind
+Accounts/UIDs, ein Account hat pro Turnier höchstens ein Team, dieselbe
+Gruppe funktioniert damit in jedem Turnier):
+
+```js
+// /tippgruppen/{auto-id}
+{
+    name:        "Büro-Runde",          // 1..60 Zeichen
+    visibility:  "public" | "private",
+    creatorUid:  "abc123…",
+    creatorName: "Alice Müller",         // Snapshot (Manager-Name/E-Mail)
+    memberUids:  ["abc123…", …],         // max. 200
+    memberNames: { "abc123…": "Alice Müller", … },
+    createdAt:   <serverTimestamp>
+}
+```
+
+**Öffentlich vs. privat.** Öffentliche Gruppen erscheinen bei allen
+im Popup und sind frei beitretbar. Private Gruppen erscheinen in
+keiner Liste; der Zugang ist der Einladungs-Link
+`index.html?tippgruppe=<docId>` – die zufällige Doc-ID ist das
+Geheimnis. Der Link läuft normal durch die Stufe-3-Weiterleitung in die
+App-Shell (Seiten-Parameter bleiben auf der Hash-Route), das Modul im
+index-Frame öffnet dann den Bestätigungs-Dialog: **erst** Ersteller und
+bisherige Mitglieder sehen, **dann** per Klick beitreten (nicht
+angemeldete Nutzer werden zuerst durchs Auth-Modal geschickt).
+
+**Firestore Rules** (Durchsetzung liegt wie immer serverseitig):
+
+- `get`: jede angemeldete Person mit bekannter Doc-ID (Link-Vorschau).
+- `list`: nur query-gebunden – `visibility == 'public'` oder
+  `memberUids array-contains eigene UID`. Eine ungefilterte Query würde
+  private Gruppen ausliefern und wird abgelehnt.
+- `create`: verifiziert, selbst Ersteller und einziges Mitglied,
+  Schema-Allowlist.
+- `update`: ausschliesslich **Selbst**-Beitritt/-Austritt (exakt die
+  eigene UID + eigener `memberNames`-Eintrag; Name/Sichtbarkeit/
+  Ersteller sind unveränderlich).
+- `delete`: nur Ersteller oder Admin.
+
+**Auswahl & Filter.** Ausgewählt ist höchstens eine Gruppe – gespeichert
+in `localStorage['dreamteam_tippgruppe_selected']` (inkl. gecachter
+`memberUids`, damit der Filter synchron arbeiten kann). Die
+Seiten-Skripte schicken ihre Teams an der jeweils zentralen
+Konsumstelle durch `DreamTeamTippgruppen.filterTeams(teams)` (Filter
+über `team.userId`; ohne Auswahl ein No-op mit Identitäts-Rückgabe):
+
+| Seite               | Filterstelle                                   |
+| ------------------- | ---------------------------------------------- |
+| `rangliste.js`      | `buildRankingData` → `enrichTeams(…)`          |
+| `teams.js`          | `applyDataset` → `enrichTeamsWithScores(…)`    |
+| `spieleranalyse.js` | `applyDataset` (Rohteams bleiben in `allRawTeams`) |
+| `index.js`          | `render()` arbeitet auf gefilterter Kopie      |
+
+Änderungen (Popup-Auswahl, storage-Event aus einem anderen Dokument der
+App-Shell, Hintergrund-Abgleich der Mitgliederliste beim Boot) melden
+sich über `DreamTeamTippgruppen.onChange(cb)` – die Seiten hängen dort
+ihren bestehenden Re-Render an, ein Reload ist nie nötig. Beim
+expliziten **Abmelden** wird die Auswahl aufgehoben (sonst bliebe ein
+unsichtbarer Filter aktiv, den das nur für Angemeldete erreichbare
+Dropdown nicht mehr zeigen könnte). Team-Builder-Statistiken
+(Pick-Prozente) und das „Meistgewählte Spieler"-Karussell bleiben
+bewusst ungefiltert – dort geht es um Spieler-Popularität, nicht um
+Manager-Listen, und die Namens-Duplikatprüfung beim Einreichen muss
+ohnehin global bleiben.
+
+Regressionstest: `npm run test:tippgruppen` (Dropdown-Platzierung und
+Filter laufen dabei im echten Modul in einer vm-Sandbox).
+
 ---
 
 ## 4) Firebase-Web-Key & Deploy

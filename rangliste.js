@@ -834,6 +834,20 @@
         };
     }
 
+    /* Tippgruppen-Filter (tippgruppen.js): Ist eine Gruppe aktiv, zaehlt die
+       Rangliste nur deren Mitglieder. Ohne Auswahl (oder ohne Modul) ein
+       No-op. Bewusst hier im Recompute-Pfad, damit ein Wechsel der Auswahl
+       ohne Reload greift (siehe onChange-Verdrahtung in initRanking). */
+    function applyTippgruppenFilter(teams) {
+        try {
+            const TG = window.DreamTeamTippgruppen;
+            if (TG && typeof TG.filterTeams === 'function') return TG.filterTeams(teams);
+        } catch (err) {
+            console.warn('[rangliste] Tippgruppen-Filter fehlgeschlagen:', err);
+        }
+        return teams;
+    }
+
     function buildRankingData(data, selectedMatchIds) {
         const { playerMatchPoints, matchIds: rawMatchIds } = extractMatchData(
             data.points || {},
@@ -874,7 +888,7 @@
         const nationLifecycle = (APP && typeof APP.getNationStatus === "function")
             ? APP.getNationStatus(data.fixtures || {})
             : null;
-        const enrichedTeams = enrichTeams(data.teams || [], playerPointsMap, scopedPlayerMatchPoints, nationLifecycle, data.fixtures || {});
+        const enrichedTeams = enrichTeams(applyTippgruppenFilter(data.teams || []), playerPointsMap, scopedPlayerMatchPoints, nationLifecycle, data.fixtures || {});
         return {
             ...computeRankingsWithHistory(enrichedTeams, matchIds),
             rawMatchIds
@@ -2557,6 +2571,17 @@
 
         try {
             bindViewModeChange(refreshForViewMode);
+        } catch (_) { /* ignore */ }
+
+        // Tippgruppen-Auswahl wirkt sofort und ohne Reload – egal ob sie im
+        // eigenen Dokument, im Shell-Dropdown (storage-Event) oder durch den
+        // Hintergrund-Abgleich der Mitgliederliste geaendert wurde.
+        try {
+            if (window.DreamTeamTippgruppen && typeof window.DreamTeamTippgruppen.onChange === 'function') {
+                window.DreamTeamTippgruppen.onChange(() => {
+                    if (lastRawData) recomputeAndRender();
+                });
+            }
         } catch (_) { /* ignore */ }
 
         try {
