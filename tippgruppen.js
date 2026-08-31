@@ -230,6 +230,30 @@
         return db;
     }
 
+    /* Schreibversuch mit einmaligem Token-Refresh-Retry.
+
+       Direkt nach der E-Mail-Bestätigung trägt das gecachte ID-Token noch
+       bis zu 1 h `email_verified: false` – die Rules (isVerified) lehnen
+       den ersten Write dann mit permission-denied ab, obwohl der Client
+       längst „verifiziert" anzeigt. auth.js schützt das Team-Speichern
+       deshalb mit einem erzwungenen getIdToken(true); hier gilt dieselbe
+       Medizin als Retry: bei permission-denied einmal das Token frisch
+       holen und den Write wiederholen. Alle anderen Fehler laufen durch. */
+    async function withFreshTokenRetry(user, writeFn) {
+        try {
+            return await writeFn();
+        } catch (err) {
+            const code = err && err.code ? String(err.code) : '';
+            if (code !== 'permission-denied' || !user || typeof user.getIdToken !== 'function') throw err;
+            try {
+                await user.getIdToken(/* forceRefresh */ true);
+            } catch (_) {
+                throw err; // Refresh selbst gescheitert → urspruenglichen Fehler melden
+            }
+            return writeFn();
+        }
+    }
+
     function normalizeGroupDoc(doc) {
         const data = doc.data() || {};
         return {
@@ -293,13 +317,15 @@
             memberNames: { [user.uid]: displayName },
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
-        const ref = await db.collection(COLLECTION).add(docData);
+        const ref = await withFreshTokenRetry(user, () => db.collection(COLLECTION).add(docData));
         return Object.assign({ id: ref.id }, docData);
     }
 
-    async function joinGroup(group) {
+    async function joinGroup(group, resolvedUser) {
         const db = requireDb();
-        const user = getAuthUser();
+        // Aufgeloesten User bevorzugen (Einladungs-Flow direkt nach dem
+        // Boot) – der Wrapper-Stand kann dort noch hinterherhinken.
+        const user = resolvedUser || getAuthUser();
         if (!user || !user.emailVerified) throw new Error('Bitte zuerst anmelden und E-Mail bestätigen.');
         if (group.memberUids.indexOf(user.uid) !== -1) return group;
         if (group.memberUids.length >= MEMBER_LIMIT) throw new Error('Diese Tippgruppe ist voll.');
@@ -309,7 +335,7 @@
             memberUids: firebase.firestore.FieldValue.arrayUnion(user.uid)
         };
         update['memberNames.' + user.uid] = displayName;
-        await db.collection(COLLECTION).doc(group.id).update(update);
+        await withFreshTokenRetry(user, () => db.collection(COLLECTION).doc(group.id).update(update));
 
         const next = Object.assign({}, group);
         next.memberUids = group.memberUids.concat([user.uid]);
@@ -326,12 +352,42 @@
             memberUids: firebase.firestore.FieldValue.arrayRemove(user.uid)
         };
         update['memberNames.' + user.uid] = firebase.firestore.FieldValue.delete();
-        await db.collection(COLLECTION).doc(group.id).update(update);
+        await withFreshTokenRetry(user, () => db.collection(COLLECTION).doc(group.id).update(update));
     }
 
     async function deleteGroup(group) {
         const db = requireDb();
-        await db.collection(COLLECTION).doc(group.id).delete();
+        await withFreshTokenRetry(getAuthUser(), () => db.collection(COLLECTION).doc(group.id).delete());
+    }
+
+    /* Fehlertext fuer gescheiterte Beitritte: eigene (deutsche) Meldungen
+       durchreichen, permission-denied verstaendlich uebersetzen, sonst
+       generisch bleiben. */
+    function joinErrorMessage(err) {
+        const code = err && err.code ? String(err.code) : '';
+        if (!code && err && err.message && /[äöüÄÖÜ]|Bitte|Gruppe/.test(String(err.message))) {
+            return String(err.message);
+        }
+        if (code === 'permission-denied') {
+            return 'Der Server hat den Beitritt abgelehnt. Bitte einmal ab- und wieder anmelden und den Link erneut öffnen.';
+        }
+        if (code === 'unavailable') {
+            return 'Keine Verbindung zum Server. Bitte Verbindung prüfen und erneut versuchen.';
+        }
+        return 'Beitritt fehlgeschlagen. Bitte später erneut versuchen.';
+    }
+
+    /* Nach einem gescheiterten Beitritts-Write die Wirklichkeit pruefen:
+       Steht die Mitgliedschaft trotz Fehler bereits im Dokument (z. B.
+       Antwort verloren gegangen oder paralleler zweiter Versuch), zaehlt
+       das Ergebnis – dann gibt es keinen Grund fuer eine Fehlermeldung. */
+    async function fetchMembershipAfterError(groupId, user) {
+        if (!user) return null;
+        try {
+            const fresh = await fetchGroup(groupId);
+            if (fresh && fresh.memberUids.indexOf(user.uid) !== -1) return fresh;
+        } catch (_) { /* offline o. ä. – beim urspruenglichen Fehler bleiben */ }
+        return null;
     }
 
     /* ---------------------------------------------------------------------------
@@ -648,10 +704,14 @@
                                 await renderOverview({ text: `Du bist „${joined.name}" beigetreten.`, tone: 'ok' });
                             } catch (err) {
                                 console.warn('[Tippgruppen] Beitritt fehlgeschlagen:', err);
-                                await renderOverview({
-                                    text: 'Beitritt fehlgeschlagen. Bitte später erneut versuchen.',
-                                    tone: 'danger'
-                                });
+                                const fresh = await fetchMembershipAfterError(group.id, getAuthUser());
+                                if (fresh) {
+                                    // Der Write ist trotz Fehlermeldung angekommen.
+                                    writeSelection({ id: fresh.id, name: fresh.name, memberUids: fresh.memberUids });
+                                    await renderOverview({ text: `Du bist „${fresh.name}" beigetreten.`, tone: 'ok' });
+                                    return;
+                                }
+                                await renderOverview({ text: joinErrorMessage(err), tone: 'danger' });
                             }
                         }
                     }
@@ -960,17 +1020,36 @@
                         click: async (event) => {
                             event.currentTarget.disabled = true;
                             try {
-                                const joined = await joinGroup(group);
+                                const joined = await joinGroup(group, user);
                                 writeSelection({ id: joined.id, name: joined.name, memberUids: joined.memberUids });
-                                setBody([
-                                    messageView(`Du bist „${joined.name}" beigetreten. Die Gruppe ist jetzt aktiv.`, 'ok'),
-                                    el('div', { class: 'dt-tg-actions' }, [
-                                        el('button', { type: 'button', class: 'dt-tg-btn dt-tg-btn-primary', on: { click: closePopup } }, ['Fertig'])
-                                    ])
-                                ]);
+                                renderInviteJoined(joined.name);
                             } catch (err) {
                                 console.warn('[Tippgruppen] Beitritt über Link fehlgeschlagen:', err);
-                                setBody(messageView('Beitritt fehlgeschlagen. Bitte später erneut versuchen.', 'danger'));
+                                const fresh = await fetchMembershipAfterError(group.id, user);
+                                if (fresh) {
+                                    // Der Write ist trotz Fehlermeldung angekommen.
+                                    writeSelection({ id: fresh.id, name: fresh.name, memberUids: fresh.memberUids });
+                                    renderInviteJoined(fresh.name);
+                                    return;
+                                }
+                                setBody([
+                                    messageView(joinErrorMessage(err), 'danger'),
+                                    el('div', { class: 'dt-tg-actions' }, [
+                                        el('button', {
+                                            type: 'button',
+                                            class: 'dt-tg-btn dt-tg-btn-primary',
+                                            on: {
+                                                click: () => {
+                                                    setBody(messageView('Einladung wird geladen …'));
+                                                    renderInvitePreview(group.id, user).catch(() => {
+                                                        setBody(messageView('Diese Einladung konnte nicht geladen werden.', 'danger'));
+                                                    });
+                                                }
+                                            }
+                                        }, ['Erneut versuchen']),
+                                        el('button', { type: 'button', class: 'dt-tg-btn', on: { click: closePopup } }, ['Schliessen'])
+                                    ])
+                                ]);
                             }
                         }
                     }
@@ -980,6 +1059,15 @@
         }
 
         setBody(children);
+    }
+
+    function renderInviteJoined(groupName) {
+        setBody([
+            messageView(`Du bist „${groupName}" beigetreten. Die Gruppe ist jetzt aktiv.`, 'ok'),
+            el('div', { class: 'dt-tg-actions' }, [
+                el('button', { type: 'button', class: 'dt-tg-btn dt-tg-btn-primary', on: { click: closePopup } }, ['Fertig'])
+            ])
+        ]);
     }
 
     function maybeHandleInviteParam() {

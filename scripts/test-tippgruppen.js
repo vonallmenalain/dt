@@ -142,9 +142,22 @@ function bootSandbox({ storageSeed, search, firebaseAuth, db } = {}) {
       return () => {};
     }
   };
-  // Firebase-SDK-Stub (fuer waitForAuthResolution) und Firestore-Stub
-  // (fuer fetchGroup) nur, wenn der Testfall sie mitbringt.
-  if (firebaseAuth) sandbox.firebase = { auth: () => firebaseAuth };
+  // Firebase-SDK-Stub (fuer waitForAuthResolution + FieldValue-Sentinels)
+  // und Firestore-Stub (fuer fetchGroup/joinGroup) nur, wenn der Testfall
+  // sie mitbringt.
+  if (firebaseAuth) {
+    sandbox.firebase = {
+      auth: () => firebaseAuth,
+      firestore: {
+        FieldValue: {
+          arrayUnion: (v) => ({ __op: 'arrayUnion', value: v }),
+          arrayRemove: (v) => ({ __op: 'arrayRemove', value: v }),
+          delete: () => ({ __op: 'delete' }),
+          serverTimestamp: () => ({ __op: 'serverTimestamp' })
+        }
+      }
+    };
+  }
   if (db) sandbox.APP_CONFIG = { getDb: () => db };
 
   vm.createContext(sandbox);
@@ -502,7 +515,134 @@ const settle = () => new Promise((resolve) => setTimeout(resolve, 25));
       'Mitglieder sehen den Bestandsstatus statt des Beitritts');
   }
 
-  console.log('✓ test-tippgruppen: Dropdown-Eintrag, Filter, Einladungs-Flow, Einbindung und Firestore-Rules sind konsistent.');
+  /* ───────────────────────────────────────────────────────────────────────────
+   *  5) Beitritt: Token-Refresh-Retry, Realitaets-Check, ehrliche Fehler
+   *
+   *  Direkt nach der E-Mail-Bestaetigung traegt das gecachte ID-Token noch
+   *  email_verified=false → die Rules lehnen den ersten Write mit
+   *  permission-denied ab, obwohl der Client "verifiziert" anzeigt (so sah
+   *  ein frisch verifizierter Zweit-Account "Beitritt fehlgeschlagen",
+   *  obwohl der Beitritt kurz darauf klappte). Der Client heilt das jetzt
+   *  selbst: Token frisch holen + einmal wiederholen; schlaegt der Write
+   *  trotzdem fehl, wird die Wirklichkeit geprueft (Mitglied? → Erfolg)
+   *  und sonst ein konkreter Fehler MIT Retry-Knopf gezeigt.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  function findButton(root, label) {
+    const stack = root.children.slice();
+    while (stack.length) {
+      const n = stack.shift();
+      if (n.tagName === 'BUTTON' && textOf(n).indexOf(label) !== -1) return n;
+      stack.push(...n.children);
+    }
+    return null;
+  }
+
+  function makeJoinStubs({ updateOutcomes, memberAfterAttempt }) {
+    let authCallback = null;
+    let updateCalls = 0;
+    let joinedOnServer = false;
+    const deniedError = () => Object.assign(new Error('Missing or insufficient permissions.'), { code: 'permission-denied' });
+
+    const groupData = () => ({
+      ...INVITE_GROUP,
+      memberUids: joinedOnServer ? INVITE_GROUP.memberUids.concat(['u-join']) : INVITE_GROUP.memberUids.slice(),
+      memberNames: joinedOnServer
+        ? { ...INVITE_GROUP.memberNames, 'u-join': 'Zweiti' }
+        : { ...INVITE_GROUP.memberNames }
+    });
+
+    const db = {
+      collection: (name) => ({
+        doc: (id) => ({
+          get: async () => (name === 'tippgruppen' && id === 'g1'
+            ? { id: 'g1', exists: true, data: groupData }
+            : { exists: false }),
+          update: async (payload) => {
+            updateCalls += 1;
+            assert.ok(payload && payload['memberNames.u-join'],
+              'Join-Update muss den eigenen memberNames-Eintrag setzen');
+            const outcome = updateOutcomes[Math.min(updateCalls, updateOutcomes.length) - 1];
+            if (memberAfterAttempt) joinedOnServer = true; // Write kam trotz Fehlermeldung an
+            if (outcome === 'denied') throw deniedError();
+            joinedOnServer = true;
+          }
+        })
+      })
+    };
+
+    const firebaseAuth = {
+      onAuthStateChanged(cb) { authCallback = cb; return () => { authCallback = null; }; }
+    };
+
+    let tokenRefreshes = 0;
+    const joiner = {
+      uid: 'u-join', email: 'zwei@example.com', emailVerified: true,
+      getIdToken(force) { if (force) tokenRefreshes += 1; return Promise.resolve('token'); }
+    };
+
+    return {
+      db, firebaseAuth, joiner,
+      fireAuth: (user) => { if (authCallback) authCallback(user); },
+      counts: () => ({ updateCalls, tokenRefreshes })
+    };
+  }
+
+  async function bootToPreviewAndJoin(stubs) {
+    const booted = bootSandbox({ search: '?tippgruppe=g1', firebaseAuth: stubs.firebaseAuth, db: stubs.db });
+    booted.sandbox.__authUser = stubs.joiner;
+    stubs.fireAuth(stubs.joiner);
+    await settle();
+    const popupBody = findByClass(booted.body, 'dt-tg-body');
+    assert.match(textOf(popupBody), /Beitreten/, 'Vorschau mit Beitritts-Knopf muss stehen');
+    const joinBtn = findButton(popupBody, 'Beitreten');
+    joinBtn.listeners.click[0]({ currentTarget: joinBtn, stopPropagation() {} });
+    await settle();
+    return { popupBody, sandbox: booted.sandbox };
+  }
+
+  // (d) Veraltetes Token: erster Write permission-denied → Token-Refresh,
+  //     zweiter Write klappt → Erfolg, keine Fehlermeldung.
+  {
+    const stubs = makeJoinStubs({ updateOutcomes: ['denied', 'ok'] });
+    const { popupBody, sandbox } = await bootToPreviewAndJoin(stubs);
+
+    const text = textOf(popupBody);
+    assert.match(text, /beigetreten/, 'nach dem Retry erscheint die Erfolgsmeldung');
+    assert.doesNotMatch(text, /fehlgeschlagen|abgelehnt/, 'kein Fehlertext nach geheiltem Beitritt');
+    const counts = stubs.counts();
+    assert.equal(counts.tokenRefreshes, 1, 'genau ein erzwungener Token-Refresh');
+    assert.equal(counts.updateCalls, 2, 'genau ein Retry');
+    const sel = JSON.parse(sandbox.localStorage.getItem('dreamteam_tippgruppe_selected'));
+    assert.equal(sel && sel.id, 'g1', 'Beitritt aktiviert die Gruppe');
+  }
+
+  // (e) Write meldet Fehler, kam aber an (Antwort verloren): der
+  //     Realitaets-Check erkennt die Mitgliedschaft → Erfolg statt Fehler.
+  {
+    const stubs = makeJoinStubs({ updateOutcomes: ['denied', 'denied'], memberAfterAttempt: true });
+    const { popupBody } = await bootToPreviewAndJoin(stubs);
+
+    const text = textOf(popupBody);
+    assert.match(text, /beigetreten/, 'Mitgliedschaft zaehlt, auch wenn der Write-Fehler meldete');
+    assert.doesNotMatch(text, /fehlgeschlagen|abgelehnt/,
+      'keine Fehlermeldung, wenn der Beitritt in Wahrheit funktioniert hat');
+  }
+
+  // (f) Echter, bleibender Fehler: konkreter Text + Weg nach vorn.
+  {
+    const stubs = makeJoinStubs({ updateOutcomes: ['denied', 'denied'] });
+    const { popupBody } = await bootToPreviewAndJoin(stubs);
+
+    const text = textOf(popupBody);
+    assert.match(text, /abgelehnt|Beitritt/, 'permission-denied wird verstaendlich uebersetzt');
+    assert.ok(findButton(popupBody, 'Erneut versuchen'),
+      'nach einem Fehler gibt es einen Retry-Knopf (keine Sackgasse)');
+    assert.ok(findButton(popupBody, 'Schliessen'), 'und einen Schliessen-Knopf');
+    assert.equal(stubs.counts().tokenRefreshes, 1,
+      'auch im Fehlerfall wurde der Token-Refresh-Retry versucht');
+  }
+
+  console.log('✓ test-tippgruppen: Dropdown-Eintrag, Filter, Einladungs-Flow (inkl. Token-Retry + Realitaets-Check), Einbindung und Firestore-Rules sind konsistent.');
 })().catch((err) => {
   console.error(err);
   process.exit(1);
