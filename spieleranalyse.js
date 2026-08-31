@@ -23,6 +23,13 @@
     function entWord() { return IS_CLUB_ENTITY ? 'Club' : 'Land'; }
     function entWordPlural() { return IS_CLUB_ENTITY ? 'Clubs' : 'Länder'; }
 
+    // Captain: Die WM hat einen (×2), die CL bewusst nicht – das Turnier-Flag
+    // ist die einzige Quelle (siehe tournament-config.js). Ist es aus, fallen
+    // auf dieser Seite saemtliche Captain-Vergleiche weg (Captain-Duell,
+    // Captain-Optimierung, Captain-Bonus-Kachel, Zeile „Captain-Wahlen") und
+    // gespeicherte isCaptain-Flags werden beim Rendern verworfen.
+    const CAPTAIN_ENABLED = !(APP && APP.captainEnabled === false);
+
     document.title = `${PAGE_TITLE_PREFIX} - Analyse`;
 
     /* =========================================================
@@ -874,7 +881,8 @@
                 const key = fullP ? String(fullP['player.id']) : String(tp.playerId);
                 playerSelectedMap.set(key, (playerSelectedMap.get(key) || 0) + 1);
                 if (!playerManagersMap.has(key)) playerManagersMap.set(key, []);
-                playerManagersMap.get(key).push({ manager, isCaptain: !!tp.isCaptain });
+                // Ohne Captain-Feature (CL) wird das gespeicherte Flag verworfen.
+                playerManagersMap.get(key).push({ manager, isCaptain: CAPTAIN_ENABLED && !!tp.isCaptain });
             });
         });
         // Sort managers alphabetically; captains first within the same player for emphasis.
@@ -915,6 +923,9 @@
     }
 
     function getCaptainManagersForPlayer(playerId) {
+        // Ohne Captain-Feature (CL) gibt es keine Captain-Nennungen – damit
+        // bleiben Foto-„C"-Badges und Captain-Auszeichnungen ueberall aus.
+        if (!CAPTAIN_ENABLED) return [];
         return getManagersForPlayer(playerId).filter(m => m && m.isCaptain);
     }
 
@@ -1358,7 +1369,8 @@
                     String(tp.playerId) === String(player['player.id']) || tp.name === player.Spielername
                 );
                 if (teamPlayer) {
-                    const isCaptain = !!teamPlayer.isCaptain;
+                    // Ohne Captain-Feature (CL) zaehlt kein Spieler als Captain.
+                    const isCaptain = CAPTAIN_ENABLED && !!teamPlayer.isCaptain;
                     pickedBy.push({ manager, isCaptain });
                     if (isCaptain) captainedBy.push(manager);
                 }
@@ -6390,7 +6402,12 @@
     function getEnrichedTeams() {
         if (enrichedTeamsCache && enrichedTeamsCache.length) return enrichedTeamsCache;
         const teams = (allTeams || []).map(team => {
-            const merged = (team.players || []).map((p, idx) => {
+            const merged = (team.players || []).map((storedPlayer, idx) => {
+                // Ohne Captain-Feature (CL) zaehlt ein gespeichertes Captain-Flag
+                // nicht mehr – weder fuer die ×2-Wertung noch fuer das „C"-Badge.
+                const p = (CAPTAIN_ENABLED || !storedPlayer || !storedPlayer.isCaptain)
+                    ? storedPlayer
+                    : { ...storedPlayer, isCaptain: false };
                 const fullP = resolveStoredPlayer(p);
                 const pos = cmpNormalizePosition((fullP && fullP.Position) || p.pos || 'UNKNOWN');
                 const slotNum = p.slot ? parseInt(String(p.slot).replace('slot-', ''), 10) : -1;
@@ -6418,7 +6435,7 @@
                 if (positionTotals[player.pos] !== undefined) positionTotals[player.pos] += player.pts;
                 if (player.slotNum >= 11) positionTotals.BENCH += player.pts;
             });
-            const captain = merged.find(p => p.isCaptain) || null;
+            const captain = CAPTAIN_ENABLED ? (merged.find(p => p.isCaptain) || null) : null;
             return {
                 manager: team.manager || 'Unbekannt',
                 players: merged,
@@ -6530,8 +6547,9 @@
         stats.draftCount = teamsLockedForStats
             ? 0
             : (playerSelectedMap.get(String(playerId)) || 0);
+        // Ohne Captain-Feature (CL) gibt es keine Captain-Wahlen zu zaehlen.
         let captainCount = 0;
-        if (!teamsLockedForStats) {
+        if (CAPTAIN_ENABLED && !teamsLockedForStats) {
             (allTeams || []).forEach(team => {
                 (team.players || []).forEach(tp => {
                     const fullP = resolveStoredPlayer(tp);
@@ -6733,26 +6751,30 @@
                 </div>
             </div>`;
 
-        // Captain comparison
-        const capA = a.captain;
-        const capB = b.captain;
-        const capPtsA = capA ? capA.pts : 0;
-        const capPtsB = capB ? capB.pts : 0;
-        const capDiff = capPtsA - capPtsB;
-        const capWinner = capDiff > 0 ? 'a' : (capDiff < 0 ? 'b' : 'draw');
-        const capDiffAbs = Math.abs(capDiff);
-        const capDiffText = capDiff === 0 ? '±0' : (capDiff > 0 ? `+${capDiffAbs}` : `-${capDiffAbs}`);
-        const capArrowSym = capWinner === 'draw' ? '=' : (capWinner === 'a' ? '◀' : '▶');
-        const capArrowCls = capWinner === 'draw' ? '' : (capWinner === 'a' ? 'win' : 'loss');
-        const capDiffCls = capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw');
+        // Captain-Duell – nur in Turnieren mit Captain-Feature (WM). Ohne
+        // Captain (CL) entfaellt die Karte komplett, statt leere „— kein
+        // Captain —"-Zeilen zu zeigen.
+        let captainCard = '';
+        if (CAPTAIN_ENABLED) {
+            const capA = a.captain;
+            const capB = b.captain;
+            const capPtsA = capA ? capA.pts : 0;
+            const capPtsB = capB ? capB.pts : 0;
+            const capDiff = capPtsA - capPtsB;
+            const capWinner = capDiff > 0 ? 'a' : (capDiff < 0 ? 'b' : 'draw');
+            const capDiffAbs = Math.abs(capDiff);
+            const capDiffText = capDiff === 0 ? '±0' : (capDiff > 0 ? `+${capDiffAbs}` : `-${capDiffAbs}`);
+            const capArrowSym = capWinner === 'draw' ? '=' : (capWinner === 'a' ? '◀' : '▶');
+            const capArrowCls = capWinner === 'draw' ? '' : (capWinner === 'a' ? 'win' : 'loss');
+            const capDiffCls = capWinner === 'a' ? 'win' : (capWinner === 'b' ? 'loss' : 'draw');
 
-        const renderCapAvatar = (cap) => {
-            const photo = renderPlayerPhotoShell(cap && cap.photo, cap && cap.name, 'cmp-cap-photo', { width: 52, height: 52 });
-            const inner = `<div class="cmp-cap-avatar">${photo}<div class="cmp-cap-c-badge" aria-label="Captain">C</div></div>`;
-            return cap && (cap.name || cap.playerId) ? cmpPlayerImgLink(cap.name, inner, cap.playerId) : inner;
-        };
+            const renderCapAvatar = (cap) => {
+                const photo = renderPlayerPhotoShell(cap && cap.photo, cap && cap.name, 'cmp-cap-photo', { width: 52, height: 52 });
+                const inner = `<div class="cmp-cap-avatar">${photo}<div class="cmp-cap-c-badge" aria-label="Captain">C</div></div>`;
+                return cap && (cap.name || cap.playerId) ? cmpPlayerImgLink(cap.name, inner, cap.playerId) : inner;
+            };
 
-        const captainCard = `
+            captainCard = `
             <div class="analysis-card">
                 <div class="analysis-card-header">
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>👑 Captain-Duell</div>
@@ -6781,6 +6803,7 @@
                     </div>` : ''}
                 </div>
             </div>`;
+        }
 
         // Position breakdown — expandable per position with player-level direct comparison
         // (bench players are already included in their respective position totals)
@@ -6790,7 +6813,7 @@
             }
             const photoInner = renderPlayerPhotoShell(p.photo, p.name, 'cmp-player-photo-sm', { width: 32, height: 32 });
             const photoHtml = cmpPlayerImgLink(p.name, photoInner, p.playerId);
-            const captainTag = p.isCaptain ? '<span class="cmp-cap-tag" title="Captain">C</span>' : '';
+            const captainTag = (CAPTAIN_ENABLED && p.isCaptain) ? '<span class="cmp-cap-tag" title="Captain">C</span>' : '';
             const meta = p.slotNum >= 11 ? 'Bank' : (p.nation || '');
             const nameLinked = cmpPlayerLink(p.name, escapeHtml(p.name), '', p.playerId);
             const info = `
@@ -6901,7 +6924,7 @@
                 <div class="${itemCls}">
                     ${photoLinked}
                     <div class="cmp-diff-info">
-                        <div class="cmp-diff-name">${nameLinked}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
+                        <div class="cmp-diff-name">${nameLinked}${(CAPTAIN_ENABLED && p.isCaptain) ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
                         <div class="cmp-diff-meta">${escapeHtml(POSITION_LABELS[p.pos] || translatePosition(p.pos))} · ${escapeHtml(p.nation || '')}</div>
                     </div>
                     <div class="cmp-diff-pts ${p.pts > 0 ? 'pos' : (p.pts < 0 ? 'neg' : '')}">${formatPoints(p.pts)}</div>
@@ -6964,8 +6987,11 @@
         const loser = totalDiff > 0 ? b : (totalDiff < 0 ? a : null);
         if (!winner) return `${a.manager} und ${b.manager} stehen nach Gesamtpunkten exakt gleich – ein perfektes Unentschieden.`;
 
-        const capDiff = (a.captain ? a.captain.pts : 0) - (b.captain ? b.captain.pts : 0);
-        const capWinner = Math.abs(capDiff) > Math.abs(totalDiff) * 0.4
+        // Ohne Captain-Feature (CL) gibt es kein Captain-Argument in der Story.
+        const capDiff = CAPTAIN_ENABLED
+            ? (a.captain ? a.captain.pts : 0) - (b.captain ? b.captain.pts : 0)
+            : 0;
+        const capWinner = (CAPTAIN_ENABLED && Math.abs(capDiff) > Math.abs(totalDiff) * 0.4)
             ? (capDiff > 0 ? a : b)
             : null;
 
@@ -7217,9 +7243,13 @@
             { label: 'Unentschieden', a: a.draws, b: b.draws, cmp: () => 'draw' },
             { label: 'Niederlagen', a: a.losses, b: b.losses, cmp: cmpLow },
             { label: 'Pkt. pro Einsatz', a: a.pointsPerGame ?? '–', b: b.pointsPerGame ?? '–', cmp: cmpNum },
-            { label: 'Drafts (Beliebtheit)', a: a.draftCount, b: b.draftCount, cmp: cmpNum },
-            { label: 'Captain-Wahlen', a: a.captainCount, b: b.captainCount, cmp: cmpNum }
+            { label: 'Drafts (Beliebtheit)', a: a.draftCount, b: b.draftCount, cmp: cmpNum }
         ];
+        // „Captain-Wahlen" nur dort, wo es einen Captain gibt (WM) – in der CL
+        // waere die Zeile immer 0 : 0.
+        if (CAPTAIN_ENABLED) {
+            rows.push({ label: 'Captain-Wahlen', a: a.captainCount, b: b.captainCount, cmp: cmpNum });
+        }
 
         return rows.map(r => {
             const winner = r.cmp(r.a, r.b);
@@ -7323,6 +7353,8 @@
         // Per-position diff vs. perfect team (signed). Both teams have the same
         // slot composition (GK 2 / DEF 4 / MID 5 / ATT 4), so summing these per-
         // position diffs plus the captain-bonus diff equals `totalMissed`.
+        // Ohne Captain-Feature (CL) gibt es keinen Captain-Bonus – dann geht die
+        // Summe der Positions-Differenzen allein auf.
         const currentBaseByPos = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0 };
         team.players.forEach(p => {
             if (currentBaseByPos[p.pos] !== undefined) currentBaseByPos[p.pos] += p.basePts;
@@ -7342,16 +7374,19 @@
         };
 
         // Captain comparison: bonus delta to perfect-team captain so that
-        // Σ missedByPosition + captainMissed == totalMissed.
-        const currentCaptain = team.captain;
+        // Σ missedByPosition + captainMissed == totalMissed. Ohne Captain-
+        // Feature (CL) bleiben beide Seiten 0 und der Anteil faellt weg.
+        const currentCaptain = CAPTAIN_ENABLED ? team.captain : null;
         const captainBonusCurrent = currentCaptain ? currentCaptain.basePts : 0;
-        const captainBonusBest = perfectLight.captain ? perfectLight.captain.pts : 0;
+        const captainBonusBest = (CAPTAIN_ENABLED && perfectLight.captain) ? perfectLight.captain.pts : 0;
         const captainMissed = Math.max(0, captainBonusBest - captainBonusCurrent);
 
         // Best captain pick *within* the current squad – used by the
         // "Captain-Optimierung" card as actionable advice ("with the players
         // you actually own, who should you have captained?").
-        const bestPlayer = team.players.slice().sort((a, b) => b.basePts - a.basePts)[0] || null;
+        const bestPlayer = CAPTAIN_ENABLED
+            ? (team.players.slice().sort((a, b) => b.basePts - a.basePts)[0] || null)
+            : null;
         const captainBonusBestOwn = bestPlayer ? bestPlayer.basePts : 0;
         const captainMissedOwn = Math.max(0, captainBonusBestOwn - captainBonusCurrent);
 
@@ -7391,16 +7426,20 @@
                 </div>
             </div>`;
 
-        const renderWhatIfCapAvatar = (player, badgeChar, badgeClass) => {
-            const photo = renderPlayerPhotoShell(player && player.photo, player && player.name, 'cmp-cap-photo', { width: 52, height: 52 });
-            const badge = badgeChar
-                ? `<div class="cmp-cap-c-badge ${badgeClass || ''}" aria-hidden="true">${badgeChar}</div>`
-                : '';
-            const inner = `<div class="cmp-cap-avatar">${photo}${badge}</div>`;
-            return player && (player.name || player.playerId) ? cmpPlayerImgLink(player.name, inner, player.playerId) : inner;
-        };
+        // Captain-Optimierung – nur in Turnieren mit Captain-Feature (WM).
+        // Ohne Captain (CL) gibt es nichts zu optimieren, die Karte entfaellt.
+        let captainHtml = '';
+        if (CAPTAIN_ENABLED) {
+            const renderWhatIfCapAvatar = (player, badgeChar, badgeClass) => {
+                const photo = renderPlayerPhotoShell(player && player.photo, player && player.name, 'cmp-cap-photo', { width: 52, height: 52 });
+                const badge = badgeChar
+                    ? `<div class="cmp-cap-c-badge ${badgeClass || ''}" aria-hidden="true">${badgeChar}</div>`
+                    : '';
+                const inner = `<div class="cmp-cap-avatar">${photo}${badge}</div>`;
+                return player && (player.name || player.playerId) ? cmpPlayerImgLink(player.name, inner, player.playerId) : inner;
+            };
 
-        const captainHtml = `
+            captainHtml = `
             <div class="analysis-card">
                 <div class="analysis-card-header">
                     <div class="analysis-card-title"><span class="act-accent" aria-hidden="true"></span>👑 Captain-Optimierung</div>
@@ -7429,6 +7468,7 @@
                     </div>
                 </div>
             </div>`;
+        }
 
         const renderDiffTileValue = (diff) => {
             if (diff > 0) return `<div class="cmp-pos-tile-value neg">-${diff}</div>`;
@@ -7447,10 +7487,11 @@
                                 <div class="cmp-pos-tile-label">${POSITION_ICONS[pos] || ''} ${POSITION_LABELS[pos]}</div>
                                 ${renderDiffTileValue(missedByPosition[pos] || 0)}
                             </div>`).join('')}
+                        ${CAPTAIN_ENABLED ? `
                         <div class="cmp-pos-tile">
                             <div class="cmp-pos-tile-label">👑 Captain-Bonus</div>
                             ${renderDiffTileValue(captainMissed || 0)}
-                        </div>
+                        </div>` : ''}
                     </div>
                 </div>
             </div>`;
@@ -7501,7 +7542,7 @@
             <div class="cmp-diff-item">
                 ${photoLinked}
                 <div class="cmp-diff-info">
-                    <div class="cmp-diff-name">${nameLinked}${p.isCaptain ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
+                    <div class="cmp-diff-name">${nameLinked}${(CAPTAIN_ENABLED && p.isCaptain) ? ' <span class="cmp-badge elite" style="margin-left:4px;">C</span>' : ''}</div>
                     <div class="cmp-diff-meta">${escapeHtml(POSITION_LABELS[p.pos] || translatePosition(p.pos))} · ${escapeHtml(p.nation || '')}</div>
                 </div>
                 <div class="cmp-diff-pts ${p.basePts > 0 ? 'pos' : (p.basePts < 0 ? 'neg' : '')}">${formatPoints(p.basePts)}</div>
@@ -7559,8 +7600,13 @@
             if (p.nation) usedNations.add(p.nation);
         }
         const all15 = [].concat(slots.GOALKEEPER, slots.DEFENDER, slots.MIDFIELDER, slots.ATTACKER);
-        // Captain = best of these
-        const captain = all15.slice().sort((a, b) => b.pts - a.pts)[0] || null;
+        // Captain = best of these. Ohne Captain-Feature (CL) gibt es keinen
+        // Captain-Bonus: das „moegliche Maximum" ist dann die reine Summe der
+        // 15 Spieler – sonst waeren „Verpasste Punkte" und „Quote vom Maximum"
+        // um einen Bonus verfaelscht, den es im Turnier gar nicht gibt.
+        const captain = CAPTAIN_ENABLED
+            ? (all15.slice().sort((a, b) => b.pts - a.pts)[0] || null)
+            : null;
         const score = all15.reduce((s, p) => s + p.pts, 0) + (captain ? captain.pts : 0);
         return { players: all15, captain, score };
     }
@@ -7580,7 +7626,7 @@
         if (bestPos && bestPos.missed < 0) {
             parts.push(`Dafür warst du im Bereich ${POSITION_LABELS[bestPos.pos]} sogar ${Math.abs(bestPos.missed)} Punkte stärker als das Perfect-Team.`);
         }
-        if (captainMissed > 0) {
+        if (CAPTAIN_ENABLED && captainMissed > 0) {
             parts.push(`Eine andere Captain-Wahl hätte dir bis zu ${captainMissed} Bonuspunkte mehr gebracht.`);
         }
         if (topMissed && topMissed.length) {
@@ -7941,6 +7987,16 @@
         try { window.__spaLastData = data; } catch (_) { /* ignore */ }
 
         pointsData = data.points || {};
+        // Ohne Captain-Feature (CL) gespeicherte Captain-Flags (z. B. aus
+        // Alt-Teams) zentral verwerfen – danach greift auf der ganzen Seite
+        // weder die ×2-Wertung noch ein „C"-Badge.
+        if (!CAPTAIN_ENABLED && Array.isArray(data.teams)) {
+            data.teams.forEach(t => {
+                if (t && Array.isArray(t.players)) {
+                    t.players.forEach(p => { if (p) p.isCaptain = false; });
+                }
+            });
+        }
         allRawTeams = Array.isArray(data.teams) ? data.teams : [];
         // Tippgruppen-Filter (tippgruppen.js): aktive Gruppe → nur deren
         // Mitglieder in Top-Picks, Manager-Nennungen und Team-Zaehlern.
