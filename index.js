@@ -8439,6 +8439,23 @@
         ].join("|");
     }
 
+    /* Tippgruppen-Filter (tippgruppen.js): aktive Gruppe → Dashboard-Kacheln
+       (Mini-Rangliste, Aufsteiger, Team-Zaehler, …) zeigen nur deren
+       Mitglieder. Liefert eine flache Kopie, damit _lastRenderedData die
+       ROHEN Teams behaelt – ein spaeterer Filterwechsel rendert daraus neu. */
+    function applyTippgruppenFilter(data) {
+        try {
+            const TG = window.DreamTeamTippgruppen;
+            if (TG && typeof TG.filterTeams === 'function' && data && Array.isArray(data.teams)) {
+                const filtered = TG.filterTeams(data.teams);
+                if (filtered !== data.teams) return { ...data, teams: filtered };
+            }
+        } catch (err) {
+            console.warn('[index] Tippgruppen-Filter fehlgeschlagen:', err);
+        }
+        return data;
+    }
+
     function render(data, options = {}) {
         // CL hat kein Captain-Feature: gespeicherte Captain-Flags (z. B. aus
         // Alt-Teams) hier zentral entfernen, damit weder ×2 noch „C" greifen.
@@ -8446,7 +8463,8 @@
             data.teams.forEach(t => { if (t && Array.isArray(t.players)) t.players.forEach(p => { if (p) p.isCaptain = false; }); });
         }
         _lastRenderedData = data;
-        const signature = getRenderSignature(data);
+        const viewData = applyTippgruppenFilter(data);
+        const signature = getRenderSignature(viewData);
         if (!options.force && signature && signature === _lastRenderSignature) {
             applyIndexViewMode();
             updateDevToggleLabel();
@@ -8454,7 +8472,7 @@
         }
         _lastRenderSignature = signature;
 
-        renderIndexHome(data);
+        renderIndexHome(viewData);
         // Frische Team-Daten landen über DreamTeamCache.bootstrap im
         // LocalStorage. Das Karussell der "Meistgewählten Spieler" liest
         // diese Daten beim Initialrender, kennt aber das nachträgliche
@@ -8593,6 +8611,18 @@
         updateDevToggleLabel();
         scheduleAutoModeFlip();
         document.addEventListener("visibilitychange", handleAutoModeVisibilityChange);
+
+        // Tippgruppen-Auswahl wirkt sofort: aus den ROHEN Teams des letzten
+        // Renders neu aufbauen (render() filtert selbst; force umgeht den
+        // Signatur-Skip, weil gleiche Mitgliederzahl sonst als "nichts
+        // geaendert" durchginge).
+        try {
+            if (window.DreamTeamTippgruppen && typeof window.DreamTeamTippgruppen.onChange === 'function') {
+                window.DreamTeamTippgruppen.onChange(() => {
+                    if (_lastRenderedData) render(_lastRenderedData, { force: true });
+                });
+            }
+        } catch (_) { /* ignore */ }
 
         try {
             const CACHE_OPTS = {

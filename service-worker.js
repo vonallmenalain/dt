@@ -85,6 +85,8 @@ const APP_SHELL = [
   './auth-modal.js',
   './auth-modal.css',
   './view-mode.js',
+  './tippgruppen.js',
+  './tippgruppen.css',
   './anime.min.js',
   './tournament-config.js',
   './country-aliases.js',

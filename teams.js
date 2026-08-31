@@ -27,6 +27,9 @@
     if (heroLabelEl) heroLabelEl.textContent = TOURNAMENT_LABEL;
 
     let allTeams = [];
+    // Letzter roher Bundle-Stand: Grundlage fuer den Re-Apply, wenn sich die
+    // Tippgruppen-Auswahl aendert (der Filter laeuft in applyDataset).
+    let lastDatasetData = null;
     let playerPointsData = {};
     let playerPointDocs = {};
     let fixturesData = {};
@@ -1937,8 +1940,22 @@
         window.history.replaceState(null, '', '?manager=' + encodeURIComponent(managerName));
     }
 
+    /* Tippgruppen-Filter (tippgruppen.js): aktive Gruppe → nur deren
+       Mitglieder in Manager-Liste, Suche, Zaehler und Ranks. No-op ohne
+       Auswahl oder ohne Modul. */
+    function applyTippgruppenFilter(teams) {
+        try {
+            const TG = window.DreamTeamTippgruppen;
+            if (TG && typeof TG.filterTeams === 'function') return TG.filterTeams(teams);
+        } catch (err) {
+            console.warn('[teams] Tippgruppen-Filter fehlgeschlagen:', err);
+        }
+        return teams;
+    }
+
     function applyDataset(data, options) {
         const preferCurrentDisplayed = !!(options && options.preferCurrentDisplayed);
+        lastDatasetData = data;
 
         buildPlayerPointsMap(data.points || {});
         fixturesData = data.fixtures && typeof data.fixtures === 'object' && !Array.isArray(data.fixtures) ? data.fixtures : {};
@@ -1946,7 +1963,7 @@
             ? APP.getNationStatus(fixturesData)
             : null;
         badgeSnapshotsData = data.badgeSnapshots && typeof data.badgeSnapshots === 'object' ? data.badgeSnapshots : null;
-        allTeams = enrichTeamsWithScores(data.teams || []);
+        allTeams = enrichTeamsWithScores(applyTippgruppenFilter(data.teams || []));
         allTeams = assignTeamRanks(allTeams);
         allTeams.sort(compareTeamsByManagerName);
         globalPickCounts = buildGlobalPickCounts(allTeams);
@@ -2166,6 +2183,17 @@
             window.DreamTeamAdmin.onAdminChange(refreshForViewMode);
         }
         bindViewModeChange(refreshForViewMode);
+
+        // Tippgruppen-Auswahl wirkt sofort: kompletten Datensatz erneut
+        // anwenden (Filter sitzt in applyDataset). Der aktuell angezeigte
+        // Manager bleibt stehen, sofern er noch in der Gruppe ist.
+        try {
+            if (window.DreamTeamTippgruppen && typeof window.DreamTeamTippgruppen.onChange === 'function') {
+                window.DreamTeamTippgruppen.onChange(() => {
+                    if (lastDatasetData) applyDataset(lastDatasetData, { preferCurrentDisplayed: true });
+                });
+            }
+        } catch (_) { /* ignore */ }
 
         initSearchListeners();
         initModalEvents();
