@@ -790,46 +790,103 @@
         } catch (_) { /* URL bleibt stehen */ }
     }
 
+    /* Firebase stellt die Session ASYNCHRON wieder her: direkt nach dem
+       Boot liefert getCurrentUser() noch null, auch wenn die Person laengst
+       angemeldet ist. Der Einladungs-Dialog darf deshalb nicht sofort nach
+       dem aktuellen Stand entscheiden, sondern wartet auf den ersten
+       onAuthStateChanged-Callback des SDK – der kommt garantiert (mit User
+       oder null), sobald der Session-Restore geprueft ist. Fallback +
+       Timeout, falls Firebase fehlt (lokal ohne API-Key) oder haengt. */
+    function waitForAuthResolution(timeoutMs) {
+        return new Promise((resolve) => {
+            let settled = false;
+            let unsubscribe = null;
+            let resolvedUser;
+
+            function finish() {
+                if (settled) return;
+                settled = true;
+                if (typeof unsubscribe === 'function') {
+                    try { unsubscribe(); } catch (_) { /* egal */ }
+                }
+                resolve(resolvedUser !== undefined ? resolvedUser : getAuthUser());
+            }
+
+            function tryAttach() {
+                try {
+                    unsubscribe = window.firebase.auth().onAuthStateChanged(
+                        (user) => { resolvedUser = user || null; finish(); },
+                        () => finish()
+                    );
+                    return true;
+                } catch (_) {
+                    return false; // SDK fehlt oder App (noch) nicht initialisiert
+                }
+            }
+
+            if (!tryAttach()) {
+                // nav.js initialisiert Firebase u. U. erst einen Tick spaeter –
+                // kurz nachfassen, wie an den uebrigen Gates im Projekt.
+                let attempts = 0;
+                const maxAttempts = 10; // ~1s
+                const interval = setInterval(() => {
+                    attempts += 1;
+                    if (settled || tryAttach()) { clearInterval(interval); return; }
+                    if (attempts >= maxAttempts) { clearInterval(interval); finish(); }
+                }, 100);
+            }
+
+            setTimeout(finish, timeoutMs || 8000);
+        });
+    }
+
     function openInviteFlow(groupId) {
         openPopupShell();
         setBody(messageView('Einladung wird geladen …'));
 
-        const user = getAuthUser();
-        if (!user || !user.emailVerified) {
-            setBody([
-                messageView('Du wurdest zu einer Tippgruppe eingeladen. Melde dich an, um die Einladung zu öffnen.'),
-                el('div', { class: 'dt-tg-actions' }, [
-                    el('button', {
-                        type: 'button',
-                        class: 'dt-tg-btn dt-tg-btn-primary',
-                        on: {
-                            click: () => {
-                                closePopup();
-                                try {
-                                    const Modal = window.DreamTeamAuthModal;
-                                    if (Modal && typeof Modal.open === 'function') {
-                                        Modal.open({ mode: user ? 'verify' : 'chooser' });
-                                    }
-                                } catch (_) { /* ignore */ }
-                                // Nach erfolgreicher Anmeldung Einladung erneut öffnen.
-                                waitForVerifiedThenInvite(groupId);
-                            }
-                        }
-                    }, [user ? 'E-Mail bestätigen' : 'Anmelden / Registrieren']),
-                    el('button', {
-                        type: 'button',
-                        class: 'dt-tg-btn',
-                        on: { click: closePopup }
-                    }, ['Abbrechen'])
-                ])
-            ]);
-            return;
-        }
-
-        renderInvitePreview(groupId).catch(err => {
-            console.warn('[Tippgruppen] Einladung konnte nicht geladen werden:', err);
-            setBody(messageView('Diese Einladung konnte nicht geladen werden. Der Link ist ungültig oder die Gruppe existiert nicht mehr.', 'danger'));
+        waitForAuthResolution(8000).then((user) => {
+            if (!user || !user.emailVerified) {
+                renderInviteSignInPrompt(groupId, user);
+                return;
+            }
+            renderInvitePreview(groupId, user).catch(err => {
+                console.warn('[Tippgruppen] Einladung konnte nicht geladen werden:', err);
+                setBody(messageView('Diese Einladung konnte nicht geladen werden. Der Link ist ungültig oder die Gruppe existiert nicht mehr.', 'danger'));
+            });
         });
+    }
+
+    /* Erst wenn die Auth-Aufloesung wirklich "abgemeldet" (oder unbestaetigt)
+       ergeben hat: zur Anmeldung auffordern und die Einladung danach
+       automatisch wieder oeffnen. */
+    function renderInviteSignInPrompt(groupId, user) {
+        setBody([
+            messageView('Du wurdest zu einer Tippgruppe eingeladen. Melde dich an, um die Einladung zu öffnen.'),
+            el('div', { class: 'dt-tg-actions' }, [
+                el('button', {
+                    type: 'button',
+                    class: 'dt-tg-btn dt-tg-btn-primary',
+                    on: {
+                        click: () => {
+                            closePopup();
+                            try {
+                                const Modal = window.DreamTeamAuthModal;
+                                if (Modal && typeof Modal.open === 'function') {
+                                    Modal.open({ mode: user ? 'verify' : 'chooser' });
+                                }
+                            } catch (_) { /* ignore */ }
+                            // Nach erfolgreicher Anmeldung Einladung erneut öffnen.
+                            waitForVerifiedThenInvite(groupId);
+                        }
+                    }
+                }, [user ? 'E-Mail bestätigen' : 'Anmelden / Registrieren']),
+                el('button', {
+                    type: 'button',
+                    class: 'dt-tg-btn',
+                    on: { click: closePopup }
+                }, ['Abbrechen'])
+            ])
+        ]);
     }
 
     function waitForVerifiedThenInvite(groupId) {
@@ -845,14 +902,16 @@
         } catch (_) { /* Einladung bleibt über den Link wiederholbar */ }
     }
 
-    async function renderInvitePreview(groupId) {
+    async function renderInvitePreview(groupId, resolvedUser) {
         const group = await fetchGroup(groupId);
         if (!group) {
             setBody(messageView('Diese Tippgruppe existiert nicht mehr.', 'danger'));
             return;
         }
 
-        const user = getAuthUser();
+        // Aufgeloesten User bevorzugen: der Wrapper-Stand (getAuthUser) kann
+        // direkt nach dem Boot noch hinterherhinken.
+        const user = resolvedUser || getAuthUser();
         const alreadyMember = !!(user && group.memberUids.indexOf(user.uid) !== -1);
 
         const memberItems = group.memberUids.map(uid => {

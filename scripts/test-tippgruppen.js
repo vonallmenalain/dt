@@ -70,6 +70,16 @@ function findById(root, id) {
   return null;
 }
 
+function findByClass(root, className) {
+  const stack = root.children.slice();
+  while (stack.length) {
+    const n = stack.shift();
+    if (String(n.className || '').split(/\s+/).indexOf(className) !== -1) return n;
+    stack.push(...n.children);
+  }
+  return null;
+}
+
 function textOf(node) {
   return node.text !== undefined ? node.text : node.children.map(textOf).join('');
 }
@@ -88,7 +98,7 @@ function makeStorage(seed) {
 /* ─────────────────────────────────────────────────────────────────────────────
  *  1) Modul in der Sandbox: Dropdown-Platzierung, Statustext, Filter
  * ───────────────────────────────────────────────────────────────────────────── */
-function bootSandbox({ storageSeed } = {}) {
+function bootSandbox({ storageSeed, search, firebaseAuth, db } = {}) {
   const body = makeNode('body');
   const documentStub = {
     body, head: makeNode('head'), documentElement: makeNode('html'),
@@ -100,11 +110,13 @@ function bootSandbox({ storageSeed } = {}) {
     readyState: 'complete'
   };
 
+  const query = search || '';
   const sandbox = {
     console, setTimeout, clearTimeout, setInterval: () => 0, clearInterval: () => {},
     document: documentStub, URL, URLSearchParams,
     navigator: { userAgent: 'node' },
-    location: { href: 'https://dt.alae.app/index.html', hostname: 'dt.alae.app', search: '' },
+    location: { href: 'https://dt.alae.app/index.html' + query, hostname: 'dt.alae.app', search: query },
+    history: { replaceState() {} },
     localStorage: makeStorage(storageSeed),
     sessionStorage: makeStorage(),
     requestAnimationFrame: (fn) => fn(),
@@ -118,13 +130,22 @@ function bootSandbox({ storageSeed } = {}) {
     getDevViewOverride: () => null,
     onAdminChange(cb) { cb({ isAdmin: false, uid: null, authResolved: true }); return () => {}; }
   };
-  // Abgemeldeter Zustand: der Menue-Eintrag registriert sich trotzdem
-  // (das Dropdown selbst ist ohnehin nur fuer Angemeldete erreichbar).
+  // Anmeldestatus steuerbar (Default: abgemeldet). Der Menue-Eintrag
+  // registriert sich unabhaengig davon – das Dropdown selbst ist ohnehin
+  // nur fuer Angemeldete erreichbar.
+  sandbox.__authUser = null;
   sandbox.DreamTeamAuth = {
-    getCurrentUser: () => null,
-    isSignedInAndVerified: () => false,
-    onAuthStateChange(cb) { cb({ user: null, isVerified: false }); return () => {}; }
+    getCurrentUser: () => sandbox.__authUser,
+    isSignedInAndVerified: () => !!(sandbox.__authUser && sandbox.__authUser.emailVerified),
+    onAuthStateChange(cb) {
+      cb({ user: sandbox.__authUser, isVerified: !!(sandbox.__authUser && sandbox.__authUser.emailVerified) });
+      return () => {};
+    }
   };
+  // Firebase-SDK-Stub (fuer waitForAuthResolution) und Firestore-Stub
+  // (fuer fetchGroup) nur, wenn der Testfall sie mitbringt.
+  if (firebaseAuth) sandbox.firebase = { auth: () => firebaseAuth };
+  if (db) sandbox.APP_CONFIG = { getDb: () => db };
 
   vm.createContext(sandbox);
   vm.runInContext(readRoot('auth-modal.js'), sandbox, { filename: 'auth-modal.js' });
@@ -375,4 +396,114 @@ assert.ok(/collection == 'tippgruppen'\s*&&\s*validTippgruppeDelete\(\)/.test(RU
     "tippgruppen.js: kein String-Wert 'hidden' mehr im Modul-Code");
 }
 
-console.log('✓ test-tippgruppen: Dropdown-Eintrag, Filter, Einbindung und Firestore-Rules sind konsistent.');
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  4) Einladungs-Link: erst entscheiden, wenn die Auth-Aufloesung da ist
+ *
+ *  Firebase stellt die Session ASYNCHRON wieder her. Der Einladungs-Dialog
+ *  darf einer bereits angemeldeten Person deshalb NIE die Anmelde-
+ *  Aufforderung zeigen, nur weil der Session-Restore beim Boot noch
+ *  unterwegs ist (genau dieser Bug stand in Version 1) – er wartet auf den
+ *  ersten onAuthStateChanged-Callback des SDK.
+ * ───────────────────────────────────────────────────────────────────────────── */
+const INVITE_GROUP = {
+  name: 'Büro-Runde', visibility: 'private',
+  creatorUid: 'u-creator', creatorName: 'Alice Müller',
+  memberUids: ['u-creator', 'u2'],
+  memberNames: { 'u-creator': 'Alice Müller', u2: 'Bob' }
+};
+
+function makeInviteStubs() {
+  let authCallback = null;
+  const firebaseAuth = {
+    onAuthStateChanged(cb) { authCallback = cb; return () => { authCallback = null; }; }
+  };
+  const db = {
+    collection: (name) => ({
+      doc: (id) => ({
+        get: async () => (name === 'tippgruppen' && id === 'g1'
+          ? { id: 'g1', exists: true, data: () => ({ ...INVITE_GROUP }) }
+          : { exists: false })
+      })
+    })
+  };
+  return { firebaseAuth, db, fireAuth: (user) => { if (authCallback) authCallback(user); } };
+}
+
+const settle = () => new Promise((resolve) => setTimeout(resolve, 25));
+
+(async () => {
+  // (a) Angemeldet, Session-Restore kommt NACH dem Boot: kein Anmelde-
+  //     Prompt, sondern (nach der Aufloesung) direkt die Gruppen-Vorschau.
+  {
+    const stubs = makeInviteStubs();
+    const { sandbox, body } = bootSandbox({
+      search: '?tippgruppe=g1',
+      firebaseAuth: stubs.firebaseAuth,
+      db: stubs.db
+    });
+
+    const popupBody = findByClass(body, 'dt-tg-body');
+    assert.ok(popupBody, 'Einladungs-Dialog muss sich beim Boot oeffnen');
+    assert.match(textOf(popupBody), /wird geladen/,
+      'vor der Auth-Aufloesung zeigt der Dialog den Ladezustand');
+    assert.doesNotMatch(textOf(popupBody), /Melde dich an/,
+      'vor der Auth-Aufloesung darf KEINE Anmelde-Aufforderung erscheinen');
+
+    // Session-Restore trifft ein (wie auth.js: erst Wrapper-Stand, dann Event).
+    const user = { uid: 'u-me', email: 'me@example.com', emailVerified: true };
+    sandbox.__authUser = user;
+    stubs.fireAuth(user);
+    await settle();
+
+    const text = textOf(popupBody);
+    assert.match(text, /Einladung: Büro-Runde/,
+      'nach der Aufloesung erscheint direkt die Gruppen-Vorschau');
+    assert.match(text, /Alice Müller \(Ersteller\)/, 'die Vorschau nennt den Ersteller');
+    assert.match(text, /Bob/, 'die Vorschau listet die Mitglieder');
+    assert.match(text, /Beitreten/, 'der Beitritts-Knopf steht bereit');
+    assert.doesNotMatch(text, /Melde dich an/,
+      'angemeldete Personen sehen die Anmelde-Aufforderung nie');
+  }
+
+  // (b) Wirklich abgemeldet (SDK loest mit null auf): Anmelde-Prompt.
+  {
+    const stubs = makeInviteStubs();
+    const { body } = bootSandbox({
+      search: '?tippgruppe=g1',
+      firebaseAuth: stubs.firebaseAuth,
+      db: stubs.db
+    });
+
+    stubs.fireAuth(null);
+    await settle();
+
+    const popupBody = findByClass(body, 'dt-tg-body');
+    assert.match(textOf(popupBody), /Melde dich an/,
+      'abgemeldete Personen bekommen die Anmelde-Aufforderung');
+    assert.match(textOf(popupBody), /Anmelden \/ Registrieren/);
+  }
+
+  // (c) Bereits Mitglied: Vorschau zeigt den Bestandsstatus.
+  {
+    const stubs = makeInviteStubs();
+    const { sandbox, body } = bootSandbox({
+      search: '?tippgruppe=g1',
+      firebaseAuth: stubs.firebaseAuth,
+      db: stubs.db
+    });
+
+    const member = { uid: 'u2', email: 'bob@example.com', emailVerified: true };
+    sandbox.__authUser = member;
+    stubs.fireAuth(member);
+    await settle();
+
+    const popupBody = findByClass(body, 'dt-tg-body');
+    assert.match(textOf(popupBody), /bereits Mitglied/,
+      'Mitglieder sehen den Bestandsstatus statt des Beitritts');
+  }
+
+  console.log('✓ test-tippgruppen: Dropdown-Eintrag, Filter, Einladungs-Flow, Einbindung und Firestore-Rules sind konsistent.');
+})().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
