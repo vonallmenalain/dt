@@ -65,6 +65,7 @@ var CL_NAME_OVERRIDES = {
     15683:  "Gustaf Nilsson",      // Håkan Gustaf Nilsson
     67971:  "Marc Guéhi",          // Addji Keaninkin Marc-Israel Guéhi
     311773: "Santiago Mouriño",    // Álvaro Santiago Mouriño
+    7334:   "Karim Adeyemi",       // Karim-David Adeyemi (Bindestrich-Vorname)
 
     // ── 2) Mehrteiliger Nachnamen-Teil: welches Wort zählt? ──────────────
     // Steht im Nachnamen-Teil mehr als ein Wort, ist ihm nicht anzusehen,
