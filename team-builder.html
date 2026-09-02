@@ -427,10 +427,10 @@
 
 <!-- Der DEV-Schalter für die Team-Einreichung (Feld lateSubmitOpen im
      Firestore-Meta-Dokument) ist kein Overlay mehr: Er lebt als Eintrag im
-     Dev-Bereich des Profil-Dropdowns oben rechts (siehe team-builder.js →
-     initLateSubmitToggle und auth-modal.js → devMenu). Sichtbar nur für
-     Admins; das Schreiben ist zusätzlich in den Firestore Rules auf Admins
-     beschränkt. -->
+     Dev-Bereich des Profil-Dropdowns oben rechts (siehe submit-tools.js und
+     auth-modal.js → devMenu) und steht dort auf jeder Seite. Sichtbar nur
+     für Admins; das Schreiben ist zusätzlich in den Firestore Rules auf
+     Admins beschränkt. -->
 
 <!-- Firebase-Compat-SDK: per preload im <head> bereits heruntergeladen,
      hier nur noch ausgefuehrt – VOR tournament-config.js, damit
@@ -457,6 +457,12 @@
      hält <html data-view> aktuell. Muss nach admin.js + auth-modal.js
      stehen. -->
 <script src="view-mode.js?v=__BUILD__"></script>
+<!-- Admin-Schalter rund um die Team-Einreichung („Einreichung für alle",
+     „Testteams (mehrere)"). Wie view-mode.js bewusst auf JEDER Seite
+     geladen, damit die Einträge im Profil-Dropdown überall vollständig
+     sind – nicht nur dort, wo sie gebraucht werden. Muss nach admin.js +
+     auth-modal.js stehen. -->
+<script src="submit-tools.js?v=__BUILD__"></script>
 <!-- Tippgruppen: Gruppen erstellen/beitreten + geraeteweiter Manager-Filter.
      Bewusst unauffaellig - einziger Einstieg ist das Profil-Dropdown
      (Eintrag zwischen "Mein Team" und dem Turnier-Wechsel). Muss nach
