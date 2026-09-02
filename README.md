@@ -101,20 +101,29 @@ Shell-Leiste und Inhalt garantiert im selben Turnier booten (siehe
 
 Regressionstest: `npm run test:archive`.
 
-**Eingebettete Seiten spiegeln ihre Einträge in die Shell.** In `app.html`
-laufen die Seiten als Frames, und die sichtbare Leiste gehört der Shell –
-die Navigation der eingebetteten Seite versteckt `styles.css`
-(`html[data-dt-embedded]`). Ein Eintrag, den eine Seite registriert, landet
-damit zunächst in einem Dropdown, das niemand sieht; genau so verschwanden
-die Einreichungs-Schalter des Team-Builders aus dem Profil-Menü, als die
-Shell dazukam. `auth-modal.js` spiegelt die Einträge deshalb in das
-Dropdown der Shell, solange der Frame der **sichtbare** ist. Das Signal
-dafür ist das `hidden`-Attribut des Frame-Elements, das `shell.js` beim
-Seitenwechsel umschaltet – die Brücke braucht keine Absprache mit der Shell
-und hält warme Hintergrund-Frames automatisch draussen. Die Item-Objekte
-gehen unverändert hinüber: `label`, `value` und `onSelect` bleiben Closures
-der Seite, die Shell rendert nur. Regressionstest:
-`npm run test:shell-menu`.
+**Regel: Menüeinträge kommen aus app-weiten Modulen.** Seit der App-Shell
+(`app.html`) laufen die Seiten als Frames, und die sichtbare Leiste gehört
+der Shell – das Dropdown einer eingebetteten Seite sieht niemand
+(`styles.css` → `html[data-dt-embedded]`). Ein Eintrag, den nur eine Seite
+registriert, ist deshalb entweder auf allen anderen Seiten weg oder
+überhaupt nie sichtbar; genau so verschwanden die Einreichungs-Schalter des
+Team-Builders aus dem Menü. Registriert wird deshalb ausschliesslich aus
+Modulen, die **jede** Seite und die Shell laden:
+
+| Modul             | Einträge                                        |
+| ----------------- | ----------------------------------------------- |
+| `nav.js`          | Turnier-Wechsel + Archiv (`menu`)               |
+| `tippgruppen.js`  | Tippgruppen (`menu`)                            |
+| `view-mode.js`    | Ansicht: Auto / Vor Start / Nach Start (`devMenu`) |
+| `submit-tools.js` | Team-Einreichung: Nachzügler, Testteams (`devMenu`) |
+
+Dazu kommen die beiden fest verdrahteten Einträge „Mein Team" und
+„Abmelden" aus `auth-modal.js`. Damit steht auf jeder Seite dasselbe Menü:
+vier Einträge für alle angemeldeten Personen, der Dev-Bereich zusätzlich für
+Admins. Wer einen Eintrag ergänzt, packt ihn in eines dieser Module – ein
+`devMenu.register` in einem Seiten-Skript lässt
+`npm run test:menu` fehlschlagen, und derselbe Test prüft, dass alle Seiten
+alle vier Module laden.
 
 ### Aktives Turnier auflösen
 
@@ -605,6 +614,14 @@ Der Schalter ist pro Turnier in `localStorage` gemerkt
 (`admin.js`). Der Admin-Check steckt zusätzlich in `saveOrUpdateTeam`,
 damit ein manipulierter localStorage-Wert bei normalen Accounts nichts
 bewirkt. Ausschalten lädt wieder das bestehende Team zum Bearbeiten.
+
+Schalter und Speicherung liegen in **`submit-tools.js`**, nicht im
+Team-Builder – dadurch steht der Eintrag auf jeder Seite im Menü (siehe
+„Regel: Menüeinträge kommen aus app-weiten Modulen"). Der Builder
+abonniert nur `DreamTeamSubmitTools.onTestTeamModeChange` und reagiert
+darauf. Ein bereits geöffneter Builder zieht eine Umschaltung von einer
+anderen Seite über das `storage`-Event nach; beim Nachzügler-Schalter
+erledigt das der Firestore-Listener.
 
 ### Public API
 

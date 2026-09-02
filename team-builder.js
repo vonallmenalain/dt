@@ -28,9 +28,6 @@
     const META_DOC_ID          = APP.firestore.metaDocId();
     const BUILDER_CACHE_KEY    = APP.storage.builderCacheKey();
     const SESSION_DATA_KEY     = APP.storage.key('data_cache');
-    /* Testteam-Modus des Admins – pro Turnier gemerkt, damit ein
-       eingeschalteter Testmodus in der CL nicht in der WM weiterläuft. */
-    const TEST_TEAM_MODE_KEY   = APP.storage.key('admin_test_team_mode');
     const CARD_BASE_TRANSFORM  = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     const PICKER_BATCH_SIZE    = 20;
 
@@ -217,19 +214,19 @@
     let pendingBuilderNotice  = '';
 
     /* Globaler Admin-Schalter "Nachzügler-Einreichung erlauben". Wird aus
-       dem Meta-Dokument (Firestore) gelesen (siehe subscribeLateSubmitFlag)
+       dem Meta-Dokument (Firestore) gelesen (siehe submit-tools.js)
        und gilt für ALLE Nutzer. Default konservativ `false` (= gesperrt),
        bis die Firestore-Antwort da ist – die Sperre schlägt also im
        Zweifel zu, nie in die andere Richtung. */
     let lateSubmitOpen        = false;
 
-    /* Testteam-Modus (nur Admin, siehe DEV: TESTTEAM-MODUS weiter unten).
-       Ist er an, legt jede Einreichung ein NEUES Team an, statt das
-       bestehende Team des Accounts zu aktualisieren. Der Wert überlebt den
-       Redirect/Reload in localStorage – der Modus bleibt aktiv, bis der
-       Admin ihn wieder ausschaltet. Direkt beim Laden gelesen, damit der
-       Auth-Callback (kann vor setupUI() feuern) den Modus schon kennt. */
-    let adminTestTeamMode     = readTestTeamMode();
+    /* Testteam-Modus (nur Admin). Ist er an, legt jede Einreichung ein NEUES
+       Team an, statt das bestehende Team des Accounts zu aktualisieren.
+       Schalter und Speicherung liegen in submit-tools.js (app-weit im
+       Profil-Dropdown); hier steht nur die Antwort des Builders darauf.
+       Direkt beim Laden gelesen, damit der Auth-Callback (kann vor
+       setupUI() feuern) den Modus schon kennt. */
+    let adminTestTeamMode     = readTestTeamModeFromTools();
 
     /* Mobile filter chip state */
     let mobileFilterOnlyAvailable = false;
@@ -1885,7 +1882,7 @@
         // Globaler Nachzuegler-Schalter: Hat der Admin die Einreichung
         // wieder geöffnet (Feld `lateSubmitOpen` im Meta-Dokument), gilt
         // das für ALLE Nutzer – nicht nur für den Admin. Der Wert kommt
-        // aus Firestore (siehe subscribeLateSubmitFlag) und wird zusätzlich
+        // aus Firestore (siehe submit-tools.js) und wird zusätzlich
         // von den Firestore Rules durchgesetzt.
         if (lateSubmitOpen) return false;
         if (override === 'pre') return false;
@@ -2855,7 +2852,6 @@
     function bindTournamentLockToAdminState() {
         function refreshForViewMode() {
             applyTournamentClosedState();
-            updateLateSubmitToggle();
         }
 
         const Admin = window.DreamTeamAdmin;
@@ -2872,7 +2868,7 @@
     }
 
     /* =========================================================
-       GLOBALER NACHZÜGLER-SCHALTER + ADMIN-DEV-KNOPF
+       GLOBALER NACHZÜGLER-SCHALTER
        =========================================================
        Der Schalter lebt als Feld `lateSubmitOpen` im Meta-Dokument in
        Firestore und gilt damit für ALLE Nutzer: Legt der Admin ihn um,
@@ -2880,123 +2876,68 @@
        Team einreichen/ändern. Durchgesetzt wird das zusätzlich von den
        Firestore Rules (siehe firestore.rules → lateSubmitOpen()).
 
-       Der Dev-Knopf, mit dem sich der Schalter umlegen lässt, ist nur
-       für angemeldete Admins sichtbar (Admin-Gate wie beim Dev-Umschalter
-       auf index.html). Das Schreiben ist zusätzlich in den Rules auf
-       Admins beschränkt.
+       Der Dev-Knopf dazu steht im Profil-Dropdown und gehört
+       submit-tools.js – dadurch ist er auf JEDER Seite erreichbar, nicht
+       nur hier. Der Builder abonniert von dort nur noch den Zustand.
        ========================================================= */
-    let lateSubmitToggleBusy = false;
-
-    function updateLateSubmitToggle() {
-        const Modal = window.DreamTeamAuthModal;
-        if (Modal && Modal.devMenu && typeof Modal.devMenu.refresh === 'function') {
-            Modal.devMenu.refresh();
-        }
-    }
-
-    /** Reagiert auf eine (lokale oder aus Firestore gepushte) Änderung des
-     *  Nachzügler-Schalters: State übernehmen und die komplette
-     *  Sperr-UI (Submit-Button, Manager-Name, Banner) neu auswerten. */
+    /** Reagiert auf eine Änderung des Nachzügler-Schalters (kommt aus
+     *  submit-tools.js, das den Wert live aus Firestore hält): State
+     *  übernehmen und die komplette Sperr-UI (Submit-Button, Manager-Name,
+     *  Banner) neu auswerten. */
     function applyLateSubmitState(open) {
         const next = !!open;
-        if (next === lateSubmitOpen) {
-            updateLateSubmitToggle();
-            return;
-        }
+        if (next === lateSubmitOpen) return;
         lateSubmitOpen = next;
         applyTournamentClosedState();
-        updateLateSubmitToggle();
     }
 
-    /** Live-Listener auf das Meta-Dokument: hält `lateSubmitOpen` für ALLE
-     *  Clients synchron, sodass ein Admin-Umschalten sofort bei allen
-     *  offenen Team-Buildern ankommt. */
-    function subscribeLateSubmitFlag() {
-        try {
-            db.collection(META_COLLECTION).doc(META_DOC_ID).onSnapshot(
-                (snap) => {
-                    const data = (snap && snap.exists) ? snap.data() : null;
-                    applyLateSubmitState(!!(data && data.lateSubmitOpen === true));
-                },
-                (err) => {
-                    console.warn('[TeamBuilder] Meta-Listener (lateSubmitOpen) fehlgeschlagen:', err);
-                }
-            );
-        } catch (err) {
-            console.warn('[TeamBuilder] Konnte Meta-Listener nicht einrichten:', err);
+    function subscribeSubmitTools() {
+        const Tools = window.DreamTeamSubmitTools;
+        if (!Tools) {
+            console.warn('[TeamBuilder] submit-tools.js fehlt – Nachzügler- und Testteam-Schalter bleiben aus.');
+            return;
         }
-    }
 
-    async function setLateSubmitFlag(open) {
-        const FieldValue = firebase.firestore.FieldValue;
-        await db.collection(META_COLLECTION).doc(META_DOC_ID).set({
-            year:          TOURNAMENT_YEAR,
-            lateSubmitOpen: !!open,
-            // teamsVersion mit-bumpen, damit andere Clients ihren
-            // Teams-Cache ohnehin frisch ziehen.
-            teamsVersion:   FieldValue.increment(1),
-            teamsUpdatedAt: Date.now()
-        }, { merge: true });
-    }
+        /* Feuert sofort mit dem aktuellen Stand und danach bei jeder
+           Änderung – auch bei einer, die auf einer anderen Seite oder in
+           einem anderen Browser gemacht wurde. */
+        Tools.onLateSubmitChange(applyLateSubmitState);
 
-    function initLateSubmitToggle() {
-        subscribeLateSubmitFlag();
+        Tools.onTestTeamModeChange((on) => {
+            if (on === adminTestTeamMode) return;
+            adminTestTeamMode = on;
 
-        const Modal = window.DreamTeamAuthModal;
-        if (!Modal || !Modal.devMenu || typeof Modal.devMenu.register !== 'function') return;
-
-        Modal.devMenu.register({
-            id: 'team-latesubmit',
-            group: 'Team-Einreichung',
-            groupOrder: 30,
-            order: 1,
-            label: 'Einreichung für alle',
-            value: () => (lateSubmitToggleBusy
-                ? 'speichere…'
-                : (lateSubmitOpen ? 'offen' : 'gesperrt')),
-            accent: 'active',
-            disabled: () => lateSubmitToggleBusy,
-            title: 'Team-Einreichung trotz Turnierstart für ALLE freischalten/sperren',
-            // Offen lassen, damit der neue Zustand direkt ablesbar ist.
-            keepOpen: true,
-            onSelect: async () => {
-                const Admin = window.DreamTeamAdmin;
-                const isAdmin = !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
-                if (!isAdmin || lateSubmitToggleBusy) return;
-
-                const next = !lateSubmitOpen;
-                lateSubmitToggleBusy = true;
-                updateLateSubmitToggle();
-                try {
-                    await setLateSubmitFlag(next);
-                    // Der onSnapshot-Listener übernimmt den neuen Zustand für
-                    // uns und alle anderen Clients; wir setzen ihn hier optimistisch
-                    // trotzdem, falls der Listener minimal verzögert feuert.
-                    lateSubmitToggleBusy = false;
-                    applyLateSubmitState(next);
-                    showToast(next
-                        ? 'Team-Einreichung ist jetzt für ALLE freigeschaltet (trotz Turnierstart).'
-                        : 'Team-Einreichung wieder für alle gesperrt.');
-                } catch (err) {
-                    console.error('[TeamBuilder] Umschalten des Nachzügler-Schalters fehlgeschlagen:', err);
-                    lateSubmitToggleBusy = false;
-                    updateLateSubmitToggle();
-                    showToast('Konnte den Schalter nicht speichern (nur Admins dürfen das).');
-                }
+            if (on) {
+                /* Bearbeitungs-Bindung lösen: der nächste Submit legt ein
+                   neues Team an, statt das geladene zu überschreiben. */
+                editingTeamId = null;
+                DreamTeamAuth.setLoadedTeamId(null);
+                setSubmitDefaultLabel();
+                validateForm();
+                showToast('🧪 Testteam-Modus an: jede Einreichung legt ein NEUES Team an.');
+            } else {
+                showToast('Testteam-Modus aus: Einreichungen aktualisieren wieder dein Team.');
+                /* Zurück in den normalen Bearbeitungs-Modus: bestehendes
+                   Team des Accounts wieder in den Builder holen. */
+                const user = DreamTeamAuth.getCurrentUser();
+                if (user && user.emailVerified) loadUserTeamIntoBuilder(user);
             }
         });
-
-        updateLateSubmitToggle();
     }
 
     /* =========================================================
-       DEV: TESTTEAM-MODUS (mehrere Teams pro Admin-Account)
+       TESTTEAM-MODUS (mehrere Teams pro Admin-Account)
        =========================================================
        Normalerweise gilt „ein Team pro E-Mail-Adresse": der Builder lädt
        das bestehende Team des angemeldeten Accounts und jede weitere
        Einreichung aktualisiert es. Für Tests braucht der Admin mehrere
        Teams (Rangliste, Sortierung, Punkteverteilung mit mehr als einem
-       Eintrag), deshalb dieser Schalter:
+       Eintrag) – dafür gibt es den Schalter „Testteams (mehrere)" im
+       Profil-Dropdown.
+
+       Der Schalter selbst und der gemerkte Wert liegen in submit-tools.js,
+       damit er auf JEDER Seite im Menü steht (siehe README). Hier steht
+       nur, was der Builder daraus macht:
 
          • an  → der Builder startet leer, jede Einreichung legt ein NEUES
                  Team an und wir bleiben nach dem Speichern im Builder
@@ -3004,15 +2945,20 @@
          • aus → alles wie gehabt; das bestehende Team wird wieder geladen
                  und bearbeitet.
 
-       Sichtbar ist der Eintrag – wie alle Dev-Werkzeuge – nur für
-       angemeldete Admins (admin.js / DreamTeamAdmin). Der Admin-Check
-       steckt zusätzlich in DreamTeamAuth.saveOrUpdateTeam, damit der
-       Modus nicht über einen manipulierten localStorage-Wert an normale
-       Accounts durchschlägt.
+       Der Admin-Check steckt zusätzlich in DreamTeamAuth.saveOrUpdateTeam,
+       damit der Modus nicht über einen manipulierten localStorage-Wert an
+       normale Accounts durchschlägt.
        ========================================================= */
     function isAdminSignedIn() {
         const Admin = window.DreamTeamAdmin;
         return !!(Admin && typeof Admin.isAdmin === 'function' && Admin.isAdmin());
+    }
+
+    /** Stand beim Laden – submit-tools.js kann nach team-builder.js booten,
+     *  dann liefert das Abo (subscribeSubmitTools) den Wert gleich nach. */
+    function readTestTeamModeFromTools() {
+        const Tools = window.DreamTeamSubmitTools;
+        return !!(Tools && typeof Tools.isTestTeamMode === 'function' && Tools.isTestTeamMode());
     }
 
     /** Ist der Testteam-Modus aktiv? Nur wahr, solange auch wirklich ein
@@ -3020,64 +2966,6 @@
      *  dass der gemerkte Wert verloren geht. */
     function isTestTeamMode() {
         return adminTestTeamMode && isAdminSignedIn();
-    }
-
-    function readTestTeamMode() {
-        try {
-            return window.localStorage.getItem(TEST_TEAM_MODE_KEY) === '1';
-        } catch (_) {
-            return false;
-        }
-    }
-
-    function writeTestTeamMode(on) {
-        try {
-            if (on) window.localStorage.setItem(TEST_TEAM_MODE_KEY, '1');
-            else    window.localStorage.removeItem(TEST_TEAM_MODE_KEY);
-        } catch (_) { /* Storage geblockt – Modus gilt dann nur für diese Sitzung */ }
-    }
-
-    function initTestTeamModeToggle() {
-        const Modal = window.DreamTeamAuthModal;
-        if (!Modal || !Modal.devMenu || typeof Modal.devMenu.register !== 'function') return;
-
-        Modal.devMenu.register({
-            id: 'team-testmode',
-            group: 'Team-Einreichung',
-            groupOrder: 30,
-            order: 2,
-            label: 'Testteams (mehrere)',
-            value: () => (adminTestTeamMode ? 'an' : 'aus'),
-            accent: 'info',
-            title: 'Mehrere Teams mit demselben Admin-Account einreichen: jede Einreichung legt ein neues Team an.',
-            keepOpen: true,
-            onSelect: () => {
-                if (!isAdminSignedIn()) return;
-
-                adminTestTeamMode = !adminTestTeamMode;
-                writeTestTeamMode(adminTestTeamMode);
-
-                if (adminTestTeamMode) {
-                    /* Bearbeitungs-Bindung lösen: der nächste Submit legt ein
-                       neues Team an, statt das geladene zu überschreiben. */
-                    editingTeamId = null;
-                    DreamTeamAuth.setLoadedTeamId(null);
-                    setSubmitDefaultLabel();
-                    validateForm();
-                    showToast('🧪 Testteam-Modus an: jede Einreichung legt ein NEUES Team an.');
-                } else {
-                    showToast('Testteam-Modus aus: Einreichungen aktualisieren wieder dein Team.');
-                    /* Zurück in den normalen Bearbeitungs-Modus: bestehendes
-                       Team des Accounts wieder in den Builder holen. */
-                    const user = DreamTeamAuth.getCurrentUser();
-                    if (user && user.emailVerified) loadUserTeamIntoBuilder(user);
-                }
-
-                updateLateSubmitToggle();
-            }
-        });
-
-        updateLateSubmitToggle();
     }
 
     /* =========================================================
@@ -3096,8 +2984,7 @@
 
         applyTournamentClosedState();
         bindTournamentLockToAdminState();
-        initLateSubmitToggle();
-        initTestTeamModeToggle();
+        subscribeSubmitTools();
 
         /* Button events */
         if (dom.clearTeamBtn) dom.clearTeamBtn.addEventListener('click', clearTeam);
