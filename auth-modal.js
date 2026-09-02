@@ -82,6 +82,9 @@
         devItems:         new Map(),   // id → Item-Definition (siehe devMenu/menu)
         devIsAdmin:       false,
         devAdminHooked:   false,
+        bridgedIds:       new Set(),  // in die App-Shell gespiegelte Einträge
+        bridgeWatching:   false,
+        bridgeStopped:    false,
         teamBuilderHref:  'team-builder.html',
         currentMode:      null,
         callbacks:        { onAuthenticated: null, onClose: null }
@@ -747,8 +750,10 @@
         });
         state.devItems.set(entry.id, entry);
         hookDevMenuAdmin();
+        watchShellBridge();
         renderUserMenu();
         renderDevMenu();
+        syncShellBridge();
         return function () { unregisterMenuItem(entry.id); };
     }
 
@@ -756,12 +761,112 @@
         if (!state.devItems.delete(String(id))) return;
         renderUserMenu();
         renderDevMenu();
+        syncShellBridge();
+    }
+
+    /* ---------------------------------------------------------------------------
+     *  Brücke in die App-Shell
+     *
+     *  app.html zeigt die Seiten als Frames und bringt die Navigationsleiste
+     *  selbst mit; styles.css versteckt die Leiste der eingebetteten Seite
+     *  (`html[data-dt-embedded]`). Ein Eintrag, den eine Seite registriert,
+     *  landet damit in einem Dropdown, das niemand sieht – so verschwanden
+     *  die Einreichungs-Schalter des Team-Builders aus dem Profil-Menü,
+     *  sobald die Shell aktiv wurde.
+     *
+     *  Die Brücke spiegelt die Einträge dieses Frames in das Dropdown der
+     *  Shell, solange der Frame der SICHTBARE ist. Die Item-Objekte werden
+     *  unverändert weitergereicht: `label`, `value` und `onSelect` sind
+     *  Closures dieses Frames, laufen also weiterhin auf der Seite, die sie
+     *  registriert hat – die Shell rendert nur.
+     *
+     *  Sichtbarkeit kommt aus dem Frame-Element selbst: die Shell setzt beim
+     *  Seitenwechsel `hidden` auf den alten und nimmt es vom neuen Frame
+     *  (shell.js, swapFrames/navigateTo). Ein MutationObserver darauf
+     *  braucht keine Absprache mit der Shell und hält auch warme Frames im
+     *  Hintergrund sauber draussen.
+     * ------------------------------------------------------------------------- */
+    function shellModal() {
+        try {
+            if (!window.frameElement) return null;
+            if (!document.documentElement.hasAttribute('data-dt-embedded')) return null;
+            const outer = window.parent && window.parent.DreamTeamAuthModal;
+            if (!outer || !outer.devMenu || typeof outer.devMenu.register !== 'function') return null;
+            return outer;
+        } catch (err) {
+            /* Fremder Origin: dann gibt es nichts zu spiegeln. */
+            return null;
+        }
+    }
+
+    function frameIsVisible() {
+        if (state.bridgeStopped) return false;
+        try {
+            return !!window.frameElement && !window.frameElement.hidden;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    /* Ist dieser Frame sichtbar, stehen seine Einträge in der Shell; sonst
+       keine. Idempotent – register() ersetzt drüben denselben `id`. */
+    function syncShellBridge() {
+        const outer = shellModal();
+        if (!outer) return;
+
+        const soll = frameIsVisible() ? state.devItems : new Map();
+
+        Array.from(state.bridgedIds).forEach((id) => {
+            if (soll.has(id)) return;
+            try { outer.devMenu.unregister(id); } catch (err) { /* Shell weg */ }
+            state.bridgedIds.delete(id);
+        });
+
+        soll.forEach((item, id) => {
+            /* `adminOnly` steckt im Item, die Shell sortiert danach selbst in
+               Dev- oder Nutzer-Bereich ein. */
+            try {
+                outer.devMenu.register(item);
+                state.bridgedIds.add(id);
+            } catch (err) { /* Shell weg */ }
+        });
+    }
+
+    function refreshShellBridge() {
+        const outer = shellModal();
+        if (!outer || !state.bridgedIds.size) return;
+        try {
+            if (typeof outer.devMenu.refresh === 'function') outer.devMenu.refresh();
+            if (outer.menu && typeof outer.menu.refresh === 'function') outer.menu.refresh();
+        } catch (err) { /* Shell weg */ }
+    }
+
+    function watchShellBridge() {
+        if (state.bridgeWatching) return;
+        let frameEl = null;
+        try { frameEl = window.frameElement; } catch (err) { frameEl = null; }
+        if (!frameEl || typeof MutationObserver !== 'function') return;
+
+        state.bridgeWatching = true;
+        new MutationObserver(syncShellBridge)
+            .observe(frameEl, { attributes: true, attributeFilter: ['hidden'] });
+
+        /* Verlässt die Seite den Frame (Reload, interne Navigation), dürfen
+           ihre Einträge nicht in der Leiste der Shell zurückbleiben. */
+        window.addEventListener('pagehide', () => {
+            state.bridgeStopped = true;
+            syncShellBridge();
+        });
+        window.addEventListener('pageshow', () => {
+            state.bridgeStopped = false;
+            syncShellBridge();
+        });
     }
 
     const devMenu = {
         register(item) { return registerMenuItem(item, true); },
         unregister(id) { unregisterMenuItem(id); },
-        refresh() { renderDevMenu(); },
+        refresh() { renderDevMenu(); refreshShellBridge(); },
         has(id) { return state.devItems.has(String(id)); }
     };
 
@@ -771,7 +876,7 @@
     const menu = {
         register(item) { return registerMenuItem(item, false); },
         unregister(id) { unregisterMenuItem(id); },
-        refresh() { renderUserMenu(); },
+        refresh() { renderUserMenu(); refreshShellBridge(); },
         has(id) { return state.devItems.has(String(id)); }
     };
 

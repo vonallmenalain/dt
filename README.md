@@ -101,6 +101,21 @@ Shell-Leiste und Inhalt garantiert im selben Turnier booten (siehe
 
 Regressionstest: `npm run test:archive`.
 
+**Eingebettete Seiten spiegeln ihre Einträge in die Shell.** In `app.html`
+laufen die Seiten als Frames, und die sichtbare Leiste gehört der Shell –
+die Navigation der eingebetteten Seite versteckt `styles.css`
+(`html[data-dt-embedded]`). Ein Eintrag, den eine Seite registriert, landet
+damit zunächst in einem Dropdown, das niemand sieht; genau so verschwanden
+die Einreichungs-Schalter des Team-Builders aus dem Profil-Menü, als die
+Shell dazukam. `auth-modal.js` spiegelt die Einträge deshalb in das
+Dropdown der Shell, solange der Frame der **sichtbare** ist. Das Signal
+dafür ist das `hidden`-Attribut des Frame-Elements, das `shell.js` beim
+Seitenwechsel umschaltet – die Brücke braucht keine Absprache mit der Shell
+und hält warme Hintergrund-Frames automatisch draussen. Die Item-Objekte
+gehen unverändert hinüber: `label`, `value` und `onSelect` bleiben Closures
+der Seite, die Shell rendert nur. Regressionstest:
+`npm run test:shell-menu`.
+
 ### Aktives Turnier auflösen
 
 Browser-Reihenfolge:
