@@ -214,10 +214,19 @@ assert.deepEqual(
   nameOverrides.cl2627, nameOverrides.cl2526,
   'Der cl2627-Namensblock muss dieselben Korrekturen tragen wie cl2526.'
 );
-assert.deepEqual(
-  positionOverrides.cl2627, positionOverrides.cl2526,
-  'Der cl2627-Positionsblock muss dieselben Korrekturen tragen wie cl2526.'
-);
+
+// Positionen: cl2627 darf ÜBER cl2526 hinausgehen (der 26/27-Pool kommt aus
+// den Vereinskadern und braucht eigene Korrekturen, u. a. die ersten
+// DEFENDER-Einträge), aber keine 25/26-Korrektur verlieren oder still
+// umdrehen. Ein bewusst geänderter Spieler – etwa ein Flügelspieler, der
+// dauerhaft hinten spielt – gehört hier ausgetragen, nicht wegkommentiert.
+Object.entries(positionOverrides.cl2526).forEach(([id, pos]) => {
+  assert.equal(
+    positionOverrides.cl2627[id], pos,
+    `Der cl2627-Positionsblock muss die cl2526-Korrektur für player.id ${id} ` +
+    `tragen (${pos}), steht aber auf ${positionOverrides.cl2627[id] || 'nichts'}.`
+  );
+});
 
 const poolIds = new Set(ids.map(String));
 const appliedNames = Object.keys(nameOverrides.cl2627).filter((id) => poolIds.has(String(id)));
