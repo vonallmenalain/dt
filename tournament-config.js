@@ -529,6 +529,15 @@ const APP_CONFIG = (() => {
       // dort bewusst nicht gesetzt, um den Teststand nicht zu veraendern.
       hidePlayersWithoutProfile: true,
 
+      // Doppelprofile aussortieren – siehe data.js. api-football fuehrt
+      // einzelne Spieler unter ZWEI player.id-Werten: gleicher Name,
+      // gleiches Geburtsdatum, gleicher Klub, getrennte Profile. In der
+      // Liste steht der Spieler dann zweimal und liesse sich doppelt
+      // aufstellen. Betroffen ist im 26/27-Pool genau ein Eintrag
+      // (Theodore Carroll, Aston Villa), in cl2526 und wm2026 keiner –
+      // dort ist das Flag deshalb nicht gesetzt.
+      dedupePlayerProfiles: true,
+
       // Anzeigenamen auf „Vorname Nachname" kürzen – siehe
       // name-shortener.js (Regeln) und data.js (Anwendung beim Laden).
       // api-football liefert Zweitvornamen und spanische Mutternamen mit

@@ -15,6 +15,12 @@
  *  Geprueft wird beides: dass der Filter das Richtige trifft (an den echten
  *  Kaderdateien nachgerechnet) und dass er ausschliesslich dort greift, wo er
  *  eingeschaltet ist – die WM darf sich nicht mitveraendern.
+ *
+ *  Dazu der zweite Filter aus derselben Stelle (`dedupePlayerProfiles`):
+ *  api-football fuehrt einzelne Spieler unter ZWEI player.id-Werten. Beide
+ *  Eintraege sind gepflegt, kommen also durch den Filter oben durch – der
+ *  Spieler stand damit zweimal in der Liste, teils in zwei verschiedenen
+ *  Positionsreihen, und liess sich doppelt aufstellen.
  * ============================================================================= */
 
 const assert = require('node:assert/strict');
@@ -98,6 +104,92 @@ assert.equal(regressions.length, 0,
   'Diese Spieler hatten in data-cl2526.js gepflegte Stammdaten und in data-cl2627.js nicht mehr – ' +
   `der Filter wuerde echte Spieler ausblenden:\n  ${regressions.join('\n  ')}`);
 
+/* ── 4b) Doppelprofile: nach der Ladekette steht niemand zweimal drin ───── */
+/* Geprueft wird am Ergebnis, nicht an der Regel: data.js wird ausgefuehrt
+ * wie im Browser, und danach darf es keine zwei Eintraege mit gleichem
+ * Anzeigenamen UND gleichem Geburtsdatum mehr geben. */
+function runDataJs(tournamentKey) {
+  const context = {};
+  vm.createContext(context);
+  context.window = context;
+  context.console = { log() {}, warn() {}, error() {} };
+  context.document = {
+    write(html) {
+      const src = /src="([^"]+)"/.exec(html);
+      if (src) {
+        const file = src[1].split('?')[0];
+        vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), context,
+          { filename: file });
+        return;
+      }
+      const inline = /^<script>([\s\S]*)<\/script>$/.exec(String(html).trim());
+      assert.ok(inline, `data.js schreibt etwas Unerwartetes: ${String(html).slice(0, 60)}`);
+      vm.runInContext(inline[1], context, { filename: 'data.js:inline' });
+    }
+  };
+  const tournament = APP.tournaments[tournamentKey];
+  context.APP_CONFIG = {
+    tournaments: APP.tournaments,
+    activeTournamentKey: tournamentKey,
+    primaryEntity: tournament.primaryEntity || 'nation',
+    isTournamentLoadable() { return true; },
+    data: { fileName() { return tournament.dataFile; } }
+  };
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'data.js'), 'utf8'), context,
+    { filename: 'data.js' });
+  return { context, players: vm.runInContext('playersData', context) };
+}
+
+function duplicateLabels(players) {
+  const seen = new Map();
+  const found = [];
+  players.forEach((p) => {
+    const birth = String(p['Geburtsdatum'] == null ? '' : p['Geburtsdatum']).trim();
+    const name = String(p['Spielername'] == null ? '' : p['Spielername']).trim();
+    if (!birth || !name) return;
+    const key = `${name}|${birth}`;
+    if (seen.has(key)) found.push(`${name} (${seen.get(key)} / ${p['player.id']})`);
+    else seen.set(key, p['player.id']);
+  });
+  return found;
+}
+
+assert.equal(APP.tournaments.cl2627.dedupePlayerProfiles, true,
+  'Fuer cl2627 muss der Doppelprofil-Filter eingeschaltet sein.');
+assert.notEqual(APP.tournaments.wm2026.dedupePlayerProfiles, true,
+  'Die WM bleibt eingefroren – kein Doppelprofil-Filter.');
+assert.notEqual(APP.tournaments.cl2526.dedupePlayerProfiles, true,
+  'cl2526 bleibt als Teststand unveraendert.');
+
+const cl = runDataJs('cl2627');
+assert.equal(cl.context.__PLAYER_POOL_DEDUPE__.active, true);
+assert.equal(cl.context.__PLAYER_POOL_DEDUPE__.error, undefined,
+  'Der Doppelprofil-Filter darf nicht in den Fehlerpfad laufen.');
+const clDuplicates = duplicateLabels(cl.players);
+assert.equal(clDuplicates.length, 0,
+  `Nach der Ladekette stehen Spieler doppelt in cl2627: ${clDuplicates.join(', ')}`);
+
+// Die Regel darf nur greifen, wo sie soll – und nur dort etwas wegnehmen.
+const wmRun = runDataJs('wm2026');
+assert.equal(wmRun.context.__PLAYER_POOL_DEDUPE__.active, false);
+assert.equal(wmRun.players.length, loadPlayersData('data-wm2026.js').length,
+  'Die WM-Spielerzahl darf sich durch den Filter nicht aendern.');
+
+// Der behaltene Eintrag ist der mit der besseren Beleglage, nicht der
+// zufaellig erste: bei Doppelprofilen traegt genau einer die Einsatzdaten.
+const rawById = new Map(loadPlayersData('data-cl2627.js').map((p) => [String(p['player.id']), p]));
+(cl.context.__PLAYER_POOL_DEDUPE__.dropped || []).forEach((label) => {
+  const id = /\((\d+)\)\s*$/.exec(label);
+  assert.ok(id, `Unerwartetes Format im Dedupe-Log: ${label}`);
+  const droppedPlayer = rawById.get(id[1]);
+  assert.ok(droppedPlayer, `Verworfener Spieler ${id[1]} steht nicht in der Kaderdatei.`);
+  const kept = cl.players.find((p) =>
+    p.Spielername === droppedPlayer.Spielername && p.Geburtsdatum === droppedPlayer.Geburtsdatum);
+  assert.ok(kept, `Zu ${label} ist kein Eintrag uebrig geblieben – der Filter hat beide entfernt.`);
+  assert.ok((kept['Vorsaison.Wert'] || 0) >= (droppedPlayer['Vorsaison.Wert'] || 0),
+    `Bei ${label} wurde der Eintrag mit der besseren Beleglage verworfen.`);
+});
+
 /* ── 5) data.js implementiert genau dieses Kriterium ───────────────────── */
 const dataJs = fs.readFileSync(path.join(__dirname, '..', 'data.js'), 'utf8');
 assert.match(dataJs, /hidePlayersWithoutProfile/,
@@ -106,8 +198,13 @@ assert.match(dataJs, /!hasBirth && !hasNation/,
   'data.js muss BEIDE Bedingungen verlangen – sonst fielen gepflegte Spieler raus.');
 assert.match(dataJs, /__PLAYER_POOL_FILTER__/,
   'Der Filter soll sein Ergebnis fuer die Fehlersuche exponieren.');
+assert.match(dataJs, /dedupePlayerProfiles/,
+  'data.js muss das Doppelprofil-Flag auswerten.');
+assert.match(dataJs, /__PLAYER_POOL_DEDUPE__/,
+  'Auch der Doppelprofil-Filter soll sein Ergebnis exponieren.');
 
 console.log(
   `player pool filter test passed – ${hidden.length} von ${pool.length} Spielern werden ` +
-  `in cl2627 ausgeblendet, ${remaining.length} bleiben sichtbar.`
+  `in cl2627 ausgeblendet, dazu ${cl.context.__PLAYER_POOL_DEDUPE__.removed} Doppelprofil(e); ` +
+  `${cl.players.length} bleiben sichtbar.`
 );
