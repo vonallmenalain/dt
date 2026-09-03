@@ -1163,11 +1163,21 @@ ist deshalb auf Parse-Geschwindigkeit optimiert
   JSON ohne Pretty-Print-Whitespace (−120 KB bei `data-cl2627.js`), und
   `JSON.parse` eines Strings parst in allen Engines deutlich schneller als
   ein gleich grosses JS-Objektliteral.
-- **Anzeige-tote Felder entfallen** (`Gewicht`, `Vorsaison.Minuten`,
-  `Vorsaison.Spiele` – kein einziger Leser in App, Admin-Seiten oder
-  Cron-Scripts). Die Generatoren berechnen sie weiterhin für Logging und
-  Plausibilität, serialisieren sie aber nicht mehr. Wer eines wieder
-  braucht: aus `DISPLAY_DEAD_FIELDS` nehmen und die Anzeige ergänzen.
+- **Anzeige-tote Felder entfallen** (`Vorsaison.Minuten`, `Vorsaison.Spiele`
+  – kein einziger Leser in App, Admin-Seiten oder Cron-Scripts). Die
+  Generatoren berechnen sie weiterhin für Logging und Plausibilität,
+  serialisieren sie aber nicht mehr. Wer eines wieder braucht: aus
+  `DISPLAY_DEAD_FIELDS` nehmen und die Anzeige ergänzen.
+
+  **Lehrstück `Gewicht`:** das Feld stand zunächst ebenfalls auf der Liste,
+  weil der grep keinen Leser fand – der Spieler-Steckbrief der Analyse
+  sucht den Key aber dynamisch (`"gewicht"`/`"weight"`). In
+  `data-cl2627.js` fehlt das Gewicht deshalb, und der Steckbrief zeigte bei
+  jedem Spieler „K.A.". Seit dem Fix blendet `spieleranalyse.js` Wert und
+  Trennpunkt aus, wenn die Kaderdatei das Feld nicht führt (WM-Archiv:
+  unverändert), und der Serializer schreibt es wieder mit – der nächste
+  Generator-Lauf bringt es zurück. `test:cl2627-pool` führt `Gewicht` als
+  optional, damit beide Stände gültig sind.
 - Alle Node-Konsumenten (Cron-Scripts, Tests) laden die Datei per
   `vm.runInContext` – das Format ist für sie transparent.
   `npm run test:cl2627-pool` prüft das Schema inklusive der Abwesenheit

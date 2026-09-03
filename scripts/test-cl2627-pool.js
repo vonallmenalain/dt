@@ -84,15 +84,22 @@ for (const id of ids) {
 /* Der Pool traegt zusaetzlich die Vorsaison.*-Felder (Sortierschluessel,
  * siehe scripts/generate-cl-pool.js), aber KEINE Anzeige-toten Felder mehr:
  * Der Serializer (scripts/kader-serializer.js) laesst Felder weg, die keine
- * einzige App-Ansicht liest (Gewicht, Vorsaison.Minuten, Vorsaison.Spiele) –
- * sie wuerden im Browser bei jedem Seitenaufruf nur Parse-Zeit kosten.
+ * einzige App-Ansicht liest (Vorsaison.Minuten, Vorsaison.Spiele) – sie
+ * wuerden im Browser bei jedem Seitenaufruf nur Parse-Zeit kosten.
  * Geprueft wird deshalb: Basis-Schema aus data-cl2526.js minus tote Felder,
- * in derselben Reihenfolge, die serialisierten Zusatzfelder hinten dran. */
+ * in derselben Reihenfolge, die serialisierten Zusatzfelder hinten dran.
+ *
+ * OPTIONAL_KEYS: `Gewicht` galt bis zum Steckbrief-Fix faelschlich als tot
+ * und fehlt deshalb im eingefrorenen 26/27-Stand; der naechste Generator-
+ * Lauf bringt es wieder mit. Beides ist gueltig – die Anzeige kommt mit und
+ * ohne Feld zurecht (spieleranalyse.js). */
 const { DISPLAY_DEAD_FIELDS } = require('./kader-serializer.js');
-const expectedKeys = Object.keys(reference[0]).filter((k) => !DISPLAY_DEAD_FIELDS.includes(k));
+const OPTIONAL_KEYS = ['Gewicht'];
+const expectedKeys = Object.keys(reference[0])
+  .filter((k) => !DISPLAY_DEAD_FIELDS.includes(k) && !OPTIONAL_KEYS.includes(k));
 const EXTRA_KEYS = ['Vorsaison.Rating', 'Vorsaison.Wert'];
 for (const player of pool) {
-  const keys = Object.keys(player);
+  const keys = Object.keys(player).filter((k) => !OPTIONAL_KEYS.includes(k));
   assert.deepEqual(
     keys.slice(0, expectedKeys.length), expectedKeys,
     `Abweichendes Basis-Schema bei player.id ${player['player.id']} (${player.Spielername}).`

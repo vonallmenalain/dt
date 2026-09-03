@@ -28,8 +28,16 @@
 
 /* Felder ohne einen einzigen Leser in App, Admin-Seiten oder Cron-Scripts
  * (Stand: grep ueber *.js/*.html ausser data-*). Wer eines davon wieder
- * anzeigen will, entfernt es hier UND ergaenzt die Anzeige. */
-const DISPLAY_DEAD_FIELDS = ['Gewicht', 'Vorsaison.Minuten', 'Vorsaison.Spiele'];
+ * anzeigen will, entfernt es hier UND ergaenzt die Anzeige.
+ *
+ * `Gewicht` stand hier faelschlich: der Spieler-Steckbrief der Analyse
+ * (spieleranalyse.js) liest es – allerdings ueber eine dynamische
+ * Key-Suche ("gewicht"/"weight"), die der grep nicht gefunden hat. Folge
+ * in data-cl2627.js: bei jedem Spieler „K.A.". Seit dem Fix blendet die
+ * Anzeige das Gewicht aus, wenn die Kaderdatei das Feld nicht fuehrt; der
+ * naechste Generator-Lauf schreibt es wieder mit (~5 Byte je Spieler).
+ * scripts/test-cl2627-pool.js fuehrt es deshalb als OPTIONAL. */
+const DISPLAY_DEAD_FIELDS = ['Vorsaison.Minuten', 'Vorsaison.Spiele'];
 
 function serializePlayersData(players) {
   if (!Array.isArray(players)) {

@@ -245,6 +245,12 @@
          DESKTOP BUILDER LAYOUT
          =================================================== -->
     <div class="builder-layout">
+        <!-- Spalte links: Spielfeld + Bank nebeneinander, darunter in voller
+             Breite die ausgetauschten Spieler. Die Sektion lag frueher als
+             DRITTES Flex-Kind in .team-builder-shell (einer Flex-ZEILE) und
+             hat das Spielfeld zusammengequetscht, sobald ein Team Transfers
+             hatte – Karten wurden am rechten Rand abgeschnitten. -->
+        <div class="builder-main">
         <div class="team-builder-shell">
 
             <!-- Pitch -->
@@ -283,12 +289,15 @@
                 </div>
             </div>
 
-            <!-- Ausgetauschte Spieler (nur bei Teams mit Transfers, nach Start) -->
+        </div><!-- /.team-builder-shell -->
+
+            <!-- Ausgetauschte Spieler (nur bei Teams mit Transfers, nach Start).
+                 Unter Spielfeld + Bank, volle Breite – nie neben dem Feld. -->
             <section class="builder-transferred-out" id="builder-transferred-out-section" hidden aria-label="Ausgetauschte Spieler">
                 <div class="builder-transferred-out-head">🔄 Ausgetauschte Spieler <span class="builder-transferred-out-sub">– Punkte bis zum Transfer</span></div>
                 <div class="builder-transferred-out-cards" id="builder-transferred-out-cards"></div>
             </section>
-        </div>
+        </div><!-- /.builder-main -->
 
         <!-- Picker Panel -->
         <div class="picker-host" id="picker-host" role="dialog" aria-modal="true" aria-labelledby="picker-title">
@@ -366,21 +375,24 @@
 
         <!-- CL-Transferfenster: nach Turnierstart darf ein bereits eingereichtes
              Team per Transfer angepasst werden (siehe transfer-utils.js). -->
-        <div class="transfer-panel" id="transfer-panel" style="display:none; margin:0 0 16px; padding:16px 18px; border:1px solid rgba(56,189,248,0.45); border-radius:14px; background:rgba(2,132,199,0.10);">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                <span style="font-weight:800; font-size:1.05em; color:#0369a1;">🔄 Transferfenster</span>
-                <span id="transfer-remaining" style="font-weight:700; font-size:0.9em; padding:3px 10px; border-radius:999px; background:rgba(2,132,199,0.15); color:#0369a1;"></span>
+        <!-- Styles in team-builder.css (.transfer-panel …): Theme-Variablen
+             statt hart kodierter Hell-Farben – der Builder ist dunkel, dort
+             war der Hinweistext (#334155) kaum lesbar. -->
+        <div class="transfer-panel" id="transfer-panel" style="display:none;">
+            <div class="transfer-panel-head">
+                <span class="transfer-panel-title">🔄 Transferfenster</span>
+                <span id="transfer-remaining" class="transfer-remaining"></span>
             </div>
             <div id="transfer-idle">
-                <p class="transfer-note" id="transfer-idle-note" style="margin:0 0 12px; color:#334155; font-size:0.95em;"></p>
+                <p class="transfer-note" id="transfer-idle-note"></p>
                 <button type="button" class="submit-btn" id="transfer-start-btn">🔄 Transfer vornehmen</button>
             </div>
             <div id="transfer-active" style="display:none;">
-                <p class="transfer-note" style="margin:0 0 6px; color:#334155; font-size:0.95em;">Geänderte Spieler: <strong id="transfer-changes">0</strong> / <span id="transfer-max">3</span> — beim Bestätigen wird <strong>1 Transfer</strong> verbraucht.</p>
-                <p id="transfer-warn" style="display:none; margin:0 0 10px; color:#b45309; font-weight:600; font-size:0.9em;"></p>
-                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                    <button type="button" class="submit-btn" id="transfer-confirm-btn" disabled style="flex:1 1 220px;">✓ Transfer bestätigen</button>
-                    <button type="button" id="transfer-cancel-btn" style="flex:0 0 auto; cursor:pointer; border:1px solid rgba(100,116,139,0.5); background:transparent; color:#475569; border-radius:10px; padding:10px 16px; font-weight:700;">Abbrechen</button>
+                <p class="transfer-note transfer-note-tight">Geänderte Spieler: <strong id="transfer-changes">0</strong> / <span id="transfer-max">3</span> — beim Bestätigen wird <strong>1 Transfer</strong> verbraucht.</p>
+                <p id="transfer-warn" class="transfer-warn" style="display:none;"></p>
+                <div class="transfer-actions">
+                    <button type="button" class="submit-btn transfer-confirm-btn" id="transfer-confirm-btn" disabled>✓ Transfer bestätigen</button>
+                    <button type="button" id="transfer-cancel-btn" class="transfer-cancel-btn">Abbrechen</button>
                 </div>
             </div>
         </div>
@@ -413,6 +425,21 @@
                 <div id="name-warning" class="form-warning">⚠️ Bitte gib Vor- UND Nachnamen ein.</div>
                 <div id="duplicate-warning" class="form-warning">⚠️ Dieser Name ist bereits vergeben.</div>
                 <div id="captain-warning" class="form-warning">⚠️ Wähle noch deinen Captain (Klick auf C). Ist der Captain mit „Bitte ersetzen" markiert, musst du ihn zuerst gegen einen aktiven Spieler austauschen.</div>
+            </div>
+
+            <!-- Countdown bis zur Abgabe (= Anpfiff, DREAMTEAM_START) direkt
+                 unter dem Einreichen-Knopf: dieselbe Kachel wie der Sperr-
+                 Countdown der Teams-Seite. Nur vor dem Turnierstart sichtbar;
+                 team-builder.js fuellt und tickt sie (updateSubmitDeadline). -->
+            <div class="submit-deadline" id="submit-deadline" hidden>
+                <div class="submit-deadline-title">⏳ Noch Zeit bis zur Abgabe</div>
+                <div class="submit-deadline-cd" role="timer" aria-label="Countdown bis zum Turnierstart">
+                    <div class="sd-cell"><span class="sd-num" id="sd-cd-d">–</span><span class="sd-label">Tage</span></div>
+                    <div class="sd-cell"><span class="sd-num" id="sd-cd-h">–</span><span class="sd-label">Std.</span></div>
+                    <div class="sd-cell"><span class="sd-num" id="sd-cd-m">–</span><span class="sd-label">Min.</span></div>
+                    <div class="sd-cell"><span class="sd-num" id="sd-cd-s">–</span><span class="sd-label">Sek.</span></div>
+                </div>
+                <div class="submit-deadline-note" id="submit-deadline-note"></div>
             </div>
         </div>
     </div>
