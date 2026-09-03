@@ -856,7 +856,13 @@
                     : currentIds.slice();
                 const initialIds = new Set(initialIdsArr);
                 mergedPlayers.forEach(p => { p.isTransferIn = !initialIds.has(String(p.id)); });
-                transferredOut = initialIdsArr
+                // Ausgetauscht = jemals besessen, aber nicht mehr im Team. Bewusst
+                // ueber everOwned statt nur ueber das Start-15: ein Spieler, der
+                // mit Transfer 1 kam und mit Transfer 2 wieder ging, hat ebenfalls
+                // „Punkte bis zum Transfer" (sie stecken im Total) und gehoert in
+                // die Liste. Raus-und-wieder-rein bleibt weiterhin unsichtbar.
+                const everOwnedIds = Array.isArray(bd.everOwned) ? bd.everOwned.map(String) : initialIdsArr;
+                transferredOut = everOwnedIds
                     .filter(id => !currentSet.has(id))
                     .map(id => {
                         const fp = resolveStoredPlayer({ playerId: id });

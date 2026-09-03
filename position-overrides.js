@@ -3,6 +3,14 @@
 // Transferschluss (Pool-Stand 03.09.2026; Aussenverteidiger auf DEFENDER,
 // Flügel/Angreifer auf ATTACKER; Herleitung im cl2627-Block).
 //
+// Nachtrag 03.09.2026 (zweiter Generator-Lauf desselben Tages, für die
+// Gewicht-Wiederherstellung): fünf weitere Faelle nach exakt derselben
+// Zwei-Drittel-Regel (siehe cl2627-Block) – ihre Kadermeldung war beim
+// ersten Lauf noch ATTACKER/DEFENDER und ist zwischenzeitlich auf
+// MIDFIELDER gekippt, waehrend der Einsatz-Beleg unveraendert blieb:
+// Bryan Mbeumo, Bukayo Saka, Christos Tzolis (alle 100% ATTACKER-Minuten),
+// Lamare Bogarde (88% DEFENDER) und Myles Lewis-Skelly (100% DEFENDER).
+//
 // Struktur: pro Turnier ein Top-Level-Key (wm2026, cl2526, …) mit
 // `player.id -> Position`. `data.js` wählt anhand von
 // `APP_CONFIG.activeTournamentKey` automatisch den passenden Block und wendet
@@ -108,9 +116,12 @@ window.POSITION_OVERRIDES = {
         "63274": "ATTACKER", // Barış Alper Yılmaz
         "307835": "DEFENDER", // Beraldo
         "744": "ATTACKER", // Brahim Díaz
+        "20589": "ATTACKER", // Bryan Mbeumo
+        "1460": "ATTACKER", // Bukayo Saka
         "282126": "ATTACKER", // Carlos Forbs
         "24798": "ATTACKER", // Chris Führich
         "461130": "ATTACKER", // Christian Nwachukwu
+        "161800": "ATTACKER", // Christos Tzolis
         "247": "ATTACKER", // Cody Gakpo
         "1323": "ATTACKER", // Dani Olmo
         "1605": "ATTACKER", // Daniel Podence
@@ -145,6 +156,7 @@ window.POSITION_OVERRIDES = {
         "7334": "ATTACKER", // Karim Adeyemi
         "127843": "ATTACKER", // Kelvin Ofori
         "142959": "ATTACKER", // Kerem Aktürkoğlu
+        "284457": "DEFENDER", // Lamare Bogarde
         "386828": "ATTACKER", // Lamine Yamal
         "398194": "ATTACKER", // Lazar Jovanović
         "494131": "ATTACKER", // Lennart Karl
@@ -171,6 +183,7 @@ window.POSITION_OVERRIDES = {
         "19617": "ATTACKER", // Michael Olise
         "18946": "ATTACKER", // Mohamed Elyounoussi
         "306": "ATTACKER", // Mohamed Salah
+        "313245": "DEFENDER", // Myles Lewis-Skelly
         "280074": "DEFENDER", // Nathaniel Brown
         "307123": "DEFENDER", // Nico O'Reilly
         "183799": "ATTACKER", // Nico Williams

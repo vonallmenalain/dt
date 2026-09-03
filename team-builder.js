@@ -1027,9 +1027,50 @@
             `;
         }).join('');
 
-        dom.mobileBuilder.innerHTML = html;
+        dom.mobileBuilder.innerHTML = html + renderMobileTransferredOut();
 
         /* Event listeners for mobile builder are set up once via delegation in setupUI() */
+    }
+
+    /* Ausgetauschte Spieler im Mobile-Builder (Gegenstueck zur Sektion unter
+       dem Desktop-Spielfeld): nur bei Teams MIT Transfers nach Turnierstart.
+       Nicht interaktiv – kein data-action, damit die Klick-Delegation die
+       Zeilen ignoriert. */
+    function renderMobileTransferredOut() {
+        const list = (typeof builderTransferredOut !== 'undefined' && Array.isArray(builderTransferredOut))
+            ? builderTransferredOut
+            : [];
+        if (!list.length || !isTournamentStarted()) return '';
+        const rows = list.map((p) => `
+            <div class="mobile-slot-row is-static" aria-label="${escapeHtml(p.name)} – ausgetauscht">
+                <div class="mobile-slot-avatar">
+                    <img src="${escapeHtml(p.photo)}" alt="${escapeHtml(p.name)}" loading="lazy">
+                </div>
+                <div class="mobile-slot-info">
+                    <div class="mobile-slot-name">${escapeHtml(p.name)}</div>
+                    <div class="mobile-slot-meta">
+                        ${p.flag ? `<img src="${escapeHtml(p.flag)}" alt="${escapeHtml(p.nation)}" loading="lazy">` : ''}
+                        <span>${escapeHtml(p.nation)}</span>
+                        ${p.clubLogo ? `<img src="${escapeHtml(p.clubLogo)}" class="club" alt="${escapeHtml(p.club)}" loading="lazy">` : ''}
+                        <span>${escapeHtml(p.club)}</span>
+                        <span class="mobile-to-pts${p.pts < 0 ? ' neg' : ''}" title="Punkte bis zum Transfer">${p.pts > 0 ? '+' : ''}${p.pts} Pkt.</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        return `
+            <div class="mobile-position-section mobile-transferred-out open" data-pos="TRANSFERRED_OUT">
+                <div class="mobile-pos-header">
+                    <div class="mobile-pos-title">
+                        <span class="mobile-pos-name">🔄 Ausgetauschte Spieler<span class="mobile-pos-sub">Punkte bis zum Transfer</span></span>
+                        <span class="mobile-pos-count">${list.length}</span>
+                    </div>
+                </div>
+                <div class="mobile-pos-body">
+                    ${rows}
+                </div>
+            </div>
+        `;
     }
 
     /* =========================================================
@@ -2056,10 +2097,11 @@
         builderWindowedPts = bd.perPlayer || {};
 
         const currentSet = new Set(currentIds);
-        const initialIdsArr = (typeof TU.reconstructInitialTeamIds === 'function')
-            ? TU.reconstructInitialTeamIds(currentIds, loadedTransfers).map(String)
-            : currentIds.slice();
-        builderTransferredOut = initialIdsArr
+        // Ausgetauscht = jemals besessen, aber nicht mehr im Team (everOwned
+        // statt nur Start-15: wer mit Transfer 1 kam und mit Transfer 2 ging,
+        // hat ebenfalls „Punkte bis zum Transfer").
+        const everOwnedIds = Array.isArray(bd.everOwned) ? bd.everOwned.map(String) : currentIds.slice();
+        builderTransferredOut = everOwnedIds
             .filter(id => !currentSet.has(id))
             .map(id => {
                 const fp = getPlayerById(id);
@@ -2235,10 +2277,7 @@
                     : `Alle Transfers aufgebraucht (${cfg.totalTransfers}/${cfg.totalTransfers}). Dein Team ist für den Rest der Saison fixiert.`;
             }
             const remPill = document.getElementById('transfer-remaining');
-            if (remPill) {
-                remPill.style.background = remaining > 0 ? 'rgba(2,132,199,0.15)' : 'rgba(180,83,9,0.18)';
-                remPill.style.color = remaining > 0 ? '#0369a1' : '#b45309';
-            }
+            if (remPill) remPill.classList.toggle('is-exhausted', remaining <= 0);
         }
     }
 
@@ -2817,6 +2856,93 @@
         }
 
         if (eligible) updateTransferUI();
+
+        /* Countdown bis zur Abgabe unter dem Einreichen-Knopf: nur solange
+           die Einreichung offen ist UND der Anpfiff noch bevorsteht. */
+        updateSubmitDeadline(closed);
+    }
+
+    /* =========================================================
+       COUNTDOWN BIS ZUR ABGABE (unter dem Einreichen-Knopf)
+       =========================================================
+       Dieselbe Kachel wie der Sperr-Countdown der Teams-Seite
+       (teams.js → tickLockCountdown): Tage / Std. / Min. / Sek. bis
+       DREAMTEAM_START. Rein zeitbasiert – liegt der Anpfiff zurueck
+       (auch bei Admin-Override „Vor Start" oder offenem Nachzuegler-
+       Schalter), gibt es nichts herunterzuzaehlen und die Kachel bleibt
+       versteckt. Zum Anpfiff sperrt view-mode.js die Einreichung ohnehin
+       ueber applyTournamentClosedState(). */
+    let _deadlineTimer = null;
+
+    function getDeadlineDate() {
+        try {
+            const start = window.APP_CONFIG && window.APP_CONFIG.DREAMTEAM_START;
+            const date = start instanceof Date ? start : (start ? new Date(start) : null);
+            return (date instanceof Date && !isNaN(date.getTime())) ? date : null;
+        } catch (_) { return null; }
+    }
+
+    function stopSubmitDeadline() {
+        if (_deadlineTimer) {
+            clearInterval(_deadlineTimer);
+            _deadlineTimer = null;
+        }
+    }
+
+    function tickSubmitDeadline() {
+        const wrap = document.getElementById('submit-deadline');
+        const d = document.getElementById('sd-cd-d');
+        const h = document.getElementById('sd-cd-h');
+        const m = document.getElementById('sd-cd-m');
+        const s = document.getElementById('sd-cd-s');
+        if (!wrap || !d || !h || !m || !s) return;
+        const start = getDeadlineDate();
+        let ms = start ? start.getTime() - Date.now() : NaN;
+        if (!Number.isFinite(ms) || ms <= 0) {
+            wrap.hidden = true;
+            stopSubmitDeadline();
+            return;
+        }
+        const days = Math.floor(ms / 86400000); ms -= days * 86400000;
+        const hours = Math.floor(ms / 3600000);  ms -= hours * 3600000;
+        const mins = Math.floor(ms / 60000);     ms -= mins * 60000;
+        const secs = Math.floor(ms / 1000);
+        d.textContent = String(days);
+        h.textContent = String(hours).padStart(2, '0');
+        m.textContent = String(mins).padStart(2, '0');
+        s.textContent = String(secs).padStart(2, '0');
+        wrap.hidden = false;
+    }
+
+    function updateSubmitDeadline(closed) {
+        const wrap = document.getElementById('submit-deadline');
+        if (!wrap) return;
+        stopSubmitDeadline();
+        if (closed) {
+            wrap.hidden = true;
+            return;
+        }
+        const noteEl = document.getElementById('submit-deadline-note');
+        const start = getDeadlineDate();
+        if (noteEl) {
+            let note = '';
+            if (start) {
+                try {
+                    const fmt = new Intl.DateTimeFormat('de-CH', {
+                        weekday: 'long',
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit',
+                        timeZone: 'Europe/Zurich'
+                    });
+                    note = `Abgabe bis ${fmt.format(start)} Uhr – danach ist das Team fixiert.`;
+                } catch (_) {
+                    note = `Abgabe bis ${start.toLocaleString('de-CH')} Uhr – danach ist das Team fixiert.`;
+                }
+            }
+            noteEl.textContent = note;
+        }
+        tickSubmitDeadline();
+        if (!wrap.hidden) _deadlineTimer = setInterval(tickSubmitDeadline, 1000);
     }
 
     /**
@@ -3182,6 +3308,15 @@
     window.addEventListener('pageshow', () => setTimeout(() => initCardTilt(), 100));
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') setTimeout(() => initCardTilt(), 80);
+    });
+
+    /* Abgabe-Countdown nach Sleep/Hintergrund sofort korrigieren: Timer
+       werden im Hintergrund gedrosselt, die Zahlen waeren sonst bis zu
+       einer Sekunde (oder nach Geraete-Sleep deutlich laenger) veraltet. */
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        if (_deadlineTimer) tickSubmitDeadline();
+        else updateSubmitDeadline(isTournamentStarted());
     });
 
 })();

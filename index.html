@@ -322,6 +322,19 @@
             <a href="team-builder.html" class="btn-primary-hero" id="hero-cta-btn" aria-label="Team erstellen für das Turnier">
                 ⚽ Team erstellen
             </a>
+            <!-- Countdown bis zum Anpfiff (= Team-Abgabe-Deadline, DREAMTEAM_START),
+                 direkt unter dem Team-Knopf: dieselbe Kachel wie der Sperr-Countdown
+                 der Teams-Seite (Tage / Std. / Min. / Sek.). index.js fuellt und
+                 tickt sie (startHeroStartCountdown); zum Anpfiff verschwindet sie. -->
+            <div class="hero-start-cd" id="hero-start-cd" role="timer" aria-label="Countdown bis zum Turnierstart" hidden>
+                <div class="hero-start-cd-grid">
+                    <div class="hero-start-cd-cell"><span class="hero-start-cd-num" id="hero-start-cd-d">–</span><span class="hero-start-cd-label">Tage</span></div>
+                    <div class="hero-start-cd-cell"><span class="hero-start-cd-num" id="hero-start-cd-h">–</span><span class="hero-start-cd-label">Std.</span></div>
+                    <div class="hero-start-cd-cell"><span class="hero-start-cd-num" id="hero-start-cd-m">–</span><span class="hero-start-cd-label">Min.</span></div>
+                    <div class="hero-start-cd-cell"><span class="hero-start-cd-num" id="hero-start-cd-s">–</span><span class="hero-start-cd-label">Sek.</span></div>
+                </div>
+                <div class="hero-start-cd-note" id="hero-start-cd-note"></div>
+            </div>
         </div>
     </div>
 

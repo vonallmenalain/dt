@@ -45,6 +45,9 @@ function grab(name) {
 
 const EXTRACTED = [
   'cmpNormalizePosition',
+  'cmpPlayerMatchPoints',
+  'cmpKickoffMsForMatch',
+  'cmpTeamHasTransfers',
   'getEnrichedTeams',
   'getEnrichedTeamByManager',
   'renderManagerDuell',
@@ -101,10 +104,26 @@ TEAM_A.players[6].isCaptain = true;
 
 /* ── Sandbox: nur das, was die ausgeschnittenen Funktionen brauchen ──────── */
 function buildHarness(captainEnabled) {
-  const sandbox = { module: { exports: {} }, console };
+  // Echte Regel-Engines wie im Browser (window.TransferUtils /
+  // window.DreamTeamPoints): die zeitgefensterte Transfer-Wertung der
+  // Analyse muss dieselbe Rechnung liefern wie Rangliste und Teams.
+  const sandbox = {
+    module: { exports: {} },
+    console,
+    window: {
+      TransferUtils: require('../transfer-utils.js'),
+      DreamTeamPoints: require('../points-utils.js')
+    }
+  };
   vm.createContext(sandbox);
   vm.runInContext(`
     const CAPTAIN_ENABLED = ${captainEnabled ? 'true' : 'false'};
+    // Transfer-Wertung: Punkte je Spiel + Anpfiffe (siehe cmpKickoffMsForMatch).
+    let pointsData = {};
+    let scheduleCatalog = [];
+    let lastFixtures = null;
+    let cmpPlayerMatchPointsCache = null;
+    const getScheduleKickoffMs = (fx) => (fx && Number.isFinite(fx.kickoffMs)) ? fx.kickoffMs : null;
     const IS_CLUB_ENTITY = false;
     const POSITION_KEYS = ['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'ATTACKER'];
     const POSITION_LABELS = { GOALKEEPER: 'Torhüter', DEFENDER: 'Verteidiger', MIDFIELDER: 'Mittelfeld', ATTACKER: 'Sturm' };
@@ -150,6 +169,14 @@ function buildHarness(captainEnabled) {
         allTeams = teams;
         playersData = pool;
         pointsById = points;
+        enrichedTeamsCache = [];
+      },
+      // Punkte-Dokumente (Spiel_<id>-Buckets) + Anpfiffe fuer die
+      // zeitgefensterte Transfer-Wertung.
+      setMatchData: (points, catalog) => {
+        pointsData = points || {};
+        scheduleCatalog = catalog || [];
+        cmpPlayerMatchPointsCache = null;
         enrichedTeamsCache = [];
       },
       renderManagerDuell: (a, b) => {
@@ -228,6 +255,73 @@ assert.equal(clTeam.totalScore, clSumBase,
   'Ohne Captain-Feature darf kein Spieler doppelt zaehlen.');
 assert.ok(clTeam.players.every((p) => p.isCaptain === false),
   'Gespeicherte isCaptain-Flags muessen in der CL verworfen werden.');
+
+/* ── 4b) CL: Teams MIT Transfers werden zeitgefenstert gewertet ─────────── */
+/* Vorher summierte getEnrichedTeams stumpf die aktuellen 15 – nach dem
+ * ersten Transfer wichen Manager-Duell und Ranking der Analyse von der
+ * Rangliste ab. Hier: Spiel 1 vor dem Transfer, Spiel 2 danach. Der
+ * abgegebene Spieler zaehlt nur Spiel 1, der geholte nur Spiel 2. */
+{
+  const T = Date.parse('2026-10-01T12:00:00Z');
+  const M1 = T - 3600 * 1000;   // vor dem Transfer
+  const M2 = T + 3600 * 1000;   // nach dem Transfer
+  const catalog = [{ id: 1, kickoffMs: M1 }, { id: 2, kickoffMs: M2 }];
+
+  // Team C = Alice' Kader, aber der erste Verteidiger wurde per Transfer
+  // gegen einen bisher nicht aufgestellten Verteidiger getauscht.
+  const teamC = JSON.parse(JSON.stringify(TEAM_A));
+  teamC.manager = 'Carla';
+  teamC.players.forEach((p) => { p.isCaptain = false; });
+  const outEntry = teamC.players.find((p) => p.pos === 'DEFENDER');
+  const usedIds = new Set(teamC.players.map((p) => String(p.playerId)));
+  const inPool = POOL.find((p) => p.Position === 'DEFENDER' && !usedIds.has(String(p['player.id'])));
+  const outId = String(outEntry.playerId);
+  const inId = String(inPool['player.id']);
+  outEntry.playerId = inPool['player.id'];
+  outEntry.name = inPool.Spielername;
+  teamC.transfers = [{ at: T, out: [outId], in: [inId], captain: null }];
+
+  // Punkte je Spiel: jeder Spieler 10 in Spiel 1 und 20 in Spiel 2;
+  // der Abgegebene 5/7, der Geholte 3/4.
+  const points = {};
+  POOL.forEach((p) => {
+    const id = String(p['player.id']);
+    let m1 = 10, m2 = 20;
+    if (id === outId) { m1 = 5; m2 = 7; }
+    if (id === inId) { m1 = 3; m2 = 4; }
+    points[id] = {
+      Spiel_1: { MatchID: 1, TotalPunkte: m1 },
+      Spiel_2: { MatchID: 2, TotalPunkte: m2 }
+    };
+  });
+
+  CL.setData(JSON.parse(JSON.stringify([TEAM_A, TEAM_B, teamC])), POOL, new Map(POINTS));
+  CL.setMatchData(points, catalog);
+  const carla = CL.getEnrichedTeamByManager('Carla');
+  // 14 unveraenderte Spieler x (10 + 20) + Abgegebener 5 (nur Spiel 1)
+  // + Geholter 4 (nur Spiel 2).
+  const expected = 14 * 30 + 5 + 4;
+  assert.equal(carla.totalScore, expected,
+    'Teams mit Transfers muessen in der Analyse zeitgefenstert gewertet werden (wie Rangliste/Teams).');
+  const inPlayer = carla.players.find((p) => p.playerId === inId);
+  assert.equal(inPlayer.pts, 4,
+    'Der geholte Spieler zaehlt nur Spiele ab dem Transfer-Zeitpunkt.');
+  // Die Positions-Summen decken nur die aktuellen 15 ab; die 5 Punkte des
+  // Abgegebenen (bis zum Transfer) stecken im Total, aber in keiner Position
+  // – exakt wie in teams.js.
+  assert.equal(
+    Object.values(carla.positionTotals).reduce((s, v) => s + v, 0) - carla.positionTotals.BENCH,
+    expected - 5,
+    'Die Positions-Summen muessen die gefensterten Punkte der aktuellen 15 tragen.'
+  );
+  // Ohne Transfers bleibt die Skalar-Summe massgeblich (Alice: 15 x 30).
+  const alice = CL.getEnrichedTeamByManager('Alice');
+  assert.equal(alice.totalScore, alice.players.reduce((s, p) => s + p.pts, 0),
+    'Teams ohne Transfers behalten die einfache Summe.');
+  // Zurueck zum Ausgangsstand fuer die folgenden Abschnitte.
+  CL.setData(JSON.parse(JSON.stringify([TEAM_A, TEAM_B])), POOL, new Map(POINTS));
+  CL.setMatchData({}, []);
+}
 
 /* ── 5) CL: „mögliches Maximum" ohne Captain-Bonus ──────────────────────── */
 const clPerfect = CL.computePerfectLightTeam();

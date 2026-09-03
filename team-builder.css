@@ -424,12 +424,25 @@
             animation: fadeSlideUp 0.6s 0.1s ease both;
         }
 
-        .team-builder-shell {
+        /* Linke Spalte: oben Spielfeld + Bank (Zeile), darunter die
+           ausgetauschten Spieler in voller Breite. Die Sektion lag frueher
+           IN der Zeile und hat das Spielfeld zusammengequetscht. */
+        .builder-main {
             flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .team-builder-shell {
+            flex: none;
+            width: 100%;
             display: flex;
             gap: 18px;
             align-items: flex-start;
             min-width: 0;
+            box-sizing: border-box;
         }
 
         /* =====================================================
@@ -922,8 +935,10 @@
         /* Ausgetauschte Spieler unter dem Feld (analog zur Teams-Ansicht). */
         .builder-transferred-out {
             margin: 20px auto 0;
+            width: 100%;
             max-width: 1100px;
             padding: 14px 16px;
+            box-sizing: border-box;
             border: 1px dashed rgba(148,163,184,0.4);
             border-radius: 14px;
             background: rgba(148,163,184,0.06);
@@ -1457,6 +1472,179 @@
             box-sizing: border-box;
             animation: fadeSlideUp 0.6s 0.2s ease both;
         }
+
+        /* =====================================================
+           CL-TRANSFERFENSTER (nach Turnierstart statt Submit-Karte)
+           Theme-Variablen statt hart kodierter Hell-Farben: der Builder
+           ist dunkel, dort war der Hinweistext frueher kaum lesbar.
+           Gleiche Breite und Optik wie die Submit-Karte darunter.
+           ===================================================== */
+        .transfer-panel {
+            max-width: 680px;
+            margin: 0 auto 16px;
+            padding: 20px 24px;
+            box-sizing: border-box;
+            border: 1px solid rgba(var(--rgb-green-light), 0.35);
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(var(--rgb-green-light), 0.10), rgba(var(--rgb-green-light), 0.04)),
+                var(--dark-card);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+            color: var(--text-main);
+        }
+        .transfer-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .transfer-panel-title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--green-light);
+        }
+        .transfer-remaining {
+            font-weight: 700;
+            font-size: 0.82rem;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(var(--rgb-green-light), 0.16);
+            color: var(--green-light);
+            border: 1px solid rgba(var(--rgb-green-light), 0.35);
+            white-space: nowrap;
+        }
+        .transfer-remaining.is-exhausted {
+            background: rgba(251, 191, 36, 0.14);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.35);
+        }
+        .transfer-panel .transfer-note {
+            margin: 0 0 12px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+        .transfer-panel .transfer-note strong { color: var(--text-main); }
+        .transfer-panel .transfer-note-tight { margin-bottom: 6px; }
+        .transfer-warn {
+            margin: 0 0 10px;
+            color: #fbbf24;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .transfer-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .transfer-confirm-btn { flex: 1 1 220px; }
+        .transfer-cancel-btn {
+            flex: 0 0 auto;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.04);
+            color: var(--text-main);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .transfer-cancel-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .transfer-cancel-btn:focus-visible {
+            outline: 2px solid var(--green-light);
+            outline-offset: 2px;
+        }
+
+        /* =====================================================
+           COUNTDOWN BIS ZUR ABGABE (unter dem Einreichen-Knopf)
+           Dieselbe Kachel wie der Sperr-Countdown der Teams-Seite
+           (teams.css → .lock-countdown): Tage / Std. / Min. / Sek.
+           bis DREAMTEAM_START. Nur vor dem Turnierstart sichtbar.
+           ===================================================== */
+        .submit-deadline {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+        .submit-deadline[hidden] { display: none; }
+        .submit-deadline-title {
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .submit-deadline-cd {
+            display: inline-flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .sd-cell {
+            min-width: 58px;
+            text-align: center;
+        }
+        .sd-num {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--green-light);
+            font-variant-numeric: tabular-nums;
+        }
+        .sd-label {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+        .submit-deadline-note {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: var(--text-muted);
+        }
+        .submit-deadline-note:empty { display: none; }
+
+        /* Ausgetauschte Spieler im Mobile-Builder (unter den Positionen):
+           Zeilen wie die Slot-Zeilen, aber nicht interaktiv. */
+        .mobile-transferred-out .mobile-pos-header { cursor: default; }
+        .mobile-transferred-out .mobile-pos-sub {
+            display: block;
+            margin-top: 2px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .mobile-slot-row.is-static {
+            cursor: default;
+        }
+        .mobile-slot-row.is-static:active {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.06);
+        }
+        .mobile-to-pts {
+            margin-left: auto;
+            font-weight: 800;
+            white-space: nowrap;
+            color: rgb(var(--rgb-green-1));
+        }
+        .mobile-to-pts.neg { color: #ef4444; }
 
         .submit-card {
             background: var(--dark-card);
@@ -2215,8 +2403,9 @@
         @media (max-width: 900px) {
             /* Hide pitch + bench on mobile; keep builder-layout in the DOM (not display:none)
                so the fixed-position picker-host inside it still renders as an overlay. */
-            .team-builder-shell {
-                display: none;
+            .team-builder-shell,
+            .builder-transferred-out {
+                display: none !important;
             }
 
             .builder-layout {
@@ -2477,6 +2666,11 @@
         @media (min-width: 901px) and (max-width: 1400px) {
             .builder-layout {
                 flex-direction: column;
+            }
+
+            .builder-main {
+                flex: none;
+                width: 100%;
             }
 
             .picker-host {

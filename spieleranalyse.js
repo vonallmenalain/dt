@@ -1338,17 +1338,33 @@
         document.getElementById('detail-dob').textContent = dob;
         document.getElementById('detail-height').textContent = player.Groesse ? player.Groesse + ' cm' : 'K.A.';
 
+        // Gewicht: nur anzeigen, wenn die Kaderdatei das Feld ueberhaupt
+        // fuehrt. data-cl2627.js kommt ohne `Gewicht` (der Serializer hielt
+        // es fuer ungelesen, weil dieser Leser den Key dynamisch sucht) –
+        // dann stand bei JEDEM Spieler „K.A.". Ohne Feld verschwinden Wert
+        // und Trennpunkt; mit Feld, aber leerem Wert (WM-Archiv) bleibt
+        // „K.A." wie bisher.
+        const weightEl = document.getElementById('detail-weight');
+        const weightSep = weightEl && weightEl.previousElementSibling
+            && weightEl.previousElementSibling.classList.contains('pml-sep')
+            ? weightEl.previousElementSibling : null;
         let foundWeight = null;
+        let hasWeightField = false;
         for (let key in player) {
             if (key.toLowerCase().includes('gewicht') || key.toLowerCase().includes('weight')) {
+                hasWeightField = true;
                 if (player[key]) { foundWeight = player[key]; break; }
             }
         }
-        if (foundWeight && foundWeight !== "0" && foundWeight !== "null" && foundWeight !== "-") {
-            let wStr = String(foundWeight).trim();
-            document.getElementById('detail-weight').textContent = wStr.toLowerCase().includes('kg') ? wStr : wStr + ' kg';
-        } else {
-            document.getElementById('detail-weight').textContent = 'K.A.';
+        if (weightEl) {
+            weightEl.hidden = !hasWeightField;
+            if (weightSep) weightSep.hidden = !hasWeightField;
+            if (foundWeight && foundWeight !== "0" && foundWeight !== "null" && foundWeight !== "-") {
+                let wStr = String(foundWeight).trim();
+                weightEl.textContent = wStr.toLowerCase().includes('kg') ? wStr : wStr + ' kg';
+            } else {
+                weightEl.textContent = hasWeightField ? 'K.A.' : '';
+            }
         }
 
         // Points badge
@@ -6398,9 +6414,51 @@
         positionAggregatesCache = null;
     }
 
+    /* Zeitgefensterte Transfer-Wertung (CL): fuer Teams MIT Transfers
+       zaehlt ein Spieler nur fuer Spiele, zu deren Anpfiff er im Team war
+       (transfer-utils.js) – exakt wie Rangliste, Teams und Startseite.
+       Ohne diese Fensterung stimmten Manager-Duell, Ranking und Quoten
+       hier nach dem ersten Transfer nicht mehr mit der Rangliste ueberein.
+       Basis-Punkte je Spiel und Anpfiffe werden je Datensatz einmal
+       aufgebaut (Cache lebt mit enrichedTeamsCache). */
+    let cmpPlayerMatchPointsCache = null;
+    function cmpPlayerMatchPoints() {
+        if (cmpPlayerMatchPointsCache) return cmpPlayerMatchPointsCache;
+        const map = {};
+        const DP = window.DreamTeamPoints;
+        if (DP && typeof DP.getPlayerMatchTotals === 'function') {
+            Object.keys(pointsData || {}).forEach(id => {
+                map[String(id)] = DP.getPlayerMatchTotals(pointsData[id]);
+            });
+        }
+        cmpPlayerMatchPointsCache = map;
+        return map;
+    }
+
+    function cmpKickoffMsForMatch(matchId) {
+        const target = String(matchId);
+        const fromCatalog = (scheduleCatalog || []).find(m => String(m.id) === target);
+        if (fromCatalog && Number.isFinite(fromCatalog.kickoffMs)) return fromCatalog.kickoffMs;
+        const fixtures = lastFixtures;
+        if (fixtures && typeof fixtures === 'object') {
+            const direct = Array.isArray(fixtures) ? null : (fixtures[matchId] || fixtures[target]);
+            const fx = direct || Object.values(fixtures).find(f => f && String(f.fixtureId ?? f.id) === target) || null;
+            const ms = fx ? getScheduleKickoffMs(fx) : null;
+            if (Number.isFinite(ms)) return ms;
+        }
+        return null;
+    }
+
+    function cmpTeamHasTransfers(team) {
+        return !!(window.TransferUtils
+            && typeof window.TransferUtils.managerBreakdownOverTime === 'function'
+            && team && Array.isArray(team.transfers) && team.transfers.length);
+    }
+
     // Build enriched team data (similar to teams.html / rangliste.html)
     function getEnrichedTeams() {
         if (enrichedTeamsCache && enrichedTeamsCache.length) return enrichedTeamsCache;
+        cmpPlayerMatchPointsCache = null;
         const teams = (allTeams || []).map(team => {
             const merged = (team.players || []).map((storedPlayer, idx) => {
                 // Ohne Captain-Feature (CL) zaehlt ein gespeichertes Captain-Flag
@@ -6429,7 +6487,27 @@
                 };
             }).sort((a, b) => a.slotNum - b.slotNum);
 
-            const totalScore = merged.reduce((s, p) => s + p.pts, 0);
+            let totalScore;
+            if (cmpTeamHasTransfers(team)) {
+                const currentIds = merged.map(p => p.playerId).filter(Boolean);
+                const currentCaptain = CAPTAIN_ENABLED ? ((merged.find(p => p.isCaptain) || {}).playerId || null) : null;
+                const bd = window.TransferUtils.managerBreakdownOverTime({
+                    currentTeamIds: currentIds,
+                    transfers: team.transfers,
+                    initialCaptain: CAPTAIN_ENABLED ? (team.initialCaptain || currentCaptain) : null,
+                    playerMatchPoints: cmpPlayerMatchPoints(),
+                    getKickoffMs: cmpKickoffMsForMatch,
+                    captainMultiplier: CAPTAIN_ENABLED ? 2 : 1
+                });
+                merged.forEach(p => {
+                    if (!p.playerId) return;
+                    p.pts = bd.perPlayer[p.playerId] || 0;
+                    p.basePts = p.isCaptain && CAPTAIN_ENABLED ? p.pts / 2 : p.pts;
+                });
+                totalScore = bd.total;
+            } else {
+                totalScore = merged.reduce((s, p) => s + p.pts, 0);
+            }
             const positionTotals = { GOALKEEPER: 0, DEFENDER: 0, MIDFIELDER: 0, ATTACKER: 0, BENCH: 0 };
             merged.forEach(player => {
                 if (positionTotals[player.pos] !== undefined) positionTotals[player.pos] += player.pts;

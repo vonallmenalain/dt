@@ -51,9 +51,34 @@ Partien liegen auf demselben Termin (08.09. 21:00), die Runde heisst pauschal
 Das ist der uebliche Zwischenstand zwischen Auslosung und Kalender-
 Publikation.
 
-### Offener Punkt: der Spielplan ist noch nicht in Firestore
+### Spielplan in Firestore – erledigt (Stand 03.09.2026)
 
-`Spiele CL 2026-27` ist leer, und das soll bis zur Kalender-Publikation so
+Der Spieltag-Kalender ist bei api-football angekommen: `Auto Spielplan-Sync`
+laeuft seit dem **30.08.2026 gruen** (Runs 121–126), der Lauf vom 03.09.2026
+08:49 UTC meldet
+
+```text
+144 Spiele im Turnier-Scope (League Stage - 1: 18, … League Stage - 8: 18).
+Fixture-Guard ok: API=144, Firestore bisher=144, Minimum=144, Final-Erwartung=189.
+144 Fixture-Dokumente in Firestore geschrieben.
+Public Fixture-Bundle geschrieben (144 Fixtures, cacheGenerationMs=1788425362123).
+Meta app_meta/turnier_cl2627 aktualisiert (fixturesVersion erhöht).
+```
+
+Damit sind Punkt 1 und 2 der Checkliste unten erfuellt. Venue-IDs liefert die
+API fuer die Saison (noch) nicht (`0 eindeutige Venue-IDs`) – Stadionname/
+-bild fehlen deshalb vorerst in den Spiel-Details, das ist rein kosmetisch.
+**Noch von Hand pruefen:** die Anstosszeiten des 08.09. in der App
+(Startseite „Aktuelle Spiele" bzw. Analyse → Spiele): beginnt das erste
+Spiel um 18:45, passt `DREAMTEAM_START`; beginnt der Abend erst um 21:00,
+schliesst die Abgabe lediglich 2¼ h frueher (siehe unten).
+
+Der Abschnitt darunter beschreibt den Zwischenstand vor der Kalender-
+Publikation und bleibt als Referenz fuer die naechste Saison stehen.
+
+#### Zwischenstand bis zur Kalender-Publikation (historisch)
+
+`Spiele CL 2026-27` war leer, und das sollte bis zur Kalender-Publikation so
 bleiben. Wuerde der Platzhalter geschrieben, laegen in der App 144 Spiele auf
 Spieltag 1: „naechstes Spiel", Countdown und Spieltag-Gruppierung waeren
 falsch, und der Live-Monitor wuerde am 08.09. um 20:30 alle 144 Partien
