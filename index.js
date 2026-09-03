@@ -1870,92 +1870,6 @@
         setHeroTeamCta(!!detail.hasTeam);
     });
 
-    /* =========================================================
-       COUNTDOWN BIS ZUM ANPFIFF (Vor-Start, unter dem Team-Knopf)
-       =========================================================
-       Dieselbe Kachel wie der Sperr-Countdown der Teams-Seite
-       (teams.js → tickLockCountdown): Tage / Std. / Min. / Sek. bis
-       DREAMTEAM_START – also bis zur Team-Abgabe. Rein zeitbasiert,
-       unabhaengig vom Admin-Ansichts-Override: liegt der Anpfiff
-       zurueck, gibt es nichts mehr herunterzuzaehlen und die Kachel
-       bleibt versteckt (die Sektion wechselt dann ohnehin auf
-       Nach-Start). Tickt sekuendlich; nach Tab-Sleep zieht der
-       visibilitychange-Handler sofort nach. */
-    let _heroCountdownTimer = null;
-
-    function heroCountdownEls() {
-        return {
-            wrap: $('hero-start-cd'),
-            d: $('hero-start-cd-d'),
-            h: $('hero-start-cd-h'),
-            m: $('hero-start-cd-m'),
-            s: $('hero-start-cd-s'),
-            note: $('hero-start-cd-note')
-        };
-    }
-
-    function splitCountdown(ms) {
-        let rest = Math.max(0, ms);
-        const days = Math.floor(rest / 86400000); rest -= days * 86400000;
-        const hours = Math.floor(rest / 3600000);  rest -= hours * 3600000;
-        const mins = Math.floor(rest / 60000);     rest -= mins * 60000;
-        const secs = Math.floor(rest / 1000);
-        return { days, hours, mins, secs };
-    }
-
-    function formatDeadlineNote(start) {
-        if (!(start instanceof Date) || isNaN(start.getTime())) return '';
-        try {
-            const fmt = new Intl.DateTimeFormat('de-CH', {
-                weekday: 'short',
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit',
-                timeZone: 'Europe/Zurich'
-            });
-            return `Team-Abgabe bis ${fmt.format(start)} Uhr`;
-        } catch (_) {
-            return `Team-Abgabe bis ${start.toLocaleString('de-CH')}`;
-        }
-    }
-
-    function stopHeroStartCountdown() {
-        if (_heroCountdownTimer) {
-            clearInterval(_heroCountdownTimer);
-            _heroCountdownTimer = null;
-        }
-    }
-
-    function tickHeroStartCountdown() {
-        const els = heroCountdownEls();
-        if (!els.wrap || !els.d || !els.h || !els.m || !els.s) return;
-        const start = getDreamteamStart();
-        const ms = (start instanceof Date && !isNaN(start.getTime()))
-            ? start.getTime() - Date.now()
-            : NaN;
-        if (!Number.isFinite(ms) || ms <= 0) {
-            els.wrap.hidden = true;
-            stopHeroStartCountdown();
-            return;
-        }
-        const { days, hours, mins, secs } = splitCountdown(ms);
-        els.d.textContent = String(days);
-        els.h.textContent = String(hours).padStart(2, '0');
-        els.m.textContent = String(mins).padStart(2, '0');
-        els.s.textContent = String(secs).padStart(2, '0');
-        els.wrap.hidden = false;
-    }
-
-    function startHeroStartCountdown() {
-        stopHeroStartCountdown();
-        const els = heroCountdownEls();
-        if (!els.wrap) return;
-        if (els.note) els.note.textContent = formatDeadlineNote(getDreamteamStart());
-        tickHeroStartCountdown();
-        if (!els.wrap.hidden) {
-            _heroCountdownTimer = setInterval(tickHeroStartCountdown, 1000);
-        }
-    }
-
     document.title = `${pageTitlePrefix} - Startseite`;
 
     // Pre-Start hero labels
@@ -8699,16 +8613,6 @@
         updateDevToggleLabel();
         scheduleAutoModeFlip();
         document.addEventListener("visibilitychange", handleAutoModeVisibilityChange);
-
-        // Countdown bis zum Anpfiff unter dem Team-Knopf (Vor-Start).
-        startHeroStartCountdown();
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState !== "visible") return;
-            // Nach Sleep/Hintergrund sofort korrigieren (Timer koennen
-            // gedrosselt oder verloren sein) und ggf. wieder anwerfen.
-            if (_heroCountdownTimer) tickHeroStartCountdown();
-            else startHeroStartCountdown();
-        });
 
         // Tippgruppen-Auswahl wirkt sofort: aus den ROHEN Teams des letzten
         // Renders neu aufbauen (render() filtert selbst; force umgeht den
