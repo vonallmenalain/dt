@@ -351,6 +351,39 @@ Pflegen lässt sich der Block von Hand oder über
 Der Guard `npm run test:cl2627-pool` stellt sicher, dass der neue
 Turnier-Block keine Korrektur des alten verliert.
 
+#### Eingefroren ab Turnierstart
+
+Ab Spieltag 1 ist der Pool eine gesetzte Grösse, keine Datenquelle mehr,
+die man nachzieht. Zwei Dinge hängen daran:
+
+* **Die Punkte.** `auto-points-upload.js` liest die Position aus
+  `data-<key>.js` und wendet `position-overrides.js` an – ein Tor zählt
+  je nach Position 10/7/6/5. Wer eine Position mitten im Turnier ändert,
+  verschiebt rückwirkend Punkte für längst gefallene Tore.
+* **Die abgegebenen Teams.** Verschwindet ein Spieler aus dem Pool, wird
+  für ihn kein Punkte-Dokument mehr angelegt, und sein Slot wird in
+  bestehenden Teams zum Orphan („Bitte ersetzen", siehe
+  [Orphan-Spieler im Builder](#orphan-spieler-im-builder)) – ohne Zutun
+  der betroffenen Manager.
+
+Ein erneuter Generator-Lauf nach dem Start ist deshalb keine
+Aktualisierung, sondern ein Eingriff. `npm run test:cl-freeze` macht ihn
+sichtbar: der Guard hält `scripts/cl2627-pool-freeze.json` gegen das, was
+die App tatsächlich lädt, und nennt jeden neuen, weggefallenen und
+umpositionierten Spieler beim Namen.
+
+Eingefroren ist genau das, was Punkte und Teams berührt: die Menge der
+`player.id` und je Spieler die **wirksame** Position (Kaderdatei plus
+Override). Anzeigedaten – Name, Foto, Klub, Flagge, Vorsaison-Werte –
+sind bewusst nicht eingefroren; eine Namenskorrektur darf jederzeit rein.
+
+Ist eine Änderung gewollt, wird der Sollwert bewusst neu geschrieben und
+im Commit begründet:
+
+```bash
+node scripts/test-cl2627-freeze.js --update
+```
+
 ### Pre-Check / Live-Load (auto-points-upload)
 
 Ein Cron-Tick lädt zunächst nur den Spielplan aus Firestore und prüft,

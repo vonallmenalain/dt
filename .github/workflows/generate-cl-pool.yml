@@ -17,6 +17,12 @@ name: CL Vorschau-Spielerpool
 #   6. Positions-Durchsicht schreiben: wo die Kadermeldung des Vereins vom
 #      Einsatz-Beleg der Vorsaison abweicht (cl-pool-<key>-positions.json).
 #
+# ACHTUNG ab Turnierstart (CL 26/27: Spieltag 1 am 08.09.2026): der Pool ist
+# eingefroren. Ein Lauf mit commit=true ueberschreibt data-cl2627.js und
+# damit die Grundlage der Punktevergabe und der bereits abgegebenen Teams.
+# Der Guard scripts/test-cl2627-freeze.js schlaegt dann an und nennt jede
+# Abweichung; siehe README, Abschnitt "Eingefroren ab Turnierstart".
+#
 # Benötigtes Repo-Secret:
 #   RAPIDAPI_KEY   RapidAPI / API-Football Key.
 #
