@@ -313,6 +313,44 @@ Auslösen: **Actions → „CL Vorschau-Spielerpool" → Run workflow**. Erst mi
 und loggt die erkannten Klubs, ohne Kaderdaten zu ziehen oder Dateien zu
 schreiben.
 
+#### Positionen: zwei Quellen, eine Entscheidung
+
+Die App kennt genau vier Positionen (Tor, Abwehr, Mittelfeld, Sturm) und
+stellt daraus ein 3-4-3 plus Ersatzbank auf. api-football kennt dieselben
+vier – und liefert sie an **zwei** Stellen, die regelmässig auseinander
+gehen:
+
+| Quelle | Endpunkt | Was sie beschreibt |
+| ------ | -------- | ------------------ |
+| Kadermeldung | `/players/squads` | Wie der Verein den Spieler meldet. Steht in `data-<key>.js`. |
+| Einsatz-Beleg | `statistics[].games.position` | Auf welcher Position er tatsächlich gespielt hat. |
+
+Die Kadermeldung ist die gröbere: Aussenverteidiger stehen dort oft als
+„Midfielder", Sechser gelegentlich als „Defender". Der Generator hält
+beide gegeneinander (`buildPlayedPosition`, gewichtet nach Minuten) und
+schreibt jede Abweichung nach `scripts/cl-pool-<key>-positions.json` –
+ohne einen einzigen zusätzlichen API-Call, weil die Statistik für den
+Leistungswert ohnehin geladen wird.
+
+**Der Report entscheidet nichts.** `data-<key>.js` bleibt ein ehrlicher
+API-Snapshot; die Korrektur steht in `position-overrides.js` (pro Turnier
+ein Block, `player.id` → Position) und wird von `data.js` beim Laden
+angewendet. Overrides hängen am Spieler, nicht am Klub – ein
+Flügelspieler bleibt also auch nach einem Transfer Stürmer, und Einträge
+für Spieler ausserhalb des Pools sind stille No-ops.
+
+**Was der Report nicht kann.** Beide Quellen kennen nur vier Eimer.
+Flügelstürmer stehen in beiden als „Midfielder" – Lamine Yamal, Michael
+Olise, Cody Gakpo und Luis Díaz eingeschlossen. Diese Fälle findet keine
+Automatik; sie bleiben eine redaktionelle Entscheidung. Umgekehrt gilt:
+Schienenspieler einer Dreierkette sind ein Grenzfall, der bewusst der
+Kadermeldung folgt.
+
+Pflegen lässt sich der Block von Hand oder über
+`adm-position-overrides.html` (erzeugt die Datei turnierübergreifend neu).
+Der Guard `npm run test:cl2627-pool` stellt sicher, dass der neue
+Turnier-Block keine Korrektur des alten verliert.
+
 ### Pre-Check / Live-Load (auto-points-upload)
 
 Ein Cron-Tick lädt zunächst nur den Spielplan aus Firestore und prüft,
