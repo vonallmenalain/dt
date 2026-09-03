@@ -1,0 +1,2502 @@
+{
+  "tournament": "cl2627",
+  "sourceSeason": "2025",
+  "playerCount": 1161,
+  "checked": 993,
+  "mismatchCount": 118,
+  "mismatchKinds": {
+    "MIDFIELDER → DEFENDER": 14,
+    "DEFENDER → MIDFIELDER": 13,
+    "MIDFIELDER → ATTACKER": 41,
+    "ATTACKER → MIDFIELDER": 46,
+    "ATTACKER → DEFENDER": 1,
+    "DEFENDER → ATTACKER": 3
+  },
+  "uncheckedCount": 168,
+  "note": "squad = Kadermeldung des Vereins (/players/squads), played = tatsaechlich gespielte Position der Vorsaison (statistics[].games.position, nach Minuten gewichtet). Beide Quellen kennen nur vier Eimer – Fluegelspieler stehen in beiden als MIDFIELDER und tauchen hier NICHT auf. Der Report ersetzt keine Entscheidung; gepflegt wird sie in position-overrides.js.",
+  "mismatches": [
+    {
+      "id": 349001,
+      "name": "Wesley",
+      "club": "AS Roma",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 2911,
+      "totalMinutes": 5458,
+      "breakdown": {
+        "DEFENDER": 2911,
+        "MIDFIELDER": 2547
+      }
+    },
+    {
+      "id": 392506,
+      "name": "Mattia Mannini",
+      "club": "AS Roma",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 715,
+      "totalMinutes": 1068,
+      "breakdown": {
+        "DEFENDER": 715,
+        "MIDFIELDER": 353
+      }
+    },
+    {
+      "id": 18846,
+      "name": "Aaron Wan-Bissaka",
+      "club": "Aston Villa",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2204,
+      "totalMinutes": 2684,
+      "breakdown": {
+        "MIDFIELDER": 2204,
+        "DEFENDER": 480
+      }
+    },
+    {
+      "id": 546703,
+      "name": "T. Rowe",
+      "club": "Aston Villa",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1772,
+      "totalMinutes": 1772,
+      "breakdown": {
+        "MIDFIELDER": 1772
+      }
+    },
+    {
+      "id": 412084,
+      "name": "Rodrigo Fortes",
+      "club": "Aston Villa",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 244,
+      "totalMinutes": 244,
+      "breakdown": {
+        "DEFENDER": 244
+      }
+    },
+    {
+      "id": 416250,
+      "name": "Theodore Carroll",
+      "club": "Aston Villa",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 180,
+      "totalMinutes": 180,
+      "breakdown": {
+        "DEFENDER": 180
+      }
+    },
+    {
+      "id": 18767,
+      "name": "Ademola Lookman",
+      "club": "Atletico Madrid",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2621,
+      "totalMinutes": 3137,
+      "breakdown": {
+        "ATTACKER": 2621,
+        "MIDFIELDER": 516
+      }
+    },
+    {
+      "id": 182219,
+      "name": "Álex Baena",
+      "club": "Atletico Madrid",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2318,
+      "totalMinutes": 2318,
+      "breakdown": {
+        "MIDFIELDER": 2318
+      }
+    },
+    {
+      "id": 927,
+      "name": "Lee Kang-In",
+      "club": "Atletico Madrid",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1862,
+      "totalMinutes": 1897,
+      "breakdown": {
+        "MIDFIELDER": 1862,
+        "ATTACKER": 35
+      }
+    },
+    {
+      "id": 324750,
+      "name": "Carlos Martín",
+      "club": "Atletico Madrid",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 531,
+      "totalMinutes": 791,
+      "breakdown": {
+        "MIDFIELDER": 531,
+        "ATTACKER": 195,
+        "DEFENDER": 65
+      }
+    },
+    {
+      "id": 548707,
+      "name": "M. Llorente",
+      "club": "Atletico Madrid",
+      "squad": "ATTACKER",
+      "played": "DEFENDER",
+      "playedMinutes": 29,
+      "totalMinutes": 29,
+      "breakdown": {
+        "DEFENDER": 29
+      }
+    },
+    {
+      "id": 138787,
+      "name": "Anthony Gordon",
+      "club": "Barcelona",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2879,
+      "totalMinutes": 2879,
+      "breakdown": {
+        "ATTACKER": 2879
+      }
+    },
+    {
+      "id": 426446,
+      "name": "Jesse Bisiwu",
+      "club": "Barcelona",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 835,
+      "totalMinutes": 1424,
+      "breakdown": {
+        "MIDFIELDER": 835,
+        "ATTACKER": 589
+      }
+    },
+    {
+      "id": 338958,
+      "name": "Roony Bardghji",
+      "club": "Barcelona",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 808,
+      "totalMinutes": 1224,
+      "breakdown": {
+        "MIDFIELDER": 808,
+        "ATTACKER": 416
+      }
+    },
+    {
+      "id": 280074,
+      "name": "Nathaniel Brown",
+      "club": "Bayern München",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 4040,
+      "totalMinutes": 4160,
+      "breakdown": {
+        "DEFENDER": 4040,
+        "MIDFIELDER": 120
+      }
+    },
+    {
+      "id": 2489,
+      "name": "Luis Díaz",
+      "club": "Bayern München",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3975,
+      "totalMinutes": 3975,
+      "breakdown": {
+        "ATTACKER": 3975
+      }
+    },
+    {
+      "id": 327897,
+      "name": "Arijon Ibrahimović",
+      "club": "Bayern München",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2181,
+      "totalMinutes": 2572,
+      "breakdown": {
+        "ATTACKER": 2181,
+        "MIDFIELDER": 391
+      }
+    },
+    {
+      "id": 510,
+      "name": "Serge Gnabry",
+      "club": "Bayern München",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1869,
+      "totalMinutes": 2304,
+      "breakdown": {
+        "MIDFIELDER": 1869,
+        "ATTACKER": 435
+      }
+    },
+    {
+      "id": 630895,
+      "name": "Bara Ndiaye",
+      "club": "Bayern München",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 148,
+      "totalMinutes": 148,
+      "breakdown": {
+        "ATTACKER": 148
+      }
+    },
+    {
+      "id": 39073,
+      "name": "Jens Hauge",
+      "club": "Bodo/Glimt",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3348,
+      "totalMinutes": 3392,
+      "breakdown": {
+        "ATTACKER": 3348,
+        "MIDFIELDER": 44
+      }
+    },
+    {
+      "id": 151510,
+      "name": "Ole Didrik",
+      "club": "Bodo/Glimt",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1148,
+      "totalMinutes": 1784,
+      "breakdown": {
+        "ATTACKER": 1148,
+        "MIDFIELDER": 636
+      }
+    },
+    {
+      "id": 198654,
+      "name": "Daniel Svensson",
+      "club": "Borussia Dortmund",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 3461,
+      "totalMinutes": 4327,
+      "breakdown": {
+        "MIDFIELDER": 3461,
+        "DEFENDER": 866
+      }
+    },
+    {
+      "id": 24845,
+      "name": "Julian Ryerson",
+      "club": "Borussia Dortmund",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 3248,
+      "totalMinutes": 3435,
+      "breakdown": {
+        "DEFENDER": 3248,
+        "MIDFIELDER": 187
+      }
+    },
+    {
+      "id": 158644,
+      "name": "Maximilian Beier",
+      "club": "Borussia Dortmund",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3186,
+      "totalMinutes": 3186,
+      "breakdown": {
+        "ATTACKER": 3186
+      }
+    },
+    {
+      "id": 404891,
+      "name": "Konstantinos Karetsas",
+      "club": "Borussia Dortmund",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2997,
+      "totalMinutes": 2997,
+      "breakdown": {
+        "MIDFIELDER": 2997
+      }
+    },
+    {
+      "id": 162410,
+      "name": "Giannis Konstantelias",
+      "club": "Borussia Dortmund",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2132,
+      "totalMinutes": 2132,
+      "breakdown": {
+        "MIDFIELDER": 2132
+      }
+    },
+    {
+      "id": 326757,
+      "name": "Jobe Bellingham",
+      "club": "Borussia Dortmund",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1800,
+      "totalMinutes": 3137,
+      "breakdown": {
+        "ATTACKER": 1800,
+        "MIDFIELDER": 1337
+      }
+    },
+    {
+      "id": 282126,
+      "name": "Carlos Forbs",
+      "club": "Club Brugge KV",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3989,
+      "totalMinutes": 3989,
+      "breakdown": {
+        "ATTACKER": 3989
+      }
+    },
+    {
+      "id": 39291,
+      "name": "Hugo Vetlesen",
+      "club": "Club Brugge KV",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1619,
+      "totalMinutes": 1619,
+      "breakdown": {
+        "ATTACKER": 1619
+      }
+    },
+    {
+      "id": 386481,
+      "name": "Mamadou Diakhon",
+      "club": "Club Brugge KV",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1213,
+      "totalMinutes": 1303,
+      "breakdown": {
+        "ATTACKER": 1213,
+        "MIDFIELDER": 90
+      }
+    },
+    {
+      "id": 271609,
+      "name": "Lynnt Audoor",
+      "club": "Club Brugge KV",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 1139,
+      "totalMinutes": 1139,
+      "breakdown": {
+        "DEFENDER": 1139
+      }
+    },
+    {
+      "id": 496738,
+      "name": "Wisdom Mike",
+      "club": "Club Brugge KV",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 220,
+      "totalMinutes": 220,
+      "breakdown": {
+        "ATTACKER": 220
+      }
+    },
+    {
+      "id": 443162,
+      "name": "Jesús Rodríguez",
+      "club": "Como",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1939,
+      "totalMinutes": 2041,
+      "breakdown": {
+        "MIDFIELDER": 1939,
+        "ATTACKER": 102
+      }
+    },
+    {
+      "id": 410396,
+      "name": "Mattia Liberali",
+      "club": "Como",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1935,
+      "totalMinutes": 1992,
+      "breakdown": {
+        "ATTACKER": 1935,
+        "MIDFIELDER": 57
+      }
+    },
+    {
+      "id": 400948,
+      "name": "Assane Diao",
+      "club": "Como",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1299,
+      "totalMinutes": 1299,
+      "breakdown": {
+        "ATTACKER": 1299
+      }
+    },
+    {
+      "id": 897,
+      "name": "Mason Greenwood",
+      "club": "Fenerbahçe",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2906,
+      "totalMinutes": 3577,
+      "breakdown": {
+        "ATTACKER": 2906,
+        "MIDFIELDER": 671
+      }
+    },
+    {
+      "id": 630584,
+      "name": "Alaettin Ekici",
+      "club": "Fenerbahçe",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 14,
+      "totalMinutes": 14,
+      "breakdown": {
+        "ATTACKER": 14
+      }
+    },
+    {
+      "id": 326067,
+      "name": "Anis Hadj-Moussa",
+      "club": "Feyenoord",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2553,
+      "totalMinutes": 3535,
+      "breakdown": {
+        "MIDFIELDER": 2553,
+        "ATTACKER": 982
+      }
+    },
+    {
+      "id": 371228,
+      "name": "Thijs Kraaijeveld",
+      "club": "Feyenoord",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 828,
+      "totalMinutes": 828,
+      "breakdown": {
+        "MIDFIELDER": 828
+      }
+    },
+    {
+      "id": 14394,
+      "name": "Luka Ivanušec",
+      "club": "Feyenoord",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 782,
+      "totalMinutes": 782,
+      "breakdown": {
+        "ATTACKER": 782
+      }
+    },
+    {
+      "id": 458540,
+      "name": "Gaoussou Diarra",
+      "club": "Feyenoord",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 318,
+      "totalMinutes": 414,
+      "breakdown": {
+        "MIDFIELDER": 318,
+        "ATTACKER": 96
+      }
+    },
+    {
+      "id": 624605,
+      "name": "S. van Persie",
+      "club": "Feyenoord",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 86,
+      "totalMinutes": 87,
+      "breakdown": {
+        "MIDFIELDER": 86,
+        "ATTACKER": 1
+      }
+    },
+    {
+      "id": 584888,
+      "name": "J. Zinhagel",
+      "club": "Feyenoord",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 13,
+      "totalMinutes": 13,
+      "breakdown": {
+        "MIDFIELDER": 13
+      }
+    },
+    {
+      "id": 63274,
+      "name": "Barış Yılmaz",
+      "club": "Galatasaray",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3341,
+      "totalMinutes": 3341,
+      "breakdown": {
+        "ATTACKER": 3341
+      }
+    },
+    {
+      "id": 644,
+      "name": "Leroy Sané",
+      "club": "Galatasaray",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 3083,
+      "totalMinutes": 3228,
+      "breakdown": {
+        "MIDFIELDER": 3083,
+        "ATTACKER": 145
+      }
+    },
+    {
+      "id": 492270,
+      "name": "Berat Luş",
+      "club": "Galatasaray",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1267,
+      "totalMinutes": 1267,
+      "breakdown": {
+        "MIDFIELDER": 1267
+      }
+    },
+    {
+      "id": 10077,
+      "name": "Luis Henrique",
+      "club": "Inter",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2144,
+      "totalMinutes": 2419,
+      "breakdown": {
+        "ATTACKER": 2144,
+        "MIDFIELDER": 275
+      }
+    },
+    {
+      "id": 367672,
+      "name": "Moses Usor",
+      "club": "Lask Linz",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2273,
+      "totalMinutes": 2273,
+      "breakdown": {
+        "MIDFIELDER": 2273
+      }
+    },
+    {
+      "id": 303684,
+      "name": "Yvan Dibango",
+      "club": "Lask Linz",
+      "squad": "DEFENDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1100,
+      "totalMinutes": 1100,
+      "breakdown": {
+        "ATTACKER": 1100
+      }
+    },
+    {
+      "id": 271327,
+      "name": "Christoph Lang",
+      "club": "Lask Linz",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 766,
+      "totalMinutes": 1209,
+      "breakdown": {
+        "MIDFIELDER": 766,
+        "ATTACKER": 443
+      }
+    },
+    {
+      "id": 558335,
+      "name": "K. Cheikne",
+      "club": "Lask Linz",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 11,
+      "totalMinutes": 11,
+      "breakdown": {
+        "MIDFIELDER": 11
+      }
+    },
+    {
+      "id": 20525,
+      "name": "Matthieu Udol",
+      "club": "Lens",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 3473,
+      "totalMinutes": 3473,
+      "breakdown": {
+        "DEFENDER": 3473
+      }
+    },
+    {
+      "id": 21568,
+      "name": "Ruben Aguilar",
+      "club": "Lens",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1736,
+      "totalMinutes": 1783,
+      "breakdown": {
+        "MIDFIELDER": 1736,
+        "DEFENDER": 47
+      }
+    },
+    {
+      "id": 135749,
+      "name": "Félix Correia",
+      "club": "Lille",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2949,
+      "totalMinutes": 2949,
+      "breakdown": {
+        "ATTACKER": 2949
+      }
+    },
+    {
+      "id": 360032,
+      "name": "Başar Önal",
+      "club": "Lille",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2069,
+      "totalMinutes": 2518,
+      "breakdown": {
+        "MIDFIELDER": 2069,
+        "ATTACKER": 449
+      }
+    },
+    {
+      "id": 338751,
+      "name": "Víctor Muñoz",
+      "club": "Liverpool",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2785,
+      "totalMinutes": 2785,
+      "breakdown": {
+        "ATTACKER": 2785
+      }
+    },
+    {
+      "id": 284366,
+      "name": "Luke Chambers",
+      "club": "Liverpool",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1237,
+      "totalMinutes": 1237,
+      "breakdown": {
+        "MIDFIELDER": 1237
+      }
+    },
+    {
+      "id": 19281,
+      "name": "Antoine Semenyo",
+      "club": "Manchester City",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 3718,
+      "totalMinutes": 3893,
+      "breakdown": {
+        "MIDFIELDER": 3718,
+        "ATTACKER": 175
+      }
+    },
+    {
+      "id": 460853,
+      "name": "Jeremy Monga",
+      "club": "Manchester City",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1097,
+      "totalMinutes": 1097,
+      "breakdown": {
+        "MIDFIELDER": 1097
+      }
+    },
+    {
+      "id": 442048,
+      "name": "Ryan McAidoo",
+      "club": "Manchester City",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 221,
+      "totalMinutes": 379,
+      "breakdown": {
+        "ATTACKER": 221,
+        "MIDFIELDER": 158
+      }
+    },
+    {
+      "id": 403064,
+      "name": "Harry Amass",
+      "club": "Manchester United",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1866,
+      "totalMinutes": 2227,
+      "breakdown": {
+        "MIDFIELDER": 1866,
+        "DEFENDER": 361
+      }
+    },
+    {
+      "id": 382452,
+      "name": "Patrick Dorgu",
+      "club": "Manchester United",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1506,
+      "totalMinutes": 1870,
+      "breakdown": {
+        "MIDFIELDER": 1506,
+        "DEFENDER": 364
+      }
+    },
+    {
+      "id": 19220,
+      "name": "Mason Mount",
+      "club": "Manchester United",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1018,
+      "totalMinutes": 1132,
+      "breakdown": {
+        "ATTACKER": 1018,
+        "MIDFIELDER": 114
+      }
+    },
+    {
+      "id": 219,
+      "name": "Matteo Politano",
+      "club": "Napoli",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2719,
+      "totalMinutes": 2839,
+      "breakdown": {
+        "MIDFIELDER": 2719,
+        "ATTACKER": 120
+      }
+    },
+    {
+      "id": 544,
+      "name": "Noa Lang",
+      "club": "Napoli",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1048,
+      "totalMinutes": 2014,
+      "breakdown": {
+        "MIDFIELDER": 1048,
+        "ATTACKER": 966
+      }
+    },
+    {
+      "id": 274300,
+      "name": "Maghnes Akliouche",
+      "club": "Paris Saint Germain",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 3933,
+      "totalMinutes": 3933,
+      "breakdown": {
+        "MIDFIELDER": 3933
+      }
+    },
+    {
+      "id": 307835,
+      "name": "Beraldo",
+      "club": "Paris Saint Germain",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 2660,
+      "totalMinutes": 2660,
+      "breakdown": {
+        "DEFENDER": 2660
+      }
+    },
+    {
+      "id": 207,
+      "name": "Ivan Perišić",
+      "club": "PSV Eindhoven",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2462,
+      "totalMinutes": 3000,
+      "breakdown": {
+        "ATTACKER": 2462,
+        "MIDFIELDER": 538
+      }
+    },
+    {
+      "id": 365018,
+      "name": "Ruben van Bommel",
+      "club": "PSV Eindhoven",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1408,
+      "totalMinutes": 1498,
+      "breakdown": {
+        "ATTACKER": 1408,
+        "MIDFIELDER": 90
+      }
+    },
+    {
+      "id": 328225,
+      "name": "Brajan Gruda",
+      "club": "RB Leipzig",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2309,
+      "totalMinutes": 2321,
+      "breakdown": {
+        "MIDFIELDER": 2309,
+        "ATTACKER": 12
+      }
+    },
+    {
+      "id": 314511,
+      "name": "Antonio Nusa",
+      "club": "RB Leipzig",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2035,
+      "totalMinutes": 2320,
+      "breakdown": {
+        "MIDFIELDER": 2035,
+        "ATTACKER": 285
+      }
+    },
+    {
+      "id": 453722,
+      "name": "Ayodele Thomas",
+      "club": "RB Leipzig",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1464,
+      "totalMinutes": 1464,
+      "breakdown": {
+        "MIDFIELDER": 1464
+      }
+    },
+    {
+      "id": 371025,
+      "name": "Sani Suleiman",
+      "club": "RB Leipzig",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 631,
+      "totalMinutes": 631,
+      "breakdown": {
+        "ATTACKER": 631
+      }
+    },
+    {
+      "id": 47119,
+      "name": "Aitor Ruibal",
+      "club": "Real Betis",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1814,
+      "totalMinutes": 2598,
+      "breakdown": {
+        "MIDFIELDER": 1814,
+        "DEFENDER": 592,
+        "ATTACKER": 192
+      }
+    },
+    {
+      "id": 762,
+      "name": "Vinícius Júnior",
+      "club": "Real Madrid",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 4548,
+      "totalMinutes": 4711,
+      "breakdown": {
+        "ATTACKER": 4548,
+        "MIDFIELDER": 163
+      }
+    },
+    {
+      "id": 744,
+      "name": "Brahim Díaz",
+      "club": "Real Madrid",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1875,
+      "totalMinutes": 2405,
+      "breakdown": {
+        "ATTACKER": 1875,
+        "MIDFIELDER": 530
+      }
+    },
+    {
+      "id": 226,
+      "name": "Denzel Dumfries",
+      "club": "Real Madrid",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1669,
+      "totalMinutes": 1925,
+      "breakdown": {
+        "MIDFIELDER": 1669,
+        "DEFENDER": 256
+      }
+    },
+    {
+      "id": 308998,
+      "name": "Ávaro Leiva",
+      "club": "Real Madrid",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 3,
+      "totalMinutes": 3,
+      "breakdown": {
+        "MIDFIELDER": 3
+      }
+    },
+    {
+      "id": 461130,
+      "name": "Christian Nwachukwu",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 667,
+      "totalMinutes": 667,
+      "breakdown": {
+        "ATTACKER": 667
+      }
+    },
+    {
+      "id": 348230,
+      "name": "Xayal Aliyev",
+      "club": "Sabah FA",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 291,
+      "totalMinutes": 291,
+      "breakdown": {
+        "MIDFIELDER": 291
+      }
+    },
+    {
+      "id": 308839,
+      "name": "Xander Severina",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 190,
+      "totalMinutes": 190,
+      "breakdown": {
+        "ATTACKER": 190
+      }
+    },
+    {
+      "id": 360,
+      "name": "Veljko Simić",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 84,
+      "totalMinutes": 84,
+      "breakdown": {
+        "ATTACKER": 84
+      }
+    },
+    {
+      "id": 406224,
+      "name": "Gleiker Mendoza",
+      "club": "Shakhtar Donetsk",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1073,
+      "totalMinutes": 1073,
+      "breakdown": {
+        "ATTACKER": 1073
+      }
+    },
+    {
+      "id": 374094,
+      "name": "Eguinaldo",
+      "club": "Shakhtar Donetsk",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1029,
+      "totalMinutes": 1029,
+      "breakdown": {
+        "MIDFIELDER": 1029
+      }
+    },
+    {
+      "id": 428137,
+      "name": "Prosper Obah",
+      "club": "Shakhtar Donetsk",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 655,
+      "totalMinutes": 655,
+      "breakdown": {
+        "MIDFIELDER": 655
+      }
+    },
+    {
+      "id": 63557,
+      "name": "Marian Shved",
+      "club": "Shakhtar Donetsk",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 139,
+      "totalMinutes": 139,
+      "breakdown": {
+        "MIDFIELDER": 139
+      }
+    },
+    {
+      "id": 66353,
+      "name": "Lukáš Provod",
+      "club": "Slavia Praha",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2480,
+      "totalMinutes": 3181,
+      "breakdown": {
+        "ATTACKER": 2480,
+        "MIDFIELDER": 701
+      }
+    },
+    {
+      "id": 365840,
+      "name": "Emmanuel Ayaosi",
+      "club": "Slavia Praha",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2137,
+      "totalMinutes": 2137,
+      "breakdown": {
+        "MIDFIELDER": 2137
+      }
+    },
+    {
+      "id": 491797,
+      "name": "Youssoupha Sanyang",
+      "club": "Slavia Praha",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1667,
+      "totalMinutes": 1667,
+      "breakdown": {
+        "MIDFIELDER": 1667
+      }
+    },
+    {
+      "id": 135273,
+      "name": "Danijel Šturm",
+      "club": "Slavia Praha",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1353,
+      "totalMinutes": 2192,
+      "breakdown": {
+        "MIDFIELDER": 1353,
+        "ATTACKER": 839
+      }
+    },
+    {
+      "id": 512859,
+      "name": "Samuel Isife",
+      "club": "Slavia Praha",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1248,
+      "totalMinutes": 1975,
+      "breakdown": {
+        "MIDFIELDER": 1248,
+        "DEFENDER": 727
+      }
+    },
+    {
+      "id": 524412,
+      "name": "O. Kubiak",
+      "club": "Slavia Praha",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 952,
+      "totalMinutes": 952,
+      "breakdown": {
+        "MIDFIELDER": 952
+      }
+    },
+    {
+      "id": 555416,
+      "name": "H. Kante",
+      "club": "Slavia Praha",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 190,
+      "totalMinutes": 190,
+      "breakdown": {
+        "DEFENDER": 190
+      }
+    },
+    {
+      "id": 286075,
+      "name": "Suleiman Camara",
+      "club": "Slovan Bratislava",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 1052,
+      "totalMinutes": 1052,
+      "breakdown": {
+        "ATTACKER": 1052
+      }
+    },
+    {
+      "id": 289661,
+      "name": "Artur Gajdoš",
+      "club": "Slovan Bratislava",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 944,
+      "totalMinutes": 1012,
+      "breakdown": {
+        "ATTACKER": 944,
+        "MIDFIELDER": 68
+      }
+    },
+    {
+      "id": 105321,
+      "name": "Danylo Ignatenko",
+      "club": "Slovan Bratislava",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 705,
+      "totalMinutes": 1148,
+      "breakdown": {
+        "DEFENDER": 705,
+        "MIDFIELDER": 443
+      }
+    },
+    {
+      "id": 127843,
+      "name": "Kelvin Ofori",
+      "club": "Slovan Bratislava",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 306,
+      "totalMinutes": 306,
+      "breakdown": {
+        "ATTACKER": 306
+      }
+    },
+    {
+      "id": 51776,
+      "name": "Maximiliano Araújo",
+      "club": "Sporting CP",
+      "squad": "DEFENDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3149,
+      "totalMinutes": 3149,
+      "breakdown": {
+        "ATTACKER": 3149
+      }
+    },
+    {
+      "id": 154839,
+      "name": "Geny Catamo",
+      "club": "Sporting CP",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2976,
+      "totalMinutes": 2976,
+      "breakdown": {
+        "ATTACKER": 2976
+      }
+    },
+    {
+      "id": 18748,
+      "name": "Pote",
+      "club": "Sporting CP",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2480,
+      "totalMinutes": 2480,
+      "breakdown": {
+        "MIDFIELDER": 2480
+      }
+    },
+    {
+      "id": 515985,
+      "name": "Moncef Zekri",
+      "club": "Sporting CP",
+      "squad": "DEFENDER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 831,
+      "totalMinutes": 985,
+      "breakdown": {
+        "MIDFIELDER": 831,
+        "DEFENDER": 154
+      }
+    },
+    {
+      "id": 417653,
+      "name": "Jesse Derry",
+      "club": "Sporting CP",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 209,
+      "totalMinutes": 209,
+      "breakdown": {
+        "MIDFIELDER": 209
+      }
+    },
+    {
+      "id": 41194,
+      "name": "Nuno Santos",
+      "club": "Sporting CP",
+      "squad": "DEFENDER",
+      "played": "ATTACKER",
+      "playedMinutes": 148,
+      "totalMinutes": 148,
+      "breakdown": {
+        "ATTACKER": 148
+      }
+    },
+    {
+      "id": 25342,
+      "name": "Maximilian Mittelstädt",
+      "club": "VfB Stuttgart",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 3722,
+      "totalMinutes": 3722,
+      "breakdown": {
+        "DEFENDER": 3722
+      }
+    },
+    {
+      "id": 128533,
+      "name": "Jamie Leweling",
+      "club": "VfB Stuttgart",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 3109,
+      "totalMinutes": 3533,
+      "breakdown": {
+        "MIDFIELDER": 3109,
+        "ATTACKER": 424
+      }
+    },
+    {
+      "id": 26475,
+      "name": "Deniz Undav",
+      "club": "VfB Stuttgart",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2878,
+      "totalMinutes": 3643,
+      "breakdown": {
+        "MIDFIELDER": 2878,
+        "ATTACKER": 765
+      }
+    },
+    {
+      "id": 24798,
+      "name": "Chris Führich",
+      "club": "VfB Stuttgart",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 2670,
+      "totalMinutes": 2670,
+      "breakdown": {
+        "MIDFIELDER": 2670
+      }
+    },
+    {
+      "id": 24868,
+      "name": "Josha Vagnoman",
+      "club": "VfB Stuttgart",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 2072,
+      "totalMinutes": 2072,
+      "breakdown": {
+        "DEFENDER": 2072
+      }
+    },
+    {
+      "id": 535099,
+      "name": "L. Penna",
+      "club": "VfB Stuttgart",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 960,
+      "totalMinutes": 960,
+      "breakdown": {
+        "MIDFIELDER": 960
+      }
+    },
+    {
+      "id": 334879,
+      "name": "Badredine Bouanani",
+      "club": "VfB Stuttgart",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 946,
+      "totalMinutes": 1671,
+      "breakdown": {
+        "MIDFIELDER": 946,
+        "DEFENDER": 480,
+        "ATTACKER": 245
+      }
+    },
+    {
+      "id": 394665,
+      "name": "Jarzinho de Nascimento",
+      "club": "VfB Stuttgart",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 705,
+      "totalMinutes": 705,
+      "breakdown": {
+        "MIDFIELDER": 705
+      }
+    },
+    {
+      "id": 398194,
+      "name": "Lazar JovanoviÄ",
+      "club": "VfB Stuttgart",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 354,
+      "totalMinutes": 354,
+      "breakdown": {
+        "ATTACKER": 354
+      }
+    },
+    {
+      "id": 385031,
+      "name": "Jordan Majchrzak",
+      "club": "VfB Stuttgart",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 157,
+      "totalMinutes": 157,
+      "breakdown": {
+        "MIDFIELDER": 157
+      }
+    },
+    {
+      "id": 39145,
+      "name": "Zlatko Tripić",
+      "club": "Viking",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2117,
+      "totalMinutes": 2117,
+      "breakdown": {
+        "ATTACKER": 2117
+      }
+    },
+    {
+      "id": 368793,
+      "name": "Edvin Austbö",
+      "club": "Viking",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 1849,
+      "totalMinutes": 1907,
+      "breakdown": {
+        "MIDFIELDER": 1849,
+        "ATTACKER": 58
+      }
+    },
+    {
+      "id": 464563,
+      "name": "Tobias Moi",
+      "club": "Viking",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 273,
+      "totalMinutes": 273,
+      "breakdown": {
+        "DEFENDER": 273
+      }
+    },
+    {
+      "id": 51016,
+      "name": "Tajon Buchanan",
+      "club": "Villarreal",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2015,
+      "totalMinutes": 2445,
+      "breakdown": {
+        "ATTACKER": 2015,
+        "MIDFIELDER": 430
+      }
+    },
+    {
+      "id": 459065,
+      "name": "Andero Kaares",
+      "club": "Villarreal",
+      "squad": "ATTACKER",
+      "played": "MIDFIELDER",
+      "playedMinutes": 670,
+      "totalMinutes": 670,
+      "breakdown": {
+        "MIDFIELDER": 670
+      }
+    }
+  ],
+  "unchecked": [
+    {
+      "id": 592903,
+      "name": "Marios Balamotis",
+      "club": "AEK Athens FC",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 343345,
+      "name": "Christos Alexiou",
+      "club": "AEK Athens FC",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 669218,
+      "name": "S. Christakopoulos",
+      "club": "AEK Athens FC",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 561151,
+      "name": "D. Kaloskamis",
+      "club": "AEK Athens FC",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 20619,
+      "name": "Illan Meslier",
+      "club": "Arsenal",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 403221,
+      "name": "Khari Ranson",
+      "club": "Arsenal",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 553530,
+      "name": "I. Ibrahim",
+      "club": "Arsenal",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 483676,
+      "name": "Giorgio De Marzi",
+      "club": "AS Roma",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 598615,
+      "name": "E. Lulli",
+      "club": "AS Roma",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 449806,
+      "name": "Federico Nardin",
+      "club": "AS Roma",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 626713,
+      "name": "M. Seck",
+      "club": "AS Roma",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 626686,
+      "name": "M. Bah",
+      "club": "AS Roma",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 675841,
+      "name": "M. Camara",
+      "club": "AS Roma",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 284390,
+      "name": "James Wright",
+      "club": "Aston Villa",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 661146,
+      "name": "Theodore Carroll",
+      "club": "Aston Villa",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 357247,
+      "name": "Luka Lynch",
+      "club": "Aston Villa",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 553848,
+      "name": "T. Mulley",
+      "club": "Aston Villa",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 393198,
+      "name": "Salvador Esquivel",
+      "club": "Atletico Madrid",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 646997,
+      "name": "Álvaro Moreno",
+      "club": "Atletico Madrid",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 189997,
+      "name": "Mario de Luis",
+      "club": "Atletico Madrid",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 656189,
+      "name": "Jorge Dominguez",
+      "club": "Atletico Madrid",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 441280,
+      "name": "Gerónimo Spina",
+      "club": "Atletico Madrid",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 548790,
+      "name": "J. Castillo",
+      "club": "Atletico Madrid",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 491091,
+      "name": "Sergio Esteban",
+      "club": "Atletico Madrid",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 183948,
+      "name": "Arnau Ortiz",
+      "club": "Atletico Madrid",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 543468,
+      "name": "Eder Aller",
+      "club": "Barcelona",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 570752,
+      "name": "J. Pesquer",
+      "club": "Barcelona",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 574799,
+      "name": "B. Farinas",
+      "club": "Barcelona",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 568002,
+      "name": "O. Goren",
+      "club": "Barcelona",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 568143,
+      "name": "E. Tunkara",
+      "club": "Barcelona",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 550547,
+      "name": "H. Abdelkarim",
+      "club": "Barcelona",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 432595,
+      "name": "Jannis Bärtl",
+      "club": "Bayern München",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 568316,
+      "name": "L. Prescott",
+      "club": "Bayern München",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 610483,
+      "name": "V. Manuba",
+      "club": "Bayern München",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 568043,
+      "name": "G. Della Rovere",
+      "club": "Bayern München",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 657672,
+      "name": "B. Assomo",
+      "club": "Bayern München",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 568264,
+      "name": "M. L. Andersen",
+      "club": "Bodo/Glimt",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 39178,
+      "name": "Julian Faye",
+      "club": "Bodo/Glimt",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 407659,
+      "name": "Isak Sjong",
+      "club": "Bodo/Glimt",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 610674,
+      "name": "M. Jaiteh",
+      "club": "Bodo/Glimt",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 610520,
+      "name": "M. B. Olsen",
+      "club": "Bodo/Glimt",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 610675,
+      "name": "J. Rabben Nygard",
+      "club": "Bodo/Glimt",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 568260,
+      "name": "K. Solhaug",
+      "club": "Bodo/Glimt",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 567794,
+      "name": "H. N. Chooly",
+      "club": "Bodo/Glimt",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 26395,
+      "name": "Patrick Drewes",
+      "club": "Borussia Dortmund",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 26292,
+      "name": "Alexander Meyer",
+      "club": "Borussia Dortmund",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 280463,
+      "name": "Silas Ostrzinski",
+      "club": "Borussia Dortmund",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 676939,
+      "name": "Enzo Dos Santos",
+      "club": "Borussia Dortmund",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 158053,
+      "name": "Ayman Azhil",
+      "club": "Borussia Dortmund",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 568733,
+      "name": "J. Lerma",
+      "club": "Borussia Dortmund",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 568147,
+      "name": "S. Coulibaly",
+      "club": "Club Brugge KV",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 551259,
+      "name": "T. N. Koren",
+      "club": "Club Brugge KV",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 31719,
+      "name": "Mauro Vigorito",
+      "club": "Como",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 674625,
+      "name": "Adam Asfour",
+      "club": "Como",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 662278,
+      "name": "R. Cassano",
+      "club": "Como",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 567667,
+      "name": "S. Pisati",
+      "club": "Como",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 550966,
+      "name": "Tiago Silva",
+      "club": "FC Porto",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 500088,
+      "name": "Engin Biterge",
+      "club": "Fenerbahçe",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 673366,
+      "name": "Kuzey Sapaz",
+      "club": "Fenerbahçe",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 417861,
+      "name": "Amara Diouf",
+      "club": "Fenerbahçe",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 633187,
+      "name": "A. Yesilyurt",
+      "club": "Fenerbahçe",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 612947,
+      "name": "M. Berger",
+      "club": "Feyenoord",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 198483,
+      "name": "Liam Bossin",
+      "club": "Feyenoord",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 629173,
+      "name": "H. Agboluaje",
+      "club": "Feyenoord",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 666811,
+      "name": "T. Wessels",
+      "club": "Feyenoord",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 632814,
+      "name": "A. Nahany",
+      "club": "Feyenoord",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 629206,
+      "name": "J. Schaken",
+      "club": "Feyenoord",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 568438,
+      "name": "E. E. Buyuk",
+      "club": "Galatasaray",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 568439,
+      "name": "Arda Yilmaz",
+      "club": "Galatasaray",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 568393,
+      "name": "Yusuf Kahraman",
+      "club": "Galatasaray",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 567978,
+      "name": "E. C. Karasu",
+      "club": "Galatasaray",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 498673,
+      "name": "Furkan Koçak",
+      "club": "Galatasaray",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 567979,
+      "name": "Necati Ogulcan",
+      "club": "Galatasaray",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 568287,
+      "name": "L. Bovio",
+      "club": "Inter",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 552669,
+      "name": "M. Marello",
+      "club": "Inter",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 472147,
+      "name": "Fabian Schillinger",
+      "club": "Lask Linz",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 7573,
+      "name": "Tobias Schützenauer",
+      "club": "Lask Linz",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 644875,
+      "name": "A. Ibrahim",
+      "club": "Lask Linz",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 551281,
+      "name": "M. Verhaeghe",
+      "club": "Lask Linz",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 511959,
+      "name": "Naël Kane",
+      "club": "Lask Linz",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 668701,
+      "name": "N. Kemtchoum-Stasiowski",
+      "club": "Lens",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 437139,
+      "name": "Souleymane Sagnan",
+      "club": "Lens",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 668702,
+      "name": "N. Gane Bernardino",
+      "club": "Lens",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 669863,
+      "name": "Mezian Mesloub",
+      "club": "Lens",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 628379,
+      "name": "Zadig Lanssade",
+      "club": "Lille",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 669877,
+      "name": "Mouad Gounfissi",
+      "club": "Lille",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 671921,
+      "name": "Hamadi Kebe",
+      "club": "Lille",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 630699,
+      "name": "Saad Boussadia",
+      "club": "Lille",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 668708,
+      "name": "K. Hamidi",
+      "club": "Lille",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 630702,
+      "name": "Matah Yondjio",
+      "club": "Lille",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 606814,
+      "name": "T. Ndiaye",
+      "club": "Liverpool",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 588501,
+      "name": "Joshua Abe",
+      "club": "Liverpool",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 19012,
+      "name": "Marcus Bettinelli",
+      "club": "Manchester City",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 2931,
+      "name": "Thomas Heaton",
+      "club": "Manchester United",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 284382,
+      "name": "Dermot Mee",
+      "club": "Manchester United",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 546704,
+      "name": "D. Armer",
+      "club": "Manchester United",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 402330,
+      "name": "Jaydan Kamason",
+      "club": "Manchester United",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 588436,
+      "name": "Joseph Gabriel",
+      "club": "Manchester United",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 557391,
+      "name": "T. Thompson",
+      "club": "Manchester United",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 446097,
+      "name": "C. Garofalo",
+      "club": "Napoli",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 579077,
+      "name": "F. Barido",
+      "club": "Napoli",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 561707,
+      "name": "V. Prisco",
+      "club": "Napoli",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 659070,
+      "name": "B. Laurendon",
+      "club": "Paris Saint Germain",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 606062,
+      "name": "A. Longoni",
+      "club": "Paris Saint Germain",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 491107,
+      "name": "A. Vignaud",
+      "club": "Paris Saint Germain",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 610763,
+      "name": "D. Boly",
+      "club": "Paris Saint Germain",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 24814,
+      "name": "Leopold Zingerle",
+      "club": "RB Leipzig",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 388894,
+      "name": "Joyeux Masanka",
+      "club": "RB Leipzig",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 601134,
+      "name": "W. Ngana",
+      "club": "RB Leipzig",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 441231,
+      "name": "Lionel Voufack",
+      "club": "RB Leipzig",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 602558,
+      "name": "A. de Pablo",
+      "club": "Real Betis",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 610742,
+      "name": "C. De Roa",
+      "club": "Real Betis",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 386872,
+      "name": "Sergio Mestre",
+      "club": "Real Madrid",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 494060,
+      "name": "J. Navarro Jimenez",
+      "club": "Real Madrid",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 568427,
+      "name": "I. Voloshyn",
+      "club": "Real Madrid",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 561032,
+      "name": "L. Fati",
+      "club": "Real Madrid",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 561033,
+      "name": "J. Martinez",
+      "club": "Real Madrid",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 456014,
+      "name": "Mario Rivas",
+      "club": "Real Madrid",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 548685,
+      "name": "A. Ciria",
+      "club": "Real Madrid",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 449613,
+      "name": "Rəvan Mirzəmmədov",
+      "club": "Sabah FA",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 56074,
+      "name": "Stas Pokatilov",
+      "club": "Sabah FA",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 557435,
+      "name": "G. Boakye",
+      "club": "Sabah FA",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 610845,
+      "name": "J. Bulus",
+      "club": "Sabah FA",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 123366,
+      "name": "Rəhman Daşdəmirov",
+      "club": "Sabah FA",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 544624,
+      "name": "T. Mutallimov",
+      "club": "Sabah FA",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 40984,
+      "name": "Tymoteusz Puchacz",
+      "club": "Sabah FA",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 174827,
+      "name": "Steve Solvet",
+      "club": "Sabah FA",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 21233,
+      "name": "Akim Zedadka",
+      "club": "Sabah FA",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 158107,
+      "name": "Rodrigo Fernandes",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 55960,
+      "name": "Aleksey Isaev",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 271724,
+      "name": "Abdulla Xaybulayev",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 14285,
+      "name": "Ivan Lepinjica",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 587825,
+      "name": "Cafar Mukhtarov",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 174723,
+      "name": "Zinédine Ould Khaled",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 328759,
+      "name": "Umarali Rahmonaliyev",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 368065,
+      "name": "Younes Lachaab",
+      "club": "Sabah FA",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 191322,
+      "name": "Patrick Mbina",
+      "club": "Sabah FA",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 127602,
+      "name": "Joy-Lance Mickels",
+      "club": "Sabah FA",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 32397,
+      "name": "Kaheem Parris",
+      "club": "Sabah FA",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 670716,
+      "name": "V. Chympoyesh",
+      "club": "Shakhtar Donetsk",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 544640,
+      "name": "D. Tvardovskyi",
+      "club": "Shakhtar Donetsk",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 547512,
+      "name": "D. Arroyo",
+      "club": "Shakhtar Donetsk",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 570392,
+      "name": "Bruninho",
+      "club": "Shakhtar Donetsk",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 545356,
+      "name": "D. Smetana",
+      "club": "Shakhtar Donetsk",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 570400,
+      "name": "Ryan Roberto",
+      "club": "Shakhtar Donetsk",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 544046,
+      "name": "A. Rezek",
+      "club": "Slavia Praha",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 551763,
+      "name": "E. Pitak",
+      "club": "Slavia Praha",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 551760,
+      "name": "I. Okonkwo",
+      "club": "Slavia Praha",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 497651,
+      "name": "A. Rajnoha",
+      "club": "Slavia Praha",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 471143,
+      "name": "Dávid Balog",
+      "club": "Slovan Bratislava",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 555563,
+      "name": "R. Tomanek",
+      "club": "Slovan Bratislava",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 550364,
+      "name": "M. Tomasko",
+      "club": "Slovan Bratislava",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 600916,
+      "name": "L. Hofstadter",
+      "club": "Slovan Bratislava",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 309011,
+      "name": "Rash Ibrahim",
+      "club": "Slovan Bratislava",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 649099,
+      "name": "Manasse Kianga",
+      "club": "Slovan Bratislava",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 409546,
+      "name": "Alexej Maroš",
+      "club": "Slovan Bratislava",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 576939,
+      "name": "S. Escobar",
+      "club": "Viking",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 676708,
+      "name": "E. Jacobsen",
+      "club": "Viking",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 639368,
+      "name": "J. Debes",
+      "club": "Viking",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 637832,
+      "name": "J. Middelthon",
+      "club": "Viking",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 539326,
+      "name": "A. Cosic",
+      "club": "Viking",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 637833,
+      "name": "K. A. Frimpong",
+      "club": "Viking",
+      "squad": "ATTACKER"
+    },
+    {
+      "id": 302277,
+      "name": "Rubén Gómez",
+      "club": "Villarreal",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 548871,
+      "name": "Y. Kinareykin",
+      "club": "Villarreal",
+      "squad": "GOALKEEPER"
+    },
+    {
+      "id": 561089,
+      "name": "E. Chukwuma",
+      "club": "Villarreal",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 548644,
+      "name": "E. Pujol",
+      "club": "Villarreal",
+      "squad": "DEFENDER"
+    },
+    {
+      "id": 548735,
+      "name": "C. Tidiane Thiam",
+      "club": "Villarreal",
+      "squad": "MIDFIELDER"
+    },
+    {
+      "id": 616886,
+      "name": "N. El Jmili",
+      "club": "Villarreal",
+      "squad": "ATTACKER"
+    }
+  ]
+}
