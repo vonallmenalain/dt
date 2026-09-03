@@ -302,6 +302,31 @@ ebenfalls (70 von 1131), deshalb bleiben sie per Default drin – der Lauf
 listet sie aber vollständig im Log auf. Wer sie draussen haben will,
 setzt den Workflow-Input `skip_incomplete`.
 
+**Doppelprofile.** api-football führt einzelne Spieler unter **zwei**
+`player.id`-Werten: gleicher Name, gleiches Geburtsdatum, gleicher Klub,
+aber getrennte Profile – eines mit Einsatzdaten, eines ohne. Beide sind
+gepflegt genug, um durch den Filter oben zu kommen; der Spieler stand
+damit zweimal in der Liste, wegen der unterschiedlichen Profile teils
+sogar in zwei verschiedenen Positionsreihen, und liess sich doppelt
+aufstellen.
+
+`data.js` sortiert sie beim Laden aus (opt-in pro Turnier via
+`dedupePlayerProfiles`, Ergebnis in `window.__PLAYER_POOL_DEDUPE__`).
+Erkannt wird über **Anzeigename + Geburtsdatum**; behalten wird der
+Eintrag mit der besseren Beleglage (Vorsaison-Wert, dann Rating, dann die
+kleinere `player.id`) – deterministisch, dieselbe Datei ergibt immer
+dieselbe Auswahl. Die Regel ist bewusst eng: über alle drei Kaderdateien
+(3540 Einträge) trifft sie genau einen Fall (Theodore Carroll, Aston
+Villa). Guard: `npm run test:pool-filter` prüft am Ergebnis der ganzen
+Ladekette, dass danach niemand mehr doppelt dasteht.
+
+Wie beim Filter darüber bleibt die Kaderdatei unangetastet – das
+Ausblenden ist eine Anzeige-Entscheidung. Der Punkte-Job liest die
+Kaderdatei direkt und legt für das verworfene Profil weiterhin ein
+(leeres) Punkte-Dokument an; da es niemand auswählen kann, bleibt das
+folgenlos. Deshalb weichen die Zahlen auseinander: 1161 Einträge in der
+Datei, 1019 sichtbar in der App.
+
 **Nachvollziehbarkeit.** Neben der Kaderdatei entsteht
 `scripts/cl-pool-<key>-clubs.json` mit der Herleitung je Klub (Liga, Rang,
 API-Beschreibung). Korrekturen von Hand gehen über

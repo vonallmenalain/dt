@@ -153,6 +153,72 @@
     '})(' + serializedKey + ');<\/script>'
   );
 
+  // 2c3) Doppelprofile aussortieren (opt-in pro Turnier via
+  //      `dedupePlayerProfiles`). api-football fuehrt einzelne Spieler unter
+  //      ZWEI player.id-Werten – gleicher Name, gleiches Geburtsdatum,
+  //      gleicher Klub, aber getrennte Profile. In der Spielerliste steht
+  //      der Spieler dann zweimal, teils sogar in zwei verschiedenen
+  //      Positionsreihen (das eine Profil traegt Einsatzdaten, das andere
+  //      nicht), und liesse sich damit doppelt aufstellen.
+  //
+  //      Erkannt wird ueber Anzeigename + Geburtsdatum. Das ist bewusst
+  //      eng: ueber alle drei Kaderdateien (3540 Eintraege) trifft die
+  //      Regel genau einen Fall. Ohne Geburtsdatum wird nicht verglichen –
+  //      dort fehlt die Trennschaerfe, und solche Eintraege sind ueber den
+  //      Filter oben ohnehin schon weg.
+  //
+  //      Behalten wird der Eintrag mit der besseren Beleglage: hoeherer
+  //      Vorsaison-Wert, dann besseres Rating, dann die kleinere player.id.
+  //      Deterministisch – dieselbe Datei ergibt immer dieselbe Auswahl.
+  //
+  //      Bewusst hier und nicht im Generator: die Kaderdatei bleibt ein
+  //      vollstaendiger, ehrlicher API-Snapshot, das Ausblenden ist eine
+  //      Anzeige-Entscheidung und mit einem Flag umkehrbar – dieselbe
+  //      Begruendung wie beim Filter darueber. Laeuft VOR den
+  //      Positions-Overrides, damit alle nachgelagerten Schritte schon den
+  //      finalen Pool sehen.
+  document.write(
+    '<script>(function(activeKey){' +
+      'try {' +
+        'var cfg = window.APP_CONFIG;' +
+        'var t = (cfg && cfg.tournaments) ? cfg.tournaments[activeKey] : null;' +
+        'if (!t || t.dedupePlayerProfiles !== true) { window.__PLAYER_POOL_DEDUPE__ = { tournament: activeKey, active: false, removed: 0 }; return; }' +
+        'var data = (typeof playersData !== "undefined" && Array.isArray(playersData)) ? playersData : null;' +
+        'if (!data) { window.__PLAYER_POOL_DEDUPE__ = { tournament: activeKey, active: true, removed: 0, reason: "no playersData" }; return; }' +
+        'function keyOf(p) {' +
+          'var birth = String(p["Geburtsdatum"] == null ? "" : p["Geburtsdatum"]).trim();' +
+          'var name = String(p["Spielername"] == null ? "" : p["Spielername"]).trim();' +
+          // Praefix, damit kein Name je einen Prototyp-Schluessel trifft.
+          'return (birth && name) ? ("#" + name + "|" + birth) : "";' +
+        '}' +
+        'function beats(a, b) {' +
+          'var wa = Number(a["Vorsaison.Wert"]) || 0, wb = Number(b["Vorsaison.Wert"]) || 0;' +
+          'if (wa !== wb) return wa > wb;' +
+          'var ra = Number(a["Vorsaison.Rating"]) || 0, rb = Number(b["Vorsaison.Rating"]) || 0;' +
+          'if (ra !== rb) return ra > rb;' +
+          'return Number(a["player.id"]) < Number(b["player.id"]);' +
+        '}' +
+        'var keep = {};' +
+        'for (var i = 0; i < data.length; i++) {' +
+          'var p = data[i]; if (!p) continue;' +
+          'var k = keyOf(p); if (!k) continue;' +
+          'if (!keep[k] || beats(p, keep[k])) keep[k] = p;' +
+        '}' +
+        'var dropped = [];' +
+        'for (var j = data.length - 1; j >= 0; j--) {' +
+          'var q = data[j]; if (!q) continue;' +
+          'var k2 = keyOf(q); if (!k2) continue;' +
+          'if (keep[k2] && keep[k2] !== q) { dropped.push(q.Spielername + " (" + q["player.id"] + ")"); data.splice(j, 1); }' +
+        '}' +
+        'window.__PLAYER_POOL_DEDUPE__ = { tournament: activeKey, active: true, before: data.length + dropped.length, after: data.length, removed: dropped.length, dropped: dropped };' +
+        'try { if (dropped.length) console.log("[data.js] Doppelprofile ausgeblendet (" + activeKey + "): " + dropped.reverse().join(", ")); } catch(_) {}' +
+      '} catch (err) {' +
+        'try { console.warn("[data.js] Doppelprofil-Filter fehlgeschlagen:", err); } catch(_) {}' +
+        'window.__PLAYER_POOL_DEDUPE__ = { tournament: activeKey, active: true, removed: 0, error: String(err && err.message || err) };' +
+      '}' +
+    '})(' + serializedKey + ');<\/script>'
+  );
+
   document.write(
     '<script>(function(activeKey){' +
       'try {' +
