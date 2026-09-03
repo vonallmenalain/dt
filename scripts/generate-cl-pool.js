@@ -61,9 +61,14 @@
  *                     Einträge ebenfalls enthält.
  *
  *  Ausgabe:
- *    ../data-<key>.js            Spielerpool im bestehenden Schema, ergaenzt
- *                                um die Vorsaison.*-Felder.
- *    ./cl-pool-<key>-clubs.json  Nachvollziehbare Herleitung je Klub.
+ *    ../data-<key>.js               Spielerpool im bestehenden Schema, ergaenzt
+ *                                   um die Vorsaison.*-Felder.
+ *    ./cl-pool-<key>-clubs.json     Nachvollziehbare Herleitung je Klub.
+ *    ./cl-pool-<key>-positions.json Positions-Durchsicht: wo die Kadermeldung
+ *                                   des Vereins vom Einsatz-Beleg der Vorsaison
+ *                                   abweicht (siehe buildPlayedPosition). Nur
+ *                                   ein Bericht – entschieden wird von Hand in
+ *                                   ../position-overrides.js.
  *
  *  Manuelle Korrektur (optional, wird eingelesen wenn vorhanden):
  *    ./cl-pool-<key>-clubs.manual.json
@@ -84,6 +89,7 @@ const {
   normalizeCountryName,
   fetchJson,
   delay,
+  mapPosition,
   API_HOST,
   POSITION_ORDER
 } = require('./generate-kader.js');
@@ -348,6 +354,67 @@ function buildPerformance(statistics, leagueTypeIds) {
     rating: ratingMinutes > 0 ? Math.round((ratingSum / ratingMinutes) * 100) / 100 : 0,
     value: Math.round(weighted)
   };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ *  Einsatz-Beleg: auf welcher Position hat der Spieler wirklich gespielt?
+ *
+ *  Die Position in data-<key>.js stammt aus der KADERMELDUNG des Vereins
+ *  (/players/squads → entry.position). Die ist grob und liegt systematisch
+ *  bei zwei Sorten daneben: Aussenverteidiger stehen oft als „Midfielder",
+ *  Sechser gelegentlich als „Defender".
+ *
+ *  Dieselben Spieler tragen in den Saison-Statistiken eine zweite Angabe
+ *  (`statistics[].games.position`) – und die kommt nicht aus einer Meldung,
+ *  sondern aus den tatsächlichen Einsätzen. Beide Quellen benutzen dieselben
+ *  vier Eimer, ein Vergleich ist also direkt möglich und kostet KEINEN
+ *  zusätzlichen API-Call: die Statistik wird für den Leistungswert ohnehin
+ *  geladen (siehe buildPerformance).
+ *
+ *  Gewichtet nach Minuten, nicht nach Zeilen: wer 2500 Minuten als Defender
+ *  und 200 als Midfielder gespielt hat, ist Verteidiger. Gezählt wird nur,
+ *  was auch buildPerformance zählt (keine Freundschaftsspiele, keine Zeilen
+ *  ohne league.id) – sonst schlügen dieselben API-Duplikate durch.
+ *
+ *  Der Beleg ersetzt die Kadermeldung NICHT automatisch. Er landet im
+ *  Report (cl-pool-<key>-positions.json) und wird von Hand in
+ *  position-overrides.js entschieden: Flügelstürmer stehen in beiden Quellen
+ *  als „Midfielder", die bleiben eine redaktionelle Frage.
+ *
+ *  Rein & nebenwirkungsfrei → unit-testbar.
+ * ───────────────────────────────────────────────────────────────────────────── */
+function buildPlayedPosition(statistics) {
+  const list = Array.isArray(statistics) ? statistics : [];
+  const minutesByPosition = new Map();
+
+  for (const stat of list) {
+    if (!stat || !stat.games) continue;
+    if (!isCountedCompetition(stat.league)) continue;
+    const position = mapPosition(stat.games.position);
+    if (!position) continue;
+    const minutes = Number(stat.games.minutes) || 0;
+    if (minutes <= 0) continue;
+    minutesByPosition.set(position, (minutesByPosition.get(position) || 0) + minutes);
+  }
+
+  let position = '';
+  let minutes = 0;
+  let total = 0;
+  // Deterministisch: bei exaktem Gleichstand entscheidet POSITION_ORDER
+  // (Torhueter < Verteidiger < Mittelfeld < Angriff), damit derselbe
+  // Eingang immer denselben Report ergibt.
+  const ordered = Array.from(minutesByPosition.entries()).sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    return POSITION_ORDER[a[0]] - POSITION_ORDER[b[0]];
+  });
+  for (const [pos, min] of ordered) {
+    total += min;
+    if (!position) { position = pos; minutes = min; }
+  }
+
+  const breakdown = {};
+  for (const [pos, min] of ordered) breakdown[pos] = min;
+  return { position, minutes, total, breakdown };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -856,6 +923,9 @@ async function main() {
   const degraded = [];
   const incomplete = [];
   const emptySquads = [];
+  // Positions-Durchsicht: Kadermeldung gegen Einsatz-Beleg (buildPlayedPosition).
+  const positionMismatches = [];
+  const positionUnchecked = [];
 
   for (let i = 0; i < targets.length; i++) {
     const club = targets[i];
@@ -895,6 +965,33 @@ async function main() {
         record = recordFromSquadEntryOnly(team, entry, flagMap, unmatchedNations);
         degraded.push(`${record['Spielername']} (${entry.id}, ${team.name})`);
       }
+      // Kadermeldung gegen den Einsatz-Beleg halten (siehe buildPlayedPosition).
+      // Nur erheben und berichten – die Entscheidung faellt von Hand in
+      // position-overrides.js, damit die Datendatei ein ehrlicher API-Snapshot
+      // bleibt.
+      const played = season
+        ? buildPlayedPosition(season.statistics)
+        : { position: '', minutes: 0, total: 0, breakdown: {} };
+      if (!played.position) {
+        positionUnchecked.push({
+          id: entry.id,
+          name: record['Spielername'],
+          club: team.name,
+          squad: record.Position
+        });
+      } else if (played.position !== record.Position) {
+        positionMismatches.push({
+          id: entry.id,
+          name: record['Spielername'],
+          club: team.name,
+          squad: record.Position,
+          played: played.position,
+          playedMinutes: played.minutes,
+          totalMinutes: played.total,
+          breakdown: played.breakdown
+        });
+      }
+
       // Vorsaison-Leistung als Sortierschluessel (siehe buildPerformance).
       record['Vorsaison.Minuten'] = performance.minutes;
       record['Vorsaison.Spiele'] = performance.games;
@@ -1018,6 +1115,54 @@ async function main() {
   };
   fs.writeFileSync(clubsPath, `${JSON.stringify(clubsDoc, null, 2)}\n`, 'utf8');
   logInfo(`Geschrieben: ${clubsPath}`);
+
+  /* ── Positions-Durchsicht ───────────────────────────────────────────── */
+  // Nach Klub und danach nach Einsatzminuten sortiert: so steht in jeder
+  // Klub-Sektion oben, wer am meisten gespielt hat – und damit das, was
+  // eine Durchsicht zuerst sehen muss.
+  positionMismatches.sort((a, b) => {
+    const c = a.club.localeCompare(b.club, 'de');
+    if (c !== 0) return c;
+    return b.playedMinutes - a.playedMinutes;
+  });
+  const mismatchKinds = {};
+  positionMismatches.forEach((m) => {
+    const key = `${m.squad} → ${m.played}`;
+    mismatchKinds[key] = (mismatchKinds[key] || 0) + 1;
+  });
+
+  const positionsPath = path.join(__dirname, `cl-pool-${t.key}-positions.json`);
+  fs.writeFileSync(positionsPath, `${JSON.stringify({
+    tournament: t.key,
+    sourceSeason,
+    playerCount: players.length,
+    checked: players.length - positionUnchecked.length,
+    mismatchCount: positionMismatches.length,
+    mismatchKinds,
+    uncheckedCount: positionUnchecked.length,
+    note:
+      'squad = Kadermeldung des Vereins (/players/squads), played = tatsaechlich ' +
+      'gespielte Position der Vorsaison (statistics[].games.position, nach Minuten ' +
+      'gewichtet). Beide Quellen kennen nur vier Eimer – Fluegelspieler stehen in ' +
+      'beiden als MIDFIELDER und tauchen hier NICHT auf. Der Report ersetzt keine ' +
+      'Entscheidung; gepflegt wird sie in position-overrides.js.',
+    mismatches: positionMismatches,
+    unchecked: positionUnchecked
+  }, null, 2)}\n`, 'utf8');
+  logInfo(`Geschrieben: ${positionsPath}`);
+
+  logInfo(
+    `Positions-Durchsicht: ${positionMismatches.length} Abweichungen zwischen ` +
+    `Kadermeldung und Einsatz-Beleg, ${positionUnchecked.length} ohne Einsatzminuten ` +
+    `(nicht pruefbar) von ${players.length} Spielern.`
+  );
+  Object.keys(mismatchKinds).sort().forEach((kind) => {
+    logInfo(`   ${kind}: ${mismatchKinds[kind]}`);
+  });
+  positionMismatches.forEach((m) => logInfo(
+    `   ${m.club} | ${m.name} (${m.id}) | Meldung ${m.squad} → gespielt ${m.played} ` +
+    `(${m.playedMinutes} von ${m.totalMinutes} Min)`
+  ));
 }
 
 if (require.main === module) {
@@ -1031,6 +1176,7 @@ module.exports = {
   classifyClDescription,
   isWomensEntry,
   buildPerformance,
+  buildPlayedPosition,
   competitionWeight,
   COMPETITION_WEIGHTS,
   pickFinalWinner,
