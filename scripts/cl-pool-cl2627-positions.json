@@ -2,19 +2,55 @@
   "tournament": "cl2627",
   "sourceSeason": "2025",
   "playerCount": 1161,
-  "checked": 993,
-  "mismatchCount": 118,
+  "checked": 995,
+  "mismatchCount": 124,
   "mismatchKinds": {
-    "MIDFIELDER → DEFENDER": 14,
+    "MIDFIELDER → ATTACKER": 45,
+    "MIDFIELDER → DEFENDER": 16,
     "DEFENDER → MIDFIELDER": 13,
-    "MIDFIELDER → ATTACKER": 41,
     "ATTACKER → MIDFIELDER": 46,
     "ATTACKER → DEFENDER": 1,
     "DEFENDER → ATTACKER": 3
   },
-  "uncheckedCount": 168,
+  "uncheckedCount": 166,
   "note": "squad = Kadermeldung des Vereins (/players/squads), played = tatsaechlich gespielte Position der Vorsaison (statistics[].games.position, nach Minuten gewichtet). Beide Quellen kennen nur vier Eimer – Fluegelspieler stehen in beiden als MIDFIELDER und tauchen hier NICHT auf. Der Report ersetzt keine Entscheidung; gepflegt wird sie in position-overrides.js.",
   "mismatches": [
+    {
+      "id": 161800,
+      "name": "Christos Tzolis",
+      "club": "Arsenal",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 4485,
+      "totalMinutes": 4485,
+      "breakdown": {
+        "ATTACKER": 4485
+      }
+    },
+    {
+      "id": 1460,
+      "name": "Bukayo Saka",
+      "club": "Arsenal",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3374,
+      "totalMinutes": 3374,
+      "breakdown": {
+        "ATTACKER": 3374
+      }
+    },
+    {
+      "id": 313245,
+      "name": "Myles Lewis-Skelly",
+      "club": "Arsenal",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 2131,
+      "totalMinutes": 2131,
+      "breakdown": {
+        "DEFENDER": 2131
+      }
+    },
     {
       "id": 349001,
       "name": "Wesley",
@@ -52,6 +88,19 @@
       "breakdown": {
         "MIDFIELDER": 2204,
         "DEFENDER": 480
+      }
+    },
+    {
+      "id": 284457,
+      "name": "Lamare Bogarde",
+      "club": "Aston Villa",
+      "squad": "MIDFIELDER",
+      "played": "DEFENDER",
+      "playedMinutes": 1886,
+      "totalMinutes": 2140,
+      "breakdown": {
+        "DEFENDER": 1886,
+        "MIDFIELDER": 254
       }
     },
     {
@@ -767,6 +816,31 @@
       }
     },
     {
+      "id": 20589,
+      "name": "Bryan Mbeumo",
+      "club": "Manchester United",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 3116,
+      "totalMinutes": 3116,
+      "breakdown": {
+        "ATTACKER": 3116
+      }
+    },
+    {
+      "id": 909,
+      "name": "Marcus Rashford",
+      "club": "Manchester United",
+      "squad": "MIDFIELDER",
+      "played": "ATTACKER",
+      "playedMinutes": 2057,
+      "totalMinutes": 2636,
+      "breakdown": {
+        "ATTACKER": 2057,
+        "MIDFIELDER": 579
+      }
+    },
+    {
       "id": 403064,
       "name": "Harry Amass",
       "club": "Manchester United",
@@ -1404,7 +1478,7 @@
     },
     {
       "id": 398194,
-      "name": "Lazar JovanoviÄ",
+      "name": "Lazar Jovanović",
       "club": "VfB Stuttgart",
       "squad": "MIDFIELDER",
       "played": "ATTACKER",
@@ -1527,12 +1601,6 @@
       "squad": "GOALKEEPER"
     },
     {
-      "id": 553530,
-      "name": "I. Ibrahim",
-      "club": "Arsenal",
-      "squad": "MIDFIELDER"
-    },
-    {
       "id": 483676,
       "name": "Giorgio De Marzi",
       "club": "AS Roma",
@@ -1584,7 +1652,7 @@
       "id": 357247,
       "name": "Luka Lynch",
       "club": "Aston Villa",
-      "squad": "MIDFIELDER"
+      "squad": "ATTACKER"
     },
     {
       "id": 553848,
@@ -2061,12 +2129,6 @@
       "squad": "GOALKEEPER"
     },
     {
-      "id": 546704,
-      "name": "D. Armer",
-      "club": "Manchester United",
-      "squad": "DEFENDER"
-    },
-    {
       "id": 402330,
       "name": "Jaydan Kamason",
       "club": "Manchester United",
@@ -2079,7 +2141,7 @@
       "squad": "ATTACKER"
     },
     {
-      "id": 557391,
+      "id": 465942,
       "name": "T. Thompson",
       "club": "Manchester United",
       "squad": "ATTACKER"
