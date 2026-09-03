@@ -84,8 +84,55 @@
       .replace(/&amp;/gi, '&');
   }
 
+  /* Doppelt kodierte Namen reparieren (Mojibake).
+   *
+   * Ein Teil der Namen kommt bei api-football doppelt kodiert an: die
+   * UTF-8-Bytes wurden einmal als Latin-1 gelesen und erneut als UTF-8
+   * gespeichert. Sichtbar wird das an Namen wie
+   *
+   *   "Andrija MaksimoviA<0x87>"  statt  "Andrija Maksimovic'"
+   *   "Dani MartA<0xAD>nez"       statt  "Dani Martinez"
+   *
+   * Das Erkennungsmerkmal ist eindeutig: ein Zeichen aus dem Bereich der
+   * UTF-8-Startbytes (U+00C2 bis U+00F4) gefolgt von einem oder mehreren
+   * Zeichen aus dem Bereich der Fortsetzungsbytes (U+0080 bis U+00BF). In
+   * dieser Kombination kommt keine echte Schreibweise vor - der zweite
+   * Bereich enthaelt C1-Steuerzeichen, die in Personennamen nichts zu
+   * suchen haben.
+   *
+   * Repariert wird nur der erkannte Abschnitt, nicht der ganze String: so
+   * bleiben Namen unangetastet, die daneben legitime Zeichen ausserhalb
+   * von Latin-1 tragen. Ergibt das Rueckrechnen kein sauberes Zeichen,
+   * bleibt der Originaltext stehen - lieber ein kaputter Name als ein
+   * falsch geratener.
+   *
+   * Bewusst hier und nicht nur im Generator: so greift die Korrektur
+   * sofort auf den bestehenden Kaderdateien, ohne sie neu zu erzeugen -
+   * dieselbe Begruendung wie bei der Kuerzung selbst.
+   */
+  function repairMojibake(value) {
+    var text = String(value == null ? '' : value);
+    if (!/[\u00C2-\u00F4][\u0080-\u00BF]/.test(text)) return text;
+    return text.replace(/[\u00C2-\u00F4][\u0080-\u00BF]{1,3}/g, function (run) {
+      var percent = '';
+      for (var i = 0; i < run.length; i++) {
+        var byte = run.charCodeAt(i);
+        percent += '%' + (byte < 16 ? '0' : '') + byte.toString(16);
+      }
+      var decoded;
+      try {
+        decoded = decodeURIComponent(percent);
+      } catch (err) {
+        return run;                      // keine gueltige UTF-8-Folge
+      }
+      // Steuerzeichen oder Ersatzzeichen: die Annahme war falsch.
+      if (/[\u0000-\u001F\u007F-\u009F\uFFFD]/.test(decoded)) return run;
+      return decoded;
+    });
+  }
+
   function cleanName(value) {
-    return decodeNameEntities(value).replace(/\s+/g, ' ').trim();
+    return repairMojibake(decodeNameEntities(value)).replace(/\s+/g, ' ').trim();
   }
 
   function normalizeToken(token) {
@@ -245,6 +292,7 @@
     surnameFromLastName: surnameFromLastName,
     givenNameFromFirstName: givenNameFromFirstName,
     decodeNameEntities: decodeNameEntities,
+    repairMojibake: repairMojibake,
     isSurnameParticle: isSurnameParticle,
     SURNAME_PARTICLES: SURNAME_PARTICLES,
     GIVEN_NAME_PREFIXES: GIVEN_NAME_PREFIXES

@@ -24,7 +24,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const APP = require('../tournament-config.js');
-const { shortenPlayerName, buildDisplayName, surnameFromLastName } = require('../name-shortener.js');
+const NAME_SHORTENER = require('../name-shortener.js');
+const { shortenPlayerName, buildDisplayName, surnameFromLastName } = NAME_SHORTENER;
 const { playerDisplayName } = require('./generate-kader.js');
 
 function words(name) {
@@ -297,7 +298,7 @@ function runDataJs(tournamentKey) {
     247: 'Cody Gakpo',
     26243: 'Nico Schlotterbeck',
     637: 'Felix Nmecha',
-    19599: 'Emiliano Martínez',    // Override (Rufname)
+    22147: 'Manu Koné',            // Override (Rufname)
     396623: 'Pau Cubarsí',         // Override (Doppelnachname)
     1149: 'Dayot Upamecano',       // Override (Rufname)
     6716: 'Alexis Mac Allister',   // unverändert (Partikel)
@@ -402,6 +403,61 @@ const overrides = loadNameOverrides();
     `${longNames} mit drei Wörtern (Partikel/Abkürzung/Override)`
   );
 });
+
+/* ── 5b) Doppelt kodierte Namen (Mojibake) ───────────────────────────────── */
+(function testMojibake() {
+  // api-football liefert einen Teil der Namen doppelt kodiert: die
+  // UTF-8-Bytes einmal als Latin-1 gelesen und erneut als UTF-8
+  // gespeichert. Im Pool sah das so aus (die zweite Haelfte des Zeichens
+  // ist ein unsichtbares C1-Steuerzeichen):
+  //
+  //   "Andrija Maksimovi\u00C4\u0087"  statt  "Andrija Maksimovi\u0107"
+  //   "Dani Mart\u00C3\u00ADnez"       statt  "Dani Mart\u00EDnez"
+  const broken = {
+    'Andrija Maksimovi\u00C4\u0087': 'Andrija Maksimovi\u0107',
+    'Lazar Jovanovi\u00C4\u0087': 'Lazar Jovanovi\u0107',
+    'Ognjen Mimovi\u00C4\u0087': 'Ognjen Mimovi\u0107',
+    'Nidal \u00C4\u008Celik': 'Nidal \u010Celik',
+    'Dani Mart\u00C3\u00ADnez': 'Dani Mart\u00EDnez',
+    'Oscar H\u00C3\u00B8jlund': 'Oscar H\u00F8jlund'
+  };
+  Object.keys(broken).forEach((input) => {
+    assert.equal(shortenPlayerName(input), broken[input],
+      `Mojibake nicht repariert: ${JSON.stringify(input)}`);
+  });
+
+  // Gegenprobe: korrekt kodierte Namen bleiben Zeichen fuer Zeichen gleich.
+  // Ohne diese Absicherung koennte die Reparatur echte Diakritika zerlegen.
+  [
+    'Marc-Andr\u00E9 ter Stegen',
+    'Vanja Milinkovi\u0107-Savi\u0107',
+    'Kylian Mbapp\u00E9',
+    'Bar\u0131\u015F Alper Y\u0131lmaz',
+    '\u0130lkay G\u00FCndo\u011Fan',
+    'Erling Haaland',
+    'Mohamed Salah'
+  ].forEach((name) => {
+    assert.equal(NAME_SHORTENER.repairMojibake(name), name,
+      `Sauberer Name wurde veraendert: ${name}`);
+  });
+
+  // Und der Pool selbst: nach der Kuerzung darf kein Anzeigename mehr ein
+  // C1-Steuerzeichen oder ein Ersatzzeichen tragen.
+  ['data-cl2627.js', 'data-cl2526.js'].forEach((file) => {
+    const pool = loadPlayersData(file);
+    const dirty = pool
+      .map((p) => shortenPlayerName(p.Spielername))
+      .filter((name) => /[\u0080-\u009F\uFFFD]/.test(name));
+    // Bewusst ueber die Laenge und nicht per deepEqual: `pool` stammt aus
+    // einem vm-Kontext, seine Arrays tragen ein anderes Array.prototype –
+    // ein strikter Vergleich mit einem hiesigen [] schlaegt selbst dann
+    // fehl, wenn beide leer sind.
+    assert.equal(dirty.length, 0,
+      `${file}: kaputt kodierte Anzeigenamen uebrig: ${dirty.join(', ')}`);
+  });
+
+  console.log('ok - doppelt kodierte Namen werden repariert, saubere bleiben unangetastet');
+})();
 
 /* ── 6) Die WM bleibt unangetastet ───────────────────────────────────────── */
 (function testWorldCupUntouched() {

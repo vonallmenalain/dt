@@ -91,6 +91,7 @@ var CL_NAME_OVERRIDES = {
     39178:  "Julian Faye Lund",            // Nachname "Faye Lund"
     434623: "Joel van den Berg",           // Nachname "van den Berg"
     524875: "El Hadji Mbodji",             // Vorname "El Hadji"
+    30432:  "Marten de Roon",              // in data-cl2526.js als "Marten de" abgeschnitten
 
     // ── 4) Schreibweise ──────────────────────────────────────────────────
     16367:  "William Pacho",       // api-football: "Willian Joel Pacho"

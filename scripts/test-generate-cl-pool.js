@@ -17,6 +17,7 @@ const path = require('node:path');
 const {
   classifyClDescription,
   isWomensEntry,
+  buildPlayedPosition,
   pickFinalWinner,
   isQualifyingPlayoffRound,
   pickTieWinners,
@@ -373,6 +374,65 @@ const {
   assert.equal(unresolved.pending.length, 1);
 
   console.log('ok - Play-off-Paarungen werden über den Gesamtscore inkl. Elfmeterschiessen entschieden');
+})();
+
+/* ── Einsatz-Beleg der Vorsaison ─────────────────────────────────────────── */
+(function testPlayedPosition() {
+  const stat = (leagueId, leagueName, position, minutes) => ({
+    league: { id: leagueId, name: leagueName },
+    games: { position, minutes }
+  });
+
+  // Der Regelfall, den der Report finden soll: der Verein meldet einen
+  // Aussenverteidiger als Midfielder, gespielt hat er als Defender.
+  const fullback = buildPlayedPosition([
+    stat(135, 'Serie A', 'Defender', 2400),
+    stat(2, 'UEFA Champions League', 'Defender', 600),
+    stat(137, 'Coppa Italia', 'Midfielder', 180)
+  ]);
+  assert.equal(fullback.position, 'DEFENDER');
+  assert.equal(fullback.minutes, 3000, 'Minuten derselben Position werden summiert.');
+  assert.equal(fullback.total, 3180);
+  assert.deepEqual(fullback.breakdown, { DEFENDER: 3000, MIDFIELDER: 180 });
+
+  // Gewichtet wird nach Minuten, nicht nach Anzahl Wettbewerbszeilen: drei
+  // kurze Mittelfeld-Einsätze schlagen eine volle Saison als Stürmer nicht.
+  const striker = buildPlayedPosition([
+    stat(78, 'Bundesliga', 'Attacker', 2700),
+    stat(2, 'UEFA Champions League', 'Midfielder', 200),
+    stat(81, 'DFB Pokal', 'Midfielder', 150),
+    stat(529, 'Super Cup', 'Midfielder', 90)
+  ]);
+  assert.equal(striker.position, 'ATTACKER');
+
+  // Dieselben Ausschlüsse wie beim Leistungswert (isCountedCompetition):
+  // Freundschaftsspiele und Zeilen ohne league.id sind der Eimer, in den
+  // api-football dupliziert – sie dürfen den Beleg nicht kippen.
+  const friendlies = buildPlayedPosition([
+    stat(39, 'Premier League', 'Defender', 900),
+    stat(667, 'Friendlies Clubs', 'Attacker', 3000),
+    { league: { id: null, name: 'Super Cup' }, games: { position: 'Attacker', minutes: 3000 } }
+  ]);
+  assert.equal(friendlies.position, 'DEFENDER');
+  assert.deepEqual(friendlies.breakdown, { DEFENDER: 900 });
+
+  // Ohne Einsatzminuten gibt es keinen Beleg – dann meldet der Report den
+  // Spieler als nicht prüfbar, statt die Kadermeldung stillschweigend zu
+  // bestätigen.
+  assert.equal(buildPlayedPosition([]).position, '');
+  assert.equal(buildPlayedPosition(null).position, '');
+  assert.equal(buildPlayedPosition([stat(39, 'Premier League', 'Defender', 0)]).position, '');
+  assert.equal(buildPlayedPosition([stat(39, 'Premier League', '', 900)]).position, '');
+
+  // Exakter Gleichstand: deterministisch nach POSITION_ORDER, damit derselbe
+  // Eingang nicht mal so und mal so berichtet wird.
+  const tie = buildPlayedPosition([
+    stat(140, 'La Liga', 'Midfielder', 1000),
+    stat(143, 'Copa del Rey', 'Defender', 1000)
+  ]);
+  assert.equal(tie.position, 'DEFENDER');
+
+  console.log('ok - Einsatz-Beleg gewichtet nach Minuten und ignoriert Freundschaftsspiele');
 })();
 
 console.log('generate-cl-pool tests passed');

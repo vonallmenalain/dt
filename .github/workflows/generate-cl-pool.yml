@@ -14,6 +14,8 @@ name: CL Vorschau-Spielerpool
 #   4. Aktuellen Kader je Klub + Spielerprofile laden.
 #   5. data-<key>.js schreiben (identisches Schema und identische
 #      Namenslogik wie beim regulären Kader-Generator).
+#   6. Positions-Durchsicht schreiben: wo die Kadermeldung des Vereins vom
+#      Einsatz-Beleg der Vorsaison abweicht (cl-pool-<key>-positions.json).
 #
 # Benötigtes Repo-Secret:
 #   RAPIDAPI_KEY   RapidAPI / API-Football Key.
@@ -154,7 +156,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           FILE="data-${KEY}.js"
           CLUBS="scripts/cl-pool-${KEY}-clubs.json"
-          git add "$FILE" "$CLUBS"
+          POSITIONS="scripts/cl-pool-${KEY}-positions.json"
+          git add "$FILE" "$CLUBS" "$POSITIONS"
           if git diff --cached --quiet; then
             echo "Keine Aenderung – nichts zu committen."
           else
