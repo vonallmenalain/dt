@@ -74,9 +74,13 @@
  *    findTeamByEmail(email)               → Promise<{ id, data } | null>   Case-insensitive e-mail lookup. Used
  *                                                                           by saveOrUpdateTeam() to refuse a
  *                                                                           second team for the same address.
- *    saveTeamForUser(payload)             → Promise<{ id, data }>          Creates a new team doc
+ *    saveTeamForUser(payload, options?)   → Promise<{ id, data }>          Creates a new team doc. Doc-ID ist die
+ *                                                                          UID des Nutzers – damit kann pro Account
+ *                                                                          nur EIN Team entstehen (siehe dort).
+ *                                                                          `options.randomId` nur fuer Testteams.
  *    updateTeam(teamId, payload)          → Promise<void>                  Updates existing team doc
- *    saveOrUpdateTeam(payload, options?)  → Promise<{ id, mode }>          Update-or-create. `options.forceCreate`
+ *    saveOrUpdateTeam(payload, options?)  → Promise<{ id, mode }>          Update-or-create, Aufrufe werden
+ *                                                                          serialisiert. `options.forceCreate`
  *                                                                          legt IMMER ein neues Doc an (Testteam-
  *                                                                          Modus, nur fuer Admin-Accounts).
  *    isAdminUser()                        → boolean                        Admin-Account angemeldet? (admin.js)
@@ -679,7 +683,40 @@
         };
     }
 
-    async function saveTeamForUser(payload) {
+    /**
+     * Legt ein neues Team-Dokument an.
+     *
+     * WICHTIG – Doppel-Einreichungen:
+     * Die Doc-ID ist bewusst DETERMINISTISCH die UID des angemeldeten
+     * Nutzers (`teams/{uid}`) und nicht mehr eine zufaellige Auto-ID.
+     * Grund: Der Weg zum Anlegen ist ein "erst lesen, dann schreiben"
+     * (gibt es schon ein Team fuer diese UID/E-Mail?). Zwei parallele
+     * Durchlaeufe dieses Musters lesen beide "noch kein Team" und legen
+     * anschliessend beide eines an – mit Auto-IDs entstehen dabei ZWEI
+     * Dokumente mit identischem Inhalt und praktisch identischem
+     * Zeitstempel. Genau dieser Fall ist in der Praxis aufgetreten
+     * (gleiche UID, gleiche Sekunde, identische Aufstellung).
+     *
+     * Parallel laufen kann das Muster, weil es mehrere JS-Kontexte pro
+     * Nutzer geben kann, die sich gegenseitig nicht sehen: zwei Tabs, PWA
+     * neben Browser, die Seiten-Frames der App-Shell (shell.js) oder ein
+     * Finalize nach der E-Mail-Bestaetigung, das in einem zweiten Kontext
+     * noch einmal anlaeuft. Ein Flag im Speicher (`isSubmitting`,
+     * `pendingFinalize`) hilft dort nicht.
+     *
+     * Mit der UID als Doc-ID zielen alle diese Schreiber zwangslaeufig auf
+     * DASSELBE Dokument – ein zweites Team pro Account ist damit technisch
+     * nicht mehr moeglich, egal wie oft und wie parallel der Pfad laeuft.
+     * Die Firestore-Rules erzwingen dieselbe Bedingung noch einmal
+     * serverseitig (`docId == request.auth.uid`), damit die Garantie nicht
+     * allein am Client haengt.
+     *
+     * `options.randomId` ist die einzige Ausnahme und ausschliesslich fuer
+     * den Testteam-Modus des Admins gedacht, der bewusst mehrere Teams
+     * unter einem Account anlegt (dort erlauben die Rules die Auto-ID ueber
+     * den Admin-Zweig).
+     */
+    async function saveTeamForUser(payload, options) {
         requireInit();
         const FieldValue = firebase.firestore.FieldValue;
         const docData = {
@@ -687,7 +724,19 @@
             timestamp: FieldValue.serverTimestamp()
         };
 
-        const ref = await state.db.collection(state.teamsCollection).add(docData);
+        if (options && options.randomId) {
+            const autoRef = await state.db.collection(state.teamsCollection).add(docData);
+            state.loadedTeamId = autoRef.id;
+            return { id: autoRef.id, data: docData };
+        }
+
+        const ref = state.db.collection(state.teamsCollection).doc(state.currentUser.uid);
+        /* `merge: true` ist die Absicherung fuer den Wettlauf-Fall: hat ein
+           zweiter Kontext das Dokument in der Zwischenzeit schon angelegt,
+           ueberschreibt dieser Schreibvorgang nur die uebergebenen Felder
+           und raeumt nicht versehentlich Felder wie `transfers` weg. Ohne
+           Konkurrenz ist es ein ganz normales Anlegen. */
+        await ref.set(docData, { merge: true });
         state.loadedTeamId = ref.id;
         return { id: ref.id, data: docData };
     }
@@ -745,8 +794,11 @@
      * level safety net behind the user-visible
      *   "Unter dieser E-Mail-Adresse ist bereits ein Team erfasst"
      * message.
+     *
+     * Aufgerufen wird diese Funktion nicht direkt, sondern ueber den
+     * serialisierenden Wrapper `saveOrUpdateTeam()` weiter unten.
      */
-    async function saveOrUpdateTeam(payload, options) {
+    async function saveOrUpdateTeamNow(payload, options) {
         requireInit();
         if (!isSignedInAndVerified()) {
             throw new Error('E-Mail-Adresse muss verifiziert sein, bevor das Team gespeichert werden kann.');
@@ -773,7 +825,7 @@
             if (!isAdminUser()) {
                 throw new Error('Mehrfach-Einreichung ist nur fuer Admin-Accounts verfuegbar.');
             }
-            const testTeam = await saveTeamForUser(payload);
+            const testTeam = await saveTeamForUser(payload, { randomId: true });
             return { id: testTeam.id, mode: 'create' };
         }
 
@@ -824,6 +876,32 @@
 
         const created = await saveTeamForUser(payload);
         return { id: created.id, mode: 'create' };
+    }
+
+    /* Schreib-Serialisierung innerhalb dieses JS-Kontexts.
+     *
+     * Alle Team-Schreibpfade laufen ueber saveOrUpdateTeam (Einreichen,
+     * Transfer, Finalize nach der E-Mail-Bestaetigung). Diese Pfade koennen
+     * sich zeitlich ueberlappen – z.B. wenn der Modal-Callback und der
+     * onAuthStateChange-Listener beide auf dieselbe Bestaetigung reagieren.
+     * Statt sich auf Flags in den Aufrufern zu verlassen, reihen wir die
+     * Aufrufe hier an EINER Stelle hintereinander: Der zweite Aufruf startet
+     * erst, wenn der erste fertig ist, findet dann das bereits angelegte
+     * Team und aktualisiert es, statt ein zweites anzulegen.
+     *
+     * Das ist die Absicherung innerhalb eines Tabs; ueber Tabs/Geraete
+     * hinweg sorgt die deterministische Doc-ID (siehe saveTeamForUser) plus
+     * die Firestore-Rules fuer dieselbe Garantie.
+     */
+    let saveQueue = Promise.resolve();
+
+    function saveOrUpdateTeam(payload, options) {
+        const run = () => saveOrUpdateTeamNow(payload, options);
+        const next = saveQueue.then(run, run);
+        // Ein Fehler darf die Warteschlange nicht vergiften – der naechste
+        // Aufruf soll trotzdem starten duerfen.
+        saveQueue = next.then(() => {}, () => {});
+        return next;
     }
 
     /**

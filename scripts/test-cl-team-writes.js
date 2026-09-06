@@ -74,6 +74,46 @@ assert.ok(/function devTournamentLabel/.test(NAV),
 assert.ok(/devTournamentLabel\(t, key\)/.test(NAV),
   'Die Turnier-Listen im Dev-Menü müssen devTournamentLabel() benutzen.');
 
+/* ── 1b) Badge-Wortwahl: „Lieblingsclub" heisst in der CL „Lieblingsland" ──
+ *
+ * Der Badge zaehlt Spieler mit gleichem Wert im Feld `club`. In der CL
+ * dreht data.js die Anzeige-Ebenen (primaryEntity "club"): dort steht in
+ * `club` das LAND des Spielers. Ein Badge namens „Lieblingsclub" waere in
+ * der CL-Ansicht also schlicht falsch beschriftet. */
+const vm = require('node:vm');
+
+function loadBadgeCatalog(primaryEntity) {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'badge-catalog.js'), 'utf8');
+  const win = { APP_CONFIG: { primaryEntity } };
+  vm.runInNewContext(src, { window: win, Object, Set, Map, Math, Number, String, Array, JSON, Date, console });
+  return win.DreamTeamBadges;
+}
+
+for (const [primaryEntity, expected] of [['club', 'Lieblingsland'], ['nation', 'Lieblingsclub']]) {
+  const badges = loadBadgeCatalog(primaryEntity);
+  assert.ok(badges, `badge-catalog.js exportiert kein DreamTeamBadges (primaryEntity "${primaryEntity}").`);
+
+  const clubBadge = badges.catalog.find(b => b.id === 'club');
+  assert.ok(clubBadge, 'Der Badge mit der ID "club" fehlt im Katalog.');
+  assert.equal(clubBadge.label, expected,
+    `Bei primaryEntity "${primaryEntity}" muss der club-Badge „${expected}" heissen.`);
+  assert.equal(badges.favoriteEntityCopy.label, expected,
+    'favoriteEntityCopy.label muss zum Badge-Label passen (teams.js baut darauf auf).');
+
+  // Egal in welchem Turnier: beide Schreibweisen muessen auf die ID
+  // 'club' aufloesen, sonst verlieren gespeicherte Badge-Historien ihren
+  // Katalog-Eintrag beim Turnierwechsel.
+  assert.equal(badges.getBadgeId('Lieblingsclub'), 'club',
+    'Der Alias „Lieblingsclub" muss auf die Badge-ID "club" zeigen.');
+  assert.equal(badges.getBadgeId('Lieblingsland'), 'club',
+    'Der Alias „Lieblingsland" muss auf die Badge-ID "club" zeigen.');
+}
+
+/* teams.js darf die Wortwahl nicht noch einmal fest verdrahten. */
+const TEAMS_JS = fs.readFileSync(path.join(__dirname, '..', 'teams.js'), 'utf8');
+assert.ok(/favoriteEntityCopy/.test(TEAMS_JS),
+  'teams.js muss die Badge-Wortwahl aus badge-catalog.js beziehen (favoriteEntityCopy).');
+
 /* ── 2) Firestore-Rules decken die Team-Writes beider CL-Turniere ab ───── */
 
 /** Schneidet den Rumpf eines `allow <op>:`-Blocks aus den Rules heraus
