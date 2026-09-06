@@ -43,6 +43,42 @@
     return badges;
   }
 
+  /* „Lieblingsclub" heisst in der Champions League „Lieblingsland".
+   *
+   * Der Badge zaehlt Spieler, die im Feld `club` uebereinstimmen. Bei der
+   * WM ist das der Verein. Turniere mit `primaryEntity: "club"` (CL)
+   * drehen die Anzeige-Ebenen aber bewusst um (Club-Remap in data.js):
+   * prominent steht dort der Klub, und im Feld `club` landet das LAND des
+   * Spielers. Der Badge belohnt in der CL also mehrere Spieler aus
+   * demselben Land – und muss deshalb auch so heissen.
+   *
+   * Die Badge-ID bleibt in beiden Faellen 'club', damit gespeicherte
+   * Badge-Historien und Aliase weiter aufgehen. */
+  function isClubPrimaryTournament() {
+    const cfg = global.APP_CONFIG;
+    return !!(cfg && cfg.primaryEntity === 'club');
+  }
+
+  const FAVORITE_ENTITY_COPY = Object.freeze(isClubPrimaryTournament()
+    ? {
+        entity:      'country',
+        label:       'Lieblingsland',
+        labelPlural: 'Lieblingsländer',
+        emoji:       '🌍',
+        description: 'Du hast aktuell mehrere Spieler aus demselben Land im Team.',
+        howToEarn:   'Wähle mindestens zwei Spieler aus demselben Land.',
+        emptyText:   'Noch kein Lieblingsland-Badge vergeben.'
+      }
+    : {
+        entity:      'club',
+        label:       'Lieblingsclub',
+        labelPlural: 'Lieblingsclubs',
+        emoji:       '🏢',
+        description: 'Du hast aktuell mehrere Spieler aus demselben Club im Team.',
+        howToEarn:   'Wähle mindestens zwei Spieler desselben Clubs.',
+        emptyText:   'Noch kein Lieblingsclub-Badge vergeben.'
+      });
+
   const BASE_BADGES = [
     {
       id: 'currentRankGold',
@@ -126,10 +162,10 @@
     },
     {
       id: 'club',
-      label: 'Lieblingsclub',
-      emoji: '🏢',
-      description: 'Du hast aktuell mehrere Spieler aus demselben Club im Team.',
-      howToEarn: 'Wähle mindestens zwei Spieler desselben Clubs.',
+      label: FAVORITE_ENTITY_COPY.label,
+      emoji: FAVORITE_ENTITY_COPY.emoji,
+      description: FAVORITE_ENTITY_COPY.description,
+      howToEarn: FAVORITE_ENTITY_COPY.howToEarn,
       category: 'Konstanz',
       tone: 'neutral',
       style: 'neutral'
@@ -285,7 +321,7 @@
   });
 
   addAlias('noAppearance', ['keinen einsatz', 'kein einsatz', 'nicht eingesetzt', 'nicht aufgeboten', 'kader alarm', 'roster', 'orphan', 'orphan count']);
-  addAlias('club', ['lieblings club', 'favorite club', 'club']);
+  addAlias('club', ['lieblings club', 'lieblingsclub', 'lieblingsclubs', 'lieblingsland', 'lieblings land', 'lieblingslaender', 'lieblingsländer', 'favorite club', 'favorite country', 'club']);
   addAlias('gk', ['keeper', 'goalkeeper', 'torwart', 'top torhueter', 'top torwart paket']);
   addAlias('def', ['abwehr', 'verteidigung', 'defense', 'defender', 'top verteidigung']);
   addAlias('mid', ['mittelfeld', 'midfield', 'midfielder']);
@@ -1049,6 +1085,10 @@
   global.BADGE_CATALOG = BADGE_CATALOG;
   global.DreamTeamBadges = Object.freeze({
     catalog: BADGE_CATALOG,
+    // Wortwahl des „Lieblingsclub"/„Lieblingsland"-Badges (siehe
+    // FAVORITE_ENTITY_COPY) – teams.js baut seine Listen-Ueberschriften
+    // und Zaehler-Labels daraus, damit es nur EINE Quelle gibt.
+    favoriteEntityCopy: FAVORITE_ENTITY_COPY,
     phases: ROUND_PHASES,
     createRoundRankBadges,
     normalizeBadgeKey,

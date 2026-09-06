@@ -127,6 +127,20 @@
         return window.DreamTeamBadges || null;
     }
 
+    /* Wortwahl des „Lieblingsclub"-Badges. In der Champions League zaehlt
+       derselbe Badge Spieler aus demselben LAND (siehe FAVORITE_ENTITY_COPY
+       in badge-catalog.js) und heisst dort „Lieblingsland". */
+    const FAVORITE_ENTITY_FALLBACK = Object.freeze({
+        label:       'Lieblingsclub',
+        labelPlural: 'Lieblingsclubs',
+        emptyText:   'Noch kein Lieblingsclub-Badge vergeben.'
+    });
+
+    function getFavoriteEntityCopy() {
+        const api = getBadgeCatalogApi();
+        return (api && api.favoriteEntityCopy) || FAVORITE_ENTITY_FALLBACK;
+    }
+
     function getBadgeCatalogItems() {
         const api = getBadgeCatalogApi();
         if (api && typeof api.getCatalog === 'function') return api.getCatalog();
@@ -272,9 +286,10 @@
 
     function getBadgeOwnerCountLabel(badge, ownerEntries, clubSummary) {
         if (badge && badge.id === 'club') {
+            const copy = getFavoriteEntityCopy();
             const clubCount = clubSummary.length;
-            if (clubCount === 1) return '1 Lieblingsclub';
-            return clubCount > 1 ? `${clubCount} Lieblingsclubs` : 'Noch offen';
+            if (clubCount === 1) return `1 ${copy.label}`;
+            return clubCount > 1 ? `${clubCount} ${copy.labelPlural}` : 'Noch offen';
         }
 
         const ownerCount = ownerEntries.length;
@@ -303,7 +318,7 @@
 
     function buildFavoriteClubListHtml(clubSummary) {
         if (!clubSummary.length) {
-            return '<span class="badge-catalog-empty">Noch kein Lieblingsclub-Badge vergeben.</span>';
+            return `<span class="badge-catalog-empty">${escapeHtml(getFavoriteEntityCopy().emptyText)}</span>`;
         }
 
         return clubSummary.map((club) => {
@@ -327,7 +342,7 @@
         const ownerSection = badge.id === 'club'
             ? `
                 <div class="badge-catalog-section">
-                    <div class="badge-catalog-section-title">Lieblingsclubs</div>
+                    <div class="badge-catalog-section-title">${escapeHtml(getFavoriteEntityCopy().labelPlural)}</div>
                     <div class="badge-club-list">${buildFavoriteClubListHtml(clubSummary)}</div>
                 </div>
             `

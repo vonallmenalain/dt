@@ -592,6 +592,19 @@ steht.
 Seiten mit `tournament-config.js` – Domain-Default, Fallback, Anpfiff-Map und
 die Ableitung der Kaderdatei.
 
+`test:duplicate-guard` bewacht die Sperre gegen **doppelte
+Team-Einreichungen**. Neue Team-Dokumente liegen deterministisch unter der
+UID des Nutzers (`teams/{uid}`, siehe `saveTeamForUser` in `auth.js`) statt
+unter einer zufälligen Auto-ID – zwei parallele Einreichungen (zwei Tabs,
+PWA neben Browser, ein zweites Mal angestossenes Finalize nach der
+E-Mail-Bestätigung) treffen damit zwangsläufig dasselbe Dokument, statt zwei
+identische Teams anzulegen. Der Test fährt genau diesen Wettlauf gegen eine
+Fake-Firestore (einmal im selben Kontext, einmal mit zwei getrennten
+Sandboxes) und prüft zusätzlich, dass jeder `create`-Zweig in
+`firestore.rules` `docId == request.auth.uid` verlangt – ohne diese Zeile
+hinge die Garantie allein am Client. Ausgenommen bleibt der Admin, dessen
+Testteam-Modus bewusst mehrere Teams pro Account anlegt.
+
 `test:cl-team-writes` bewacht die CL-Ansicht an zwei Stellen, die nur
 zusammen funktionieren: die **Benennung** (beide CL-Turniere heissen
 überall „Champions League DreamTeam" + Saison-Zusatz, nie „CL 26/27") und

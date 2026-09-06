@@ -12,7 +12,9 @@ rules_version = '2';
 //   1) Public-Reads nur fuer die WM-2026-Collections, das app_meta-Dokument
 //      und das oeffentliche Fixture-Bundle.
 //   2) Team-Writes verlangen verifizierte E-Mail und eigenes Doc
-//      (matched per userId ODER userEmailLower).
+//      (matched per userId ODER userEmailLower). NEUE Team-Dokumente
+//      muessen zudem die eigene UID als Doc-ID tragen -> pro Account kann
+//      es nur EIN Team geben (Admin ausgenommen: Testteams).
 //   3) Team-Writes sind nach Anpfiff (2026-06-11 19:00 UTC) gesperrt;
 //      Admins bleiben schreibberechtigt. Zusaetzlich kann der Admin ueber
 //      das Feld `lateSubmitOpen` im Meta-Dokument (app_meta/turnier_wm2026)
@@ -203,6 +205,29 @@ service cloud.firestore {
           && incomingTeamSchemaOk();
     }
 
+    // Hinweis zur Doc-ID neuer Team-Dokumente:
+    //
+    // Der Client legt neue Teams unter der UID des Nutzers an
+    // (Doc-ID == uid, siehe saveTeamForUser in auth.js) statt unter einer
+    // zufaelligen Auto-ID. Die Rules erzwingen das unten in den
+    // create-Zweigen mit `docId == request.auth.uid`. Damit ist ein
+    // ZWEITES Team fuer denselben Account technisch ausgeschlossen – auch
+    // dann, wenn zwei Tabs/Geraete gleichzeitig einreichen und beide
+    // vorher "noch kein Team vorhanden" gelesen haben: Der zweite
+    // Schreibvorgang trifft zwangslaeufig dasselbe Dokument und ist damit
+    // ein Update, kein zweites Team.
+    //
+    // Bestehende Teams mit alter Auto-ID sind NICHT betroffen: die
+    // Bedingung gilt nur fuer `create`; Updates und Deletes laufen
+    // unveraendert ueber isOwnerOfExisting().
+    //
+    // Der Admin ist ausgenommen (`isAdmin()`), weil der Testteam-Modus
+    // bewusst mehrere Teams unter einem Account anlegt.
+    //
+    // Die Bedingung steht absichtlich inline und nicht in einer
+    // Hilfsfunktion: `docId` stammt aus dem match-Block weiter unten und
+    // ist hier oben nicht sichtbar.
+
     function validTeamUpdate() {
       return isVerified()
           && request.resource.data.userId == request.auth.uid
@@ -382,6 +407,7 @@ service cloud.firestore {
             collection == 'Teams WM 2026'
             && teamWritesAllowed()
             && validTeamCreate()
+            && (isAdmin() || docId == request.auth.uid)
         )
         || (
             collection == 'app_meta'
@@ -394,6 +420,7 @@ service cloud.firestore {
         || (
             collection == 'Teams CL 2025-26 Test'
             && validTeamCreate()
+            && (isAdmin() || docId == request.auth.uid)
         )
         || (
             collection == 'app_meta'
@@ -404,13 +431,16 @@ service cloud.firestore {
         //    Ligaphasen-Spiel. Ohne diesen Zweig lief jede Einreichung in
         //    der CL-Ansicht in ein permission-denied ("Fehler beim
         //    Speichern"), weil nur die WM- und die Test-Collection gedeckt
-        //    waren. Mehrere Teams pro Account sind hier absichtlich nicht
-        //    verboten: die "ein Team pro E-Mail"-Regel setzt der Client
-        //    durch (auth.js), damit der Admin Testteams anlegen kann.
+        //    waren. Mehrere Teams pro Account sind hier ausgeschlossen:
+        //    die Doc-ID muss die eigene UID sein (siehe Hinweis oben) –
+        //    nur der Admin darf fuer Testteams weitere Dokumente anlegen.
+        //    Die zusaetzliche "ein Team pro E-Mail"-Regel (mehrere UIDs,
+        //    gleiche Adresse) setzt weiterhin der Client durch (auth.js).
         || (
             collection == 'Teams CL 2026-27'
             && clTeamCreatesAllowed()
             && validTeamCreate()
+            && (isAdmin() || docId == request.auth.uid)
         )
         || (
             collection == 'app_meta'
