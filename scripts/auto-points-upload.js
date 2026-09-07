@@ -84,6 +84,17 @@
  *    POINTS_API_RETRY_BASE_DELAY_MS
  *                              Optional, Default 1000. Basis-Wartezeit fuer
  *                              API-Retry-Backoff.
+ *    POINTS_MAX_CONSECUTIVE_TICK_FAILURES
+ *                              Optional, Default 5. So viele Live-Ticks IN
+ *                              FOLGE duerfen in einer Monitor-Session
+ *                              fehlschlagen (API-/Firestore-Fehler nach
+ *                              allen Retries), bevor der Run mit Exit 2
+ *                              endet. Bis dahin wird nach dem normalen
+ *                              Tick-Abstand einfach der naechste Tick
+ *                              versucht – ein kurzer API-Aussetzer beendet
+ *                              so keinen Scheduled Run mitten im Spiel.
+ *                              One-Shot-Runs (FORCE_RUN, Push) brechen
+ *                              weiterhin beim ersten Fehler ab.
  *    POINTS_FIXTURE_PLAN_REFRESH_EVERY_TICKS
  *                              Optional, Default 20. Nach so vielen Live-
  *                              Ticks wird der run-weite Fixture-Plan-Cache
@@ -162,6 +173,7 @@ const MAX_SESSION_MAX_MIN = 350;
 const MIN_MONITOR_AFTER_WAKE_BUFFER_MIN = 10;
 const DEFAULT_API_RETRY_ATTEMPTS = 3;
 const DEFAULT_API_RETRY_BASE_DELAY_MS = 1000;
+const DEFAULT_MAX_CONSECUTIVE_TICK_FAILURES = 5;
 const DEFAULT_FIXTURE_PLAN_REFRESH_EVERY_TICKS = 20;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
@@ -3161,6 +3173,29 @@ function getIdleWaitMs(nextWakeAtMs, opts) {
   return Math.max(1000, waitMs);
 }
 
+/* Entscheidet nach einem fehlgeschlagenen Live-Tick, ob die Monitor-Session
+ * weiterlaeuft.
+ *
+ * Hintergrund: Bisher beendete JEDER Fehler, der alle API-Retries
+ * ueberdauerte (z. B. 30 s 5xx bei api-football), den ganzen Scheduled Run
+ * mit Exit 2 – mitten im Spiel. Das Live-Scoring hing dann daran, dass
+ * GitHub den naechsten Cron-Takt wirklich liefert (Checkout + Setup ~1 min,
+ * im Juni-Incident mehrere Stunden gar nichts). Jetzt wird der Fehler
+ * geloggt und nach dem normalen Tick-Abstand der naechste Tick versucht.
+ * Dauerfehler (Key ungueltig, Quota aufgebraucht, Firestore nicht
+ * erreichbar) enden nach `maxConsecutiveTickFailures` Fehlern in Folge
+ * weiterhin sichtbar mit Exit 2. One-Shot-Runs (FORCE_RUN, Push) brechen
+ * unveraendert beim ersten Fehler ab – dort soll ein Fehler laut sein. */
+function shouldContinueAfterTickFailure(consecutiveFailures, opts) {
+  if (!opts || opts.forceRun || opts.oneShotRun) return false;
+  const limit = Number.isFinite(opts.maxConsecutiveTickFailures)
+    ? opts.maxConsecutiveTickFailures
+    : DEFAULT_MAX_CONSECUTIVE_TICK_FAILURES;
+  if (limit <= 0 || consecutiveFailures >= limit) return false;
+  const intervalMs = Math.max(1, opts.liveTickIntervalSec || DEFAULT_LIVE_TICK_INTERVAL_SEC) * 1000;
+  return sessionRemainingMs(opts) > intervalMs;
+}
+
 async function maybeWaitForNextLiveWindow(tickResult, opts, reason) {
   const waitMs = getIdleWaitMs(tickResult && tickResult.nextWakeAtMs, opts);
   if (waitMs == null) return false;
@@ -3263,8 +3298,10 @@ async function main() {
     apiRetryAttempts: Math.max(1, envIntAny(['POINTS_API_RETRY_ATTEMPTS', 'API_RETRY_ATTEMPTS'], DEFAULT_API_RETRY_ATTEMPTS)),
     apiRetryBaseDelayMs: Math.max(0, envIntAny(['POINTS_API_RETRY_BASE_DELAY_MS', 'API_RETRY_BASE_DELAY_MS'], DEFAULT_API_RETRY_BASE_DELAY_MS)),
     fixturePlanRefreshEveryTicks: Math.max(0, envIntAny('POINTS_FIXTURE_PLAN_REFRESH_EVERY_TICKS', DEFAULT_FIXTURE_PLAN_REFRESH_EVERY_TICKS)),
+    maxConsecutiveTickFailures: Math.max(0, envIntAny('POINTS_MAX_CONSECUTIVE_TICK_FAILURES', DEFAULT_MAX_CONSECUTIVE_TICK_FAILURES)),
     fixturePlanCache: {},
     forceRun,
+    oneShotRun: isOneShotRun,
     dryRun
   };
   opts.sessionStartedAtMs = nowMs();
@@ -3284,6 +3321,7 @@ async function main() {
     `windowStartMin=${opts.windowStartMin}, windowEndMin=${opts.windowEndMin}, ` +
     `finalRecheckMin=${opts.finalRecheckMin}, liveTicksPerRun=${isOneShotRun ? 1 : opts.liveTicksPerRun}, ` +
     `liveTickIntervalSec=${opts.liveTickIntervalSec}, fixturePlanRefreshEveryTicks=${opts.fixturePlanRefreshEveryTicks}, ` +
+    `maxConsecutiveTickFailures=${isOneShotRun ? 0 : opts.maxConsecutiveTickFailures}, ` +
     `forceRun=${opts.forceRun}, dryRun=${opts.dryRun}.`
   );
 
@@ -3329,13 +3367,34 @@ async function main() {
   try {
     const totalTicks = isOneShotRun ? 1 : opts.liveTicksPerRun;
     let tick = 1;
+    let consecutiveTickFailures = 0;
     while (tick <= totalTicks) {
       if (!opts.forceRun && sessionRemainingMs(opts) <= 0) {
         logInfo(`Monitor-Session nach ${opts.sessionMaxMin} min beendet.`);
         break;
       }
 
-      const tickResult = await runUploadTick(db, tournament, opts, tick, totalTicks);
+      let tickResult;
+      try {
+        tickResult = await runUploadTick(db, tournament, opts, tick, totalTicks);
+        consecutiveTickFailures = 0;
+      } catch (err) {
+        // Ein einzelner fehlgeschlagener Tick beendet die Monitor-Session
+        // nicht mehr (siehe shouldContinueAfterTickFailure). Der Fehler ist
+        // bereits im Tick-Audit protokolliert; hier nur loggen, den
+        // normalen Tick-Abstand abwarten und weitermachen.
+        consecutiveTickFailures++;
+        if (!shouldContinueAfterTickFailure(consecutiveTickFailures, opts)) throw err;
+        const retryMs = Math.max(1000, Math.min(opts.liveTickIntervalSec * 1000, sessionRemainingMs(opts)));
+        logWarn(
+          `Live-Tick ${tick}/${totalTicks} fehlgeschlagen ` +
+          `(${consecutiveTickFailures}/${opts.maxConsecutiveTickFailures} in Folge): ${err.message} – ` +
+          `Session laeuft weiter, naechster Tick in ${formatDurationMs(retryMs)}.`
+        );
+        await delay(retryMs);
+        tick++;
+        continue;
+      }
       if (opts.forceRun) break;
 
       if (!tickResult.hadCandidates) {
@@ -3410,5 +3469,6 @@ module.exports = {
   buildEmptyPlayerObject,
   processFixtureDetail,
   recalculateTotalPoints,
+  shouldContinueAfterTickFailure,
   shouldTreatStatsAsStarter
 };

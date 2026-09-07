@@ -12,7 +12,8 @@ unterscheiden sich.
 
 ## Champions League 2026/27
 
-Stand des Checks: 2026-08-29.
+Stand des Checks: 2026-09-07 (Vortag von Spieltag 1). Erst-Check
+2026-08-29, Spielplan-Check 2026-09-03.
 
 ### Was scharfgeschaltet wurde
 
@@ -30,6 +31,69 @@ Stand des Checks: 2026-08-29.
   `League Stage - 1`..`- 8` auch das blanke `Group Stage`, das
   api-football fuer die Saison 2026/27 liefert.
 - **Platzhalter-Guard** im Spielplan-Sync (siehe „Offener Punkt").
+
+### Betriebscheck vom 07.09.2026 (Vortag von Spieltag 1)
+
+Geprueft am Tag vor dem ersten Anpfiff (08.09.2026, 18:45 CH):
+
+- **`Auto Punkte-Upload` lief seit dem 03.09. nicht mehr – das ist korrekt.**
+  Die Runs #575–#582 waren Push-Runs (Aenderungen an Workflow, Skript oder
+  `tournament-config.js` auf `main`; sie enden nach ~15 s am Phasen-Guard).
+  Der Cron ist auf die Spieltage beschraenkt; der erste Takt der Saison ist
+  **Dienstag, 08.09.2026, 17:02 CH** (15:02 UTC). Vorher ist im Tab Actions
+  nichts zu erwarten.
+- **`Auto Spielplan-Sync`** laeuft taeglich gruen (Runs #121–#130, zuletzt
+  07.09. 09:11 UTC): 144 Ligaphasen-Spiele in 8 Runden, Fixture-Guard ok.
+  Dry-Run #131 (07.09.) zeigt fuer Spieltag 1 **3 Termine 08.–10.09.,
+  Anstoss 18:45/21:00**, alle 18 Paarungen bekannt, Status NS. Damit passt
+  `DREAMTEAM_START` (18:45) – Checklisten-Punkt 6 erledigt. Spieltag 2–7
+  ebenfalls 18:45/21:00, Spieltag 8 nur 21:00. Venue-IDs liefert die API
+  weiterhin nicht (kosmetisch: kein Stadionbild).
+- **Manueller `force_run` (Run #583, 07.09. 11:48 UTC) sauber durch:**
+  Phasen-Guard uebersprungen, Firebase-Init, Fixture-Plan 144 Dokumente,
+  Kader 1161 Spieler aus `data-cl2627.js` (Positions-Overrides 89/120
+  wirksam), API-Call `league=2&season=2026` (234 Spiele, 90 Quali
+  verworfen), Listen-Guard ok, erwartungsgemaess 0 Kandidaten, kein
+  Punkte-Write, Audit-Log geschrieben. Checklisten-Punkt 4 erledigt –
+  Secrets, Kaderdatei und API-Zugang fuer die CL sind damit verifiziert.
+- Firestore-Rules zuletzt am 06.09. deployt (Run #14, gruen).
+- `npm test` (alle Suiten) gruen.
+
+Zwei Optimierungen aus dem Check (PR vom 07.09.):
+
+1. **`AUTO_POINTS_FROM` von 18:00 auf 17:30 CH vorgezogen.** Der Cron
+   startet um 17:02, aber erst ab `AUTO_POINTS_FROM` darf ein Scheduled
+   Run Firestore lesen und auf das Live-Fenster (18:15) warten. Bisher
+   haette erst der Takt von 18:02 den Concurrency-Slot halten koennen –
+   43 Minuten vor dem Anpfiff. Jetzt tut das schon der Takt von 17:32:
+   75 Minuten Puffer gegen verspaetete oder ausgelassene GitHub-Takte.
+   Nicht frueher, weil die Session eines Runs spaetestens 350 min nach
+   Start endet: ab 17:32 reicht sie bis 23:22 CH und traegt so auch die
+   21:00-Spiele ueber den Abpfiff (ca. 22:50–22:55) hinaus.
+2. **Tick-Resilienz.** Ein API-/Firestore-Fehler, der alle Retries
+   ueberdauert, beendete bisher den ganzen Scheduled Run (Exit 2) – mitten
+   im Spiel, und das Live-Scoring hing dann am naechsten Cron-Takt. Jetzt
+   wird der Tick geloggt (`Live-Tick N/520 fehlgeschlagen (k/5 in Folge)`)
+   und nach 30 s der naechste versucht; erst 5 Fehler in Folge beenden den
+   Run sichtbar rot. `force_run`- und Push-Runs brechen weiterhin sofort ab.
+
+#### Was am 08.09. im Tab Actions zu sehen ist (Zeiten CH)
+
+| Zeit | Erwartung |
+| --- | --- |
+| 17:02, 17:07, … 17:27 | Scheduled Runs, je ~15 s, Log `Auto-Punkte-Phase ist nicht aktiv` (vor 17:30). |
+| ab 17:32 | Der erste Run liest den Spielplan, findet `Kandidaten in diesem Tick: 0`, loggt `Naechstes Live-Fenster beginnt um …16:15:00.000Z; warte …` und bleibt **in progress**. |
+| 18:15 | Derselbe Run: die 18:45-Spiele werden Kandidaten (`Live-Tick 1/520`), Startelfen sobald publiziert – Punkte fuer die Startaufstellung erscheinen damit schon VOR dem Anpfiff. |
+| 18:45 – ca. 23:00 | Live-Ticks alle ~30 s; jede Punkteaenderung erhoeht `pointsVersion`, offene Browser laden ueber den Meta-Listener nach. Um 20:30 kommen die 21:00-Spiele dazu. |
+| laufend | Hinter dem aktiven Run steht genau EIN Run als **Queued/Pending**; jeder weitere Cron-Takt ersetzt ihn. Die vielen **cancelled** Runs („Canceling since a higher priority waiting request … exists") sind normal und kein Fehler. |
+| ca. 23:22 | Session-Max erreicht (350 min ab 17:32); der wartende Run uebernimmt innerhalb ~1 min und faehrt den Final-Recheck (bis 4 h nach Anpfiff, fuer die 21:00-Spiele also bis 01:00). |
+| 09./10.09. | Dasselbe Muster; Cron-Fenster jeweils 17:02–01:59. |
+
+Manuelle Eingriffe an einem Spieltag: ein `Run workflow` landet in derselben
+Concurrency-Gruppe und startet erst, wenn der laufende Monitor-Run endet –
+er ersetzt dabei den wartenden Cron-Run. Waehrend ein Live-Run laeuft, also
+nichts manuell starten. Laeuft nichts mehr (kein Run „in progress"), startet
+`force_run` sofort und zieht offene Spiele nach.
 
 ### Befund vom 29.08.2026 (Dry-Run, `tournament_key=cl2627`)
 
@@ -68,10 +132,9 @@ Meta app_meta/turnier_cl2627 aktualisiert (fixturesVersion erhöht).
 Damit sind Punkt 1 und 2 der Checkliste unten erfuellt. Venue-IDs liefert die
 API fuer die Saison (noch) nicht (`0 eindeutige Venue-IDs`) – Stadionname/
 -bild fehlen deshalb vorerst in den Spiel-Details, das ist rein kosmetisch.
-**Noch von Hand pruefen:** die Anstosszeiten des 08.09. in der App
-(Startseite „Aktuelle Spiele" bzw. Analyse → Spiele): beginnt das erste
-Spiel um 18:45, passt `DREAMTEAM_START`; beginnt der Abend erst um 21:00,
-schliesst die Abgabe lediglich 2¼ h frueher (siehe unten).
+**Anstosszeiten geprueft (Dry-Run #131 vom 07.09.2026):** Spieltag 1 liegt
+auf drei Terminen (08.–10.09.) mit Anstoss 18:45 und 21:00 – das erste
+Spiel beginnt um 18:45, `DREAMTEAM_START` passt.
 
 Der Abschnitt darunter beschreibt den Zwischenstand vor der Kalender-
 Publikation und bleibt als Referenz fuer die naechste Saison stehen.
@@ -160,10 +223,8 @@ steht dreifach (bewusst, mit Tests dagegen): `tournament-config.js`
 `index.html` (`DOMAIN_START`), `firestore.rules`
 (`isBeforeClTeamDeadline`, 1788885900000 ms = 16:45 UTC).
 
-**Nach der Kalender-Publikation pruefen:** beginnt der 08.09. wider
-Erwarten erst um 21:00, schliesst die Abgabe lediglich 2¼ h zu frueh –
-harmlos, kann aber bei Bedarf auf die echte Zeit angehoben werden
-(alle drei Stellen + `npm test`, Rules deployen).
+**Geprueft am 07.09.2026:** der 08.09. beginnt tatsaechlich um 18:45
+(Dry-Run #131) – die Deadline passt, nichts anzuheben.
 
 ### Startseite: Live-Ansicht der Spiele (Browser-Seite)
 
@@ -191,12 +252,14 @@ gruen gelaufen sein (siehe „Offener Punkt" oben).
    29.08.2026 erledigt) – dt.alae.app zeigt die CL, die WM bleibt als
    Archiv im Profil-Dropdown erreichbar.
 4. Ein manueller `Auto Punkte-Upload` mit `force_run` laeuft sauber durch
-   (Guard, API-Call, Firestore-Write, Meta-Bump).
+   (Guard, API-Call, Firestore-Write, Meta-Bump) – **erledigt 07.09.2026,
+   Run #583** (vor dem ersten Spiel erwartungsgemaess ohne Punkte-Write,
+   siehe Betriebscheck oben).
 5. Die Firestore-Rules sind deployt (`Deploy Firestore Rules`) – auch
    die neue 18:45-Deadline (Push auf `main` mit geaenderter
    `firestore.rules` deployt automatisch).
-6. Anstosszeiten des 08.09. gegen `DREAMTEAM_START` pruefen (siehe
-   oben).
+6. Anstosszeiten des 08.09. gegen `DREAMTEAM_START` pruefen – **erledigt
+   07.09.2026** (18:45/21:00, Dry-Run #131).
 
 ---
 
@@ -274,7 +337,7 @@ Script-Start. Danach passiert im Script:
    `APP_CONFIG.serverTournamentKey` – aktuell `cl2627`).
 2. Guard pruefen: ohne `FORCE_RUN` arbeitet das Script nur innerhalb von
    `AUTO_POINTS_FROM`/`AUTO_POINTS_UNTIL` des Turniers (CL 2026/27:
-   `2026-09-08T18:00:00+02:00` bis `2027-06-06T23:59:00+02:00`).
+   `2026-09-08T17:30:00+02:00` bis `2027-06-06T23:59:00+02:00`).
 3. Firebase Admin initialisieren.
 4. `Live-Tick 1/520` loggen (oder mehr, falls hoeher konfiguriert).
 5. Spielplan beim ersten Tick aus der Fixtures-Collection des Turniers
@@ -544,6 +607,11 @@ Typische Log-Bedeutung:
 - `Tick-Budget ... ausgeschoepft`:
   ein Run endete trotz offenem/live Spiel; dann muessen Tick-Anzahl,
   Tick-Abstand oder Session-Max erhoeht werden.
+- `Live-Tick N/520 fehlgeschlagen (k/5 in Folge)`:
+  ein API-/Firestore-Fehler hat alle Retries ueberdauert; die Session
+  laeuft weiter und versucht nach 30 s den naechsten Tick. Erst 5 Fehler
+  in Folge beenden den Run mit Exit 2 (rot) – dann Key, Quota und
+  Firestore pruefen.
 - `0 Spieler-Dokumente geschrieben ... unveraendert uebersprungen`:
   Daten waren identisch; dann steigt `pointsVersion` nicht.
 - `Meta-Dokument ... aktualisiert`:

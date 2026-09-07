@@ -438,6 +438,13 @@ Punkte-/Fixture-Dokumente werden übersprungen, damit `pointsVersion` und
 API-Football-Requests werden bei transienten Netzwerk-/HTTP-Fehlern
 standardmässig bis zu dreimal versucht. Damit bricht ein Live-Lauf nicht
 wegen eines einzelnen 429/5xx oder kurzen Netzwerkfehlers komplett ab.
+Überdauert ein Fehler trotzdem alle Retries, beendet das einen Scheduled
+Run nicht mehr mitten im Spiel: der fehlgeschlagene Tick wird geloggt (und
+im Tick-Audit festgehalten), nach dem normalen Tick-Abstand folgt der
+nächste Versuch. Erst fünf Fehler in Folge (Default, siehe Tabelle unten)
+beenden den Run sichtbar mit Exit 2 – Dauerfehler wie ein ungültiger Key
+oder aufgebrauchte Quota bleiben also nicht unbemerkt. Manuelle
+`force_run`- und Push-Läufe brechen weiterhin beim ersten Fehler ab.
 
 `pointsUpdatedAt` und `pointsVersion` im Meta-Dokument werden nur
 nach einem erfolgreichen Schreibvorgang erhöht. Die "Zuletzt
@@ -471,7 +478,7 @@ auseinanderlaufen:
 
 | Wert                       | Default                            | Quelle                                                          |
 | -------------------------- | ---------------------------------- | --------------------------------------------------------------- |
-| Turnier                    | `wm2026`                           | `tournament-config.js`                                          |
+| Turnier                    | Kalender-Default (`serverTournamentKey`, seit 27.08.2026 `cl2627`) | `tournament-config.js`                        |
 | Auto-Punkte Startfenster   | `-30` Minuten                      | `scripts/auto-points-upload.js`                                 |
 | Auto-Punkte normales Ende  | `150` Minuten                      | `scripts/auto-points-upload.js`                                 |
 | Final-Recheck              | `240` Minuten                      | `scripts/auto-points-upload.js`                                 |
@@ -481,6 +488,7 @@ auseinanderlaufen:
 | Session-Max                | `350` Minuten                      | `scripts/auto-points-upload.js`                                 |
 | API-Retry-Versuche         | `3`                                | `scripts/auto-points-upload.js`                                 |
 | API-Retry-Basis-Backoff    | `1000` ms                          | `scripts/auto-points-upload.js`                                 |
+| Tick-Fehler in Folge (max.)| `5`                                | `scripts/auto-points-upload.js`                                 |
 
 In `Settings → Secrets and variables → Actions → Variables` sollten deshalb
 keine `POINTS_*`-Variables und kein `TOURNAMENT_KEY` gesetzt sein.

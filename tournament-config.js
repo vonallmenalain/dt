@@ -509,7 +509,18 @@ const APP_CONFIG = (() => {
       DREAMTEAM_START: "2026-09-08T18:45:00+02:00",
       // Aktives Zeitfenster für den Auto-Punkte-Upload: vom ersten
       // Ligaphasen-Spieltag bis zum Tag nach dem Final (05.06.2027).
-      AUTO_POINTS_FROM: "2026-09-08T18:00:00+02:00",
+      //
+      // Start bewusst 17:30 statt 18:00: Das Cron-Fenster des Punkte-
+      // Workflows beginnt am Spieltag um 17:02 Schweizer Zeit, aber erst ab
+      // AUTO_POINTS_FROM darf ein Scheduled Run Firestore lesen und auf das
+      // Live-Fenster warten (18:15 = 30 min vor dem 18:45-Anpfiff). Mit
+      // 17:30 hält bereits der Lauf von 17:32 den Concurrency-Slot – 75
+      // Minuten Puffer gegen verspätete oder ausgelassene GitHub-Cron-Takte
+      // vor der 1. Spielminute (mit 18:00 waren es 43). Nicht früher: die
+      // Monitor-Session eines Runs endet spätestens 350 min nach seinem
+      // Start (GitHub-Job-Limit 6 h); ab 17:32 reicht sie bis 23:22 und
+      // trägt so auch die 21:00-Spiele über den Abpfiff hinaus.
+      AUTO_POINTS_FROM: "2026-09-08T17:30:00+02:00",
       AUTO_POINTS_UNTIL: "2027-06-06T23:59:00+02:00",
 
       storagePrefix: "dreamteam_cl2627",
