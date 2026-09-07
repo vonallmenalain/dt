@@ -3,7 +3,8 @@
 const assert = require('node:assert/strict');
 const {
   buildEmptyPlayerObject,
-  processFixtureDetail
+  processFixtureDetail,
+  shouldContinueAfterTickFailure
 } = require('./auto-points-upload.js');
 
 function player(id, name, position = 'MIDFIELDER') {
@@ -88,5 +89,35 @@ assert.equal(allPlayerPoints['3'].Spiel_999001, undefined);
 for (let id = 4; id <= 12; id++) {
   assert.equal(allPlayerPoints[String(id)].Spiel_999001, undefined);
 }
+
+/* ── Tick-Resilienz der Monitor-Session ──────────────────────────────────────
+ * Ein einzelner fehlgeschlagener Live-Tick (API-Aussetzer nach allen Retries)
+ * darf einen Scheduled Run nicht mehr mitten im Spiel beenden; Dauerfehler
+ * muessen nach dem Limit weiterhin sichtbar abbrechen, One-Shot-Runs sofort. */
+const monitorOpts = {
+  forceRun: false,
+  oneShotRun: false,
+  maxConsecutiveTickFailures: 5,
+  liveTickIntervalSec: 30,
+  sessionDeadlineMs: Date.now() + 60 * 60_000
+};
+assert.equal(shouldContinueAfterTickFailure(1, monitorOpts), true,
+  'erster Fehler in einer Monitor-Session: Session laeuft weiter');
+assert.equal(shouldContinueAfterTickFailure(4, monitorOpts), true,
+  'unter dem Limit: Session laeuft weiter');
+assert.equal(shouldContinueAfterTickFailure(5, monitorOpts), false,
+  'Limit erreicht: Run bricht ab (Exit 2)');
+assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, maxConsecutiveTickFailures: undefined }), true,
+  'ohne explizites Limit gilt der Default (5)');
+assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, maxConsecutiveTickFailures: 0 }), false,
+  'Limit 0 = bisheriges Verhalten (jeder Fehler beendet den Run)');
+assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, forceRun: true }), false,
+  'FORCE_RUN bricht beim ersten Fehler ab');
+assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, oneShotRun: true }), false,
+  'Push-/One-Shot-Run bricht beim ersten Fehler ab');
+assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, sessionDeadlineMs: Date.now() + 10_000 }), false,
+  'keine Restlaufzeit fuer einen weiteren Tick: Run bricht ab');
+assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, sessionDeadlineMs: undefined }), true,
+  'ohne Session-Deadline (unbegrenzt) laeuft die Session weiter');
 
 console.log('auto-points-upload regression tests passed');
