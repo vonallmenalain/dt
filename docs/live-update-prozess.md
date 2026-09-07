@@ -161,7 +161,11 @@ Pruefen, ohne etwas zu schreiben:
 
 Actions → `Auto Spielplan-Sync` → Run workflow → `dry_run` = an. Der
 Spielplan-Report im Log zeigt je Runde Termine, Anstosszeiten sowie
-Paarungs- und Venue-Abdeckung.
+Paarungs- und Venue-Abdeckung. Der **Termin-Report** darunter listet je
+kommendem Anstoss-Tag Anzahl und Anstosszeiten, fuer die naechsten sieben
+Tage mit allen Paarungen – er steht in JEDEM Lauf im Log, auch im
+taeglichen Sync ohne Dry-Run. Vor einem Spieltag beantwortet er „wie viele
+Spiele laufen morgen wann?" ohne Firestore-Konsole.
 
 Falls der Kalender wider Erwarten nicht rechtzeitig kommt, gibt es den
 bewussten Einmal-Ausweg `allow_placeholder_schedule` – dann liegen die

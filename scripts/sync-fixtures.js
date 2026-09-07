@@ -328,6 +328,77 @@ function summarizeFixturePlan(fixtures) {
     });
 }
 
+/* Kalenderdatum (YYYY-MM-DD) eines Zeitpunkts in der gegebenen Zeitzone. */
+function localIsoDate(ms, timeZone) {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: timeZone || 'Europe/Zurich',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date(ms));
+  } catch (_) {
+    return new Date(ms).toISOString().slice(0, 10);
+  }
+}
+
+/* Termin-Report: je kommendem Anstoss-Tag Anzahl Spiele und Anstosszeiten,
+ * fuer die naechsten `detailDays` Tage zusaetzlich die Paarungen. Beantwortet
+ * vor einem Spieltag die Betriebsfrage „wie viele Spiele laufen morgen wann?"
+ * direkt aus dem Log – ohne Firestore-Konsole. Datum und Uhrzeit stammen aus
+ * `fixture.date`, das die API in der abgefragten Zeitzone liefert
+ * (Europe/Zurich, siehe buildFixturesUrl); „heute" wird in derselben Zeitzone
+ * bestimmt. Vergangene Termine bleiben weg. */
+function summarizeKickoffDates(fixtures, opts = {}) {
+  const nowMs = Number.isFinite(opts.nowMs) ? opts.nowMs : Date.now();
+  const detailDays = Number.isFinite(opts.detailDays) ? opts.detailDays : 7;
+  const timeZone = opts.timeZone || 'Europe/Zurich';
+  const today = localIsoDate(nowMs, timeZone);
+  const detailUntil = localIsoDate(nowMs + detailDays * 86_400_000, timeZone);
+
+  const byDate = new Map();
+  (fixtures || []).forEach(fixture => {
+    const iso = cleanText(fixture && fixture.fixture && fixture.fixture.date);
+    if (iso.length < 16) return;
+    const date = iso.slice(0, 10);
+    if (date < today) return;
+    const time = iso.slice(11, 16);
+    let entry = byDate.get(date);
+    if (!entry) {
+      entry = { count: 0, times: new Map(), games: [] };
+      byDate.set(date, entry);
+    }
+    entry.count++;
+    entry.times.set(time, (entry.times.get(time) || 0) + 1);
+    const teams = (fixture && fixture.teams) || {};
+    entry.games.push({
+      time,
+      home: cleanText(teams.home && teams.home.name) || 'TBD',
+      away: cleanText(teams.away && teams.away.name) || 'TBD',
+      round: cleanText(fixture && fixture.league && fixture.league.round),
+      status: getFixtureStatusShort(fixture) || ''
+    });
+  });
+
+  const lines = [];
+  Array.from(byDate.keys()).sort().forEach(date => {
+    const entry = byDate.get(date);
+    const times = Array.from(entry.times.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([time, count]) => `${time} ×${count}`)
+      .join(', ');
+    lines.push(`  • ${date}: ${entry.count} Spiel(e) – Anstoss ${times}`);
+    if (date > detailUntil) return;
+    entry.games
+      .sort((a, b) => a.time.localeCompare(b.time) || a.home.localeCompare(b.home, 'de'))
+      .forEach(game => {
+        const meta = [game.round, game.status].filter(Boolean).join(', ');
+        lines.push(`      ${game.time}  ${game.home} – ${game.away}${meta ? ` (${meta})` : ''}`);
+      });
+  });
+  return lines;
+}
+
 /* Bestandsaufnahme der bereits gespeicherten Fixture-Dokumente. Liefert die
  * Doc-IDs getrennt nach „gehört zum Turnier" und „gehört nicht dazu", damit
  * der Rückschritt-Guard nur In-Scope-Dokumente vergleicht und der Purge
@@ -734,6 +805,15 @@ async function runSync(db, tournament, opts) {
     summarizeFixturePlan(allFixtures).forEach(line => console.log(`[sync-fixtures] ${line}`));
   }
 
+  // Termin-Report in jedem Lauf: kommende Anstoss-Tage mit Anzahl und Zeiten,
+  // fuer die naechsten sieben Tage mit Paarungen. So beantwortet schon das Log
+  // des taeglichen Syncs vor einem Spieltag, wie viele Spiele wann laufen.
+  const kickoffLines = summarizeKickoffDates(allFixtures, { timeZone: tournament.timezone });
+  if (kickoffLines.length > 0) {
+    logInfo('Termin-Report (kommende Anstoss-Tage; Paarungen fuer die naechsten 7 Tage):');
+    kickoffLines.forEach(line => console.log(`[sync-fixtures] ${line}`));
+  }
+
   const existingScope = await readExistingFixtureScope(db, tournament);
   await assertFixtureSyncIsSafe(db, tournament, allFixtures, existingScope.inScopeIds.length, opts);
 
@@ -928,5 +1008,6 @@ module.exports = {
   assertFixtureSyncIsSafe,
   countLeaguePhaseKickoffDates,
   summarizeFixturePlan,
+  summarizeKickoffDates,
   splitFixturesByTournamentScope
 };
