@@ -3,6 +3,9 @@
 const assert = require('node:assert/strict');
 const {
   buildEmptyPlayerObject,
+  compareGoalEventSets,
+  extractApiErrors,
+  isRetriableApiError,
   processFixtureDetail,
   shouldContinueAfterTickFailure
 } = require('./auto-points-upload.js');
@@ -119,5 +122,37 @@ assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, sessionDeadline
   'keine Restlaufzeit fuer einen weiteren Tick: Run bricht ab');
 assert.equal(shouldContinueAfterTickFailure(1, { ...monitorOpts, sessionDeadlineMs: undefined }), true,
   'ohne Session-Deadline (unbegrenzt) laeuft die Session weiter');
+
+/* ── API-Fehler im 200er-Body (Kontingent, Parameter) ────────────────────────
+ * api-football meldet ein aufgebrauchtes Tageskontingent mit HTTP 200, leerer
+ * response und errors = { requests: "..." }; ohne Fehler ist errors = []. */
+assert.deepEqual(extractApiErrors({ errors: [], response: [] }), []);
+assert.deepEqual(extractApiErrors({ response: [] }), []);
+assert.deepEqual(extractApiErrors(null), []);
+assert.deepEqual(
+  extractApiErrors({ errors: { requests: 'You have reached the request limit for the day' }, response: [] }),
+  ['requests: You have reached the request limit for the day']
+);
+assert.deepEqual(extractApiErrors({ errors: ['kaputt'] }), ['kaputt']);
+assert.equal(isRetriableApiError(['requests: You have reached the request limit for the day']), false,
+  'Tageskontingent aufgebraucht: kein Retry');
+assert.equal(isRetriableApiError(['rateLimit: Too many requests. Your rate limit is 300 requests per minute.']), true,
+  'Minuten-Limit: Retry mit Backoff');
+assert.equal(isRetriableApiError([]), false);
+
+/* ── Event-Diagnose: Batch-Events gegen separaten Event-Call ────────────────── */
+const goal = (detail = 'Normal Goal') => ({ type: 'Goal', detail });
+assert.deepEqual(
+  compareGoalEventSets(4711, [goal(), goal('Own Goal'), goal('Missed Penalty'), { type: 'Card', detail: 'Yellow Card' }],
+    [goal(), goal('Own Goal')]),
+  { fixtureId: '4711', batchHasEvents: true, batchGoals: 2, separateGoals: 2, consistent: true },
+  'verschossener Elfmeter und Karten zaehlen nicht als Tor'
+);
+assert.equal(compareGoalEventSets(1, [goal()], [goal(), goal()]).consistent, false,
+  'Batch hinkt hinterher: nicht deckungsgleich');
+assert.equal(compareGoalEventSets(1, undefined, []).consistent, false,
+  'Batch ohne events-Array: nicht deckungsgleich, auch bei 0 Toren');
+assert.equal(compareGoalEventSets(1, [], []).consistent, true,
+  'leeres events-Array bei 0 Toren ist deckungsgleich');
 
 console.log('auto-points-upload regression tests passed');
