@@ -40,28 +40,22 @@ einzelnen Prompt wiederholen, und es soll nicht jedes Mal nachgefragt werden:
 2. Commit mit aussagekräftiger Nachricht, Branch pushen.
 3. Pull Request gegen den Default-Branch öffnen.
 4. CI abwarten. Rote Checks selbst analysieren und nachpushen, bis sie grün sind.
-5. Den PR selbst mergen (Squash-Merge), danach den Branch löschen.
+5. Den PR mergen (Squash-Merge), danach den Branch löschen.
 6. Am Schluss PR-Link, Merge-Status und eine kurze Zusammenfassung nennen.
 
-## Ausnahmen: PR öffnen, aber NICHT mergen – zuerst bei mir nachfragen
+Das gilt **ausnahmslos**, auch für Deploy-, CI- und Regel-Konfiguration wie
+`.github/workflows/**`, `netlify.toml`, `firebase.json`, `.firebaserc` oder
+`firestore.rules`. Nicht gemergt wird nur, wenn ich es im Prompt ausdrücklich
+sage („kein PR", „nicht mergen", „nur Vorschlag") – oder wenn es gar keine
+Code-Änderung gibt, weil ich bloss eine Frage gestellt habe.
 
-- Der PR ändert Deploy-, CI- oder Secret-/Regel-Konfiguration, z. B.
-  `.github/workflows/**`, `netlify.toml`, `firebase.json`, `.firebaserc`,
-  `firestore.rules`, `*.tf`. Solche Merges werden sofort wirksam und gehen an
-  einer gesperrten Netlify-Veröffentlichung vorbei.
-- Änderungen, die sich nicht trivial rückgängig machen lassen
-  (Datenmigrationen, Löschungen).
-- Die CI ist nach zwei eigenen Korrekturversuchen immer noch rot.
-- Ich habe im Prompt „kein PR", „nicht mergen", „nur Vorschlag" o. Ä.
-  geschrieben – oder es ist eine reine Frage/Analyse ohne Code-Änderung.
-
-## Kontext
+## Warum das so gewollt ist
 
 Bei meinen Netlify-Projekten ist Auto Publishing gesperrt
 („Stop auto publishing"). Ein Merge auf den Default-Branch baut also nur einen
 Deploy, veröffentlicht ihn aber nicht live – das Publishen bleibt ein bewusster
-manueller Schritt. Deshalb ist der Merge unkritisch, ausser bei den oben
-genannten Ausnahmen.
+manueller Schritt. Dass einzelne Merges (Firebase-Rules, Cron-Workflows) an
+Netlify vorbei sofort wirken, ist mir bekannt und ändert die Regel nicht.
 MARKDOWN
 
 exit 0
