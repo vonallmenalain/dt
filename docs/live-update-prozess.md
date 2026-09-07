@@ -95,6 +95,63 @@ er ersetzt dabei den wartenden Cron-Run. Waehrend ein Live-Run laeuft, also
 nichts manuell starten. Laeuft nichts mehr (kein Run „in progress"), startet
 `force_run` sofort und zieht offene Spiele nach.
 
+### API-Kontingent (api-football: 7500 Requests pro Tag)
+
+Was ein Live-Tick kostet, steht im Code (`runFullPointsUpload`,
+`fetchFixtureDetailsByIds`):
+
+```text
+Requests pro Tick = 1 (Fixture-Liste)
+                  + ⌈Detail-Kandidaten / 20⌉ (Detail-Batch)
+                  + 1 je laufendem oder beendetem Spiel im Tick (Event-Call)
+```
+
+Detail-Kandidaten sind alle Spiele im Fenster: ab 30 min vor Anpfiff
+(Startelf), laufend, und beendet bis 4 h nach Anpfiff (Final-Recheck). Wird
+ein Spiel im Tick neu final, rechnet das Skript ALLE bisher beendeten Spiele
+der Saison neu (volle Neuberechnung); dieser Tick kostet dann
+1 + ⌈(beendet + laufend) / 20⌉ + (beendet + laufend) Requests, Ende Januar
+also rund 150.
+
+Der Tick-Abstand ist 30 s plus Laufzeit des Ticks; die Abschaetzung unten
+rechnet konservativ mit 2 Ticks pro Minute. Das Tageskontingent setzt
+api-football laut API-Doku um 00:00 UTC zurueck (02:00 CH im Sommer, 01:00
+im Winter); ein CL-Abend inklusive Final-Recheck liegt komplett vor dem Reset.
+
+| Abend | Spiele | Requests (obere Abschaetzung) |
+| --- | --- | --- |
+| Spieltag 1 (08.–10.09.) | 2 um 18:45 + 4 um 21:00 | ca. 3200 |
+| Spieltag 2 (13./14.10.) | 2 + 7 | ca. 4200 |
+| Spieltag 7 (19./20.01.) | 2 + 7, ueber 100 Spiele bereits beendet | ca. 5000 |
+| Spieltag 8 (27.01.) | 18 gleichzeitig um 21:00 | ca. 5000–7200 |
+
+Lesart: Spieltag 1 bis 7 passen mit Reserve in 7500. **Spieltag 8 ist zu
+knapp**: 18 Event-Calls pro Tick (rund 20 Requests alle 30–40 s ueber zwei
+Stunden) plus die vollen Neuberechnungen beim Abpfiff, bei denen jedes der
+dann 144 beendeten Spiele einen Event-Call bekommt. Retries nach
+API-Fehlern zaehlen zusaetzlich. Ist das Kontingent aufgebraucht, liefert
+api-football HTTP 200 mit leerer Antwort und `errors.requests`; der Tick
+bricht mit „API meldet Fehler" ab, der Run endet nach 5 Fehlern in Folge
+rot, und jeder weitere Cron-Run scheitert bis 00:00 UTC genauso. Punkte
+gehen nicht verloren (Catch-up beim naechsten Lauf mit Kontingent), aber der
+Abend waere nicht live.
+
+Sichtbarkeit seit 07.09.: jeder Tick loggt `API-Requests in diesem Tick: N
+(…); in diesem Lauf bisher M. Kontingent laut API: R von 7500 Tages-Requests
+uebrig.` Unter 500 verbleibenden Requests warnt jeder Tick. Die Zahl kommt
+aus den Antwort-Headern von api-football (`x-ratelimit-requests-remaining`).
+
+Geplante Entlastung vor Spieltag 8 (bewusst NICHT am Vorabend von Spieltag 1
+umgestellt): Die Batch-Antwort `fixtures?ids=` enthaelt laut API-Doku bereits
+`events`; der separate Event-Call pro Spiel waere dann nur noch als Fallback
+noetig, wenn die Batch-Events nicht alle Tore abdecken. Damit kostete ein
+Tick mit 18 Spielen 2 statt 20 Requests und ein Abpfiff-Tick 9 statt 150, der
+18er-Abend laege bei rund 800 Requests. Ob die Batch-Events wirklich
+vollstaendig sind, zeigt ab Spieltag 1 die Zeile `Event-Diagnose: N
+Fixture(s), Batch-Antwort deckungsgleich bei K` in jedem Tick-Log. Steht dort
+ueber die ersten Spieltage durchgehend „deckungsgleich", ist die Umstellung
+sicher.
+
 ### Befund vom 29.08.2026 (Dry-Run, `tournament_key=cl2627`)
 
 ```text
@@ -550,8 +607,10 @@ API-Football:
   `competitionParam=league`, `competitionId=2`, `season=2026`
   (WM 2026 war `competitionId=1`).
 - Das Kontingent des api-football-Abos reicht. Ein Live-Tick kostet einen
-  Fixture-Listen-Call plus einen Detail-Batch je 20 laufenden Spielen; bei
-  neun Partien an einem Abend sind das zwei Calls pro Tick.
+  Fixture-Listen-Call, einen Detail-Batch je 20 Kandidaten und einen
+  Event-Call je laufendem oder beendetem Spiel im Tick; bei neun Partien an
+  einem Abend sind das bis zu elf Requests pro Tick. Rechnung und
+  Abschaetzung je Spieltag: Abschnitt „API-Kontingent" oben.
 
 Firestore:
 
@@ -616,6 +675,16 @@ Typische Log-Bedeutung:
   laeuft weiter und versucht nach 30 s den naechsten Tick. Erst 5 Fehler
   in Folge beenden den Run mit Exit 2 (rot) – dann Key, Quota und
   Firestore pruefen.
+- `API-Requests in diesem Tick: N (…); in diesem Lauf bisher M. Kontingent
+  laut API: R von 7500 Tages-Requests uebrig.`:
+  Verbrauch pro Tick und Restkontingent, siehe „API-Kontingent". Unter 500
+  warnt der Tick zusaetzlich.
+- `API meldet Fehler: requests: You have reached the request limit for the day`:
+  Tageskontingent aufgebraucht, kein Retry; der Tick scheitert, nach 5
+  Fehlern in Folge endet der Run rot. Weiter geht es erst ab 00:00 UTC.
+- `Event-Diagnose: N Fixture(s), Batch-Antwort deckungsgleich bei K`:
+  Vergleich der Tor-Events aus Batch- und Einzel-Call, Grundlage fuer die
+  geplante Entlastung des Kontingents (siehe „API-Kontingent").
 - `0 Spieler-Dokumente geschrieben ... unveraendert uebersprungen`:
   Daten waren identisch; dann steigt `pointsVersion` nicht.
 - `Meta-Dokument ... aktualisiert`:

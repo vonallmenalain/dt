@@ -174,6 +174,10 @@ const MIN_MONITOR_AFTER_WAKE_BUFFER_MIN = 10;
 const DEFAULT_API_RETRY_ATTEMPTS = 3;
 const DEFAULT_API_RETRY_BASE_DELAY_MS = 1000;
 const DEFAULT_MAX_CONSECUTIVE_TICK_FAILURES = 5;
+// Unterhalb dieser Restmenge Tages-Requests (laut API-Antwort-Header) warnt
+// jeder Tick laut – bei 7500/Tag entspricht das rund einer Stunde mit 18
+// parallelen Spielen. Siehe docs/live-update-prozess.md, „API-Kontingent".
+const API_QUOTA_WARN_REMAINING = 500;
 const DEFAULT_FIXTURE_PLAN_REFRESH_EVERY_TICKS = 20;
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 const AUTO_POINTS_LOG_COLLECTION = 'Admin Auto Points Logs WM 2026';
@@ -396,7 +400,81 @@ function createApiCallCounter() {
   return { fixtureList: 0, detailBatches: 0, total: 0 };
 }
 
+/* Requests dieses Prozesses insgesamt (alle Ticks, inkl. Retries) sowie das
+ * Tageskontingent, das api-football mit jeder Antwort im Header meldet
+ * (x-ratelimit-requests-limit / -remaining). Beides landet nach jedem Tick im
+ * Log, damit man am Spieltag im Actions-Log sieht, wie viel vom Kontingent
+ * noch da ist – siehe docs/live-update-prozess.md, „API-Kontingent". */
+let runApiCallTotal = 0;
+let lastApiQuota = null;
+
+function headerNumber(headers, name) {
+  if (!headers || typeof headers.get !== 'function') return null;
+  const raw = headers.get(name);
+  if (raw == null || String(raw).trim() === '') return null;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+function rememberApiQuotaFromResponse(response) {
+  const headers = response && response.headers;
+  const remaining = headerNumber(headers, 'x-ratelimit-requests-remaining');
+  const limit = headerNumber(headers, 'x-ratelimit-requests-limit');
+  if (remaining == null && limit == null) return;
+  lastApiQuota = { remaining, limit, atMs: Date.now() };
+}
+
+function formatApiQuota(quota) {
+  if (!quota) return '';
+  const remaining = quota.remaining == null ? '?' : quota.remaining;
+  const limit = quota.limit == null ? '?' : quota.limit;
+  return `${remaining} von ${limit} Tages-Requests uebrig`;
+}
+
+function logApiUsage(audit) {
+  const calls = (audit && audit.apiCalls) || createApiCallCounter();
+  logInfo(
+    `API-Requests in diesem Tick: ${calls.total} ` +
+    `(Fixture-Liste ${calls.fixtureList}, Detail-/Event-Calls ${calls.detailBatches}); ` +
+    `in diesem Lauf bisher ${runApiCallTotal}.` +
+    (lastApiQuota ? ` Kontingent laut API: ${formatApiQuota(lastApiQuota)}.` : '')
+  );
+  if (lastApiQuota && lastApiQuota.remaining != null && lastApiQuota.remaining < API_QUOTA_WARN_REMAINING) {
+    logWarn(
+      `API-Tageskontingent fast aufgebraucht: ${formatApiQuota(lastApiQuota)}. ` +
+      `Bei 0 liefert api-football leere Antworten mit Fehlertext – das Live-Scoring ` +
+      `stuende dann bis zum Reset um 00:00 UTC still.`
+    );
+  }
+}
+
+/* api-football antwortet bei Kontingent-/Parameterfehlern mit HTTP 200, leerer
+ * `response` und gefuelltem `errors`-Feld (Array wenn leer, Objekt mit
+ * Meldungen wenn nicht). Ohne diese Pruefung saehe das wie „0 Fixtures" aus. */
+function extractApiErrors(data) {
+  const errors = data && data.errors;
+  if (!errors) return [];
+  if (Array.isArray(errors)) {
+    return errors
+      .map(entry => (typeof entry === 'string' ? entry : JSON.stringify(entry)))
+      .filter(Boolean);
+  }
+  if (typeof errors === 'object') {
+    return Object.entries(errors).map(([key, value]) =>
+      `${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`);
+  }
+  if (typeof errors === 'string') return [errors];
+  return [];
+}
+
+/* Nur das Minuten-Limit lohnt einen erneuten Versuch; ein aufgebrauchtes
+ * Tageskontingent oder ein Parameterfehler aendert sich durch Warten nicht. */
+function isRetriableApiError(apiErrors) {
+  return (apiErrors || []).some(message => /rate ?limit|too many requests/i.test(String(message)));
+}
+
 function incrementApiCallCounter(opts, key) {
+  runApiCallTotal += 1;
   const audit = opts && opts.audit;
   if (!audit || !audit.apiCalls) return;
   if (key === 'fixtureList') {
@@ -458,11 +536,22 @@ async function fetchApiJson(url, requestOptions, label, opts = {}, counterKey = 
     }
 
     if (response) {
+      rememberApiQuotaFromResponse(response);
       if (response.ok) {
+        let data = null;
+        let parseError = null;
         try {
-          return await response.json();
+          data = await response.json();
         } catch (err) {
-          lastError = new Error(`${label}: Antwort liess sich nicht als JSON parsen: ${err.message}`);
+          parseError = err;
+        }
+        if (parseError) {
+          lastError = new Error(`${label}: Antwort liess sich nicht als JSON parsen: ${parseError.message}`);
+        } else {
+          const apiErrors = extractApiErrors(data);
+          if (apiErrors.length === 0) return data;
+          lastError = new Error(`${label}: API meldet Fehler: ${apiErrors.join('; ')}`);
+          if (!isRetriableApiError(apiErrors)) throw lastError;
         }
       } else {
         const suffix = response.statusText ? ` ${response.statusText}` : '';
@@ -2545,6 +2634,46 @@ function shouldFetchFixtureGoalEvents(game) {
   return isScoringFixture(game) || getFixtureGoalTotal(game) > 0;
 }
 
+/* Vergleicht die Events aus der Batch-Antwort (`fixtures?ids=`) mit dem
+ * separaten Event-Call desselben Spiels: Torereignisse (ohne verschossene
+ * Elfmeter) gezaehlt. Reine Diagnose fuer die Frage, ob der separate Call
+ * pro Spiel und Tick noetig ist – er ist der groesste Posten im
+ * API-Kontingent (siehe docs/live-update-prozess.md, „API-Kontingent"). */
+function countGoalEvents(events) {
+  return (Array.isArray(events) ? events : []).filter(event => {
+    const type = String(event && event.type ? event.type : '').toLowerCase();
+    const detail = String(event && event.detail ? event.detail : '').toLowerCase();
+    return type === 'goal' && !detail.includes('missed');
+  }).length;
+}
+
+function compareGoalEventSets(fixtureId, batchEvents, separateEvents) {
+  const batchHasEvents = Array.isArray(batchEvents);
+  const batchGoals = countGoalEvents(batchEvents);
+  const separateGoals = countGoalEvents(separateEvents);
+  return {
+    fixtureId: fixtureId == null ? '' : String(fixtureId),
+    batchHasEvents,
+    batchGoals,
+    separateGoals,
+    consistent: batchHasEvents && batchGoals === separateGoals
+  };
+}
+
+function logGoalEventDiagnostics(diagnostics) {
+  if (!Array.isArray(diagnostics) || diagnostics.length === 0) return;
+  const inconsistent = diagnostics.filter(entry => !entry.consistent);
+  const detail = inconsistent.length === 0
+    ? ''
+    : `, abweichend bei ${inconsistent.length}: ` + inconsistent
+      .map(entry => `${entry.fixtureId} (Batch ${entry.batchHasEvents ? entry.batchGoals : 'ohne events'} / separat ${entry.separateGoals} Tore)`)
+      .join(', ');
+  logInfo(
+    `Event-Diagnose: ${diagnostics.length} Fixture(s), Batch-Antwort deckungsgleich bei ` +
+    `${diagnostics.length - inconsistent.length}${detail}.`
+  );
+}
+
 async function fetchFixtureGoalEvents(headers, fixtureId, opts = {}) {
   const id = String(fixtureId || '').trim();
   if (!id) return null;
@@ -2657,11 +2786,13 @@ async function fetchFixtureDetailsByIds(headers, fixtureIds, opts = {}) {
     logInfo(`Event-Detail-Calls fuer ${eventCandidates.length} Fixture(s) vorgemerkt.`);
   }
 
+  const eventDiagnostics = [];
   for (let i = 0; i < eventCandidates.length; i++) {
     const fixtureDetail = eventCandidates[i];
     const fixtureId = fixtureDetail && fixtureDetail.fixture && fixtureDetail.fixture.id;
     const events = await fetchFixtureGoalEvents(headers, fixtureId, opts);
     if (Array.isArray(events)) {
+      eventDiagnostics.push(compareGoalEventSets(fixtureId, fixtureDetail.events, events));
       fixtureDetail.events = events;
     }
     if ((i + 1) % 10 === 0 || i === eventCandidates.length - 1) {
@@ -2669,6 +2800,7 @@ async function fetchFixtureDetailsByIds(headers, fixtureIds, opts = {}) {
     }
     if (i < eventCandidates.length - 1) await delay(120);
   }
+  logGoalEventDiagnostics(eventDiagnostics);
 
   return detailsById;
 }
@@ -3111,6 +3243,7 @@ async function runUploadTick(db, tournament, opts, tickIndex, totalTicks) {
       `Scoring-Spiele: ${result.scoringGames}, Live-Spiele: ${result.liveGames}, ` +
       `Spieler-Dokumente geschrieben: ${result.writeSuccess}, geloescht: ${result.deleteSuccess}, ` +
       `Kandidaten jetzt beendet: ${result.candidatesNowFinished}.`);
+    logApiUsage(audit);
 
     return {
       hadCandidates: true,
@@ -3467,6 +3600,9 @@ if (require.main === module) {
 
 module.exports = {
   buildEmptyPlayerObject,
+  compareGoalEventSets,
+  extractApiErrors,
+  isRetriableApiError,
   processFixtureDetail,
   recalculateTotalPoints,
   shouldContinueAfterTickFailure,
