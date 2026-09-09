@@ -295,6 +295,18 @@ haben also das letzte Wort: Rufnamen („Noni Madueke"), Doppelnachnamen im
 Browser-Pfad („Pau Cubarsí") und Namen, bei denen drei Wörter richtig sind
 („Randal Kolo Muani", „Barış Alper Yılmaz").
 
+**Torschützen erben den Kadernamen.** Die Tor-Ereignisse eines Spiels
+kommen aus einer zweiten Quelle: api-football liefert dort den
+Registernamen („Raphael Dias Belloli"), der die Kette oben nie durchläuft.
+In der Detailkarte stand dadurch unter „Torschützen" ein anderer Name als
+auf der Spielerkarte darunter – gleicher Spieler, gleiche Punkte, zwei
+Namen. Lässt sich ein Ereignis einem Spieler aus dem Pool zuordnen (über
+die `player.id`, ersatzweise über den Namen), gewinnt deshalb dessen
+Kadername samt Kürzung und Override; nur ohne Treffer bleibt der Name des
+Anbieters stehen. Zuständig sind `resolveGoalEventPerson` (index.js,
+Detailkarte und Spielkacheln) und `resolveScheduleGoalPerson`
+(spieleranalyse.js, Spielplan). Regressionstest: `npm run test:goal-names`.
+
 **Spieler ohne Stammdaten.** Für einen Teil der gemeldeten Kaderspieler
 (meist Nachwuchs) führt api-football kein Profil: abgekürzter Name, keine
 Nationalität, kein Geburtsdatum. `data-cl2526.js` enthält solche Einträge
@@ -559,6 +571,13 @@ hat einen erlaubten Grund (Partikel, abgekürztes Profil, ausdrücklicher
 Override). Zusätzlich führt er `data.js` in einem vm-Kontext mit Mini-DOM
 aus: die Blöcke dort sind Strings für `document.write`, ein Syntaxfehler
 darin fiele bei einer reinen Textprüfung nicht auf.
+
+`test:goal-names` ist die Klammer zwischen Kader und Tor-Ereignissen: er
+schneidet die Torschützen-Logik aus `index.js` und `spieleranalyse.js`,
+füttert sie mit dem echten cl2627-Pool (Kürzung und Overrides angewendet)
+und einem Tor-Ereignis im Registernamen des Anbieters. Angezeigt werden
+muss der Kadername – „Raphinha", nicht „R. Dias Belloli" –, und für einen
+Spieler ohne Kadereintrag weiterhin der Name des Anbieters.
 
 `test:freeze` ist der **WM-2026-Freeze-Guard**: Punktesystem, Regel-Labels
 und die Captain-Verdopplung (×2) der WM sind eingefroren und dürfen sich
