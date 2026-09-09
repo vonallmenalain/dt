@@ -2440,10 +2440,24 @@
         return candidates.length === 1 ? candidates[0] : null;
     }
 
-    function renderScheduleGoalPerson(name, playerId, teamName, className) {
-        const displayName = formatScheduleGoalEventPersonName(name) || getScheduleGoalEventName(name);
+    // Der Anbieter liefert in den Tor-Ereignissen den Registernamen
+    // ("Raphael Dias Belloli"), waehrend die App ueberall den Kadernamen
+    // zeigt ("Raphinha") – inklusive der Korrekturen aus
+    // name-shortener.js und name-overrides.js. Laesst sich das Ereignis
+    // einem Spieler aus dem Pool zuordnen, gewinnt darum dessen
+    // Kadername; nur ohne Treffer bleibt der Name des Anbieters stehen.
+    function resolveScheduleGoalPerson(name, playerId, teamName) {
+        const eventName = formatScheduleGoalEventPersonName(name) || getScheduleGoalEventName(name);
+        if (!eventName) return { displayName: '', player: null };
+        const player = findScheduleGoalEventPlayer(playerId, eventName, teamName);
+        const poolName = player ? formatScheduleGoalEventPersonName(player.Spielername) : '';
+        return { displayName: poolName || eventName, player };
+    }
+
+    function renderScheduleGoalPersonLink(person, className) {
+        const displayName = person && person.displayName ? person.displayName : '';
         if (!displayName) return '';
-        const player = findScheduleGoalEventPlayer(playerId, displayName, teamName);
+        const player = person.player;
         if (!player) return escapeHtml(displayName);
 
         const idEncoded = encodeURIComponent(String(player['player.id']));
@@ -2571,19 +2585,22 @@
 
         const rows = events.map((event) => {
             const minute = formatScheduleGoalMinute(event);
-            const scorer = formatScheduleGoalEventPersonName(event.playerName) || event.playerName;
-            const assist = formatScheduleGoalEventPersonName(event.assistName);
-            const scorerHtml = renderScheduleGoalPerson(scorer, event.playerId, event.teamName || teamName, `${classPrefix}-goal-player`);
+            const eventTeamName = event.teamName || teamName;
+            const scorer = resolveScheduleGoalPerson(event.playerName, event.playerId, eventTeamName);
+            const scorerName = scorer.displayName || event.playerName;
+            const assist = resolveScheduleGoalPerson(event.assistName, event.assistId, eventTeamName);
+            const assistName = assist.displayName;
+            const scorerHtml = renderScheduleGoalPersonLink(scorer, `${classPrefix}-goal-player`);
             const penaltyHtml = isSchedulePenaltyGoalEvent(event)
                 ? ` <span class="${classPrefix}-goal-penalty">(P)</span>`
                 : '';
-            const assistPlayerHtml = assist
-                ? renderScheduleGoalPerson(assist, event.assistId, event.teamName || teamName, `${classPrefix}-goal-assist-player`)
+            const assistPlayerHtml = assistName
+                ? renderScheduleGoalPersonLink(assist, `${classPrefix}-goal-assist-player`)
                 : '';
-            const assistHtml = assist
-                ? ` <span class="${classPrefix}-goal-assist">(${assistPlayerHtml || escapeHtml(assist)})</span>`
+            const assistHtml = assistName
+                ? ` <span class="${classPrefix}-goal-assist">(${assistPlayerHtml || escapeHtml(assistName)})</span>`
                 : (isScheduleOwnGoalEvent(event) ? ` <span class="${classPrefix}-goal-own">(Eigentor)</span>` : '');
-            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text"><span class="${classPrefix}-goal-line">${scorerHtml || escapeHtml(scorer)}${penaltyHtml}${assistHtml}</span></span></div>`;
+            return `<div class="${classPrefix}-goal-row">${minute ? `<span class="${classPrefix}-goal-minute">${escapeHtml(minute)}</span>` : ''}<span class="${classPrefix}-goal-text"><span class="${classPrefix}-goal-line">${scorerHtml || escapeHtml(scorerName)}${penaltyHtml}${assistHtml}</span></span></div>`;
         }).join('');
 
         return `<div class="${classPrefix}-goals-list" aria-label="Torschuetzen ${escapeHtml(teamName)}">${rows}</div>`;
