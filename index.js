@@ -5690,6 +5690,21 @@
         return clcmEntries.filter((e) => e.group === group).length;
     }
 
+    // „Der Spieltag läuft": Für HEUTE (Schweizer Kalendertag) steht noch
+    // mindestens ein Anpfiff an. Solange das gilt, ist „Kommend" die
+    // Standard-Ansicht, wenn gerade kein Spiel läuft – „Abgeschlossen"
+    // zeigte sonst die Resultate des LETZTEN Spieltags, während der
+    // nächste gleich angepfiffen wird. Bewusst der ganze Spieltag und
+    // nicht erst das Countdown-Fenster; sobald das letzte Spiel des Tages
+    // angepfiffen ist, greift wieder „Abgeschlossen".
+    function clcmHasKickoffToday(nowMs = Date.now()) {
+        return clcmEntries.some((entry) => {
+            if (entry.group !== 'kommend') return false;
+            const kickoff = entry.view && entry.view.kickoffDate;
+            return !!kickoff && getSwissCalendarDayDiff(kickoff, nowMs) === 0;
+        });
+    }
+
     function clcmListEl() {
         return document.getElementById('clCurrentMatchesList');
     }
@@ -5944,17 +5959,28 @@
         return `<span class="clcm-club" title="${escapeHtml(name)}">${escapeHtml(name)}</span>`;
     }
 
+    // Status-Badge auf der Kachel: bei laufenden Spielen (Minute), offenem
+    // Update – und im Countdown-Fenster (30 Min vor Anpfiff, „Live in
+    // 12 Minuten"): der lokale Uhr-Tick zählt ihn herunter, bis die
+    // Kachel am Anstoss in die Live-Ansicht wechselt. Sonst reicht
+    // Zeit + Datum.
+    // Der Badge steht bewusst NEBEN .clcm-center in einer eigenen,
+    // kachelbreiten Zeile (CSS: .clcm-tile-badge → grid-column 1/-1).
+    // In der Mittelspalte hat er die Kachel gesprengt: die Spalte wächst
+    // auf die Textbreite („Live in 22 Minuten"), die Logo-Spalten haben
+    // eine feste Mindestbreite – das Raster lief über und das rechte
+    // Wappen stand neben der Kachel statt darin.
+    function clcmTileBadgeHtml(entry) {
+        const state = entry.timingState;
+        const show = state.isLive || state.isUpdateOpen || entry.view.badgeCls === 'countdown';
+        return show
+            ? `<span class="clcm-badge clcm-tile-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</span>`
+            : '';
+    }
+
     function clcmTileCenterHtml(entry) {
         const state = entry.timingState;
         const showScore = !!entry.score && (state.isFinished || state.isLive || state.isUpdateOpen);
-        // Badge auf der Kachel: bei laufenden Spielen (Minute), offenem
-        // Update – und im Countdown-Fenster (30 Min vor Anpfiff, „Live in
-        // 12 Minuten"): der lokale Uhr-Tick zählt ihn herunter, bis die
-        // Kachel am Anstoss in die Live-Ansicht wechselt. Sonst reicht
-        // Zeit + Datum.
-        const liveBadge = (state.isLive || state.isUpdateOpen || entry.view.badgeCls === 'countdown')
-            ? `<span class="clcm-badge ${entry.view.badgeCls}">${escapeHtml(entry.view.badgeText)}</span>`
-            : '';
         if (showScore) {
             // „n.V." / „n.E." klein unter dem Resultat – nur wenn das Spiel
             // tatsächlich in der Verlängerung bzw. im Elfmeterschiessen
@@ -5965,13 +5991,11 @@
             return `<span class="clcm-center">
                 <span class="clcm-score${state.isLive ? ' is-live' : ''}">${escapeHtml(String(entry.score.home))}<i>:</i>${escapeHtml(String(entry.score.away))}</span>
                 ${note}
-                ${liveBadge}
             </span>`;
         }
         return `<span class="clcm-center">
             <span class="clcm-kick-time">${escapeHtml(entry.view.timeText)}</span>
             ${entry.view.dateText ? `<span class="clcm-kick-date">${escapeHtml(entry.view.dateText)}</span>` : ''}
-            ${liveBadge}
         </span>`;
     }
 
@@ -5993,6 +6017,7 @@
                 ${clcmTileLogoHtml(entry.teamA, entry.logoA, entry.fallbackLogoA)}
                 ${clcmTileCenterHtml(entry)}
                 ${clcmTileLogoHtml(entry.teamB, entry.logoB, entry.fallbackLogoB)}
+                ${clcmTileBadgeHtml(entry)}
             </span>
             <span class="clcm-tile-names">
                 ${clcmTileNameHtml(entry.teamA)}
@@ -6401,24 +6426,29 @@
         clcmEntries = entries;
         clcmEntryByKey = new Map(entries.map((e) => [e.key, e]));
 
-        // Ansichts-Wahl:
-        //   1. Verschwindet der Live-Tab (letztes Spiel beendet), landet
-        //      man auf „Abgeschlossen" – dort stehen die eben beendeten
-        //      Spiele zuoberst. Das gilt auch nach einer manuellen Wahl:
-        //      einen Tab, den es nicht mehr gibt, kann niemand „gewählt
-        //      haben"; ab hier entscheidet wieder die Automatik.
+        // Ansichts-Wahl – solange niemand in dieser Sitzung selbst
+        // umgeschaltet hat, entscheidet die Automatik:
+        //   1. Verschwindet der Live-Tab (letztes Spiel beendet), kann die
+        //      Wahl „Live" niemandem mehr gehören: einen Tab, den es nicht
+        //      mehr gibt, kann niemand „gewählt haben". Ab hier entscheidet
+        //      wieder die Automatik.
         //   2. Läuft mindestens ein Spiel, ist „Live" die Standard-Ansicht
-        //      – ausser jemand hat in dieser Sitzung selbst umgeschaltet.
-        //   3. Steht die Ansicht sonst leer da (z. B. vor dem ersten
+        //      – dort stehen die Zwischenstände.
+        //   3. Läuft gerade nichts, steht heute aber noch ein Anpfiff an,
+        //      ist „Kommend" Standard: An einem Spieltag zählt, was gleich
+        //      kommt – „Abgeschlossen" zeigte sonst die Resultate des
+        //      letzten Spieltags. Sobald für heute nichts mehr ansteht,
+        //      ist „Abgeschlossen" wieder Standard (die eben beendeten
+        //      Spiele stehen dort zuoberst).
+        //   4. Steht die Ansicht trotzdem leer da (z. B. vor dem ersten
         //      Anpfiff gibt es noch nichts Abgeschlossenes), still auf die
         //      andere wechseln – niemand landet auf einer leeren Bühne.
         const liveCount = clcmCountByGroup('live');
-        if (clcmView === 'live' && !liveCount) {
-            clcmView = 'abgeschlossen';
-            clcmViewChosenByUser = false;
-        }
-        if (!clcmViewChosenByUser && liveCount) {
-            clcmView = 'live';
+        if (clcmView === 'live' && !liveCount) clcmViewChosenByUser = false;
+        if (!clcmViewChosenByUser) {
+            clcmView = liveCount
+                ? 'live'
+                : (clcmHasKickoffToday() ? 'kommend' : 'abgeschlossen');
         }
         if (!clcmViewChosenByUser && !clcmCountByGroup(clcmView)) {
             const other = clcmView === 'abgeschlossen' ? 'kommend' : 'abgeschlossen';

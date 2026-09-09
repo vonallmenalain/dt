@@ -7247,6 +7247,10 @@
             min-height: calc(var(--ctw) * 0.9);
             border-radius: clamp(12px, calc(var(--ctw) * 0.08), 20px);
             box-sizing: border-box;
+            /* Sicherheitsnetz: nichts wird je ausserhalb der abgerundeten
+               Kachel gezeichnet (overflow schneidet nur Nachfahren – der
+               eigene Fokus-Outline bleibt sichtbar). */
+            overflow: hidden;
             background: linear-gradient(165deg, var(--cl-surface, #132347) 0%, var(--cl-surface-alt, #0f1c3d) 100%);
             border: 1px solid rgba(125, 180, 255, 0.16);
             color: inherit;
@@ -7295,10 +7299,28 @@
 
         .clcm-tile-main {
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            /* minmax(0, …) statt „1fr auto 1fr": Die Mittelspalte (Resultat
+               bzw. Anstosszeit) darf die Aussenspalten mit den Logos nicht
+               aus der Kachel schieben, wenn ihr Inhalt breit wird. */
+            grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
             align-items: center;
-            gap: calc(var(--ctw) * 0.02);
+            /* Zweite Zeile gibt es nur bei Live-/Countdown-Kacheln (Status-
+               Badge); align-content hält beide Zeilen als Block beieinander,
+               statt die freie Höhe zwischen ihnen aufzuteilen. */
+            align-content: center;
+            column-gap: calc(var(--ctw) * 0.02);
+            row-gap: calc(var(--ctw) * 0.03);
             flex: 1;
+        }
+        /* Status-Badge über die volle Kachelbreite unter Logos/Resultat –
+           siehe clcmTileBadgeHtml: in der Mittelspalte liess „Live in 22
+           Minuten" das Raster über die Kachel hinauswachsen. */
+        .clcm-tile-badge {
+            grid-column: 1 / -1;
+            justify-self: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         /* Klubnamen in eigener Zeile: so steht jedem Namen die halbe
            Kachelbreite zur Verfügung (statt der schmalen Aussenspalte
@@ -7311,6 +7333,7 @@
         }
         .clcm-logo {
             justify-self: center;
+            max-width: 100%;
             width: clamp(26px, calc(var(--ctw) * 0.27), 64px);
             height: clamp(26px, calc(var(--ctw) * 0.27), 64px);
             display: flex;
@@ -7345,6 +7368,10 @@
             justify-content: center;
             gap: 1px;
             padding: 0 calc(var(--ctw) * 0.02);
+            /* Ohne min-width: 0 wäre die Mindestbreite der Spalte der nicht
+               umbrechende Inhalt – damit liefe die Kachel wieder über. */
+            min-width: 0;
+            max-width: 100%;
         }
         .clcm-score {
             display: flex;
@@ -7375,11 +7402,16 @@
             color: #fff;
             white-space: nowrap;
         }
+        /* Datum notfalls kürzen (sehr schmale Kacheln): lieber „Mi., 09.0…"
+           als ein Raster, das die Logos aus der Kachel drückt. */
         .clcm-kick-date {
+            max-width: 100%;
             font-size: clamp(8px, calc(var(--ctw) * 0.055), 13px);
             font-weight: 700;
             color: var(--cl-text-muted, #9db6e8);
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Status-Badge – auf der Kachel nur noch bei laufenden Spielen bzw.
