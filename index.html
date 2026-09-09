@@ -519,7 +519,10 @@
              nächsten angesetzten Spiele). Der Umschalter steht immer da –
              ist eine Seite leer (nach dem Final gibt es keine kommenden
              Spiele mehr), erklärt das dort ein Hinweis (siehe
-             clcmUpdateToggle). -->
+             clcmUpdateToggle). Standard ohne laufendes Spiel: „Kommend",
+             solange heute noch ein Anpfiff aussteht (vor dem ersten
+             Anstoss, zwischen zwei Anstosszeiten), sonst „Abgeschlossen"
+             – siehe clcmHasKickoffToday in index.js. -->
         <div class="clcm-list-toolbar">
             <div class="pt-toggle clcm-view-toggle" role="tablist" aria-label="Spiele-Ansicht">
                 <button type="button" class="pt-toggle-btn clcm-live-tab" data-view="live" role="tab" aria-selected="false" hidden><span class="clcm-live-dot" aria-hidden="true"></span>Live<span class="clcm-live-count" aria-hidden="true"></span></button>
