@@ -10,10 +10,34 @@ name: Auto Punkte-Upload
 # 240 Minuten nach Anpfiff). Nur dann wird die API abgefragt. Während
 # eines aktiven Fensters macht das Skript standardmäßig eine lange,
 # final-first Monitor-Session mit mindestens 520 Ticks im Abstand von
-# mindestens 30 Sekunden. Wenn ein Schedule-Run zu früh kommt, darf er
-# ohne API-Calls auf das nächste Live-Fenster warten.
+# mindestens 30 Sekunden.
 # Das ist bewusst robuster als sich darauf zu verlassen, dass GitHub den
 # Cron wirklich alle 5 Minuten startet.
+#
+# ZWEI JOBS: `vorlauf` und `upload`
+# ---------------------------------
+# GitHub liefert scheduled workflows nur "so ungefähr". Gemessen an den
+# Runs dieses Repos kommt der `2-59/5`-Cron faktisch etwa einmal pro
+# Stunde an; am 08.09.2026 kam zwischen 15:02 UTC (erster Takt des
+# Spieltags) und 18:29 UTC gar nichts – 3 h 27 min Funkstille, bei
+# Anpfiff um 16:45 UTC. Der Lauf musste von Hand gestartet werden.
+#
+# Das Upload-Skript kann selbst auf das Live-Fenster warten, aber nur
+# rund 160 Minuten: seine Session endet 350 min nach Start und braucht
+# nach dem Aufwachen noch ~190 min zum Monitoren. Mehr geht in EINEM Job
+# ohnehin nicht, weil GitHub jeden Job nach 6 Stunden hart abbricht.
+#
+# Ein Workflow-RUN darf dagegen viel länger laufen als ein einzelner Job.
+# Deshalb wartet der vorgeschaltete Job `vorlauf` (ohne Secrets, ohne
+# Firestore-Read, ohne API-Call) auf den Beginn des Live-Fensters; erst
+# danach startet `upload` – mit frischem 6-Stunden-Budget genau ab
+# Fensteröffnung. Es genügt damit, dass GitHub IRGENDWANN in den rund
+# fünf Stunden vor dem Fenster einen einzigen Takt liefert, statt in den
+# letzten ~75 Minuten davor.
+#
+# `upload` läuft über `if: !cancelled()` auch dann, wenn `vorlauf`
+# fehlschlägt: das Warten darf den Upload nie verhindern, sondern nur
+# besser timen.
 #
 # WELCHES TURNIER: Scheduled Runs setzen TOURNAMENT_KEY nicht. Das Skript
 # nimmt dann APP_CONFIG.serverTournamentKey – das Turnier, dessen
@@ -27,14 +51,19 @@ name: Auto Punkte-Upload
 # eine handgepflegte Kopie davon (YAML kann nicht rechnen).
 # `scripts/test-live-schedule.js` (npm run test:live-schedule) prüft, dass
 # jeder Spieltag aus dem Kalender von einem Cron-Fenster abgedeckt ist –
-# wenn sich Termine verschieben, wird der Test rot.
+# wenn sich Termine verschieben, wird der Test rot. Derselbe Test hält
+# fest, dass das Fenster früh genug öffnet (siehe unten).
 #
-# Die Fenster laufen 15:00–23:59 UTC am Spieltag. Das deckt beide
-# Anstosszeiten in beiden Zeitzonen ab (18:45/21:00 Schweizer Zeit =
-# 16:45/19:00 UTC im Sommer, 17:45/20:00 UTC im Winter) inklusive der
-# 30 Minuten Vorlauf. Der Final-Recheck nach Mitternacht braucht keine
-# eigenen Cron-Zeilen: ein Run, der abends startet, monitort mit seiner
-# langen Session (bis 350 Minuten) über den Abpfiff hinaus.
+# Die Fenster laufen 09:00–23:59 UTC am Spieltag. Nötig wäre erst 15:00
+# UTC – 18:45/21:00 Schweizer Zeit sind 16:45/19:00 UTC im Sommer und
+# 17:45/20:00 UTC im Winter, jeweils inklusive 30 Minuten Vorlauf. Die
+# sechs zusätzlichen Stunden sind reiner Puffer gegen ausgelassene
+# GitHub-Takte: Takte, die zu früh kommen, kosten ~20 s und enden ohne
+# API-Call; Takte ab rund fünf Stunden vor dem Fenster halten über
+# `vorlauf` den Platz bis zur Fensteröffnung. Der Final-Recheck nach
+# Mitternacht braucht keine eigenen Cron-Zeilen: ein Run, der abends
+# startet, monitort mit seiner langen Session (bis 350 Minuten) über den
+# Abpfiff hinaus.
 #
 # Zusätzlich gibt es im Skript einen harten Guard auf Basis von
 # AUTO_POINTS_FROM / AUTO_POINTS_UNTIL aus tournament-config.js, der
@@ -57,6 +86,7 @@ on:
     paths:
       - ".github/workflows/auto-points-upload.yml"
       - "scripts/auto-points-upload.js"
+      - "scripts/live-window-wait.js"
       - "scripts/points-public-cache.js"
       - "tournament-config.js"
       - "data-wm2026.js"
@@ -66,17 +96,17 @@ on:
     # Champions League 2026/27 – Ligaphase (Spieltage 1–8).
     # Bewusst bei Minute 2 statt 0 gestartet, weil GitHub Cron-Jobs am
     # Stundenwechsel haeufiger verzoegert oder auslaesst.
-    - cron: "2-59/5 15-23 8-10 9 *"             # Spieltag 1: 08.–10.09.2026
-    - cron: "2-59/5 15-23 13-14,20-21 10 *"     # Spieltag 2+3: 13./14. + 20./21.10.
-    - cron: "2-59/5 15-23 3-4,24-25 11 *"       # Spieltag 4+5: 03./04. + 24./25.11.
-    - cron: "2-59/5 15-23 8-9 12 *"             # Spieltag 6: 08./09.12.2026
-    - cron: "2-59/5 15-23 19-20,27 1 *"         # Spieltag 7+8: 19./20. + 27.01.2027
+    - cron: "2-59/5 9-23 8-10 9 *"             # Spieltag 1: 08.–10.09.2026
+    - cron: "2-59/5 9-23 13-14,20-21 10 *"     # Spieltag 2+3: 13./14. + 20./21.10.
+    - cron: "2-59/5 9-23 3-4,24-25 11 *"       # Spieltag 4+5: 03./04. + 24./25.11.
+    - cron: "2-59/5 9-23 8-9 12 *"             # Spieltag 6: 08./09.12.2026
+    - cron: "2-59/5 9-23 19-20,27 1 *"         # Spieltag 7+8: 19./20. + 27.01.2027
     # Champions League 2026/27 – K.-o.-Phase.
-    - cron: "2-59/5 15-23 16-17,23-24 2 *"      # K.-o.-Playoffs Hin-/Rueckspiele
-    - cron: "2-59/5 15-23 9-10,16-17 3 *"       # Achtelfinale Hin-/Rueckspiele
-    - cron: "2-59/5 15-23 6-7,13-14,27-28 4 *"  # Viertelfinale + Halbfinale Hinspiele
-    - cron: "2-59/5 15-23 4-5 5 *"              # Halbfinale Rueckspiele
-    - cron: "2-59/5 15-23 5 6 *"                # Final: 05.06.2027
+    - cron: "2-59/5 9-23 16-17,23-24 2 *"      # K.-o.-Playoffs Hin-/Rueckspiele
+    - cron: "2-59/5 9-23 9-10,16-17 3 *"       # Achtelfinale Hin-/Rueckspiele
+    - cron: "2-59/5 9-23 6-7,13-14,27-28 4 *"  # Viertelfinale + Halbfinale Hinspiele
+    - cron: "2-59/5 9-23 4-5 5 *"              # Halbfinale Rueckspiele
+    - cron: "2-59/5 9-23 5 6 *"                # Final: 05.06.2027
   workflow_dispatch:
     inputs:
       force_run:
@@ -95,7 +125,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Billiger Warte-Job: kein Secret, kein Firestore-Read, kein API-Call.
+  # Er haelt den Concurrency-Slot vom (moeglicherweise sehr frueh
+  # gelieferten) Cron-Takt bis zur Oeffnung des Live-Fensters.
+  vorlauf:
+    runs-on: ubuntu-latest
+    # Muss ueber LIVE_WINDOW_MAX_WAIT_MIN (320) liegen und unter GitHubs
+    # harter 6-Stunden-Grenze bleiben.
+    timeout-minutes: 330
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Keine npm-Abhaengigkeiten: das Skript liest nur tournament-config.js.
+      - name: Wait for live window
+        working-directory: scripts
+        env:
+          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.force_run == true && '1' || '0' }}
+          TOURNAMENT_KEY: ${{ github.event_name == 'workflow_dispatch' && inputs.tournament_key || '' }}
+        run: node live-window-wait.js
+
   upload:
+    needs: vorlauf
+    # Ein Fehler im Vorlauf darf den Upload nie verhindern – nur ein
+    # abgebrochener Run stoppt auch hier.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
 

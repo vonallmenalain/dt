@@ -87,13 +87,64 @@ Zwei Optimierungen aus dem Check (PR vom 07.09.):
 | 18:45 – ca. 23:00 | Live-Ticks alle ~30 s; jede Punkteaenderung erhoeht `pointsVersion`, offene Browser laden ueber den Meta-Listener nach. Um 20:30 kommen die 21:00-Spiele dazu. |
 | laufend | Hinter dem aktiven Run steht genau EIN Run als **Queued/Pending**; jeder weitere Cron-Takt ersetzt ihn. Die vielen **cancelled** Runs („Canceling since a higher priority waiting request … exists") sind normal und kein Fehler. |
 | ca. 23:22 | Session-Max erreicht (350 min ab 17:32); der wartende Run uebernimmt innerhalb ~1 min und faehrt den Final-Recheck (bis 4 h nach Anpfiff, fuer die 21:00-Spiele also bis 01:00). |
-| 09./10.09. | Dasselbe Muster; Cron-Fenster jeweils 17:02–01:59. |
+| 09./10.09. | Dasselbe Muster; Cron-Fenster damals jeweils 17:02–01:59. |
+
+So war es geplant – gekommen ist es anders; siehe „Der Ausfall vom
+08.09.2026" gleich darunter. Seit dieser Korrektur oeffnet das Cron-Fenster
+bereits um 11:00 CH (09:00 UTC).
 
 Manuelle Eingriffe an einem Spieltag: ein `Run workflow` landet in derselben
 Concurrency-Gruppe und startet erst, wenn der laufende Monitor-Run endet –
 er ersetzt dabei den wartenden Cron-Run. Waehrend ein Live-Run laeuft, also
 nichts manuell starten. Laeuft nichts mehr (kein Run „in progress"), startet
 `force_run` sofort und zieht offene Spiele nach.
+
+#### Der Ausfall vom 08.09.2026 – und was dagegen gebaut wurde
+
+Am ersten CL-Spieltag startete der Workflow **nicht** automatisch. Der Lauf
+musste um 18:50 CH von Hand angestossen werden, fuenf Minuten nach Anpfiff.
+Gemessen an der Run-Historie (`event=schedule`):
+
+| Erwartet | Tatsaechlich geliefert |
+| --- | --- |
+| Takte alle 5 min ab 17:02 CH (15:02 UTC) | zwischen 15:02 und 18:29 UTC **kein einziger** |
+| erster nutzbarer Takt ~17:32 CH | erster Takt ueberhaupt: 18:29 UTC (20:29 CH) |
+
+Danach kamen die Takte im Abstand von rund zwei Stunden (18:29, 21:21, 23:30,
+01:28 UTC). Dasselbe Bild zeigen die WM-Spieltage vom 18.–21.07.2026: der
+`2-59/5`-Cron erzeugte dort nie mehr als **etwa einen Run pro Stunde**.
+
+Die Ursache liegt nicht im Repo. GitHub garantiert fuer `schedule` keine
+Ausfuehrung, sondern nur einen Versuch, und drosselt hochfrequente Crons
+sichtbar stark. Der Fehler im Aufbau war, dass der Puffer dagegen viel zu
+klein bemessen war: das Cron-Fenster oeffnete 15:02 UTC, das Live-Fenster
+brauchte 16:15 UTC – **73 Minuten**. Die real gemessene Verzoegerung war mit
+3 h 27 min knapp dreimal so gross.
+
+Zwei Aenderungen, die zusammenwirken:
+
+1. **Das Cron-Fenster oeffnet um 09:00 statt 15:00 UTC.** Sechs Stunden mehr
+   Gelegenheiten, dass GitHub ueberhaupt einmal liefert.
+2. **Der Vorlauf-Job `vorlauf`.** Ein Takt, der bis zu 320 Minuten vor der
+   Fensteroeffnung ankommt, wird nicht mehr verworfen: er schlaeft im
+   billigen Warte-Job bis 18:15 CH und uebergibt dann an `upload`.
+
+Das Rettungsfenster – die Zeitspanne, in der ein einziger gelieferter Takt
+den ganzen Abend traegt – waechst damit von 73 Minuten auf 320 Minuten.
+Fuer den 08.09. haette schon ein Takt ab 10:55 UTC genuegt; geliefert wurde
+in dieser Spanne nach Aktenlage mehrfach.
+
+`npm run test:live-schedule` schreibt beide Groessen fest: das Cron-Fenster
+muss mindestens 300 Minuten vor dem Live-Fenster oeffnen, und das
+Rettungsfenster muss mindestens 240 Minuten betragen. Mit dem alten Cron
+faellt der Test mit „nur 73 min Vorlauf" rot.
+
+**Was das nicht loest.** Liefert GitHub an einem Spieltag ueber neun Stunden
+gar nichts, laeuft auch das ins Leere. Dagegen hilft nur ein Trigger
+ausserhalb von GitHub (z. B. eine Netlify Scheduled Function, die
+`workflow_dispatch` per API ruft) – das braucht ein GitHub-Token als Secret
+und ist bewusst nicht Teil dieser Aenderung. Der manuelle Notnagel bleibt:
+`Run workflow` mit `force_run=Aus` startet denselben Live-Monitor.
 
 ### API-Kontingent (api-football: 7500 Requests pro Tag)
 
@@ -231,21 +282,25 @@ Paarungen in der App, aber mit falschen Terminen. Nur mit Ansage benutzen.
 ### Cron-Fenster der Spieltage
 
 ```yaml
-- cron: "2-59/5 15-23 8-10 9 *"             # Spieltag 1: 08.-10.09.2026
-- cron: "2-59/5 15-23 13-14,20-21 10 *"     # Spieltag 2+3
-- cron: "2-59/5 15-23 3-4,24-25 11 *"       # Spieltag 4+5
-- cron: "2-59/5 15-23 8-9 12 *"             # Spieltag 6
-- cron: "2-59/5 15-23 19-20,27 1 *"         # Spieltag 7+8
-- cron: "2-59/5 15-23 16-17,23-24 2 *"      # K.-o.-Playoffs
-- cron: "2-59/5 15-23 9-10,16-17 3 *"       # Achtelfinale
-- cron: "2-59/5 15-23 6-7,13-14,27-28 4 *"  # Viertel- + Halbfinale Hinspiele
-- cron: "2-59/5 15-23 4-5 5 *"              # Halbfinale Rueckspiele
-- cron: "2-59/5 15-23 5 6 *"                # Final: 05.06.2027
+- cron: "2-59/5 9-23 8-10 9 *"             # Spieltag 1: 08.-10.09.2026
+- cron: "2-59/5 9-23 13-14,20-21 10 *"     # Spieltag 2+3
+- cron: "2-59/5 9-23 3-4,24-25 11 *"       # Spieltag 4+5
+- cron: "2-59/5 9-23 8-9 12 *"             # Spieltag 6
+- cron: "2-59/5 9-23 19-20,27 1 *"         # Spieltag 7+8
+- cron: "2-59/5 9-23 16-17,23-24 2 *"      # K.-o.-Playoffs
+- cron: "2-59/5 9-23 9-10,16-17 3 *"       # Achtelfinale
+- cron: "2-59/5 9-23 6-7,13-14,27-28 4 *"  # Viertel- + Halbfinale Hinspiele
+- cron: "2-59/5 9-23 4-5 5 *"              # Halbfinale Rueckspiele
+- cron: "2-59/5 9-23 5 6 *"                # Final: 05.06.2027
 ```
 
-15:00–23:59 UTC deckt beide Anstosszeiten in beiden Zeitzonen ab: 18:45 und
-21:00 Schweizer Zeit sind 16:45/19:00 UTC im Sommer und 17:45/20:00 UTC im
-Winter, jeweils inklusive der 30 Minuten Vorlauf des Live-Fensters. Der
+09:00–23:59 UTC. Noetig waere erst 15:00 UTC: 18:45 und 21:00 Schweizer Zeit
+sind 16:45/19:00 UTC im Sommer und 17:45/20:00 UTC im Winter, jeweils
+inklusive der 30 Minuten Vorlauf des Live-Fensters. Die sechs zusaetzlichen
+Stunden am Vormittag sind reiner Puffer gegen ausgelassene GitHub-Takte –
+siehe „Der Ausfall vom 08.09.2026". Sie kosten nichts: ein Takt, der zu frueh
+kommt, endet nach ~20 s ohne API-Call; ein Takt ab rund fuenf Stunden vor dem
+Fenster haelt ueber den Vorlauf-Job den Platz bis zur Fensteroeffnung. Der
 Final-Recheck nach Mitternacht braucht keine eigenen Cron-Zeilen: ein Run,
 der abends startet, monitort mit seiner langen Session (bis 350 Minuten)
 ueber den Abpfiff hinaus.
@@ -332,6 +387,8 @@ gruen gelaufen sein (siehe „Offener Punkt" oben).
 - `.github/workflows/sync-fixtures.yml`: GitHub Action fuer Spielplan.
 - `scripts/auto-points-upload.js`: Server-Logik fuer Punkte, Live-Ticks,
   Pre-Check, API-Retries, Firestore-Writes.
+- `scripts/live-window-wait.js`: Vorlauf-Job – wartet ohne Secrets und ohne
+  API-Call auf die Oeffnung des Live-Fensters.
 - `scripts/sync-fixtures.js`: Server-Logik fuer Fixtures und Venues.
 - `tournament-config.js`: einzige Quelle fuer Turnier, API-Werte,
   Collections und Auto-Punkte-Phase.
@@ -354,11 +411,27 @@ warten, ein laufendes Spiel lange monitoren und verpasste offene Spiele per
 Catch-up nachziehen kann.
 Die Minute 2/7/12/... vermeidet den besonders anfaelligen Stundenwechsel.
 
-Job-Eckdaten:
+Der Workflow hat zwei Jobs:
+
+| Job | Aufgabe | Timeout |
+| --- | --- | --- |
+| `vorlauf` | Wartet auf die Oeffnung des Live-Fensters. Ohne Secrets, ohne Firestore-Read, ohne API-Call – er schlaeft nur (`scripts/live-window-wait.js`). | 330 min |
+| `upload` | Der eigentliche Monitor (`scripts/auto-points-upload.js`). Startet nach `vorlauf` mit frischem Budget. | 360 min |
+
+GitHub bricht jeden **Job** nach 6 Stunden ab, ein **Run** darf viel laenger
+laufen. Genau deshalb ist das Warten ausgelagert: `vorlauf` verbraucht seine
+Frist mit Warten, `upload` beginnt seine erst bei Fensteroeffnung. Zusammen
+tragen sie einen Takt, der bis zu 320 Minuten vor dem Fenster ankommt, bis
+ueber den Abpfiff hinaus.
+
+`upload` laeuft ueber `if: ${{ !cancelled() }}`, ist also nicht davon
+abhaengig, dass `vorlauf` gruen endet – ein Fehler im Warte-Job darf den
+Upload nie kosten. Nur ein abgebrochener Run stoppt beide.
+
+Weitere Eckdaten:
 
 - `runs-on: ubuntu-latest`
 - Node.js `20`
-- `timeout-minutes: 360`
 - `concurrency.cancel-in-progress: false`
 
 `cancel-in-progress: false` ist bewusst: ein wartender oder laufender
