@@ -13,7 +13,12 @@
  *      ist die Klammer dazwischen.
  *   3. Die Live-Fenster liegen so, dass beide Anstosszeiten (18:45 und 21:00
  *      Schweizer Zeit) samt 30 Minuten Vorlauf in einem Cron-Fenster liegen –
- *      in Sommer- wie in Winterzeit.
+ *      in Sommer- wie in Winterzeit. Zusaetzlich: das Cron-Fenster oeffnet
+ *      FRUEH GENUG. Am 08.09.2026 lieferte GitHub zwischen 15:02 UTC (erster
+ *      Takt des Spieltags) und 18:29 UTC keinen einzigen Takt, obwohl das
+ *      Live-Fenster um 16:15 UTC haette oeffnen muessen. Ein Fenster, das
+ *      erst kurz davor aufmacht, ist gegen solche Ausfaelle wehrlos –
+ *      deshalb ist der Vorlauf hier festgeschrieben.
  *   4. Das Auto-Punkte-Fenster (AUTO_POINTS_FROM/UNTIL) umschliesst den
  *      gesamten Spielkalender.
  *   5. Ligaphasen-Runden werden erkannt, auch wenn api-football sie „Group
@@ -27,6 +32,7 @@
 const fs = require('fs');
 const path = require('path');
 const APP_CONFIG = require('../tournament-config.js');
+const LIVE_WINDOW_WAIT = require('./live-window-wait.js');
 
 const WORKFLOW_PATH = path.join(__dirname, '..', '.github', 'workflows', 'auto-points-upload.yml');
 
@@ -76,6 +82,22 @@ function cronCoversUtc(cron, date) {
   return cron.months.has(date.getUTCMonth() + 1) &&
     cron.daysOfMonth.has(date.getUTCDate()) &&
     cron.hours.has(date.getUTCHours());
+}
+
+/* Fruehester Cron-Takt an dem UTC-Tag, an dem `date` liegt – als
+ * Millisekunden. `null`, wenn an diesem Tag ueberhaupt kein Takt geplant
+ * ist. Damit laesst sich messen, wie viel Vorlauf ein Spieltag hat. */
+function earliestCronTickMsOnDayOf(crons, date) {
+  let earliest = null;
+  crons.forEach(cron => {
+    if (!cron.months.has(date.getUTCMonth() + 1)) return;
+    if (!cron.daysOfMonth.has(date.getUTCDate())) return;
+    const hour = Math.min(...cron.hours);
+    const minute = Math.min(...cron.minutes);
+    const ms = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), hour, minute);
+    if (earliest == null || ms < earliest) earliest = ms;
+  });
+  return earliest;
 }
 
 function readScheduleCrons() {
@@ -147,6 +169,49 @@ check(
   'Jeder Spieltag aus MATCH_CALENDAR_CL2627 liegt in einem Cron-Fenster',
   uncovered.length === 0,
   uncovered.slice(0, 6).join('; ')
+);
+
+// Vorlauf: wie lange vor der Oeffnung des Live-Fensters faengt der Cron an zu
+// takten? Das ist der einzige Puffer gegen ausgelassene GitHub-Takte, und am
+// 08.09.2026 war er mit ~73 Minuten zu klein (GitHub schwieg 3 h 27 min).
+const MIN_CRON_LEAD_MIN = 300;   // mindestens 5 Stunden Takte vor dem Fenster
+const MIN_RESCUE_BAND_MIN = 240; // davon mindestens 4 h, in denen ein Takt traegt
+const LIVE_WINDOW_LEAD_MIN = LIVE_WINDOW_WAIT.DEFAULT_LEAD_MIN;
+
+const tooLate = [];
+let smallestLeadMin = Infinity;
+cl.matchCalendar.forEach(entry => {
+  entry.dates.forEach(date => {
+    const kickoff = new Date(`${date}T${entry.kickoff}:00${entry.offset}`);
+    const windowStart = new Date(kickoff.getTime() - LIVE_WINDOW_LEAD_MIN * 60 * 1000);
+    const firstTickMs = earliestCronTickMsOnDayOf(crons, windowStart);
+    if (firstTickMs == null) {
+      tooLate.push(`${entry.label} ${date}: kein Takt an diesem Tag`);
+      smallestLeadMin = 0;
+      return;
+    }
+    const leadMin = Math.round((windowStart.getTime() - firstTickMs) / 60000);
+    smallestLeadMin = Math.min(smallestLeadMin, leadMin);
+    if (leadMin < MIN_CRON_LEAD_MIN) {
+      tooLate.push(`${entry.label} ${date}: nur ${leadMin} min Vorlauf`);
+    }
+  });
+});
+check(
+  `Cron beginnt mindestens ${MIN_CRON_LEAD_MIN} min vor dem Live-Fenster zu takten`,
+  tooLate.length === 0,
+  tooLate.slice(0, 6).join('; ')
+);
+
+// Ein frueher Takt hilft nur, wenn der Vorlauf-Job ihn bis zur Fenster-
+// oeffnung tragen kann. Die Schnittmenge aus beidem ist das Zeitfenster, in
+// dem EIN einziger gelieferter GitHub-Takt den ganzen Abend rettet.
+const rescueBandMin = Math.min(LIVE_WINDOW_WAIT.DEFAULT_MAX_WAIT_MIN, smallestLeadMin);
+check(
+  `Ein einzelner Cron-Takt rettet den Spieltag ueber ein Fenster von >= ${MIN_RESCUE_BAND_MIN} min`,
+  rescueBandMin >= MIN_RESCUE_BAND_MIN,
+  `Rettungsfenster nur ${rescueBandMin} min (Cron-Vorlauf ${smallestLeadMin} min, ` +
+  `Wartebudget ${LIVE_WINDOW_WAIT.DEFAULT_MAX_WAIT_MIN} min)`
 );
 
 // Gegenprobe: der Cron soll NICHT dauerlaufen. Ein beliebiger spielfreier Tag
