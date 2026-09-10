@@ -572,6 +572,15 @@ Override). Zusätzlich führt er `data.js` in einem vm-Kontext mit Mini-DOM
 aus: die Blöcke dort sind Strings für `document.write`, ein Syntaxfehler
 darin fiele bei einer reinen Textprüfung nicht auf.
 
+`test:popup-restore` bewacht den Zurück-Button der CL-Startseite (siehe
+Abschnitt 7, „Zurück-Button: offene Detailkarte"): Er schneidet den
+Marker-Teil des Popup-Controllers aus `index.js` und führt ihn gegen
+`location`/`history`-Stubs aus – Schreiben, Lesen und Aufräumen des
+Markers (inklusive Spiel-Schlüsseln mit Doppelpunkt), das einmalige
+Wiederherstellen, das Zeitfenster und der Scroll-Lock mit gemerkter
+Position. Dazu prüft er die Verdrahtung im ausgelieferten Code, damit die
+Karte nicht still aufhört, ihren Marker zu setzen.
+
 `test:goal-names` ist die Klammer zwischen Kader und Tor-Ereignissen: er
 schneidet die Torschützen-Logik aus `index.js` und `spieleranalyse.js`,
 füttert sie mit dem echten cl2627-Pool (Kürzung und Overrides angewendet)
@@ -1331,3 +1340,45 @@ die Zurück-Navigation ist sofort da. Wandert eine Seite in den bfcache,
 bleiben Meta-Listener bewusst aktiv: Firestore friert den Stream ein und
 setzt ihn beim Restore fort, die `visibilitychange`/`focus`-Resume-Pfade
 in `cache.js` holen dann frische Daten.
+
+### Zurück-Button: offene Detailkarte auf der CL-Startseite
+
+Die CL-Startseite hat zwei Detailkarten (gemeinsamer Controller `clpop-`
+in `index.js`): „Top Manager" zeigt das Team eines Managers, „Aktuelle
+Spiele" ein einzelnes Spiel. Aus beiden führen Links **weg** von der
+Startseite – Spieler-Chip und Klub-Badge in die Analyse, der Manager-Name
+zu „Teams", der Rang zur Rangliste. „Zurück" landete deshalb auf einer
+index.html mit **geschlossener** Karte: Kachel und Karte musste man sich
+neu suchen.
+
+Jetzt trägt die offene Karte einen Marker in der **eigenen URL** –
+`index.html#pop=<typ>:<schlüssel>` (`tm` = Manager, `cm` = Spiel) – und
+die Scrollposition dahinter in `history.state`. Sobald die Bühne nach dem
+Zurück wieder steht (Daten da, Kacheln gerendert), öffnet
+`clpopTryRestore()` genau diese Karte erneut; bei einem Spiel schaltet sie
+zusätzlich auf dessen Ansicht („Live"/„Abgeschlossen"/„Kommend"). Holt der
+Browser die Seite aus dem bfcache, ist die Karte ohnehin noch offen – der
+Marker stört dort nicht.
+
+Drei bewusste Entscheidungen:
+
+- **Nur `replaceState`, kein eigener History-Eintrag.** Unter der App-Shell
+  liegt die Startseite in einem Frame, dessen Einträge in der gemeinsamen
+  Browser-History stehen; ein Eintrag je geöffneter Karte würde die
+  Zurück-Kette der Shell verwässern (mehrfach „Zurück" für einen
+  Seitenwechsel). Der Preis: Ein „Zurück" bei offener Karte verlässt die
+  Startseite, statt nur die Karte zu schliessen – wie bisher.
+- **Marker im Fragment, nicht in der Query.** `shell.js` baut ihre Route
+  aus Pfad + Query (`pageFileFromUrl`) und sieht das Fragment nie. Die
+  Shell-Route bleibt sauber (`app.html#/index.html`) und kann keinen
+  veralteten Marker in einen frisch erzeugten Frame tragen.
+- **Scrollposition in `history.state`.** Beim Öffnen friert
+  `clpopLockBody()` den Body per `position: fixed` ein – ab da ist
+  `window.scrollY` 0, der Browser stellte beim Zurück also an den
+  Seitenanfang. Beim Wiederherstellen bekommt der Lock den gemerkten Wert,
+  und nach dem Schliessen steht die Seite wieder genau dort, wo die Kachel
+  angeklickt wurde.
+
+Damit keine Karte unvermittelt ins Bild springt, gilt der Marker nur
+20 Sekunden ab Seitenaufbau (`CLPOP_RESTORE_MS`) und verliert gegen einen
+eigenen Klick. Bewacht von `npm run test:popup-restore`.

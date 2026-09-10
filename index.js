@@ -5052,6 +5052,131 @@
     // übereinstimmen (Fallback-Timer beim Schliessen).
     const CLPOP_CLOSE_MS = 240;
 
+    /* ── Zurück-Button: die offene Karte überlebt den Seitenwechsel ──
+       Aus jeder Detailkarte führen Links WEG von der Startseite (Spieler
+       und Klub-Badge zur Analyse, Manager-Name zu Teams, Rang zur
+       Rangliste). Ohne Merker landete „Zurück" auf einer index.html mit
+       GESCHLOSSENER Karte – Kachel und Karte musste man sich neu suchen.
+       Deshalb trägt die offene Karte einen Marker in der eigenen URL:
+
+           index.html#pop=<typ>:<schlüssel>        (typ: tm | cm)
+
+       Steht die Bühne nach dem Zurück wieder (Daten sind da, Kacheln
+       gerendert), öffnet clpopTryRestore() genau diese Karte erneut.
+       Holt der Browser die Seite stattdessen aus dem bfcache, ist sie
+       ohnehin noch offen – der Marker stört dort nicht.
+
+       Drei bewusste Entscheidungen:
+
+       • NUR replaceState, kein eigener History-Eintrag. Unter der
+         App-Shell (app.html) läuft die Startseite in einem Frame, dessen
+         Einträge in der gemeinsamen Browser-History stehen; ein Eintrag
+         je geöffneter Karte würde die Zurück-Kette der Shell
+         verwässern (mehrfach „Zurück" für einen Seitenwechsel).
+       • Der Marker steht im FRAGMENT, nicht in der Query. shell.js baut
+         ihre Route aus Pfad + Query (pageFileFromUrl) – das Fragment
+         sieht sie nie. Die Shell-Route bleibt damit sauber
+         (app.html#/index.html) und kann keinen veralteten Marker in einen
+         frisch erzeugten Frame tragen.
+       • Die Scrollposition HINTER der Karte reist in history.state mit:
+         clpopLockBody() friert den Body per position:fixed ein, ab da ist
+         window.scrollY 0 – der Browser stellte beim Zurück also an den
+         Seitenanfang. Beim Wiederherstellen bekommt der Lock den
+         gemerkten Wert; nach dem Schliessen steht die Seite wieder genau
+         dort, wo die Kachel angeklickt wurde.
+       ================================================================= */
+    const CLPOP_HASH_PREFIX = '#pop=';
+
+    // Wie lange nach dem Laden ein Marker noch eine Karte öffnen darf.
+    // Die Kacheln entstehen erst mit den Firestore-Daten (aus dem Cache
+    // sofort, kalt ein paar Sekunden). Treffen sie viel später ein, hat
+    // der User die Seite längst in der Hand – dann bleibt die Karte zu,
+    // statt ihm unvermittelt ins Bild zu springen.
+    const CLPOP_RESTORE_MS = 20000;
+
+    const clpopRestorers = new Map();  // typ → (key, opts) => true, wenn geöffnet
+    let clpopRestoreTarget = null;     // Marker aus der URL, wartet auf seine Kachel
+    let clpopRestoreDeadline = 0;
+
+    function clpopMarkerHref(type, key) {
+        return location.pathname + location.search + CLPOP_HASH_PREFIX
+            + encodeURIComponent(type) + ':' + encodeURIComponent(key);
+    }
+
+    // '#pop=tm:Max%20Muster' → { type: 'tm', key: 'Max Muster' }
+    function clpopParseMarker(hash) {
+        const raw = String(hash || '');
+        if (raw.indexOf(CLPOP_HASH_PREFIX) !== 0) return null;
+        const value = raw.slice(CLPOP_HASH_PREFIX.length);
+        const sep = value.indexOf(':');
+        if (sep <= 0) return null;
+        try {
+            const type = decodeURIComponent(value.slice(0, sep));
+            return type ? { type, key: decodeURIComponent(value.slice(sep + 1)) } : null;
+        } catch (_) { return null; }   // kaputtes Fragment ignorieren
+    }
+
+    function clpopHistoryState() {
+        const state = history.state;
+        return (state && typeof state === 'object') ? state : {};
+    }
+
+    function clpopSaveMarker(marker, scrollY) {
+        if (!marker || !marker.type) return;
+        const key = marker.key || '';
+        try {
+            history.replaceState(
+                { ...clpopHistoryState(), clpop: { type: marker.type, key, scrollY } },
+                '',
+                clpopMarkerHref(marker.type, key)
+            );
+        } catch (_) { /* ohne History-API bleibt es bei der offenen Karte */ }
+    }
+
+    function clpopDropMarker() {
+        const state = clpopHistoryState();
+        if (!state.clpop && !clpopParseMarker(location.hash)) return;
+        const rest = { ...state };
+        delete rest.clpop;
+        try {
+            history.replaceState(rest, '', location.pathname + location.search);
+        } catch (_) { /* Fragment stehen lassen ist harmlos */ }
+    }
+
+    // Bereich meldet an, wie er eine Karte aus dem Marker wieder aufbaut.
+    function clpopRegisterRestore(type, fn) {
+        clpopRestorers.set(type, fn);
+    }
+
+    /* Nach dem Rendern der CL-Bühnen aufrufen: existiert die Kachel zum
+       Marker inzwischen, geht die Karte wieder auf. Solange sie fehlt
+       (Daten noch unterwegs), bleibt der Marker stehen und der nächste
+       Render versucht es erneut. */
+    function clpopTryRestore() {
+        if (!clpopRestoreTarget) return;
+        // Schon eine Karte offen (bfcache oder eigener Klick) → erledigt.
+        if (clpopOpenKey !== null || clpopClosing) { clpopRestoreTarget = null; return; }
+        if (Date.now() > clpopRestoreDeadline) {
+            clpopRestoreTarget = null;
+            clpopDropMarker();
+            return;
+        }
+        const restore = clpopRestorers.get(clpopRestoreTarget.type);
+        if (!restore) { clpopRestoreTarget = null; clpopDropMarker(); return; }
+        const target = clpopRestoreTarget;
+        if (restore(target.key, { restore: true, scrollY: target.scrollY })) clpopRestoreTarget = null;
+    }
+
+    /* Offene Detailkarte aus der URL: Der Marker wird EINMAL beim Laden
+       gelesen – clpopOpen/clpopClose schreiben ihn danach fort. */
+    clpopRestoreTarget = clpopParseMarker(location.hash);
+    if (clpopRestoreTarget) {
+        const saved = clpopHistoryState().clpop;
+        const savedY = saved ? Number(saved.scrollY) : NaN;
+        clpopRestoreTarget.scrollY = Number.isFinite(savedY) ? savedY : 0;
+        clpopRestoreDeadline = Date.now() + CLPOP_RESTORE_MS;
+    }
+
     function clpopPrefersReducedMotion() {
         try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; }
     }
@@ -5061,9 +5186,15 @@
     // an Ort, beim Entsperren wird die Scroll-Position wiederhergestellt.
     let clpopLockScrollY = 0;
 
-    function clpopLockBody() {
+    // `forcedScrollY` kommt aus dem History-Marker: nach dem Zurück steht
+    // das frisch geladene Dokument auf 0, gemeint ist aber die Position von
+    // damals. Der Body wird dann direkt dorthin geschoben – hinter der
+    // Karte unsichtbar, beim Schliessen exakt richtig.
+    function clpopLockBody(forcedScrollY) {
         if (document.body.classList.contains('clpop-lock')) return;
-        clpopLockScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        clpopLockScrollY = Number.isFinite(forcedScrollY)
+            ? forcedScrollY
+            : (window.scrollY || document.documentElement.scrollTop || 0);
         document.body.style.top = `-${clpopLockScrollY}px`;
         document.body.classList.add('clpop-lock');
     }
@@ -5118,9 +5249,13 @@
         });
     }
 
-    function clpopOpen(cfg, tileEl) {
+    function clpopOpen(cfg, tileEl, opts) {
         clpopEnsureOverlay();
         if (clpopClosing) return;
+        // `opts.restore` = die Karte kommt aus dem URL-Marker (Zurück),
+        // nicht aus einem frischen Klick.
+        const restore = (opts && opts.restore) ? opts : null;
+        if (!restore) clpopRestoreTarget = null;   // eigener Klick schlägt den wartenden Marker
         clpopCtx = cfg;
         clpopOpenKey = cfg.key != null ? cfg.key : '';
         clpopLastTrigger = tileEl || null;
@@ -5129,7 +5264,7 @@
         clpopModal.setAttribute('aria-label', cfg.ariaLabel || '');
         clpopModal.innerHTML = cfg.html || '';
 
-        clpopLockBody();
+        clpopLockBody(restore ? Number(restore.scrollY) || 0 : undefined);
         clpopOverlay.hidden = false;
 
         // ERST jetzt: das Overlay ist sichtbar, der Inhalt also messbar.
@@ -5161,12 +5296,20 @@
 
         const closeBtn = clpopModal.querySelector('.clpop-close');
         if (closeBtn) setTimeout(() => { try { closeBtn.focus({ preventScroll: true }); } catch (_) {} }, 80);
+
+        // Ab jetzt steht die offene Karte in der URL – „Zurück" von der
+        // Analyse/Teams/Rangliste findet genau hierher zurück.
+        clpopSaveMarker(cfg.marker, clpopLockScrollY);
     }
 
     function clpopClose() {
         if (!clpopOverlay || clpopOverlay.hidden || clpopClosing) return;
         clpopOpenKey = null;
         clpopClosing = true;
+
+        // Geschlossen ist geschlossen: der Marker verschwindet aus der URL,
+        // sonst brächte ein späterer Reload die Karte ungefragt zurück.
+        clpopDropMarker();
 
         // Body sofort entsperren (inkl. Scroll-Restore), solange der dunkle
         // Backdrop die App noch abdeckt: das Re-Layout beim Aufheben von
@@ -5202,7 +5345,7 @@
     }
 
     /* ── Top Manager: Detailkarte über den gemeinsamen Controller ────── */
-    function cltmOpen(manager, tileEl) {
+    function cltmOpen(manager, tileEl, opts) {
         if (clpopClosing) return;
         cltmModalManager = manager;
         cltmMode = 'position';
@@ -5212,6 +5355,7 @@
 
         clpopOpen({
             key: manager.manager || '',
+            marker: { type: 'tm', key: manager.manager || '' },
             ariaLabel: `Platz ${rank || '–'}: ${manager.manager || 'Unbekannt'}, ${cltmFormatPts(manager.totalScore)} Punkte`,
             html: cltmModalHtml(manager, rank, rankCls),
             onMounted: (modal) => {
@@ -5228,8 +5372,25 @@
                     champOpenPlayerAnalysis({ id: chip.dataset.pid || '', name: chip.dataset.playerName || '' });
                 }
             }
-        }, tileEl);
+        }, tileEl, opts);
     }
+
+    /* Zurück-Button: Manager aus dem URL-Marker suchen und seine Karte
+       wieder aufziehen. Fehlt er (Kacheln noch nicht gerendert, Manager
+       nicht mehr in den Top-Kacheln), versucht es der nächste Render. */
+    clpopRegisterRestore('tm', (key, opts) => {
+        const manager = (cltmTileManagers || []).find((m) => (m.manager || '') === key);
+        if (!manager) return false;
+        const list = cltmListEl();
+        const tile = list
+            ? Array.from(list.querySelectorAll('.cltm-tile')).find((t) => (t.dataset.manager || '') === key) || null
+            : null;
+        // Liegt die Kachel hinter „Top" (Ränge ab 4), war der User in
+        // „Alle" – die Bühne hinter der Karte gehört wieder dorthin.
+        if (tile && tile.classList.contains('is-hidden')) cltmSetView('alle');
+        cltmOpen(manager, tile, opts);
+        return true;
+    });
 
     /* ── Kachel-Bühne: „Top" (Podest + Reihe) / „Alle" ──────────────────
        Gleiche Technik wie die Chips im Popup: Alle Kacheln sind absolut
@@ -6330,9 +6491,10 @@
         });
     }
 
-    function clcmOpen(entry, tileEl) {
+    function clcmOpen(entry, tileEl, opts) {
         clpopOpen({
             key: entry.key,
+            marker: { type: 'cm', key: entry.key },
             modalClass: 'clcm-modal',
             ariaLabel: `${entry.teamA} gegen ${entry.teamB} – Spieldetails`,
             html: clcmModalHtml(entry),
@@ -6344,8 +6506,24 @@
                     champOpenPlayerAnalysis({ id: playerBtn.dataset.pid || '', name: playerBtn.dataset.playerName || '' });
                 }
             }
-        }, tileEl);
+        }, tileEl, opts);
     }
+
+    /* Zurück-Button: Spiel aus dem URL-Marker wieder aufziehen. Die
+       Kachel kann in einer anderen Ansicht liegen (Standard ist „Live",
+       das Spiel steht z. B. unter „Abgeschlossen") – erst dorthin
+       umschalten, sonst wächst die Karte aus einer versteckten Kachel. */
+    clpopRegisterRestore('cm', (key, opts) => {
+        const entry = clcmEntryByKey.get(key);
+        if (!entry) return false;
+        if (entry.group && entry.group !== clcmView) clcmSetView(entry.group);
+        const list = clcmListEl();
+        const tile = list
+            ? Array.from(list.querySelectorAll('.clcm-tile')).find((t) => (t.dataset.matchKey || '') === key) || null
+            : null;
+        clcmOpen(entry, tile && !tile.classList.contains('is-hidden') ? tile : null, opts);
+        return true;
+    });
 
     /* ── Render ──────────────────────────────────────────────────────── */
     function clcmBindOnce() {
@@ -7031,6 +7209,10 @@
         } else {
             renderNextMatchesTile(data, teams);
         }
+
+        // Beide CL-Bühnen stehen: wartet ein URL-Marker aus einem „Zurück"
+        // auf seine Detailkarte, geht sie jetzt wieder auf.
+        clpopTryRestore();
 
         // „Top Spieler": CL → Karten-Bühne mit „Top 20 | Perfect 15",
         // WM → unverändert das Glass-Panel mit Top-5-Grid und Perfect-Team.
