@@ -27,7 +27,7 @@
     "test:cl2627-pool": "node test-cl2627-pool.js",
     "test:cl-team-writes": "node test-cl-team-writes.js",
     "test:duplicate-guard": "node test-team-duplicate-guard.js",
-    "test": "npm run test:points && npm run test:cache && npm run test:nation-status && npm run test:freeze && npm run test:scaffold && npm run test:captain && npm run test:cl-league && npm run test:cl-preview && npm run test:cl-scope && npm run test:transfers && npm run test:kader && npm run test:names && npm run test:cl-pool && npm run test:cl2627-pool && npm run test:cl-freeze && npm run test:cl-preview-render && npm run test:pool-filter && npm run test:cl-team-writes && npm run test:duplicate-guard && npm run test:aliases && npm run test:builder-sort && npm run test:cl-bracket && npm run test:view-mode && npm run test:live-schedule && npm run test:live-wait && npm run test:fixture-guard && npm run test:sync-report && npm run test:archive && npm run test:tippgruppen && npm run test:preflight && npm run test:versions && npm run test:staticnav && npm run test:menu && npm run test:no-key && npm run test:clcm-view && npm run test:goal-names",
+    "test": "npm run test:points && npm run test:cache && npm run test:nation-status && npm run test:freeze && npm run test:scaffold && npm run test:captain && npm run test:cl-league && npm run test:cl-preview && npm run test:cl-scope && npm run test:transfers && npm run test:kader && npm run test:names && npm run test:cl-pool && npm run test:cl2627-pool && npm run test:cl-freeze && npm run test:cl-preview-render && npm run test:pool-filter && npm run test:cl-team-writes && npm run test:duplicate-guard && npm run test:aliases && npm run test:builder-sort && npm run test:cl-bracket && npm run test:view-mode && npm run test:live-schedule && npm run test:live-wait && npm run test:fixture-guard && npm run test:sync-report && npm run test:archive && npm run test:tippgruppen && npm run test:preflight && npm run test:versions && npm run test:staticnav && npm run test:menu && npm run test:no-key && npm run test:clcm-view && npm run test:popup-restore && npm run test:goal-names",
     "test:versions": "node test-asset-versions.js",
     "test:staticnav": "node test-static-nav.js",
     "test:menu": "node test-menu-entries.js",
@@ -46,6 +46,7 @@
     "test:preflight": "node test-preflight-default.js",
     "test:no-key": "node test-firebase-key-not-committed.js",
     "test:clcm-view": "node test-cl-current-matches-view.js",
+    "test:popup-restore": "node test-cl-popup-restore.js",
     "test:goal-names": "node test-goal-event-names.js"
   },
   "dependencies": {
