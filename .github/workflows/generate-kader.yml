@@ -13,10 +13,10 @@ on:
   workflow_dispatch:
     inputs:
       tournament_key:
-        description: "Turnier-Key (z. B. cl2526)"
+        description: "Turnier-Key (z. B. cl2627)"
         required: true
         type: string
-        default: "cl2526"
+        default: "cl2627"
       commit:
         description: "Ergebnis committen & pushen"
         required: false

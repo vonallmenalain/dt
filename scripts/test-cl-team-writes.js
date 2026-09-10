@@ -33,7 +33,6 @@ const RULES = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'ut
 /* ── 1) Benennung: „Champions League DreamTeam" + Saison-Zusatz ────────── */
 
 const NAMED = {
-  cl2526: '2025/2026',
   cl2627: '2026/2027'
 };
 
@@ -126,7 +125,7 @@ function allowBlock(op) {
   return RULES.slice(start, end);
 }
 
-for (const key of ['cl2526', 'cl2627']) {
+for (const key of ['cl2627']) {
   const t = APP.tournaments[key];
   const collection = t.firestore.teamsCollection;
   const metaDocId  = t.firestore.metaDocId;

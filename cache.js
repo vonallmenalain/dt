@@ -190,8 +190,8 @@
     }
 
     function isPostStartDataRequired(cfg) {
-        // Test-/Staging-Turniere ohne scharfe Datenpipeline (dataReady:false,
-        // z. B. die CL-Vorschau cl2526) dürfen nach Turnierstart legitim leere
+        // Test-/Staging-Turniere ohne scharfe Datenpipeline
+        // (dataReady:false) dürfen nach Turnierstart legitim leere
         // Datensätze haben (nie Punkte hochgeladen). Für sie wird die
         // "nach Start nicht leer"-Regel deaktiviert (siehe resolveConfig).
         if (cfg && cfg.requirePostStartData === false) return false;
@@ -591,7 +591,7 @@
         // Post-Start-Enforcement (leere Datensätze nach Turnierstart als
         // Fehler werten, siehe isPostStartDataRequired/isValidPointsData) gilt
         // nur für Turniere mit scharfer Datenpipeline. Ein als dataReady:false
-        // markiertes aktives Turnier (Test/Staging wie cl2526) hat legitim
+        // markiertes aktives Turnier (Test/Staging) hat legitim
         // (noch) keine Punkte – dort würde die Regel den Load mit
         // "Punkte-Fetch war ungültig" hart abbrechen. Default bleibt true
         // (WM-Verhalten unverändert); nur ein explizit nicht-dataReady

@@ -38,7 +38,6 @@ const APP = require('../tournament-config.js');
 const available = APP.getAvailableTournamentKeys();
 assert.ok(available.includes('cl2627'), 'cl2627 muss verfuegbar sein');
 assert.ok(available.includes('wm2026'), 'wm2026 muss als Archiv verfuegbar bleiben');
-assert.ok(!available.includes('cl2526'), 'der Teststand cl2526 darf nie oeffentlich sein');
 
 assert.equal(APP.isTournamentArchived('wm2026'), true, 'WM 2026 muss Archiv sein');
 assert.equal(APP.isTournamentArchived('cl2627'), false, 'die laufende CL darf kein Archiv sein');

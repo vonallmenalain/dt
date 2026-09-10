@@ -93,7 +93,6 @@ const APP_SHELL = [
   './country-aliases.js',
   './data.js',
   './data-wm2026.js',
-  './data-cl2526.js',
   './data-cl2627.js',
   './position-overrides.js',
   './name-overrides.js',

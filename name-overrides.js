@@ -5,7 +5,7 @@
 // Namens-Kürzung (name-shortener.js) angewendet – BEVOR irgendeine
 // App-Logik (cache.js, Team-Builder, Rangliste, …) auf playersData
 // zugreift. So greifen Namens-Korrekturen sofort in der ganzen App, ohne
-// die auto-generierte Kaderdatei (z.B. data-cl2526.js) von Hand zu
+// die auto-generierte Kaderdatei (z.B. data-cl2627.js) von Hand zu
 // editieren (die trägt bewusst „nicht von Hand editieren").
 //
 // Der ursprüngliche Name wird in `player.SpielernameOriginal` gesichert.
@@ -33,7 +33,7 @@
 //      Nachname ohne Partikel ("Randal Kolo Muani", "Barış Alper Yılmaz").
 // ─────────────────────────────────────────────────────────────────────────
 
-// Beide Turniere teilen dieselbe Liste: die Overrides hängen an der
+// Eine gemeinsame Liste für alle CL-Saisons: die Overrides hängen an der
 // `player.id`, nicht am Klub – ein Spieler behält seine Schreibweise also
 // auch nach einem Transfer. Einträge für Spieler, die in einem Turnier
 // nicht im Pool sind, sind stille No-ops.
@@ -91,7 +91,7 @@ var CL_NAME_OVERRIDES = {
     39178:  "Julian Faye Lund",            // Nachname "Faye Lund"
     434623: "Joel van den Berg",           // Nachname "van den Berg"
     524875: "El Hadji Mbodji",             // Vorname "El Hadji"
-    30432:  "Marten de Roon",              // in data-cl2526.js als "Marten de" abgeschnitten
+    30432:  "Marten de Roon",              // sonst als "Marten de" abgeschnitten
 
     // ── 4) Schreibweise ──────────────────────────────────────────────────
     16367:  "William Pacho",       // api-football: "Willian Joel Pacho"
@@ -106,6 +106,5 @@ var CL_NAME_OVERRIDES = {
 };
 
 window.NAME_OVERRIDES = {
-    cl2526: CL_NAME_OVERRIDES,
     cl2627: CL_NAME_OVERRIDES
 };

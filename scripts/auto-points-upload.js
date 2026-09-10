@@ -3356,9 +3356,10 @@ async function main() {
   const isOneShotRun = forceRun || isPushRun;
 
   // Punkte-Sync akzeptiert regulär verfügbare UND als Vorschau ladbare
-  // Turniere (z. B. das Test-Turnier cl2526). Der Sync schreibt nur in die
-  // turnier-eigenen Collections + turnier-spezifischen Public-Cache-Doks,
-  // daher ist das unbedenklich (analog sync-fixtures.js).
+  // Turniere (noch nicht freigeschaltete Turniere mit eigener Kaderdatei).
+  // Der Sync schreibt nur in die turnier-eigenen Collections +
+  // turnier-spezifischen Public-Cache-Doks, daher ist das unbedenklich
+  // (analog sync-fixtures.js).
   const available = APP_CONFIG.isTournamentAvailable(tournamentKey);
   const previewable = typeof APP_CONFIG.isTournamentPreviewable === 'function'
     && APP_CONFIG.isTournamentPreviewable(tournamentKey);

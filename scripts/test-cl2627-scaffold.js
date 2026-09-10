@@ -53,7 +53,7 @@ assert.equal(cl.archived, undefined, 'Das laufende Turnier darf kein Archiv sein
 assert.equal(APP.isTournamentAvailable('wm2026'), true, 'wm2026 muss als Archiv verfügbar bleiben.');
 assert.equal(APP.isTournamentArchived('wm2026'), true, 'wm2026 muss als Archiv markiert sein.');
 assert.deepEqual(APP.availableTournamentKeys.slice().sort(), ['cl2627', 'wm2026'],
-  'Verfügbar sind genau die CL und die WM – der Teststand cl2526 nie.');
+  'Verfügbar sind genau die CL und die WM.');
 
 /* In Node gibt es keinen Hostname; das aktive Turnier ist deshalb weiterhin
  * der globale Fallback. Wichtig, damit die Cron-Skripte nicht versehentlich

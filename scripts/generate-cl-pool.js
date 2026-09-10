@@ -11,8 +11,8 @@
  *  ---------------------------------------------------------------------------
  *  `generate-kader.js` liest `/players?league=<comp>&season=<saison>` – also
  *  Spieler, die im Wettbewerb bereits EINSÄTZE hatten. Für eine abgeschlossene
- *  Saison (cl2526) ist das ideal, für eine noch nicht gestartete Saison
- *  liefert es NICHTS. Dieses Script dreht die Richtung um:
+ *  Saison ist das ideal, für eine noch nicht gestartete Saison liefert es
+ *  NICHTS. Dieses Script dreht die Richtung um:
  *
  *      qualifizierte Klubs  →  aktueller Kader je Klub  →  Spielerprofile
  *
@@ -39,7 +39,7 @@
  *  Namenslogik: bewusst KEINE zweite Implementierung. `buildRecord`,
  *  `playerDisplayName`, `resolveNationFlag`, `mapPosition` und die
  *  Sortierreihenfolge werden 1:1 aus generate-kader.js importiert. Ein
- *  Spieler, der schon in data-cl2526.js steht, erscheint deshalb hier mit
+ *  Spieler aus einer früheren Kaderdatei erscheint deshalb hier mit
  *  identischem `Spielername`, identischer Position und identischem Schema.
  *
  *  Aufruf (i. d. R. via GitHub-Actions-Workflow generate-cl-pool.yml):
@@ -57,8 +57,8 @@
  *    MAX_TEAMS        Debug-Limit auf die ersten N Klubs (0 = alle).
  *    SKIP_INCOMPLETE  `1`: Spieler ohne Stammdaten bei api-football (kein
  *                     Geburtsdatum, keine Nationalität – meist Nachwuchs)
- *                     verwerfen. Default aus, weil data-cl2526.js solche
- *                     Einträge ebenfalls enthält.
+ *                     verwerfen. Default aus, weil die Kaderdateien solche
+ *                     Einträge bewusst ebenfalls enthalten.
  *
  *  Ausgabe:
  *    ../data-<key>.js               Spielerpool im bestehenden Schema, ergaenzt
@@ -938,7 +938,8 @@ async function main() {
       continue;
     }
     // Klubname/Logo aus dem Kader-Endpunkt bevorzugen (dieselbe Schreibweise
-    // wie in data-cl2526.js, das die Teamdaten ebenfalls von api-football hat).
+    // wie in den übrigen Kaderdateien, deren Teamdaten ebenfalls von
+    // api-football stammen).
     const team = squad.team && squad.team.id != null
       ? { id: squad.team.id, name: squad.team.name || club.name, logo: squad.team.logo || club.logo }
       : { id: club.id, name: club.name, logo: club.logo };
@@ -999,7 +1000,7 @@ async function main() {
       record['Vorsaison.Wert'] = performance.value;
       // Nachwuchs-/Reservespieler, zu denen api-football keinerlei Stammdaten
       // führt: abgekürzter Name, keine Nationalität, kein Geburtsdatum.
-      // data-cl2526.js enthält solche Einträge ebenfalls (70 von 1131), daher
+      // Die Kaderdateien enthalten solche Einträge bewusst ebenfalls, daher
       // bleiben sie per Default drin – SKIP_INCOMPLETE=1 wirft sie raus.
       if (!record['Geburtsdatum'] && !record['Nationalteam.name']) {
         incomplete.push(`${record['Spielername']} (${entry.id}, ${team.name})`);

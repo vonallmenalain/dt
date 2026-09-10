@@ -48,7 +48,7 @@ assert.equal(typeof getCountryAliases, 'function', 'getCountryAliases fehlt.');
 assert.equal(typeof getCountrySearchAliases, 'function', 'getCountrySearchAliases fehlt.');
 
 /* ── 1) Jede vorkommende Nationalität ist abgedeckt ─────────────────────── */
-const KADER = ['data-wm2026.js', 'data-cl2526.js', 'data-cl2627.js'];
+const KADER = ['data-wm2026.js', 'data-cl2627.js'];
 const nationsByFile = new Map();
 for (const file of KADER) {
   const nations = new Set();

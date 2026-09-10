@@ -80,29 +80,24 @@ assert.equal(remaining.filter((p) => /^[A-Za-zÀ-ÖØ-öø-ÿ]\.\s/.test(p.Spiel
   'Nach dem Filter darf kein abgekuerzter Vorname mehr in der Liste stehen.');
 
 /* ── 4) Kein echter Spieler faellt raus ────────────────────────────────── */
-/* Ein Teil der Ausblend-Gruppe stand schon im 25/26-Pool – das ist kein
- * Widerspruch: die Kaderdatei 25/26 enthaelt alle FUER den Wettbewerb
- * gemeldeten Spieler, auch die der UEFA-Liste B (Nachwuchs, zusaetzlich zum
- * 25er-Kader registrierbar), unabhaengig von Einsaetzen.
- *
- * Entscheidend ist die Konsistenz: wer heute ausgeblendet wird, muss auch
- * damals schon ohne Stammdaten gewesen sein. Waere jemand in 25/26 gepflegt
- * und in 26/27 leer, waere das eine Datenregression im Generator – und der
- * Filter wuerde einen echten Spieler verschlucken. */
-const previousById = new Map(loadPlayersData('data-cl2526.js').map((p) => [p['player.id'], p]));
-const regressions = hidden
-  .filter((p) => previousById.has(p['player.id']))
-  .filter((p) => !isProfileless(previousById.get(p['player.id'])))
-  .map((p) => {
-    const before = previousById.get(p['player.id']);
-    return `${before.Spielername} (${before['Club.name']}, Geb. ${before.Geburtsdatum})`;
-  });
+/* Der Filter darf nur die Nachwuchs-/Reserveeintraege ohne Stammdaten
+ * treffen. Zwei Groessen halten ihn im Rahmen: Die Ausblend-Gruppe bleibt
+ * klein gemessen am Pool, und keiner der ausgeblendeten Spieler traegt eine
+ * Spur echter Stammdaten (Geburtsdatum ODER Nationalitaet). Sonst waere das
+ * eine Datenregression im Generator – und der Filter wuerde einen echten
+ * Spieler verschlucken. */
+assert.ok(hidden.length < pool.length * 0.2,
+  `${hidden.length} von ${pool.length} Spielern werden ausgeblendet – das ist zu viel ` +
+  'fuer die Nachwuchs-Ausnahme; da fehlen ganzen Kadern die Stammdaten.');
+const withData = hidden
+  .filter((p) => String(p.Geburtsdatum || '').trim() || String(p['Nationalteam.name'] || '').trim())
+  .map((p) => `${p.Spielername} (${p['Club.name']})`);
 // Laengenvergleich statt deepEqual: die Arrays stammen aus einem
 // vm-Kontext (anderes Realm), deshalb wuerde deepStrictEqual schon an den
 // unterschiedlichen Array-Prototypen scheitern – auch bei leeren Arrays.
-assert.equal(regressions.length, 0,
-  'Diese Spieler hatten in data-cl2526.js gepflegte Stammdaten und in data-cl2627.js nicht mehr – ' +
-  `der Filter wuerde echte Spieler ausblenden:\n  ${regressions.join('\n  ')}`);
+assert.equal(withData.length, 0,
+  'Diese Spieler haben gepflegte Stammdaten und werden trotzdem ausgeblendet – ' +
+  `der Filter wuerde echte Spieler verschlucken:\n  ${withData.join('\n  ')}`);
 
 /* ── 4b) Doppelprofile: nach der Ladekette steht niemand zweimal drin ───── */
 /* Geprueft wird am Ergebnis, nicht an der Regel: data.js wird ausgefuehrt
@@ -158,8 +153,6 @@ assert.equal(APP.tournaments.cl2627.dedupePlayerProfiles, true,
   'Fuer cl2627 muss der Doppelprofil-Filter eingeschaltet sein.');
 assert.notEqual(APP.tournaments.wm2026.dedupePlayerProfiles, true,
   'Die WM bleibt eingefroren – kein Doppelprofil-Filter.');
-assert.notEqual(APP.tournaments.cl2526.dedupePlayerProfiles, true,
-  'cl2526 bleibt als Teststand unveraendert.');
 
 const cl = runDataJs('cl2627');
 assert.equal(cl.context.__PLAYER_POOL_DEDUPE__.active, true);

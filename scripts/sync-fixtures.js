@@ -938,8 +938,9 @@ async function main() {
   const tournament = TOURNAMENTS[tournamentKey];
 
   // Sync akzeptiert regulär verfügbare UND als Vorschau ladbare Turniere
-  // (z. B. das Test-Turnier cl2526). Der Sync schreibt nur in die
-  // turnier-eigenen Collections, daher ist das unbedenklich.
+  // (noch nicht freigeschaltete Turniere mit eigener Kaderdatei). Der Sync
+  // schreibt nur in die turnier-eigenen Collections, daher ist das
+  // unbedenklich.
   const available = APP_CONFIG.isTournamentAvailable(tournamentKey);
   const previewable = typeof APP_CONFIG.isTournamentPreviewable === 'function'
     && APP_CONFIG.isTournamentPreviewable(tournamentKey);

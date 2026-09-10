@@ -2333,8 +2333,8 @@
         return !!(info && info.verifiedFromServer === true && info.stale !== true);
     }
 
-    /* In einer bewusst aktivierten Admin-Vorschau (z. B. CL-Test cl2526)
-       liegen fuer das Turnier oft schlicht noch keine Live-Daten vor – das
+    /* In einer bewusst aktivierten Admin-Vorschau liegen fuer das
+       Turnier oft schlicht noch keine Live-Daten vor – das
        ist KEIN Server-/App-Fehler. Analog zu index.html zeigen wir dann
        einen ruhigen Hinweis statt der roten Fehlermeldung. */
     function isPreviewWithoutLiveData() {
