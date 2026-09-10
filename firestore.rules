@@ -22,11 +22,10 @@ rules_version = '2';
 //   4) Team-Schema: exakt 15 Spieler, erlaubte Felder als Allowlist.
 //   5) Verifizierte User duerfen den teamsVersion-Counter im app_meta-Doc
 //      nur um +1 erhoehen; Admin darf alles.
-//   6) Champions League: Reads fuer beide CL-Turniere, Team-Writes fuer die
-//      Test-Saison (cl2526, 'Teams CL 2025-26 Test') und die produktive
-//      Saison (cl2627, 'Teams CL 2026-27'). Neue Teams/Loeschungen sind bei
-//      cl2627 bis zum ersten Ligaphasen-Spiel (2026-09-08 16:45 UTC)
-//      erlaubt, Updates dauerhaft (Transferfenster waehrend der Saison).
+//   6) Champions League: Reads und Team-Writes fuer die produktive Saison
+//      (cl2627, 'Teams CL 2026-27'). Neue Teams/Loeschungen sind bis zum
+//      ersten Ligaphasen-Spiel (2026-09-08 16:45 UTC) erlaubt, Updates
+//      dauerhaft (Transferfenster waehrend der Saison).
 //   7) Tippgruppen ('tippgruppen', siehe tippgruppen.js): get per Doc-ID
 //      fuer jeden Angemeldeten (die zufaellige Doc-ID im Einladungs-Link
 //      ist das Geheimnis privater Gruppen), list NUR fuer oeffentliche
@@ -360,25 +359,16 @@ service cloud.firestore {
           || docId == 'wm2026_points_shard_14'
           || docId == 'wm2026_points_shard_15'
         ))
-        // ── Champions League: Reads fuer beide CL-Turniere.
-        //    Team-WRITES sind fuer die Test-Saison cl2526 unten freigegeben
-        //    (Testteams in der Admin-Vorschau), fuer die produktive Saison
-        //    cl2627 folgen sie separat beim CL-Launch. Server-Writes
-        //    (Fixtures/Punkte) laufen ohnehin ueber das Admin-SDK.
-        || collection == 'Teams CL 2025-26 Test'
-        || collection == 'Spiele CL 2025-26 Test'
-        || collection == 'Punkte Spieler CL 2025-26 Test'
-        || (collection == 'app_meta' && docId == 'turnier_cl2526')
+        // ── Champions League (cl2627): Reads fuer alle. Die Team-WRITES
+        //    folgen unten; Server-Writes (Fixtures/Punkte) laufen ohnehin
+        //    ueber das Admin-SDK.
         || collection == 'Teams CL 2026-27'
         || collection == 'Spiele CL 2026-27'
         || collection == 'Punkte Spieler CL 2026-27'
         || (collection == 'app_meta' && docId == 'turnier_cl2627')
         || (collection == 'public_cache' && (
-             docId == 'cl2526_fixtures'
-          || docId == 'cl2627_fixtures'
-          || docId == 'cl2526_points_delta_current'
+             docId == 'cl2627_fixtures'
           || docId == 'cl2627_points_delta_current'
-          || docId.matches('cl2526_points_shard_[0-9][0-9]')
           || docId.matches('cl2627_points_shard_[0-9][0-9]')
         ))
         || (collection == 'Admin Auto Points Logs WM 2026' && isAdmin());
@@ -414,24 +404,11 @@ service cloud.firestore {
             && docId == 'turnier_wm2026'
             && isAdmin()
         )
-        // ── CL 2025/26 (Test): Teams anlegen. Kein WM-Deadline-Gate, da es
-        //    ein Test-Turnier ist; Verifizierung, Eigentum und Team-Schema
-        //    gelten wie bei der WM (validTeamCreate).
-        || (
-            collection == 'Teams CL 2025-26 Test'
-            && validTeamCreate()
-            && (isAdmin() || docId == request.auth.uid)
-        )
-        || (
-            collection == 'app_meta'
-            && docId == 'turnier_cl2526'
-            && isAdmin()
-        )
         // ── CL 2026/27 (produktiv): Teams anlegen bis zum ersten
         //    Ligaphasen-Spiel. Ohne diesen Zweig lief jede Einreichung in
         //    der CL-Ansicht in ein permission-denied ("Fehler beim
-        //    Speichern"), weil nur die WM- und die Test-Collection gedeckt
-        //    waren. Mehrere Teams pro Account sind hier ausgeschlossen:
+        //    Speichern"), weil nur die WM-Collection gedeckt war. Mehrere
+        //    Teams pro Account sind hier ausgeschlossen:
         //    die Doc-ID muss die eigene UID sein (siehe Hinweis oben) –
         //    nur der Admin darf fuer Testteams weitere Dokumente anlegen.
         //    Die zusaetzliche "ein Team pro E-Mail"-Regel (mehrere UIDs,
@@ -467,19 +444,6 @@ service cloud.firestore {
                 || (isVerified() && isTeamsVersionBumpOnly())
             )
         )
-        // ── CL 2025/26 (Test): eigenes Team aktualisieren + teamsVersion-Bump.
-        || (
-            collection == 'Teams CL 2025-26 Test'
-            && validTeamUpdate()
-        )
-        || (
-            collection == 'app_meta'
-            && docId == 'turnier_cl2526'
-            && (
-                isAdmin()
-                || (isVerified() && isTeamsVersionBumpOnly())
-            )
-        )
         // ── CL 2026/27 (produktiv): eigenes Team aktualisieren + teamsVersion-Bump.
         //    Kein Deadline-Gate (Transferfenster laeuft waehrend der Saison,
         //    siehe clTeamCreatesAllowed).
@@ -510,16 +474,6 @@ service cloud.firestore {
         || (
             collection == 'app_meta'
             && docId == 'turnier_wm2026'
-            && isAdmin()
-        )
-        // ── CL 2025/26 (Test): eigenes Team loeschen.
-        || (
-            collection == 'Teams CL 2025-26 Test'
-            && validTeamDelete()
-        )
-        || (
-            collection == 'app_meta'
-            && docId == 'turnier_cl2526'
             && isAdmin()
         )
         // ── CL 2026/27 (produktiv): eigenes Team loeschen (gleiches

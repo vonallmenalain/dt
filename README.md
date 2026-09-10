@@ -130,7 +130,10 @@ alle vier Module laden.
 Browser-Reihenfolge:
 
 1. Preview-Kanal (`?preview=<key>` bzw. persistierter Preview-Override) –
-   nur für nicht freigeschaltete Turniere, Admin-Werkzeug.
+   nur für nicht freigeschaltete Turniere, Admin-Werkzeug. Zurzeit ohne
+   Kandidat: WM und CL 26/27 sind beide freigeschaltet, der eingefrorene
+   Teststand `cl2526` ist entfernt. Die Mechanik bleibt für das nächste
+   noch gesperrte Turnier stehen (`npm run test:cl-preview`).
 2. URL-Parameter `?tournament=<key>` (Test-Override, nicht persistent).
 3. Host-spezifischer Override (`localStorage` →
    `dreamteam_dev_override_<hostname>`). Den setzt heute auch der
@@ -168,7 +171,7 @@ Bewusst **nicht** an `isTournamentAvailable` gekoppelt: der Server muss
 Spielplan und Punkte vorbereiten können, solange das Turnier im Browser noch
 gesperrt ist. Massgeblich ist „regulär verfügbar **oder** als Vorschau
 ladbar" – genau das, was beide Skripte ohnehin akzeptieren. Ein Turnier ohne
-`defaultActiveFrom` (WM 2026, Teststand `cl2526`) kommt hier nie zum Zug.
+`defaultActiveFrom` (WM 2026) kommt hier nie zum Zug.
 
 Ungültige oder nicht verfügbare Keys werden ignoriert und fallen auf
 den Default zurück.
@@ -252,8 +255,8 @@ unabhängige Netze aus (Ligaame, Beschreibung, api-football-Teamsuffix
 **Namenslogik ist geteilt, nicht kopiert.** `buildRecord`,
 `playerDisplayName`, `resolveNationFlag`, `mapPosition` und die Sortierung
 importiert `generate-cl-pool.js` aus `generate-kader.js`. Ein Spieler, der
-schon in `data-cl2526.js` steht, erscheint deshalb im neuen Pool mit
-identischem Namen und identischem Schema.
+schon in einer früheren Kaderdatei steht, erscheint deshalb im neuen Pool
+mit identischem Namen und identischem Schema.
 
 #### Anzeigenamen: `name-shortener.js`
 
@@ -309,10 +312,10 @@ Detailkarte und Spielkacheln) und `resolveScheduleGoalPerson`
 
 **Spieler ohne Stammdaten.** Für einen Teil der gemeldeten Kaderspieler
 (meist Nachwuchs) führt api-football kein Profil: abgekürzter Name, keine
-Nationalität, kein Geburtsdatum. `data-cl2526.js` enthält solche Einträge
-ebenfalls (70 von 1131), deshalb bleiben sie per Default drin – der Lauf
-listet sie aber vollständig im Log auf. Wer sie draussen haben will,
-setzt den Workflow-Input `skip_incomplete`.
+Nationalität, kein Geburtsdatum. Die Kaderdateien führen solche Einträge
+bewusst mit, deshalb bleiben sie per Default drin – der Lauf listet sie aber
+vollständig im Log auf. Wer sie draussen haben will, setzt den
+Workflow-Input `skip_incomplete`.
 
 **Doppelprofile.** api-football führt einzelne Spieler unter **zwei**
 `player.id`-Werten: gleicher Name, gleiches Geburtsdatum, gleicher Klub,
@@ -557,15 +560,14 @@ npm test                 # alle Suites nacheinander
 npm run test:freeze      # einzelne Suite, siehe scripts/package.json
 ```
 
-`test:cl2627-pool` prüft die erzeugte `data-cl2627.js` gegen
-`data-cl2526.js`: gleiches Schema, gültige Positionen, eindeutige
-`player.id`, deterministische Sortierung – und vor allem, dass jeder in
-beiden Turnieren vorkommende Spieler **denselben Anzeigenamen** trägt.
-Weil der 26/27-Pool über einen anderen API-Weg entsteht, ist genau das der
+`test:cl2627-pool` prüft die erzeugte `data-cl2627.js` gegen das
+vereinbarte Kader-Schema: feste Feldliste in fester Reihenfolge, gültige
+Positionen, eindeutige `player.id`, deterministische Sortierung. Weil der
+Pool über den Klub-Weg entsteht (`/players/squads`), ist genau das der
 Punkt, an dem eine Abweichung sonst unbemerkt durchrutschen würde.
 
 `test:names` bewacht die Anzeigenamen (`name-shortener.js`): Beispiele für
-beide Pfade, dann die **ganze** Spielerliste beider CL-Turniere – nach
+beide Pfade, dann die **ganze** Spielerliste der CL – nach
 Kürzung und Overrides darf kein Spieler mehr drei Wörter tragen, ausser er
 hat einen erlaubten Grund (Partikel, abgekürztes Profil, ausdrücklicher
 Override). Zusätzlich führt er `data.js` in einem vm-Kontext mit Mini-DOM
@@ -1050,12 +1052,10 @@ In der [Firebase Console](https://console.firebase.google.com/project/dreamteam-
 
    - Public-Reads nur für `Teams WM 2026`, `Spiele WM 2026`,
      `Punkte Spieler WM 2026` und das Meta-Dokument
-     `app_meta/turnier_wm2026` – dazu die beiden CL-Pendants
-     (`Teams CL 2025-26 Test` / `Teams CL 2026-27` samt Spielen, Punkten
-     und Meta-Dokumenten).
-   - Team-Writes gibt es für `Teams WM 2026`, `Teams CL 2025-26 Test`
-     (Test-Turnier, ohne Zeit-Gate) und `Teams CL 2026-27`. Bei der CL
-     2026/27 sind **neue** Teams und Löschungen bis zum ersten
+     `app_meta/turnier_wm2026` – dazu das CL-Pendant
+     (`Teams CL 2026-27` samt Spielen, Punkten und Meta-Dokument).
+   - Team-Writes gibt es für `Teams WM 2026` und `Teams CL 2026-27`. Bei
+     der CL 2026/27 sind **neue** Teams und Löschungen bis zum ersten
      Ligaphasen-Spiel (2026-09-08 16:45 UTC, 18:45 Schweizer Zeit –
      frühestmöglicher Anstoss des ersten Abends) erlaubt, **Updates**
      dauerhaft – sonst liesse sich das Transferfenster während der Saison
@@ -1231,7 +1231,7 @@ ist deshalb auf Parse-Geschwindigkeit optimiert
   `vm.runInContext` – das Format ist für sie transparent.
   `npm run test:cl2627-pool` prüft das Schema inklusive der Abwesenheit
   der toten Felder. **`data-wm2026.js` bleibt als Archiv eingefroren**
-  (`test:freeze`), `data-cl2526.js` als historischer Teststand ebenso.
+  (`test:freeze`).
 
 ### App-Shell (app.html): Seitenwechsel ohne Neuladen
 

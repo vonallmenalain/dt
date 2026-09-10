@@ -146,7 +146,7 @@
     if (!active || active.structure !== 'league') {
         subEl.textContent = '';
         showMessage('Diese Ansicht gibt es nur für die Champions League. '
-            + 'Als Admin über den Turnier-Switcher bzw. ?preview=cl2526 öffnen.');
+            + 'Als Admin über den Turnier-Switcher dorthin wechseln.');
         return;
     }
     subEl.textContent = (active.longLabel || active.name || 'Ligaphase');

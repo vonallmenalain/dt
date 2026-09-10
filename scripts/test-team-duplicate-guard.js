@@ -267,7 +267,6 @@ function testRules() {
 
   const teamCollections = [
     'Teams WM 2026',
-    'Teams CL 2025-26 Test',
     'Teams CL 2026-27'
   ];
 

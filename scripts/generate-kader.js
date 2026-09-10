@@ -8,7 +8,7 @@
  *  zum aktiven Turnier laut tournament-config.js.
  *
  *  Aufruf (i. d. R. via GitHub-Actions-Workflow generate-kader.yml):
- *    TOURNAMENT_KEY=cl2526 RAPIDAPI_KEY=… node generate-kader.js
+ *    TOURNAMENT_KEY=cl2627 RAPIDAPI_KEY=… node generate-kader.js
  *
  *  Datenquelle: `/players?league={competitionId}&season={season}` (alle
  *  Spieler, die im Wettbewerb Einsätze hatten – ideal für abgeschlossene
@@ -168,7 +168,7 @@ const NATION_FLAG_ALIASES = {
   drcongo: 'cd', congodr: 'cd', democraticrepublicofthecongo: 'cd',
   capeverdeislands: 'cv', capeverde: 'cv',
   russia: 'ru',
-  // Aus dem cl2526-Lauf als unauflösbar geloggt:
+  // Aus früheren CL-Läufen als unauflösbar geloggt:
   mozambique: 'mz',
   centralafricanrepublic: 'cf',
   northmacedonia: 'mk', macedonia: 'mk',
@@ -272,7 +272,7 @@ const POSITION_ORDER = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELDER: 2, ATTACKER: 3,
 
 async function main() {
   const key = (process.env.TOURNAMENT_KEY || '').trim();
-  if (!key) throw new Error('TOURNAMENT_KEY ist nicht gesetzt (z. B. cl2526).');
+  if (!key) throw new Error('TOURNAMENT_KEY ist nicht gesetzt (z. B. cl2627).');
   const apiKey = process.env.RAPIDAPI_KEY;
   if (!apiKey) throw new Error('RAPIDAPI_KEY ist nicht gesetzt.');
 

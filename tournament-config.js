@@ -536,8 +536,7 @@ const APP_CONFIG = (() => {
       // alphabetisch ganz oben und haben die Spielerliste angefuehrt.
       //
       // Die Kaderdatei selbst bleibt vollstaendig – das ist eine reine
-      // Anzeige-Entscheidung. Fuer cl2526 gaelte dasselbe (70 von 1131),
-      // dort bewusst nicht gesetzt, um den Teststand nicht zu veraendern.
+      // Anzeige-Entscheidung.
       hidePlayersWithoutProfile: true,
 
       // Doppelprofile aussortieren – siehe data.js. api-football fuehrt
@@ -545,8 +544,8 @@ const APP_CONFIG = (() => {
       // gleiches Geburtsdatum, gleicher Klub, getrennte Profile. In der
       // Liste steht der Spieler dann zweimal und liesse sich doppelt
       // aufstellen. Betroffen ist im 26/27-Pool genau ein Eintrag
-      // (Theodore Carroll, Aston Villa), in cl2526 und wm2026 keiner –
-      // dort ist das Flag deshalb nicht gesetzt.
+      // (Theodore Carroll, Aston Villa), in wm2026 keiner – dort ist das
+      // Flag deshalb nicht gesetzt.
       dedupePlayerProfiles: true,
 
       // Anzeigenamen auf „Vorname Nachname" kürzen – siehe
@@ -666,96 +665,6 @@ const APP_CONFIG = (() => {
       // CL-Theme (dunkelblau + hellblau, siehe CL_THEME). Wird vom
       // Theme-Hook als CSS-Variablen injiziert; theme-cl.css konsumiert
       // sie. Farben jederzeit über CL_THEME anpassbar.
-      theme: CL_THEME
-    },
-
-    /* ═════════════════════════════════════════════════════════════
-     * Champions League 2025/26  —  TEST-/STAGING-Turnier (M2b-Gerüst)
-     *
-     * Ausschliesslich für die interne Validierung der Ligaphasen-Logik
-     * gegen eine ABGESCHLOSSENE Saison mit bekannten Ergebnissen. Bleibt
-     * dauerhaft `available: false` (nie öffentlich), ist aber als Admin-
-     * VORSCHAU ladbar (Preview-Kanal), SOBALD `data-cl2526.js` existiert.
-     * Nutzt dieselbe Liga-Logik/Struktur wie cl2627.
-     *
-     * Offen (siehe Übergabe): `data-cl2526.js` (Kader) + Fixtures müssen
-     * noch generiert werden – dafür fehlt aktuell Generator-Tooling im
-     * Repo und ein club-zentrierter Schema-Entscheid.
-     * ═════════════════════════════════════════════════════════════ */
-    cl2526: {
-      key: "cl2526",
-      type: "CL",
-      year: "2025",
-      name: "Champions League",
-      shortLabel: "Champions League",
-      longLabel: "UEFA Champions League 2025/2026",
-      brandName: "DreamTeam Champions League",
-      pageTitlePrefix: "Champions League DreamTeam",
-      // Saison-Zusatz (klein unter dem Titel); bewusst getrennt vom Namen,
-      // damit „25/26" nicht mehr im Label/Brand auftaucht.
-      seasonLabel: "2025/2026",
-      competitionName: "UEFA Champions League",
-      timezone: "Europe/Zurich",
-
-      // Nie öffentlich – reines internes Test-/Preview-Turnier.
-      available: false,
-      dataReady: false,
-
-      structure: "league",
-      primaryEntity: "club",
-      // Kein Captain in der CL – Begründung siehe cl2627.
-      captainEnabled: false,
-
-      // Abgeschlossene Saison: API-Football Liga-ID 2, Saison-Startjahr 2025.
-      api: {
-        competitionParam: "league",
-        competitionId: 2,
-        season: "2025"
-      },
-
-      leaguePhase: {
-        teamCount: 36,
-        matchesPerTeam: 8,
-        directQualifyThrough: 8,
-        playoffThrough: 24
-      },
-      knockout: { twoLegged: true },
-
-      // Abgeschlossene Saison – die Zahl steht fest und kann nicht mehr
-      // wachsen oder schrumpfen: 144 Ligaphase + 16 K.-o.-Playoffs
-      // ("Round of 32") + 16 Achtel + 8 Viertel + 4 Halb + 1 Final = 189.
-      // Gezählt wird NUR ab Ligaphasen-Start; die 92 Qualifikationsspiele
-      // der Vorrunden werden vor dem Guard herausgefiltert.
-      fixtureCount: {
-        minPublished: 189,
-        expectedFinal: 189
-      },
-
-      // Referenz: erster Spieltag der 25/26-Ligaphase.
-      DREAMTEAM_START: "2025-09-16T21:00:00+02:00",
-
-      storagePrefix: "dreamteam_cl2526",
-      cachePrefix: "dreamteam-cl2526",
-      dataFile: "data-cl2526.js",
-
-      // Gleiche Namens-Kürzung wie 26/27 (siehe dort) – der Testkanal soll
-      // die Namen zeigen, die im Ernstfall erscheinen.
-      shortenPlayerNames: true,
-
-      firestore: {
-        metaCollection: "app_meta",
-        metaDocId: "turnier_cl2526",
-        teamsCollection: "Teams CL 2025-26 Test",
-        pointsCollection: "Punkte Spieler CL 2025-26 Test",
-        fixturesCollection: "Spiele CL 2025-26 Test"
-      },
-
-      fallbackFixtures: [],
-
-      // Gleiches Transfer-Feature wie 2026/27 (zum Testen).
-      transfers: CL_TRANSFERS,
-
-      // Gleiches CL-Theme wie 2026/27 (dunkelblau) für konsistente Vorschau.
       theme: CL_THEME
     }
 
@@ -1978,8 +1887,7 @@ const APP_CONFIG = (() => {
    * Browser noch gesperrt ist (`available: false`). Massgeblich ist deshalb
    * „regulär verfügbar ODER als Vorschau ladbar" – exakt das, was
    * sync-fixtures.js und auto-points-upload.js ohnehin akzeptieren. Ein
-   * Turnier ohne `defaultActiveFrom` (WM 2026, Teststand cl2526) kommt hier
-   * nie zum Zug.
+   * Turnier ohne `defaultActiveFrom` (WM 2026) kommt hier nie zum Zug.
    *
    * @param {number} [nowMs]  Default: Date.now() (für Tests injizierbar).
    */

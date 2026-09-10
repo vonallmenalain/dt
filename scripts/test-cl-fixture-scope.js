@@ -8,8 +8,11 @@
  *  Qualifikationsrunden davor liefert api-football zwar mit, sie gehören
  *  aber nicht zum Turnier – weder im Spielplan noch in der Punkterechnung.
  *
- *  Referenz ist die abgeschlossene Saison 2025/26 (league=2, season=2025).
- *  Runden-Texte und Spielzahlen laut API:
+ *  Belegt wird die Klassifikation an der abgeschlossenen Saison 2025/26
+ *  (league=2, season=2025) – dort sind Runden-Texte und Spielzahlen
+ *  vollstaendig bekannt. Geprüft wird sie gegen das aktive CL-Turnier
+ *  (cl2627): das Ligaphasen-Format ist unveraendert, die Runden-Texte der
+ *  API damit ebenfalls. Zahlen laut API:
  *
  *      1st Qualifying Round     28  ─┐
  *      2nd Qualifying Round     30   │ vor der Ligaphase → NICHT gewertet
@@ -38,7 +41,7 @@
 const assert = require('node:assert/strict');
 const APP = require('../tournament-config.js');
 
-const CL = 'cl2526';
+const CL = 'cl2627';
 const WM = 'wm2026';
 
 /* Kompletter Runden-Satz der CL-Saison 2025/26 mit den echten Spielzahlen. */
@@ -65,6 +68,7 @@ const CL_2526_ROUNDS = [
 const EXPECTED_TOTAL = 281;
 const EXPECTED_SCOPED = 189;
 const EXPECTED_QUALI = 92;
+const EXPECTED_LEAGUE_PHASE = 144;
 
 /* ── 1+3) Klassifikation je Runden-Text ───────────────────────────────── */
 (function roundClassification() {
@@ -95,13 +99,15 @@ const EXPECTED_QUALI = 92;
   assert.equal(quali, EXPECTED_QUALI, 'Vor der Ligaphase sind es genau 92 Spiele.');
   assert.equal(scoped + quali, total, 'Scope-Aufteilung muss verlustfrei sein.');
 
-  // Der Sync-Guard muss zu dieser Zahl passen, sonst laesst er einen
+  // Der Sync-Guard muss zu diesen Zahlen passen, sonst laesst er einen
   // unvollstaendigen Spielplan durch bzw. blockiert einen vollstaendigen.
+  // minPublished ist die Ligaphase allein (die K.-o.-Paarungen stehen erst
+  // nach deren Ende fest), expectedFinal die volle Saison ab Ligaphase.
   const fixtureCount = APP.tournaments[CL].fixtureCount || {};
-  assert.equal(fixtureCount.minPublished, EXPECTED_SCOPED,
-    'cl2526.fixtureCount.minPublished muss 189 sein (abgeschlossene Saison).');
+  assert.equal(fixtureCount.minPublished, EXPECTED_LEAGUE_PHASE,
+    `${CL}.fixtureCount.minPublished muss ${EXPECTED_LEAGUE_PHASE} sein (Ligaphase).`);
   assert.equal(fixtureCount.expectedFinal, EXPECTED_SCOPED,
-    'cl2526.fixtureCount.expectedFinal muss 189 sein.');
+    `${CL}.fixtureCount.expectedFinal muss ${EXPECTED_SCOPED} sein (ab Ligaphase).`);
 })();
 
 /* ── 4) WM bleibt unberührt ───────────────────────────────────────────── */

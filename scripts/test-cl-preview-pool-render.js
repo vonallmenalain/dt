@@ -68,9 +68,9 @@ assert.equal(renderCalls.length, 5,
   '(onCachedReady, onUpdate, onError, aeusserer catch).');
 
 /* ── 5) Kaderdatei-Preload deckt neue CL-Saisons ab ─────────────────────── */
-/* Der Preload im <head> hat frueher nur cl2526 gekannt und fuer cl2627 die
- * WM-Datei vorgeladen. Jetzt greift ein Muster – sonst muesste man bei jeder
- * neuen CL-Saison fuenf HTML-Dateien nachziehen. */
+/* Der Preload im <head> hat frueher eine feste Saison gekannt und fuer jede
+ * andere die WM-Datei vorgeladen. Jetzt greift ein Muster – sonst muesste man
+ * bei jeder neuen CL-Saison fuenf HTML-Dateien nachziehen. */
 const PAGES = ['index.html', 'team-builder.html', 'teams.html', 'rangliste.html', 'spieleranalyse.html'];
 for (const page of PAGES) {
   const html = fs.readFileSync(path.join(__dirname, '..', page), 'utf8');
@@ -111,7 +111,7 @@ assert.ok(
 
 /* ── 7) Service Worker kennt die neue Kaderdatei ────────────────────────── */
 const sw = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-for (const file of ['./data-wm2026.js', './data-cl2526.js', './data-cl2627.js']) {
+for (const file of ['./data-wm2026.js', './data-cl2627.js']) {
   assert.ok(sw.includes(`'${file}'`),
     `service-worker.js: ${file} fehlt in APP_SHELL – offline waere der Kader nicht verfuegbar.`);
 }

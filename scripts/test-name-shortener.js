@@ -203,8 +203,6 @@ function words(name) {
 (function testWiring() {
   assert.equal(APP.tournaments.cl2627.shortenPlayerNames, true,
     'cl2627 muss die Namens-Kürzung eingeschaltet haben.');
-  assert.equal(APP.tournaments.cl2526.shortenPlayerNames, true,
-    'cl2526 (Testkanal) muss dieselben Namen zeigen wie 26/27.');
   assert.notEqual(APP.tournaments.wm2026.shortenPlayerNames, true,
     'Die WM ist eingefroren – dort darf die Kürzung nicht greifen.');
 
@@ -369,7 +367,7 @@ function allowedLongName(name, isOverridden) {
 }
 
 const overrides = loadNameOverrides();
-['cl2526', 'cl2627'].forEach((key) => {
+['cl2627'].forEach((key) => {
   const tournament = APP.tournaments[key];
   const byId = overrides[key] || {};
   const pool = loadPlayersData(tournament.dataFile);
@@ -443,7 +441,7 @@ const overrides = loadNameOverrides();
 
   // Und der Pool selbst: nach der Kuerzung darf kein Anzeigename mehr ein
   // C1-Steuerzeichen oder ein Ersatzzeichen tragen.
-  ['data-cl2627.js', 'data-cl2526.js'].forEach((file) => {
+  ['data-cl2627.js'].forEach((file) => {
     const pool = loadPlayersData(file);
     const dirty = pool
       .map((p) => shortenPlayerName(p.Spielername))

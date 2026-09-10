@@ -131,10 +131,10 @@ check(
   'resolveServerTournamentKey liefert die CL auch waehrend der Saison',
   APP_CONFIG.resolveServerTournamentKey(new Date('2027-03-10T20:00:00Z').getTime()) === 'cl2627'
 );
-// Der eingefrorene Teststand darf die Cron-Jobs nie an sich ziehen.
+// Ein Turnier ohne defaultActiveFrom darf die Cron-Jobs nie an sich ziehen.
 check(
-  'Teststand cl2526 hat kein defaultActiveFrom',
-  !APP_CONFIG.tournaments.cl2526.defaultActiveFrom
+  'Die WM hat kein defaultActiveFrom',
+  !APP_CONFIG.tournaments.wm2026.defaultActiveFrom
 );
 // Wichtig: die Aufloesung darf NICHT an `available` haengen – der Server muss
 // Spielplan und Punkte vorbereiten koennen, solange die CL im Browser noch

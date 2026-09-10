@@ -5,12 +5,11 @@
  *
  *  Guard für den erzeugten Vorschau-Spielerpool data-cl2627.js.
  *
- *  Der Pool entsteht auf einem anderen Weg als data-cl2526.js (Klub-Kader
- *  statt Wettbewerbs-Einsätze, siehe scripts/generate-cl-pool.js). Genau
- *  deshalb muss geprüft werden, dass am Ende dasselbe herauskommt: gleiches
- *  Schema, gleiche Positionswerte und – für Spieler, die in beiden Turnieren
- *  vorkommen – derselbe Anzeigename. Sonst hiesse derselbe Spieler in der
- *  CL 26/27 plötzlich anders als in der 25/26.
+ *  Der Pool entsteht aus den Klub-Kadern (nicht aus Wettbewerbs-Einsätzen,
+ *  siehe scripts/generate-cl-pool.js). Geprüft wird deshalb, dass jeder Lauf
+ *  dieselbe Form abliefert: das vereinbarte Kader-Schema, gültige
+ *  Positionswerte, eindeutige `player.id` und eine deterministische
+ *  Sortierung.
  *
  *  Läuft ohne Browser, Firebase und API-Key: die Kaderdateien sind reine
  *  `const playersData = [...]`-Skripte und werden in einem Sandbox-Kontext
@@ -34,42 +33,7 @@ function loadPlayersData(file) {
   return context.playersData;
 }
 
-/* Anzeigename eines Turniers – also das, was die App am Ende zeigt.
- *
- * data.js schiebt jede Kaderdatei beim Laden durch dieselbe Kette:
- * erst die Kürzung auf „Vorname Nachname" (opt-in via `shortenPlayerNames`),
- * dann die handgepflegten Overrides, die das letzte Wort haben. Der Vergleich
- * unten muss auf DIESER Ebene laufen: die rohen Dateien entstanden zu
- * verschiedenen Zeitpunkten mit verschiedenen Generator-Ständen
- * (data-cl2526.js trägt noch ungekürzte Namen wie „Harry Edward Kane"), und
- * ob zwei Dateien byteweise dasselbe schreiben, sieht ohnehin niemand –
- * gleich heissen muss der Spieler in der Anzeige. */
-function displayNames(file, tournamentKey) {
-  const shortener = require('../name-shortener.js');
-  const overridesContext = { window: {} };
-  vm.createContext(overridesContext);
-  vm.runInContext(
-    fs.readFileSync(path.join(__dirname, '..', 'name-overrides.js'), 'utf8'),
-    overridesContext,
-    { filename: 'name-overrides.js' }
-  );
-  const overrides = (overridesContext.window.NAME_OVERRIDES || {})[tournamentKey] || {};
-  const shorten = APP.tournaments[tournamentKey].shortenPlayerNames === true;
-
-  const names = new Map();
-  for (const player of loadPlayersData(file)) {
-    let name = player.Spielername;
-    if (shorten) name = shortener.shortenPlayerName(name);
-    if (Object.prototype.hasOwnProperty.call(overrides, player['player.id'])) {
-      name = overrides[player['player.id']];
-    }
-    names.set(player['player.id'], name);
-  }
-  return names;
-}
-
 const pool = loadPlayersData('data-cl2627.js');
-const reference = loadPlayersData('data-cl2526.js');
 
 /* ── 1) Grundform ───────────────────────────────────────────────────────── */
 assert.ok(pool.length > 0, 'data-cl2627.js ist leer.');
@@ -80,22 +44,30 @@ for (const id of ids) {
   assert.ok(Number.isFinite(Number(id)), `Ungültige player.id: ${id}`);
 }
 
-/* ── 2) Schema deckt die bestehende CL-Kaderdatei ab ────────────────────── */
-/* Der Pool traegt zusaetzlich die Vorsaison.*-Felder (Sortierschluessel,
+/* ── 2) Schema entspricht dem vereinbarten Kader-Schema ─────────────────── */
+/* BASE_KEYS ist das Kader-Schema, das alle Ansichten lesen – in genau
+ * dieser Reihenfolge, wie sie jede `data-<key>.js` seit jeher traegt.
+ * Bewusst als feste Liste und nicht aus einer zweiten Kaderdatei abgeleitet:
+ * so bleibt der Guard bestehen, auch wenn es gerade nur EINEN CL-Pool gibt.
+ *
+ * Der Pool traegt zusaetzlich die Vorsaison.*-Felder (Sortierschluessel,
  * siehe scripts/generate-cl-pool.js), aber KEINE Anzeige-toten Felder mehr:
  * Der Serializer (scripts/kader-serializer.js) laesst Felder weg, die keine
  * einzige App-Ansicht liest (Vorsaison.Minuten, Vorsaison.Spiele) – sie
  * wuerden im Browser bei jedem Seitenaufruf nur Parse-Zeit kosten.
- * Geprueft wird deshalb: Basis-Schema aus data-cl2526.js minus tote Felder,
- * in derselben Reihenfolge, die serialisierten Zusatzfelder hinten dran.
  *
  * OPTIONAL_KEYS: `Gewicht` galt bis zum Steckbrief-Fix faelschlich als tot
  * und fehlt deshalb im eingefrorenen 26/27-Stand; der naechste Generator-
  * Lauf bringt es wieder mit. Beides ist gueltig – die Anzeige kommt mit und
  * ohne Feld zurecht (spieleranalyse.js). */
 const { DISPLAY_DEAD_FIELDS } = require('./kader-serializer.js');
+const BASE_KEYS = [
+  'player.id', 'Spielername', 'Spielerfoto', 'Position',
+  'Club.name', 'Club.logo', 'Nationalteam.name', 'Nationalteam.logo',
+  'Geburtsdatum', 'Groesse', 'Gewicht'
+];
 const OPTIONAL_KEYS = ['Gewicht'];
-const expectedKeys = Object.keys(reference[0])
+const expectedKeys = BASE_KEYS
   .filter((k) => !DISPLAY_DEAD_FIELDS.includes(k) && !OPTIONAL_KEYS.includes(k));
 const EXTRA_KEYS = ['Vorsaison.Rating', 'Vorsaison.Wert'];
 for (const player of pool) {
@@ -140,29 +112,7 @@ for (const player of pool) {
     `Spieler ${player.Spielername} hat keinen Klub – der Pool ist club-zentriert.`);
 }
 
-/* ── 4) Namen bleiben zur CL 25/26 identisch ────────────────────────────── */
-/* Das ist der eigentliche Zweck des geteilten Mappings: derselbe Spieler
- * heisst in beiden Turnieren gleich, obwohl die Daten aus unterschiedlichen
- * API-Endpunkten und von unterschiedlichen Generator-Ständen stammen.
- * Verglichen wird der Anzeigename (Kürzung + Overrides), nicht der Rohwert
- * in der Datei – siehe displayNames(). */
-const poolNames = displayNames('data-cl2627.js', 'cl2627');
-const referenceNames = displayNames('data-cl2526.js', 'cl2526');
-const mismatches = [];
-let overlap = 0;
-for (const [id, name] of poolNames) {
-  if (!referenceNames.has(id)) continue;
-  overlap++;
-  const previous = referenceNames.get(id);
-  if (previous !== name) mismatches.push(`${id}: "${previous}" → "${name}"`);
-}
-assert.ok(overlap > 100,
-  `Nur ${overlap} Spieler überlappen mit der CL 25/26 – das deutet auf einen kaputten Lauf hin.`);
-assert.deepEqual(mismatches, [],
-  `Anzeigenamen weichen von data-cl2526.js ab (Eintrag in name-overrides.js fehlt?):\n  ` +
-  `${mismatches.join('\n  ')}`);
-
-/* ── 5) Klubzahl passt zur Ligaphase ────────────────────────────────────── */
+/* ── 4) Klubzahl passt zur Ligaphase ────────────────────────────────────── */
 const clubs = new Set(pool.map((p) => p['Club.name']));
 const teamCount = APP.tournaments.cl2627.leaguePhase.teamCount;
 assert.ok(clubs.size <= teamCount,
@@ -178,7 +128,7 @@ for (const club of clubsDoc.clubs) {
     `Klub ${club.name} hat keine nachvollziehbare Herleitung ("via").`);
 }
 
-/* ── 6) Deterministische Sortierung ─────────────────────────────────────── */
+/* ── 5) Deterministische Sortierung ─────────────────────────────────────── */
 /* Der Generator sortiert nach Klub, dann Position, dann Name – damit ein
  * erneuter Lauf einen leeren Diff erzeugt, wenn sich nichts geändert hat. */
 const POSITION_ORDER = { GOALKEEPER: 0, DEFENDER: 1, MIDFIELDER: 2, ATTACKER: 3 };
@@ -200,7 +150,7 @@ for (let i = 1; i < pool.length; i++) {
     `Namens-Sortierung verletzt bei ${a['Club.name']}: ${a.Spielername} vor ${b.Spielername}.`);
 }
 
-/* ── 7) Overrides greifen nur auf vorhandene Spieler ────────────────────── */
+/* ── 6) Overrides greifen nur auf vorhandene Spieler ────────────────────── */
 /* name-overrides.js / position-overrides.js sind Browser-Globals; hier wird
  * nur der Quelltext ausgewertet, damit der Test ohne DOM läuft. */
 function loadOverrides(file, globalName) {
@@ -215,24 +165,12 @@ const positionOverrides = loadOverrides('position-overrides.js', 'POSITION_OVERR
 assert.ok(nameOverrides.cl2627, 'name-overrides.js braucht einen cl2627-Block.');
 assert.ok(positionOverrides.cl2627, 'position-overrides.js braucht einen cl2627-Block.');
 
-// Die Overrides der CL 25/26 müssen 1:1 auch für 26/27 hinterlegt sein –
-// sonst hiesse ein Spieler nach dem Turnierwechsel plötzlich wieder anders.
-assert.deepEqual(
-  nameOverrides.cl2627, nameOverrides.cl2526,
-  'Der cl2627-Namensblock muss dieselben Korrekturen tragen wie cl2526.'
-);
-
-// Positionen: cl2627 darf ÜBER cl2526 hinausgehen (der 26/27-Pool kommt aus
-// den Vereinskadern und braucht eigene Korrekturen, u. a. die ersten
-// DEFENDER-Einträge), aber keine 25/26-Korrektur verlieren oder still
-// umdrehen. Ein bewusst geänderter Spieler – etwa ein Flügelspieler, der
-// dauerhaft hinten spielt – gehört hier ausgetragen, nicht wegkommentiert.
-Object.entries(positionOverrides.cl2526).forEach(([id, pos]) => {
-  assert.equal(
-    positionOverrides.cl2627[id], pos,
-    `Der cl2627-Positionsblock muss die cl2526-Korrektur für player.id ${id} ` +
-    `tragen (${pos}), steht aber auf ${positionOverrides.cl2627[id] || 'nichts'}.`
-  );
+// Die Overrides greifen ueber die `player.id` und sind damit unabhaengig
+// vom Klub. Sie muessen auf gueltige Positionswerte zeigen – ein Tippfehler
+// wuerde einen Spieler sonst still aus jeder Positions-Filterung kippen.
+Object.entries(positionOverrides.cl2627).forEach(([id, pos]) => {
+  assert.ok(POSITIONS.has(pos),
+    `position-overrides.js: player.id ${id} steht auf "${pos}" – kein gueltiger Positionswert.`);
 });
 
 const poolIds = new Set(ids.map(String));
@@ -241,6 +179,5 @@ const appliedPositions = Object.keys(positionOverrides.cl2627).filter((id) => po
 
 console.log(
   `cl2627 pool test passed – ${pool.length} Spieler aus ${clubs.size} Klubs, ` +
-  `${overlap} Namen deckungsgleich mit cl2526, ` +
   `Overrides aktiv: ${appliedNames.length} Namen / ${appliedPositions.length} Positionen.`
 );

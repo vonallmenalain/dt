@@ -340,7 +340,7 @@ async function testOfflineOldCacheIsStaleOnly() {
 }
 
 // Baut ein Sandbox-window mit frei wählbarer APP_CONFIG (für Turniere, die
-// nicht dem wm2026-Default von makeWindow entsprechen, z. B. die CL-Vorschau).
+// nicht dem wm2026-Default von makeWindow entsprechen, z. B. eine Vorschau).
 function makeWindowWithApp(localStorage, appConfig) {
   const windowObj = {
     localStorage,
@@ -358,17 +358,19 @@ function makeWindowWithApp(localStorage, appConfig) {
   return windowObj;
 }
 
+// Synthetisches Vorschau-Turnier (dataReady:false). Bewusst ein
+// Fantasie-Key: geprüft wird die Guard-Logik, nicht ein bestimmtes Turnier.
 function clAppConfig(overrides = {}) {
   return {
     year: '2025',
-    key: 'cl2526',
+    key: 'clpreview',
     DREAMTEAM_START: '2020-01-01T00:00:00Z', // längst vergangen → "post start"
-    activeTournament: { key: 'cl2526', dataReady: false },
+    activeTournament: { key: 'clpreview', dataReady: false },
     fixtureCount: { minPublished: 0, expectedFinal: 0 },
-    storage: { appPrefix() { return 'dreamteam_cl2526'; } },
+    storage: { appPrefix() { return 'dreamteam_clpreview'; } },
     firestore: {
       metaCollection: 'app_meta',
-      metaDocId() { return 'turnier_cl2526'; },
+      metaDocId() { return 'turnier_clpreview'; },
       teamsCollection() { return 'Teams CL'; },
       pointsCollection() { return 'Punkte CL'; },
       fixturesCollection() { return 'Spiele CL'; }
@@ -394,13 +396,13 @@ async function testPointsGuardRespectsRequirePostStartData() {
 
 // Integrationstest: Eine aktive Vorschau (dataReady:false) mit vergangenem
 // Startdatum und (noch) ohne hochgeladene Punkte lädt ohne harten Fehler –
-// genau der Fall, der die CL-Vorschau cl2526 blockierte.
+// genau der Fall, der eine CL-Vorschau vor Turnierstart blockierte.
 async function testPreviewToleratesEmptyPointsAfterStart() {
   const windowObj = makeWindowWithApp(storageWithMarker(), clAppConfig());
   const db = makeDb({
     docs: {
-      'app_meta/turnier_cl2526': {
-        year: '2025', tournamentKey: 'cl2526',
+      'app_meta/turnier_clpreview': {
+        year: '2025', tournamentKey: 'clpreview',
         fixturesVersion: 1, fixturesUpdatedAt: 1, fixturesCacheGeneratedAt: 5
       }
     },
@@ -411,7 +413,7 @@ async function testPreviewToleratesEmptyPointsAfterStart() {
     }
   });
   const result = await windowObj.DreamTeamCache.loadBundle({
-    db, year: '2025', tournamentKey: 'cl2526',
+    db, year: '2025', tournamentKey: 'clpreview',
     allowEmptyPoints: true, allowEmptyFixtures: true
   });
   assert.equal(Object.keys(result.data.points).length, 0);

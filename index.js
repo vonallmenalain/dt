@@ -7426,41 +7426,6 @@
             }
         ];
 
-        // Champions-League-Stars (Saison 2025/26): genau diese 14 Topspieler,
-        // alle über ihre player.id im CL-Datensatz vorhanden – Foto, Klub und
-        // Klubname kommen also direkt aus data-cl2526.js. Titel bewusst leer
-        // (kein „Stars der …" über dem Karussell in der CL).
-        //
-        // REIHENFOLGE: bewusst so gewählt, dass NIE zwei direkt benachbarte
-        // Spieler demselben Klub angehören – auch über den Ring-Umlauf hinweg
-        // (das Karussell ist zirkulär, letzte Karte grenzt an erste). Die
-        // Klub-Cluster (Real Madrid ×3, PSG ×4, Barça ×2, Arsenal ×2) sind
-        // deshalb gleichmässig verteilt. Welcher Spieler beim Laden im Zentrum
-        // steht, wird zufällig gewählt (siehe pickInitialActive) – die
-        // Ring-Reihenfolge bleibt dabei gültig, egal wo das Zentrum liegt.
-        const cl2526StarRotation = [
-            {
-                id: "cl_stars_set_1",
-                title: "",
-                players: [
-                    { playerId: 128384, name: "Vitinha",               nation: "Portugal",     position: "MIT" }, // PSG
-                    { playerId: 278,    name: "Kylian Mbappé",         nation: "Frankreich",   position: "ANG" }, // Real Madrid
-                    { playerId: 483,    name: "Khvicha Kvaratskhelia", nation: "Georgien",     position: "ANG" }, // PSG
-                    { playerId: 129718, name: "Jude Bellingham",       nation: "England",      position: "MIT" }, // Real Madrid
-                    { playerId: 335051, name: "João Neves",            nation: "Portugal",     position: "MIT" }, // PSG
-                    { playerId: 762,    name: "Vinícius Júnior",       nation: "Brasilien",    position: "ANG" }, // Real Madrid
-                    { playerId: 343027, name: "Désiré Doué",           nation: "Frankreich",   position: "ANG" }, // PSG
-                    { playerId: 386828, name: "Lamine Yamal",          nation: "Spanien",      position: "ANG" }, // Barcelona
-                    { playerId: 1100,   name: "Erling Haaland",        nation: "Norwegen",     position: "ANG" }, // Man City
-                    { playerId: 133609, name: "Pedri",                 nation: "Spanien",      position: "MIT" }, // Barcelona
-                    { playerId: 2937,   name: "Declan Rice",           nation: "England",      position: "MIT" }, // Arsenal
-                    { playerId: 19617,  name: "Michael Olise",         nation: "Frankreich",   position: "MIT" }, // Bayern München
-                    { playerId: 1460,   name: "Bukayo Saka",           nation: "England",      position: "ANG" }, // Arsenal
-                    { playerId: 6009,   name: "Julián Álvarez",        nation: "Argentinien",  position: "ANG" }  // Atlético Madrid
-                ]
-            }
-        ];
-
         // Champions-League-Feld (Saison 2026/27, Pickphase): kuratierte
         // Liste aus den WERTVOLLSTEN Spielern der Welt (STAR, Transfermarkt-
         // Topwerte), jungen Stammspielern (TALENT), grossen Sommer-Transfers
@@ -7576,17 +7541,13 @@
             }
         ];
 
-        // Turnierabhängige Auswahl: jedes CL-Turnier hat seine EIGENE
-        // kuratierte Star-Liste, weil die `playerId`-Referenzen nur im
-        // jeweiligen Kaderpool (`data-<key>.js`) gültig sind. `cl2526` ist der
-        // eingefrorene Admin-Teststand und behält seine 25/26-Liste; jedes
-        // andere CL-Turnier bekommt die aktuelle 26/27-Liste. Alle anderen
-        // Turniere (WM) nutzen unverändert die WM-Rotation.
+        // Turnierabhängige Auswahl: die CL bekommt ihre kuratierte
+        // Star-Liste (die `playerId`-Referenzen sind nur im CL-Kaderpool
+        // `data-<key>.js` gültig), alle anderen Turniere (WM) nutzen
+        // unverändert die WM-Rotation.
         const TOURNAMENT_KEY = String((window.APP_CONFIG && window.APP_CONFIG.key) || "").toLowerCase();
         const IS_CL = TOURNAMENT_KEY.indexOf("cl") === 0;
-        const starRotation = IS_CL
-            ? (TOURNAMENT_KEY === "cl2526" ? cl2526StarRotation : cl2627StarRotation)
-            : wm2026StarRotation;
+        const starRotation = IS_CL ? cl2627StarRotation : wm2026StarRotation;
 
         const STAR_NAME_ALIASES = {
             "abdukodir khusanov": ["abduqodir khusanov"]
@@ -7746,9 +7707,9 @@
 
         let players = [];
 
-        // Anzahl Spieler im Feld. CL zeigt genau die kuratierten Stars des
-        // aktiven Turniers (cl2526: 14, cl2627: 52), die Zahl wird deshalb
-        // aus der Liste abgeleitet statt hart gesetzt. Die WM bleibt bei 9.
+        // Anzahl Spieler im Feld. Die CL zeigt genau die kuratierten Stars
+        // des aktiven Turniers (cl2627: 52), die Zahl wird deshalb aus der
+        // Liste abgeleitet statt hart gesetzt. Die WM bleibt bei 9.
         const CARD_COUNT     = IS_CL ? (starRotation[0]?.players?.length || 14) : 9;
         const prefersReducedMotion = !!(window.matchMedia
             && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -8808,10 +8769,10 @@
     }
 
     /* Fehlermeldung fuer fehlgeschlagenen Datenload. In einer bewusst
-       aktivierten Admin-Vorschau (z. B. CL-Test cl2526) liegen fuer ein noch
-       nicht gestartetes Turnier oft schlicht noch keine Live-Daten vor – das
-       ist KEIN Server-/App-Fehler. Dann einen ruhigen Hinweis zeigen statt
-       der alarmierenden roten Meldung. Die Produktivseite (WM, keine
+       aktivierten Admin-Vorschau liegen fuer ein noch nicht gestartetes
+       Turnier oft schlicht noch keine Live-Daten vor – das ist KEIN
+       Server-/App-Fehler. Dann einen ruhigen Hinweis zeigen statt der
+       alarmierenden roten Meldung. Die Produktivseite (WM, keine
        Vorschau aktiv) bleibt beim bisherigen Fehlerton. */
     function reportDataLoadFailure() {
         const previewActive = !!(APP && typeof APP.isPreviewActive === 'function'
