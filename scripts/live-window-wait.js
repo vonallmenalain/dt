@@ -38,7 +38,10 @@
  *    - `FORCE_RUN=1`            -> sofort weiter (manueller Catch-up).
  *    - Push-Run                 -> sofort weiter (One-Shot, endet am Guard).
  *    - Fenster ist schon offen  -> sofort weiter (verspaeteter Takt, Catch-up,
- *                                  Final-Recheck nach Mitternacht).
+ *                                  Final-Recheck nach Mitternacht). "Offen"
+ *                                  heisst: vom fruehesten Anstoss des Abends
+ *                                  minus Vorlauf bis zum letzten Anstoss
+ *                                  plus Final-Recheck.
  *    - Fenster > MAX_WAIT weg   -> sofort weiter (der Upload-Job stellt
  *                                  selbst fest, dass nichts zu tun ist, und
  *                                  endet nach ~20 s).
@@ -46,14 +49,27 @@
  *
  *  Grundlage ist `matchCalendar` des aktiven Turniers aus
  *  `tournament-config.js` – dieselbe Quelle, aus der die Cron-Zeilen des
- *  Workflows von Hand abgeschrieben sind. Der Kalender nennt je Spieltag den
- *  FRUEHESTEN Anstoss; genau der bestimmt, wann das Live-Fenster oeffnet.
+ *  Workflows von Hand abgeschrieben sind. Je Eintrag nennt `kickoff` den
+ *  Hauptanstoss und das optionale `earliestKickoff` den fruehen Anstoss
+ *  desselben Abends (CL: zwei Spiele um 18:45). Das Fenster oeffnet zum
+ *  FRUEHESTEN der beiden.
+ *
+ *  Vorfall 13.10.2026: Der Kalender kannte fuer Spieltag 2 nur 21:00, und
+ *  der Vorlauf suchte nur Fenster, die noch in der Zukunft beginnen. Ein
+ *  Takt um 16:26 UTC wartete deshalb bis 18:30 UTC – waehrend die beiden
+ *  18:45-Spiele schon liefen. Beides ist jetzt abgedeckt: der fruehe
+ *  Anstoss steht im Kalender, und ein bereits offenes Fenster gibt sofort
+ *  frei, statt auf das naechste zu warten.
  *
  *  Env-Variablen:
  *    TOURNAMENT_KEY        Optional. Default = APP_CONFIG.serverTournamentKey.
  *    LIVE_WINDOW_LEAD_MIN  Optional, Default 30. Minuten, die das Live-Fenster
  *                          vor dem Anpfiff oeffnet. Muss zu
  *                          POINTS_WINDOW_START_MIN des Upload-Skripts passen.
+ *    LIVE_WINDOW_TAIL_MIN  Optional, Default 240. So lange nach dem letzten
+ *                          Anstoss des Abends gilt das Fenster noch als
+ *                          offen. Entspricht POINTS_FINAL_RECHECK_MIN des
+ *                          Upload-Skripts.
  *    LIVE_WINDOW_MAX_WAIT_MIN
  *                          Optional, Default 320. So lange darf dieser Job
  *                          hoechstens warten. Muss unter `timeout-minutes`
@@ -69,6 +85,9 @@ const APP_CONFIG = require('../tournament-config.js');
 
 /* Muss zu DEFAULT_WINDOW_START_MIN in auto-points-upload.js passen (-30). */
 const DEFAULT_LEAD_MIN = 30;
+
+/* Muss zu DEFAULT_FINAL_RECHECK_MIN in auto-points-upload.js passen (240). */
+const DEFAULT_TAIL_MIN = 240;
 
 /* Bewusst unter `timeout-minutes: 330` des Vorlauf-Jobs, damit der Job das
  * Warten regulaer beendet und den Upload-Job startet, statt in den Timeout
@@ -99,19 +118,35 @@ function formatDurationMs(ms) {
   return hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`;
 }
 
-/* Alle Anstosszeiten des Turniers als Millisekunden, aufsteigend. Der
- * Kalender fuehrt je Eintrag mehrere Daten mit derselben Uhrzeit. */
-function kickoffTimesMs(tournament) {
+function localTimeMs(date, time, offset) {
+  return new Date(`${date}T${time}:00${offset || 'Z'}`).getTime();
+}
+
+/* Je Spieltag-Datum der frueheste und der letzte Anstoss als Millisekunden,
+ * aufsteigend. Der Kalender fuehrt je Eintrag mehrere Daten mit derselben
+ * Uhrzeit; `earliestKickoff` (optional) ist der fruehe Anstoss desselben
+ * Abends. */
+function matchDaysMs(tournament) {
   const calendar = (tournament && tournament.matchCalendar) || [];
-  const times = [];
+  const days = [];
   calendar.forEach(entry => {
     if (!entry || !entry.kickoff) return;
     (entry.dates || []).forEach(date => {
-      const ms = new Date(`${date}T${entry.kickoff}:00${entry.offset || 'Z'}`).getTime();
-      if (Number.isFinite(ms)) times.push(ms);
+      const mainMs = localTimeMs(date, entry.kickoff, entry.offset);
+      if (!Number.isFinite(mainMs)) return;
+      const earlyMs = entry.earliestKickoff
+        ? localTimeMs(date, entry.earliestKickoff, entry.offset)
+        : mainMs;
+      const firstMs = Number.isFinite(earlyMs) ? Math.min(earlyMs, mainMs) : mainMs;
+      days.push({ firstKickoffMs: firstMs, lastKickoffMs: Math.max(firstMs, mainMs) });
     });
   });
-  return times.sort((a, b) => a - b);
+  return days.sort((a, b) => a.firstKickoffMs - b.firstKickoffMs);
+}
+
+/* Fruehester Anstoss je Spieltag-Datum, aufsteigend. */
+function kickoffTimesMs(tournament) {
+  return matchDaysMs(tournament).map(day => day.firstKickoffMs);
 }
 
 /* Beginn des naechsten Live-Fensters, das noch in der Zukunft liegt.
@@ -126,6 +161,23 @@ function nextWindowStartMs(tournament, now, leadMin) {
   return next;
 }
 
+/* Ende des Live-Fensters, in dem `now` gerade liegt – vom fruehesten
+ * Anstoss minus Vorlauf bis zum letzten Anstoss plus Nachlauf. `null`,
+ * wenn gerade keines offen ist. */
+function openWindowEndMs(tournament, now, leadMin, tailMin) {
+  const leadMs = Math.max(0, leadMin) * 60_000;
+  const tailMs = Math.max(0, tailMin) * 60_000;
+  let openUntil = null;
+  matchDaysMs(tournament).forEach(day => {
+    const startMs = day.firstKickoffMs - leadMs;
+    const endMs = day.lastKickoffMs + tailMs;
+    if (startMs <= now && now <= endMs && (openUntil == null || endMs > openUntil)) {
+      openUntil = endMs;
+    }
+  });
+  return openUntil;
+}
+
 /* Reine Entscheidungsfunktion – ohne Uhr und ohne Seiteneffekte, damit
  * `test-live-window-wait.js` sie direkt pruefen kann. */
 function planWait(options) {
@@ -136,6 +188,7 @@ function planWait(options) {
 
   if (opts.forceRun) return { waitMs: 0, reason: 'FORCE_RUN aktiv' };
   if (opts.oneShotRun) return { waitMs: 0, reason: 'One-Shot-Run (push)' };
+  if (opts.windowOpen) return { waitMs: 0, reason: 'Live-Fenster ist bereits offen' };
   if (!Number.isFinite(windowStartMs)) {
     return { waitMs: 0, reason: 'kein kommendes Live-Fenster im Kalender' };
   }
@@ -161,6 +214,7 @@ async function main() {
   const tournament = APP_CONFIG.tournaments[tournamentKey];
 
   const leadMin = envInt('LIVE_WINDOW_LEAD_MIN', DEFAULT_LEAD_MIN);
+  const tailMin = envInt('LIVE_WINDOW_TAIL_MIN', DEFAULT_TAIL_MIN);
   const maxWaitMin = envInt('LIVE_WINDOW_MAX_WAIT_MIN', DEFAULT_MAX_WAIT_MIN);
   const forceRun = envBool('FORCE_RUN', false);
   const trigger = String(process.env.GITHUB_EVENT_NAME || '').toLowerCase();
@@ -173,12 +227,20 @@ async function main() {
 
   const now = Date.now();
   const windowStartMs = nextWindowStartMs(tournament, now, leadMin);
+  const openUntilMs = openWindowEndMs(tournament, now, leadMin, tailMin);
   logInfo(
     `Turnier ${tournament.shortLabel || tournamentKey}, Trigger "${trigger || 'lokal'}", ` +
     `Vorlauf ${leadMin} min, Wartebudget ${maxWaitMin} min.`
   );
 
-  const plan = planWait({ now, windowStartMs, maxWaitMin, forceRun, oneShotRun });
+  const plan = planWait({
+    now,
+    windowStartMs,
+    maxWaitMin,
+    forceRun,
+    oneShotRun,
+    windowOpen: openUntilMs != null
+  });
   if (plan.waitMs <= 0) {
     logInfo(`Kein Warten: ${plan.reason}. Upload-Job startet sofort.`);
     return;
@@ -194,9 +256,12 @@ async function main() {
 
 module.exports = {
   DEFAULT_LEAD_MIN,
+  DEFAULT_TAIL_MIN,
   DEFAULT_MAX_WAIT_MIN,
+  matchDaysMs,
   kickoffTimesMs,
   nextWindowStartMs,
+  openWindowEndMs,
   planWait
 };
 
