@@ -20,9 +20,11 @@
 const APP_CONFIG = require('../tournament-config.js');
 const {
   DEFAULT_LEAD_MIN,
+  DEFAULT_TAIL_MIN,
   DEFAULT_MAX_WAIT_MIN,
   kickoffTimesMs,
   nextWindowStartMs,
+  openWindowEndMs,
   planWait
 } = require('./live-window-wait.js');
 
@@ -71,6 +73,49 @@ check('Waehrend des Spiels zeigt das naechste Fenster auf den Folgetag',
 check('Nach dem letzten Anpfiff gibt es kein Fenster mehr',
   nextWindowStartMs(cl, Date.parse('2027-07-01T00:00:00Z'), DEFAULT_LEAD_MIN) === null);
 
+/* Vorfall 13.10.2026: Der Kalender kannte fuer Spieltag 2 nur 21:00. Ein
+ * Takt um 16:26 UTC wartete bis 18:30 UTC, waehrend die beiden 18:45-Spiele
+ * (16:45 UTC) schon liefen – kein Live-Spielstand. */
+check('Fenster-Nachlauf entspricht dem Final-Recheck (240 min)', DEFAULT_TAIL_MIN === 240);
+
+const md2Morning = Date.parse('2026-10-13T09:02:00Z');
+check('Spieltag 2 oeffnet zum 18:45-Anstoss, nicht erst zum 21:00-Anstoss',
+  new Date(nextWindowStartMs(cl, md2Morning, DEFAULT_LEAD_MIN)).toISOString()
+    === '2026-10-13T16:15:00.000Z',
+  new Date(nextWindowStartMs(cl, md2Morning, DEFAULT_LEAD_MIN)).toISOString());
+
+function decide(iso) {
+  const at = Date.parse(iso);
+  return planWait({
+    now: at,
+    windowStartMs: nextWindowStartMs(cl, at, DEFAULT_LEAD_MIN),
+    maxWaitMin: DEFAULT_MAX_WAIT_MIN,
+    windowOpen: openWindowEndMs(cl, at, DEFAULT_LEAD_MIN, DEFAULT_TAIL_MIN) != null
+  });
+}
+
+check('Der Takt vom 13.10. um 16:26 UTC startet sofort',
+  decide('2026-10-13T16:26:55Z').waitMs === 0, decide('2026-10-13T16:26:55Z').reason);
+check('Zwischen 18:45- und 21:00-Anstoss wird nicht gewartet',
+  decide('2026-10-13T18:00:00Z').waitMs === 0, decide('2026-10-13T18:00:00Z').reason);
+check('Waehrend der 21:00-Spiele wird nicht gewartet',
+  decide('2026-10-13T20:30:00Z').waitMs === 0, decide('2026-10-13T20:30:00Z').reason);
+check('Das Fenster bleibt bis zum Final-Recheck des 21:00-Anstosses offen',
+  openWindowEndMs(cl, Date.parse('2026-10-13T22:59:00Z'), DEFAULT_LEAD_MIN, DEFAULT_TAIL_MIN)
+    === Date.parse('2026-10-13T23:00:00Z'));
+check('Nach dem Final-Recheck ist das Fenster zu',
+  openWindowEndMs(cl, Date.parse('2026-10-13T23:01:00Z'), DEFAULT_LEAD_MIN, DEFAULT_TAIL_MIN) === null);
+check('Ein Takt am Spieltagmorgen wartet weiterhin bis zur Fensteroeffnung',
+  decide('2026-10-13T13:00:00Z').waitMs === 195 * MIN, `${decide('2026-10-13T13:00:00Z').waitMs / MIN} min`);
+
+/* Die UEFA setzt an diesen Abenden zwei Spiele um 18:45 an. */
+cl.matchCalendar
+  .filter(entry => /^League Stage - [2-7]$/.test(entry.round) || /^Round of (32|16)$/.test(entry.round))
+  .forEach(entry => {
+    check(`${entry.label} fuehrt den fruehen Anstoss 18:45`, entry.earliestKickoff === '18:45',
+      String(entry.earliestKickoff));
+  });
+
 /* ─────────────────────────────────────────────────────────────────────────────
  *  2) Warte-Entscheidung
  * ───────────────────────────────────────────────────────────────────────────── */
@@ -89,6 +134,8 @@ check('Push-Runs warten nie',
 
 check('Ein offenes Fenster wird nicht beblockt',
   planWait({ ...base, now: Date.parse('2026-09-08T16:45:00Z') }).waitMs === 0);
+check('Ein als offen gemeldetes Fenster gibt sofort frei, auch wenn das naechste im Budget liegt',
+  planWait({ ...base, windowOpen: true }).waitMs === 0);
 
 /* Der Fall vom 08.09.2026: GitHub lieferte erst um 18:29 UTC einen Takt.
  * Dieser Run darf keine Sekunde warten, sondern muss die laufenden Spiele

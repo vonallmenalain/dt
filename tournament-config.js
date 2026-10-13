@@ -162,19 +162,27 @@ const APP_CONFIG = (() => {
     // Spieltag 1 steht auf 18:45: der Termin trägt zugleich DREAMTEAM_START
     // (Team-Bau-Deadline/Reveal), und dort zählt der FRÜHESTMÖGLICHE
     // Anstoss des ersten Abends – Begründung beim cl2627-Block.
+    //
+    // `kickoff` ist der Hauptanstoss des Abends. `earliestKickoff` nennt den
+    // frühen Anstoss, den die UEFA an diesen Abenden zusätzlich ansetzt
+    // (zwei Spiele um 18:45). Den braucht der Vorlauf-Job des Punkte-
+    // Workflows (scripts/live-window-wait.js): er gibt den Upload-Job zur
+    // Öffnung des FRÜHESTEN Live-Fensters frei. Am 13.10.2026 stand hier
+    // nur 21:00 – der Vorlauf wartete bis 20:30 und verschlief die beiden
+    // 18:45-Spiele (Lens–Sporting, Sabah–Slavia) komplett.
     { round: "League Stage - 1", label: "Spieltag 1", dates: ["2026-09-08", "2026-09-09", "2026-09-10"], kickoff: "18:45", offset: "+02:00" },
-    { round: "League Stage - 2", label: "Spieltag 2", dates: ["2026-10-13", "2026-10-14"], kickoff: "21:00", offset: "+02:00" },
-    { round: "League Stage - 3", label: "Spieltag 3", dates: ["2026-10-20", "2026-10-21"], kickoff: "21:00", offset: "+02:00" },
-    { round: "League Stage - 4", label: "Spieltag 4", dates: ["2026-11-03", "2026-11-04"], kickoff: "21:00", offset: "+01:00" },
-    { round: "League Stage - 5", label: "Spieltag 5", dates: ["2026-11-24", "2026-11-25"], kickoff: "21:00", offset: "+01:00" },
-    { round: "League Stage - 6", label: "Spieltag 6", dates: ["2026-12-08", "2026-12-09"], kickoff: "21:00", offset: "+01:00" },
-    { round: "League Stage - 7", label: "Spieltag 7", dates: ["2027-01-19", "2027-01-20"], kickoff: "21:00", offset: "+01:00" },
+    { round: "League Stage - 2", label: "Spieltag 2", dates: ["2026-10-13", "2026-10-14"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+02:00" },
+    { round: "League Stage - 3", label: "Spieltag 3", dates: ["2026-10-20", "2026-10-21"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+02:00" },
+    { round: "League Stage - 4", label: "Spieltag 4", dates: ["2026-11-03", "2026-11-04"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
+    { round: "League Stage - 5", label: "Spieltag 5", dates: ["2026-11-24", "2026-11-25"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
+    { round: "League Stage - 6", label: "Spieltag 6", dates: ["2026-12-08", "2026-12-09"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
+    { round: "League Stage - 7", label: "Spieltag 7", dates: ["2027-01-19", "2027-01-20"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
     // Spieltag 8 wird traditionell zeitgleich angepfiffen.
     { round: "League Stage - 8", label: "Spieltag 8", dates: ["2027-01-27"], kickoff: "21:00", offset: "+01:00" },
-    { round: "Round of 32", label: "K.-o.-Playoffs, Hinspiele", dates: ["2027-02-16", "2027-02-17"], kickoff: "21:00", offset: "+01:00" },
-    { round: "Round of 32", label: "K.-o.-Playoffs, Rückspiele", dates: ["2027-02-23", "2027-02-24"], kickoff: "21:00", offset: "+01:00" },
-    { round: "Round of 16", label: "Achtelfinale, Hinspiele", dates: ["2027-03-09", "2027-03-10"], kickoff: "21:00", offset: "+01:00" },
-    { round: "Round of 16", label: "Achtelfinale, Rückspiele", dates: ["2027-03-16", "2027-03-17"], kickoff: "21:00", offset: "+01:00" },
+    { round: "Round of 32", label: "K.-o.-Playoffs, Hinspiele", dates: ["2027-02-16", "2027-02-17"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
+    { round: "Round of 32", label: "K.-o.-Playoffs, Rückspiele", dates: ["2027-02-23", "2027-02-24"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
+    { round: "Round of 16", label: "Achtelfinale, Hinspiele", dates: ["2027-03-09", "2027-03-10"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
+    { round: "Round of 16", label: "Achtelfinale, Rückspiele", dates: ["2027-03-16", "2027-03-17"], kickoff: "21:00", earliestKickoff: "18:45", offset: "+01:00" },
     { round: "Quarter-finals", label: "Viertelfinale, Hinspiele", dates: ["2027-04-06", "2027-04-07"], kickoff: "21:00", offset: "+02:00" },
     { round: "Quarter-finals", label: "Viertelfinale, Rückspiele", dates: ["2027-04-13", "2027-04-14"], kickoff: "21:00", offset: "+02:00" },
     { round: "Semi-finals", label: "Halbfinale, Hinspiele", dates: ["2027-04-27", "2027-04-28"], kickoff: "21:00", offset: "+02:00" },
